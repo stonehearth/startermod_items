@@ -67,6 +67,7 @@ function ChaseEntity:_trace_target_location()
          local found_path = self:_try_recalculate_path()
          if found_path then
             -- restart the mover using the new path
+            log:debug('Restarting mover for %s', self._entity)
             self:_destroy_mover()
             self._ai:resume()
          end
@@ -77,6 +78,7 @@ function ChaseEntity:_trace_target_location()
       -- no guarantee that stop will be called on abort, call if explicitly
       local ai = self._ai
       self:stop()
+      log:debug('Target destroyed')
       ai:abort('Target destroyed')
    end
 
@@ -111,19 +113,21 @@ function ChaseEntity:_search_for_new_path(entity, target, target_location_histor
       -- check for a direct path to the prior locations (most recent first)
       num_locations = #target_location_history
 
-      -- if num_locations is too large, we could downsample the locations
-      for i = num_locations, 1, -1 do
-         location = target_location_history[i]
-         path = self:_get_direct_path(entity, location)
+      if num_locations > 0 then
+         -- if num_locations is too large, we could downsample the locations
+         for i = num_locations, 1, -1 do
+            location = target_location_history[i]
+            path = self:_get_direct_path(entity, location)
 
-         if path ~= nil then
-            -- why doesn't a for loop work here?
-            n = i + 1
-            while n <= num_locations do
-               table.insert(unused_points, target_location_history[n])
-               n = n + 1
+            if path ~= nil then
+               -- why doesn't a for loop work here?
+               n = i + 1
+               while n <= num_locations do
+                  table.insert(unused_points, target_location_history[n])
+                  n = n + 1
+               end
+               break
             end
-            break
          end
       end
    end
@@ -235,16 +239,23 @@ function ChaseEntity:run(ai, entity, args)
                   -- path was complete and mover finished. yay!
                   finished = true
                end
+               log:debug('mover stopped for %s', self._entity)
                ai:resume('mover stopped')
             end)
          :set_aborted_cb(function()
-               log:detail('mover aborted (path may no longer be traversable)')
+               log:debug('mover aborted for %s (path may no longer be traversable)', self._entity)
                ai:abort('mover aborted')
             end)
 
-      log:debug('starting mover');
+      log:debug('starting mover for %s', self._entity);
       self._mover:start()
-      ai:suspend('waiting for mover to stop')
+
+      -- don't suspend the thread if the mover finished immediately (we arrived before starting)
+      if not finished then
+         log:detail('suspending ai while waiting for mover to stop for %s', self._entity)
+         ai:suspend('waiting for mover to stop')
+         log:detail('ai resumed for %s', self._entity)
+      end
    end
 end
 

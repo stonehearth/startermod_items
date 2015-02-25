@@ -9,7 +9,14 @@ $(document).ready(function(){
             element = $(jqselector)[0];
             if (element) {
                console.log('clicking', element);
-               element.click();
+
+               // element.click() doesn't work for svg elements, so fake a mouse event
+               $(element).each(function (i, e) {
+                  var evt = document.createEvent("MouseEvents");
+                  evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+
+                  e.dispatchEvent(evt);
+               });
                finishCommand();
             } else {
                console.error('could not find element to click! ' + jqselector);

@@ -14,7 +14,8 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       this.views = {
          initial: [
             "StonehearthEventLogView",
-            "StonehearthCalendarView"
+            "StonehearthCalendarView",
+            "StonehearthVersionView",
             ],
          complete: [
             'StonehearthStartMenuView',

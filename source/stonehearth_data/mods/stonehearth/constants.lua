@@ -185,7 +185,8 @@ local constants = {
 
    sleep = {
       BEDTIME_START = 1,
-      EXHAUSTION = 24, 
+      TIRED = 22,          -- will try to sleep in a bed
+      EXHAUSTION = 24,     -- will collapse on the ground
       MAX_SLEEPINESS = 25, 
       HOURLY_SLEEPINESS = 1, 
       MIN_SLEEPINESS = 0

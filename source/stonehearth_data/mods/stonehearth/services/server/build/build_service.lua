@@ -340,7 +340,8 @@ function BuildService:erase_floor(session, box)
 
    -- look for floor that we can merge into.
    local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
-         return build_util.is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
+         local entity_type = self:_get_structure_type(entity)
+         return build_util.is_blueprint(entity) and (entity_type == 'floor' or entity_type == 'slab')
       end)
 
    for _, floor in pairs(all_overlapping_floor) do

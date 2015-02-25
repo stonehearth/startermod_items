@@ -48,7 +48,7 @@ end
 -- check if we should be going to sleep or setting wakeup state
 function SleepinessObserver:_on_sleepiness_changed()
    local sleepiness = self._attributes_component:get_attribute('sleepiness')
-   if sleepiness >= stonehearth.constants.sleep.EXHAUSTION then
+   if sleepiness >= stonehearth.constants.sleep.TIRED then
       --Chances are this is already started, but if for some reason it isn't, start it
       self:_start_sleep_task()
    elseif sleepiness <= stonehearth.constants.sleep.MIN_SLEEPINESS then

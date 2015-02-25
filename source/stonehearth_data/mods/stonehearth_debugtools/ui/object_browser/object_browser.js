@@ -57,6 +57,10 @@ App.StonehearthObjectBrowserView = App.View.extend({
          var uri = $(this).attr('href');
 
          event.preventDefault();
+
+         self.trackSelected = false;
+         self._updateTrackSelectedControl();
+
          if (event.shiftKey) {
             App.debugView.addView(App.StonehearthObjectBrowserView, {
                   uri: uri,
@@ -83,6 +87,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
    },
 
    fetch: function(uri) {
+      console.log('fetching uri ', uri)
       this.history.push(uri);
       this.set('uri', uri);
    },
@@ -121,6 +126,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
       if (self.trackSelected) {
          var selected = App.stonehearthClient.getSelectedEntity();
          if (selected) {
+            console.log('track selected changing uri to ', selected)
             self.set('uri', selected)
          }
          this.$("#trackSelected").addClass('depressed');
@@ -141,6 +147,22 @@ App.StonehearthObjectBrowserView = App.View.extend({
          this.$('#body').show();
       }
    },
+
+   raw_view: function() {
+      var model = this.get('model');
+
+      if (!model) {
+         return '';
+      }
+      var json = JSON.stringify(model, undefined, 2);
+      return json.replace(/&/g, '&amp;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;')
+                 .replace(/ /g, '&nbsp;')
+                 .replace(/\n/g, '<br>')
+                 .replace(/"(object:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
+                 //.replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
+   }.property('model'),
 
    actions: {
       goBack: function() {
@@ -182,6 +204,8 @@ App.StonehearthObjectBrowserRawView = App.View.extend({
 
    raw_view: function() {
       var model = this.get('model');
+
+      console.log('translating model for ', this.get('uri'));
 
       if (!model) {
          return '';

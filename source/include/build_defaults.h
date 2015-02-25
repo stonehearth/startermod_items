@@ -21,11 +21,11 @@
 #define PRODUCT_MAJOR_VERSION       1
 #define PRODUCT_MINOR_VERSION       2
 #define PRODUCT_PATCH_VERSION       3
-#define PRODUCT_BUILD_NUMBER        45678
-#define PRODUCT_REVISION            "#revision#"
-#define PRODUCT_BRANCH              "#branch#"
+#define PRODUCT_BUILD_NUMBER        42
+#define PRODUCT_REVISION            "internal"
+#define PRODUCT_BRANCH              "branch"
 #define PRODUCT_VERSION_STR         "1.2.3"
-#define PRODUCT_FILE_VERSION_STR    "1.2.3.45679"
+#define PRODUCT_FILE_VERSION_STR    "1.2.3.42"
 
 
 /* These route to the Stonehearth Dev bucket in Game Analytics.  Do not change
