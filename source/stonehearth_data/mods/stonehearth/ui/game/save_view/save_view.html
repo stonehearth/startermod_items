@@ -2,7 +2,6 @@
    <div id="saveView" class="gui">
       <div class="window">
          <div class="title">Save Game</div>
-
          <div id="saves">
             {{view stonehearthSaveList}}
          </div>
@@ -18,29 +17,40 @@
    <div id="loadView" class="gui">
       <div class="window">
          <div class="title">Load Game</div>
-
          <div id="saves">
          {{ view stonehearthSaveList }}
          </div>
          <a href="#" {{action loadGame target="view"}}><button id="loadButton">{{i18n stonehearth:load_game}}</button></a>
-      </div>
-     
+      </div>     
    </div>
 </script>
 
 <script type="text/x-handlebars" data-template-name="saveList">
+   <div id="savelist_screenshot">
+      <img {{bind-attr src=view.currentScreenshot}} />
+   </div>
    <div class="saveList list">
       {{#each view.saves}}
-         <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key}} >
-            <div class="screenshot">
-               <img {{bind-attr src=this.screenshot}} />
-            </div>
+         <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key }} >
             <div class="gameInfo">
                <div class="name">{{this.gameinfo.town_name}}</div>
-               <div class="gameTime">{{this.gameinfo.game_date}}</div>
-               <div class="time">{{this.gameinfo.game_time}}</div>
+               <div class="gameTime">{{this.gameinfo.game_date}}, {{this.gameinfo.game_time}}</div>
+               <div class="time">Saved {{this.gameinfo.time}}</div>
                {{#if differentVersions}}
                   <div class="differentVersionText">{{i18n stonehearth:game_different_version}}</div>
+               {{/if}}
+               {{#if this.gameinfo.jobs}}
+                  <div id="jobs">
+                     <div id="soldiers" class="counter">
+                        <div>{{this.gameinfo.jobs.soldiers}}</div>
+                     </div>                     
+                     <div id="crafters" class="counter">
+                        <div>{{this.gameinfo.jobs.crafters}}</div>
+                     </div>
+                     <div id="workers" class="counter">
+                        <div>{{this.gameinfo.jobs.workers}}</div>
+                     </div>
+                  </div>
                {{/if}}
             </div>
          </div>

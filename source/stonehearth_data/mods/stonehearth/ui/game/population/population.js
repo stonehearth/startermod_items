@@ -24,12 +24,28 @@ var StonehearthPopulation;
       init: function(initCompletedDeferred) {
          var self = this;
          this._initCompleteDeferred = initCompletedDeferred;
+         self._numWorkers = 0;
+         self._numCrafters = 0;
+         self._numSoldiers = 0;
 
          radiant.call('stonehearth:get_population')
             .done(function(response){
                self._populationUri = response.population;
                self._initCompleteDeferred.resolve();
+               self._createGetterTrace();
             });
+      },
+
+      getNumWorkers: function() {
+         return this._numWorkers;
+      },
+
+      getNumCrafters: function() {
+         return this._numCrafters;
+      },
+
+      getNumSoldiers: function() {
+         return this._numSoldiers;
       },
 
       getUri: function() {
@@ -42,6 +58,32 @@ var StonehearthPopulation;
 
       getTrace: function() {
          return new StonehearthPopulationTrace();
+      },
+
+      // easy, instant access to some commonly used variables (e.g. when we need to save a game).
+      // NOT useful for implementing a reactive ui!  make your own trace for that!!
+      _createGetterTrace: function() {
+         var self = this;
+         self._getterTrace = self.getTrace()
+            .progress(function(pop) {
+               self._numWorkers = 0;
+               self._numCrafters = 0;
+               self._numSoldiers = 0;
+
+               radiant.each(pop.citizens, function(k, citizen) {
+                  if (!citizen['stonehearth:job']) {
+                     return;
+                  }
+                  var roles = citizen['stonehearth:job']['job_uri']['roles'];
+                  if (roles && roles.indexOf('crafter') > -1) {
+                     self._numCrafters++;
+                  } else if (roles && roles.indexOf('combat') > -1) {
+                     self._numSoldiers++;
+                  } else {
+                     self._numWorkers++;
+                  }
+               });
+            });
       }
    });
 

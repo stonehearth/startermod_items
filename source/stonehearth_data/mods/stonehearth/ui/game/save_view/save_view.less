@@ -6,10 +6,6 @@
       margin-top: 10px;
       margin-bottom: 10px;
    }
-
-   #createSaveButton {
-      
-   }
 }
 
 #loadView {
@@ -20,17 +16,35 @@
       margin-top: 10px;
       margin-bottom: 10px;
    }
+}
+
+#savelist_screenshot {
+   float: left;
+   width: 600px;
+   height: 360px;
+
+   background: black;
+   border: 2px solid #000;
+
+   img {
+      width: 600px;
+      height: auto;
+   }
+}
+
+.saveList {
+   #saves {
+      margin-top: 10px;
+      margin-bottom: 10px;
+   }
 
    #loadButton {
       width: 100%;
    }
-}
 
-
-.saveList {
    overflow-y: scroll;
    width: 400px;
-   height: 360;
+   height: 360px;
    max-height: 360px;
 
    table {
@@ -52,32 +66,12 @@
 
    .saveSlot {
       .handCursor;
+      height: 90px;
       position: relative;
-      height: 120px;
       vertical-align: top;
-      
-      .screenshot {
-         position: absolute;
-         top: 10px;
-         left: 10px;
-         width: 150px;
-         height: auto;
-         display: inline-block;
-         background: black;
-         border: 2px solid #000;
-
-         img {
-            width: 150px;
-            height: auto;
-            height: auto;
-         }
-      }
-
+      padding-left: 8px;
+      padding-top: 2px;
       .gameInfo {
-         position: absolute;
-         top: 10px;
-         left: 170px;
-
          div {
             padding-bottom: 4px;
          }
@@ -85,6 +79,45 @@
          .name {
             .controlFont;
          }
+         .time {
+            color: #aaa;
+         }
+
+         #jobs {
+            position: absolute;
+            top: 0px;
+            right: 6px;
+            width: 160px;
+
+            .counter {
+               float: right;
+               width: 32px;
+               height: 32px;
+               display: flex;
+
+               div {
+                  font-family: @controlFontFamily;
+                  font-size: 18px;
+                  margin-left: 12px;
+                  margin-top: 8px;
+               }
+            }
+
+            #workers {
+               background: url(../town/images/worker_count_bg.png);
+               background-size: cover;
+            }
+
+            #crafters {
+               background: url(../town/images/crafter_count_bg.png);
+               background-size: cover;
+            }
+
+            #soldiers {
+               background: url(../town/images/soldier_count_bg.png);
+               background-size: cover;
+            }
+         }         
       }
    }
 }
