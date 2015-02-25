@@ -41,7 +41,7 @@
          {
             "name" : "combat_1h_shield_block",
             "active_frame" : 4,
-            "cooldown" : 8000,
+            "cooldown" : 10000,
             "priority" : 0
          }
       ],

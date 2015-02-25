@@ -6,13 +6,13 @@
          "default": {
             "layer": "clothing",
             "models": [
-               "file(thief_outfit.qb)"
+               "file(maurauder_outfit.qb)"
             ]
          },
          "female" : {
             "layer": "clothing",
             "models": [
-               "file(thief_outfit.qb)"
+               "file(maurauder_outfit.qb)"
             ]
          }
       },
@@ -22,7 +22,7 @@
    },
    "entity_data" : {
       "stonehearth:combat:armor_data" : {
-         "base_damage_reduction" : 0
+         "base_damage_reduction" : 7
       }
    }   
 }

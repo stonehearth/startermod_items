@@ -199,6 +199,7 @@
       "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
       "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
+      "monsters:goblins:outfits:maurauder" : "file(entities/monsters/goblins/outfits/maurauder_outfit)",
       "monsters:goblins:outfits:footman" : "file(entities/monsters/goblins/outfits/footman_outfit)",
       "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
       "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
@@ -390,6 +391,7 @@
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
       "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
       "weapons:giant_bone_axe" : "file(entities/weapons/giant_bone_axe)",
+      "weapons:dagger" : "file(entities/weapons/dagger)",
 
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "ball" : "file(entities/toys/ball)",

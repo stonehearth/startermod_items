@@ -2,40 +2,40 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "item" : {
+      "item": {
          "category" : "weapons"
-      },    
-       "model_variants": {
+      },
+      "model_variants": {
          "default" : {
             "models": [
-               "file(iron_mace_equipped.qb)"
+               "file(dagger_equipped.qb)"
             ]
          }
       },
       "stonehearth:entity_forms" : {
-         "iconic_form" : "file(iron_mace_iconic.json)"
+         "iconic_form" : "file(dagger_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
          "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
-         "ilevel" : 6,
+         "ilevel" : 7,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
       },
 
       "unit_info": {
-         "name": "Iron Mace",
-         "description": "Heavy, it packs a whallop.",
-         "icon" : "file(iron_mace.png)"
+         "name": "Dagger",
+         "description": "Pointy. Dangerous.",
+         "icon" : "file(dagger.png)"
       },
       "stonehearth:material" : {
-         "tags" : "iron melee_weapon"
+         "tags" : "short melee_weapon"
       }
    },
    "entity_data" : {
       "stonehearth:combat:weapon_data" : {
-         "base_damage" : 20,
+         "base_damage" : 18,
          "reach" : 1.5
       },
       "stonehearth:combat:melee_attacks" : [
@@ -47,7 +47,7 @@
          }      
       ],
       "stonehearth:net_worth" : {
-         "value_in_gold" : 55,
+         "value_in_gold" : 75,
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   
@@ -55,6 +55,6 @@
             "shopkeeper_level" : 1,
             "shopkeeper_type" : "caravan"
          }
-      }
+      }      
    }
 }

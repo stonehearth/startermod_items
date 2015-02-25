@@ -114,10 +114,6 @@
          "courage": {
             "type" : "basic",
             "value" : 20
-         }, 
-         "exp_per_hit": {
-            "type" : "basic",
-            "value" : 50
          }
       },
       "stonehearth:carry_block": {
