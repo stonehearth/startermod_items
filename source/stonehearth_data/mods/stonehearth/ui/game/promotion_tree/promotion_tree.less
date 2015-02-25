@@ -1,31 +1,62 @@
 #promotionTree {
    margin: auto;
+   margin-top: 10px;
 
    .window {
       position: relative;
       margin: auto;
-      width: 1310px;
-      height: 870px;
+      width: 1800px;
+      height: 920px;
    }
  
+   svg {
+      
+   }
+
    #content {
       position: absolute;
       top: 70px;
       left: 0px;
-      width: 815px;
+      width: 1300px;
       height: 640px;
+      overflow: auto;
+
+      .node {
+         .control;
+         background: red;
+         color: #fff;
+         background-image: url(images/jobButtonUnavailable.png);
+
+         image {
+            content: url(images/jobButton.png);
+         }
+      }
+
+      .node image {
+         
+      }
+
+     .node image.selected {
+         opacity: 1.0;
+      }
+
+     .link {
+       fill: none;
+       stroke: #fff;
+       stroke-width: 4px;
+     }
+
 
       .jobButton {
-         //.button; 
          .control;
          width: 74px;
          height: 74px;
-         background-image: url(images/jobButtonUnavailable.png);   
+         background-image: url(images/jobButtonUnavailable.png);
+         margin: 0px 16px 0px 16px;
          
          img {
             -webkit-filter: ~"saturate(20%)"; 
          }
-
       }
 
       .available {
