@@ -129,6 +129,7 @@ App.StonehearthPromotionTree = App.View.extend({
           .data(nodes)
           .enter()
           .append("g")
+          .attr('id', function(d) { return d.alias })
           .attr('class', 'node')
           .on("click", function(d) {
             self._updateUi(d.alias);
@@ -147,8 +148,7 @@ App.StonehearthPromotionTree = App.View.extend({
       node.append('image')
          //.attr('xlink:href', 'images/jobButton.png')
          //.attr('xlink:href', '/stonehearth/ui/game/promotion_tree/images/jobButton.png')
-         .attr('xlink:href', function(d) { 
-            return d.icon })
+         .attr('xlink:href', function(d) { return d.icon })
          .attr("x", function(d) { return d.x - 37; })
          .attr("y", function(d) { return height - d.y - 37; })
          .attr('width', 74)

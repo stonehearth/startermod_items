@@ -1,3 +1,5 @@
+local entity_forms = require 'stonehearth.lib.entity_forms.entity_forms_lib'
+
 local promote_tests = {}
 
 -- call to promote a unit.  the cb will be called the moment the promotion
