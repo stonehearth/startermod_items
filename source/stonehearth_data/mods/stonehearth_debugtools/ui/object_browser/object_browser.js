@@ -106,7 +106,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
          this.$('#body').show();
       }
    },
-   
+
    _updateTrackSelectedControl : function() {
       var self = this;
       if (self.trackSelected) {
@@ -238,7 +238,10 @@ App.StonehearthObjectBrowserEncounterView = App.View.extend({
    encounterSubViewClass: function() {
       var known_types = {
          'stonehearth:game_master:encounters:generator' :            'stonehearthObjectBrowserGeneratorEncounter',
+         'stonehearth:game_master:encounters:wait' :                 'stonehearthObjectBrowserWaitEncounter',
          'stonehearth:game_master:encounters:wait_for_net_worth' :   'stonehearthObjectBrowserWaitForNetWorthEncounter',
+         'stonehearth:game_master:encounters:wait_for_time_of_day' : 'stonehearthObjectBrowserWaitForTimeOfDayEncounter',
+         'stonehearth:game_master:encounters:collection_quest' :     'stonehearthObjectBrowserCollectionQuestEncounter',
       }
 
       var type = this.get('model.script.__controller');
@@ -306,6 +309,14 @@ App.StonehearthObjectBrowserBaseView = App.View.extend({
 App.StonehearthObjectBrowserRawEncounterView = App.StonehearthObjectBrowserBaseView.extend({
 });
 
+App.StonehearthObjectBrowserWaitEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   actions: {
+      triggerNow: function() {
+         this._call_encounter('trigger_now_cmd');
+      },
+   }
+});
+
 App.StonehearthObjectBrowserGeneratorEncounterView = App.StonehearthObjectBrowserBaseView.extend({
    actions: {
       triggerNow: function() {
@@ -319,6 +330,24 @@ App.StonehearthObjectBrowserWaitForNetWorthEncounterView = App.StonehearthObject
    actions: {
       triggerNow: function() {
          this._call_encounter('trigger_now_cmd');
+      },
+   }
+});
+
+App.StonehearthObjectBrowserWaitForTimeOfDayEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   pollRate: 500,
+   actions: {
+      triggerNow: function() {
+         this._call_encounter('trigger_now_cmd');
+      },
+   }
+});
+
+App.StonehearthObjectBrowserCollectionQuestEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   pollRate: 500,
+   actions: {
+      forceReturnNow: function() {
+         this._call_encounter('force_return_now_cmd');
       },
    }
 });

@@ -6,6 +6,6 @@
    "out_edge" : "nighttime_city_raid",
 
    "wait_for_time_of_day_info" :  {
-      "time" : "10:00+1h30m"
+      "time" : "22:00+1h30m"
    }
 }

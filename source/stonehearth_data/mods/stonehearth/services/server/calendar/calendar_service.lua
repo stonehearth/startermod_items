@@ -60,8 +60,23 @@ end
 -- Returns the remaining time based on the period passed in 'm' for minute, 'h' for hour, 'd' for day, 
 -- otherwise, returns period in seconds
 --
-function CalendarService:get_remaining_time(timer, period)
-   local seconds_remaining = timer:get_expire_time() - self:get_elapsed_time()
+function CalendarService:get_remaining_time(timer, period)   
+   local seconds_remaining
+
+   if radiant.util.is_a(timer, CalendarAlarm) then
+      local alarm = timer
+      local expires = alarm:get_expire_time()
+      local now = self._sv.seconds_today
+      
+      if expires > now then
+         seconds_remaining = expires - now
+      else
+         seconds_remaining = expires + TIME_DURATIONS.day - now
+      end
+   else 
+      seconds_remaining = timer:get_expire_time() - self:get_elapsed_time()
+   end
+
    if period then
       if period == 'm' then
          return seconds_remaining / 60
@@ -72,6 +87,21 @@ function CalendarService:get_remaining_time(timer, period)
       end
    end
    return seconds_remaining 
+end
+
+function CalendarService:format_remaining_time(timer)
+   local seconds_remaining = self:get_remaining_time(timer);
+   local result = ''
+   
+   local values = {}
+   for _, v in ipairs({'day', 'hour', 'minute', 'second'}) do
+      if seconds_remaining > TIME_DURATIONS[v] then
+         local count = math.floor(seconds_remaining / TIME_DURATIONS[v])
+         seconds_remaining = seconds_remaining - (count * TIME_DURATIONS[v])
+         table.insert(values, string.format('%02d', count))
+      end
+   end
+   return table.concat(values, ':')
 end
 
 -- returns the number of game seconds that have passed

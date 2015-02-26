@@ -69,15 +69,64 @@
    </ul>
 </script>
 
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserWaitForTimeOfDayEncounter">
+   <div class='subtitle'> Wait For Time Of Day </div>  
+   <table>
+      <tr><td>Alarm Time</td><td>{{ view.progress.alarm_time }}</td></tr>
+      <tr><td>Current Time</td><td>{{ view.progress.current_time }}</td></tr>
+      {{#if view.progress.time_left }}
+         <tr><td>Time Remaining</td><td>{{ view.progress.time_left }}</td></tr>
+      {{/if}}
+   </table>
+
+   {{#if view.progress.time_left}}
+      <ul class="menu">
+         <li><i class="fa fa-bolt fa-fw fa-lg"></i><a href="#" {{action "triggerNow" target="view"}}> Trigger Now </a></li>
+      </ul>
+   {{/if}}
+</script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserWaitEncounter">
+   <div class='subtitle'> Wait </div>  
+   <table>
+      {{#if view.progress.time_left }}
+         <tr><td>Time left: </td><td>{{ view.progress.time_left }}</td></tr>
+      {{/if}}
+   </table>
+
+   <ul class="menu">
+      {{#if view.progress.time_left }}
+         <li><i class="fa fa-bolt fa-fw fa-lg"></i><a href="#" {{action "triggerNow" target="view"}}> Trigger Now </a></li>
+      {{/if}}
+   </ul>
+</script>
 
 <script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserGeneratorEncounter">
-   <div class="menu-button">
-      <i class="fa fa-caret-square-o-down fa-fw fa-lg"></i>
-      <div class="menu">
-         <a href="#" {{action "triggerNow" target="view"}} class="menu-item">
-            <i class="fa fa-bolt fa-fw fa-lg"></i> Trigger Now
-         </a>
-      </div>
-   </div>
-   Geneartor!! <br>
+   <div class='subtitle'> Generator </div>  
+   <table>
+      {{#if view.progress.next_spawn_time }}
+         <tr><td>Next Spawn: </td><td>{{ view.progress.next_spawn_time }}</td></tr>
+      {{/if}}
+   </table>
+
+   <ul class="menu">
+      <li><i class="fa fa-bolt fa-fw fa-lg"></i><a href="#" {{action "triggerNow" target="view"}}> Trigger Now </a></li>
+   </ul>
+
 </script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserCollectionQuestEncounter">
+   <div class='subtitle'> Collection Quest </div>  
+   <table>
+      {{#if view.progress.time_left }}
+         <tr><td>Time Left: </td><td>{{ view.progress.time_left }}</td></tr>
+      {{/if}}
+   </table>
+
+   <ul class="menu">
+      {{#if view.progress.time_left }}
+         <li><i class="fa fa-bolt fa-fw fa-lg"></i><a href="#" {{action "forceReturnNow" target="view"}}> Force Return Now </a></li>
+      {{/if}}
+   </ul>
+</script>
+
