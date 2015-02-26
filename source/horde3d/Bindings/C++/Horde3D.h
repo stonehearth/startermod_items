@@ -79,9 +79,6 @@ struct H3DOptions
 	/* Enum: H3DOptions
 			The available engine option parameters.
 		
-		MaxLogLevel         - Defines the maximum log level; only messages which are smaller or equal to this value
-		                      (hence more important) are published in the message queue. (Default: 4)
-		MaxNumMessages      - Defines the maximum number of messages that can be stored in the message queue (Default: 512)
 		TrilinearFiltering  - Enables or disables trilinear filtering for textures. (Values: 0, 1; Default: 1)
 		MaxAnisotropy       - Sets the maximum quality for anisotropic filtering. (Values: 1, 2, 4, 8; Default: 1)
 		TexCompression      - Enables or disables texture compression; only affects textures that are
@@ -103,9 +100,7 @@ struct H3DOptions
 	*/
 	enum List
 	{
-		MaxLogLevel = 1,
-		MaxNumMessages,
-		TrilinearFiltering,
+		TrilinearFiltering = 1,
 		MaxAnisotropy,
 		TexCompression,
 		SRGBLinearization,
@@ -806,7 +801,7 @@ DLL bool h3dGetError();
 	Returns:
 		true in case of success, otherwise false
 */
-DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const char* logFilePath);
+DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging);
 
 /* Function: h3dRelease
 		Releases the engine.
@@ -874,21 +869,6 @@ DLL void h3dClear();
 
 
 // --- General functions ---
-/* Function: h3dGetMessage
-		Gets the next message from the message queue.
-	
-	Details:
-		This function returns the next message std::string from the message queue and writes additional information
-		to the specified variables. If no message is left over in the queue an empty std::string is returned.
-	
-	Parameters:
-		level  - pointer to variable for storing message level indicating importance (can be NULL)
-		time   - pointer to variable for storing time when message was added (can be NULL)
-		
-	Returns:
-		message std::string or empty std::string if no message is in queue
-*/
-DLL const char *h3dGetMessage( int *level, float *time );
 
 /* Function: h3dGetOption
 		Gets an option parameter of the engine.

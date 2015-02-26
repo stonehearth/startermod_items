@@ -320,9 +320,7 @@ void Renderer::InitHorde()
    GLFWwindow* window = glfwGetCurrentContext();
    int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
    // Init Horde, looking for OpenGL 2.0 minimum.
-   std::string s = (radiant::core::System::GetInstance().GetTempDirectory() / "gfx.log").string();
-   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value, s.c_str())) {
-      h3dutDumpMessages();
+   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value)) {
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
 
@@ -1306,9 +1304,6 @@ void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
    // Remove all overlays
    h3dClearOverlays();
 
-   // Write all messages to log file
-   h3dutDumpMessages();
-
    perfmon::SwitchToCounter("render swap");
 
    if (!screenshot) {
@@ -1825,7 +1820,6 @@ void Renderer::LoadResources()
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
       // load.  assert fail;
-      h3dutDumpMessages();
       ASSERT(false);
    }
 }

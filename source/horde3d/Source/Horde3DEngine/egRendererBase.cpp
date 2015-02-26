@@ -10,6 +10,9 @@
 //
 // *************************************************************************************************
 
+#include "radiant.h"
+#include "radiant_logger.h"
+
 #include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -103,6 +106,10 @@ CardType RenderDevice::getCardType(const char* cardString)
 void _stdcall glDebugCallback(unsigned int source, unsigned int type, unsigned int id, unsigned int severity, 
       int length, const char* message, void* userParam)
 {
+   static bool threadNameSet = false;
+   if (!threadNameSet) {
+      radiant::log::SetCurrentThreadName("gpu");
+   }
    Modules::log().writeWarning(message);
 }
 

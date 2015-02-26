@@ -92,7 +92,7 @@ DLLEXP bool h3dGetError()
 }
 
 
-DLLEXP bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging, const char* logFilePath)
+DLLEXP bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging)
 {
 	if( initialized )
 	{	
@@ -102,7 +102,7 @@ DLLEXP bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	}
 	initialized = true;
 
-	return Modules::init(glMajor, glMinor, msaaWindowSupported, enable_gl_logging, std::string(logFilePath));
+	return Modules::init(glMajor, glMinor, msaaWindowSupported, enable_gl_logging);
 }
 
 DLLEXP void h3dRelease()
@@ -144,21 +144,6 @@ DLLEXP void h3dClear()
 // =================================================================================================
 // General functions
 // =================================================================================================
-
-DLLEXP const char *h3dGetMessage( int *level, float *time )
-{
-	static LogMessage msg;
-	
-	if( Modules::log().getMessage( msg ) )
-	{
-		if( level != 0x0 ) *level = msg.level;
-		if( time != 0x0 ) *time = msg.time;
-		return msg.text.c_str();
-	}
-	else
-		return emptyCString;
-}
-
 
 DLLEXP float h3dGetOption( EngineOptions::List param )
 {
