@@ -85,7 +85,7 @@ function WaterComponent:_add_water(world_location, volume)
          -- current layer is bounded, raise the water level until we hit the next layer
          local residual = self:_add_height(volume)
          if residual == volume then
-            -- add height was not successful
+            log:info('Could not raise water level for %s', self._entity)
             break
          end
          volume = residual
@@ -128,7 +128,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
 
             if channel then
-               volume = self:_add_volume_to_channel(channel, volume)
+               volume = stonehearth.hydrology:add_volume_to_channel(channel, volume)
                channel_region:add_point(point)
             else
                -- make this location wet
@@ -191,7 +191,7 @@ function WaterComponent:_add_water_to_channels(volume)
          break
       end
 
-      volume = self:_add_volume_to_channel(channel, volume)
+      volume = stonehearth.hydrology:add_volume_to_channel(channel, volume)
 
       if volume <= 0 then
          break
@@ -234,30 +234,6 @@ function WaterComponent:_fill_channels_to_capacity()
          end
       end
    end
-end
-
-function WaterComponent:_add_volume_to_channel(channel, volume)
-   assert(volume >= 0)
-
-   -- get the flow volume per tick
-   local max_flow_volume = stonehearth.hydrology:calculate_channel_flow_rate(channel)
-
-   if max_flow_volume <= 0 then
-      -- not enough pressure to add water to channel
-      -- the channel in the reverse direction may flow this way however
-      return volume
-   end
-
-   local unused_volume = max_flow_volume - channel.queued_volume
-   local flow_volume = math.min(unused_volume, volume)
-   channel.queued_volume = channel.queued_volume + flow_volume
-   volume = volume - flow_volume
-
-   if flow_volume > 0 then
-      log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
-   end
-
-   return volume
 end
 
 -- region in local coordinates
