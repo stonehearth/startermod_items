@@ -36,30 +36,33 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    init: function() {
       this._super();
       this.set('equipment', {});
-      this._create_job_data_array();
+      this._createJobDataArray();
    },
 
-   jobComponents: {
-      "jobs" : {}
-   },
-
-   //The array-ized job data
-   all_job_data: null, 
-
-   //When we get job data from the server, turn maps into arrays and store in all_job_data
-   _create_job_data_array: function() {
+   //When we get job data from the server, turn maps into arrays and store in allJobData
+   _createJobDataArray: function() {
       var self = this;
-      self._jobPerkTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.jobComponents);
+
+      var components = {
+         "jobs" : {
+            "*" : {
+               "description" : {} 
+            }
+         }
+      };
+
+      self._jobPerkTrace = new StonehearthDataTrace('stonehearth:jobs:index', components);
       self._jobPerkTrace.progress(function(eobj){
          //Make the table of data
-         radiant.each(eobj.jobs, function (index, value) {
-            if (value.level_data) {
-               var levelArray = radiant.map_to_array(value.level_data);
-               value.levelArray = levelArray;
+         radiant.each(eobj.jobs, function (key, job) {
+            if (job.description.level_data) {
+               var levelArray = radiant.map_to_array(job.description.level_data);
+               job.description.levelArray = levelArray;
             }
          })
 
-         self.set('all_job_data', eobj.jobs);
+         var jobArray = radiant.map_to_array(eobj.jobs);
+         self.set('allJobData', jobArray);
          self._jobPerkTrace.destroy()
       });
    },

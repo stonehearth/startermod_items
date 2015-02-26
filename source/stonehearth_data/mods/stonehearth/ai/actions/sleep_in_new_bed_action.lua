@@ -35,15 +35,16 @@ function is_available_bed(target)
    end
    return false
    ]]
+   if radiant.entities.get_entity_data(target, 'stonehearth:bed') then
+      return true
+   end
+   return false
 end
 
 function SleepInNewBed:start_thinking(ai, entity, args)
-   return false -- disable this action until we get back bed ownership
-   --[[
    if not currently_has_bed(entity) then
       ai:set_think_output()
    end
-   ]]
 end
 
 local ai = stonehearth.ai

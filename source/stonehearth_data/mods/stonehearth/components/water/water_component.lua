@@ -85,7 +85,7 @@ function WaterComponent:_add_water(world_location, volume)
          -- current layer is bounded, raise the water level until we hit the next layer
          local residual = self:_add_height(volume)
          if residual == volume then
-            -- add height was not successful
+            log:info('Could not raise water level for %s', self._entity)
             break
          end
          volume = residual
@@ -94,6 +94,12 @@ function WaterComponent:_add_water(world_location, volume)
 
          -- grow the region until we run out of volume or edges
          while volume > 0 and not edge_region:empty() do
+            if volume < self._wetting_volume * 0.5 then
+               -- too little volume to wet a block, so just let it evaporate
+               volume = 0
+               break
+            end
+
             local point = edge_region:get_closest_point(world_location)
             local channel = nil
 
@@ -128,7 +134,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
 
             if channel then
-               volume = self:_add_volume_to_channel(channel, volume)
+               volume = stonehearth.hydrology:add_volume_to_channel(channel, volume, 1)
                channel_region:add_point(point)
             else
                -- make this location wet
@@ -180,7 +186,7 @@ end
 
 function WaterComponent:_add_water_to_channels(volume)
    local channels = stonehearth.hydrology:get_channels(self._entity)
-   local sorted_channels = self:_sort_channels(channels)
+   local sorted_channels = stonehearth.hydrology:sort_channels_ascending(channels)
 
    for _, channel in pairs(sorted_channels) do
       local elevation = self:get_water_elevation()
@@ -191,7 +197,7 @@ function WaterComponent:_add_water_to_channels(volume)
          break
       end
 
-      volume = self:_add_volume_to_channel(channel, volume)
+      volume = stonehearth.hydrology:add_volume_to_channel(channel, volume)
 
       if volume <= 0 then
          break
@@ -205,7 +211,7 @@ end
 -- TODO: tell hydrology service to mark saved variables as changed after this
 function WaterComponent:_fill_channels_to_capacity()
    local channels = stonehearth.hydrology:get_channels(self._entity)
-   local sorted_channels = self:_sort_channels(channels)
+   local sorted_channels = stonehearth.hydrology:sort_channels_ascending(channels)
 
    for _, channel in pairs(sorted_channels) do
       local elevation = self:get_water_elevation()
@@ -234,30 +240,6 @@ function WaterComponent:_fill_channels_to_capacity()
          end
       end
    end
-end
-
-function WaterComponent:_add_volume_to_channel(channel, volume)
-   assert(volume >= 0)
-
-   -- get the flow volume per tick
-   local max_flow_volume = stonehearth.hydrology:calculate_channel_flow_rate(channel)
-
-   if max_flow_volume <= 0 then
-      -- not enough pressure to add water to channel
-      -- the channel in the reverse direction may flow this way however
-      return volume
-   end
-
-   local unused_volume = max_flow_volume - channel.queued_volume
-   local flow_volume = math.min(unused_volume, volume)
-   channel.queued_volume = channel.queued_volume + flow_volume
-   volume = volume - flow_volume
-
-   if flow_volume > 0 then
-      log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
-   end
-
-   return volume
 end
 
 -- region in local coordinates
@@ -525,25 +507,6 @@ function WaterComponent:_subtract_wetting_volume(volume)
    volume = volume - self._wetting_volume
    volume = math.max(volume, 0)
    return volume
-end
-
-function WaterComponent:_sort_channels(channels)
-   local meta_channels = {}
-   for _, channel in pairs(channels) do
-      -- extract the elevation so we don't keep going to c++ during the sort
-      table.insert(meta_channels, { channel = channel, elevation = channel.from_location.y })
-   end
-
-   table.sort(meta_channels, function(a, b)
-         return a.elevation < b.elevation
-      end)
-
-   local sorted_channels = {}
-   for _, entry in ipairs(meta_channels) do
-      table.insert(sorted_channels, entry.channel)
-   end
-
-   return sorted_channels
 end
 
 return WaterComponent

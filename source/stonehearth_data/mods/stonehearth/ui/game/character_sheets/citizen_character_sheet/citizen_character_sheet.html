@@ -122,11 +122,11 @@
                </table>
             </div>
             <div id="abilitiesTab" class = "tabPage">
-               {{#each view.all_job_data}}
-                  <div class="jobData" {{bind-attr uri=this.alias}}>
+               {{#each view.allJobData}}
+                  <div class="jobData" {{bind-attr uri=this.description.alias}}>
                      <div class="className">{{this.name}} <span class="progressionSummary">(<span class="retiredAt">{{i18n stonehearth:retired}} </span><span class="lvlTitle"></span>)</span></div>
                      <div class="jobPerks">
-                        {{#each this.levelArray}}
+                        {{#each this.description.levelArray}}
                            {{#each this.perks}}
                            <div class="perkDiv tooltip" locked="true" {{bind-attr name=this.name description=this.description divLevel=this.level}}>
                               <img {{bind-attr src=this.icon imgLevel=this.level}}/>
