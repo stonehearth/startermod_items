@@ -6,7 +6,7 @@ function WaitForTimeOfDayEncounter:initialize()
 end
 
 function WaitForTimeOfDayEncounter:start(ctx, info)
-   assert(info.duration)
+   assert(info.time)
 
    local time = info.time
    self._sv.time = time

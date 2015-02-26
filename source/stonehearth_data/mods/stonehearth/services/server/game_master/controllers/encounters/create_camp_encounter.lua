@@ -90,7 +90,7 @@ end
 
 function CreateCamp:_start_find_location_timer()
    self:_destroy_find_location_timer()
-   self._find_location_timer = radiant.set_realtime_timer(15000, function()
+   self._find_location_timer = radiant.set_realtime_timer(5000, function()
          self:_search_for_camp_location()
       end)
 end
