@@ -55,6 +55,10 @@ function GeneratorEncounter:_start_timer()
    local delay = self._sv.delay
    
    self._log:info('setting generator timer for %s', tostring(delay))  
+
+   if self._timer then
+      self._timer:destroy()
+   end
    self._timer = stonehearth.calendar:set_timer(delay, function()
          self._log:info('spawning encounter at %s %s', stonehearth.calendar:format_time(), stonehearth.calendar:format_date())  
          self:_spawn_encounter()
@@ -73,6 +77,15 @@ function GeneratorEncounter:_start_source_listener()
       end)
 end
 
+-- debug commands sent by the ui
+
+function GeneratorEncounter:trigger_now_cmd(session, response)
+   local ctx = self._sv.ctx
+
+   self._log:info('spawning encounter now as requested by ui')
+   self:_spawn_encounter();
+   return true
+end
 
 return GeneratorEncounter
 

@@ -265,7 +265,14 @@ FilterResultCachePtr FilterResultCache_SetFilterFn(FilterResultCachePtr frc, lua
          MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
          try {
             LOG_CATEGORY(simulation.pathfinder.bfs, 5, "calling filter function on " << *e);
-            return luabind::call_function<bool>(filter_fn, om::EntityRef(e));
+            luabind::object result = luabind::call_function<luabind::object>(filter_fn, om::EntityRef(e));
+            if (luabind::type(result) == LUA_TNIL) {
+               return false;
+            }
+            if (luabind::type(result) == LUA_TBOOLEAN) {
+               return luabind::object_cast<bool>(result);
+            }
+            return true;   // not nil or false is good enough for me!
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
