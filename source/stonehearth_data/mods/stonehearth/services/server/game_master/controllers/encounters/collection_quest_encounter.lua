@@ -278,6 +278,9 @@ function CollectionQuest:_on_collection_timer_expired()
 
    bulletin_data.collection_pay_callback = '_on_collection_paid'
    bulletin_data.collection_cancel_callback = '_on_collection_cancelled'
+
+   -- destroy the bulletin before updating it to force a new popup
+   self:_destroy_bulletin()
    self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })   
 end
 
