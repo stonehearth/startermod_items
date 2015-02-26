@@ -2797,7 +2797,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
-   const unsigned int VoxelInstanceCutoff = 10;
+   const unsigned int VoxelInstanceCutoff = 2;
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
 	if( frust1 == 0x0 ) return;
 	
