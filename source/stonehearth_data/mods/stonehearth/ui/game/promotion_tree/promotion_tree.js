@@ -121,6 +121,7 @@ App.StonehearthPromotionTree = App.View.extend({
          //.attr('xlink:href', 'images/jobButton.png')
          //.attr('xlink:href', '/stonehearth/ui/game/promotion_tree/images/jobButton.png')
          .attr('xlink:href', function(d) { return d.icon })
+         .attr('class', function(d) { return d.available ? "available" : "unavailable" })
          .attr("x", function(d) { return d.x - 37; })
          .attr("y", function(d) { return height - d.y - 37; })
          .attr('width', 74)

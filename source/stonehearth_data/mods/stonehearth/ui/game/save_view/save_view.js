@@ -212,6 +212,15 @@ App.StonehearthSaveListView = App.View.extend({
       radiant.call("radiant:client:get_save_games")
                .done(function(json) {
                   self.set('saved_games', json);
+                  
+                  // select the first save after the view re-renderes.
+                  Ember.run.scheduleOnce('afterRender', this, function() {
+                     var rows = self.$('.saveList .row');
+
+                     if (rows.length > 0) {
+                        $(rows[0]).click()
+                     }
+                  });
                });
    },
 
