@@ -38,10 +38,10 @@ animatedlight::IntensityData parseIntensity(Node& n)
    return result;
 }
 
-animatedlight::RadiusData parseRadius(Node& n)
+animatedlight::RadiusData parseRadius(Node& n, float def)
 {
    animatedlight::RadiusData result;
-   result.start = parseChannel(n, "start", 20.0f);
+   result.start = parseChannel(n, "start", def);
    result.over_lifetime = parseChannel(n, "over_lifetime", result.start->nextValue(0));
    return result;
 }
@@ -93,20 +93,13 @@ bool AnimatedLightResource::load(const char *data, int size)
    std::string jsonData(data, size);
    Node root(libjson::parse(jsonData));
 
-   if (root.has("intensity"))
-   {
-      lightData.intensity = parseIntensity(root.get_node("intensity"));
-   }
+   lightData.intensity = parseIntensity(root.get_node("intensity"));
 
-   if (root.has("color"))
-   {
-      lightData.color = parseColor(root.get_node("color"));
-   }
+   lightData.color = parseColor(root.get_node("color"));
 
-   if (root.has("radius"))
-   {
-      lightData.radius = parseRadius(root.get_node("radius"));
-   }
+   lightData.radius = parseRadius(root.get_node("radius"), 20.0);
+
+   lightData.inner_radius = parseRadius(root.get_node("inner_radius"), 0.0);
 
    lightData.importance = root.get("importance", (int)H3DLightImportance::High);
 
@@ -157,7 +150,8 @@ void AnimatedLightNode::init()
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 0, 0.0f);
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 1, 0.0f);
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 2, 0.0f);
-   h3dSetNodeParamF(_lightNode, H3DLight::RadiusF, 0, 0.0f);
+   h3dSetNodeParamF(_lightNode, H3DLight::Radius1F, 0, 0.0f);
+   h3dSetNodeParamF(_lightNode, H3DLight::Radius2F, 0, 0.0f);
 }
 
 AnimatedLightNode::~AnimatedLightNode()
@@ -265,5 +259,6 @@ void AnimatedLightNode::updateLight()
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 0, d.color.over_lifetime_r->nextValue(t) * intensity);
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 1, d.color.over_lifetime_g->nextValue(t) * intensity);
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 2, d.color.over_lifetime_b->nextValue(t) * intensity);
-   h3dSetNodeParamF(_lightNode, H3DLight::RadiusF, 0, d.radius.over_lifetime->nextValue(t));
+   h3dSetNodeParamF(_lightNode, H3DLight::Radius2F, 0, d.radius.over_lifetime->nextValue(t));
+   h3dSetNodeParamF(_lightNode, H3DLight::Radius1F, 0, d.inner_radius.over_lifetime->nextValue(t));
 }

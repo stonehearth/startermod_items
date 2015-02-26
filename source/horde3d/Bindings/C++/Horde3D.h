@@ -629,7 +629,8 @@ struct H3DLight
 	enum List
 	{
 		MatResI = 500,
-		RadiusF,
+		Radius1F,
+      Radius2F,
 		FovF,
 		ColorF3,
 		ColorMultiplierF,
