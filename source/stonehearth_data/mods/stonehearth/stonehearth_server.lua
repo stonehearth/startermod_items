@@ -126,7 +126,9 @@ local function spawn_loot(entity)
       if loot_table then
          local items = LootTable(loot_table)
                            :roll_loot()
-         radiant.entities.spawn_items(items, location, 1, 3)
+                           
+         local owner_id = radiant.entities.get_player_id(entity)
+         radiant.entities.spawn_items(items, location, 1, 3, { owner = owner_id })
       end
    end
 end

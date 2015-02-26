@@ -237,13 +237,13 @@ function entities.get_world_grid_location(entity)
 end
 
 -- uris are key, value pairs of uri, quantity
-function entities.spawn_items(uris, origin, min_radius, max_radius, player_id)
+function entities.spawn_items(uris, origin, min_radius, max_radius, options)
    local items = {}
 
    for uri, quantity in pairs(uris) do
       for i = 1, quantity do
          local location = radiant.terrain.find_placement_point(origin, min_radius, max_radius)
-         local item = radiant.entities.create_entity(uri, { owner = player_id })
+         local item = radiant.entities.create_entity(uri, options)
 
          items[item:get_id()] = item
          radiant.terrain.place_entity(item, location)
