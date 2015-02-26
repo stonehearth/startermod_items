@@ -20,7 +20,7 @@ using namespace ::radiant::client;
 
 #define T_LOG(level)      LOG(renderer.terrain, level)
 
-static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
+static const csg::Point3 TERRAIN_LAYER_SIZE(256, 25, 256);
 static const int MAX_CLIP_HEIGHT = 1000000000; // don't use INT_MAX due to overflow
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
