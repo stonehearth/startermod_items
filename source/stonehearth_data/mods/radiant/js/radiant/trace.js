@@ -5,8 +5,10 @@ var RadiantTrace;
 
       _debug : false,
 
-      init: function(uri, properties) {
+      init: function(uri, properties, options) {
          this._traces = {};
+         this._bubbleNotificationsUp = options ? options.bubbleNotificationsUp : false;
+
          if (uri) {
             this.traceUri(uri, properties);
          }
@@ -198,7 +200,7 @@ var RadiantTrace;
                   // this is the first update.  push the change out immediately
                   deferred.notify(eobj);
                   first_update = false;
-               } else {
+               } else if (self._bubbleNotificationsUp) {
                   // it's changed again!  schedule a notification near the top of
                   // the runloop.  this will ensure we don't notify many many times
                   // if lots of stuff deep in the hiearchary is changing.
