@@ -269,7 +269,7 @@ function SimpleCaravan:_accept_trade()
    uris[self._sv.trade_data.caravan_has] = self._sv.trade_data.caravan_quantity
 
    --TODO: attach a brief particle effect to the new stuff
-   radiant.entities.spawn_items(uris, drop_origin, 1, 3, self._sv.player_id)
+   radiant.entities.spawn_items(uris, drop_origin, 1, 3, { owner = self._sv.player_id })
 end
 
 --- Call this if the player rejects the trade

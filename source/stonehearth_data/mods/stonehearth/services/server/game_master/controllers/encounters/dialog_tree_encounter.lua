@@ -31,16 +31,18 @@ end
 -- start of the state machine.  introduce the guy doing the shakedown
 --
 function DialogTreeEncounter:_transition_to_node(name)
+   local ctx = self._sv.ctx
+
    local node = self._sv.dialog_tree[name]
    if not node then
       self._log:error('no dialog tree node named \"%s\"', name)
-      ctx.arc:terminate(self._sv.ctx)
+      ctx.arc:terminate(ctx)
       return
    end
 
    local bulletin = self._sv.bulletin
    if not bulletin then
-      local player_id = self._sv.ctx.player_id
+      local player_id = ctx.player_id
       bulletin = stonehearth.bulletin_board:post_bulletin(player_id)
                                     :set_ui_view('StonehearthDialogTreeBulletinDialog')
                                     :set_callback_instance(self)

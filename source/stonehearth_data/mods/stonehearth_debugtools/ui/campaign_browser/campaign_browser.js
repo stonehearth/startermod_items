@@ -216,6 +216,8 @@ App.StonehearthGameMasterView = App.View.extend({
    didInsertElement : function() {
       var self = this;
 
+      self.$().draggable();
+      
       radiant.call_obj('stonehearth.game_master', 'get_root_node_command')
          .done(function(o) {
             self._node_browser = new D3CollapsableTree({

@@ -11,11 +11,14 @@
          <a id="trackSelected" href="#" {{action "toggleTrackSelected" target="view"}} class="button" title="Track Selected">
             <i class="fa fa-crosshairs fa-fw fa-lg"></i>
          </a>
-         <a href="#" {{action "goBack" target="view"}} class="button">
+         <a href="#" {{action "goBack" target="view"}} class="button" title="Back">
             <i class="fa fa-arrow-left fa-fw fa-lg"></i>
          </a>
-         <a href="#" {{action "goForward" target="view"}} class="button">
+         <a href="#" {{action "goForward" target="view"}} class="button" title="Forward">
             <i class="fa fa-arrow-right fa-fw fa-lg"></i>
+         </a>
+         <a id="toggleRawView" href="#" {{action "toggleRawView" target="view"}} class="button" title="Toggle Raw View">
+            <i class="fa fa-cogs fa-fw fa-lg"></i>
          </a>
          <input type="text" id="uriInput" {{bind-attr value="view.uri"}}>
          <a id="collapse" href="#" {{action "toggleCollapsed" target="view"}} class="button">
@@ -26,16 +29,55 @@
          </a>
       </div>
       <div id="body">
-         {{ view view.subViewClass uriBinding="view.uri" }}
+         {{#if view.showRawView }}
+            {{ view stonehearthObjectBrowserRaw uriBinding="view.uri" }}
+         {{ else }}
+            {{ view stonehearthObjectBrowserContent viewName="contentView" uriBinding="view.uri" }}
+         {{/if}}
       </div>
    </div>
 </script>
 
-<script type="text/x-handlebars" data-template-name="objectBrowserRaw">
+<script type="text/x-handlebars" data-template-name="objectBrowserContent">
+   {{ view view.subViewClass uriBinding="view.uri" templateNameBinding="view.subViewClass" }}
+</script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserRaw">
    {{{view.raw_view}}}
 </script>
 
-<script type="text/x-handlebars" data-template-name="objectBrowserEncounter">
-   Encounter:
-   {{ view "stonehearthObjectBrowserRaw" model=view.model.ctx }}
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserEncounter">
+   <div class='title'>
+      {{ view.model.ctx.encounter_name }}
+   </div>
+   {{ view view.encounterSubViewClass uriBinding="view.model.script.__self" templateNameBinding="view.encounterSubViewClass" }}
+</script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserRawEncounter">
+   {{ view "stonehearthObjectBrowserRaw" model=view.model }}
+</script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserWaitForNetWorthEncounter">
+   <div class='subtitle'> Wait For Net Worth </div>  
+   <table>
+      <tr><td>Current</td><td>{{ view.progress.current }}</td></tr>
+      <tr><td>Threshold</td><td>{{ view.progress.threshold }}</td></tr>
+   </table>
+
+   <ul class="menu">
+      <li><i class="fa fa-bolt fa-fw fa-lg"></i><a href="#" {{action "triggerNow" target="view"}}> Trigger Now </a></li>
+   </ul>
+</script>
+
+
+<script type="text/x-handlebars" data-template-name="stonehearthObjectBrowserGeneratorEncounter">
+   <div class="menu-button">
+      <i class="fa fa-caret-square-o-down fa-fw fa-lg"></i>
+      <div class="menu">
+         <a href="#" {{action "triggerNow" target="view"}} class="menu-item">
+            <i class="fa fa-bolt fa-fw fa-lg"></i> Trigger Now
+         </a>
+      </div>
+   </div>
+   Geneartor!! <br>
 </script>

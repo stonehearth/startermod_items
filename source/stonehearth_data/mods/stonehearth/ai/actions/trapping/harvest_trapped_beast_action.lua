@@ -67,7 +67,7 @@ function HarvestTrappedBeast:_spawn_loot(target)
    end
    local loot_table = LootTable(json)
    local uris = loot_table:roll_loot()
-   local items = radiant.entities.spawn_items(uris, location, 1, 3)
+   local items = radiant.entities.spawn_items(uris, location, 1, 3, { owner = self._entity })
 
    for id, item in pairs(items) do
       -- lease the item so nobody else picks it up

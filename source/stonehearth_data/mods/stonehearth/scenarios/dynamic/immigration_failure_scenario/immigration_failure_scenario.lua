@@ -123,7 +123,7 @@ function ImmigrationFailure:acknowledge()
    uris[self._sv.notice_data.reward] = self._sv.notice_data.quantity
 
    --TODO: attach a brief particle effect to the new stuff
-   radiant.entities.spawn_items(uris, drop_origin, 1, 3, self._sv.player_id)
+   radiant.entities.spawn_items(uris, drop_origin, 1, 3, { owner = self._sv.player_id })
 end
 
 --- Only actually spawn the object after the user clicks OK
