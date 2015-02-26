@@ -43,6 +43,7 @@ function ReserveEntity:start_thinking(ai, entity, args)
       ai:halt(reason)
       return
    end
+   ai:get_log():debug('no one holds lease yet.')
    ai:set_think_output()
 end
 
@@ -60,10 +61,12 @@ end
 function ReserveEntity:start(ai, entity, args)
    local target = args.entity
 
+   ai:get_log():debug('trying to acquire lease...')
    if not stonehearth.ai:acquire_ai_lease(target, entity) then
       ai:abort('could not lease %s (%s has it).', tostring(target), tostring(stonehearth.ai:get_ai_lease_owner(target)))
       return
    end
+   ai:get_log():debug('got lease!')
    self._acquired_lease = true
 end
 
