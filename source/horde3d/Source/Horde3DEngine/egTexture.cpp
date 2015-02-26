@@ -149,7 +149,7 @@ TextureResource::TextureResource( std::string const& name, uint32 width, uint32 
 		_texType = TextureTypes::Tex2D;
 		_sRGB = false;
 		_hasMipMaps= false;
-		_rbObj = gRDI->createRenderBuffer( width, height, fmt, false, 1, 0 ); 
+		_rbObj = gRDI->createRenderBuffer( width, height, fmt, true, 1, 0 ); 
 		_texObject = gRDI->getRenderBufferTex( _rbObj, 0 );
 	}
 	else
