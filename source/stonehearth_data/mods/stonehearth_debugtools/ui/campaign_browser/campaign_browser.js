@@ -70,6 +70,20 @@ var D3Node = SimpleClass.extend({
       });
       self._tree._update(self);
    },
+
+   destroy: function() {
+      // destroy all my children.
+      if (this.children) {
+         $.each(this.children, function(i, child) {
+            child.destroy();
+         })
+      }
+
+      // not destroy me
+      if (this._trace) {
+         this._trace.destroy();
+      }
+   },
 });
 
 var D3CollapsableTree = SimpleClass.extend({
@@ -206,6 +220,10 @@ var D3CollapsableTree = SimpleClass.extend({
          d.x0 = d.x;
          d.y0 = d.y;
       });
+   },
+
+   destroy: function() {
+      this._root.destroy();
    }
 });
 
@@ -221,7 +239,7 @@ App.StonehearthGameMasterView = App.View.extend({
       radiant.call_obj('stonehearth.game_master', 'get_root_node_command')
          .done(function(o) {
             self._node_browser = new D3CollapsableTree({
-               container: this.$('#game_master')[0],
+               container: this.$('#content')[0],
                root_node_uri: o.__self,
                get_node_name : function(node) { return node.node_name },
                get_node_children : function(node) { return node.child_nodes },
@@ -242,5 +260,16 @@ App.StonehearthGameMasterView = App.View.extend({
          .fail(function(o) {
             console.log('call to stonehearth.game_master:get_data() failed.', o)
          });
+   },
+
+   actions: {
+      close: function () {
+         this.destroy();
+      },
+   },
+
+   destroy: function() {
+      this._node_browser.destroy();
+      this._super();
    },
 });
