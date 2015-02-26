@@ -107,6 +107,7 @@ vec3 calcSimpleOmniLight(const vec3 pos, const vec3 normal)
   float atten = _calcOmniAttenuation(pos, lightLen);
 
   // Lambert diffuse
+  lightDir /= lightLen;
   float NdotL = max(dot(normal, lightDir), 0.0);
   atten *= NdotL;
   return lightColor * atten;
