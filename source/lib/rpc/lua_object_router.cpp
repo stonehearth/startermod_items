@@ -49,7 +49,7 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
       object method = obj[fn.route];
       if (!method.is_valid() || type(method) != LUA_TFUNCTION) {
          LOR_LOG(9) << "object does not implement method.  aborting";
-         throw std::invalid_argument(BUILD_STRING("object does not implement function."));
+         throw std::invalid_argument(BUILD_STRING("object does not implement function \"" << fn.route << "\"."));
       }
 
       LOR_LOG(9) << "calling lua method " << fn;

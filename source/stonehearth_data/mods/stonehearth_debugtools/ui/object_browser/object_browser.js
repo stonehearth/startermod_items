@@ -19,12 +19,11 @@ App.StonehearthObjectBrowserIcon = App.View.extend({
 App.StonehearthObjectBrowserView = App.View.extend({
    templateName: 'objectBrowser',
    uriProperty: 'model',
-   subViewClass: 'stonehearthObjectBrowserRaw',
-   history: [],
-   forwardHistory: [],
 
    init: function() {
       this._super();
+      this.backStack = [];
+      this.forwardStack = [];
    },
 
    didInsertElement: function() {
@@ -36,7 +35,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
          if (self.trackSelected) {
             var uri = data.selected_entity;
             if (uri) {
-               self.fetch(uri);
+               self.navigateTo(uri);
             }
          }
       });
@@ -53,7 +52,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
          arrow: true,
       });
 
-      this.$('#body').on("click", "a", function(event) {
+      this.$('#body').on("click", ".navlink", function(event) {
          var uri = $(this).attr('href');
 
          event.preventDefault();
@@ -67,14 +66,14 @@ App.StonehearthObjectBrowserView = App.View.extend({
                   relativeTo: self.$().offset(),
                })
          } else {
-            self.fetch(uri);
+            self.navigateTo(uri);
          }
       });
 
       $('#uriInput').keypress(function(e) {
          if (e.which == 13) {
             $(this).blur();
-            self.fetch($(this).val());
+            self.navigateTo($(this).val());
          }
       });
 
@@ -86,52 +85,12 @@ App.StonehearthObjectBrowserView = App.View.extend({
       this._super();
    },
 
-   fetch: function(uri) {
-      console.log('fetching uri ', uri)
-      this.history.push(uri);
-      this.set('uri', uri);
-   },
-
-   raw_view: function() {
-      var model = this.get('model');
-
-      if (!model) {
-         return '';
-      }
-      var json = JSON.stringify(model, undefined, 2);
-      return json.replace(/&/g, '&amp;')
-                 .replace(/</g, '&lt;')
-                 .replace(/>/g, '&gt;')
-                 .replace(/ /g, '&nbsp;')
-                 .replace(/\n/g, '<br>')
-                 .replace(/"(object:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
-                 //.replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
-   }.property('model'),
-
-
-   _update_template: function() {
-      var type = this.get('model.type');
-      var subViewClass = 'stonehearthObjectBrowserRaw';
-
-      if (type == 'stonehearth:encounter') {
-         subViewClass = 'stonehearthObjectBrowserEncounter';
-      }
-      this.set('subViewClass', subViewClass);
-      this.rerender();
-   }.observes('model'),
-
-
-   _updateTrackSelectedControl : function() {
-      var self = this;
-      if (self.trackSelected) {
-         var selected = App.stonehearthClient.getSelectedEntity();
-         if (selected) {
-            console.log('track selected changing uri to ', selected)
-            self.set('uri', selected)
-         }
-         this.$("#trackSelected").addClass('depressed');
-      } else {
-         this.$("#trackSelected").removeClass('depressed');
+   navigateTo: function(uri) {
+      var currentUri = this.get('uri');
+      if (uri != currentUri) {
+         this.backStack.push(currentUri);
+         this.forwardStack = [];
+         this.set('uri', uri);
       }
    },
 
@@ -147,35 +106,47 @@ App.StonehearthObjectBrowserView = App.View.extend({
          this.$('#body').show();
       }
    },
-
-   raw_view: function() {
-      var model = this.get('model');
-
-      if (!model) {
-         return '';
+   
+   _updateTrackSelectedControl : function() {
+      var self = this;
+      if (self.trackSelected) {
+         var selected = App.stonehearthClient.getSelectedEntity();
+         if (selected) {
+            self.set('uri', selected)
+         }
+         this.$("#trackSelected").addClass('depressed');
+      } else {
+         this.$("#trackSelected").removeClass('depressed');
       }
-      var json = JSON.stringify(model, undefined, 2);
-      return json.replace(/&/g, '&amp;')
-                 .replace(/</g, '&lt;')
-                 .replace(/>/g, '&gt;')
-                 .replace(/ /g, '&nbsp;')
-                 .replace(/\n/g, '<br>')
-                 .replace(/"(object:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
-                 //.replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
-   }.property('model'),
+   },
+
+   _updateToggleRawViewControl : function() {
+      var self = this;
+      if (self.showRawView) {
+         this.$("#toggleRawView").addClass('depressed');
+      } else {
+         this.$("#toggleRawView").removeClass('depressed');
+      }
+   },
 
    actions: {
       goBack: function() {
-         if (this.history.length > 1) {
-            this.forwardHistory.push(this.history.pop())
+         if (this.backStack.length > 0) {
+            var currentUri = this.get('uri');
+
+            var nextUri = this.backStack.pop();
+            this.forwardStack.push(currentUri);
+            this.set('uri', nextUri);
          }
-         this.fetch(this.history.pop());
       },
 
       goForward: function () {
-         if (this.forwardHistory.length > 0) {
-            var uri = this.forwardHistory.pop();
-            this.fetch(uri);
+         if (this.forwardStack.length > 0) {
+            var currentUri = this.get('uri');
+
+            var nextUri = this.forwardStack.pop();
+            this.backStack.push(currentUri);
+            this.set('uri', nextUri);
          }
       },
 
@@ -193,22 +164,49 @@ App.StonehearthObjectBrowserView = App.View.extend({
          var self = this;
          self.trackSelected = !self.trackSelected;
          self._updateTrackSelectedControl();
+      },
+
+      toggleRawView: function() {
+         var self = this;
+         self.set('showRawView', !self.get('showRawView'));
+         self._updateToggleRawViewControl();
       }
    }
 });
 
 
+App.StonehearthObjectBrowserContentView = App.View.extend({
+   templateName: 'objectBrowserContent',
+   uriProperty: 'model',
+
+   subViewClass: function() {
+      var known_types = {
+         'stonehearth:game_master:encounter' :  'stonehearthObjectBrowserEncounter',
+      }
+      var type = this.get('model.__controller');
+      var subViewClass = known_types[type];
+      if (!subViewClass) {
+         subViewClass = 'stonehearthObjectBrowserRaw';
+      }      
+
+      if (this._lastSubViewClass && this._lastSubViewClass != subViewClass) {
+         Ember.run.scheduleOnce('afterRender', this, 'rerender');
+      }
+      this._lastSubViewClass = subViewClass;
+
+      return subViewClass;
+   }.property('model', 'model.__controller'),
+});
+
 App.StonehearthObjectBrowserRawView = App.View.extend({
-   templateName: 'objectBrowserRaw',
+   templateName: 'stonehearthObjectBrowserRaw',
    uriProperty: 'model',
 
    raw_view: function() {
       var model = this.get('model');
 
-      console.log('translating model for ', this.get('uri'));
-
       if (!model) {
-         return '';
+         return '- no data -';
       }
       var json = JSON.stringify(model, undefined, 2);
       return json.replace(/&/g, '&amp;')
@@ -216,17 +214,111 @@ App.StonehearthObjectBrowserRawView = App.View.extend({
                  .replace(/>/g, '&gt;')
                  .replace(/ /g, '&nbsp;')
                  .replace(/\n/g, '<br>')
-                 .replace(/"(object:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
+                 .replace(/"(object:\/\/[^"]*)"/g, '<a class="navlink" href="$1">$1</a>')
                  //.replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
    }.property('model'),
 });
 
 
 App.StonehearthObjectBrowserEncounterView = App.View.extend({
-   templateName: 'objectBrowserEncounter',
    uriProperty: 'model',
    components: {
-      'ctx' : {}
+      script : {},
+      ctx : {}
    },
+
+   init : function() {
+      this._super();
+   },
+
+   didInsertElement: function() {
+      this._super();
+   },
+   
+   encounterSubViewClass: function() {
+      var known_types = {
+         'stonehearth:game_master:encounters:generator' :            'stonehearthObjectBrowserGeneratorEncounter',
+         'stonehearth:game_master:encounters:wait_for_net_worth' :   'stonehearthObjectBrowserWaitForNetWorthEncounter',
+      }
+
+      var type = this.get('model.script.__controller');
+      var encounterSubViewClass = known_types[type];
+      if (!encounterSubViewClass) {
+         encounterSubViewClass = 'stonehearthObjectBrowserRawEncounter';
+      }
+
+      if (this._lastEncounterSubViewClass && this._lastEncounterSubViewClass != encounterSubViewClass) {
+         var parentView = this.get('parentView');
+         if (parentView) {
+            Ember.run.scheduleOnce('afterRender', parentView, 'rerender');
+         }
+      }
+      this._lastEncounterSubViewClass = encounterSubViewClass;
+      return encounterSubViewClass;
+   }.property('model', 'model.script.__controller'),
 });
 
+App.StonehearthObjectBrowserBaseView = App.View.extend({
+   uriProperty: 'model',
+   components: {
+      ctx : {}
+   },
+
+   destroy : function() {
+      self._dead = true
+      if (self._interval) {
+         clearInterval(self._interval);
+         self._interval = null;
+      }
+   },
+
+   didInsertElement: function() {      
+      var self = this;
+
+      self._super();
+      if (self.pollRate && !self._interval) {
+         self._poll_encounter();
+         self._interval = setInterval(function() { self._poll_encounter(); }, self.pollRate);
+      }
+   },
+
+   _poll_encounter : function() {
+      var self = this;
+      if (!self._dead) {
+         self._call_encounter('get_progress_cmd')
+                  .done(function(o) {
+                     if (!self._dead) {
+                        self.set('progress', o);
+                     }
+                  })
+      }
+   },
+
+   _call_encounter : function(method, arg0, arg1, arg2) {
+      var obj = this.get('model.__self');
+      return radiant.call_obj(obj, method, arg0, arg1, arg2)
+                        .fail(function(o) {
+                           console.log('failed!', o)
+                        })      
+   }   
+});
+
+App.StonehearthObjectBrowserRawEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+});
+
+App.StonehearthObjectBrowserGeneratorEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   actions: {
+      triggerNow: function() {
+         this._call_encounter('trigger_now_cmd');
+      },
+   }
+});
+
+App.StonehearthObjectBrowserWaitForNetWorthEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   pollRate: 500,
+   actions: {
+      triggerNow: function() {
+         this._call_encounter('trigger_now_cmd');
+      },
+   }
+});

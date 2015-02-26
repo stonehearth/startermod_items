@@ -49,6 +49,7 @@ void DataStore::SerializeToJson(json::Node& node) const
 {
    node = (*data_object_).GetJsonNode();
    Record::SerializeToJson(node);
+   node.set("__controller", *controller_name_);
 }
 
 void DataStore::RestoreController(DataStoreRef self)
