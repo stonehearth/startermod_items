@@ -413,7 +413,7 @@ function Town:add_temporary_effect(entity, effect_name)
    local entity_id = entity:get_id()
    local effect_index = effect_name .. entity_id
    if not self._temporary_effects[effect_index] then
-      self._temporary_effects[effect_index] = radiant.effects.run_effect(entity, "/stonehearth/data/effects/clear_effect")
+      self._temporary_effects[effect_index] = radiant.effects.run_effect(entity, effect_name)
    end
 end
 
