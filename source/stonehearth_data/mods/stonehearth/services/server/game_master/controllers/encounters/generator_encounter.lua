@@ -56,6 +56,7 @@ function GeneratorEncounter:_start_timer()
    
    self._log:info('setting generator timer for %s', tostring(delay))  
    self._timer = stonehearth.calendar:set_timer(delay, function()
+         self._log:info('spawning encounter at %s %s', stonehearth.calendar:format_time(), stonehearth.calendar:format_date())  
          self:_spawn_encounter()
       end)
 end

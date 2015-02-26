@@ -6,7 +6,7 @@
    "out_edge" : "spawn_shops",
 
    "wait_for_net_worth_info" :  {
-      "threshold" : 100,
+      "threshold" : 1500,
       "interval" : "1h"
    }
 }
