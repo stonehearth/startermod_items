@@ -32,7 +32,7 @@ function PickupItemOnTableAdjacent:run(ai, entity, args)
       return
    end
    if not radiant.entities.is_adjacent_to(entity, table) then
-      ai:abort('%s is not adjacent to table %s', entity, table)
+      ai:abort('%s is not adjacent to table %s', tostring(entity), tostring(table))
       return
    end
 

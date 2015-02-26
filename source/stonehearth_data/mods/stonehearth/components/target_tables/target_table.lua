@@ -17,7 +17,7 @@ function TargetTable:get_top(fitness_fn)
 
    for id, entry in pairs(self._sv.targets) do
       local entity, value = entry.entity, entry.value
-      if not entity:is_valid() then
+      if not entity or not entity:is_valid() or value <= 0 then
          self._sv.targets[id] = nil
          changed = true
       else
