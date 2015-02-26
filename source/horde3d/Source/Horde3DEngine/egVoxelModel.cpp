@@ -26,11 +26,10 @@ using namespace std;
 
 
 VoxelModelNode::VoxelModelNode( const VoxelModelNodeTpl &modelTpl ) :
-	SceneNode( modelTpl ), _geometryRes( modelTpl.geoRes ), _baseVoxelGeoRes( 0x0 ),
+	SceneNode( modelTpl ), _geometryRes( modelTpl.geoRes ),
 	_lodDist1( modelTpl.lodDist1 ), _lodDist2( modelTpl.lodDist2 ),
 	_lodDist3( modelTpl.lodDist3 ), _lodDist4( modelTpl.lodDist4 ),
-	_softwareSkinning( modelTpl.softwareSkinning ), _skinningDirty( false ),
-	_nodeListDirty( false ), _morpherUsed( false ), _morpherDirty( false ), _polygon_offset_used(false),
+	_nodeListDirty( false ),  _polygon_offset_used(false),
    _useCoarseCollisionBox(false)
 {
 	if( _geometryRes != 0x0 )
@@ -41,7 +40,6 @@ VoxelModelNode::VoxelModelNode( const VoxelModelNodeTpl &modelTpl ) :
 VoxelModelNode::~VoxelModelNode()
 {
 	_geometryRes = 0x0;
-	_baseVoxelGeoRes = 0x0;
 }
 
 
@@ -59,14 +57,6 @@ SceneNodeTpl *VoxelModelNode::parsingFunc( map< string, std::string > &attribs )
 			modelTpl->geoRes = (VoxelGeometryResource *)Modules::resMan().resolveResHandle( res );
 	}
 	else result = false;
-	itr = attribs.find( "softwareSkinning" );
-	if( itr != attribs.end() ) 
-	{
-		if ( _stricmp( itr->second.c_str(), "true" ) == 0 || _stricmp( itr->second.c_str(), "1" ) == 0 )
-			modelTpl->softwareSkinning = true;
-		else
-			modelTpl->softwareSkinning = false;
-	}
 
 	itr = attribs.find( "lodDist1" );
 	if( itr != attribs.end() ) modelTpl->lodDist1 = (float)atof( itr->second.c_str() );
@@ -99,7 +89,6 @@ void VoxelModelNode::recreateNodeListRec( SceneNode *node, bool firstCall )
 	if( node->getType() == SceneNodeTypes::VoxelMesh )
 	{
 		_meshList.push_back( (VoxelMeshNode *)node );
-//		_animCtrl.registerNode( (VoxelMeshNode *)node );
 	}
 	else if( !firstCall ) return;  // First node is the model
 	
@@ -114,53 +103,11 @@ void VoxelModelNode::recreateNodeListRec( SceneNode *node, bool firstCall )
 void VoxelModelNode::recreateNodeList()
 {
 	_meshList.resize( 0 );
-//	_animCtrl.clearNodeList();
 	
 	recreateNodeListRec( this, true );
 	updateLocalMeshAABBs();
 
 	_nodeListDirty = false;
-}
-
-
-void VoxelModelNode::setupAnimStage( int stage, AnimationResource *anim, int layer,
-                                std::string const& startNode, bool additive )
-{
-	if( _nodeListDirty ) recreateNodeList();
-	
-//	if( _animCtrl.setupAnimStage( stage, anim, layer, startNode, additive ) ) markDirty();
-}
-
-
-void VoxelModelNode::setAnimParams( int stage, float time, float weight )
-{
-//	if( _animCtrl.setAnimParams( stage, time, weight ) ) markDirty();
-}
-
-
-bool VoxelModelNode::setMorphParam( std::string const& targetName, float weight )
-{
-	if( _geometryRes == 0x0 || _morphers.empty() ) return false;
-
-	bool result = false;
-	_morpherDirty = true;
-	_morpherUsed = false;
-
-	// Set specified morph target or all targets if targetName == ""
-	for( uint32 i = 0; i < _morphers.size(); ++i )
-	{
-		if( targetName == "" || _morphers[i].name == targetName )
-		{
-			_morphers[i].weight = weight;
-			result = true;
-		}
-
-		if( _morphers[i].weight != 0 ) _morpherUsed = true;
-	}
-
-	markDirty(SceneNodeDirtyKind::Ancestors);
-
-	return result;
 }
 
 
@@ -206,20 +153,6 @@ void VoxelModelNode::setVoxelGeometryRes( VoxelGeometryResource &geoRes )
 	}
 #endif
 
-	if( !_morphers.empty() || _softwareSkinning )
-	{
-		Resource *clonedRes = Modules::resMan().resolveResHandle(
-			Modules::resMan().cloneResource( geoRes, "" ) );
-		_geometryRes = (VoxelGeometryResource *)clonedRes;
-		_baseVoxelGeoRes = &geoRes;
-	}
-	else
-	{
-		_geometryRes = &geoRes;
-		_baseVoxelGeoRes = 0x0;
-	}
-
-	_skinningDirty = true;
 	updateLocalMeshAABBs();
 }
 
@@ -230,8 +163,6 @@ int VoxelModelNode::getParamI( int param )
 	{
 	case VoxelModelNodeParams::VoxelGeoResI:
 		return _geometryRes != 0x0 ? _geometryRes->_handle : 0;
-	case VoxelModelNodeParams::SWSkinningI:
-		return _softwareSkinning ? 1 : 0;
 	}
 
 	return SceneNode::getParamI( param );
@@ -250,16 +181,6 @@ void VoxelModelNode::setParamI( int param, int value )
 			setVoxelGeometryRes( *(VoxelGeometryResource *)res );
 		else
 			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DVoxelModel::VoxelGeoResI" );
-		return;
-	case VoxelModelNodeParams::SWSkinningI:
-		_softwareSkinning = (value != 0);
-		if( _softwareSkinning ) _skinningDirty = true;
-		if( _softwareSkinning && _baseVoxelGeoRes == 0x0 && _geometryRes != 0x0 )
-			// Create a local resource copy since it is not yet existing
-			setParamI( VoxelModelNodeParams::VoxelGeoResI, _geometryRes->getHandle() );
-		else if( !_softwareSkinning && _morphers.empty() && _baseVoxelGeoRes != 0x0 )
-			// Remove the local resource copy by removing reference
-			setParamI( VoxelModelNodeParams::VoxelGeoResI, _baseVoxelGeoRes->getHandle() );
 		return;
    case VoxelModelNodeParams::PolygonOffsetEnabledI:
       _polygon_offset_used = (value != 0);
@@ -320,13 +241,10 @@ void VoxelModelNode::setParamF( int param, int compIdx, float value )
 
 bool VoxelModelNode::updateVoxelGeometry()
 {
-	_skinningDirty |= _morpherDirty;
-	_skinningDirty &= _softwareSkinning;
-	
-	if( !_skinningDirty && !_morpherDirty ) return false;
-
-	if( _baseVoxelGeoRes == 0x0 || _baseVoxelGeoRes->getVertexData() == 0x0) return false;
-	if( _geometryRes == 0x0 || _geometryRes->getVertexData() == 0x0) return false;
+	return false;
+   
+#if 0
+   if( _geometryRes == 0x0 || _geometryRes->getVertexData() == 0x0) return false;
 	
 	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::GeoUpdateTime );
 	if( Modules::config().gatherTimeStats ) timer->Start();
@@ -337,9 +255,6 @@ bool VoxelModelNode::updateVoxelGeometry()
 
 	VoxelVertexData *posData = _geometryRes->getVertexData();
 
-#if 1
-   ASSERT(false);
-#else
 	if( _morpherUsed )
 	{
 		// Recalculate vertex positions for morph targets
@@ -410,13 +325,8 @@ bool VoxelModelNode::updateVoxelGeometry()
 	}
 #endif
 
-	_morpherDirty = false;
-	_skinningDirty = false;
-	
 	// Upload geometry
 	_geometryRes->updateDynamicVertData();
-
-	timer->Stop();
 
 	return true;
 }
@@ -424,30 +334,11 @@ bool VoxelModelNode::updateVoxelGeometry()
 void VoxelModelNode::onPostUpdate()
 {
 	if( _nodeListDirty ) recreateNodeList();
-
-#if 0
-   // Put this back when we use this thing for geo with morph targets
-	if( _animCtrl.animate() )
-	{	
-		_skinningDirty = true;
-		markDirty();
-	}
-#endif
 }
 
 
 void VoxelModelNode::onFinishedUpdate()
 {
-	// Update AABBs of skinned meshes
-	if( _skinningDirty && !_geometryRes != 0x0 )
-	{
-		for( uint32 i = 0, s = (uint32)_meshList.size(); i < s; ++i )
-		{
-			_meshList[i]->_bBox = _meshList[i]->_localBBox;
-			_meshList[i]->_bBox.transform( _meshList[i]->_absTrans );
-		}
-	}
-
 	// Calculate model AABB from mesh AABBs
 	_bBox.clear();
 	for( uint32 i = 0, s = (uint32)_meshList.size(); i < s; ++i )

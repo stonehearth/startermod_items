@@ -88,9 +88,6 @@ protected:
 	BoundingBox         _localBBox;
 	bool                _ignoreAnim;
 
-	std::vector< uint32 >  _occQueries;
-	std::vector< uint32 >  _lastVisited;
-
 private:
 
 	friend class SceneManager;
