@@ -325,7 +325,8 @@ void LuaRenderer::RegisterType(lua_State* L)
          .enum_("constants")
       [
          value("MatResI",                    H3DLight::MatResI),
-         value("RadiusF",                    H3DLight::RadiusF),
+         value("Radius1F",                   H3DLight::Radius1F),
+         value("Radius2F",                   H3DLight::Radius2F),
          value("FovF",                       H3DLight::FovF),
          value("ColorF3",                    H3DLight::ColorF3),
          value("ColorMultiplierF",           H3DLight::ColorMultiplierF),

@@ -30,7 +30,7 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
    _directional = lightTpl.directional;
 	_lightingContext = lightTpl.lightingContext;
 	_shadowContext = lightTpl.shadowContext;
-	_radius = lightTpl.radius; _fov = lightTpl.fov;
+	_radius1 = lightTpl.radius1; _radius2 = lightTpl.radius2; _fov = lightTpl.fov;
 	_diffuseCol = Vec3f( lightTpl.col_R, lightTpl.col_G, lightTpl.col_B );
    _ambientCol = Vec3f( lightTpl.ambCol_R, lightTpl.ambCol_G, lightTpl.ambCol_B );
 	_diffuseColMult = lightTpl.colMult;
@@ -141,7 +141,7 @@ SceneNodeTpl *LightNode::parsingFunc( map< string, std::string > &attribs )
 	if( itr != attribs.end() ) lightTpl->shadowContext = itr->second;
 	else result = false;
 	itr = attribs.find( "radius" );
-	if( itr != attribs.end() ) lightTpl->radius = (float)atof( itr->second.c_str() );
+	if( itr != attribs.end() ) lightTpl->radius1 = (float)atof( itr->second.c_str() );
 	itr = attribs.find( "fov" );
 	if( itr != attribs.end() ) lightTpl->fov = (float)atof( itr->second.c_str() );
 	itr = attribs.find( "col_R" );
@@ -234,8 +234,10 @@ float LightNode::getParamF( int param, int compIdx )
 {
 	switch( param )
 	{
-	case LightNodeParams::RadiusF:
-		return _radius;
+	case LightNodeParams::Radius1F:
+		return _radius1;
+	case LightNodeParams::Radius2F:
+		return _radius2;
 	case LightNodeParams::ColorF3:
 		if( (unsigned)compIdx < 3 ) return _diffuseCol[compIdx];
 		break;
@@ -262,8 +264,12 @@ void LightNode::setParamF( int param, int compIdx, float value )
 {
 	switch( param )
 	{
-	case LightNodeParams::RadiusF:
-		_radius = value;
+	case LightNodeParams::Radius1F:
+		_radius1 = value;
+		markDirty(SceneNodeDirtyKind::Ancestors);
+		return;
+	case LightNodeParams::Radius2F:
+		_radius2 = value;
 		markDirty(SceneNodeDirtyKind::Ancestors);
 		return;
 	case LightNodeParams::FovF:
@@ -347,23 +353,23 @@ void LightNode::calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, fl
 		numPoints = 5;
 		float val = 1.0f * tanf( degToRad( _fov / 2 ) );
 		points[0] = _absTrans * Vec3f( 0, 0, 0 );
-		points[1] = _absTrans * Vec3f( -val * _radius, -val * _radius, -_radius );
-		points[2] = _absTrans * Vec3f(  val * _radius, -val * _radius, -_radius );
-		points[3] = _absTrans * Vec3f(  val * _radius,  val * _radius, -_radius );
-		points[4] = _absTrans * Vec3f( -val * _radius,  val * _radius, -_radius );
+		points[1] = _absTrans * Vec3f( -val * _radius2, -val * _radius2, -_radius2 );
+		points[2] = _absTrans * Vec3f(  val * _radius2, -val * _radius2, -_radius2 );
+		points[3] = _absTrans * Vec3f(  val * _radius2,  val * _radius2, -_radius2 );
+		points[4] = _absTrans * Vec3f( -val * _radius2,  val * _radius2, -_radius2 );
 	}
 	else
 	{
 		// Generate sphere for point light
 		numPoints = 8;
-		points[0] = _absPos + Vec3f( -_radius, -_radius, -_radius );
-		points[1] = _absPos + Vec3f(  _radius, -_radius, -_radius );
-		points[2] = _absPos + Vec3f(  _radius,  _radius, -_radius );
-		points[3] = _absPos + Vec3f( -_radius,  _radius, -_radius );
-		points[4] = _absPos + Vec3f( -_radius, -_radius,  _radius );
-		points[5] = _absPos + Vec3f(  _radius, -_radius,  _radius );
-		points[6] = _absPos + Vec3f(  _radius,  _radius,  _radius );
-		points[7] = _absPos + Vec3f( -_radius,  _radius,  _radius );
+		points[0] = _absPos + Vec3f( -_radius2, -_radius2, -_radius2 );
+		points[1] = _absPos + Vec3f(  _radius2, -_radius2, -_radius2 );
+		points[2] = _absPos + Vec3f(  _radius2,  _radius2, -_radius2 );
+		points[3] = _absPos + Vec3f( -_radius2,  _radius2, -_radius2 );
+		points[4] = _absPos + Vec3f( -_radius2, -_radius2,  _radius2 );
+		points[5] = _absPos + Vec3f(  _radius2, -_radius2,  _radius2 );
+		points[6] = _absPos + Vec3f(  _radius2,  _radius2,  _radius2 );
+		points[7] = _absPos + Vec3f( -_radius2,  _radius2,  _radius2 );
 	}
 
 	// Project points to screen-space and find extents
@@ -421,14 +427,14 @@ void LightNode::onPostUpdate()
 
 	// Generate frustum
 	if( _fov < 180 ) {
-		_frustum.buildViewFrustum( _absTrans, _fov, 1.0f, 0.1f, _radius );
+		_frustum.buildViewFrustum( _absTrans, _fov, 1.0f, 0.1f, _radius2 );
    } else {
-		_frustum.buildBoxFrustum( _absTrans, -_radius, _radius, -_radius, _radius, _radius, -_radius );
+		_frustum.buildBoxFrustum( _absTrans, -_radius2, _radius2, -_radius2, _radius2, _radius2, -_radius2 );
 
       if (lightMoved) {
 		   float ymax = 0.1f * tanf(degToRad(45.0f));
 		   float xmax = ymax * 1.0f;  // ymax * aspect
-         Matrix4f projMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, 0.1f, _radius);
+         Matrix4f projMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, 0.1f, _radius2);
 
          static const float xRot[6] = { 0, 0, degToRad(-90), degToRad(90), 0, 0};
          static const float yRot[6] = { degToRad(90), degToRad(-90), degToRad(180), 0, degToRad(180), 0};

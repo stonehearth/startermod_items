@@ -78,7 +78,7 @@ function SkyRenderer:add_celestial(name, colors, angles, ambient_colors, depth_o
    }
 
    h3dSetNodeTransform(new_celestial.node,  0, 0, 0, 0, 0, 0, 1, 1, 1)
-   h3dSetNodeParamF(new_celestial.node, H3DLight.RadiusF, 0, 10000)
+   h3dSetNodeParamF(new_celestial.node, H3DLight.Radius2F, 0, 10000)
    h3dSetNodeParamF(new_celestial.node, H3DLight.FovF, 0, 360)
    h3dSetNodeParamI(new_celestial.node, H3DLight.ShadowMapCountI, 4)
    h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowSplitLambdaF, 0, 0.95)

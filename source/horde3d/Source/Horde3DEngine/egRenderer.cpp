@@ -580,6 +580,7 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
 	
 	// Lighting uniforms
 	sc.uni_lightPos = gRDI->getShaderConstLoc( shdObj, "lightPos" );
+	sc.uni_lightRadii = gRDI->getShaderConstLoc( shdObj, "lightRadii" );
 	sc.uni_lightDir = gRDI->getShaderConstLoc( shdObj, "lightDir" );
 	sc.uni_lightColor = gRDI->getShaderConstLoc( shdObj, "lightColor" );
 	sc.uni_lightAmbientColor = gRDI->getShaderConstLoc( shdObj, "lightAmbientColor" );
@@ -675,8 +676,11 @@ void Renderer::commitLightUniforms(LightNode const* light)
       return;
    }
 
-   data[0] = light->_absPos.x; data[1] = light->_absPos.y; data[2] = light->_absPos.z; data[3] = light->_radius;
+   data[0] = light->_absPos.x; data[1] = light->_absPos.y; data[2] = light->_absPos.z;
    setGlobalUniform("lightPos", UniformType::VEC4, data);
+
+   data[0] = light->_radius1; data[1] = light->_radius2; data[2] = 1.0f / (data[1] - data[0]);
+   setGlobalUniform("lightRadii", UniformType::VEC4, data);
 
    data[0] = light->_spotDir.x; data[1] = light->_spotDir.y; data[2] = light->_spotDir.z; data[3] = cosf(degToRad(light->_fov / 2.0f));
    setGlobalUniform("lightDir", UniformType::VEC4, data);
@@ -1618,7 +1622,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
       } else {
 		   float ymax = 0.1f * tanf(degToRad(45.0f));
 		   float xmax = ymax * 1.0f;  // ymax * aspect
-         lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, 0.1f, light->_radius );
+         lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, 0.1f, light->_radius2 );
          lightViewMat = light->getCubeViewMat((LightCubeFace::List)cubeFace);
       }
 
@@ -2793,7 +2797,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
-   const unsigned int VoxelInstanceCutoff = 10;
+   const unsigned int VoxelInstanceCutoff = 2;
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
 	if( frust1 == 0x0 ) return;
 	
@@ -3544,12 +3548,12 @@ void Renderer::renderDebugView()
 		
 		if( lightNode->_fov < 180 )
 		{
-			float r = lightNode->_radius * tanf( degToRad( lightNode->_fov / 2 ) );
-			drawCone( lightNode->_radius, r, lightNode->_absTrans );
+			float r = lightNode->_radius2 * tanf( degToRad( lightNode->_fov / 2 ) );
+			drawCone( lightNode->_radius2, r, lightNode->_absTrans );
 		}
 		else
 		{
-			drawSphere( lightNode->_absPos, lightNode->_radius );
+			drawSphere( lightNode->_absPos, lightNode->_radius2 );
 		}
 	}
 	glCullFace( GL_BACK );
