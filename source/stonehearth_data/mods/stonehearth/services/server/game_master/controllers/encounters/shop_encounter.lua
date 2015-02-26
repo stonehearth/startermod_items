@@ -18,6 +18,7 @@ function ShopEncounter:start(ctx, info)
                           :set_data({
                               shop = shop,
                               title = info.title,
+                              closed_callback = '_on_closed',
                            })
    self._sv.ctx = ctx
    self._sv.shop = shop
@@ -30,8 +31,12 @@ function ShopEncounter:stop()
    self:_destroy_bulletin()
 end
 
--- ends the current conversation
---
+function ShopEncounter:_on_closed()
+   self._log:debug('shop bulletin closed.  terminating encounter.')
+   local ctx = self._sv.ctx
+   ctx.arc:terminate(ctx)
+end
+
 function ShopEncounter:_destroy_bulletin()
    local bulletin = self._sv.bulletin
    if bulletin then
