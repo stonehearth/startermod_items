@@ -12,6 +12,7 @@ function HydrologyService:initialize()
 
    -- constant converting pressure to a flow rate per unit cross section
    self._pressure_to_flow_rate = 1
+   self._min_flow_rate = 0.01
 
    if not self._sv._initialized then
       self._sv._water_bodies = {}
@@ -337,6 +338,25 @@ function HydrologyService:_destroy_channel(channel)
    end
 end
 
+function HydrologyService:sort_channels_ascending(channels)
+   local meta_channels = {}
+   for _, channel in pairs(channels) do
+      -- extract the elevation so we don't keep going to c++ during the sort
+      table.insert(meta_channels, { channel = channel, elevation = channel.from_location.y })
+   end
+
+   table.sort(meta_channels, function(a, b)
+         return a.elevation < b.elevation
+      end)
+
+   local sorted_channels = {}
+   for _, entry in ipairs(meta_channels) do
+      table.insert(sorted_channels, entry.channel)
+   end
+
+   return sorted_channels
+end
+
 function HydrologyService:_each_channel(callback_fn)
    for id, channels in pairs(self._sv._channels) do
       for _, channel in pairs(channels) do
@@ -345,6 +365,18 @@ function HydrologyService:_each_channel(callback_fn)
             return
          end
       end
+   end
+end
+
+function HydrologyService:_each_channel_ascending(callback_fn)
+   local channels = {}
+   self:_each_channel(function(channel)
+         table.insert(channels, channel)
+      end)
+
+   local sorted_channels = self:sort_channels_ascending(channels)
+   for _, channel in ipairs(sorted_channels) do
+      callback_fn(channel)
    end
 end
 
@@ -370,11 +402,11 @@ function HydrologyService:_create_waterfall(from_entity, from_location, to_entit
    return waterfall
 end
 
-function HydrologyService:add_volume_to_channel(channel, volume)
+function HydrologyService:add_volume_to_channel(channel, volume, source_elevation_bias)
    assert(volume >= 0)
 
    -- get the flow volume per tick
-   local max_flow_volume = self:calculate_channel_flow_rate(channel)
+   local max_flow_volume = self:calculate_channel_flow_rate(channel, source_elevation_bias)
 
    if max_flow_volume <= 0 then
       -- not enough pressure to add water to channel
@@ -394,11 +426,15 @@ function HydrologyService:add_volume_to_channel(channel, volume)
    return volume
 end
 
-function HydrologyService:calculate_channel_flow_rate(channel)
+-- source elevation bias is used when we want to compute the flow rate for a packet of water
+-- that moves directly into the channel and skips being part of the source height
+function HydrologyService:calculate_channel_flow_rate(channel, source_elevation_bias)
+   source_elevation_bias = source_elevation_bias or 0
+
    if channel.channel_type == 'waterfall' then
       local water_component = channel.from_entity:add_component('stonehearth:water')
-      local water_elevation = water_component:get_water_elevation()
-      local target_elevation = channel.from_location.y - 1
+      local water_elevation = water_component:get_water_elevation() + source_elevation_bias
+      local target_elevation = channel.from_location.y
       local flow_rate = self:calculate_flow_rate(water_elevation, target_elevation)
       return flow_rate
    end
@@ -406,7 +442,7 @@ function HydrologyService:calculate_channel_flow_rate(channel)
    if channel.channel_type == 'pressure' then
       local from_water_component = channel.from_entity:add_component('stonehearth:water')
       local to_water_component = channel.to_entity:add_component('stonehearth:water')
-      local from_water_elevation = from_water_component:get_water_elevation()
+      local from_water_elevation = from_water_component:get_water_elevation() + source_elevation_bias
       local to_water_elevation = to_water_component:get_water_elevation()
       local flow_rate = self:calculate_flow_rate(from_water_elevation, to_water_elevation)
       return flow_rate
@@ -418,6 +454,13 @@ end
 function HydrologyService:calculate_flow_rate(from_elevation, to_elevation)
    local pressure = from_elevation - to_elevation
    local flow_rate = pressure * self._pressure_to_flow_rate
+
+   -- stop flowing when less than a "drop" of water
+   -- we don't want to keep computing immaterial deltas
+   if flow_rate < self._min_flow_rate then
+      flow_rate = 0
+   end
+
    return flow_rate
 end
 
@@ -575,7 +618,9 @@ end
 function HydrologyService:_on_tick()
    log:spam('Start tick')
 
-   self:_each_channel(function(channel)
+   -- TODO: should we process waterfall channels first?
+   -- process channels in order of increasing elevation
+   self:_each_channel_ascending(function(channel)
          local water_component = channel.from_entity:add_component('stonehearth:water')
          water_component:_fill_channels_to_capacity()
       end)
