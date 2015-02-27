@@ -1264,6 +1264,10 @@
          "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
          "endpoint" : "server"
       },
+      "mark_bulletin_shown" : {
+        "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
+         "endpoint" : "server" 
+      },
       "trigger_bulletin_event": {
          "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
          "endpoint" : "server"

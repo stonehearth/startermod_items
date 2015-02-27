@@ -10,4 +10,10 @@ function BulletinBoardCallHandler:remove_bulletin(session, response, bulletin_id
    response:resolve({})
 end
 
+--The service marks a bulletin as seen
+function BulletinBoardCallHandler:mark_bulletin_shown(session, response, bulletin_id)
+   stonehearth.bulletin_board:mark_shown(bulletin_id)
+   response:resolve({})
+end
+
 return BulletinBoardCallHandler
