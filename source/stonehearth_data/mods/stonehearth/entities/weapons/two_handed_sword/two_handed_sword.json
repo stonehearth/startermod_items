@@ -8,12 +8,12 @@
        "model_variants": {
          "default" : {
             "models": [
-               "file(giant_bone_axe_equipped.qb)"
+               "file(two_handed_sword_equipped.qb)"
             ]
          }
       },
       "stonehearth:entity_forms" : {
-         "iconic_form" : "file(giant_bone_axe_iconic.json)"
+         "iconic_form" : "file(two_handed_sword_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
          "slot" : "mainhand",
@@ -25,12 +25,12 @@
       },
 
       "unit_info": {
-         "name": "Giant Bone Axe",
-         "description": "Carved from the clavical of some great beast.",
-         "icon" : "file(giant_bone_axe.png)"
+         "name": "Two Handed Sword",
+         "description": "Double the hands, double the trouble.",
+         "icon" : "file(two_handed_sword.png)"
       },
       "stonehearth:material" : {
-         "tags" : "giant_bone melee_weapon"
+         "tags" : "metal melee_weapon"
       }
    },
    "entity_data" : {
@@ -39,12 +39,12 @@
          "reach" : 2.2
       },
       "stonehearth:combat:melee_attacks" : [
-         {
-            "name" : "combat_2h_attack",
-            "active_frame" : 21,
-            "cooldown" : 0,
-            "priority" : 2
-         }  
+      {
+         "name" : "combat_2h_attack",
+         "active_frame" : 21,
+         "cooldown" : 0,
+         "priority" : 2
+      }      
       ],
       "stonehearth:net_worth" : {
          "value_in_gold" : 115,

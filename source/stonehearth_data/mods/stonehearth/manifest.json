@@ -391,6 +391,7 @@
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
       "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
       "weapons:giant_bone_axe" : "file(entities/weapons/giant_bone_axe)",
+      "weapons:two_handed_sword" : "file(entities/weapons/two_handed_sword)",
       "weapons:dagger" : "file(entities/weapons/dagger)",
 
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
