@@ -28,6 +28,7 @@ function ShopEncounter:start(ctx, info)
 end
 
 function ShopEncounter:stop()
+   self:_destroy_shop()
    self:_destroy_bulletin()
 end
 
@@ -35,6 +36,15 @@ function ShopEncounter:_on_closed()
    self._log:debug('shop bulletin closed.  terminating encounter.')
    local ctx = self._sv.ctx
    ctx.arc:terminate(ctx)
+end
+
+function ShopEncounter:_destroy_shop()
+   local shop = self._sv.shop
+   if shop then
+      stonehearth.shop:destroy_shop(shop)
+      self._sv.shop = nil
+      self.__saved_variables:mark_changed()
+   end
 end
 
 function ShopEncounter:_destroy_bulletin()
