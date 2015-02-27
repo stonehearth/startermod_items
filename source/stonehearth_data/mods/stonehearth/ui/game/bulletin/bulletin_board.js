@@ -81,8 +81,13 @@ var StonehearthBulletinBoard;
 
          for (var i = 0; i < numBulletins; i++) {
             var bulletin = bulletins[i]; 
-            if (bulletin.id > self._lastViewedBulletinId) {
+            //The bulletin keeps track of whether it's been shown, but this updates
+            //too late to be in perfect sync with the UI. So keep track of what was
+            //shown this session, but on load, use the shown to prevent all the shown bulletins
+            //from appearing again. This seems...redundant, happy to take suggestions. 
+            if (!bulletin.shown && (bulletin.id > self._lastViewedBulletinId)) {
                self.showNotificationView(bulletin);
+               radiant.call('stonehearth:mark_bulletin_shown', bulletin.id);
                return;
             }
          }

@@ -210,6 +210,10 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
       return csg::Region3::zero;
    }
 
+   if (clip_height <= _location.y){
+      return csg::Region3::zero;
+   }
+
    csg::Point3 tile_size = _terrain.GetTileSize();
    bool intersects_clip_plane = (_location.y < clip_height) && (clip_height < _location.y + tile_size.y);
    bool is_cut = !_cutMap.empty();

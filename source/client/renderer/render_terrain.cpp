@@ -20,7 +20,7 @@ using namespace ::radiant::client;
 
 #define T_LOG(level)      LOG(renderer.terrain, level)
 
-static const csg::Point3 TERRAIN_LAYER_SIZE(256, 25, 256);
+static const csg::Point3 TERRAIN_LAYER_SIZE(256, 500, 256);
 static const int MAX_CLIP_HEIGHT = 1000000000; // don't use INT_MAX due to overflow
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
@@ -279,26 +279,19 @@ void RenderTerrain::SetClipHeight(int height)
 
    csg::Cube3 slice = csg::ToInt(terrainPtr->GetBounds());
 
-   // dirty the tiles on both sides of the old clip plane
-   slice.min.y = old_clip_height - 1;
-   slice.max.y = old_clip_height + 1;
+   // Dirty every possibly-affected tile.
+   slice.min.y = std::min(old_clip_height, _clip_height) - 1;
+   slice.max.y = (int)terrainPtr->GetBounds().max.y;
    EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
       MarkDirty(cursor);
    });
 
-   // dirty the tiles on both sides of the new clip plane
-   slice.min.y = _clip_height - 1;
-   slice.max.y = _clip_height + 1;
-   EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-      MarkDirty(cursor);
-   });
-
-   // change visibility of all tiles between the clip heights
+   // Adjust the visibility of every possible-affected layer.
    int terrain_max_y = (int)terrainPtr->GetBounds().max.y;
-   slice.min.y = std::min(_clip_height, old_clip_height);
-   slice.max.y = std::min(std::max(_clip_height, old_clip_height), terrain_max_y);
-   bool visible = _clip_height > old_clip_height;
-   EachLayerIn(slice, [this, visible](csg::Point3 const& cursor, RenderTerrainLayer* layer) {
+   slice.min.y = std::min(_clip_height, old_clip_height) - 1;
+   slice.max.y = terrain_max_y;
+   EachLayerIn(slice, [this](csg::Point3 const& cursor, RenderTerrainLayer* layer) {
+      bool visible = cursor.y <= _clip_height;
       SetLayerVisible(*layer, visible);
    });
 }

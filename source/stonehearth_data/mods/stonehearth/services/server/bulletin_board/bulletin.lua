@@ -8,6 +8,7 @@ function Bulletin:initialize(id)
    self._sv.id = id
    self._sv.creation_time = radiant.gamestate.now()
    self._sv.type = 'info'
+   self._sv.shown = false
    self._sv.close_on_handle = true
    self.__saved_variables:mark_changed()
 end
@@ -25,6 +26,12 @@ function Bulletin:set_type(type)
    self._sv.type = type
    self.__saved_variables:mark_changed()
    return self
+end
+
+--Set true if this bulletin has been flashed at the user yet
+function Bulletin:set_shown(shown)
+   self._sv.shown = shown
+   self.__saved_variables:mark_changed()
 end
 
 -- sticky bulletin notifications stay up in the UI until the user addresses them
