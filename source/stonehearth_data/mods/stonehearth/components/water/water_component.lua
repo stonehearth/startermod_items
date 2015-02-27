@@ -1,3 +1,4 @@
+local channel_lib = require 'services.server.hydrology.channel_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -123,18 +124,18 @@ function WaterComponent:_add_water(world_location, volume)
                -- the region of the source water body.
                local source_adjacent_point = point
                local target_adjacent_point = current_layer:get_closest_point(point)
-               channel = stonehearth.hydrology:link_pressure_channel(self._entity, source_adjacent_point,
+               channel = channel_lib.link_pressure_channel(self._entity, source_adjacent_point,
                                                                      target_entity, target_adjacent_point)
             else
                local is_drop = not self:_is_blocked(point - Point3.unit_y)
                if is_drop then
                   -- establish a unidirectional link between the two water bodies using a waterfall channel
-                  channel = stonehearth.hydrology:link_waterfall_channel(self._entity, point)
+                  channel = channel_lib.link_waterfall_channel(self._entity, point)
                end
             end
 
             if channel then
-               volume = stonehearth.hydrology:add_volume_to_channel(channel, volume, 1)
+               volume = channel_lib.add_volume_to_channel(channel, volume, 1)
                channel_region:add_point(point)
             else
                -- make this location wet
@@ -186,7 +187,7 @@ end
 
 function WaterComponent:_add_water_to_channels(volume)
    local channels = stonehearth.hydrology:get_channels(self._entity)
-   local sorted_channels = stonehearth.hydrology:sort_channels_ascending(channels)
+   local sorted_channels = channel_lib.sort_channels_ascending(channels)
 
    for _, channel in pairs(sorted_channels) do
       local elevation = self:get_water_elevation()
@@ -197,7 +198,7 @@ function WaterComponent:_add_water_to_channels(volume)
          break
       end
 
-      volume = stonehearth.hydrology:add_volume_to_channel(channel, volume)
+      volume = channel_lib.add_volume_to_channel(channel, volume)
 
       if volume <= 0 then
          break
@@ -211,7 +212,7 @@ end
 -- TODO: tell hydrology service to mark saved variables as changed after this
 function WaterComponent:_fill_channels_to_capacity()
    local channels = stonehearth.hydrology:get_channels(self._entity)
-   local sorted_channels = stonehearth.hydrology:sort_channels_ascending(channels)
+   local sorted_channels = channel_lib.sort_channels_ascending(channels)
 
    for _, channel in pairs(sorted_channels) do
       local elevation = self:get_water_elevation()
@@ -223,7 +224,7 @@ function WaterComponent:_fill_channels_to_capacity()
       end
 
       -- get the flow volume per tick
-      local max_flow_volume = stonehearth.hydrology:calculate_channel_flow_rate(channel)
+      local max_flow_volume = channel_lib.calculate_channel_flow_rate(channel)
       local unused_volume = max_flow_volume - channel.queued_volume
 
       if unused_volume > 0 then
