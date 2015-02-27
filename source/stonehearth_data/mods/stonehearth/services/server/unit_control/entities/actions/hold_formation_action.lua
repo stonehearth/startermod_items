@@ -57,7 +57,7 @@ function HoldFormationAction:_check_formation_location()
    local location
    local banner = self._party:get_active_banner()
    if banner then
-      location = banner.location
+      location = banner.location + self._party:get_formation_offset(self._entity)
    end
 
    if self._running then
