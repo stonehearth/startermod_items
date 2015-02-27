@@ -1,7 +1,7 @@
 <script type="text/x-handlebars" data-template-name="shopBulletinDialog">
 <div id="shopBulletinDialog" class="gui bulletinDialog">
    <div class="window">
-      <div class="title">{{view.shop_name}}<div class="closeButton"></div></div>
+      <div class="title">{{view.model.data.shop.name}}<div class="closeButton"></div></div>
       
       
       <div id="buyTab" class="tabPage">
@@ -25,7 +25,7 @@
       </div>
 
       <div id="playerGold">
-         <h2>Gold: <span class="goldText">{{view.playerGold}}</h2></h2>
+         <h2>Gold: <span class="goldText">{{view.model.data.shop.gold}}</h2></h2>
       </div>
 
       <div id="tabs">

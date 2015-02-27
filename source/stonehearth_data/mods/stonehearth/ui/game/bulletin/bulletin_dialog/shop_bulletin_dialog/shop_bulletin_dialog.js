@@ -1,35 +1,22 @@
 App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 	templateName: 'shopBulletinDialog',
-
-   init: function() {
-      this._super();
-      var self = this;
-      return radiant.call('stonehearth:get_inventory')
-         .done(function(response) {
-            self._inventoryUri = response.inventory;
-            self._getGold();
-         })
+   components : {
+      data : {
+         shop : {
+            sellable_items : {}
+         }
+      }
    },
 
-   _getGold: function() {
+   _updateGold: function() {
       var self = this;
-      radiant.call_obj(self._inventoryUri, 'get_gold_count_command')
-         .done(function(response) {
-            self.set('playerGold', response.gold);
-            self._updateBuyButtons();
-            self._updateSellButtons();
-         })
-   },
+      self._updateBuyButtons();
+      self._updateSellButtons();
+   }.observes('model.data.shop.gold'),
 
    didInsertElement: function() {
       var self = this;
-
       self._super();
-
-
-      if (this.__shopTrace) {
-         return;
-      }
 
       // build the inventory palettes
       self._buildBuyPalette();
@@ -91,15 +78,17 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
             self._updateBuyButtons();
          }
       });
-
-
-      self._shopTrace = new StonehearthDataTrace(this.get('model.data.shop'), {});
-
-      self._shopTrace.progress(function(eobj) {
-            self.set('shop_name', eobj.name);
-            self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
-         });
    },
+
+   _updateInventory: function() {
+      var shop_inventory = this.get('model.data.shop.shop_inventory');
+      this._buyPalette.stonehearthItemPalette('updateItems', shop_inventory);
+   }.observes('model.data.shop.shop_inventory'),
+
+   _updateSellableItems: function() {
+      var sellable_items = this.get('model.data.shop.sellable_items.tracking_data');      
+      this._sellPalette.stonehearthItemPalette('updateItems', sellable_items);
+   }.observes('model.data.shop.sellable_items'),
 
    _buildSellPalette: function() {
       var self = this;
@@ -120,17 +109,6 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
             self._updateSellButtons();
          }
       });
-
-      return radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:sellable_item_tracker')
-         .done(function(response) {
-            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, {})
-               .progress(function(response) {
-                  self._sellPalette.stonehearthItemPalette('updateItems', response.tracking_data);
-               });
-         })
-         .fail(function(response) {
-            console.error(response);
-         })     
    },
 
    _doBuy: function(quantity) {
@@ -139,9 +117,6 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       var item = self.$('#buyList .selected').attr('uri');
 
       radiant.call_obj(shop, 'buy_item_command', item, quantity)
-         .always(function() {
-            self._getGold();
-         })
          .fail(function() {
             // play a 'bonk!' noise or something
          })
@@ -157,9 +132,6 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       }
 
       radiant.call_obj(shop, 'sell_item_command', item, quantity)
-         .always(function() {
-            self._getGold();
-         })
          .fail(function() {
             // play a 'bonk!' noise or something
          })
@@ -174,7 +146,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          // update the buy buttons
          var cost = parseInt(item.attr('cost'));
          var numAvailable = parseInt(item.attr('num'));
-         var gold = self.get('playerGold');
+         var gold = self.get('model.data.shop.gold');
 
          if (cost <= gold) {
             self.$('#buy1Button').removeClass('disabled');   
@@ -201,41 +173,6 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          self.$('#sell1Button').removeClass('disabled');
          self.$('#sell10Button').removeClass('disabled');   
       }
-   },
-
-   _updateInventoryHtml: function() {
-      //Ember.run.scheduleOnce('afterRender', this, '_selectShopRow')
-   }.observes('inventoryArray'),
-
-   _selectShopRow: function() {
-      var self = this;
-      if (self._selectedUri) {
-         var selector = "[uri='" + self._selectedUri + "']";
-         self.$(selector)
-            .addClass('selected');
-      }
-   },
-
-   _getInventoryArray: function(map) {
-      var vals = [];
-      radiant.each(map, function(k ,v) {
-         if(k != "__self" && map.hasOwnProperty(k)) {
-            vals.push(v);
-         }
-      });
-      return vals;
-   },
-
-   destroy: function() {
-      if (this._shopTrace) {
-         this._shopTrace.destroy();
-      }
-
-      if (this._playerInventoryTrace) {
-         this._playerInventoryTrace.destroy();
-      }
-
-      this._super();
    },
 });
 

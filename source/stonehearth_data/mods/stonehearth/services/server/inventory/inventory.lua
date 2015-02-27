@@ -1,3 +1,5 @@
+local FilteredTrace = require 'radiant.modules.filtered_trace'
+
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
@@ -20,9 +22,30 @@ function Inventory:initialize(player_id)
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
    self:add_item_tracker('stonehearth:placeable_item_inventory_tracker')
    self:add_item_tracker('stonehearth:sellable_item_tracker')
+
+   self:_listen_for_destroy()
 end
 
 function Inventory:restore()
+   self:_listen_for_destroy()
+end
+
+function Inventory:destroy()
+   if self._destroy_listener then
+      self._destroy_listener:destroy()
+      self._destroy_listener = nil
+   end
+end
+
+function Inventory:_listen_for_destroy()
+   self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', self, self._on_destroy)
+end
+
+function Inventory:_on_destroy(e)
+   local id = e.entity_id
+   if self._sv.items[id] then
+      self:remove_item(id)
+   end
 end
 
 function Inventory:create_stockpile(location, size)
@@ -199,11 +222,6 @@ function Inventory:find_closest_unused_placable_item(uri, location)
    return best_item, acceptable_item_count
 end
 
-function Inventory:get_gold_count_command(session, response, uri)
-   local gold = self:get_gold_count()
-   response:resolve({ gold = gold })
-end
-
 function Inventory:get_gold_count()
    local gold_items = self:get_items_of_type('stonehearth:loot:gold')
 
@@ -234,11 +252,15 @@ function Inventory:add_gold(amount)
    end
 
    local gold = radiant.entities.create_entity('stonehearth:loot:gold', { owner = self._sv.player_id })
-   local item = gold:add_component('item')
-   item:set_stacks(amount)
+   gold:add_component('item')
+            :set_stacks(amount)
 
    local location = radiant.terrain.find_placement_point(drop_origin, 1, 3)
    radiant.terrain.place_entity(gold, location)
+
+   -- add the item to the inventory immediately so anyone displaying the 'gold' amount
+   -- will see it update immediately
+   self:add_item(gold)
 end
 
 function Inventory:subtract_gold(amount)
@@ -246,6 +268,7 @@ function Inventory:subtract_gold(amount)
    local stacks_to_remove = amount
 
    if gold_items ~= nil then
+      local only_stacks_dirty = true
       for id, item in pairs(gold_items.items) do
          -- get stacks for the item
          local item_component = item:add_component('item')
@@ -260,6 +283,7 @@ function Inventory:subtract_gold(amount)
             -- consume the whole item and run through the loop again
             radiant.entities.destroy_entity(item)
             stacks_to_remove = stacks_to_remove - item_stacks
+            only_stacks_dirty = false
          end
 
          assert(stacks_to_remove >= 0)
@@ -268,7 +292,33 @@ function Inventory:subtract_gold(amount)
             break
          end
       end
+      -- it is annoying that we have to do this, but the inventory tracker
+      -- doesn't trace the stacks of all the items.  sigh.
+      if only_stacks_dirty then
+         self:get_item_tracker('stonehearth:basic_inventory_tracker')
+                  :mark_changed()
+      end
    end
+end
+
+-- used to be notified whenenver the player gets or loses gold.  the trace
+-- object returned can be registered with a function which will pass you the
+-- new amount of gold they have.
+--
+function Inventory:trace_gold(reason)
+   local trace = self:get_item_tracker('stonehearth:basic_inventory_tracker')
+                           :trace(reason)
+
+   local last_count = nil   
+   local update_gold_fn = function()
+      local count = self:get_gold_count()
+      if count ~= last_count then
+         last_count = count
+         return count
+      end
+   end
+
+   return FilteredTrace(trace, update_gold_fn)
 end
 
 return Inventory
