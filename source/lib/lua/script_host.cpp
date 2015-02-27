@@ -636,14 +636,16 @@ luabind::object ScriptHost::LoadScript(std::string const& path)
    }
 
    if (error == LUA_ERRFILE) {
-      OnError("Coud not open script file " + path);
+      ReportStackException("lua", BUILD_STRING("Could not open script file \"" << path << "\"."), "");
    } else if (error != 0) {
-      OnError(lua_tostring(L_, -1));
+      std::string error = lua_tostring(L_, -1);
+      ReportStackException("lua", BUILD_STRING("Error loading \"" << path << "\"."), error);
       lua_pop(L_, 1);
       return obj;
    }
    if (lua_pcall(L_, 0, LUA_MULTRET, 0) != 0) {
-      OnError(lua_tostring(L_, -1));
+      std::string error = lua_tostring(L_, -1);
+      ReportStackException("lua", BUILD_STRING("Error loading \"" << path << "\"."), error);
       lua_pop(L_, 1);
       return obj;
    }
@@ -651,11 +653,6 @@ luabind::object ScriptHost::LoadScript(std::string const& path)
    obj = luabind::object(luabind::from_stack(L_, -1));
    lua_pop(L_, 1);
    return obj;
-}
-
-void ScriptHost::OnError(std::string const& description)
-{
-   LUA_LOG(0) << description;
 }
 
 luabind::object ScriptHost::Require(std::string const& s)
@@ -696,19 +693,6 @@ luabind::object ScriptHost::RequireScript(std::string const& path)
    }
    return obj;
 }
-
-#if 0
-void ScriptHost::Call(luabind::object fn, luabind::object arg1)
-{
-   try {
-      luabind::object caller(cb_thread_, fn);
-      call_function<void>(caller, arg1);
-   } catch (std::exception& e) {
-      OnError(w.what());
-   }
-
-}
-#endif
 
 void ScriptHost::Log(const char* category, int level, const char* str)
 {
