@@ -1,0 +1,26 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "item" : {
+         "category" : "tools"
+       },
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(giant_bone_axe.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Giant Bone Axe",
+         "description": "Carved from the clavical of some great beast.",
+         "icon" : "file(giant_bone_axe.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "bone animal_part melee_weapon crafted"
+      }
+   },
+   "entity_data" : {
+   }
+}
