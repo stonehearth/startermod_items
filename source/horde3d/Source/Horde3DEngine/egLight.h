@@ -29,7 +29,8 @@ struct LightNodeParams
 	enum List
 	{
 		MatResI = 500,
-		RadiusF,
+		Radius1F,
+		Radius2F,
 		FovF,
 		ColorF3,
 		ColorMultiplierF,
@@ -75,7 +76,7 @@ struct LightCubeFace
 struct LightNodeTpl : public SceneNodeTpl
 {
 	std::string        lightingContext, shadowContext;
-	float              radius, fov;
+	float              radius1, radius2, fov;
 	float              col_R, col_G, col_B, colMult;
 	float              ambCol_R, ambCol_G, ambCol_B;
 	uint32             shadowMapCount;
@@ -89,7 +90,7 @@ struct LightNodeTpl : public SceneNodeTpl
 	              std::string const& lightingContext, std::string const& shadowContext ) :
 		SceneNodeTpl( SceneNodeTypes::Light, name ), 
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
-		radius( 100 ), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
+		radius1(0), radius2(100), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
       ambCol_R( 0 ), ambCol_G( 0 ), ambCol_B( 0 ), shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), 
       shadowMapBias( 0.005f ), directional(false), importance(0), shadowMapQuality(0)
 	{
@@ -145,7 +146,7 @@ private:
    Vec3f                  _absPos, _spotDir;
 
    std::string            _lightingContext, _shadowContext;
-   float                  _radius, _fov;
+   float                  _radius1, _radius2, _fov;
    bool                   _directional;
    Vec3f                  _diffuseCol;
    Vec3f                  _ambientCol;

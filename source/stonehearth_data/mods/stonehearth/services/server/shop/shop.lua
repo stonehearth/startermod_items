@@ -281,7 +281,7 @@ function Shop:_spawn_items(uri, quantity)
 
    local items = {}
    items[uri] = quantity
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._sv.player_id)
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
 
    return true
 end
@@ -297,7 +297,7 @@ function Shop:_spawn_items(uri, quantity)
 
    local items = {}
    items[uri] = quantity
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._sv.player_id)
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
 
    return true
 end

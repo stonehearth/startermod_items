@@ -25,10 +25,9 @@
         }
     },
     "radius": {
-        "over_lifetime__": {
-            "kind": "RANDOM_BETWEEN_CURVES",
-            "values": [ [[0.0, 4.1], [0.5, 3.8], [1.0, 4.1]],
-                        [[0.0, 8.1], [0.5, 8.6], [1.0, 8.1]] ]
+        "start": {
+            "kind": "CONSTANT",
+            "values": [20.0]
         }
     }
 }

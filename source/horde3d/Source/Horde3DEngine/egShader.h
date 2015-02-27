@@ -100,7 +100,7 @@ struct ShaderCombination
    int                 uni_projectorMat;
    int                 uni_worldMat, uni_worldNormalMat, uni_nodeId;
 	int                 uni_skinMatRows;
-	int                 uni_lightPos, uni_lightDir, uni_lightColor, uni_lightAmbientColor;
+	int                 uni_lightPos, uni_lightRadii, uni_lightDir, uni_lightColor, uni_lightAmbientColor;
 	int                 uni_shadowSplitDists, uni_shadowMats, uni_shadowMapSize, uni_shadowBias;
 	int                 uni_parPosArray, uni_parSizeAndRotArray, uni_parColorArray;
    int                 uni_cubeBatchTransformArray, uni_cubeBatchColorArray;

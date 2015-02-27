@@ -67,6 +67,7 @@ public:
    animatedlight::IntensityData intensity;
    animatedlight::ColorData color;
    animatedlight::RadiusData radius;
+   animatedlight::RadiusData inner_radius;
    float duration;
    bool loops;
    int importance;

@@ -28,5 +28,27 @@ function WaitEncounter:stop()
    end
 end
 
+-- debug commands sent by the ui
+
+function WaitEncounter:get_progress_cmd(session, response)
+   local progress = {}
+   if self._timer then
+      progress.time_left = stonehearth.calendar:format_remaining_time(self._timer)
+   end
+   return progress;
+end
+
+function WaitEncounter:trigger_now_cmd(session, response)
+   local ctx = self._sv.ctx
+
+   self._log:info('triggering now as requested by ui')   
+   if self._timer then
+      self._timer:destroy()
+      self._timer = nil
+   end
+   ctx.arc:trigger_next_encounter(ctx)
+   return true
+end
+
 return WaitEncounter
 

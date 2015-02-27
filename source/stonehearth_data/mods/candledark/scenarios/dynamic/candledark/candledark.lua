@@ -154,9 +154,10 @@ function Candledark:_on_survived_accepted()
    end
 
    local items = {}
-   items['candledark:candy_basket'] = 9
+   local player_id = self._sv.player_id
 
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._sv.player_id)
+   items['candledark:candy_basket'] = 9
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = player_id })
 end
 
 function Candledark:destroy()

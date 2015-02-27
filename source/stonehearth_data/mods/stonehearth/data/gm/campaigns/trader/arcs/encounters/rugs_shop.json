@@ -2,6 +2,7 @@
    "type" : "encounter",
    "encounter_type" : "shop",
    "rarity" : "common",
+   "unique" : true,
 
    "in_edge"  : "spawn_shop",
 

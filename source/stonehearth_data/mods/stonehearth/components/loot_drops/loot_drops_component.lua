@@ -20,7 +20,7 @@ function LootDropsComponent:destroy()
       if location then
          local items = LootTable(loot_table)
                            :roll_loot()
-         radiant.entities.spawn_items(items, location, 1, 3)
+         radiant.entities.spawn_items(items, location, 1, 3, { owner = self._entity })
       end
    end
 end

@@ -289,34 +289,6 @@ DLLEXP bool h3dutLoadResourcesFromDisk( const char *contentDir )
 	return result;
 }
 
-
-DLLEXP bool h3dutDumpMessages()
-{
-   int level;
-   float time;
-   std::string text = h3dGetMessage( &level, &time );
-   while( text != "" ) {
-      std::string category = "debug";
-      switch( level ) {
-      case 1:
-         category = "err";
-         break;
-      case 2:
-         category = "warn";
-         break;
-      case 3:
-         category = "info";
-         break;
-      }
-
-      R_LOG(1) << time << " : " << category << " : " << text;
-      text = h3dGetMessage( &level, &time );
-   }
-
-   return true;
-}
-
-
 DLLEXP void h3dutShowText( const char *text, float x, float y, float size, float colR,
                            float colG, float colB, H3DRes fontMaterialRes )
 {

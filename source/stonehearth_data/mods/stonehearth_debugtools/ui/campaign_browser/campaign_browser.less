@@ -4,7 +4,14 @@
 }
 
 #game_master {
-   .tree {
+   .debug;
+   position: absolute;
+   top: 10px;
+   left: 720px;
+   min-width: 250px;
+
+
+   #content {
       background-color: #fff;
 
       .node circle {
@@ -28,12 +35,6 @@
       }
    }
    
-   .debug;
-   position: absolute;
-   top: 10px;
-   left: 720px;
-   min-width: 250px;
-
    input {
       width: 130px;
       font-size: 10px;
@@ -46,11 +47,10 @@
    .button {
       position: relative;
       top: -6px;
+      color: #fff;
    }
 
-   #collapse {
-      position: absolute;
-      top: 8px;
-      right: 4px;
+   #toolbar {
+      text-align: right;
    }
 }

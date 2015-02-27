@@ -61,6 +61,7 @@
    END_GROUP(simulation) \
    \
    BEGIN_GROUP(horde) \
+      ADD_CATEGORY(general) \
       ADD_CATEGORY(pbo) \
       ADD_CATEGORY(renderer) \
       ADD_CATEGORY(material) \

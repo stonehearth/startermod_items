@@ -79,6 +79,14 @@ end
 
 -- debug commands sent by the ui
 
+function GeneratorEncounter:get_progress_cmd(session, response)
+   local progress = {}
+   if self._timer then
+      progress.next_spawn_time = stonehearth.calendar:format_remaining_time(self._timer)
+   end
+   return progress;
+end
+
 function GeneratorEncounter:trigger_now_cmd(session, response)
    local ctx = self._sv.ctx
 

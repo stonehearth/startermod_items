@@ -5,6 +5,10 @@ local rng = _radiant.csg.get_default_rng()
 
 local CollectionQuest = class()
 
+function CollectionQuest:initialize()
+   self._log = radiant.log.create_logger('game_master.encounters.collection_quest')
+end
+
 function CollectionQuest:start(ctx, info)
    self._sv.ctx = ctx
    self._sv._info = info
@@ -251,7 +255,6 @@ function CollectionQuest:_start_collection_timer()
    end
 
    self._collection_timer = stonehearth.calendar:set_timer(duration, function()
-         self._collection_timer = nil
          self:_on_collection_timer_expired()
       end)
 end
@@ -264,6 +267,7 @@ function CollectionQuest:_stop_collection_timer()
 end
 
 function CollectionQuest:_on_collection_timer_expired()
+   self:_stop_collection_timer()
    self:_stop_tracking_items()
 
    local bulletin_data = self._sv._info.nodes.collection_due.bulletin
@@ -274,6 +278,9 @@ function CollectionQuest:_on_collection_timer_expired()
 
    bulletin_data.collection_pay_callback = '_on_collection_paid'
    bulletin_data.collection_cancel_callback = '_on_collection_cancelled'
+
+   -- destroy the bulletin before updating it to force a new popup
+   self:_destroy_bulletin()
    self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })   
 end
 
@@ -344,6 +351,24 @@ function CollectionQuest:_cache_player_tracking_data()
 
    self._player_inventory_tracker = tracker
    self._player_inventory_tracking_data = tracker:get_tracking_data()
+end
+
+-- debug commands sent by the ui
+
+function CollectionQuest:get_progress_cmd(session, response)
+   local progress = {}
+   if self._collection_timer then      
+      progress.time_left = stonehearth.calendar:format_remaining_time(self._collection_timer)
+   end
+   return progress;
+end
+
+function CollectionQuest:force_return_now_cmd(session, response)
+   local ctx = self._sv.ctx
+
+   self._log:info('spawning encounter now as requested by ui')
+   self:_on_collection_timer_expired()
+   return true
 end
 
 return CollectionQuest

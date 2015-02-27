@@ -5,7 +5,7 @@ mixin_class(Encounter, Node)
 
 function Encounter:initialize(info)
    self._sv._info = info
-   self._sv.type = 'stonehearth:encounter'
+   self.__saved_variables:mark_changed()
    self._log = radiant.log.create_logger('game_master.encounter')
 end
 
@@ -13,7 +13,7 @@ function Encounter:restore()
 end
 
 function Encounter:destroy()
-   radiant.destroy_controller(self._sv.script)
+   --radiant.destroy_controller(self._sv.script)
 end
 
 -- get the name of the edge which leads to this encounter.
@@ -53,6 +53,7 @@ function Encounter:start(ctx)
       return
    end
    self._sv.script = script
+   self.__saved_variables:mark_changed()
    script:start(ctx, einfo)
 end
 

@@ -62,22 +62,6 @@ const int H3DUTMaxStatMode = 2;
 */
 DLL void h3dutFreeMem( char **ptr );
 
-/*	Function: h3dutDumpMessages
-		Writes all messages in the queue to a log file.
-	
-	Details:
-		This utility function pops all messages from the message queue and writes them to a HTML formated
-		log file 'Horde3D_Log.html'.
-	
-	Parameters:
-		none
-		
-	Returns:
-		true in case of success, otherwise false
-*/
-DLL bool h3dutDumpMessages();
-
-
 /*	Group: OpenGL-related functions */
 /* Function: h3dutInitOpenGL
 		Initializes OpenGL.
