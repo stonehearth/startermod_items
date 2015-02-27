@@ -81,6 +81,7 @@ end
 function Arc:_trigger_edge(edge_name, parent_node)
    self._log:info('triggering edge "%s"', edge_name)
 
+   local parent_ctx = parent_node:get_ctx()
    local running_encounters = self._sv.running_encounters
    local name, encounter = self._sv.encounters:elect_node(function(name, node)
          local in_edge = node:get_in_edge()
@@ -91,6 +92,10 @@ function Arc:_trigger_edge(edge_name, parent_node)
          local unique = node:get_is_unique()
          if unique and running_encounters[name] ~= nil then
             self._log:debug('skipping encounter "%s" (already running)', name)
+            return false
+         end
+         if not node:can_start(parent_ctx) then
+            self._log:debug('skipping encounter "%s" (cannot start)', name)
             return false
          end
          self._log:debug('found candidate encounter "%s"', name)

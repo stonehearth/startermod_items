@@ -9,6 +9,7 @@ function WaitForTimeOfDayEncounter:start(ctx, info)
    assert(info.time)
 
    local time = info.time
+   self._sv.ctx = ctx
    self._sv.time = time
    self.__saved_variables:mark_changed()
 

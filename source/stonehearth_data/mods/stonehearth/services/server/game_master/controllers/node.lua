@@ -54,5 +54,16 @@ function Node:get_is_unique()
    return self._sv._info.unique
 end
 
+-- should the node spawn now?
+--
+function Node:can_start(ctx)
+   return true
+end
+
+function Node:get_ctx()
+   assert(self._sv.ctx)
+   return self._sv.ctx
+end
+
 return Node
 
