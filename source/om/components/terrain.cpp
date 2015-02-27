@@ -55,7 +55,7 @@ bool Terrain::IsEmpty()
 
 // if we start streaming in tiles, this will need to return a region instead of a cube
 // WARNING: when testing GetBounds().Contains() you must pass in a grid location
-csg::Cube3f const& Terrain::GetBounds()
+csg::Cube3f Terrain::GetBounds()
 {
    if (IsEmpty()) {
       throw core::Exception("GetBounds is undefined when there are no tiles."); 

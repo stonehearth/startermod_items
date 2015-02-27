@@ -13,7 +13,7 @@ class Terrain(Component):
    delta_region = dm.Boxed(csg.Region3f(), set=None)
 
    is_empty = ridl.Method(c.bool())
-   get_bounds = ridl.Method(csg.Cube3f().const.ref)
+   get_bounds = ridl.Method(csg.Cube3f())
    add_tile = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
    get_tiles = ridl.Method(Region3BoxedTiledPtr())
    get_interior_tiles = ridl.Method(Region3BoxedTiledPtr())
