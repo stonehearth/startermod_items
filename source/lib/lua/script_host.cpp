@@ -1002,6 +1002,10 @@ void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, 
             if (type(restore_fn) == LUA_TFUNCTION) {
                restore_fn(controller);
             }
+            object activate_fn = controller["activate"];
+            if (type(activate_fn) == LUA_TFUNCTION) {
+               activate_fn(controller);
+            }
          }
       } catch (std::exception const& e) {
          ReportCStackException(L_, e);

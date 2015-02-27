@@ -67,3 +67,34 @@ function radiant.not_yet_implemented(fmt, ...)
    local tail = fmt and (': ' .. string.format(fmt, ...)) or ''
    error(string.format('NOT YET IMPLEMENTED (%s:%d)', info.source, info.currentline) .. tail)
 end
+
+
+function radiant.create_controller(...)
+   local args = { ... }
+   local name = args[1]
+   args[1] = nil
+   local i = 2
+   while i <= table.maxn(args) do
+      args[i - 1] = args[i]
+      args[i] = nil
+      i = i + 1
+   end
+
+   local datastore = radiant.create_datastore()
+   local controller = datastore:create_controller('controllers', name)
+   if not controller then
+      return
+   end
+
+   if controller.initialize then
+      controller:initialize(unpack(args, 1, table.maxn(args)))
+   end
+   if controller.activate then
+      controller:activate()
+   end
+   return controller
+end
+
+function radiant.destroy_controller(c)
+   radiant.destroy_datastore(c.__saved_variables)
+end

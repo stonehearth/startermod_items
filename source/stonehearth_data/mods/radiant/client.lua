@@ -21,21 +21,6 @@ function radiant.destroy_datastore(datastore)
    _radiant.client.destroy_datastore(datastore)
 end
 
-function radiant.create_controller(...)
-   local args = { ... }
-   local name = table.remove(args, 1)
-   local datastore = radiant.create_datastore()
-   local controller = datastore:create_controller('controllers', name)
-   if controller and controller.initialize then
-      controller:initialize(unpack(args))
-   end
-   return controller
-end
-
-function radiant.destroy_controller(c)
-   _radiant.client.destroy_datastore(c.__saved_variables)
-end
-
 radiant.lib = {
    Destructor = require 'modules.destructor'
 }
