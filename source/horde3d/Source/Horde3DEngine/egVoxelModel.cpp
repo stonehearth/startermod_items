@@ -84,30 +84,31 @@ SceneNode *VoxelModelNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 }
 
 
-void VoxelModelNode::recreateNodeListRec( SceneNode *node, bool firstCall )
+void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
 {
-	if( node->getType() == SceneNodeTypes::VoxelMesh )
-	{
-		_meshList.push_back( (VoxelMeshNode *)node );
-	}
-	else if( !firstCall ) return;  // First node is the model
+   if (node->getType() == SceneNodeTypes::VoxelMesh)
+   {
+      _meshList.push_back( (VoxelMeshNode *)node );
+   } else if (!firstCall) {
+      return;  // First node is the model
+   }
 	
-	// Children
-	for( size_t i = 0, s = node->getChildren().size(); i < s; ++i )
-	{
-		recreateNodeListRec( node->getChildren()[i], false );
-	}
+   // Children
+   for (size_t i = 0, s = node->getChildren().size(); i < s; ++i)
+   {
+      recreateNodeListRec(node->getChildren()[i], false);
+   }
 }
 
 
 void VoxelModelNode::recreateNodeList()
 {
-	_meshList.resize( 0 );
+   _meshList.resize(0);
 	
-	recreateNodeListRec( this, true );
-	updateLocalMeshAABBs();
+   recreateNodeListRec(this, true);
+   updateLocalMeshAABBs();
 
-	_nodeListDirty = false;
+   _nodeListDirty = false;
 }
 
 

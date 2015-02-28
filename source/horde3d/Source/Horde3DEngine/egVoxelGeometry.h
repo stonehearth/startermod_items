@@ -32,7 +32,6 @@ struct VoxelGeometryResData
 		VoxelGeometryElem = 2000,
 		VoxelGeoIndexCountI,
 		VoxelGeoVertexCountI,
-		VoxelGeoIndices16I,
 		VoxelGeoIndexStream,
 		VoxelGeoVertexStream,
 	};
@@ -65,6 +64,7 @@ public:
 	void release();
 	bool load( const char *data, int size );
    bool loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels);
+   bool addData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels);
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -94,8 +94,7 @@ private:
 	int                         _mappedWriteStream;
 	uint32                      _indexBuf, _vertexBuf;
 	uint32                      _indexCount, _vertCount;
-	bool                        _16BitIndices;
-	char                        *_indexData;
+	uint32                      *_indexData;
 	VoxelVertexData             *_vertexData;
 
    int                         _vertexOffsets[5], _indexOffsets[5];

@@ -221,6 +221,8 @@ struct VoxelGeometryVertex {
 
 DLL H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels);
 
+DLL void h3dutAddToVoxelGeometryRes(H3DRes geoRes, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels);
+
 /* Function: h3dutCreateTGAImage
 		Creates a TGA image in memory.
 	

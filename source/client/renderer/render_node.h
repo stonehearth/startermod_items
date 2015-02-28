@@ -47,6 +47,7 @@ public:
    static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m);
    static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb);
+   static void AddToSharedCsgMeshNode(RenderNodePtr nodePtr, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn);
 
    static void Initialize();
    static void Shutdown();
@@ -60,6 +61,7 @@ public:
    RenderNodePtr SetCanQuery(bool canQuery);
    RenderNodePtr SetUserFlags(int flags);
    RenderNodePtr SetGeometry(SharedGeometry geo);
+   RenderNodePtr AddGeometry(GeometryInfo& geo);
    RenderNodePtr SetMaterial(std::string const& material);
    RenderNodePtr SetMaterial(SharedMaterial mat);
    RenderNodePtr SetOverrideMaterial(SharedMaterial mat);

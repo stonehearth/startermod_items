@@ -254,7 +254,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
-void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float polygon_offset)
+RenderNodePtr RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, RenderNodePtr nodePtr, std::string const& bone, MatrixVector const& matrices, float polygon_offset)
 {
    ASSERT(render_info);
    ASSERT(nodes_.find(bone) == nodes_.end());
@@ -321,26 +321,31 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
 
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
 
-   RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
-
-   h3dSetNodeParamI(node->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
-   h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
-   h3dSetNodeTransform(node->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
-   nodes_[bone] = NodeMapEntry(matrices, node);
+   if (nodePtr) {
+      RenderNode::AddToSharedCsgMeshNode(nodePtr, key, generate_matrix);
+   } else {
+      nodePtr = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
+      h3dSetNodeParamI(nodePtr->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+      h3dSetNodeParamF(nodePtr->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
+      h3dSetNodeParamF(nodePtr->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
+      h3dSetNodeTransform(nodePtr->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
+      nodes_[bone] = NodeMapEntry(matrices, nodePtr);
+   }
+   return nodePtr;
 }
 
 void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m)
 {
    ASSERT(render_info);
 
+   RenderNodePtr nodePtr = nullptr;
    float offset = 0;
    auto i = m.begin();
    while (i != m.end()) {
       auto j = nodes_.find(i->first);
       // xxx: what's with the std::vector compare in this if?  is that actually kosher?
       if (j == nodes_.end() || i->second != j->second.matrices) {
-         AddModelNode(render_info, i->first, i->second, offset);
+         nodePtr = AddModelNode(render_info, nodePtr, i->first, i->second, offset);
          offset += 1.0f;
       }
       ++i;

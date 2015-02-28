@@ -530,6 +530,16 @@ DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometr
    return res;
 }
 
+
+DLLEXP void h3dutAddToVoxelGeometryRes(H3DRes geoRes, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels)
+{
+	if( numLodLevels <= 0 || vertexOffsets[1] == 0 || indexOffsets[1] == 0 ) return;
+
+   VoxelGeometryResource *geoResPtr = (VoxelGeometryResource* )Horde3D::Modules::resMan().resolveResHandle( geoRes );
+   geoResPtr->addData((Horde3D::VoxelVertexData*)vertexData, vertexOffsets, indexData, indexOffsets, numLodLevels);
+}
+
+
 DLLEXP H3DRes h3dutCreateGeometryRes( 
 	const char *name, 
 	int numVertices, int numTriangleIndices,
