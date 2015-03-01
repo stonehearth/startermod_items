@@ -40,10 +40,10 @@ function WaterComponent:get_region()
    return self._sv.region
 end
 
-function WaterComponent:get_water_elevation()
+function WaterComponent:get_water_level()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
-   local elevation = entity_location.y + self._sv.height
-   return elevation
+   local water_level = entity_location.y + self._sv.height
+   return water_level
 end
 
 function WaterComponent:get_current_layer_elevation()
@@ -186,24 +186,26 @@ function WaterComponent:_create_merge_info(entity1, entity2)
 end
 
 function WaterComponent:_add_water_to_channels(volume)
-   local channels = stonehearth.hydrology:get_channels(self._entity)
-   local sorted_channels = channel_lib.sort_channels_ascending(channels)
+   local water_level = self:get_water_level()
 
-   for _, channel in pairs(sorted_channels) do
-      local elevation = self:get_water_elevation()
-      local channel_height = channel.from_location.y
+   self:_each_channel_ascending(function(channel)
+         local channel_height = channel.from_location.y
 
-      if channel_height >= elevation then
-         -- we're done becuase channels are sorted by increasing elevation
-         break
-      end
+         if channel_height > water_level then
+            -- we're done becuase channels are sorted by increasing elevation
+            return true
+         end
 
-      volume = channel_lib.add_volume_to_channel(channel, volume)
+         volume = channel_lib.add_volume_to_channel(channel, volume)
 
-      if volume <= 0 then
-         break
-      end
-   end
+         if volume <= 0 then
+            -- we're done when we've used up all the water
+            return true
+         end
+
+         return false
+      end)
+
 
    return volume
 end
@@ -211,36 +213,80 @@ end
 -- push water into the channels until we max out their capacity
 -- TODO: tell hydrology service to mark saved variables as changed after this
 function WaterComponent:_fill_channels_to_capacity()
+   self:_each_channel_ascending(function(channel)
+         local channel_height = channel.from_location.y
+         local water_level = self:get_water_level()
+
+         if channel_height > water_level then
+            -- we're done becuase channels are sorted by increasing elevation
+            return true
+         end
+
+         -- get the flow volume per tick
+         local max_flow_volume = channel_lib.calculate_channel_flow_rate(channel)
+         local unused_volume = max_flow_volume - channel.queued_volume
+
+         if unused_volume > 0 then
+            local residual = self:_remove_water(unused_volume)
+            if residual == unused_volume then
+               -- we're done becuase no more water is available
+               return true
+            end
+            local flow_volume = unused_volume - residual
+            channel.queued_volume = channel.queued_volume + flow_volume
+
+            if flow_volume > 0 then
+               log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
+            end
+         end
+
+         return false
+      end)
+end
+
+function WaterComponent:_validate_channels()
+   self:_each_channel(function(channel)
+         if channel.from_location.y ~= channel.to_location.y then
+            local water_level = self:get_water_level()
+            -- CHECKCHECK
+         end
+      end)
+end
+
+function WaterComponent:_each_channel(callback_fn)
+   self:_each_channel_impl(callback_fn, false)
+end
+
+function WaterComponent:_each_channel_ascending(callback_fn)
+   self:_each_channel_impl(callback_fn, true)
+end
+
+function WaterComponent:_each_channel_impl(callback_fn, ascending)
    local channels = stonehearth.hydrology:get_channels(self._entity)
-   local sorted_channels = channel_lib.sort_channels_ascending(channels)
 
-   for _, channel in pairs(sorted_channels) do
-      local elevation = self:get_water_elevation()
-      local channel_height = channel.from_location.y
+   if ascending then
+      channels = channel_lib.sort_channels_ascending(channels)
+   end
 
-      if channel_height >= elevation then
-         -- we're done becuase channels are sorted by increasing elevation
+   for _, channel in pairs(channels) do
+      local stop = callback_fn(channel)
+      if stop then
          break
       end
+   end
+end
 
-      -- get the flow volume per tick
-      local max_flow_volume = channel_lib.calculate_channel_flow_rate(channel)
-      local unused_volume = max_flow_volume - channel.queued_volume
+function WaterComponent:_get_channels_at_elevation(elevation)
+   local channels = stonehearth.hydrology:get_channels(self._entity)
+   local subset = {}
 
-      if unused_volume > 0 then
-         local residual = self:_remove_water(unused_volume)
-         if residual == unused_volume then
-            -- remove height was not successful
-            break
-         end
-         local flow_volume = unused_volume - residual
-         channel.queued_volume = channel.queued_volume + flow_volume
-
-         if flow_volume > 0 then
-            log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
-         end
+   for key, channel in pairs(channels) do
+      if channel.from_location.y == elevation then
+         subset[key] = channel
       end
    end
+
+   return subset
 end
 
 -- region in local coordinates
@@ -450,6 +496,10 @@ function WaterComponent:_lower_layer()
          end)
 
       child_water_component:_recalculate_current_layer()
+
+      -- reparent channels on top layer to child
+      local child_channels = self:_get_channels_at_elevation(child_water_component:get_current_layer_elevation())
+      stonehearth.hydrology:reparent_channels(child_channels, child)
 
       log:debug('Top layer from %s becoming new entity %s', self._entity, child)
    end

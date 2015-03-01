@@ -309,16 +309,20 @@ function HydrologyService:_create_channel(from_entity, from_location, to_entity,
    return channel
 end
 
-function HydrologyService:remove_channel(from_entity, from_location)
-   local channels = self:get_channels(from_entity)
-   local key = self:_point_to_key(from_location)
-   local channel = channels[key]
+function HydrologyService:remove_channel(channel)
+   local paired_channel = channel.paired_channel
+   self:_remove_unidirectional_channel(channel)
 
-   log:debug('Removing %s channel from %s at %s', channel.channel_type, from_entity, from_location)
-
-   if not channel then
-      return
+   if paired_channel then
+      self:_remove_unidirectional_channel(paired_channel)
    end
+end
+
+function HydrologyService:_remove_unidirectional_channel(channel)
+   local channels = self:get_channels(channel.from_entity)
+   local key = self:_point_to_key(channel.from_location)
+
+   log:debug('Removing %s channel from %s at %s', channel.channel_type, channel.from_entity, channel.from_location)
 
    channels[key] = nil
    self:_destroy_channel(channel)
@@ -359,9 +363,9 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    assert(entity1 ~= entity2)
    local water_component1 = entity1:add_component('stonehearth:water')
    local water_component2 = entity2:add_component('stonehearth:water')
-   local water_elevation1 = water_component1:get_water_elevation()
-   local water_elevation2 = water_component2:get_water_elevation()
-   local elevation_delta = math.abs(water_elevation1 - water_elevation2)
+   local water_level1 = water_component1:get_water_level()
+   local water_level2 = water_component2:get_water_level()
+   local elevation_delta = math.abs(water_level1 - water_level2)
 
    -- quick and easy test. occurs a lot when merging wetted regions.
    if elevation_delta == 0 then
@@ -397,6 +401,29 @@ function HydrologyService:merge_water_bodies(entity1, entity2)
    return master
 end
 
+-- orders entities by increasing elevation
+function HydrologyService:_order_entities(entity1, entity2)
+   local entity1_elevation = radiant.entities.get_world_grid_location(entity1).y
+   local entity2_elevation = radiant.entities.get_world_grid_location(entity2).y
+
+   if entity1_elevation == entity2_elevation then
+      -- if at the same elevation prefer the larger water body
+      local volume1 = entity1:add_component('stonehearth:water'):get_region():get():get_area()
+      local volume2 = entity2:add_component('stonehearth:water'):get_region():get():get_area()
+      if volume1 > volume2 then
+         return entity1, entity2
+      else
+         return entity2, entity1
+      end
+   end
+
+   if entity1_elevation < entity2_elevation then
+      return entity1, entity2
+   else
+      return entity2, entity1
+   end
+end
+
 function HydrologyService:_merge_water_bodies_impl(master, mergee)
    assert(master ~= mergee)
    local master_location = radiant.entities.get_world_grid_location(master)
@@ -425,8 +452,8 @@ function HydrologyService:_merge_regions(master, mergee)
    assert(master_layer_elevation == mergee_layer_elevation)
 
    -- get the heights of the current layers
-   local master_layer_height = master_component:get_water_elevation() - master_layer_elevation
-   local mergee_layer_height = mergee_component:get_water_elevation() - mergee_layer_elevation
+   local master_layer_height = master_component:get_water_level() - master_layer_elevation
+   local mergee_layer_height = mergee_component:get_water_level() - mergee_layer_elevation
    assert(master_layer_height <= 1)
    assert(mergee_layer_height <= 1)
 
@@ -470,19 +497,7 @@ function HydrologyService:_merge_channels(master, mergee)
    local mergee_channels = self:get_channels(mergee)
 
    -- reparent all mergee channels to master
-   for key, channel in pairs(mergee_channels) do
-      assert(channel.from_entity == mergee)
-
-      channel.from_entity = master
-
-      if master_channels[key] == nil then
-         master_channels[key] = channel
-      else
-         log:warning('Master already has a channel at %s. Discarding mergee channel.', key)
-      end
-
-      mergee_channels[key] = nil
-   end
+   self:reparent_channels(mergee_channels, master)
 
    -- redirect all channels from mergee to master
    self:_each_channel(function(channel)
@@ -494,9 +509,34 @@ function HydrologyService:_merge_channels(master, mergee)
 
       if channel.from_entity == channel.to_entity then
          -- channel now goes to itself, so destroy it
-         self:remove_channel(channel.from_entity, channel.from_location)
+         self:remove_channel(channel)
       end
    end)
+end
+
+function HydrologyService:reparent_channels(channels, new_parent)
+   local new_parent_channels = self:get_channels(new_parent)
+
+   for _, channel in pairs(channels) do
+      if channel.to_entity == new_parent then
+         -- channel would go to itself, so just remove it
+         self:remove_channel(channel)
+      else
+         local old_parent = channel.from_entity
+         channel.from_entity = new_parent
+
+         local key = self:_point_to_key(channel.from_location)
+
+         if new_parent_channels[key] == nil then
+            new_parent_channels[key] = channel
+         else
+            log:warning('New parent already has a channel at %s', key)
+         end
+
+         local old_parent_channels = self:get_channels(old_parent)
+         old_parent_channels[key] = nil
+      end
+   end
 end
 
 function HydrologyService:_merge_water_queue(master, mergee)
@@ -529,6 +569,7 @@ function HydrologyService:_on_tick()
 
    -- check when the channels are empty to avoid destroying channels with queued water
    self:_check_for_channel_merge()
+   self:_update_channel_types()
 
    for i, entry in ipairs(self._water_queue) do
       self:add_water(entry.volume, entry.location, entry.entity)
@@ -541,27 +582,26 @@ function HydrologyService:_on_tick()
    self.__saved_variables:mark_changed()
 end
 
--- orders entities by increasing elevation
-function HydrologyService:_order_entities(entity1, entity2)
-   local entity1_elevation = radiant.entities.get_world_grid_location(entity1).y
-   local entity2_elevation = radiant.entities.get_world_grid_location(entity2).y
+function HydrologyService:_update_channel_types()
+   self:_each_channel(function(channel)
+         assert(channel.queued_volume == 0)
+         local water_component = channel.to_entity:add_component('stonehearth:water')
+         local water_level = water_component:get_water_level()
+         local channel_height = channel.from_location.y
 
-   if entity1_elevation == entity2_elevation then
-      -- if at the same elevation prefer the larger water body
-      local volume1 = entity1:add_component('stonehearth:water'):get_region():get():get_area()
-      local volume2 = entity2:add_component('stonehearth:water'):get_region():get():get_area()
-      if volume1 > volume2 then
-         return entity1, entity2
-      else
-         return entity2, entity1
-      end
-   end
-
-   if entity1_elevation < entity2_elevation then
-      return entity1, entity2
-   else
-      return entity2, entity1
-   end
+         if channel.channel_type == 'pressure' then
+            if water_level < channel_height then
+               channel_lib.link_waterfall_channel(channel.from_entity, channel.from_location)
+            end
+         elseif channel.channel_type == 'waterfall' then
+            if water_level > channel_height then
+               local target_adjacent_point = self:_get_best_channel_adjacent_point(channel.from_location, channel.from_entity)
+               channel_lib.link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
+            end
+         else
+            assert(false)
+         end
+      end)
 end
 
 function HydrologyService:_check_for_channel_merge()

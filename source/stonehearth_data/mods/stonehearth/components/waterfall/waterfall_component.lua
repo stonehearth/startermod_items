@@ -102,9 +102,9 @@ function WaterfallComponent:_update()
    end
 
    local target_water_component = target:add_component('stonehearth:water')
-   local water_elevation = target_water_component:get_water_elevation()
+   local water_level = target_water_component:get_water_level()
    local waterfall_location = radiant.entities.get_world_grid_location(self._entity)
-   local height = waterfall_location.y - water_elevation
+   local height = waterfall_location.y - water_level
    self:set_height(height)
 end
 

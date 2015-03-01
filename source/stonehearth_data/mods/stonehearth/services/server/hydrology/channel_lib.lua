@@ -41,14 +41,14 @@ function channel_lib.calculate_channel_flow_rate(channel, source_elevation_bias)
    source_elevation_bias = source_elevation_bias or 0
 
    local from_water_component = channel.from_entity:add_component('stonehearth:water')
-   local source_elevation = from_water_component:get_water_elevation() + source_elevation_bias
+   local source_elevation = from_water_component:get_water_level() + source_elevation_bias
    local target_elevation
 
    if channel.channel_type == 'waterfall' then
       target_elevation = channel.from_location.y
    elseif channel.channel_type == 'pressure' then
       local to_water_component = channel.to_entity:add_component('stonehearth:water')
-      target_elevation = to_water_component:get_water_elevation()
+      target_elevation = to_water_component:get_water_level()
    else
       assert(false)
    end
@@ -96,9 +96,8 @@ function channel_lib.link_waterfall_channel(from_entity, from_location)
 
    if channel and channel.channel_type ~= 'waterfall' then
       assert(channel.channel_type == 'pressure')
-      -- remove both directions of the pressure channel
-      stonehearth.hydrology:remove_channel(from_entity, from_location)
-      stonehearth.hydrology:remove_channel(to_entity, to_location)
+      -- this removes both directions of the pressure channel
+      stonehearth.hydrology:remove_channel(channel)
       channel = nil
    end
 
@@ -120,6 +119,9 @@ function channel_lib.link_pressure_channel(source_entity, source_adjacent_point,
    local reverse_channel = channel_lib._link_pressure_channel_unidirectional(target_entity, target_adjacent_point,
                                                                              source_entity, target_adjacent_point)
 
+   forward_channel.paired_channel = reverse_channel
+   reverse_channel.paired_channel = forward_channel
+
    return forward_channel
 end
 
@@ -128,7 +130,7 @@ function channel_lib._link_pressure_channel_unidirectional(from_entity, from_loc
    local channel = stonehearth.hydrology:get_channel(from_entity, from_location)
 
    if channel and channel.channel_type ~= 'pressure' then
-      stonehearth.hydrology:remove_channel(from_entity, from_location)
+      stonehearth.hydrology:remove_channel(channel)
       channel = nil
    end
 
