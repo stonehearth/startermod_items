@@ -33,10 +33,15 @@ end
 function RaidStockpilesMission:start(ctx, info)
    self._sv.ctx = ctx
    self._sv.party = self:_create_party(ctx, info)
-   self:_update_party_orders()
+   self:_update_party_orders(ctx, info)
+   self:_listen_for_sighted(ctx, info)
 end
 
 function RaidStockpilesMission:stop()
+   if self._sighted_listener then
+      self._sighted_listener:destroy()
+      self._sighted_listener = nil
+   end   
    if self._stockpile_listener then
       self._stockpile_listener:destroy()
       self._stockpile_listener = nil
@@ -44,9 +49,54 @@ function RaidStockpilesMission:stop()
    if self._update_orders_timer then
       self._update_orders_timer:destroy()
       self._update_orders_timer = nil
+   end
+   local bulletin = self._sv.sighted_bulletin
+   if bulletin then
+      stonehearth.bulletin_board:remove_bulletin(bulletin)
+      self._sv.sighted_bulletin = nil
+      self.__saved_variables:mark_changed()
    end   
 end
 
+function RaidStockpilesMission:_listen_for_sighted(ctx, info)
+   if not info.sighted_bulletin then
+      return
+   end
+   self._sv.sighted_bulletin_data = info.sighted_bulletin
+   self.__saved_variables:mark_changed()
+
+   local population = stonehearth.population:get_population(ctx.player_id)
+   if population then
+      self._sighted_listener = radiant.events.listen(population, 'stonehearth:population:new_threat', self, self._on_player_new_threat)
+   end
+end
+
+function RaidStockpilesMission:_on_player_new_threat(evt)
+   local party = self._sv.party
+   if party and not self._sv.sighted_bulletin then
+      for id, member in party:each_member() do
+         if id == evt.entity_id then
+            self:_create_sighted_bulletin(member)
+            self._sighted_listener:destroy()
+            self._sighted_listener = nil
+         end
+      end
+   end
+end
+
+function RaidStockpilesMission:_create_sighted_bulletin(party_member)
+   if not self._sv.sighted_bulletin then
+      --Send the notice to the bulletin service.
+      local player_id = self._sv.ctx.player_id
+      local bulletin_data = self._sv.sighted_bulletin_data
+      bulletin_data.zoom_to_entity = party_member
+
+      self._sv.sighted_bulletin = stonehearth.bulletin_board:post_bulletin(player_id)
+           :set_type('alert')
+           :set_data(bulletin_data)
+      self.__saved_variables:mark_changed()
+   end
+end
 
 function RaidStockpilesMission:_update_party_orders()
    local ctx = self._sv.ctx

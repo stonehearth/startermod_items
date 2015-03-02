@@ -16,6 +16,10 @@ function radiant.size(t)
    return c
 end
 
+function radiant.empty(t)
+   return not next(t)
+end
+
 function radiant.report_traceback(err)
    local traceback = debug.traceback()
    _host:report_error(err, traceback)

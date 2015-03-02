@@ -114,10 +114,10 @@ function Party:remove_member(id)
 end
 
 function Party:each_member()
-   local id
-   return function()      
+   local id, entry
+   return function()
       id, entry = next(self._sv.members, id)
-      return id, entry.entity
+      return id, (entry and entry.entity)
    end
 end
 
