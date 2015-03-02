@@ -158,27 +158,33 @@ bool VoxelGeometryResource::addData(VoxelVertexData *vertices, int vertexOffsets
    uint32 reindexOld = 0;
    uint32 reindexNew = 0;
    for (int i = 0; i < numLodLevels; i++) {
-      memcpy(newVertices + vertOffset, _vertexData + _vertexOffsets[i], _vertexOffsets[i + 1] * sizeof(VoxelVertexData));
-      vertOffset += _vertexOffsets[i + 1];
-      reindexNew += _vertexOffsets[i + 1];
+      uint32 numCopiedVerts = _vertexOffsets[i + 1] - _vertexOffsets[i];
+      memcpy(newVertices + vertOffset, _vertexData + _vertexOffsets[i],  numCopiedVerts * sizeof(VoxelVertexData));
+      vertOffset += numCopiedVerts;
+      reindexNew += numCopiedVerts;
 
-      memcpy(newIndices + indexOffset, _indexData + _indexOffsets[i], _indexOffsets[i + 1] * sizeof(uint32));
-      for (int j = 0; j < _indexOffsets[i + 1]; j++) {
-         newIndices[indexOffset + j] += reindexOld;
+      uint32 numCopiedIndices = _indexOffsets[i + 1] - _indexOffsets[i];
+      memcpy(newIndices + indexOffset, _indexData + _indexOffsets[i], numCopiedIndices * sizeof(uint32));
+      for (uint32 j = indexOffset; j < indexOffset + numCopiedIndices; j++) {
+         newIndices[j] += reindexOld;
       }
-      indexOffset += _indexOffsets[i + 1];
+      indexOffset += numCopiedIndices;
 
+      numCopiedVerts = vertexOffsets[i + 1] - vertexOffsets[i];
+      memcpy(newVertices + vertOffset, vertices + vertexOffsets[i], numCopiedVerts * sizeof(VoxelVertexData));
+      vertOffset += numCopiedVerts;
 
-      memcpy(newVertices + vertOffset, vertices + vertexOffsets[i], vertexOffsets[i + 1] * sizeof(VoxelVertexData));
-      vertOffset += vertexOffsets[i + 1];
-      reindexOld += vertexOffsets[i + 1];
-
-      memcpy(newIndices + indexOffset, indicies + indexOffsets[i], indexOffsets[i + 1] * sizeof(uint32));
-      for (int j = 0; j < indexOffsets[i + 1]; j++) {
-         newIndices[indexOffset + j] += reindexNew;
+      numCopiedIndices = indexOffsets[i + 1] - indexOffsets[i];
+      memcpy(newIndices + indexOffset, indicies + indexOffsets[i], numCopiedIndices * sizeof(uint32));
+      for (uint32 j = indexOffset; j < numCopiedIndices + indexOffset; j++) {
+         newIndices[j] += reindexNew;
       }
-      indexOffset += indexOffsets[i + 1];
+      indexOffset += numCopiedIndices;
 
+      reindexOld += numCopiedVerts;
+   }
+
+   for (int i = 0; i < numLodLevels; i++) {
       _vertexOffsets[i + 1] += vertexOffsets[i + 1];
       _indexOffsets[i + 1] += indexOffsets[i + 1];
    }

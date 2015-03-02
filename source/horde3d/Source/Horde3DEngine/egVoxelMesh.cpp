@@ -162,18 +162,9 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
 	{
 		Vec3f *vert0, *vert1, *vert2;
 		
-		if( geoRes->_16BitIndices )
-		{
-			vert0 = &geoRes->getVertexData()[((uint16 *)geoRes->_indexData)[i + 0]].pos;
-			vert1 = &geoRes->getVertexData()[((uint16 *)geoRes->_indexData)[i + 1]].pos;
-			vert2 = &geoRes->getVertexData()[((uint16 *)geoRes->_indexData)[i + 2]].pos;
-		}
-		else
-		{
-			vert0 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 0]].pos;
-			vert1 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 1]].pos;
-			vert2 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 2]].pos;
-		}
+		vert0 = &geoRes->getVertexData()[geoRes->_indexData[i + 0]].pos;
+		vert1 = &geoRes->getVertexData()[geoRes->_indexData[i + 1]].pos;
+		vert2 = &geoRes->getVertexData()[geoRes->_indexData[i + 2]].pos;
 
 		if( rayTriangleIntersection( orig, dir, *vert0, *vert1, *vert2, intsPos ) )
 		{

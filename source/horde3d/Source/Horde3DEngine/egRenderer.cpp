@@ -2514,8 +2514,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 			ASSERT( curGeoRes != 0x0 );
 		
 			// Indices
-			gRDI->setIndexBuffer( curGeoRes->getIndexBuf(),
-			                      curGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+			gRDI->setIndexBuffer(curGeoRes->getIndexBuf(), IDXFMT_32);
 
 			// Vertices
 			uint32 posVBuf = curGeoRes->getPosVBuf();
@@ -2683,8 +2682,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          ASSERT( curVoxelGeoRes != 0x0 );
 
          // Indices
-         gRDI->setIndexBuffer( curVoxelGeoRes->getIndexBuf(),
-            curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(), IDXFMT_32);
 
          // Vertices
          gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
@@ -2835,8 +2833,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 
 		// Bind geometry
 		// Indices
-		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(),
-			                     curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(), IDXFMT_32);
 
 		// Vertices
       gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
@@ -3027,7 +3024,7 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
-         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
          if( curMatRes != in->_matRes )
 		   {
@@ -3051,7 +3048,7 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
          if( curMatRes != in->_matRes )
 		   {
@@ -3089,7 +3086,7 @@ void Renderer::drawParticles( std::string const& shaderContext, std::string cons
 
 	// Bind particle geometry
 	gRDI->setVertexBuffer( 0, Modules::renderer().getParticleVBO(), 0, sizeof( ParticleVert ) );
-	gRDI->setIndexBuffer( Modules::renderer().getQuadIdxBuf(), IDXFMT_16 );
+	gRDI->setIndexBuffer( Modules::renderer().getQuadIdxBuf(), IDXFMT_32 );
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue

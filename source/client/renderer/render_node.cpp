@@ -124,7 +124,7 @@ void RenderNode::AddToSharedCsgMeshNode(RenderNodePtr nodePtr, ResourceCacheKey 
       geo.indexIndicies[i + 1] = (int)m.indices.size();
    }
    geo.levelCount = MAX_LOD_LEVELS;
-   nodePtr->AddGeometry(geo, (VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data());
+   nodePtr->AddGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
 }
 
 RenderNode::RenderNode()
@@ -188,9 +188,10 @@ RenderNodePtr RenderNode::SetGeometry(SharedGeometry geo)
    return shared_from_this();
 }
 
-RenderNodePtr RenderNode::AddGeometry(GeometryInfo& geo)
+RenderNodePtr RenderNode::AddGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
 {
-   h3dutAddToVoxelGeometryRes(_geometry.get(), geo.
+   h3dutAddToVoxelGeometryRes(_geometry.get(), vertices, geo.vertexIndices, indices, geo.indexIndicies, geo.levelCount);
+   return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetMaterial(std::string const& material)

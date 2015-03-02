@@ -11,7 +11,7 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
-#define MAX_LOD_LEVELS 4
+#define MAX_LOD_LEVELS 2
 
 struct GeometryInfo {
    int vertexIndices[MAX_LOD_LEVELS + 1];
@@ -61,7 +61,7 @@ public:
    RenderNodePtr SetCanQuery(bool canQuery);
    RenderNodePtr SetUserFlags(int flags);
    RenderNodePtr SetGeometry(SharedGeometry geo);
-   RenderNodePtr AddGeometry(GeometryInfo& geo);
+   RenderNodePtr AddGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
    RenderNodePtr SetMaterial(std::string const& material);
    RenderNodePtr SetMaterial(SharedMaterial mat);
    RenderNodePtr SetOverrideMaterial(SharedMaterial mat);

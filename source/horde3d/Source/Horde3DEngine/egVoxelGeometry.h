@@ -74,7 +74,7 @@ public:
 	void updateDynamicVertData();
 
 	uint32 getVertCount() const { return _vertCount; }
-	char *getIndexData() const { return _indexData; }
+	uint32* getIndexData() const { return _indexData; }
 	VoxelVertexData *getVertexData() const { return _vertexData; }
 	uint32 getVertexBuf() const { return _vertexBuf; }
 	uint32 getIndexBuf() const { return _indexBuf; }

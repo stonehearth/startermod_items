@@ -319,18 +319,21 @@ RenderNodePtr RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, Rend
       }
    };
 
-   H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
-
    if (nodePtr) {
       RenderNode::AddToSharedCsgMeshNode(nodePtr, key, generate_matrix);
    } else {
-      nodePtr = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
+      nodePtr = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix);
       h3dSetNodeParamI(nodePtr->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
       h3dSetNodeParamF(nodePtr->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
       h3dSetNodeParamF(nodePtr->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
       h3dSetNodeTransform(nodePtr->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
-      nodes_[bone] = NodeMapEntry(matrices, nodePtr);
    }
+
+
+
+   H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
+   nodes_[bone] = NodeMapEntry(matrices, nodePtr);
+
    return nodePtr;
 }
 
