@@ -10,6 +10,12 @@
          "raid_stockpiles" : {
             "role" : "raid_stockpiles",
             "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+            "sighted_bulletin" : {
+               "title" : "A goblin raiding party approaches!",
+               "message" : "Gonna get you!"
+            },
+            
             "members" : {
                "maurauder_a" : {
                   "location" : { "x": 1, "z": -1 },
