@@ -65,26 +65,6 @@ App.RootView = Ember.ContainerView.extend({
       $('#' + this._shellView.elementId).hide();
       $('#' + this._gameView.elementId).show();
 
-      radiant.call('radiant:play_music', {
-            'track': {
-                  'type' : 'one_of',
-                  'items' : [
-                     'stonehearth:music:levelmusic_spring_day_01',
-                     'stonehearth:music:levelmusic_spring_day_02',
-                     'stonehearth:music:levelmusic_spring_day_03',
-                     ]
-                  }, 
-               'channel': 'bgm',
-               'fade': 1400,
-               'volume' : 35 
-         });         
-         
-      radiant.call('radiant:play_music', {
-            'track': 'stonehearth:ambient:summer_day',
-            'channel': 'ambient', 
-            'volume' : 60
-         });  
-
       App.stonehearthTutorials = new StonehearthTutorialManager();
 
       /*

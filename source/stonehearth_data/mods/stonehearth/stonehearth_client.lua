@@ -8,6 +8,7 @@ local service_creation_order = {
    'browser_data',
    'input',
    'camera',
+   'sound',
    'renderer',
    'sky_renderer',
    'selection',
