@@ -64,7 +64,6 @@ private:
    std::string GetBoneName(std::string const& matrix_name);
    void RebuildModel(om::RenderInfoPtr render_info);
    void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float offset);
-   void AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
    void UpdateNextFrame();
    void Update();

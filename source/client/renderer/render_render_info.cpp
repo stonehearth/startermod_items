@@ -221,7 +221,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
       FlatModelMap flattened;
       FlattenModelMap(all_models, flattened);
       RemoveObsoleteNodes(flattened);
-      AddMissingNodes(render_info, flattened);
+      RebuildModel(render_info);
    }
 }
 
@@ -242,6 +242,9 @@ void RenderRenderInfo::FlattenModelMap(ModelMap& m, FlatModelMap& flattened)
 void RenderRenderInfo::RemoveObsoleteNodes(FlatModelMap const& m)
 {
    nodes_.clear();
+   for (auto& i : m) {
+      nodes_[i.first] = i.second;
+   }
 }
 
 std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
@@ -261,6 +264,8 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
 void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
 {
    ASSERT(render_info);
+
+   render_node_.reset();
 
    //RI_LOG(7) << "adding model node for bone " << bone;
 
@@ -332,19 +337,6 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
    h3dSetNodeTransform(render_node_->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
-}
-
-void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m)
-{
-   ASSERT(render_info);
-
-   render_node_.reset();
-
-   for (auto& i : m) {
-      nodes_[i.first] = i.second;
-   }
-   
-   RebuildModel(render_info);
 }
 
 void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)

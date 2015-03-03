@@ -61,7 +61,6 @@ public:
    RenderNodePtr SetCanQuery(bool canQuery);
    RenderNodePtr SetUserFlags(int flags);
    RenderNodePtr SetGeometry(SharedGeometry geo);
-   RenderNodePtr AddGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
    RenderNodePtr SetMaterial(std::string const& material);
    RenderNodePtr SetMaterial(SharedMaterial mat);
    RenderNodePtr SetOverrideMaterial(SharedMaterial mat);

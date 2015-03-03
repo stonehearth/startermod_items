@@ -112,26 +112,6 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
    return CreateVoxelNode(parent, geo);
 }
 
-void RenderNode::AddToSharedCsgMeshNode(RenderNodePtr nodePtr, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, float scale)
-{   
-   GeometryInfo geo;
-
-   RN_LOG(7) << "creating new geometry for " << key.GetDescription();
-
-   //Pipeline::GetInstance().
-   
-
-   csg::Mesh m;
-   for (int i = 0; i < MAX_LOD_LEVELS; i++) {
-      create_mesh_fn(m, i);
-      geo.vertexIndices[i + 1] = (int)m.vertices.size();
-      geo.indexIndicies[i + 1] = (int)m.indices.size();
-   }
-   geo.levelCount = MAX_LOD_LEVELS;
-   m.ScaleBy(scale);
-   nodePtr->AddGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-}
-
 RenderNode::RenderNode()
 {
 }
@@ -190,12 +170,6 @@ RenderNodePtr RenderNode::SetCanQuery(bool canQuery)
 RenderNodePtr RenderNode::SetGeometry(SharedGeometry geo)
 {
    _geometry = geo;
-   return shared_from_this();
-}
-
-RenderNodePtr RenderNode::AddGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
-{
-   h3dutAddToVoxelGeometryRes(_geometry.get(), vertices, geo.vertexIndices, indices, geo.indexIndicies, geo.levelCount);
    return shared_from_this();
 }
 
