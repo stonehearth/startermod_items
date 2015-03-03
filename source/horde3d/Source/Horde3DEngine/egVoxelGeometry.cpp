@@ -157,13 +157,16 @@ bool VoxelGeometryResource::addData(VoxelVertexData *vertices, int vertexOffsets
    uint32 indexOffset = 0;
    uint32 reindexOld = 0;
    uint32 reindexNew = 0;
-   for (int i = 0; i < numLodLevels; i++) {
-      uint32 numCopiedVerts = _vertexOffsets[i + 1] - _vertexOffsets[i];
+   for (int i = 0; i < 1; i++) {
+      uint32 numCopiedVerts = 0;
+      uint32 numCopiedIndices = 0;
+
+      numCopiedVerts = _vertexOffsets[i + 1] - _vertexOffsets[i];
       memcpy(newVertices + vertOffset, _vertexData + _vertexOffsets[i],  numCopiedVerts * sizeof(VoxelVertexData));
       vertOffset += numCopiedVerts;
       reindexNew += numCopiedVerts;
 
-      uint32 numCopiedIndices = _indexOffsets[i + 1] - _indexOffsets[i];
+      numCopiedIndices = _indexOffsets[i + 1] - _indexOffsets[i];
       memcpy(newIndices + indexOffset, _indexData + _indexOffsets[i], numCopiedIndices * sizeof(uint32));
       for (uint32 j = indexOffset; j < indexOffset + numCopiedIndices; j++) {
          newIndices[j] += reindexOld;
@@ -173,6 +176,7 @@ bool VoxelGeometryResource::addData(VoxelVertexData *vertices, int vertexOffsets
       numCopiedVerts = vertexOffsets[i + 1] - vertexOffsets[i];
       memcpy(newVertices + vertOffset, vertices + vertexOffsets[i], numCopiedVerts * sizeof(VoxelVertexData));
       vertOffset += numCopiedVerts;
+      reindexOld += numCopiedVerts;
 
       numCopiedIndices = indexOffsets[i + 1] - indexOffsets[i];
       memcpy(newIndices + indexOffset, indicies + indexOffsets[i], numCopiedIndices * sizeof(uint32));
@@ -180,11 +184,9 @@ bool VoxelGeometryResource::addData(VoxelVertexData *vertices, int vertexOffsets
          newIndices[j] += reindexNew;
       }
       indexOffset += numCopiedIndices;
-
-      reindexOld += numCopiedVerts;
    }
 
-   for (int i = 0; i < numLodLevels; i++) {
+   for (int i = 0; i < 1; i++) {
       _vertexOffsets[i + 1] += vertexOffsets[i + 1];
       _indexOffsets[i + 1] += indexOffsets[i + 1];
    }

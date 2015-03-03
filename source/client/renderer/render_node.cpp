@@ -91,7 +91,7 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
    return CreateVoxelNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn)
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, float scale)
 {   
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
@@ -105,17 +105,21 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
          geo.indexIndicies[i + 1] = (int)m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
+      m.ScaleBy(scale);
       ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
    }
    return CreateVoxelNode(parent, geo);
 }
 
-void RenderNode::AddToSharedCsgMeshNode(RenderNodePtr nodePtr, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn)
+void RenderNode::AddToSharedCsgMeshNode(RenderNodePtr nodePtr, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, float scale)
 {   
    GeometryInfo geo;
 
    RN_LOG(7) << "creating new geometry for " << key.GetDescription();
+
+   //Pipeline::GetInstance().
+   
 
    csg::Mesh m;
    for (int i = 0; i < MAX_LOD_LEVELS; i++) {
@@ -124,6 +128,7 @@ void RenderNode::AddToSharedCsgMeshNode(RenderNodePtr nodePtr, ResourceCacheKey 
       geo.indexIndicies[i + 1] = (int)m.indices.size();
    }
    geo.levelCount = MAX_LOD_LEVELS;
+   m.ScaleBy(scale);
    nodePtr->AddGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
 }
 
