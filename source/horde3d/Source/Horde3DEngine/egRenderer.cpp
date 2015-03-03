@@ -2514,7 +2514,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 			ASSERT( curGeoRes != 0x0 );
 		
 			// Indices
-			gRDI->setIndexBuffer(curGeoRes->getIndexBuf(), IDXFMT_32);
+         gRDI->setIndexBuffer(curGeoRes->getIndexBuf(), curGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
 
 			// Vertices
 			uint32 posVBuf = curGeoRes->getPosVBuf();
@@ -3086,7 +3086,7 @@ void Renderer::drawParticles( std::string const& shaderContext, std::string cons
 
 	// Bind particle geometry
 	gRDI->setVertexBuffer( 0, Modules::renderer().getParticleVBO(), 0, sizeof( ParticleVert ) );
-	gRDI->setIndexBuffer( Modules::renderer().getQuadIdxBuf(), IDXFMT_32 );
+	gRDI->setIndexBuffer( Modules::renderer().getQuadIdxBuf(), IDXFMT_16 );
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
