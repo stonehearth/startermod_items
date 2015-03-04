@@ -6,7 +6,7 @@ App.RootView = Ember.ContainerView.extend({
 
       // create the views
       this._debugView = this.createChildView(App["StonehearthDebugView"]);
-      this._gameView = this.createChildView(App["StonehearthGameUiView"]);
+      this._gameView  = this.createChildView(App["StonehearthGameUiView"]);
       this._shellView = this.createChildView(App["StonehearthShellView"]);
 
       // push em
@@ -47,20 +47,18 @@ App.RootView = Ember.ContainerView.extend({
    },
 
    didInsertElement: function() {
-      var state = App.options['state'];
-      if (App.options['skip_title'] || state == 'load_finished') {
+      var currentScreen = App.options['current_screen'];
+      if (currentScreen == "title_screen") {
+         App.gotoShell();
+      } else {                  
          App.gameView._addViews(App.gameView.views.complete);
          App.gotoGame();
-      } else {
-         App.gotoShell();
       }
-
       $(document).trigger('stonehearthReady');
    },
 
    gotoGame: function() {
-
-      radiant.call('radiant:set_draw_world', true);
+      radiant.call('radiant:show_game_screen');
 
       $('#' + this._shellView.elementId).hide();
       $('#' + this._gameView.elementId).show();
@@ -77,12 +75,6 @@ App.RootView = Ember.ContainerView.extend({
    gotoShell: function() {
       $('#' + this._gameView.elementId).hide();
       $('#' + this._shellView.elementId).show();
-
-      radiant.call('radiant:play_music', {
-            'track': 'stonehearth:music:title_screen', 
-            'channel' : 
-            'bgm'} 
-         );      
    }
 
 });

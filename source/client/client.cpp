@@ -114,7 +114,8 @@ Client::Client() :
    debug_track_object_lifetime_(false),
    loading_(false),
    _lastSequenceNumber(0),
-   _nextSysInfoPostTime(0)
+   _nextSysInfoPostTime(0),
+   _currentUiScreen(InvalidScreen)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
 }
@@ -122,25 +123,6 @@ Client::Client() :
 Client::~Client()
 {
    Shutdown();
-}
-
-void Client::InitializeUI(std::string const& args)
-{
-   core::Config const& config = core::Config::GetInstance();
-   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
-   
-   std::string docroot;
-   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
-   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
-      docroot = manifest.get<std::string>("ui.homepage", "about:");
-   });
-   if (!args.empty()) {
-      if (docroot.find('?') == std::string::npos) {
-         docroot += '?';
-      }
-      docroot += args;
-   }
-   browser_->Navigate(docroot);
 }
 
 void Client::OneTimeIninitializtion()
@@ -178,6 +160,8 @@ void Client::OneTimeIninitializtion()
       browser_->OnScreenResize(r);
    });
 
+   InitializeUIScreen();
+
    if (config.Get("enable_flush_and_load", false)) {
       flushAndLoadDelay_ = config.Get("flush_and_load_delay", 1000);
       if (boost::filesystem::is_directory("mods/")) {
@@ -188,8 +172,7 @@ void Client::OneTimeIninitializtion()
                std::wstring washed(filename.c_str());
                std::wstring luaExt(L".lua");
                std::wstring jsonExt(L".json");
-               if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt))
-               {
+               if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt)) {
                   InitiateFlushAndLoad();
                }
             }
@@ -464,20 +447,15 @@ void Client::OneTimeIninitializtion()
       return nullptr;
    });
 
-   core_reactor_->AddRoute("radiant:set_draw_world", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_draw_world");
-
-      try {
-         json::Node args(f.args);
-         bool drawWorld = args.get<bool>(0, false);
-         Renderer::GetInstance().SetDrawWorld(drawWorld);
-         result->ResolveWithMsg("success");
-      } catch (std::exception const& e) {
-         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
-      }
+   core_reactor_->AddRouteJ("radiant:get_current_ui_screen", [this](rpc::Function const& f) {
+      json::Node result;
+      result.set("screen", GetCurrentUIScreen());
       return result;
    });
 
+   core_reactor_->AddRouteV("radiant:show_game_screen", [this](rpc::Function const& f) {
+      SetCurrentUIScreen(GameScreen, true);
+   });
 
    core_reactor_->AddRoute("radiant:get_config_options", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:get_config_options");
@@ -595,6 +573,10 @@ void Client::OneTimeIninitializtion()
          }
          try {
             std::ifstream jsonfile((it->path() / "metadata.json").string());
+            if (!jsonfile.good()) {
+               CLIENT_LOG(3) << "ignoring directory \"" << name << "\" : no manifest.";
+               continue;
+            }
             JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
             json::Node entry;
             entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
@@ -878,7 +860,6 @@ void Client::run(int server_port)
    OneTimeIninitializtion();
    Initialize();
    CreateGame();
-   InitializeUI("");
 
    CLIENT_LOG(1) << "user feedback is " << (analytics::GetCollectionStatus() ? "on" : "off");
    
@@ -1069,14 +1050,12 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    if (initialUpdate_) {
       if (load_progress_deferred_) {
          if (loadError_.empty()) {
-            InitializeUI("state=load_finished");
+            SetCurrentUIScreen(GameScreen);
             load_progress_deferred_->Resolve(JSONNode("progress", 100.0));
          } else {
-            InitializeUI("");
+            SetCurrentUIScreen(TitleScreen);
             load_progress_deferred_->RejectWithMsg(loadError_);
-            Renderer::GetInstance().SetDrawWorld(false);
          }
-         Renderer::GetInstance().SetLoading(false);
          loading_ = false;
          loadError_.clear();
          load_progress_deferred_.reset();
@@ -1633,7 +1612,8 @@ void Client::EnableDisableSaveStressTest()
    
 void Client::ReloadBrowser()
 {
-   InitializeUI("");
+   std::string uri = BUILD_STRING(_uiDocroot << "?current_screen=" << GetCurrentUIScreen());
+   browser_->Navigate(uri);
 }
 
 void Client::RequestReload()
@@ -1756,7 +1736,7 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_.reset();
    });
 
-   Renderer::GetInstance().SetLoading(true);
+   SetCurrentUIScreen(LoadingScreen);
    Shutdown();
    Initialize();
 
@@ -1845,8 +1825,26 @@ void Client::CreateGame()
 
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->CreateGame(localModList_);
-
    initialUpdate_ = true;
+}
+
+void Client::InitializeUIScreen()
+{
+   core::Config const& config = core::Config::GetInstance();
+   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
+
+   bool skipTitle;
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
+      _uiDocroot = manifest.get<std::string>("ui.homepage", "about:");
+      skipTitle = manifest.get<bool>("ui.skip_title", false);
+   });
+
+   if (!skipTitle) {
+      SetCurrentUIScreen(TitleScreen);
+   } else {
+      SetCurrentUIScreen(GameScreen);
+   }
 }
 
 void Client::CreateErrorBrowser()
@@ -1933,3 +1931,34 @@ void Client::ReportSysInfo()
       CLIENT_LOG(1) << "failed to update sysinfo:" << e.what();
    }
 }
+
+const char* Client::GetCurrentUIScreen() const
+{
+   const char *screens[] = {
+      "title_screen",
+      "game_screen",
+      "loading_screen",
+   };
+   ASSERT(_currentUiScreen >= 0 && _currentUiScreen < ARRAY_SIZE(screens));
+
+   return screens[_currentUiScreen];
+}
+
+void Client::SetCurrentUIScreen(UIScreen screen, bool browserRequested)
+{
+   if (screen == _currentUiScreen) {
+      return;
+   }
+
+   _currentUiScreen = screen;
+   Renderer& r = Renderer::GetInstance();
+   r.SetLoading(screen == LoadingScreen);
+   r.SetDrawWorld(screen == GameScreen);
+   if (scriptHost_) {
+      scriptHost_->Trigger("radiant:client:ui_screen_changed");
+   }
+   if (!browserRequested) {
+      ReloadBrowser(); // Technically, can't we just trigger?
+   }
+}
+

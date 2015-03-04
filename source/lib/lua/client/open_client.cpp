@@ -516,6 +516,12 @@ static csg::Point2f Client_GetMousePosition()
    return csg::ToFloat(Client::GetInstance().GetMousePosition());
 }
 
+
+static const char* Client_GetCurrentUIScreen()
+{
+   return Client::GetInstance().GetCurrentUIScreen();
+}
+
 static std::string Client_SnapScreenShot(const char* tag)
 {
    char date[256];
@@ -586,6 +592,7 @@ void lua::client::open(lua_State* L)
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             def("get_mouse_position",              &Client_GetMousePosition),
             def("snap_screenshot",                 &Client_SnapScreenShot),
+            def("get_current_ui_screen",           &Client_GetCurrentUIScreen),
 
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)

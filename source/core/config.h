@@ -83,7 +83,6 @@ private:
    std::string                    userid_;
    std::string                    game_script_;
    std::string                    game_mod_;
-   bool                           should_skip_title_screen_;
 };
 
 END_RADIANT_CORE_NAMESPACE
