@@ -184,6 +184,8 @@ void SensorTracker::CheckEntity(dm::ObjectId entityId, om::EntityRef e)
       if (entity) {
          ST_LOG(7) << "checking entity " << entityId << " against sensor bounds " << bounds_;
          intersects = navgrid_.IsEntityInCube(entity, bounds_);
+      } else {
+         ST_LOG(7) << "entity " << entityId << " destroyed!";
       }
       if (intersects) {
          AddEntity(entityId, e);
@@ -208,7 +210,7 @@ void SensorTracker::AddEntity(dm::ObjectId entityId, om::EntityRef e)
       auto i = contents.find(entityId);
 
       if (i == contents.end() || i->first != entityId) {
-         ST_LOG(7) << "adding entity " << entityId << " to sensor";
+         ST_LOG(7) << "adding entity " << (e.lock() ? BUILD_STRING(*e.lock()) : std::string("invalid")) << " (id:" << entityId << ") to sensor";
          contents.Add(entityId, e);
       }
    }

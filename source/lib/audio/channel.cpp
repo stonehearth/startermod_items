@@ -2,6 +2,7 @@
 #include "radiant_logger.h"
 #include "lib/json/node.h"
 #include "input_stream.h"
+#include "track_info.h"
 #include "channel.h"
 #include "audio.h"
 #include "resources/res_manager.h"
@@ -24,39 +25,137 @@
 using namespace ::radiant;
 using namespace ::radiant::audio;
 
-#define A_LOG(level)    LOG(audio, level)
+#define CHANNEL_LOG(level)    LOG(audio, level) << "[channel \"" << _name << "\"] "
+#define TRACK_LOG(level)      LOG(audio, level) << "[track\"" << _info.track<< "\"] " 
 
 #define PLAYER_DEF_VOL 1.0 //The volume % set by the user, between 0 and 1
 
+TrackInfo::TrackInfo() :
+   volume(DEF_MUSIC_VOL),
+   loop(DEF_MUSIC_LOOP),
+   fadeInDuration(DEF_MUSIC_FADE_IN)
+{
+}
 
-struct audio::Channel::Track {
-   audio::InputStream   stream;
-   sf::Music            music;
-
-   Track(std::string const& trackName);
+class audio::Channel::Track
+{
+public:
+   Track(TrackInfo const& info, float const& volumeScale);
    ~Track();
+
+   void FadeOut(int duration);
+   int Update(int dt);
+
+private:
+   void Play();
+   void Stop();
+   uint GetTimeRemaining();
+
+private:
+   TrackInfo                     _info;
+   std::unique_ptr<audio::InputStream> _stream;
+   sf::Music                     _music;
+   float const&                  _volumeScale;
+   int                           _fadeOutDuration;
+   double                        _fadeOutProgress;
+   claw::tween::single_tweener   _fadeOutTweener;
+   claw::tween::single_tweener   _fadeInTweener;
 };
 
-Channel::Track::Track(std::string const& trackName)
-   : stream(trackName)
+Channel::Track::Track(TrackInfo const& info, float const& volumeScale) :
+   _info(info),
+   _volumeScale(volumeScale),
+   _fadeOutDuration(-1),
+   _fadeOutProgress(1.0f)
 {
+   Play();
 }
 
 Channel::Track::~Track()
 {
-   music.stop();
+   _music.stop();
 }
 
+void Channel::Track::FadeOut(int duration)
+{
+   bool isFaster = (_fadeOutDuration < 0) || (duration < (_fadeOutDuration * _fadeOutProgress));
+   if (isFaster) {
+      _fadeOutDuration = duration;
+      _fadeOutTweener = claw::tween::single_tweener(_fadeOutProgress, 0.0, (double)duration, [this](double fadeScale) {
+         TRACK_LOG(3) << " audio fade out: " << fadeScale;
+         _fadeOutProgress = fadeScale;
+         _music.setVolume((float)(fadeScale * _info.volume * _volumeScale));
+      }, claw::tween::easing_linear::ease_out);
+      _fadeOutTweener.update(0);
+   }
+}
 
-Channel::Channel() :
-   rising_tweener_(nullptr),
-   fading_tweener_(nullptr),
-   fade_(DEF_MUSIC_FADE),
-   volume_(DEF_MUSIC_VOL),
-   player_volume_(PLAYER_DEF_VOL),
-   loop_(DEF_MUSIC_LOOP),
-   crossfade_(DEF_MUSIC_CROSSFADE),
-   lastUpdated_(0)
+void Channel::Track::Play()
+{
+   _music.stop();
+   if (_info.track.empty()) {
+      return;
+   }
+
+   _stream.reset(new audio::InputStream(_info.track));
+   if (!_music.openFromStream(*_stream)) {
+      TRACK_LOG(1) << "Can't find Music!";
+      return;
+   }
+   if (_info.fadeInDuration > 0) {
+      _fadeInTweener = claw::tween::single_tweener(0.0, 1.0, (double)_info.fadeInDuration, [this](double fadeScale) {
+         TRACK_LOG(3) << " audio fade in: " << fadeScale;
+         _music.setVolume((float)(fadeScale * _info.volume * _volumeScale));
+      }, claw::tween::easing_linear::ease_in);
+      _fadeInTweener.update(0);
+   } else {
+      _music.setVolume((float)_info.volume * _volumeScale);
+   }
+   _music.setLoop(false);
+   _music.play();
+}
+
+uint Channel::Track::GetTimeRemaining()
+{
+   if (_music.getStatus() != sf::Music::Playing) {
+      return 0;
+   }
+   if (_info.loop) {
+      return (uint)-1;
+   }
+   return _music.getDuration().asMilliseconds() - _music.getPlayingOffset().asMilliseconds();
+}
+
+int Channel::Track::Update(int dt)
+{
+   // keep fading in, if necessary.
+   if (_fadeOutDuration > 0) {
+      _fadeOutTweener.update((float)dt);
+      if (_fadeOutTweener.is_finished()) {
+         _music.stop();
+      }
+   } else if (_info.fadeInDuration > 0 && !_fadeInTweener.is_finished()) {
+      _fadeInTweener.update((float)dt);
+   }
+
+   // see how much time is left.
+   if (_music.getStatus() == sf::Music::Playing) {
+      if (_info.loop) {
+         return INT_MAX;
+      }
+      return _music.getDuration().asMilliseconds() - _music.getPlayingOffset().asMilliseconds();
+   }
+   return 0;
+}
+
+void Channel::Track::Stop()
+{
+   _music.stop();
+}
+
+Channel::Channel(const char* name) :
+   _name(name),
+   player_volume_(PLAYER_DEF_VOL)
 {
 }
 
@@ -71,120 +170,61 @@ void Channel::SetPlayerVolume(float vol)
    player_volume_ = vol;
 }
 
-//This is the volume the music on this track will next play at
-//The actual volume derived with this * player_volume_
-void Channel::SetNextMusicVolume(int volume)
+void Channel::Play(TrackInfo const& info)
 {
-   volume_ = volume;
+   // Kill everything in the queue.  Fade out everything playing
+   _queued.clear();
+   StopPlaying(info.fadeInDuration);
+
+   _playing.emplace_back(new Track(info, player_volume_));
 }
 
-void Channel::SetNextMusicFade(int fade)
+void Channel::Queue(TrackInfo const& info)
 {
-   fade_ = fade;
-}
-
-void Channel::SetNextMusicLoop(bool loop)
-{
-   loop_ = loop;
-}
-
-void Channel::SetNextMusicCrossfade(bool crossfade)
-{
-   crossfade_ = crossfade;
-}
-
-
-void Channel::PlayMusic(std::string const& track)
-{
-   // If this track is already playing, then just return
-   if (track == currentTrackName_) {
-      return;
-   }
-
-   if (currentTrack_ && currentTrack_->music.getStatus() == sf::Music::Playing) {
-      // If there is already music playing, note next track for update
-     nextTrack_ = track;
-   } else {
-      // If there is no music, immediately start music
-      SetAndPlayMusic(track, volume_);
-   }
-}
-
-//Pass in the name of the track to play and the game's desired volume for the music
-//Note: the player's desired volume is added right before the music is played
-void Channel::SetAndPlayMusic(std::string const& trackName, double target_volume)
-{
-   currentTrack_.reset(new Track(trackName));
-
-   sf::Music* music = &currentTrack_->music;
-   if (music->openFromStream(currentTrack_->stream)) {
-      music->setLoop(loop_);
-      //Change to reflect that music's user-set and dynamically-set value can change
-      music->setVolume((float)target_volume * player_volume_);
-      music->play();
-      currentTrackName_ = trackName;
-   } else { 
-      A_LOG(1) << "Can't find Music! " << trackName;
-   }
+   // Add an item to the queue
+   _queued.emplace_back(info);
 }
 
 //Called by the game loop
-void Channel::UpdateMusic(int currTime)
+void Channel::Update(int dt)
 {
-   double dt = lastUpdated_ ? (currTime - lastUpdated_) : 0.0;
-   lastUpdated_ = currTime;
+   uint i = 0, c = (uint)_playing.size();
 
-   // If there is another track to play after this one
-   if (!nextTrack_.empty() && !fading_tweener_.get()) {
-      int fade = fade_;
-      fading_volume_ = volume_;
-      outgoingTrack_.reset(currentTrack_.release());
-      fading_tweener_.reset(new claw::tween::single_tweener(fading_volume_, 0, fade, claw::tween::easing_linear::ease_out));
-
-      // If crossfade option is true, then also create a rising tweener and set the new music to playing
-      if (crossfade_ && !rising_tweener_.get()) {
-         rising_volume_ = 0;
-         rising_tweener_.reset(new claw::tween::single_tweener(rising_volume_, volume_, fade, claw::tween::easing_linear::ease_in));
-
-         SetAndPlayMusic(nextTrack_, rising_volume_);
-         nextTrack_ = "";
-      }
-   } 
-
-   // If we are in the middle of fading out (and potentially fading in)
-   if (outgoingTrack_ != nullptr) {
-      if (fading_tweener_->is_finished()) {
-         // and if the fade tweener is finished, stop the outgoing music and reset the tweener. 
-         fading_tweener_.reset(nullptr);
-         outgoingTrack_.reset(nullptr);
-            
-         // If we are not crossfading, then start the next track. 
-         if (!crossfade_) {
-            SetAndPlayMusic(nextTrack_, volume_);
-            nextTrack_ = "";
-         }
+   // poll all the tracks, rolling up how much time we have left
+   int timeRemaining = -1;
+   while (i < c) {
+      Track& track = *_playing[i];
+      int t = track.Update(dt);
+      if (t == 0) {
+         _playing[i].reset(_playing[--c].release());
       } else {
-         // If the tweener is not finished, soften the volume
-         fading_tweener_->update(dt);
-         outgoingTrack_->music.setVolume((float)fading_volume_ * player_volume_);
-
-         // If crossfade is on, raise that volume
-         if (crossfade_) {
-            rising_tweener_->update(dt);
-            currentTrack_->music.setVolume((float)rising_volume_ * player_volume_);
+         i++;
+         if (timeRemaining == -1) {
+            timeRemaining = t;
+         } else {
+            timeRemaining = std::min(timeRemaining, t);
          }
-      }
-   } else {
-      // If nobody is fading out (or fading in) then just one piece of music is playing
-      // adjust that music by player volume
-      // TODO: this might cause audio weirdness if the player is adjusting the volume during a fade
-      if (currentTrack_ && currentTrack_->music.getVolume() != volume_ * player_volume_) {
-         currentTrack_->music.setVolume(static_cast<float>(volume_ * player_volume_));
       }
    }
-   
-   // If we have a rising tweener that is finished, then set it to null.
-   if (rising_tweener_.get() && rising_tweener_->is_finished()) {
-      rising_tweener_.reset(nullptr);
+   _playing.resize(c);
+
+   // move onto the next track
+   if (!_queued.empty()) {
+      int crossfade = _queued.front().fadeInDuration;
+      if (timeRemaining <= crossfade) {
+         CHANNEL_LOG(3) << "crossfading to " << _queued.front().track << " " << timeRemaining << " <= " << crossfade;
+         StopPlaying(crossfade);
+         _playing.emplace_back(new Track(_queued.front(), player_volume_));
+         _queued.pop_front();
+      } else {
+         CHANNEL_LOG(3) << "not time to crossfading to " << _queued.front().track << " yet " << timeRemaining << " > " << crossfade;
+      }
+   }
+}
+
+void Channel::StopPlaying(int fadeOut)
+{
+   for (auto &track : _playing) {
+      track->FadeOut(fadeOut);
    }
 }

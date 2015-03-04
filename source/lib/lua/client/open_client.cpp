@@ -361,28 +361,43 @@ public:
    }
 
    TraceRenderFramePromisePtr OnFrameStart(std::string const& reason, luabind::object cb) {
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
       luabind::object callback(L_, cb);
       guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         try {
+            luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
       });
       return shared_from_this();
    }
 
    TraceRenderFramePromisePtr OnFrameFinished(std::string const& reason, luabind::object cb) {
-      luabind::object callback(L_, cb);
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
+      luabind::object callback(cb_thread, cb);
       guards_ += frame_finished_slot_.Register([=](FrameStartInfo const &info) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         try {
+            luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
       });
       return shared_from_this();
    }
 
    TraceRenderFramePromisePtr OnServerTick(std::string const& reason, luabind::object cb) {
-      luabind::object callback(L_, cb);
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
+      luabind::object callback(cb_thread, cb);
       guards_ += server_tick_slot_.Register([=](int now) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, now);
+         try {
+            luabind::call_function<void>(callback, now);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
       });
       return shared_from_this();
    }
