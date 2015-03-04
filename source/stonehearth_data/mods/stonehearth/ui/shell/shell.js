@@ -1,6 +1,6 @@
 
 App.StonehearthShellView = App.ContainerView.extend({
-   init: function() {
+   didInsertElement: function() {
       this._super();
       var self = this;
 

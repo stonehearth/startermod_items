@@ -80,6 +80,17 @@ class Client : public core::Singleton<Client> {
 
       csg::Point2 GetMousePosition() const;
 
+      enum UIScreen {
+         InvalidScreen = -1,
+         TitleScreen = 0,
+         GameScreen,
+         LoadingScreen,
+      };
+
+      const char* GetCurrentUIScreen() const;
+      void SetCurrentUIScreen(UIScreen screen, bool browserRequested = false);
+
+
    private:
       NO_COPY_CONSTRUCTOR(Client);
 
@@ -141,7 +152,7 @@ class Client : public core::Singleton<Client> {
       void EnableDisableSaveStressTest();
       void EnableDisableLifetimeTracking();
       void OneTimeIninitializtion();
-      void InitializeUI(std::string const& state);
+      void InitializeUI();
       void Initialize();
       void InitializeDataObjects();
       void InitializeDataObjectTraces();
@@ -160,6 +171,7 @@ class Client : public core::Singleton<Client> {
       void LoadClientState(boost::filesystem::path const& savedir);
       void CreateGame();
       void CreateErrorBrowser();
+      void InitializeUIScreen();
       void ReportLoadProgress();
       void RestoreDatastores();
       rpc::ReactorDeferredPtr StartPerformanceCounterPush();
@@ -271,6 +283,8 @@ private:
       int                         _lastSequenceNumber;
       int                         _nextSysInfoPostTime;
 
+      UIScreen                    _currentUiScreen;
+      std::string                 _uiDocroot;
       bool                        loading_;
       std::string                 loadError_;
 };

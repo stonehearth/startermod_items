@@ -150,7 +150,7 @@ void AudioManager::CleanupSounds()
 void AudioManager::SetNextMusicVolume(int volume, std::string const& channel)
 {
     if (channel.compare("ambient") == 0) {
-       ambient_channel_.SetNextMusicVolume(volume);
+      ambient_channel_.SetNextMusicVolume(volume);
    } else {
       bgm_channel_.SetNextMusicVolume(volume);
    }
