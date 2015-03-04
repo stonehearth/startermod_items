@@ -11,7 +11,7 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
       self._sv.player_id = player_id
       self._sv.citizens = {}
       self._sv.bulletins = {}
-      self._sv.global_vision = {}
+      self._sv._global_vision = {}
       self._sv.is_npc = true
    end
 
@@ -148,14 +148,16 @@ function PopulationFaction:_on_seen_by(spotter_id, visitor_id, visitor)
       return
    end
 
-   local entry = self._sv.global_vision[visitor_id]
+   local entry = self._sv._global_vision[visitor_id]
    if not entry then
       entry = {
          seen_by = { spotter_id },
          threat_level = threat_level,
          entity = visitor,
       }
-      self._sv.global_vision[visitor_id] = entry
+      self._sv._global_vision[visitor_id] = entry
+
+      self:_update_threat_level()
 
       radiant.events.trigger_async(self, 'stonehearth:population:new_threat', {
             entity_id = visitor_id,
@@ -166,11 +168,11 @@ function PopulationFaction:_on_seen_by(spotter_id, visitor_id, visitor)
 end
 
 function PopulationFaction:_on_unseen_by(spotter_id, visitor_id)
-   local entry = self._sv.global_vision[visitor_id]
+   local entry = self._sv._global_vision[visitor_id]
    if entry then
       entry.seen_by[spotter_id] = nil
       if radiant.empty(entry.seen_by) then
-         self._sv.global_vision[seen_id] = nil
+         self._sv._global_vision[seen_id] = nil
       end
    end
 end
@@ -199,6 +201,17 @@ function PopulationFaction:_on_entity_destroyed(evt)
    local entity_id = evt.entity_id
 
    -- update the score
+   if self._sv.citizens[entity_id] then
+      self:_on_citizen_destroyed(entity_id)
+   end
+   if self._sv._global_vision[entity_id] then
+      self:_on_global_vision_entity_destroyed(evt.entity_id)
+   end
+end
+
+function PopulationFaction:_on_citizen_destroyed(evt)
+   local entity_id = evt.entity_id
+   
    self._sv.citizens[entity_id] = nil
    stonehearth.score:update_aggregate_score(self._sv.player_id)
 
@@ -222,6 +235,21 @@ function PopulationFaction:_on_entity_destroyed(evt)
    self.__saved_variables:mark_changed()
    return radiant.events.UNLISTEN
 end
+
+function PopulationFaction:_on_global_vision_entity_destroyed(entity_id)
+   self._sv._global_vision[entity_id] = nil
+   self:_update_threat_level()
+end
+
+function PopulationFaction:_update_threat_level()
+   local threat_level = 0
+   for _, entry in pairs(self._sv._global_vision) do
+      threat_level = threat_level + entry.threat_level
+   end
+   self._sv.threat_level = threat_level
+   self.__saved_variables:mark_changed()
+end
+
 
 function PopulationFaction:customize_citizen(entity, all_variants, this_variant)   
    local variant = all_variants[this_variant]
@@ -312,3 +340,4 @@ function PopulationFaction:find_closest_townsperson_to(entity)
 end
 
 return PopulationFaction
+ 

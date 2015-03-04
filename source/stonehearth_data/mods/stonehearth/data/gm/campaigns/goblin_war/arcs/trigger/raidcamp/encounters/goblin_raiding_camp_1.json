@@ -77,12 +77,12 @@
          },
          "totem_1" : {
             "info" : "file(create_camp/goblin_small_totem.json)",
-            "position" : { "x": -12, "y": -10 },
+            "position" : { "x": -12, "y": -7 },
             "rotation" : 90
          },
          "totem_2" : {
             "info" : "file(create_camp/goblin_large_totem.json)",
-            "position" : { "x": -12, "y": -5 },
+            "position" : { "x": -12, "y": -2 },
             "rotation" : 90
          },
          "wood_stockpile" : {
@@ -90,7 +90,7 @@
             "info" : "file(create_camp/wood_stockpile.json)"
          },
          "stockpile" : {
-            "position" : { "x": 12, "y": -14 },
+            "position" : { "x": -12, "y": -16 },
             "info" : "file(create_camp/stockpile.json)"
          },
          "loot_chest" : {
