@@ -17,6 +17,9 @@ class Skeleton {
       void SetSceneNode(H3DNode parent);
       void SetBoneVisible(std::string const& bone, bool visible);
       H3DNode GetSceneNode(std::string const& bone);
+      int GetBoneNumber(std::string const& bone);
+      std::string const& GetBoneName(int boneNum) const;
+      int GetNumBones() const;
 
       H3DNode AttachEntityToBone(H3DRes entity, std::string const& bone, csg::Point3f const& offset);
       void Clear();
@@ -30,6 +33,7 @@ class Skeleton {
    protected:
       RenderEntity&                            _renderEntity;
       std::unordered_map<std::string, H3DNode> _bones;
+      std::unordered_map<std::string, int>     _boneNumLookup;
       float                                    _scale;
       std::unordered_map<std::string, int>     _visibleCount;
 };

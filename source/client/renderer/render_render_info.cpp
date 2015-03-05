@@ -280,7 +280,9 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
       }
    }
 
-   auto generate_matrix = [this, useSkeletonOrigin](csg::Mesh &mesh, int lodLevel) {
+   Skeleton& skeleton = entity_.GetSkeleton();
+
+   auto generate_matrix = [this, useSkeletonOrigin, &skeleton](csg::Mesh &mesh, int lodLevel) {
       for (auto& node : nodes_) {
          csg::Point3f origin = csg::Point3f::zero;
 
@@ -327,12 +329,17 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
             meshOrigin.x = (float)pos.x * 2 + size.x - origin.x;
 
             RI_LOG(7) << "offsetting mesh " << all_models.GetBounds() << " origin:" << origin << " meshOrigin:" << meshOrigin << " matrixSize:" << size << " pos:" << pos;
-            csg::RegionToMesh(all_models, mesh, -meshOrigin, true);
+            csg::RegionToMesh(all_models, mesh, -meshOrigin, true, skeleton.GetBoneNumber(node.first));
          }
       }
    };
 
-   render_node_ = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix, 1.0);
+   const char* bones[64];
+
+   for (int i = 0; i < skeleton.GetNumBones(); i++) {
+      bones[i] = skeleton.GetBoneName(i).c_str();
+   }
+   render_node_ = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix, bones, skeleton.GetNumBones(), 1.0);
    h3dSetNodeParamI(render_node_->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);

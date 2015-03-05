@@ -160,18 +160,17 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
 	// Check triangles
    for( uint32 i = getBatchStart(0); i < getBatchStart(0) + getBatchCount(0); i += 3 )
 	{
-		Vec3f *vert0, *vert1, *vert2;
 		
-		vert0 = &geoRes->getVertexData()[geoRes->_indexData[i + 0]].pos;
-		vert1 = &geoRes->getVertexData()[geoRes->_indexData[i + 1]].pos;
-		vert2 = &geoRes->getVertexData()[geoRes->_indexData[i + 2]].pos;
+      Vec3f const& vert0 = geoRes->getVertexData()[geoRes->_indexData[i + 0]].pos;
+		Vec3f const& vert1 = geoRes->getVertexData()[geoRes->_indexData[i + 1]].pos;
+		Vec3f const& vert2 = geoRes->getVertexData()[geoRes->_indexData[i + 2]].pos;
 
-		if( rayTriangleIntersection( orig, dir, *vert0, *vert1, *vert2, intsPos ) )
+		if( rayTriangleIntersection( orig, dir, vert0, vert1, vert2, intsPos ) )
 		{
 			intersection = true;
 			if( (intsPos - orig).length() < (nearestIntsPos - orig).length() ) {
 				nearestIntsPos = intsPos;
-            intsNorm = (*vert1 - *vert0).cross(*vert2 - *vert1);
+            intsNorm = (vert1 - vert0).cross(vert2 - vert1);
          }
 		}
 	}

@@ -132,7 +132,7 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
                                           .PaintOnce();
             csg::RegionToMesh(model, mesh, -origin, true);
          };
-         node = RenderNode::CreateSharedCsgMeshNode(parent, key, create_mesh);
+         node = RenderNode::CreateSharedCsgMeshNode(parent, key, create_mesh, nullptr, 0);
       }
    }
    return node;

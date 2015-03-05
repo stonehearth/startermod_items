@@ -63,6 +63,7 @@ Resource *VoxelGeometryResource::clone()
 	memcpy( res->_vertexData, _vertexData, _vertCount * sizeof( VoxelVertexData ) );
 	res->_indexBuf = gRDI->createIndexBuffer( _indexCount * sizeof(uint32), _indexData );
 	res->_vertexBuf = gRDI->createVertexBuffer( _vertCount * sizeof( Vec3f ), STATIC, _vertexData );
+   res->_boneLookup = _boneLookup;
 	
 	return res;
 }
@@ -112,7 +113,7 @@ bool VoxelGeometryResource::raiseError( std::string const& msg )
 	return false;
 }
 
-bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels)
+bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], const char** bones, int numBones, int numLodLevels)
 {
    _numLodLevels = numLodLevels;
    for (int i = 0; i < numLodLevels + 1; i++) {
@@ -129,6 +130,11 @@ bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffset
 	_indexData = new uint32[_indexCount];
 
    ::memcpy(_indexData, indicies, _indexCount * sizeof uint32);
+
+   for (int i = 0; i < numBones; i++)
+   {
+      _boneLookup[i] = std::string(bones[i]);
+   }
 
 	// Upload data
 	if( _vertCount > 0 && _indexCount > 0 )

@@ -6,6 +6,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+std::string _default;
+
 Skeleton::Skeleton(RenderEntity& re) :
    _renderEntity(re),
    _scale(1.0f)
@@ -62,6 +64,34 @@ H3DNode Skeleton::GetSceneNode(std::string const& bone)
    return node;
 }
 
+int Skeleton::GetNumBones() const
+{
+   return (int)_bones.size();
+}
+
+int Skeleton::GetBoneNumber(std::string const& bone)
+{
+   auto& i = _boneNumLookup.find(bone);
+   if (i == _boneNumLookup.end()) {
+      CreateBone(bone);
+      i = _boneNumLookup.find(bone);
+   }
+   return i->second;
+}
+
+std::string const& Skeleton::GetBoneName(int boneNum) const
+{
+   for (auto& i : _boneNumLookup) {
+      if (i.second == boneNum) {
+         return i.first;
+      }
+   }
+
+   ASSERT(false);
+
+   return _default;
+}
+
 H3DNode Skeleton::CreateBone(std::string const& bone)
 {
    H3DNode parent = _renderEntity.GetNode();
@@ -75,6 +105,7 @@ H3DNode Skeleton::CreateBone(std::string const& bone)
    h3dSetNodeTransform(b, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f);
    _bones[bone] = b;
    _visibleCount[bone] = 1;
+   _boneNumLookup[bone] = (int)_bones.size() - 1;
    return b;
 }
 

@@ -13,19 +13,31 @@ uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform	mat3 worldNormalMat;
 
+#ifdef DRAW_SKINNED
+attribute float boneIndex;
+uniform mat4 bones[48];
+#endif
+
 #ifdef DRAW_WITH_INSTANCING
 attribute mat4 transform;
 #endif
 
 vec4 calcWorldPos( const vec4 pos )
 {
-
+	mat4 tr;
 #ifdef DRAW_WITH_INSTANCING
-	return transform * pos;
+	tr = transform;
 #else	
-	return worldMat * pos;
+	tr = worldMat;
 #endif
+
+#ifdef DRAW_SKINNED
+	tr = tr * bones[int(boneIndex)];
+#endif
+
+	return tr * vec4(pos.xyz, 1.0);
 }
+
 
 vec4 calcViewPos( const vec4 pos )
 {

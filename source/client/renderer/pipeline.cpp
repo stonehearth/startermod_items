@@ -97,7 +97,7 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
 
    int vertexOffsets[2] = {0, (int)mesh.vertices.size()};
    int indexOffsets[2] = {0, (int)mesh.indices.size()};
-   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
+   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, nullptr, 0, 1);
 }
 
 void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2f const& panels)

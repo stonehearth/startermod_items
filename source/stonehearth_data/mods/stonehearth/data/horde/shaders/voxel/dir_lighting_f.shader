@@ -31,7 +31,7 @@ uniform mat4 fowViewMat;
 
 attribute vec3 vertPos;
 attribute vec3 normal;
-attribute vec3 color;
+attribute vec4 color;
 
 varying vec4 pos;
 varying vec3 tsbNormal;
@@ -45,7 +45,7 @@ void main( void )
   pos = calcWorldPos(vec4(vertPos, 1.0));
   vec4 vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
-  albedo = color;
+  albedo = color.rgb;
 
 #ifndef DISABLE_SHADOWS
   projShadowPos[0] = shadowMats[0] * pos;

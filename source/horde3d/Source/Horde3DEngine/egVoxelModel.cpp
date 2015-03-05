@@ -91,6 +91,13 @@ void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
       _meshList.push_back( (VoxelMeshNode *)node );
    } else if (!firstCall) {
       return;  // First node is the model
+   } else {
+      // First node, so look through all children to collect up our bones.
+      for (auto& child : node->getChildren()) {
+         if (child->getType() == SceneNodeTypes::Group) {
+            _boneLookup[child->getName()] = child;
+         }
+      }
    }
 	
    // Children
@@ -104,6 +111,7 @@ void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
 void VoxelModelNode::recreateNodeList()
 {
    _meshList.resize(0);
+   _boneLookup.clear();
 	
    recreateNodeListRec(this, true);
    updateLocalMeshAABBs();
@@ -128,7 +136,7 @@ void VoxelModelNode::updateLocalMeshAABBs()
 		{
          for( uint32 j = mesh.getVertRStart(0); j <= mesh.getVertREnd(0); ++j )
 			{
-				Vec3f &vertPos = _geometryRes->getVertexData()[j].pos;
+				Vec3f const& vertPos = _geometryRes->getVertexData()[j].pos;
             mesh._localBBox.addPoint(vertPos);
 			}
 

@@ -87,12 +87,12 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
    geo.levelCount = 1;
    geo.unique = true;
 
-   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), nullptr, 0, geo);
    return CreateVoxelNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, float scale)
-{   
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, const char** bones, int numBones, float scale)
+{
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
 
@@ -106,7 +106,8 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
       }
       geo.levelCount = MAX_LOD_LEVELS;
       m.ScaleBy(scale);
-      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+
+      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), bones, numBones, geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
    }
    return CreateVoxelNode(parent, geo);
@@ -307,7 +308,7 @@ void RenderNode::ApplyMaterial()
    }
 }
 
-void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
+void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, const char** boneIndices, int numBones, GeometryInfo& geo)
 {
    std::string geoName = BUILD_STRING("geo" << nextId++);
 
@@ -316,6 +317,8 @@ void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint 
                                          geo.vertexIndices,
                                          indices,
                                          geo.indexIndicies,
+                                         boneIndices,
+                                         numBones,
                                          geo.levelCount);
 }
 

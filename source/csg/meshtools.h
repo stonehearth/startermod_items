@@ -13,12 +13,13 @@ typedef std::unordered_map<int, Color4> TagToColorMap;
 // xxx: must match definition of VoxelGeometryVertex, exactly
 struct Vertex {
    float     location[3];
+   float     boneIndex;
    float     normal[3];
    float     color[4];
 
-   Vertex(Point3f const& p, Point3f const& n, Point4f const& c);
-   Vertex(Point3f const& p, Point3f const& n, Color3 const& c);
-   Vertex(Point3f const& p, Point3f const& n, Color4 const& c);
+   Vertex(Point3f const& p, float bIndex, Point3f const& n, Point4f const& c);
+   Vertex(Point3f const& p, float bIndex, Point3f const& n, Color3 const& c);
+   Vertex(Point3f const& p, float bIndex, Point3f const& n, Color4 const& c);
 
    void SetLocation(Point3f const& p);
    void SetNormal(Point3f const& n);
@@ -47,12 +48,12 @@ struct Mesh {
    bool IsEmpty() const;
 
    // This is the one, true add face.  move over to it...
-   template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi);
-   template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi);
-   void AddFace(Point3f const points[], Point3f const& normal);
+   template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi, uint32 boneIndex=0);
+   template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi, uint32 boneIndex=0);
+   void AddFace(Point3f const points[], Point3f const& normal, uint32 boneIndex=0);
 
 private:
-   void AddFace(Point3f const points[], Point3f const& normal, Color4 const& color);
+   void AddFace(Point3f const points[], Point3f const& normal, Color4 const& color, uint32 boneIndex);
 
 private:
    csg::Color4          color_;
@@ -62,7 +63,7 @@ private:
    Point3f              offset_;
 };
 
-void RegionToMesh(csg::Region3 const& region, Mesh &Mesh, csg::Point3f const& offset, bool optimizePlanes);
+void RegionToMesh(csg::Region3 const& region, Mesh &Mesh, csg::Point3f const& offset, bool optimizePlanes, uint32 boneIndex=0);
 
 END_RADIANT_CSG_NAMESPACE
 

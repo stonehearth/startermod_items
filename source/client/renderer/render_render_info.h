@@ -41,11 +41,11 @@ private:
    typedef std::unordered_map<std::string, MatrixVector> FlatModelMap;
 
    struct NodeMapEntry {
-      NodeMapEntry() : node(0) { }
-      NodeMapEntry(MatrixVector const& v, RenderNodePtr n) : matrices(v), node(n) { }
+      NodeMapEntry() : nodeIndex(0) { }
+      NodeMapEntry(MatrixVector const& v, uint32 n) : matrices(v), nodeIndex(n) { }
 
       MatrixVector         matrices;
-      RenderNodePtr        node;
+      uint32               nodeIndex;
    };
 
    typedef std::unordered_map<std::string, MatrixVector> NodeMap;

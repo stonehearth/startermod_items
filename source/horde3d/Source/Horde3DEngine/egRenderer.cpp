@@ -204,24 +204,26 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	};
 	_vlModel = gRDI->registerVertexLayout( 7, attribsModel );
 
-	VertexLayoutAttrib attribsVoxelModel[3] = {
+	VertexLayoutAttrib attribsVoxelModel[4] = {
       { "vertPos",     0, 3, 0 }, 
-      { "normal",      0, 3, 12 },
-      { "color",       0, 4, 24 },
+      { "boneIndex",   0, 1, 12 },
+      { "normal",      0, 3, 16 },
+      { "color",       0, 4, 28 },
 	};
-	_vlVoxelModel = gRDI->registerVertexLayout( 3, attribsVoxelModel );
+	_vlVoxelModel = gRDI->registerVertexLayout( 4, attribsVoxelModel );
 
-	VertexLayoutAttrib attribsInstanceVoxelModel[4] = {
+	VertexLayoutAttrib attribsInstanceVoxelModel[5] = {
       { "vertPos",     0, 3, 0 }, 
-      { "normal",      0, 3, 12 },
-      { "color",       0, 4, 24 },
+      { "boneIndex",   0, 1, 12 },
+      { "normal",      0, 3, 16 },
+      { "color",       0, 4, 28 },
       { "transform",   1, 16, 0 }
 	};
 
-   VertexDivisorAttrib divisorsInstanceVoxelModel[4] = {
-      0, 0, 0, 1
+   VertexDivisorAttrib divisorsInstanceVoxelModel[5] = {
+      0, 0, 0, 0, 1
    };
-	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 4, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
+	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 5, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
 
    _vbInstanceVoxelBuf = new float[MaxVoxelInstanceCount * (4 * 4)];
 
@@ -596,7 +598,9 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
    sc.uni_cubeBatchTransformArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchTransformArray" );
    sc.uni_cubeBatchColorArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchColorArray" );
 	
-	// Overlay-specific uniforms
+   sc.uni_bones = gRDI->getShaderConstLoc( shdObj, "bones" );
+
+   // Overlay-specific uniforms
 	sc.uni_olayColor = gRDI->getShaderConstLoc( shdObj, "olayColor" );
 
 	return true;
@@ -2485,6 +2489,7 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 
 
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
+   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
 	// Loop over mesh queue
 	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Mesh) )
 	{
@@ -2674,6 +2679,8 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          continue;
       }
 
+      Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
+
       // Bind geometry
       RENDER_LOG() << "binding geometry...";
       if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
@@ -2772,6 +2779,22 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
+      if (curShader->uni_bones >= 0) {
+         Matrix4f boneMats[64];
+         int numBones = (int)curVoxelGeoRes->_boneLookup.size();
+
+         if (numBones == 0) {
+            numBones = 1;
+            boneMats[0].toIdentity();
+         } else {
+            for (int i = 0; i < numBones; i++) {
+               std::string const& boneName = curVoxelGeoRes->_boneLookup[i];
+               boneMats[i] = modelNode->_boneLookup[boneName]->getAbsTrans();
+            }
+         }
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats[0].x, numBones);
+      }
+
       // Render
       RENDER_LOG() << "rendering...";
       gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
@@ -2827,9 +2850,11 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 
       bool useInstancing = instanceKind.second.size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
       Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
+      Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
 
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       vmn = (VoxelMeshNode*)instanceKind.second.front().node;
+      const VoxelModelNode* voxelModel = vmn->getParentModel();
 
 		// Bind geometry
 		// Indices
@@ -2839,7 +2864,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
       gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
 
 		
-		ShaderCombination *prevShader = Modules::renderer().getCurShader();
+		ShaderCombination *curShader = Modules::renderer().getCurShader();
 		
 		if( !debugView )
 		{
@@ -2887,6 +2912,23 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
       } else {
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
+
+      if (curShader->uni_bones >= 0) {
+         Matrix4f boneMats[64];
+         int numBones = (int)curVoxelGeoRes->_boneLookup.size();
+
+         if (numBones == 0) {
+            numBones = 1;
+            boneMats[0].toIdentity();
+         } else {
+            for (int i = 0; i < numBones; i++) {
+               std::string const& boneName = curVoxelGeoRes->_boneLookup.at(i);
+               boneMats[i] = voxelModel->_boneLookup.at(boneName)->getAbsTrans();
+            }
+         }
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats[0].x, numBones);
+      }
+
 
       RENDER_LOG() << "rendering (use instancing: " << useInstancing << ")";
       if (useInstancing) {
@@ -3008,7 +3050,9 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
 	if( debugView ) return;  // Don't render in debug view
 
    bool useInstancing = gRDI->getCaps().hasInstancing;
+
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
+   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
 	
    R_LOG(9) << "drawing instance nodes (useInstancing:" << useInstancing << " lod:" << lodLevel << ")";
 

@@ -104,8 +104,8 @@ protected:
 	PVoxelGeometryResource        _geometryRes;
 	float                         _lodDist1, _lodDist2, _lodDist3, _lodDist4;
 	
-	std::vector< VoxelMeshNode * >     _meshList;  // List of the model's meshes
-
+	std::vector<VoxelMeshNode*>   _meshList;  // List of the model's meshes
+   std::unordered_map<std::string, SceneNode*> _boneLookup;
 	bool                          _nodeListDirty;  // An animatable node has been attached to model
    float                         _polygon_offset[2];
    bool                          _polygon_offset_used;
