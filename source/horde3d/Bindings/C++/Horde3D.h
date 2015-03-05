@@ -2098,6 +2098,7 @@ DLL H3DNode h3dAddMeshNode( H3DNode parent, const char *name, H3DRes materialRes
                             int batchStart, int batchCount, int vertRStart, int vertREnd );
 DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes );
 
+DLL H3DNode h3dAddVoxelJointNode( H3DNode parent, const char *name, int jointIndex );
 
 /* Group: Joint-specific scene graph functions */
 /* Function: h3dAddJointNode

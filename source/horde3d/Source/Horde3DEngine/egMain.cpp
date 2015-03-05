@@ -1013,6 +1013,16 @@ DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResH
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
+DLLEXP NodeHandle h3dAddVoxelJointNode( NodeHandle parent, const char *name, int jointIndex )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelJointNode", 0 );
+
+	//Modules::log().writeInfo( "Adding Joint node '%s'", safeStr( name ).c_str() );
+	VoxelJointNodeTpl tpl( safeStr( name, 0 ), (unsigned)jointIndex );
+	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelJointNode )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
 
 DLLEXP NodeHandle h3dAddJointNode( NodeHandle parent, const char *name, int jointIndex )
 {

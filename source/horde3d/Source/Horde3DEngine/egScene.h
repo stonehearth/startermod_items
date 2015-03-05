@@ -93,7 +93,8 @@ struct SceneNodeTypes
       VoxelMesh,
       HudElement,
       InstanceNode,
-      ProjectorNode
+      ProjectorNode,
+      VoxelJointNode
 	};
 };
 
