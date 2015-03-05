@@ -62,11 +62,15 @@ private:
    claw::tween::single_tweener   _fadeInTweener;
 };
 
+static claw::tween::single_tweener nop_tweener(0.0, 1.0, 1.0, [](double){}, claw::tween::easing_linear::ease_out);
+
 Channel::Track::Track(TrackInfo const& info, float const& volumeScale) :
    _info(info),
    _volumeScale(volumeScale),
    _fadeOutDuration(-1),
-   _fadeOutProgress(1.0f)
+   _fadeOutProgress(1.0f),
+   _fadeOutTweener(nop_tweener),
+   _fadeInTweener(nop_tweener)
 {
    Play();
 }

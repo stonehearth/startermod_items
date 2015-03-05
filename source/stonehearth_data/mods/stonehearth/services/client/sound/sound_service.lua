@@ -2,6 +2,9 @@ local rng = _radiant.csg.get_default_rng()
 
 local Sound = class()
 
+local MUSIC_PRIORITIES = {
+   COMBAT = 10
+}
 -- music
 
 local IDLE_DAY_AMBIENT = {
@@ -60,9 +63,14 @@ local COMBAT_MUSIC = {
          loop     = true,
       }
    },
-   priority = 10
+   priority = MUSIC_PRIORITIES.COMBAT
 }
 
+local KILL_COMBAT_MUSIC = {
+   fade_in = 500,
+   track = '',
+   priority = MUSIC_PRIORITIES.COMBAT
+}
 
 -- sounds
 local COMBAT_FINISHED_SOUND = {
@@ -191,10 +199,18 @@ function Sound:_on_population_changed(data)
       self._combat_started = true
       self:recommend_game_music('combat', 'music', COMBAT_MUSIC)
    else
-      if self._combat_started then
+      if self._combat_started and self._current_music_info['music'] == COMBAT_MUSIC then
          self._combat_started = false
-         self:recommend_game_music('combat', 'music', nil)
-         self:_play_sound(COMBAT_FINISHED_SOUND)
+
+         -- combat music is going... first fade it out by queueing a track
+         -- with no music file.  when that's done, play the stinger and let
+         -- the next music in the series fade in by recommending on combat
+         -- music at all.
+         self:recommend_game_music('combat', 'music', KILL_COMBAT_MUSIC)
+         radiant.set_realtime_timer(KILL_COMBAT_MUSIC.fade_in, function()
+               self:recommend_game_music('combat', 'music', nil)
+               self:_play_sound(COMBAT_FINISHED_SOUND)
+            end)
       end
    end
 end
