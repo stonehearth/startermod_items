@@ -446,14 +446,6 @@ om::DataStoreRef Client_CreateDataStore(lua_State* L)
    return db;
 }
 
-void Client_DestroyDataStore(lua_State* L, om::DataStoreRef ds)
-{
-   auto datastore = ds.lock();
-   if (datastore) {
-      Client::GetInstance().DestroyDatastore(datastore->GetObjectId());
-   }
-}
-
 bool Client_IsValidStandingRegion(lua_State* L, csg::Region3f const& r)
 {
    return Client::GetInstance().GetOctTree().GetNavGrid().IsStandable(csg::ToInt(r));
@@ -601,7 +593,6 @@ void lua::client::open(lua_State* L)
             def("alloc_region3",                   &Client_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2fBoxed>),
             def("create_datastore",                &Client_CreateDataStore),
-            def("destroy_datastore",               &Client_DestroyDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),

@@ -85,7 +85,7 @@ function radiant.create_controller(...)
    end
 
    local datastore = radiant.create_datastore()
-   local controller = datastore:create_controller('controllers', name)
+   local controller = datastore:create_controller(name)
    if not controller then
       return
    end
@@ -99,6 +99,3 @@ function radiant.create_controller(...)
    return controller
 end
 
-function radiant.destroy_controller(c)
-   radiant.destroy_datastore(c.__saved_variables)
-end

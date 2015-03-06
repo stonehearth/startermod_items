@@ -1,11 +1,47 @@
 #include "radiant.h"
 #include "om/components/data_store.ridl.h"
 #include "resources/res_manager.h"
+#include "lib/lua/register.h"
+#include "simulation/simulation.h"
+#include "client/client.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#define DS_LOG(level)      LOG(om.data_store, level) << "[datastore id:" << GetObjectId() << "] "
+#define DS_LOG(level)      LOG(om.data_store, level) << "[datastore id:" << GetObjectId() << " ctrl:" << *controller_name_ << "] "
+
+extern simulation::Simulation& GetSim(lua_State* L);
+
+static bool IsServer()
+{
+   if (strcmp(log::GetCurrentThreadName(), "server") == 0) {
+      return true;
+   }
+   ASSERT(strcmp(log::GetCurrentThreadName(), "client") == 0);
+   return false;
+}
+
+
+int DataStore::LuaDestructorHook(lua_State* L) {   
+   try {
+      luabind::object self = luabind::object(luabind::from_stack(L, 1));
+      if (luabind::type(self) == LUA_TTABLE) {
+         luabind::object saved_variables = self["__saved_variables"];
+         if (luabind::type(saved_variables) == LUA_TUSERDATA) {
+            boost::optional<DataStoreRef> o = luabind::object_cast_nothrow<DataStoreRef>(saved_variables);
+            if (o) {
+               DataStorePtr ds = o->lock();
+               if (ds) {
+                  ds->Destroy();
+               }
+            }
+         }
+      }
+   } catch (std::exception const& e) {
+      lua::ScriptHost::ReportCStackException(L, e);
+   }
+   return 0;
+}
 
 std::ostream& operator<<(std::ostream& os, DataStore const& o)
 {
@@ -71,6 +107,7 @@ void DataStore::RestoreController(DataStoreRef self)
             if (_controllerObject) {
                _controllerObject["__saved_variables"] = self;
                _controllerObject["_sv"] = GetData();
+               PatchLuaDestructor();
             }
          }
       } catch (std::exception const& e) {
@@ -90,6 +127,37 @@ void DataStore::RestoreController(DataStoreRef self)
                                     _controllerObject["_sv"] = GetData();
                                  }
                               });
+}
+
+// Monkey patch destroy to automatically destroy the datastore
+void DataStore::PatchLuaDestructor()
+{
+   ASSERT(_controllerObject);
+   ASSERT(!_controllerDestructor);
+
+   lua_State* L = _controllerObject.interpreter();
+   luabind::object destroy_fn;
+
+   // Check the controller metatable.
+   luabind::object hook_fn = lua::GetPointerToCFunction(L, &LuaDestructorHook);
+   luabind::object mt = luabind::getmetatable(_controllerObject);
+   if (mt) {
+      destroy_fn = mt["destroy"];
+      if (luabind::type(destroy_fn) == LUA_TFUNCTION) {
+         ASSERT(destroy_fn != hook_fn);
+         _controllerDestructor = destroy_fn;
+      }
+   }
+
+   // Check the controller itself.
+   if (!_controllerDestructor) {
+      destroy_fn = _controllerObject["destroy"];
+      if (luabind::type(destroy_fn) == LUA_TFUNCTION) {
+         ASSERT(destroy_fn != hook_fn);
+         _controllerDestructor = destroy_fn;
+      }
+   }
+   _controllerObject["destroy"] = hook_fn;
 }
 
 void DataStore::RestoreControllerData()
@@ -172,8 +240,7 @@ DataStore::GetControllerUri()
       modname = name.substr(0, offset);
       std::string compName = name.substr(offset + 1, std::string::npos);
 
-      bool isServer = luabind::object_cast<bool>(luabind::globals(L)["radiant"]["is_server"]);
-      if (!isServer) {
+      if (!IsServer()) {
          type = "client_" + type;
       }
       std::string result;
@@ -191,19 +258,36 @@ luabind::object DataStore::GetController() const
    return _controllerObject;
 }
 
-void DataStore::DestroyController()
+void DataStore::CallLuaDestructor()
+{
+   DS_LOG(3) << " calling lua destructor";
+
+   if (_controllerObject && _controllerDestructor) {
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(_controllerDestructor.interpreter());  
+      try {
+         luabind::object destructor(cb_thread, _controllerDestructor);
+         destructor(_controllerObject);
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(cb_thread, e);
+      }
+      _controllerDestructor = luabind::object();
+      _controllerObject = luabind::object();
+   }
+}
+
+void DataStore::Destroy()
 {
    if (_controllerObject) {
-      lua_State* L = lua::ScriptHost::GetCallbackThread(_controllerObject.interpreter());
-      try {
-         luabind::object destroy = _controllerObject["destroy"];
-         if (destroy) {
-            luabind::object cb(L, destroy);
-            cb(_controllerObject);
-         }
-      } catch (std::exception const& e) {
-         lua::ScriptHost::ReportCStackException(L, e);
-      }
+      lua_State* L = _controllerObject.interpreter();
+      ASSERT(L);
+      CallLuaDestructor();
+   }
+
+   dm::ObjectId id = GetObjectId();
+   if (IsServer()) {
+      simulation::Simulation::GetInstance().RemoveDataStoreFromMap(id);
+   } else {
+      client::Client::GetInstance().RemoveDataStoreFromMap(id);
    }
 }
 

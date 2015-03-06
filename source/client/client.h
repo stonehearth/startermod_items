@@ -58,7 +58,7 @@ class Client : public core::Singleton<Client> {
       void DestroyAuthoringEntity(dm::ObjectId id);
 
       om::DataStoreRef AllocateDatastore(int storeId);
-      void DestroyDatastore(dm::ObjectId id);
+      void RemoveDataStoreFromMap(dm::ObjectId id);
       dm::Store& GetStore() { return *store_; }
       dm::Store& GetAuthoringStore() { return *authoringStore_; }
       phys::OctTree& GetOctTree() const { return *octtree_; }

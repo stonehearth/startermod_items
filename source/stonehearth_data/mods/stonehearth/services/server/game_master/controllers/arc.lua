@@ -130,7 +130,7 @@ function Arc:_stop_encounter(name, encounter)
 
    self._sv.running_encounters[name] = nil
    encounter:stop()
-   --radiant.destroy_controller(encounter)
+   --encounter:destroy()
 end
 
 return Arc

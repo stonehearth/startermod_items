@@ -7,7 +7,7 @@ function GenericScenario:initialize(scenario)
 end
 
 function GenericScenario:destroy()
-   radiant.destroy_controller(self._sv._scenario)
+   self._sv._scenario:destroy()
 end
 
 function GenericScenario:restore()

@@ -57,7 +57,10 @@ function Task:_destroy()
    self._task_group:_on_task_destroy(self)
    self._task_group = nil
 
-   radiant.destroy_datastore(self._model)
+   if self._model then
+      self._model:destroy()
+      self._model = nil
+   end
 end
 
 function Task:_fire_completed_cbs()

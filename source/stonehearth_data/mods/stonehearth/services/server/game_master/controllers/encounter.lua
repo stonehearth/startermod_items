@@ -24,7 +24,7 @@ function Encounter:restore()
 end
 
 function Encounter:destroy()
-   --radiant.destroy_controller(self._sv.script)
+   --self._sv.script:destroy()
 end
 
 -- get the name of the edge which leads to this encounter.

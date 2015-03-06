@@ -17,10 +17,6 @@ function radiant.create_datastore(data)
    return datastore
 end
 
-function radiant.destroy_datastore(datastore)
-   _radiant.client.destroy_datastore(datastore)
-end
-
 radiant.lib = {
    Destructor = require 'modules.destructor'
 }

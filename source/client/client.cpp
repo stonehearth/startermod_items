@@ -1109,7 +1109,8 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
       if (obj->GetObjectType() == om::EntityObjectType) {
          std::static_pointer_cast<om::Entity>(obj)->Destroy();
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
-         std::static_pointer_cast<om::DataStore>(obj)->DestroyController();
+         // Don't call destroy.  We don't own it!
+         std::static_pointer_cast<om::DataStore>(obj)->CallLuaDestructor();
       }
    });
    if (initialUpdate_) {
@@ -1503,17 +1504,14 @@ om::DataStoreRef Client::AllocateDatastore(int storeId)
       result = store_->AllocObject<om::DataStore>();   
    } else {
       result = authoringStore_->AllocObject<om::DataStore>();
-      datastoreMap_[result->GetObjectId()] = result;
+      dm::ObjectId id = result->GetObjectId();
+      datastoreMap_[id] = result;
    }
    return result;
 }
 
-void Client::DestroyDatastore(dm::ObjectId id) {
-   auto ds = datastoreMap_.find(id);
-   if (ds != datastoreMap_.end()) {
-      ds->second->DestroyController();
-      datastoreMap_.erase(ds);
-   }
+void Client::RemoveDataStoreFromMap(dm::ObjectId id) {
+   datastoreMap_.erase(id);
 }
 
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
@@ -1745,8 +1743,9 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
          authoredEntities_[id] = std::static_pointer_cast<om::Entity>(obj);
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
+         dm::ObjectId id = ds->GetObjectId();
          datastores.emplace_back(ds);
-         datastoreMap_[ds->GetObjectId()] = ds;
+         datastoreMap_[id] = ds;
       }
    })->PushStoreState();   
 

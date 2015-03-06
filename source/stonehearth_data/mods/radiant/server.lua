@@ -18,10 +18,6 @@ function radiant.create_datastore(data)
    return datastore
 end
 
-function radiant.destroy_datastore(data)
-   _radiant.sim.destroy_datastore(data)
-end
-
 function radiant.exit(code)
    _host:exit(code)
 end

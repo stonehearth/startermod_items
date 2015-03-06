@@ -271,7 +271,9 @@ function CombatService:_set_assaulting(entity, assaulting)
    end
 
    local combat_state = self:get_combat_state(entity)
-   return combat_state:set_assaulting(assaulting)
+   if combat_state then
+      combat_state:set_assaulting(assaulting)
+   end
 end
 
 function CombatService:get_defending(entity)

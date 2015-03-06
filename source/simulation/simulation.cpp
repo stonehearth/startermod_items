@@ -63,7 +63,9 @@ namespace proto = ::radiant::tesseract::protocol;
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
 
-Simulation::Simulation(std::string const& versionStr) :
+DEFINE_SINGLETON(Simulation);
+
+Simulation::Simulation() :
    store_(nullptr),
    waiting_for_client_(true),
    noidle_(false),
@@ -73,8 +75,7 @@ Simulation::Simulation(std::string const& versionStr) :
    debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
    begin_loading_(false),
-   _sequenceNumber(1),
-   _versionStr(versionStr)
+   _sequenceNumber(1)
 {
    OneTimeIninitializtion();
 }
@@ -241,10 +242,6 @@ void Simulation::OneTimeIninitializtion()
    });
 }
 
-std::string const& Simulation::GetVersion() const
-{
-   return _versionStr;
-}
 
 void Simulation::Initialize()
 {
@@ -297,7 +294,8 @@ void Simulation::InitializeDataObjectTraces()
 om::DataStoreRef Simulation::AllocDatastore()
 {
    auto datastore = GetStore().AllocObject<om::DataStore>();
-   datastoreMap_[datastore->GetObjectId()] = datastore;
+   dm::ObjectId id = datastore->GetObjectId();
+   datastoreMap_[id] = datastore;
    return datastore;
 }
 
@@ -582,14 +580,9 @@ om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
    return i != entityMap_.end() ? i->second : nullptr;
 }
 
-void Simulation::DestroyDatastore(dm::ObjectId id)
+void Simulation::RemoveDataStoreFromMap(dm::ObjectId id)
 {
-   auto i = datastoreMap_.find(id);
-   if (i != datastoreMap_.end()) {
-      om::DataStorePtr datastore = i->second;
-      datastore->DestroyController();
-      datastoreMap_.erase(i);
-   }
+   datastoreMap_.erase(id);
 }
 
 void Simulation::DestroyEntity(dm::ObjectId id)
@@ -1136,6 +1129,8 @@ void Simulation::FinishLoadingGame()
    std::vector<om::DataStorePtr> datastores;
    store_->TraceStore("sim")->OnAlloced([&datastores, this](dm::ObjectPtr obj) mutable {
       if (obj->GetObjectType() == om::DataStoreObjectType) {
+
+         dm::ObjectId id = obj->GetObjectId();
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
          datastores.emplace_back(ds);
          datastoreMap_[ds->GetObjectId()] = ds;

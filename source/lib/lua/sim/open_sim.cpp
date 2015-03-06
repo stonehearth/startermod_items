@@ -1,5 +1,6 @@
 #include "../pch.h"
 #include "open.h"
+#include "build_number.h"
 #include "csg/util.h"
 #include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
@@ -28,7 +29,7 @@ std::ostream& operator<<(std::ostream& os, Simulation const&s)
    return (os << "[radiant simulation]");
 }
 
-static Simulation& GetSim(lua_State* L)
+Simulation& GetSim(lua_State* L)
 {
    Simulation* sim = object_cast<Simulation*>(globals(L)["_sim"]);
    if (!sim) {
@@ -39,7 +40,7 @@ static Simulation& GetSim(lua_State* L)
 
 std::string Sim_GetVersion(lua_State* L)
 {
-   return GetSim(L).GetVersion();
+   return PRODUCT_FILE_VERSION_STR;
 }
 
 template <typename T>
@@ -79,14 +80,6 @@ om::DataStoreRef Sim_AllocDataStore(lua_State* L)
    datastore.lock()->SetData(newtable(L));
 
    return datastore;
-}
-
-void Sim_DestroyDatastore(lua_State* L, om::DataStoreRef ds)
-{
-   auto datastore = ds.lock();
-   if (datastore) {
-      GetSim(L).DestroyDatastore(datastore->GetObjectId());
-   }
 }
 
 void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
@@ -349,7 +342,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region3",             &Sim_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",             &Sim_AllocObject<om::Region2fBoxed>),
             def("create_datastore",          &Sim_AllocDataStore),
-            def("destroy_datastore",         &Sim_DestroyDatastore),
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
             def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder", &Sim_CreateDirectPathFinder),

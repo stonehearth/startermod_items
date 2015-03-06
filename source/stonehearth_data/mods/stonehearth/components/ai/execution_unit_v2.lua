@@ -647,7 +647,7 @@ function ExecutionUnitV2:_destroy_internal_state()
 
    self._current_execution_frame = nil
    if self._debug_info then
-      radiant.destroy_datastore(self._debug_info)
+      self._debug_info:destroy()
       self._debug_info = nil
    end
 end

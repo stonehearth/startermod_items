@@ -33,7 +33,7 @@ function ShopService:create_shop(player_id, name, options)
 end
 
 function ShopService:destroy_shop(shop)
-   radiant.destroy_controller(shop)
+   shop:destroy()
 end
 
 ---Returns a table (keyed by uri) of an instance of every item in the world which is stockable.  These 

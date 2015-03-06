@@ -326,6 +326,13 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
       ];
 }
 
+static luabind::object GetPointerToCFunction(lua_State *L, lua_CFunction f)
+{
+   luabind::detail::stack_pop pop(L, 1);
+   lua_pushcfunction(L, f);
+   return luabind::object(luabind::from_stack(L, -1));
+};
+
 END_RADIANT_LUA_NAMESPACE
 
 #endif //  _RADIANT_LUA_REGISTER_H

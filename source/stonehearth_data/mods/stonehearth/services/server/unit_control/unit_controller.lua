@@ -22,7 +22,7 @@ end
 function UnitController:disband_party(id)
    local party = self._sv.parties[id]
    if party then
-      radiant.destroy_controller(party)
+      party:destroy()
       self._sv.parties[id] = nil
       self.__saved_variables:mark_changed()
    end

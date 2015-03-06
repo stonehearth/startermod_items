@@ -52,8 +52,7 @@ function JobComponent:destroy()
 
    --destroy all the controllers
    for uri, controller in pairs(self._sv.job_controllers) do
-      radiant.destroy_controller(controller)
-      controller = nil
+      controller:destroy()
    end
    self._sv.curr_job_controller = nil
 

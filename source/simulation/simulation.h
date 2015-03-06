@@ -21,6 +21,7 @@
 #include "protocols/tesseract.pb.h"
 #include "lib/perfmon/store.h"
 #include "lib/perfmon/timeline.h"
+#include "core/singleton.h"
 #include "protocol.h"
 
 using boost::asio::ip::tcp;
@@ -47,18 +48,16 @@ class PathFinder;
 class FollowPath;
 class Path;
 
-class Simulation
+class Simulation : public core::Singleton<Simulation>
 {
 public:
-   Simulation(std::string const& versionStr);
+   Simulation();
    ~Simulation();
-
-   std::string const& GetVersion() const;
 
    om::DataStoreRef Simulation::AllocDatastore();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
-   void DestroyDatastore(dm::ObjectId id);
+   void RemoveDataStoreFromMap(dm::ObjectId id);
    void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
    /* New object model stuff goes here */
@@ -220,7 +219,6 @@ private:
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
    std::vector<std::function<void()>>  _bottomLoopFns;
-   std::string                         _versionStr;
    int                                 _sequenceNumber;
 };
 

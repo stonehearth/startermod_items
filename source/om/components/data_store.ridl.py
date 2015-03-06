@@ -23,9 +23,13 @@ class DataStore(dm.Record):
    void RestoreControllerData();
    luabind::object CreateController(DataStoreRef self, std::string const& type, std::string const& alias);
    void SetController(luabind::object controller);
-   void DestroyController();
    void OnLoadObject(dm::SerializationType r) override;
    dm::Boxed<lua::DataObject> const& GetDataObjectBox() const;
+
+   static int LuaDestructorHook(lua_State* L);
+   void PatchLuaDestructor();
+   void Destroy();
+   void CallLuaDestructor();
    """
 
    _private = \
@@ -33,6 +37,7 @@ class DataStore(dm.Record):
    void RestoreControllerDataRecursive(luabind::object o, luabind::object& visited);
    std::string GetControllerUri();
    luabind::object _controllerObject;
+   luabind::object _controllerDestructor;
    bool _needsRestoration;
    dm::TracePtr _dataObjTrace;
    """

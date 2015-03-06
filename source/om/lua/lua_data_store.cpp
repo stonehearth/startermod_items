@@ -34,16 +34,6 @@ DataStore_TraceAsync(DataStoreRef data_store, const char* reason)
    return DataStore_Trace(data_store, reason, dm::LUA_ASYNC_TRACES);
 }
 
-static void
-DataStore_Restore(DataStoreRef data_store)
-{
-   auto ds = data_store.lock();
-   if (ds) {
-      ds->RestoreController(ds);
-      ds->RestoreControllerData();
-   }
-}
-
 DataStoreRef
 DataStore_SetData(DataStoreRef data_store, object data)
 {
@@ -99,6 +89,14 @@ DataStore_ModifyData(lua_State* L, DataStoreRef data_store, luabind::object cb)
    }
 }
 
+void
+DataStore_Destroy(DataStoreRef data_store)
+{
+   auto ds = data_store.lock();
+   if (ds) {
+      ds->Destroy();
+   }
+}
 
 DataStoreRef
 DataStore_MarkChanged(DataStoreRef data_store)
@@ -121,31 +119,13 @@ DataStore_SetController(DataStoreRef data_store, luabind::object obj)
 }
 
 luabind::object
-DataStore_CreateController(DataStoreRef data_store, std::string const& type, std::string const& name)
+DataStore_CreateController(DataStoreRef data_store, std::string const& name)
 {
    auto ds = data_store.lock();
    luabind::object controller;
-   if (ds) {
-      controller = ds->CreateController(ds, type, name);
-   }
-   return controller;
-}
 
-void DataStore_DestroyController(DataStoreRef data_store)
-{
-   auto ds = data_store.lock();
    if (ds) {
-      ds->DestroyController();
-   }
-}
-
-luabind::object
-DataStore_GetController(DataStoreRef data_store)
-{
-   luabind::object controller;
-   auto ds = data_store.lock();
-   if (ds) {
-      controller = ds->GetController();
+      controller = ds->CreateController(ds, "controllers", name);
    }
    return controller;
 }
@@ -164,11 +144,9 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("trace_data",     &DataStore_TraceAsync)
-         .def("restore",        &DataStore_Restore)
          .def("set_controller", &DataStore_SetController)
-         .def("get_controller", &DataStore_GetController)
          .def("create_controller", &DataStore_CreateController)
-         .def("destroy_controller", &DataStore_DestroyController)
+         .def("destroy",        &DataStore_Destroy)
          .def("mark_changed",   &DataStore_MarkChanged)
       ,
       lua::RegisterTypePtr<lua::DataObject>("DataObject")
