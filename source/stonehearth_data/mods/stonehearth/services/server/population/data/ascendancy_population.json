@@ -62,7 +62,8 @@
       "Lebam",
       "Mavel",
       "Pounder",
-      "Zedro"
+      "Zedro",
+      "Rayne"
    ],
    "given_names" : {
       "male" : [
@@ -95,7 +96,14 @@
          "Irving",
          "Lee",
          "Locan",
-         "Chopper"
+         "Chopper",
+         "Monty",
+         "Jebediah",
+         "Sips",
+         "Trevlon",
+         "Alex",
+         "Ragnar",
+         "Trevion"
       ],
       "female" : [
          "Dara",
@@ -129,7 +137,17 @@
          "Jess",
          "Marianne", 
          "Trilla",
-         "Olive"
+         "Olive",
+         "Emmy",
+         "Luna",
+         "Poni",
+         "Ella",
+         "Kami",
+         "Alex",
+         "Silene",
+         "Lily",
+         "Amelia",
+         "Kali"
       ]
    }, 
    "town_pieces" : {

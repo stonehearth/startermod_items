@@ -1,0 +1,43 @@
+{
+   "kingdom_name" : "The Undead (Stephanie, heeeeeelp!)",
+   "kingdom_id" : "undead",
+   "male_entities" : [
+      "stonehearth:monsters:undead:skeleton"
+   ],
+   "female_entities" : [
+      "stonehearth:monsters:undead:skeleton_female"
+   ],
+   "surnames" : [
+      "the Dead",
+      "the Decaying",
+      "the Tortured",
+      "Wormskull"
+   ],
+   "given_names" : {
+      "male" : [
+         "Alton",
+         "Edwyne",
+         "Fostan"
+      ],
+      "female" : [
+         "Kate",
+         "Lorna",
+         "Mell",
+         "Norsa"
+      ]
+   }, 
+   "town_pieces" : {
+      "optional_prefix" : [
+         "Ay"
+      ], 
+      "town_name" : [
+         "Pohk"
+      ], 
+      "suffix" : [
+         "yu"
+      ]
+   }, 
+   "task_groups" : {
+      "stonehearth:task_group:restock" : "stonehearth:simple_labor"
+   }
+}
