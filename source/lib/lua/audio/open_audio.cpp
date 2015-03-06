@@ -1,6 +1,7 @@
 #include "../pch.h"
 #include "open.h"
 #include "lib/audio/audio_manager.h"
+#include "lib/audio/track_info.h"
 #include "lib/json/node.h"
 
 #include "resources/res_manager.h"
@@ -11,45 +12,35 @@ using namespace ::radiant;
 using namespace ::radiant::audio;
 using namespace luabind;
 
-void set_next_music_volume(int volume, std::string const& channel) {
-   audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.SetNextMusicVolume(volume, channel);
+static void Audio_QueueMusic(const char* channel, audio::TrackInfo const& info)
+{
+   audio::AudioManager::GetInstance().QueueMusic(channel, info);
 }
 
-void set_next_music_fade(int fade, std::string const& channel) {
-   audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.SetNextMusicFade(fade, channel);
-}
-
-void set_next_music_loop(bool loop, std::string const& channel) {
-   audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.SetNextMusicLoop(loop, channel);
-}
-
-void play_music(std::string const& track, std::string const& channel) {
-   audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.PlayMusic(track, channel);
-}
-
-void play_sound(std::string const& uri, int volume) {
-   audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.PlaySound(uri, volume);
+static void Audio_PlayMusic(const char* channel, audio::TrackInfo const& info)
+{
+   audio::AudioManager::GetInstance().PlayMusic(channel, info);
 }
 
 
-//DEFINE_INVALID_JSON_CONVERSION(AudioManager)
+IMPLEMENT_TRIVIAL_TOSTRING(radiant::audio::TrackInfo)
+DEFINE_INVALID_JSON_CONVERSION(radiant::audio::TrackInfo)
 
 void lua::audio::open(lua_State *L)
 {
    module(L) [
       namespace_("_radiant") [
          namespace_("audio") [
-            def("set_next_music_volume", &set_next_music_volume),
-            def("set_next_music_fade", &set_next_music_fade),
-            def("set_next_music_loop", &set_next_music_loop),
-            def("play_music", &play_music),
-            def("play_sound", &play_sound)
-         ]
+            def("play_music",                      &Audio_PlayMusic),
+            def("queue_music",                     &Audio_QueueMusic),
+
+            lua::RegisterType_NoTypeInfo<::radiant::audio::TrackInfo>("TrackInfo")
+               .def(constructor<>())
+               .def_readwrite("volume",            &radiant::audio::TrackInfo::volume)
+               .def_readwrite("loop",              &radiant::audio::TrackInfo::loop)
+               .def_readwrite("fade_in_duration",  &radiant::audio::TrackInfo::fadeInDuration)
+               .def_readwrite("track",             &radiant::audio::TrackInfo::track)
+        ]
       ]
    ];
 }

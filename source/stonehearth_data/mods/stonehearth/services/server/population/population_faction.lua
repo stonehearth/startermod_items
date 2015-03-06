@@ -6,6 +6,7 @@ local personality_service = stonehearth.personality
 function PopulationFaction:__init(player_id, kingdom, saved_variables)
    self.__saved_variables = saved_variables
    self._sv = self.__saved_variables:get_data()
+   self._log = radiant.log.create_logger('population')
    if player_id then
       self._sv.kingdom = kingdom
       self._sv.player_id = player_id
@@ -13,6 +14,7 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
       self._sv.bulletins = {}
       self._sv._global_vision = {}
       self._sv.is_npc = true
+      self._sv.threat_level = 0
    end
 
    self._sensor_traces = {}
@@ -151,7 +153,7 @@ function PopulationFaction:_on_seen_by(spotter_id, visitor_id, visitor)
    local entry = self._sv._global_vision[visitor_id]
    if not entry then
       entry = {
-         seen_by = { spotter_id },
+         seen_by = { [spotter_id] = true },
          threat_level = threat_level,
          entity = visitor,
       }
@@ -171,8 +173,10 @@ function PopulationFaction:_on_unseen_by(spotter_id, visitor_id)
    local entry = self._sv._global_vision[visitor_id]
    if entry then
       entry.seen_by[spotter_id] = nil
+      self._log:debug("visitor %d still seen by %d citizens", visitor_id, radiant.size(entry.seen_by))
       if radiant.empty(entry.seen_by) then
-         self._sv._global_vision[seen_id] = nil
+         self._sv._global_vision[visitor_id] = nil
+         self:_update_threat_level()
       end
    end
 end
@@ -209,9 +213,7 @@ function PopulationFaction:_on_entity_destroyed(evt)
    end
 end
 
-function PopulationFaction:_on_citizen_destroyed(evt)
-   local entity_id = evt.entity_id
-   
+function PopulationFaction:_on_citizen_destroyed(entity_id)
    self._sv.citizens[entity_id] = nil
    stonehearth.score:update_aggregate_score(self._sv.player_id)
 

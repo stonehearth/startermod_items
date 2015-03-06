@@ -26,7 +26,6 @@ end
 
 function PopulationService:get_population(player_id)
    radiant.check.is_string(player_id)
-   assert(self._sv.populations[player_id])
    return self._sv.populations[player_id]
 end
 
@@ -62,7 +61,11 @@ function PopulationService:get_friendly_populations(player_id)
 end
 
 function PopulationService:get_population_command(session, response)
-   return { uri = self:get_population(session.player_id) }
+   local pop = self:get_population(session.player_id)
+   if not pop then
+      response:reject('no population for yet.')
+   end
+   return { uri = pop }
 end
 
 return PopulationService

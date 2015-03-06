@@ -122,7 +122,13 @@ void SensorTileTracker::UpdateFlags(int flags)
  */
 void SensorTileTracker::CheckEntity(NavGridTile::ChangeNotifications reason, dm::ObjectId entityId, om::EntityPtr entity)
 {
-   ST_LOG(8) << "got change notification (entityId:" << entityId << " reason:" << FlagsToString(reason) << " flags:" << FlagsToString(_flags) << ")";
+   ST_LOG(8) << "got change notification "
+             << "(entity:" << (entity ? BUILD_STRING(*entity) : std::string("invalid"))
+             << " id: " << entityId 
+             << " reason:" << FlagsToString(reason)
+             << " flags:" << FlagsToString(_flags)
+             << ")";
+
    if ((reason & (NavGridTile::ENTITY_ADDED | NavGridTile::ENTITY_MOVED)) != 0 &&
        (_flags & NavGridTile::ENTITY_MOVED) == 0) {
           ASSERT(entity);

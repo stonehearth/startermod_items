@@ -30,7 +30,4 @@ class Sensor(dm.Record):
    }
 
    dm::Map<dm::ObjectId, std::weak_ptr<Entity>>& GetContainer();
-
-   void UpdateIntersection(std::unordered_map<dm::ObjectId, om::EntityRef> const&);
-
    """

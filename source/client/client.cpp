@@ -397,51 +397,6 @@ void Client::OneTimeIninitializtion()
       return result;
    });
 
-   core_reactor_->AddRoute("radiant:play_music", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
-      try {         
-         json::Node node(f.args);
-         json::Node params = node.get_node(0);
-
-         audio::AudioManager &a = audio::AudioManager::GetInstance();
-         
-         //Get track, channel, and other optional data out of the node
-         //TODO: get the defaults from audio.cpp instead of 
-         std::string uri = "";
-         json::Node n(params.get_node("track"));
-         if (n.type() == JSON_STRING) {
-            uri = n.get_internal_node().as_string();
-         } else if (n.type() == JSON_NODE) {
-            JSONNode items = n.get("items", JSONNode());
-            csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
-            uint c = rng.GetInt<uint>(0, items.size() - 1);
-            ASSERT(c < items.size());
-            uri = items.at(c).as_string();
-         }
-         
-         std::string channel = params.get<std::string>("channel");
-
-         bool loop = params.get<bool>("loop", audio::DEF_MUSIC_LOOP);
-         a.SetNextMusicLoop(loop, channel);
-
-         int fade = params.get<int>("fade", audio::DEF_MUSIC_FADE);
-         a.SetNextMusicFade(fade, channel);
-
-         int vol = params.get<int>("volume", audio::DEF_MUSIC_VOL);
-         a.SetNextMusicVolume(vol, channel);
-
-         bool crossfade = params.get<bool>("crossfade", audio::DEF_MUSIC_CROSSFADE);
-         a.SetNextMusicCrossfade(crossfade, channel);
-         
-         a.PlayMusic(uri, channel);
-
-         result->ResolveWithMsg("success");
-      } catch (std::exception const& e) {
-         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
-      }
-      return result;
-   });
-
    core_reactor_->AddRoute("radiant:exit", [this](rpc::Function const& f) {
 	  TerminateProcess(GetCurrentProcess(), 0);
       return nullptr;

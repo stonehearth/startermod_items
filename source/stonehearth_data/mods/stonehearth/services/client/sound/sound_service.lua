@@ -2,15 +2,22 @@ local rng = _radiant.csg.get_default_rng()
 
 local Sound = class()
 
+local MUSIC_PRIORITIES = {
+   COMBAT = 10
+}
+-- music
+
 local IDLE_DAY_AMBIENT = {
    track    = 'stonehearth:ambient:summer_day',
-   fade     = 4000,
+   loop     = true,
+   fade_in  = 4000,
    volume   = 60,
 }
 
 local IDLE_NIGHT_AMBIENT = {
    track    = 'stonehearth:ambient:summer_night',
-   fade     = 4000,
+   loop     = true,
+   fade_in  = 4000,
    volume   = 20,
 }
 
@@ -20,7 +27,8 @@ local IDLE_DAY_MUSIC = {
       'stonehearth:music:levelmusic_spring_day_02',
       'stonehearth:music:levelmusic_spring_day_03',
    },
-   fade     = 4000,
+   loop     = true,
+   fade_in  = 4000,
    volume   = 35,
 }
 
@@ -29,11 +37,65 @@ local IDLE_NIGHT_MUSIC = {
       'stonehearth:music:levelmusic_spring_night_01',
       'stonehearth:music:levelmusic_spring_night_02',
    },
-   fade     = 4000,
+   loop     = true,
+   fade_in  = 4000,
    volume   = 35,
 }
+
 local TITLE_MUSIC = {
    track    = 'stonehearth:music:title_screen',
+}
+
+local COMBAT_MUSIC = {
+   playlist = {
+      {
+         fade_in  = 500,
+         track    = 'stonehearth:music:combat_start'
+      },
+      {
+         track    = {
+            'stonehearth:music:combat_theme_a',
+            'stonehearth:music:combat_theme_b',
+            'stonehearth:music:combat_theme_c',
+         },
+         volume   = 60,
+         fade_in  = 100,
+         loop     = true,
+      }
+   },
+   priority = MUSIC_PRIORITIES.COMBAT
+}
+
+local KILL_COMBAT_MUSIC = {
+   fade_in = 500,
+   track = '',
+   priority = MUSIC_PRIORITIES.COMBAT
+}
+
+-- sounds
+local COMBAT_FINISHED_SOUND = {
+   track = 'stonehearth:sounds:combat_finished',
+   volume = 100,
+}
+
+local ROOSTER_SOUND = {
+   track = 'stonehearth:sounds:rooster_call',
+   volume = 50,
+}
+
+local DAYBREAK_SOUND = {
+   track = 'stonehearth:music:daybreak_stinger_01',
+   volume = 50,
+}
+
+local OWL_SOUND = {
+   track = 'stonehearth:sounds:owl_call',
+   volume = 50,
+}
+
+local NIGHTFALL_SOUND = {
+   track = 'stonehearth:music:nightfall_stinger_01',
+   volume = 50,
 }
 
 local ALL_SCREENS = {
@@ -52,7 +114,7 @@ function Sound:initialize()
    self._log = radiant.log.create_logger('sound')
    self._calendar_constants = radiant.resources.load_json('/stonehearth/data/calendar/calendar_constants.json')
 
-   self._current_music = {}
+   self._current_music_info = {}
    self._current_ui_screen = _radiant.client.get_current_ui_screen()
 
    self._screens = {}
@@ -66,22 +128,22 @@ function Sound:initialize()
 
    self:recommend_music('default', 'title_screen', 'music', TITLE_MUSIC)
 
-   radiant.events.listen(radiant, 'radiant:client:ui_screen_changed', self, self._on_ui_screen_changed)
-   self:_on_ui_screen_changed()
+   self:_monitor_time()
+   self:_install_listeners()
+end
 
-   --[[
-   -- currently racy...
-   _radiant.call_obj('stonehearth.population', 'get_population_command')
-               :done(function(o)
-                     local pop = o.uri
-                     self._pop_trace = pop:trace('music service')
-                                             :on_changed(function()
-                                                   self:_on_population_changed(pop:get_data())
-                                                end)
-                                             :push_object_state()
-                  end)
-   ]]
+function Sound:destroy()
+   if self._get_pop_timer then
+      self._get_pop_timer:destroy()
+      self._get_pop_timer = nil
+   end
+   if self._pop_trace then
+      self._pop_trace:destroy()
+      self._pop_trace = nil
+   end
+end
 
+function Sound:_monitor_time()
    _radiant.call('stonehearth:get_clock_object')
                :done(function (o)
                      local clock = o.clock_object
@@ -91,20 +153,66 @@ function Sound:initialize()
                                                    end)
                                                 :push_object_state()
                   end)
+end
 
+function Sound:_install_listeners()
    self._render_promise = _radiant.client.trace_render_frame()
                               :on_frame_start('change music', function(now, interpolate)
                                     self:_change_music(now, interpolate)
                                  end)
 
+   radiant.events.listen(radiant, 'radiant:client:ui_screen_changed', self, self._on_ui_screen_changed)
+   self:_on_ui_screen_changed()
 end
 
 function Sound:_on_ui_screen_changed()
    self._current_ui_screen = _radiant.client.get_current_ui_screen()
+   if not self._get_pop_timer and self._current_ui_screen == 'game_screen' then
+      self._get_pop_timer = radiant.set_realtime_interval(1000, function()
+            self:_get_population()
+         end)
+   end
+end
+
+
+function Sound:_get_population()
+   _radiant.call_obj('stonehearth.population', 'get_population_command')
+               :done(function(o)
+                     if self._get_pop_timer then
+                        self._get_pop_timer:destroy()
+                        self._get_pop_timer = nil
+                     end
+
+                     local pop = o.uri
+                     self._pop_trace = pop:trace('music service')
+                                             :on_changed(function()
+                                                   self:_on_population_changed(pop:get_data())
+                                                end)
+                                             :push_object_state()
+                  end)
 end
 
 function Sound:_on_population_changed(data)
-   self._threat_level = data.threat_level
+   self._log:info('threat level is now %.2f', data.threat_level)
+
+   if data.threat_level > 0 then
+      self._combat_started = true
+      self:recommend_game_music('combat', 'music', COMBAT_MUSIC)
+   else
+      if self._combat_started and self._current_music_info['music'] == COMBAT_MUSIC then
+         self._combat_started = false
+
+         -- combat music is going... first fade it out by queueing a track
+         -- with no music file.  when that's done, play the stinger and let
+         -- the next music in the series fade in by recommending on combat
+         -- music at all.
+         self:recommend_game_music('combat', 'music', KILL_COMBAT_MUSIC)
+         radiant.set_realtime_timer(KILL_COMBAT_MUSIC.fade_in, function()
+               self:recommend_game_music('combat', 'music', nil)
+               self:_play_sound(COMBAT_FINISHED_SOUND)
+            end)
+      end
+   end
 end
 
 function Sound:_on_time_changed(date)
@@ -119,13 +227,13 @@ function Sound:_on_time_changed(date)
    -- sounds
    if date.hour == event_times.sunrise and not self._sunrise_sound_played then
       self._sunrise_sound_played = true
-      self:_play_sound('stonehearth:sounds:rooster_call')
-      self:_play_sound('stonehearth:music:daybreak_stinger_01')
+      self:_play_sound(ROOSTER_SOUND)
+      self:_play_sound(DAYBREAK_SOUND)
    end
    if date.hour == event_times.sunset and not self._sunset_sound_played then
       self._sunset_sound_played = true
-      self:_play_sound('stonehearth:sounds:owl_call')
-      self:_play_sound('stonehearth:music:nightfall_stinger_01')
+      self:_play_sound(OWL_SOUND)
+      self:_play_sound(NIGHTFALL_SOUND)
    end
 
    -- music
@@ -150,7 +258,7 @@ function Sound:recommend_music(requestor, screen_name, channel_name, info)
 
    local screen = self._screens[screen_name]
    local channels = screen[channel_name]
-   channels[channel_name] = info
+   channels[requestor] = info
 end
 
 function Sound:_change_music(now)
@@ -160,55 +268,70 @@ function Sound:_change_music(now)
    assert(channels)
    
    for channel_name, _ in pairs(ALL_CHANNELS) do
-      local requestor, info = self:_choose_best_track(channels[channel_name])
+      self._log:debug('choosing best track for %s', channel_name)
+      local info = self:_choose_best_track(channels[channel_name])
       self:_update_music_channel(channel_name, info)
    end
 end
 
-function Sound:_play_sound(track)
-   _radiant.call('radiant:play_sound', {
-         track = track
-      });
+function Sound:_play_sound(sound)
+   _radiant.call('radiant:play_sound', sound);
 end
 
-function Sound:_choose_best_track(channels)
-   -- could be betta...
-   return next(channels)
+function Sound:_choose_best_track(tracks)
+   local best_priority, best_track
+
+   for requestor, info in pairs(tracks) do
+      local priority = info.priority or 0
+      self._log:debug('comparing %s priority %d to current %s.', requestor, priority, tostring(best_priority))
+      if not best_priority or priority > best_priority then
+         self._log:debug('better!')
+         best_priority, best_track = priority, info
+      end
+   end
+   return best_track
 end
 
 function Sound:_update_music_channel(channel_name, info)
-   local current_track = self._current_music[channel_name]
-   local new_track = self:_get_track_from_track_info(current_track, info)
+   local current_info = self._current_music_info[channel_name]
 
-   if current_track ~= new_track then
-      self._current_music[channel_name] = new_track
+   if current_info ~= info then
+      self._current_music_info[channel_name] = info
 
-      local params = radiant.shallow_copy(info or {})
-      params.track   = new_track
-      params.channel = channel_name
-
-      _radiant.call('radiant:play_music', params);
+      if info.playlist then
+         for i, info in ipairs(info.playlist) do
+            local trackinfo = self:_get_trackinfo(info)
+            if i == 1 then
+               _radiant.audio.play_music(channel_name, trackinfo);
+            else
+               _radiant.audio.queue_music(channel_name, trackinfo);
+            end
+         end
+      else
+         local trackinfo = self:_get_trackinfo(info)
+         _radiant.audio.play_music(channel_name, trackinfo);
+      end
    end
 end
 
-function Sound:_get_track_from_track_info(current_track, info)
-   if not info then
-      return ''
+function Sound:_get_trackinfo(info)
+   local trackinfo = _radiant.audio.TrackInfo()
+   trackinfo.loop = info.loop and true or false
+   trackinfo.volume = info.volume or 100
+   trackinfo.fade_in_duration = info.fade_in or 0
+   trackinfo.track = self:_choose_random_track(info.track)
+   return trackinfo
+end
+
+function Sound:_choose_random_track(tracks)
+   if type(tracks) == 'string' then
+      return tracks
    end
 
-   if type(info.track) == 'string' then
-      return info.track
+   if type(tracks) == 'table' then
+      return tracks[rng:get_int(1, #tracks)]
    end
 
-   if type(info.track) == 'table' then
-      for _, track in pairs(info.track) do
-         if current_track == track then
-            return track
-         end
-      end
-      return info.track[rng:get_int(1, #info.track)]
-   end
-   
    return ''
 end
 

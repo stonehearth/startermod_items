@@ -22,20 +22,14 @@ public:
    void PlaySound(std::string const& uri, int vol);
    std::shared_ptr<sf::Sound> CreateSound(std::string const& uri);
 
-   //These set the vars from whcih the next call to PlayMusic will draw its parameters
-   void SetNextMusicVolume(int volume, std::string const& channel);
-   void SetNextMusicFade(int fade, std::string const& channel);
-   void SetNextMusicLoop(bool loop, std::string const& channel);
-   void SetNextMusicCrossfade(bool crossfade, std::string const& channel);
-
    //Get and set the player volumes
    void SetPlayerVolume(float bgmVolume, float efxVolume);
    float GetPlayerBgmVolume();
    float GetPlayerEfxVolume();
 
-   void PlayMusic(std::string const& track, std::string const& channel);
+   void PlayMusic(std::string const& channel, TrackInfo const& trackInfo);
+   void QueueMusic(std::string const& channel, TrackInfo const& trackInfo);
    void UpdateAudio();
-
 
 private:
    std::shared_ptr<sf::Sound> CreateSoundInternal(std::string const& uri);
@@ -45,6 +39,7 @@ private:
    std::vector<std::shared_ptr<sf::Sound>> sounds_;
    std::shared_ptr<sf::Sound>              empty_sound_;
    int num_sounds_;
+   int _lastUpdateTime;
    bool useOldFalloff_;
 
    float player_efx_volume_;
@@ -52,10 +47,9 @@ private:
 
    float master_efx_volume_;
 
-   //TODO: if we ever have more than 2, use a vector of channels
-   Channel  bgm_channel_;
-   Channel  ambient_channel_;
-   
+   std::unordered_map<std::string, Channel*> _channels;
+   Channel _music;
+   Channel _ambient;
 };
 
 END_RADIANT_AUDIO_NAMESPACE
