@@ -34,7 +34,9 @@ function Task:__init(task_group, activity)
    self._max_workers = INFINITE
    self._complete_count = 0
    self._currently_feeding = false
-   self._notify_completed_cbs = {}
+   self._notify_completed_cbs = {} --called when task is completed
+   --TODO: add a set of callbacks for failure state
+   self._notify_destroyed_cbs = {} --called when task is destroyed (which happens on success OR failure)
    self._workers_pending_unfeed = {}
 end
 
@@ -53,6 +55,9 @@ function Task:_destroy()
    self:_stop_feeding()
    self:_destroy_entity_effects()
 
+   --Fire all the destroyed callbacks
+   self:_fire_cbs(DESTROYED, self._notify_destroyed_cbs)
+
    self._log:detail('notifying task group of destruction')
    self._task_group:_on_task_destroy(self)
    self._task_group = nil
@@ -60,20 +65,28 @@ function Task:_destroy()
    radiant.destroy_datastore(self._model)
 end
 
-function Task:_fire_completed_cbs()
-   assert(self._state == COMPLETED)
-   for _, cb in ipairs(self._notify_completed_cbs) do
+--Fire either the notify_completed or notify_destroyed callbacks
+--depending on target state passed in an the callback array passed in
+function Task:_fire_cbs(target_state, callbacks)
+   assert(self._state == target_state)
+   for _, cb in ipairs(callbacks) do
       cb()
    end
 end
-
 
 function Task:is_completed()
    return self._state == COMPLETED or self._state == DESTROYED
 end
 
+--Fired when the task completes successfully
 function Task:notify_completed(cb)
    table.insert(self._notify_completed_cbs, cb)
+   return self
+end
+
+--Fired when the task is cleaned up, whether the task failed or succeeded
+function Task:notify_destroyed(cb)
+   table.insert(self._notify_destroyed_cbs, cb)
    return self
 end
 
@@ -590,7 +603,7 @@ function Task:__action_stopped(action, worker)
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
          self:_set_state(COMPLETED)
          self:_destroy_entity_effects()
-         self:_fire_completed_cbs()
+         self:_fire_cbs(COMPLETED, self._notify_completed_cbs)
          self._log:debug('destroying self after completion!')
          self:_destroy()
       end
