@@ -12,8 +12,7 @@ using namespace ::radiant::simulation;
 
 #define DPF_LOG(level)   LOG(simulation.pathfinder.direct, level)
 
-DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef) :
-   sim_(sim),
+DirectPathFinder::DirectPathFinder(om::EntityRef entityRef) :
    entityRef_(entityRef),
    destinationRef_(),
    startLocation_(csg::Point3f::zero),
@@ -98,7 +97,8 @@ bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) cons
       }
 
       // Find the point closest to the start in the destination entity's adjacent region. Assign that point to end.
-      bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, sourceEntity, destinationEntity, end);
+      Simulation& sim = Simulation::GetInstance();
+      bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(start, sourceEntity, destinationEntity, end);
 
       if (haveEndPoint) {
          return true;
@@ -158,7 +158,8 @@ PathPtr DirectPathFinder::GetPath()
    // Walk the path from start to end and see how far we get.
    // GetPathPoints should always return at least the starting point, but check if empty in case this ever changes.
    std::vector<csg::Point3f> points;
-   bool reachedEndPoint = MovementHelper(logLevel_).GetPathPoints(sim_, entity, reversiblePath_, start, end, points);
+   Simulation& sim = Simulation::GetInstance();
+   bool reachedEndPoint = MovementHelper(logLevel_).GetPathPoints(entity, reversiblePath_, start, end, points);
 
    // If we didn't reach the endpoint and we don't allow incomplete paths, bail.
    if (!reachedEndPoint && !allowIncompletePath_) {

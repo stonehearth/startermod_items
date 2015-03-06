@@ -35,9 +35,9 @@ std::vector<std::weak_ptr<AStarPathFinder>> AStarPathFinder::all_pathfinders_;
 #  define VERIFY_HEAPINESS()
 #endif
 
-AStarPathFinderPtr AStarPathFinder::Create(Simulation& sim, std::string const& name, om::EntityPtr entity)
+AStarPathFinderPtr AStarPathFinder::Create(std::string const& name, om::EntityPtr entity)
 {
-   AStarPathFinderPtr pathfinder(new AStarPathFinder(sim, name, entity));
+   AStarPathFinderPtr pathfinder(new AStarPathFinder(name, entity));
    all_pathfinders_.push_back(pathfinder);
    return pathfinder;
 }
@@ -69,8 +69,8 @@ void AStarPathFinder::ComputeCounters(std::function<void(const char*, double, co
    addCounter("pathfinders:a_star:closed_node_count", closed_count, "counter");
 }
 
-AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::EntityPtr entity) :
-   PathFinder(sim, name),
+AStarPathFinder::AStarPathFinder(std::string const& name, om::EntityPtr entity) :
+   PathFinder(name),
    rebuildHeap_(false),
    restart_search_(true),
    search_exhausted_(false),
@@ -241,7 +241,7 @@ AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
    auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
       OnPathFinderDstChanged(dst, reason);
    };
-   PathFinderDst* dst = new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb);
+   PathFinderDst* dst = new PathFinderDst(*this, entity_, dstEntity, GetName(), changed_cb);
    destinations_[id] = std::unique_ptr<PathFinderDst>(dst);
    OnPathFinderDstChanged(*dst, "added destination");
    if (LOG_IS_ENABLED(simulation.pathfinder.astar, 9)) {
@@ -310,7 +310,7 @@ void AStarPathFinder::Restart()
    watching_tiles_.clear();
    EnableWorldWatcher(true);
 
-   max_cost_to_destination_ = GetSim().GetOctTree().GetDistanceCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
+   max_cost_to_destination_ = Simulation::GetInstance().GetOctTree().GetDistanceCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
 
    source_->Start(open_, *_nodePool);
    for (auto const& entry : destinations_) {
@@ -461,8 +461,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
       // Check each neighbor...
       {   
-         const auto& o = GetSim().GetOctTree();
-         MEASURE_TASK_TIME(GetSim().GetOverviewPerfTimeline(), "pathfinder navgrid");
+         const auto& o = Simulation::GetInstance().GetOctTree();
+         MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "pathfinder navgrid");
          _currentMaxMovementModifier = maxMod;
          o.ComputeNeighborMovementCost(entity_.lock(), _currentSearchNode->pt, _addFn);
       }
@@ -474,7 +474,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
 {
-   MEASURE_TASK_TIME(GetSim().GetOverviewPerfTimeline(), "pathfinder");
+   MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "pathfinder");
 
    if (closed_.find(next) != closed_.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << _currentSearchNode->pt << " to " << next << " cost:" << movementCost;
@@ -857,7 +857,7 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
 {
    if (enabled) {
       world_changed_ = false;
-      navgrid_guard_ = GetSim().GetOctTree().GetNavGrid().NotifyTileDirty([this](csg::Point3 const& pt) {
+      navgrid_guard_ = Simulation::GetInstance().GetOctTree().GetNavGrid().NotifyTileDirty([this](csg::Point3 const& pt) {
          OnTileDirty(pt);
       });
    } else {
@@ -871,7 +871,7 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
 // direct pathfinder or not.
 float AStarPathFinder::GetMaxMovementModifier(csg::Point3 const& wgl) const
 {
-   phys::OctTree& octTree = GetSim().GetOctTree();
+   phys::OctTree& octTree = Simulation::GetInstance().GetOctTree();
    phys::NavGrid& ng = octTree.GetNavGrid();
    csg::Point3 index;
    csg::Point3 offset;
@@ -906,7 +906,7 @@ bool AStarPathFinder::FindDirectPathToDestination(PathFinderDst*& dst)
    csg::Region3f const& dstRegion = dst->GetWorldSpaceAdjacentRegion();
    csg::Point3f to = dstRegion.GetClosestPoint(from);
 
-   if (!mh.GetPathPoints(GetSim(), entity, false, from, to, _directPathCandiate)) {
+   if (!mh.GetPathPoints(entity, false, from, to, _directPathCandiate)) {
       return false;
    }
 

@@ -19,7 +19,7 @@ class PathFinderDst {
 public:
    typedef std::function<void(PathFinderDst const&, const char *reason)> ChangedCb;
 
-   PathFinderDst(Simulation& sim, AStarPathFinder&, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
+   PathFinderDst(AStarPathFinder&, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();
 
    om::EntityPtr GetEntity() const;
@@ -38,7 +38,6 @@ private:
    float EstimateMovementCost(csg::Point3f const& start, csg::Point3f const& end) const;
 
 public:
-   Simulation&                sim_;
    AStarPathFinder&           pathfinder_;
    std::string                name_;
    dm::ObjectId               id_;

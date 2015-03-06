@@ -10,17 +10,14 @@ typedef unsigned int TaskId;
 
 class Task {
    public:
-      Task(Simulation& sim, std::string const& name);
+      Task(std::string const& name);
 
       std::string const& GetName() const;
       virtual bool Work(const platform::timer &timer) = 0;
 
-      Simulation& GetSim() const { return sim_; }
-
    private:
       static TaskId  nextTaskId_;
       TaskId         id_;
-      Simulation&    sim_;
       std::string    name_;
 };
 

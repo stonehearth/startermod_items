@@ -12,7 +12,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class FreeMotion {
 public:
-   FreeMotion(simulation::Simulation& sim, NavGrid &ng);
+   FreeMotion(NavGrid &ng);
 
    void ProcessDirtyTiles(platform::timer& t);
 
@@ -24,7 +24,6 @@ private:
    NavGrid&                   _ng;
    std::vector<csg::Point3>   _dirtyTiles;
    core::Guard                _guard;
-   simulation::Simulation&    _sim;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

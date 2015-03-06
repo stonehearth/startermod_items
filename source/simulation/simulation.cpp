@@ -313,7 +313,7 @@ void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
-   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(*this, octtree_->GetNavGrid()));
+   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
 
    scriptHost_.reset(new lua::ScriptHost("server", [this](int storeId) {
       return AllocDatastore();
@@ -648,7 +648,7 @@ void Simulation::AddJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
       dm::ObjectId id = entity->GetObjectId();
       auto i = entity_jobs_schedulers_.find(id);
       if (i == entity_jobs_schedulers_.end()) {
-         EntityJobSchedulerPtr ejs = std::make_shared<EntityJobScheduler>(*this, entity);
+         EntityJobSchedulerPtr ejs = std::make_shared<EntityJobScheduler>(entity);
          i = entity_jobs_schedulers_.insert(make_pair(id, ejs)).first;
          jobs_.push_back(ejs);
          SIM_LOG_GAMELOOP(5) << "created entity job scheduler " << ejs->GetId() << " for " << (*entity);
@@ -1164,7 +1164,7 @@ void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
                om::MobPtr mob = m.lock();
                if (mob) {
                   LOG(simulation.free_motion, 7) << "creating free motion task for entity " << id << " (no tasks exists yet)";
-                  entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob);
+                  entry.task = std::make_shared<ApplyFreeMotionTask>(mob);
                   tasks_.push_back(entry.task);
                }
             }

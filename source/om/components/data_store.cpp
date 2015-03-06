@@ -10,8 +10,6 @@ using namespace ::radiant::om;
 
 #define DS_LOG(level)      LOG(om.data_store, level) << "[datastore id:" << GetObjectId() << " ctrl:" << *controller_name_ << "] "
 
-extern simulation::Simulation& GetSim(lua_State* L);
-
 static bool IsServer()
 {
    if (strcmp(log::GetCurrentThreadName(), "server") == 0) {

@@ -10,8 +10,7 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-FreeMotion::FreeMotion(simulation::Simulation& sim, NavGrid &ng) :
-   _sim(sim),
+FreeMotion::FreeMotion(NavGrid &ng) :
    _ng(ng)
 {
    _guard = _ng.NotifyTileDirty([this](csg::Point3 const& index) {
@@ -100,7 +99,7 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
                }
                break;
             case om::Mob::CLUTTER:
-               _sim.DestroyEntity(entity->GetObjectId());
+               simulation::Simulation::GetInstance().DestroyEntity(entity->GetObjectId());
                break;
             default:
                NOT_REACHED();

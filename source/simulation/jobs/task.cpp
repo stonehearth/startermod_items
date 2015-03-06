@@ -7,8 +7,7 @@ using namespace ::radiant::simulation;
 
 TaskId Task::nextTaskId_ = 1;
 
-Task::Task(Simulation& sim, std::string const& name)  :
-   sim_(sim),
+Task::Task(std::string const& name)  :
    id_(nextTaskId_++)
 {
    std::ostringstream s;

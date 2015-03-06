@@ -29,12 +29,12 @@ class Simulation;
 class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
                       public PathFinder {
    public:
-      static std::shared_ptr<BfsPathFinder> Create(Simulation& sim, om::EntityPtr entity, std::string const& name, int range);
+      static std::shared_ptr<BfsPathFinder> Create(om::EntityPtr entity, std::string const& name, int range);
       static void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter);
       virtual ~BfsPathFinder();
 
    private:
-      BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string const& name, int range);
+      BfsPathFinder(om::EntityPtr entity, std::string const& name, int range);
 
    public:
       typedef std::function<bool(PathPtr)> SolvedCb;
