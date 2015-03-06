@@ -21,7 +21,6 @@ App.StonehearthUnitFrameView = App.View.extend({
             "*" : {}
          }
       },
-      "stonehearth:backpack" : {},
       "unit_info": {}
    },
 
@@ -60,13 +59,6 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.set('context.buffs', vals);
     }.observes('context.stonehearth:buffs'),
 
-   backpackFull: function() {
-      var backpack = this.get('context.stonehearth:backpack')
-      var full = backpack && backpack.num_items == backpack.capacity
-      this.set('context.backpackFull', full)
-
-   }.observes('context.stonehearth:backpack.num_items'),
-
    didInsertElement: function() {
       var self = this;
 
@@ -86,12 +78,6 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
       });
 
-      this.$('#backpack').tooltipster({
-            content: $('<div class=title>' + i18n.t('stonehearth:backpack_title') + '</div>' + 
-                       '<div class=description>' + i18n.t('stonehearth:backpack_description') + '</div>')
-        });
-
-      
       this.$('.name').click(function() {
           radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
         });
@@ -101,9 +87,7 @@ App.StonehearthUnitFrameView = App.View.extend({
          App.stonehearthClient.showCharacterSheet(self.get('uri')); 
       });
 
-      this._updateCommandButtons();      
-      this._updateBackpack();
-
+      this._updateCommandButtons();
    },
 
    _updateCommandButtons: function() {
@@ -116,19 +100,6 @@ App.StonehearthUnitFrameView = App.View.extend({
         }
       }
    }.observes('context.stonehearth:commands.commands'),
-
-   _updateBackpack: function() {
-      if (this.$()) {
-        var backpack = this.get('context.stonehearth:backpack');
-        if (!backpack) {
-          this.$('#backpack').hide()
-        } else {
-          this.$('#backpack').show()
-        }
-      }
-
-   }.observes('context.stonehearth:backpack'),
-
 });
 
 App.StonehearthCommandButtonView = App.View.extend({
