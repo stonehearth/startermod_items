@@ -12,6 +12,7 @@
 uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform	mat3 worldNormalMat;
+uniform float modelScale;
 
 #ifdef DRAW_SKINNED
 attribute float boneIndex;
@@ -35,7 +36,7 @@ vec4 calcWorldPos( const vec4 pos )
 	tr = tr * bones[int(boneIndex)];
 #endif
 
-	return tr * vec4(pos.xyz, 1.0);
+	return tr * vec4(pos.xyz * modelScale, 1.0);
 }
 
 

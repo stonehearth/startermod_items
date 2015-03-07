@@ -141,17 +141,13 @@ void RenderRenderInfo::CheckScale(om::RenderInfoPtr render_info)
 
    if (scale != scale_) {
       scale_ = scale;
-
       Skeleton& skeleton = entity_.GetSkeleton();
       skeleton.SetScale(scale);
 
       H3DNode node = render_node_->GetNode();
-      float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+      float tx, ty, tz, rx, ry, rz;
 
-      h3dGetNodeTransformFast(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
-      tx *= (scale / sx);
-      ty *= (scale / sy);
-      tz *= (scale / sz);
+      h3dGetNodeTransformFast(node, &tx, &ty, &tz, &rx, &ry, &rz, nullptr, nullptr, nullptr);
       h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
 
       /*for (auto const& entry : nodes_) {
@@ -273,14 +269,16 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
    
    ResourceCacheKey key;
 
+   Skeleton& skeleton = entity_.GetSkeleton();
    for (auto& node : nodes_) {
       for (voxel::QubicleMatrix const* matrix : node.second) {
          // this assumes matrices are loaded exactly once at a stable address.
          key.AddElement("matrix", matrix);
       }
+      // This 'primes' the skeleton, making sure every single bone node is allocated before mesh
+      // generation begins.  This is done to ensure identical mapping when the geometry is created.
+      skeleton.GetBoneNumber(node.first);
    }
-
-   Skeleton& skeleton = entity_.GetSkeleton();
 
    auto generate_matrix = [this, useSkeletonOrigin, &skeleton](csg::Mesh &mesh, int lodLevel) {
       for (auto& node : nodes_) {
@@ -333,13 +331,7 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
          }
       }
    };
-
-   const char* bones[64];
-
-   for (int i = 0; i < skeleton.GetNumBones(); i++) {
-      bones[i] = skeleton.GetBoneName(i).c_str();
-   }
-   render_node_ = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix, bones, skeleton.GetNumBones(), 1.0);
+   render_node_ = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix, skeleton.GetNumBones() > 1);
    h3dSetNodeParamI(render_node_->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);

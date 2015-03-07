@@ -56,11 +56,10 @@ int GetStartTime(const JSONNode& node)
 
 static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
 {
-   csg::Matrix4 m(t.orientation);
-   
-   m[12] = (float)t.position.x * scale;
-   m[13] = (float)t.position.y * scale;
-   m[14] = (float)t.position.z * scale;
+   csg::Matrix4 m(t.orientation);   
+   m[12] = (float)t.position.x;
+   m[13] = (float)t.position.y;
+   m[14] = (float)t.position.z;
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
@@ -288,7 +287,7 @@ void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finish
       }
    }
 
-   animation_->MoveNodes(offset, [&](std::string const& bone, const csg::Transform &transform) {
+   animation_->MoveNodes(offset, entity_.GetSkeleton().GetScale(), [&](std::string const& bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
          float scale = entity_.GetSkeleton().GetScale();

@@ -57,6 +57,7 @@ const char *fsDefColor =
 
 float* Renderer::_vbInstanceVoxelBuf;
 std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
+Matrix4f Renderer::_boneMats[64];
 
 Renderer::Renderer()
 {
@@ -598,7 +599,8 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
    sc.uni_cubeBatchTransformArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchTransformArray" );
    sc.uni_cubeBatchColorArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchColorArray" );
 	
-   sc.uni_bones = gRDI->getShaderConstLoc( shdObj, "bones" );
+   sc.uni_bones = gRDI->getShaderConstLoc(shdObj, "bones");
+   sc.uni_modelScale = gRDI->getShaderConstLoc(shdObj, "modelScale");
 
    // Overlay-specific uniforms
 	sc.uni_olayColor = gRDI->getShaderConstLoc( shdObj, "olayColor" );
@@ -2744,7 +2746,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       if( curShader->uni_worldMat >= 0 )
       {
          RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";;
-         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &modelNode->getParent()->_absTrans.x[0] );
       }
       if( curShader->uni_worldNormalMat >= 0 )
       {
@@ -2780,19 +2782,20 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       }
 
       if (curShader->uni_bones >= 0) {
-         Matrix4f boneMats[64];
-         int numBones = (int)curVoxelGeoRes->_boneLookup.size();
+         int numBones = (int)modelNode->_boneLookup.size();
 
          if (numBones == 0) {
             numBones = 1;
-            boneMats[0].toIdentity();
+            _boneMats[0].toIdentity();
          } else {
             for (int i = 0; i < numBones; i++) {
-               std::string const& boneName = curVoxelGeoRes->_boneLookup[i];
-               boneMats[i] = modelNode->_boneLookup[boneName]->getAbsTrans();
+               _boneMats[i] = modelNode->_boneLookup[i]->getRelTrans();
             }
          }
-         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats[0].x, numBones);
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
+      }
+      if (curShader->uni_modelScale >= 0) {
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, modelNode->_relTrans.x, 1);
       }
 
       // Render
@@ -2914,19 +2917,22 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
       }
 
       if (curShader->uni_bones >= 0) {
-         Matrix4f boneMats[64];
-         int numBones = (int)curVoxelGeoRes->_boneLookup.size();
+         int numBones = (int)voxelModel->_boneLookup.size();
 
          if (numBones == 0) {
             numBones = 1;
-            boneMats[0].toIdentity();
+            _boneMats[0].toIdentity();
          } else {
             for (int i = 0; i < numBones; i++) {
-               std::string const& boneName = curVoxelGeoRes->_boneLookup.at(i);
-               boneMats[i] = voxelModel->_boneLookup.at(boneName)->getAbsTrans();
+               _boneMats[i] = voxelModel->_boneLookup.at(i)->getRelTrans();
             }
          }
-         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats[0].x, numBones);
+
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
+      }
+
+      if (curShader->uni_modelScale >= 0) {
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, voxelModel->_relTrans.x, 1);
       }
 
 
@@ -2967,11 +2973,11 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
-		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		   const VoxelModelNode *modelNode = meshNode->getParentModel();
+         VoxelMeshNode const* meshNode = (VoxelMeshNode*)node.node;
+         const SceneNode *transNode = meshNode->getParentModel()->getParent();
 		
-         memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
-         RENDER_LOG() << "adding world matrix (" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
+         memcpy(transformBuffer, &transNode->_absTrans.x[0], sizeof(float) * 16);
+         RENDER_LOG() << "adding world matrix (" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ")";
          transformBuffer += 16;
          numQueued++;
 
@@ -3019,18 +3025,18 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
    ShaderCombination* curShader = Modules::renderer().getCurShader();
 
    #define RENDER_LOG() R_LOG(9) << " drawing without instancing (" \
-                                 << " handle:" << modelNode->getParent()->getHandle() \
-                                 << " name:" << modelNode->getParent()->getName() \
+                                 << " handle:" << vmn->getParent()->getHandle() \
+                                 << " name:" << vmn->getParent()->getName() \
                                  << ") "
 
    for (const auto& node : renderableQueue) {
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		const VoxelModelNode *modelNode = meshNode->getParentModel();
+      const SceneNode *transNode = meshNode->getParentModel()->getParent();
 
       RENDER_LOG() << "setting (mesh handle:" << meshNode->getHandle() << " mesh name:" << meshNode->getName() << ") world matrix to " 
-                   << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&meshNode->_absTrans.c;
+                   << "(" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&transNode->_absTrans.c;
 
-      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &transNode->_absTrans.x[0] );
       gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(lodLevel), vmn->getBatchCount(lodLevel),
          vmn->getVertRStart(lodLevel), vmn->getVertREnd(lodLevel) - vmn->getVertRStart(lodLevel) + 1);
 

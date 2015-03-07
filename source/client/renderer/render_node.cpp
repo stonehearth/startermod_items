@@ -50,12 +50,12 @@ RenderNodePtr RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& ge
    std::string meshName = BUILD_STRING("mesh" << nextId++);
 
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
-   H3DNode node = h3dAddVoxelModelNode(parent, modelName.c_str(), geo.geo.get());
-   H3DNode meshNode = h3dAddVoxelMeshNode(node, meshName.c_str(), mat.get());
+   H3DNode modelNode = h3dAddVoxelModelNode(parent, modelName.c_str(), geo.geo.get());
+   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, meshName.c_str(), mat.get());
    if (geo.unique) {
       h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
    }
-   return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
+   return std::make_shared<RenderNode>(modelNode, meshNode, geo.geo, mat);
 }
 
 RenderNodePtr RenderNode::CreateObjNode(H3DNode parent, std::string const& uri)
@@ -87,11 +87,11 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
    geo.levelCount = 1;
    geo.unique = true;
 
-   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), nullptr, 0, geo);
+   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
    return CreateVoxelNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, const char** bones, int numBones, float scale)
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool unique)
 {
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
@@ -105,9 +105,9 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
          geo.indexIndicies[i + 1] = (int)m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
-      m.ScaleBy(scale);
+      geo.unique = unique;
 
-      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), bones, numBones, geo);
+      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
    }
    return CreateVoxelNode(parent, geo);
@@ -308,7 +308,7 @@ void RenderNode::ApplyMaterial()
    }
 }
 
-void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, const char** boneIndices, int numBones, GeometryInfo& geo)
+void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
 {
    std::string geoName = BUILD_STRING("geo" << nextId++);
 
@@ -317,8 +317,6 @@ void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint 
                                          geo.vertexIndices,
                                          indices,
                                          geo.indexIndicies,
-                                         boneIndices,
-                                         numBones,
                                          geo.levelCount);
 }
 

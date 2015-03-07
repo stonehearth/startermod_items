@@ -18,14 +18,11 @@ class Skeleton {
       void SetBoneVisible(std::string const& bone, bool visible);
       H3DNode GetSceneNode(std::string const& bone);
       int GetBoneNumber(std::string const& bone);
-      std::string const& GetBoneName(int boneNum) const;
       int GetNumBones() const;
 
-      H3DNode AttachEntityToBone(H3DRes entity, std::string const& bone, csg::Point3f const& offset);
       void Clear();
       void SetScale(float scale) { _scale = scale; }
       float GetScale() const { return _scale; }
-      void ApplyScaleToBones();
 
    private:
       H3DNode CreateBone(std::string const& bone);

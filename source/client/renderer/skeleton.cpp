@@ -26,42 +26,19 @@ void Skeleton::Clear()
       h3dRemoveNode(entry.second);
    }
    _bones.clear();
+   _boneNumLookup.clear();
+   _visibleCount.clear();
 }
 
-H3DNode Skeleton::AttachEntityToBone(H3DRes res, std::string const& bone, csg::Point3f const& offset)
-{
-   H3DNode b = _bones[bone];
-   if (!b) {
-      b = CreateBone(bone);
-   }
-   if (offset.x || offset.y || offset.z) {
-      assert(false);
-      // b = b->createChildSceneNode(name, Vector3(offset));
-   }
-   return h3dAddNodes(b, res);
-}
-
-void Skeleton::ApplyScaleToBones()
-{
-   for (auto const& entry : _bones) {
-      H3DNode bone = entry.second;
-      float tx, ty, tz, rx, ry, rz, sx, sy, sz;
-
-      h3dGetNodeTransform(bone, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
-      tx *= (_scale / sx);
-      ty *= (_scale / sy);
-      tz *= (_scale / sz);
-      h3dSetNodeTransform(bone, tx, ty, tz, rx, ry, rz, _scale, _scale, _scale);
-   }
-}
 
 H3DNode Skeleton::GetSceneNode(std::string const& bone)
 {
-   H3DNode node = _bones[bone];
-   if (!node) {
-      node = CreateBone(bone);
+   auto& i = _bones.find(bone);
+   if (i == _bones.end()) {
+      CreateBone(bone);
+      i = _bones.find(bone);
    }
-   return node;
+   return i->second;
 }
 
 int Skeleton::GetNumBones() const
@@ -79,33 +56,18 @@ int Skeleton::GetBoneNumber(std::string const& bone)
    return i->second;
 }
 
-std::string const& Skeleton::GetBoneName(int boneNum) const
-{
-   for (auto& i : _boneNumLookup) {
-      if (i.second == boneNum) {
-         return i.first;
-      }
-   }
-
-   ASSERT(false);
-
-   return _default;
-}
-
 H3DNode Skeleton::CreateBone(std::string const& bone)
 {
    H3DNode parent = _renderEntity.GetNode();
    std::ostringstream name;
    name << "Skeleton " << parent << " " << bone << " bone";
-   //H3DNode scaler = h3dAddGroupNode(_parent, name.str().c_str());
-   //h3dSetNodeTransform(scaler, 0, 0, 0, 0, 0, 0, .1f, .1f, .1f);
 
-   name << "...";
-   H3DNode b = h3dAddGroupNode(parent, name.str().c_str());
+   int newBoneNum = GetNumBones();
+   H3DNode b = h3dAddVoxelJointNode(parent, name.str().c_str(), newBoneNum);
    h3dSetNodeTransform(b, 0, 0, 0, 0, 0, 0, 1.0f, 1.0f, 1.0f);
+   _boneNumLookup[bone] = newBoneNum;
    _bones[bone] = b;
    _visibleCount[bone] = 1;
-   _boneNumLookup[bone] = (int)_bones.size() - 1;
    return b;
 }
 

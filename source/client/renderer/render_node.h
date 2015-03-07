@@ -46,7 +46,7 @@ public:
 
    static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m);
-   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, const char** bones, int numBones, float scale=1.0f);
+   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool unique=false);
 
    static void Initialize();  
    static void Shutdown();
@@ -86,7 +86,7 @@ public: // just because we need std::make_shared<>  UG!
    static H3DNode GetUnparentedNode() { return _unparentedRenderNode; }
 
 private:
-   static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, const char** boneIndices, int numBones, GeometryInfo& geo);
+   static void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
    static void ConvertObjFileToGeometry(std::istream& stream, GeometryInfo& geo);
    static H3DNode _unparentedRenderNode;
 
