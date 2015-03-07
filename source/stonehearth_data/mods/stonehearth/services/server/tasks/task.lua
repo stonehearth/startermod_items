@@ -74,8 +74,9 @@ function Task:_fire_cbs(target_state, callbacks)
    end
 end
 
-function Task:is_completed()
-   return self._state == COMPLETED or self._state == DESTROYED
+--Returns true if the task is still going, false otherwise
+function Task:is_active()
+   return self._state == STARTED or self._state == PAUSED
 end
 
 --Fired when the task completes successfully
@@ -237,7 +238,7 @@ function Task:wait()
    local thread = stonehearth.threads:get_current_thread()
    assert(thread, 'no thread running in Task:wait()')
 
-   if not self:is_completed() then
+   if self:is_active() then
       local function cb()
          self._completed_listener:destroy()
          self._completed_listener = nil
@@ -251,7 +252,7 @@ function Task:wait()
       self._destroyed_listener = radiant.events.listen(self, DESTROYED, cb)
       
       thread:suspend()
-      assert(self:is_completed())
+      assert(not self:is_active())
    end
 
    return self._complete_count == self._times

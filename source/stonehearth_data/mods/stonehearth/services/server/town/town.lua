@@ -81,7 +81,7 @@ end
 function Town:_remember_user_initiated_task(task, fn_name, ...)
    -- task here may be a Task or an Orchestrator.  Both implement the is_completed
    -- and notify_completed functions
-   if not task:is_completed() then
+   if task:is_active() then
       local id = self._sv._next_saved_call_id
       self._sv._next_saved_call_id = self._sv._next_saved_call_id + 1
       self._sv._saved_calls[id] = {
