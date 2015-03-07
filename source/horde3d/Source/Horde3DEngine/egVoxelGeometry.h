@@ -64,7 +64,7 @@ public:
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
-   bool loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], const char** bones, int numBones, int numLodLevels);
+   bool loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels);
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -97,8 +97,6 @@ private:
 	uint32                      *_indexData;
 	VoxelVertexData             *_vertexData;
    
-   std::unordered_map<int, std::string> _boneLookup;
-
    int                         _vertexOffsets[5], _indexOffsets[5];
    int                         _numLodLevels;
 

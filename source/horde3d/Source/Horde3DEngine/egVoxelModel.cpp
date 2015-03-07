@@ -93,9 +93,9 @@ void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
       return;  // First node is the model
    } else {
       // First node, so look through all children to collect up our bones.
-      for (auto& child : node->getChildren()) {
-         if (child->getType() == SceneNodeTypes::Group) {
-            _boneLookup[child->getName()] = child;
+      for (auto& child : node->getParent()->getChildren()) {
+         if (child->getType() == SceneNodeTypes::VoxelJointNode) {
+            _boneLookup[((VoxelJointNode*)child)->getJointIndex()] = child;
          }
       }
    }
