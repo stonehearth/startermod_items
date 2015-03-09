@@ -126,7 +126,6 @@ protected:
       uint32            query_flags_;
       std::string       model_variant_override_;
       std::string       material_override_;
-      bool              visible_override_;
       uint32            visible_override_ref_count_;
       bool              parentOverride_;
 };
