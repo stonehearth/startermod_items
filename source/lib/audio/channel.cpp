@@ -115,7 +115,7 @@ void Channel::Track::Play()
    } else {
       _music.setVolume((float)_info.volume * _volumeScale);
    }
-   _music.setLoop(false);
+   _music.setLoop(_info.loop);
    _music.play();
 }
 
