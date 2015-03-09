@@ -81,7 +81,7 @@ end
 function Town:_remember_user_initiated_task(task, fn_name, ...)
    -- task here may be a Task or an Orchestrator.  Both implement the is_completed
    -- and notify_completed functions
-   if not task:is_completed() then
+   if task:is_active() then
       local id = self._sv._next_saved_call_id
       self._sv._next_saved_call_id = self._sv._next_saved_call_id + 1
       self._sv._saved_calls[id] = {
@@ -90,10 +90,11 @@ function Town:_remember_user_initiated_task(task, fn_name, ...)
       }
       self.__saved_variables:mark_changed()
 
-      task:notify_completed(function()
+      --When the task is destroyed (either b/c of successful completion or active destruction)
+      task:notify_destroyed(function()
             self._sv._saved_calls[id] = nil 
             self.__saved_variables:mark_changed()
-         end);
+         end)
    end
 end
 
@@ -446,7 +447,7 @@ function Town:clear_item(item)
                      :set_priority(stonehearth.constants.priorities.simple_labor.CLEAR)
                      :add_entity_effect(item, "/stonehearth/data/effects/clear_effect")
                      :once()
-                     :notify_completed(function()
+                     :notify_destroyed(function()
                         self._clear_tasks[id] = nil
                         if position_trace then
                            position_trace:destroy()

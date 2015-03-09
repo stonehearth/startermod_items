@@ -34,7 +34,9 @@ function Task:__init(task_group, activity)
    self._max_workers = INFINITE
    self._complete_count = 0
    self._currently_feeding = false
-   self._notify_completed_cbs = {}
+   self._notify_completed_cbs = {} --called when task is completed
+   --TODO: add a set of callbacks for failure state
+   self._notify_destroyed_cbs = {} --called when task is destroyed (which happens on success OR failure)
    self._workers_pending_unfeed = {}
 end
 
@@ -53,6 +55,9 @@ function Task:_destroy()
    self:_stop_feeding()
    self:_destroy_entity_effects()
 
+   --Fire all the destroyed callbacks
+   self:_fire_cbs(DESTROYED, self._notify_destroyed_cbs)
+
    self._log:detail('notifying task group of destruction')
    self._task_group:_on_task_destroy(self)
    self._task_group = nil
@@ -63,20 +68,29 @@ function Task:_destroy()
    end
 end
 
-function Task:_fire_completed_cbs()
-   assert(self._state == COMPLETED)
-   for _, cb in ipairs(self._notify_completed_cbs) do
+--Fire either the notify_completed or notify_destroyed callbacks
+--depending on target state passed in an the callback array passed in
+function Task:_fire_cbs(target_state, callbacks)
+   assert(self._state == target_state)
+   for _, cb in ipairs(callbacks) do
       cb()
    end
 end
 
-
-function Task:is_completed()
-   return self._state == COMPLETED or self._state == DESTROYED
+--Returns true if the task is still going, false otherwise
+function Task:is_active()
+   return self._state == STARTED or self._state == PAUSED
 end
 
+--Fired when the task completes successfully
 function Task:notify_completed(cb)
    table.insert(self._notify_completed_cbs, cb)
+   return self
+end
+
+--Fired when the task is cleaned up, whether the task failed or succeeded
+function Task:notify_destroyed(cb)
+   table.insert(self._notify_destroyed_cbs, cb)
    return self
 end
 
@@ -227,7 +241,7 @@ function Task:wait()
    local thread = stonehearth.threads:get_current_thread()
    assert(thread, 'no thread running in Task:wait()')
 
-   if not self:is_completed() then
+   if self:is_active() then
       local function cb()
          self._completed_listener:destroy()
          self._completed_listener = nil
@@ -241,7 +255,7 @@ function Task:wait()
       self._destroyed_listener = radiant.events.listen(self, DESTROYED, cb)
       
       thread:suspend()
-      assert(self:is_completed())
+      assert(not self:is_active())
    end
 
    return self._complete_count == self._times
@@ -593,7 +607,7 @@ function Task:__action_stopped(action, worker)
          self._log:debug('task reached max number of completions (%d).  stopping and completing!', self._times)
          self:_set_state(COMPLETED)
          self:_destroy_entity_effects()
-         self:_fire_completed_cbs()
+         self:_fire_cbs(COMPLETED, self._notify_completed_cbs)
          self._log:debug('destroying self after completion!')
          self:_destroy()
       end
