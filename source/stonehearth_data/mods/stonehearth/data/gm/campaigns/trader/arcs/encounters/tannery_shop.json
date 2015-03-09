@@ -1,0 +1,24 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "shop",
+   "rarity" : "common",
+   "unique" : true,
+
+   "in_edge"  : "spawn_shop",
+
+   "shop_info" : {
+      "name" : "Buck Vexed's Tannery and Wilderness Supplies",
+      "title" : "A rugged survivalist stops by with his wares",
+      "inventory" : {
+         "items" : [
+            "stonehearth:refined:leather_bolt",
+            "stonehearth:decoration:fur_rug"
+         ],
+         "items_matching" : {
+            "animal bits" : {
+               "material" : ["animal_part"]
+            }
+         }
+      }
+   }
+}
