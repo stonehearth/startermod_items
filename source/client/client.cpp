@@ -861,10 +861,10 @@ void Client::mainloop()
 
    Renderer::GetInstance().HandleResize();
 
-   if (!loading_) {
-      perfmon::SwitchToCounter("browser queue");
-      ProcessBrowserJobQueue();
+   perfmon::SwitchToCounter("browser queue");
+   ProcessBrowserJobQueue();
 
+   if (!loading_) {
       perfmon::SwitchToCounter("update lua");
       try {
          luabind::call_function<int>(radiant_["update"]);
@@ -1442,9 +1442,11 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
 
       if (std::regex_match(path, match, call_path_regex__)) {
          std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-         browserJobQueue_.emplace_back([=]() {
-            CallHttpReactor(path, query, postdata, response);
-         });
+         if (!loading_) {
+            browserJobQueue_.emplace_back([=]() {
+               CallHttpReactor(path, query, postdata, response);
+            });
+         }
          return;
       }
 
@@ -1547,11 +1549,25 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
 
 void Client::ProcessBrowserJobQueue()
 {
-   perfmon::TimelineCounterGuard tcg("process job queue") ;
-
    std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-   for (const auto &fn : browserJobQueue_) {
-      fn();
+   perfmon::TimelineCounterGuard tcg("process job queue");
+
+   // Pump the browser queue until we get into the loading state,
+   // then bail.  We release the lock before calling the callback
+   // so new browser events can come in and to avoid deadlocks in
+   // case resolving a deferred somehow, magically, ends up trying
+   // to stick something else on the back of our queue, too.
+   //
+   while (!loading_ && !browserJobQueue_.empty()) {
+      std::function<void()> cb = browserJobQueue_.front();
+      browserJobQueue_.pop_front();
+      browserJobQueueLock_.unlock();
+      try {
+         cb();
+      } catch (std::exception const&e) {
+         CLIENT_LOG(0) << "error in browser job callback: " << e.what();
+      }
+      browserJobQueueLock_.lock();
    }
    browserJobQueue_.clear();
 }
@@ -1567,7 +1583,10 @@ void Client::EnableDisableSaveStressTest()
    
 void Client::ReloadBrowser()
 {
+   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+
    std::string uri = BUILD_STRING(_uiDocroot << "?current_screen=" << GetCurrentUIScreen());
+   browserJobQueue_.clear();
    browser_->Navigate(uri);
 }
 
