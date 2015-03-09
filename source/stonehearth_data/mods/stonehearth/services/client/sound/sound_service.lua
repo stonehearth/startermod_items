@@ -280,7 +280,7 @@ function Sound:_play_sound(sound)
 end
 
 function Sound:_choose_best_track(tracks)
-   local best_priority, best_track
+   local best_priority, best_track = nil, {}
 
    for requestor, info in pairs(tracks) do
       local priority = info.priority or 0
@@ -296,22 +296,28 @@ end
 function Sound:_update_music_channel(channel_name, info)
    local current_info = self._current_music_info[channel_name]
 
-   if current_info ~= info then
-      self._current_music_info[channel_name] = info
+   if current_info == info then
+      self._log:debug('keeping last music track')
+      return
+   end
 
-      if info.playlist then
-         for i, info in ipairs(info.playlist) do
-            local trackinfo = self:_get_trackinfo(info)
-            if i == 1 then
-               _radiant.audio.play_music(channel_name, trackinfo);
-            else
-               _radiant.audio.queue_music(channel_name, trackinfo);
-            end
-         end
-      else
+   self._current_music_info[channel_name] = info
+
+   if info.playlist then
+      for i, info in ipairs(info.playlist) do
          local trackinfo = self:_get_trackinfo(info)
-         _radiant.audio.play_music(channel_name, trackinfo);
+         if i == 1 then
+            self._log:debug('playing music track %s', trackinfo.track)
+            _radiant.audio.play_music(channel_name, trackinfo);
+         else
+            self._log:debug('queueing music track %s', trackinfo.track)
+            _radiant.audio.queue_music(channel_name, trackinfo);
+         end
       end
+   else
+      local trackinfo = self:_get_trackinfo(info)
+      self._log:debug('playing music track %s', trackinfo.track)
+      _radiant.audio.play_music(channel_name, trackinfo);
    end
 end
 
