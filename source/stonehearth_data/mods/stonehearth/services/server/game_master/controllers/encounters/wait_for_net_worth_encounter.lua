@@ -1,7 +1,7 @@
 
 local WaitForNetWorthEncounter = class()
 
-function WaitForNetWorthEncounter:initialize()
+function WaitForNetWorthEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.wait_for_net_worth')
 end
 
