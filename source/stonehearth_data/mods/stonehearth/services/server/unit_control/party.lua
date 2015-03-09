@@ -100,11 +100,11 @@ function Party:remove_member(id)
    local entry = self._sv.members[id]
    if entry then
       local member = entry.entity
-      if member and member:is_valid() then
-         member:add_component('stonehearth:party_member')
-                  :set_party(nil)
+      if member and member:is_valid() then        
          member:add_component('stonehearth:equipment')
                   :unequip_item('stonehearth:party:party_abilities')
+         member:add_component('stonehearth:party_member')
+                  :set_party(nil)
          self._party_tg:remove_worker(member:get_id())
       end
       self._sv.members[id] = nil

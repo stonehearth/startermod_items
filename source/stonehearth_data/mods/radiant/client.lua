@@ -39,8 +39,23 @@ function radiant.update()
    radiant.events._update()
 end
 
+
+local CONTROLLERS = {
+   'time_tracker'
+}
+
 radiant.events.listen(radiant, 'radiant:init', function(args)
       radiant._authoring_root_entity = _radiant.client.get_authoring_root_entity()
+
+      radiant._sv = radiant.__saved_variables:get_data()
+      for _, name in ipairs(CONTROLLERS) do
+         if not radiant._sv[name] then
+            radiant._sv[name] = radiant.create_controller('radiant:controllers:' .. name)
+         end
+      end
+      radiant.__saved_variables:mark_changed()
+
+      radiant.events.create_listeners()
    end)
 
 return radiant

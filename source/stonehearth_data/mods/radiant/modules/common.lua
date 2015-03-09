@@ -98,4 +98,3 @@ function radiant.create_controller(...)
    end
    return controller
 end
-

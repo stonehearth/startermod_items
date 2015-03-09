@@ -4,7 +4,6 @@ local Encounter = class()
 mixin_class(Encounter, Node)
 
 function Encounter:initialize(info)
-   self._log = radiant.log.create_logger('game_master.encounter')
    self._sv._info = info
 
    local etype, einfo = self:_get_script_info()
@@ -21,6 +20,10 @@ function Encounter:initialize(info)
 end
 
 function Encounter:restore()
+end
+
+function Encounter:activate()
+   self._log = radiant.log.create_logger('game_master.encounter')
 end
 
 function Encounter:destroy()

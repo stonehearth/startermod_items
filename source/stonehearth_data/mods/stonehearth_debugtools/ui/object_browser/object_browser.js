@@ -310,6 +310,7 @@ App.StonehearthObjectBrowserRawEncounterView = App.StonehearthObjectBrowserBaseV
 });
 
 App.StonehearthObjectBrowserWaitEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   pollRate: 500,
    actions: {
       triggerNow: function() {
          this._call_encounter('trigger_now_cmd');
@@ -318,6 +319,7 @@ App.StonehearthObjectBrowserWaitEncounterView = App.StonehearthObjectBrowserBase
 });
 
 App.StonehearthObjectBrowserGeneratorEncounterView = App.StonehearthObjectBrowserBaseView.extend({
+   pollRate: 500,
    actions: {
       triggerNow: function() {
          this._call_encounter('trigger_now_cmd');

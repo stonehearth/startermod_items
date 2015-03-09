@@ -7,11 +7,15 @@ mixin_class(Arc, Node)
 function Arc:initialize(info)
    self._sv._info = info
    self._sv.running_encounters = {}
-   self._log = radiant.log.create_logger('game_master.arc')
 end
 
 function Arc:restore()
 end
+
+function Arc:activate()
+   self._log = radiant.log.create_logger('game_master.arc')
+end
+
 
 -- start the arc.  this simply starts the encounter with the `start` edge_in
 --

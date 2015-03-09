@@ -1379,7 +1379,9 @@
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
-      "unit_control:party" : "file(services/server/unit_control/party.lua)"
+      "unit_control:party" : "file(services/server/unit_control/party.lua)",
+
+      "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)"
    },
 
    "client_controllers" :  {

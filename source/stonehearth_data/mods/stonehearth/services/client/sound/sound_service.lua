@@ -44,6 +44,7 @@ local IDLE_NIGHT_MUSIC = {
 
 local TITLE_MUSIC = {
    track    = 'stonehearth:music:title_screen',
+   loop     = true,
 }
 
 local COMBAT_MUSIC = {
