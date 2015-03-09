@@ -15,6 +15,8 @@ function CollectionQuest:activate()
       self._sv.collection_timer:bind(function()
             self:_on_collection_timer_expired()
          end)
+   end
+   if self._sv.ctx then
       self:_cache_player_tracking_data()
    end
 end
