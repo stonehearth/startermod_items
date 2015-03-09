@@ -211,7 +211,7 @@ private:
 
       // the ui browser object...
       std::unique_ptr<chromium::IBrowser>    browser_;      
-      std::vector<std::function<void()>>     browserJobQueue_;
+      std::deque<std::function<void()>>      browserJobQueue_;
       std::mutex                             browserJobQueueLock_;
 
       // client side command dispatching...
