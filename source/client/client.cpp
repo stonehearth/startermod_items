@@ -856,13 +856,15 @@ void Client::mainloop()
 
    PushPerformanceCounters();
    process_messages();
-   ProcessBrowserJobQueue();
 
    CLIENT_LOG(5) << "entering client main loop";
 
    Renderer::GetInstance().HandleResize();
 
    if (!loading_) {
+      perfmon::SwitchToCounter("browser queue");
+      ProcessBrowserJobQueue();
+
       perfmon::SwitchToCounter("update lua");
       try {
          luabind::call_function<int>(radiant_["update"]);
