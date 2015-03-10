@@ -25,11 +25,10 @@ attribute mat4 transform;
 
 vec4 calcWorldPos( const vec4 pos )
 {
-	mat4 tr;
 #ifdef DRAW_WITH_INSTANCING
-	tr = transform;
+	mat4 tr = transform;
 #else	
-	tr = worldMat;
+	mat4 tr = worldMat;
 #endif
 
 #ifdef DRAW_SKINNED
@@ -40,23 +39,29 @@ vec4 calcWorldPos( const vec4 pos )
 }
 
 
-vec4 calcViewPos( const vec4 pos )
+vec4 calcViewPos( const vec4 worldPos )
 {
-	return viewMat * pos;
+	return viewMat * worldPos;
 }
 
 vec3 calcWorldVec( const vec3 vec )
 {
 #ifdef DRAW_WITH_INSTANCING
-	return (transform * vec4(vec, 0)).xyz;
+	mat4 tr = transform;
 #else
-	return (worldMat * vec4(vec, 0)).xyz;
+	mat4 tr = worldMat;
 #endif
+
+#ifdef DRAW_SKINNED
+	tr = tr * bones[int(boneIndex)];
+#endif
+
+	return (tr * vec4(vec, 0)).xyz;
 }
 
 float getWorldScale()
 {
-  return length(calcWorldVec(normalize(vec3(1.0, 0.0, 0.0))));
+  return modelScale;
 }
 
 mat3 calcTanToWorldMat( const vec3 tangent, const vec3 bitangent, const vec3 normal )

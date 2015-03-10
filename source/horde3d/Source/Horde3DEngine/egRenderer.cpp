@@ -820,6 +820,15 @@ void Renderer::commitGeneralUniforms()
          Matrix4f m = _projectorMat.inverted();
          gRDI->setShaderConst( _curShader->uni_projectorMat, CONST_FLOAT44, m.x);
       }
+
+      if (_curShader->uni_modelScale >= 0)
+      {
+         // We set a default scale, in case a shader is used and the renderer doesn't specify the scale.
+         // This is fairly cheap, I think....
+         float f = 1.0;
+         gRDI->setShaderConst(_curShader->uni_modelScale, CONST_FLOAT, &f);
+      }
+
 		_curShader->lastUpdateStamp = _curShaderUpdateStamp;
 	}
 }
@@ -2866,9 +2875,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 		// Vertices
       gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
 
-		
-		ShaderCombination *curShader = Modules::renderer().getCurShader();
-		
+				
 		if( !debugView )
 		{
          if (Modules::renderer()._materialOverride != 0x0) {
@@ -2897,6 +2904,8 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 			Vec4f color( 0.5f, 0.75f, 1, 1 );
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
+
+		ShaderCombination *curShader = Modules::renderer().getCurShader();
 
       float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
       float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
