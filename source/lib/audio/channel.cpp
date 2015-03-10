@@ -92,7 +92,7 @@ void Channel::Track::FadeOut(int duration)
          _fadeOutProgress = 0.0f;
       } else {
          _fadeOutTweener = claw::tween::single_tweener(_fadeOutProgress, 0.0, (double)duration, [this](double fadeScale) {
-            TRACK_LOG(0) << " audio fade out: " << fadeScale;
+            TRACK_LOG(7) << " audio fade out: " << fadeScale;
             _fadeOutProgress = fadeScale;
             if (fadeScale == 0.0) {
                _music.stop();
