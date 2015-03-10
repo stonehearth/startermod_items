@@ -45,6 +45,8 @@ public:
 
    void FadeOut(int duration);
    int Update(int dt);
+   void UpdateVolume();
+
 
 private:
    void Play();
@@ -85,12 +87,21 @@ void Channel::Track::FadeOut(int duration)
    bool isFaster = (_fadeOutDuration < 0) || (duration < (_fadeOutDuration * _fadeOutProgress));
    if (isFaster) {
       _fadeOutDuration = duration;
-      _fadeOutTweener = claw::tween::single_tweener(_fadeOutProgress, 0.0, (double)duration, [this](double fadeScale) {
-         TRACK_LOG(3) << " audio fade out: " << fadeScale;
-         _fadeOutProgress = fadeScale;
-         _music.setVolume((float)(fadeScale * _info.volume * _volumeScale));
-      }, claw::tween::easing_linear::ease_out);
-      _fadeOutTweener.update(0);
+      if (_fadeOutDuration == 0) {
+         _music.stop();
+         _fadeOutProgress = 0.0f;
+      } else {
+         _fadeOutTweener = claw::tween::single_tweener(_fadeOutProgress, 0.0, (double)duration, [this](double fadeScale) {
+            TRACK_LOG(0) << " audio fade out: " << fadeScale;
+            _fadeOutProgress = fadeScale;
+            if (fadeScale == 0.0) {
+               _music.stop();
+            } else {
+               _music.setVolume((float)(fadeScale * _info.volume * _volumeScale));
+            }
+         }, claw::tween::easing_linear::ease_out);
+         _fadeOutTweener.update(0);
+      }
    }
 }
 
@@ -115,8 +126,14 @@ void Channel::Track::Play()
    } else {
       _music.setVolume((float)_info.volume * _volumeScale);
    }
+   LOG_(7) << "playing track " << _info.track << " " << this;
    _music.setLoop(_info.loop);
    _music.play();
+}
+
+void Channel::Track::UpdateVolume()
+{
+   _music.setVolume((float)_info.volume * _volumeScale);
 }
 
 uint Channel::Track::GetTimeRemaining()
@@ -172,6 +189,9 @@ Channel::~Channel()
 void Channel::SetPlayerVolume(float vol)
 {
    player_volume_ = vol;
+   for (std::unique_ptr<Track> const& track : _playing) {
+      track->UpdateVolume();
+   }
 }
 
 void Channel::Play(TrackInfo const& info)

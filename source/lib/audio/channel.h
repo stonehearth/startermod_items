@@ -24,7 +24,7 @@ public:
 
    void Play(TrackInfo const& info);
    void Queue(TrackInfo const& info);
-   
+
    void Update(int dt);
 
 private:
