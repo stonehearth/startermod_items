@@ -20,6 +20,7 @@ function ConstructionRenderTracker:__init(entity)
 end
 
 function ConstructionRenderTracker:start()
+   self:_on_ui_mode_changed()
    self:_on_building_visions_mode_changed()
    return self
 end
