@@ -298,7 +298,7 @@ function ChannelManager:fill_channels_to_capacity()
    -- process channels in order of increasing elevation
    self:each_channel_ascending(function(channel)
          local water_component = channel.from_entity:add_component('stonehearth:water')
-         water_component:_fill_channels_to_capacity()
+         water_component:_fill_channel_to_capacity(channel)
       end)
 end
 

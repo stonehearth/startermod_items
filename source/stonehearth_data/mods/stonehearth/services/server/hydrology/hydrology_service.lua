@@ -79,6 +79,7 @@ function HydrologyService:_on_terrain_changed(delta_region)
          local modified_container_region = self:_get_affected_container_region(delta_region, entity)
          for point in modified_container_region:each_point() do
             if not radiant.terrain.is_terrain(point) then
+               -- TODO: no need to create channel if top layer height is 0
                local target_entity = self:create_water_body(point)
                local target_adjacent_point = self:_get_best_channel_adjacent_point(point, entity)
                local channel
