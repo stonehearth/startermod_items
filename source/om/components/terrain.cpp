@@ -5,6 +5,7 @@
 #include "om/region.h"
 #include "dm/dm.h"
 #include "resources/res_manager.h"
+#include "physics/namespace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -32,14 +33,17 @@ void Terrain::ConstructObject()
 {
    Component::ConstructObject();
 
+   std::shared_ptr<om::Region3MapWrapper> wrapper = std::make_shared<om::Region3MapWrapper>(water_tight_region_tiles_);
+   csg::Point3 tileSize(phys::TILE_SIZE, phys::TILE_SIZE, phys::TILE_SIZE);
+   water_tight_region_ = std::make_shared<om::Region3Tiled>(tileSize, wrapper);
    terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
+}
 
-   config_file_name_trace_ = TraceConfigFileName("terrain", dm::OBJECT_MODEL_TRACES)
-      ->OnModified([this]() {
-         res::ResourceManager2::GetInstance().LookupJson(config_file_name_, [&](const json::Node& node) {
-            terrainRingTesselator_->LoadFromJson(node);
-         });
-      });
+Terrain& Terrain::SetConfigFileName(std::string value)
+{ 
+   config_file_name_ = value;
+   ReadConfigFile();
+   return *this;
 }
 
 TerrainRingTesselatorPtr Terrain::GetTerrainRingTesselator() const
@@ -159,4 +163,26 @@ Region3BoxedTiledPtr Terrain::GetInteriorTiles()
 csg::Point3 const& Terrain::GetTileSize() const
 {
    return TILE_SIZE;
+}
+
+dm::Boxed<csg::Region3f>* Terrain::GetWaterTightRegionDelta()
+{
+   return &water_tight_region_delta_;
+}
+
+Region3TiledPtr Terrain::GetWaterTightRegion()
+{
+   return water_tight_region_;
+}
+
+void Terrain::ReadConfigFile()
+{
+   res::ResourceManager2::GetInstance().LookupJson(*config_file_name_, [&](const json::Node& node) {
+      terrainRingTesselator_->LoadFromJson(node);
+   });
+}
+
+void Terrain::OnLoadObject(dm::SerializationType r)
+{
+   ReadConfigFile();
 }

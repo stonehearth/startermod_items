@@ -107,7 +107,7 @@ Client::Client() :
    perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
-   enable_debug_cursor_(false),
+   debug_cursor_mode_("none"),
    flushAndLoad_(false),
    initialUpdate_(false),
    save_stress_test_(false),
@@ -182,11 +182,16 @@ void Client::OneTimeIninitializtion()
 
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this](KeyboardInput const& kb) {
-         enable_debug_cursor_ = !enable_debug_cursor_;
-         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
-         if (!enable_debug_cursor_) {
+         const char* mode = kb.shift ? "water_tight" : "navgrid";
+         if (debug_cursor_mode_ != mode) {
+            debug_cursor_mode_ = mode;
+         } else {
+            debug_cursor_mode_ = "none";
+         }
+         if (debug_cursor_mode_ == "none") {
+            // toggle off
             json::Node args;
-            args.set("enabled", false);
+            args.set("mode", "none");
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
@@ -1345,7 +1350,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
 
 void Client::UpdateDebugCursor()
 {
-   if (enable_debug_cursor_) {   
+   if (debug_cursor_mode_ != "none") {
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
@@ -1356,6 +1361,7 @@ void Client::UpdateDebugCursor()
          csg::Point3 pt = csg::ToInt(r.brick) + csg::ToInt(r.normal);
          om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
+         args.set("mode", debug_cursor_mode_);
          args.set("cursor", pt);
          if (selectedEntity) {
             args.set("pawn", selectedEntity->GetStoreAddress());
@@ -1364,7 +1370,7 @@ void Client::UpdateDebugCursor()
          CLIENT_LOG(5) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
-         args.set("enabled", false);
+         args.set("mode", "none");
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
       }
    }

@@ -34,7 +34,7 @@ end
 
 function HydrologyService:_trace_terrain_delta()
    local terrain_component = radiant._root_entity:add_component('terrain')
-   self._delta_trace = terrain_component:trace_delta_region('hydrology service', TraceCategories.SYNC_TRACE)
+   self._delta_trace = terrain_component:trace_water_tight_region_delta('hydrology service', TraceCategories.SYNC_TRACE)
       :on_changed(function(delta_region)
             self:_on_terrain_changed(delta_region)
          end)
@@ -54,12 +54,15 @@ function HydrologyService:_on_terrain_changed(delta_region)
       return
    end
 
+   local terrain_component = radiant._root_entity:add_component('terrain')
+   local water_tight_region = terrain_component:get_water_tight_region()
+
    for id, entity in pairs(self._sv._water_bodies) do
       -- fast-ish rejection test to see if the delta region modifies the water region or its container
       if self:_bounds_intersects_water_body(inflated_delta_bounds, entity) then
          local modified_water_region = self:_get_affected_water_region(delta_region, entity)
          for point in modified_water_region:each_point() do
-            if radiant.terrain.is_terrain(point) then
+            if water_tight_region:contains_point(point) then
                -- TODO: merge may have occured
                -- TODO: check for unused volume
                -- TODO: check for bisection at end
@@ -70,7 +73,7 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
          local modified_container_region = self:_get_affected_container_region(delta_region, entity)
          for point in modified_container_region:each_point() do
-            if not radiant.terrain.is_terrain(point) then
+            if not water_tight_region:contains_point(point) then
                local target_entity = self:create_water_body(point)
                local target_adjacent_point = self:_get_best_channel_adjacent_point(point, entity)
                local channel

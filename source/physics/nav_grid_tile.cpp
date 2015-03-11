@@ -277,7 +277,7 @@ csg::Cube3 NavGridTile::GetWorldBounds() const
  * was stopped early.
  *
  */ 
-bool NavGridTile::ForEachTracker(ForEachTrackerCb const& cb)
+bool NavGridTile::ForEachTracker(ForEachTrackerCb const& cb) const
 {
    bool stopped = ForEachTrackerInRange(trackers_.begin(), trackers_.end(), cb);
    return stopped;
@@ -312,7 +312,7 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  * was stopped early.
  *
  */ 
-bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb)
+bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb) const
 {
    int tempSize = (int)tempTrackers_.size();
    int numTrackers = 0;
