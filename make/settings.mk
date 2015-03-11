@@ -8,7 +8,7 @@ ifeq ($(BUILD_TYPE),)
   ifneq ($(BAMBOO_PRODUCT_BUILDTYPE),)
      BUILD_TYPE=$(BAMBOO_PRODUCT_BUILDTYPE)
   else
-     BUILD_TYPE   ?= debug
+     BUILD_TYPE   ?= opt
   endif
 endif
 
