@@ -66,7 +66,7 @@ official-build-x64: official-build-platform
 official-build-platform: submodules init-build configure crash_reporter stonehearth symbols
 
 .PHONY: official-build-package
-official-build-package: stage game-package steam-package
+official-build-package: stage game-package steam-package official-build-git-tag
 
 .PHONY: official-build-git-tag
 official-build-git-tag:
