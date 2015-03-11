@@ -69,7 +69,7 @@ class NavGrid {
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3f& r);
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
-      core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb);
+      core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb) const;
       bool IsTerrain(csg::Point3 const& location);
       float GetMovementSpeedAt(csg::Point3 const& point);
 
@@ -116,6 +116,7 @@ private:
       void SignalTileDirty(csg::Point3 const& index);
 
       NavGridTile& GridTile(csg::Point3 const& pt);
+      NavGridTile const& GridTile(csg::Point3 const& pt) const;
       int NotifyTileResident(NavGridTile* tile);
 
    private: // private types
@@ -146,7 +147,7 @@ private:
       CollisonTypeTraceMap             collision_type_traces_;
       TerrainTileCollisionTrackerMap   terrain_tile_collision_trackers_;
       csg::Cube3                       bounds_;
-      core::Slot<csg::Point3>          _dirtyTilesSlot;
+      mutable core::Slot<csg::Point3>  _dirtyTilesSlot;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -18,6 +18,7 @@ add_library(physics STATIC
             movement_modifier_shape_tracker.cpp
             region_collision_shape_tracker.cpp
             vertical_pathing_region_tracker.cpp
+            water_tight_region_builder.cpp
             )
 
 add_dependencies(physics

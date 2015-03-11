@@ -155,6 +155,7 @@ private:
    std::unique_ptr<dm::Store>                            store_;
    std::unique_ptr<phys::OctTree>                        octtree_;
    std::unique_ptr<phys::FreeMotion>                     freeMotion_;
+   std::unique_ptr<phys::WaterTightRegionBuilder>        waterTightRegionBuilder_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.
@@ -163,7 +164,7 @@ private:
    int                                          now_;
    bool                                         _showDebugNodes;
    bool                                         _singleStepPathFinding;
-   bool                                         debug_navgrid_enabled_;
+   std::string                                  debug_navgrid_mode_;
    csg::Point3                                  debug_navgrid_point_;
    om::EntityRef                                debug_navgrid_pawn_;
 
