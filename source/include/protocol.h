@@ -11,12 +11,12 @@
 #include <queue>
 
 #define NETWORK_LOG(level)    LOG(network, level)
-#define SEND_BUFFER_SIZE      (2 * 1024 * 1024)
+#define SEND_BUFFER_SIZE      (8 * 1024 * 1024)
 
 namespace radiant {
    namespace protocol {
       static const int ReadLowWaterMark = 1024;
-      static const int ReadBufferSize   = 2 * 1024 * 1024;
+      static const int ReadBufferSize   = SEND_BUFFER_SIZE;
 
       class Buffer {
       public:
