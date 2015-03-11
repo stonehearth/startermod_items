@@ -35,7 +35,6 @@ private: // private methods
 
 private: // private types
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtyTileSet;
-   typedef om::Region3MapWrapper::TileMap TileMap;
 
 private: // instance variables
    NavGrid const&          _navgrid;

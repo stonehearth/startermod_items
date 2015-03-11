@@ -51,6 +51,6 @@ class Terrain(Component):
    Region3BoxedTiledPtr interior_tile_accessor_;
    TerrainRingTesselatorPtr terrainRingTesselator_;
 
-   om::Region3MapWrapper::TileMap   water_tight_region_tiles_;
+   Region3PtrMap water_tight_region_tiles_;
    Region3TiledPtr water_tight_region_;
    """

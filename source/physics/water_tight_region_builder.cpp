@@ -39,7 +39,8 @@ void WaterTightRegionBuilder::OnTileDirty(csg::Point3 const& addr)
 
 void WaterTightRegionBuilder::UpdateRegion()
 {
-   for (csg::Point3 const& addr : _dirtyTiles) {
+   DirtyTileSet dirty = std::move(_dirtyTiles);
+   for (csg::Point3 const& addr : dirty) {
       // Run through all the dirty tiles computing the change from the
       // previous iteration.  Clock these through the deltaAccumulator object
       // a tile at a time so we don't need to make one GIGANTIC region when the

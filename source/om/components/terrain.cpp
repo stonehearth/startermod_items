@@ -33,14 +33,13 @@ void Terrain::ConstructObject()
 {
    Component::ConstructObject();
 
-   std::shared_ptr<om::Region3MapWrapper> wrapper = std::make_shared<om::Region3MapWrapper>(water_tight_region_tiles_);
    csg::Point3 tileSize(phys::TILE_SIZE, phys::TILE_SIZE, phys::TILE_SIZE);
-   water_tight_region_ = std::make_shared<om::Region3Tiled>(tileSize, wrapper);
+   water_tight_region_ = std::make_shared<om::Region3Tiled>(tileSize, water_tight_region_tiles_);
    terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
 }
 
 Terrain& Terrain::SetConfigFileName(std::string value)
-{ 
+{
    config_file_name_ = value;
    ReadConfigFile();
    return *this;
@@ -134,10 +133,9 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
    return point;
 }
 
-Region3BoxedTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
+Region3BoxedTiledPtr Terrain::CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles)
 {
-   std::shared_ptr<Region3BoxedMapWrapper> wrapper = std::make_shared<Region3BoxedMapWrapper>(tiles);
-   return std::make_shared<Region3BoxedTiled>(TILE_SIZE, wrapper);
+   return std::make_shared<Region3BoxedTiled>(TILE_SIZE, tiles);
 }
 
 Region3BoxedTiledPtr Terrain::GetTiles()
