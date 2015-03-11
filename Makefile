@@ -68,6 +68,14 @@ official-build-platform: submodules init-build configure crash_reporter stonehea
 .PHONY: official-build-package
 official-build-package: stage game-package steam-package
 
+.PHONY: git-tag
+git-tag:
+	git tag -f -a "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)" $(BAMBOO_BRANCH_REVISION)
+	git push origin "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
+#	git remote add central $(BAMBOO_RCS_SERVER)
+#	git push central ${bamboo.buildNumber}
+#	git ls-remote --exit-code --tags central ${bamboo.buildNumber} 
+
 # fake-official-build-x86 and fake-official-build-x64 for testing in a developer environment
 fake-official-build-%:
 	BAMBOO_BRANCH_NAME=branch BAMBOO_BUILD_TIME=now BAMBOO_PRODUCT_VERSION_MAJOR=1 BAMBOO_PRODUCT_VERSION_PATCH=1 BAMBOO_PRODUCT_VERSION_MINOR=1 BAMBOO_BUILD_NUMBER=1111 BAMBOO_PRODUCT_NAME=Stonehearth make BAMBOO_PRODUCT_IDENTIFIER=sh BAMBOO_PRODUCT_IDENTIFIER=stonehearth BAMBOO_BRANCH_REVISION=efgh official-build-$*
