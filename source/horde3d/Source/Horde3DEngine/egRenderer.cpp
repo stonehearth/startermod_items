@@ -2680,12 +2680,12 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       RENDER_LOG() << "starting";
 
       // Check that mesh is valid
-      if( modelNode->getVoxelGeometryResource() == 0x0 ) {
+      if( meshNode->getVoxelGeometryResource() == 0x0 ) {
          RENDER_LOG() << "geometry not loaded.  ignoring.";
          continue;
       }
 
-      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount ) {
+      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > meshNode->getVoxelGeometryResource()->_indexCount ) {
          RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
          continue;
       }
@@ -2694,9 +2694,9 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
 
       // Bind geometry
       RENDER_LOG() << "binding geometry...";
-      if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
+      if( curVoxelGeoRes != meshNode->getVoxelGeometryResource() )
       {
-         curVoxelGeoRes = modelNode->getVoxelGeometryResource();
+         curVoxelGeoRes = meshNode->getVoxelGeometryResource();
          ASSERT( curVoxelGeoRes != 0x0 );
 
          // Indices
@@ -2754,8 +2754,9 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       // World transformation
       if( curShader->uni_worldMat >= 0 )
       {
-         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";;
-         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &modelNode->getParent()->_absTrans.x[0] );
+         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
+
+         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &modelNode->_absTrans.x[0] );
       }
       if( curShader->uni_worldNormalMat >= 0 )
       {
@@ -2804,7 +2805,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
       }
       if (curShader->uni_modelScale >= 0) {
-         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, modelNode->_relTrans.x, 1);
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
       }
 
       // Render
@@ -2941,7 +2942,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
       }
 
       if (curShader->uni_modelScale >= 0) {
-         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, voxelModel->_relTrans.x, 1);
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &voxelModel->_modelScale, 1);
       }
 
 
@@ -2983,7 +2984,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
          VoxelMeshNode const* meshNode = (VoxelMeshNode*)node.node;
-         const SceneNode *transNode = meshNode->getParentModel()->getParent();
+         const SceneNode *transNode = meshNode->getParentModel();
 		
          memcpy(transformBuffer, &transNode->_absTrans.x[0], sizeof(float) * 16);
          RENDER_LOG() << "adding world matrix (" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ")";
@@ -3040,7 +3041,7 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
 
    for (const auto& node : renderableQueue) {
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-      const SceneNode *transNode = meshNode->getParentModel()->getParent();
+      const SceneNode *transNode = meshNode->getParentModel();
 
       RENDER_LOG() << "setting (mesh handle:" << meshNode->getHandle() << " mesh name:" << meshNode->getName() << ") world matrix to " 
                    << "(" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&transNode->_absTrans.c;

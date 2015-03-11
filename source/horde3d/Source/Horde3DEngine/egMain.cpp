@@ -889,15 +889,13 @@ DLLEXP NodeHandle h3dAddModelNode( NodeHandle parent, const char *name, ResHandl
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
-DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name, ResHandle voxelGeometryRes )
+DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelModelNode", 0 );
-	Resource *geoRes = Modules::resMan().resolveResHandle( voxelGeometryRes  );
-	APIFUNC_VALIDATE_RES_TYPE( geoRes, ResourceTypes::VoxelGeometry, "h3dAddVoxelModelNode", 0 );
 
 	//Modules::log().writeInfo( "Adding Model node '%s'", safeStr( name ).c_str() );
-	VoxelModelNodeTpl tpl( safeStr( name, 0 ), (VoxelGeometryResource *)geoRes );
+	VoxelModelNodeTpl tpl( safeStr( name, 0 ));
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelModel )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
@@ -1000,15 +998,17 @@ DLLEXP NodeHandle h3dAddMeshNode( NodeHandle parent, const char *name, ResHandle
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
-DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes  )
+DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes, ResHandle voxelGeometryRes   )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelMeshNode", 0 );
 	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
 	APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddVoxelMeshNode", 0 );
+	Resource *geoRes = Modules::resMan().resolveResHandle( voxelGeometryRes  );
+	APIFUNC_VALIDATE_RES_TYPE( geoRes, ResourceTypes::VoxelGeometry, "h3dAddVoxelMeshNode", 0 );
 
 	//Modules::log().writeInfo( "Adding VoxelMesh node '%s'", safeStr( name ).c_str() );
-	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes );
+	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes,  (VoxelGeometryResource *)geoRes);
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelMesh )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }

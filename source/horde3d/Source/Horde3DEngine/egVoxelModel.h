@@ -31,14 +31,15 @@ struct VoxelModelNodeParams
 {
 	enum List
 	{
-		VoxelGeoResI = 200,
+		SWSkinningI = 200,
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
-      UseCoarseCollisionBoxI
+      UseCoarseCollisionBoxI,
+      ModelScaleF,
 	};
 };
 
@@ -46,11 +47,10 @@ struct VoxelModelNodeParams
 
 struct VoxelModelNodeTpl : public SceneNodeTpl
 {
-	PVoxelGeometryResource  geoRes;
 	float              lodDist1, lodDist2, lodDist3, lodDist4;
 
-	VoxelModelNodeTpl( std::string const& name, VoxelGeometryResource *geoRes ) :
-		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), geoRes( geoRes ),
+	VoxelModelNodeTpl( std::string const& name) :
+		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), 
 			lodDist1(400), lodDist2( Math::MaxFloat ),
 			lodDist3( 700 ), lodDist4( Math::MaxFloat )
 	{
@@ -74,10 +74,7 @@ public:
 	float getParamF( int param, int compIdx );
 	void setParamF( int param, int compIdx, float value );
 
-	bool updateVoxelGeometry();
-
-	VoxelGeometryResource *getVoxelGeometryResource() const { return _geometryRes; }
-	void markNodeListDirty() { _nodeListDirty = true; }
+	void markNodeListDirty();
 
    bool getPolygonOffset(float &x, float &y) {
       if (_polygon_offset_used) {
@@ -90,22 +87,27 @@ public:
       return _useCoarseCollisionBox;
    }
 
+   std::unordered_map<int, SceneNode*> const& getBoneLookup() const;
+
+   float getModelScale() const { return _modelScale; }
+
+
 protected:
 	VoxelModelNode( const VoxelModelNodeTpl &modelTpl );
 
 	void recreateNodeListRec( SceneNode *node, bool firstCall );
 	void updateLocalMeshAABBs();
-	void setVoxelGeometryRes( VoxelGeometryResource &geoRes );
 
 	void onPostUpdate();
 	void onFinishedUpdate();
 
 protected:
-	PVoxelGeometryResource        _geometryRes;
 	float                         _lodDist1, _lodDist2, _lodDist3, _lodDist4;
+   float                         _modelScale;
 	
-	std::vector<VoxelMeshNode*>   _meshList;  // List of the model's meshes
+	VoxelMeshNode*                _meshNode;
    std::unordered_map<int, SceneNode*> _boneLookup;
+   std::unordered_map<int, BoundingBox> _boneBounds;
 
 	bool                          _nodeListDirty;  // An animatable node has been attached to model
    float                         _polygon_offset[2];

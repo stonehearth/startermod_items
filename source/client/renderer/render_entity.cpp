@@ -60,7 +60,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    totalObjectCount_++;
    node_ = h3dAddGroupNode(parent, node_name_.c_str());
-   offsetNode_ = h3dAddGroupNode(node_, offsetNodeName.c_str());
+   offsetNode_ = h3dAddVoxelModelNode(node_, offsetNodeName.c_str());
 
    // xxx: convert to something more dm::Trace like...
    selection_guard_ = Renderer::GetInstance().SetSelectionForNode(node_, entity);

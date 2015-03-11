@@ -141,25 +141,9 @@ void RenderRenderInfo::CheckScale(om::RenderInfoPtr render_info)
 
    if (scale != scale_) {
       scale_ = scale;
-      Skeleton& skeleton = entity_.GetSkeleton();
-      skeleton.SetScale(scale);
+      entity_.GetSkeleton().SetScale(scale);
 
-      H3DNode node = render_node_->GetNode();
-      float tx, ty, tz, rx, ry, rz;
-
-      h3dGetNodeTransformFast(node, &tx, &ty, &tz, &rx, &ry, &rz, nullptr, nullptr, nullptr);
-      h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
-
-      /*for (auto const& entry : nodes_) {
-         H3DNode node = entry.second.node->GetNode();
-         float tx, ty, tz, rx, ry, rz, sx, sy, sz;
-
-         h3dGetNodeTransformFast(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
-         tx *= (scale / sx);
-         ty *= (scale / sy);
-         tz *= (scale / sz);
-         h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
-      }*/
+      h3dSetNodeParamF(entity_.GetNode(), H3DModel::ModelScaleF, 0, scale);
    }
 }
 
@@ -332,10 +316,11 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
       }
    };
    render_node_ = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix, skeleton.GetNumBones() > 1);
-   h3dSetNodeParamI(render_node_->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
+   //h3dSetNodeParamI(render_node_->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
    //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
-   h3dSetNodeTransform(render_node_->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
+   //h3dSetNodeTransform(render_node_->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
+   h3dSetNodeParamF(entity_.GetNode(), H3DModel::ModelScaleF, 0, scale_);
 }
 
 void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)

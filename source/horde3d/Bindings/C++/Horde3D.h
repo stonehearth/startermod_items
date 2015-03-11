@@ -535,6 +535,7 @@ struct H3DVoxelMeshNodeParams
 		VertREndI,
 		LodLevelI,
       NoInstancingI,
+		GeoResI,
 	};
 };
 
@@ -557,15 +558,15 @@ struct H3DModel
 	*/
 	enum List
 	{
-		GeoResI = 200,
-		SWSkinningI,
+		SWSkinningI = 200,
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
-      UseCoarseCollisionBoxI
+      UseCoarseCollisionBoxI,
+      ModelScaleF,
 	};
 };
 
@@ -1980,7 +1981,7 @@ DLL H3DNode h3dAddGroupNode( H3DNode parent, const char *name );
 		handle to the created node or 0 in case of failure
 */
 DLL H3DNode h3dAddModelNode( H3DNode parent, const char *name, H3DRes geometryRes );
-DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxelGeometryRes );
+DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name );
 DLL H3DNode h3dAddInstanceNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes geometryRes, int maxInstances );
 DLL void* h3dMapNodeParamV( H3DNode node, int param);
 DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
@@ -2096,7 +2097,7 @@ DLL bool h3dSetModelMorpher( H3DNode modelNode, const char *target, float weight
 */
 DLL H3DNode h3dAddMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
                             int batchStart, int batchCount, int vertRStart, int vertREnd );
-DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes );
+DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes voxelGeometryRes );
 
 DLL H3DNode h3dAddVoxelJointNode( H3DNode parent, const char *name, int jointIndex );
 
