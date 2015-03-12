@@ -10,14 +10,14 @@ local MUSIC_PRIORITIES = {
 local IDLE_DAY_AMBIENT = {
    track    = 'stonehearth:ambient:summer_day',
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 1000,
    volume   = 60,
 }
 
 local IDLE_NIGHT_AMBIENT = {
    track    = 'stonehearth:ambient:summer_night',
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 1000,
    volume   = 20,
 }
 
@@ -28,7 +28,7 @@ local IDLE_DAY_MUSIC = {
       'stonehearth:music:levelmusic_spring_day_03',
    },
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 1000,
    volume   = 35,
 }
 
@@ -38,13 +38,14 @@ local IDLE_NIGHT_MUSIC = {
       'stonehearth:music:levelmusic_spring_night_02',
    },
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 1000,
    volume   = 35,
 }
 
 local TITLE_MUSIC = {
    track    = 'stonehearth:music:title_screen',
    loop     = true,
+   volume   = 50,
 }
 
 local COMBAT_AMBIENT = {
