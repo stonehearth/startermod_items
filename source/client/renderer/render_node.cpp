@@ -139,6 +139,28 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
    return CreateVoxelMeshNode(parent, geo);
 }
 
+RenderNodePtr RenderNode::CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool unique)
+{
+   GeometryInfo geo;
+   if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
+
+      RN_LOG(7) << "creating new geometry for " << key.GetDescription();
+
+      csg::Mesh m;
+      for (int i = 0; i < MAX_LOD_LEVELS; i++) {
+         create_mesh_fn(m, i);
+         geo.vertexIndices[i + 1] = (int)m.vertices.size();
+         geo.indexIndicies[i + 1] = (int)m.indices.size();
+      }
+      geo.levelCount = MAX_LOD_LEVELS;
+      geo.unique = unique;
+
+      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+      Pipeline::GetInstance().SetSharedGeometry(key, geo);
+   }
+   return CreateVoxelModelNode(parent, geo);
+}
+
 RenderNode::RenderNode()
 {
 }
