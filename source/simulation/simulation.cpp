@@ -51,6 +51,7 @@
 #include "lib/perfmon/frame.h"
 #include "lib/perfmon/namespace.h"
 #include "platform/sysinfo.h"
+#include "physics/water_tight_region_builder.h"
 
 // Uncomment this to only profile the pathfinding path in VTune
 // #define PROFILE_ONLY_PATHFINDING 1
@@ -72,7 +73,6 @@ Simulation::Simulation() :
    _tcp_acceptor(nullptr),
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
    begin_loading_(false),
    _sequenceNumber(1)
@@ -110,8 +110,8 @@ void Simulation::OneTimeIninitializtion()
    // routes...
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
       json::Node args = f.args;
-      debug_navgrid_enabled_ = args.get<bool>("enabled", false);
-      if (debug_navgrid_enabled_) {
+      debug_navgrid_mode_ = args.get<std::string>("mode", "none");
+      if (debug_navgrid_mode_ != "none") {
          debug_navgrid_point_ = args.get<csg::Point3>("cursor", csg::Point3::zero);
          om::EntityPtr pawn = GetStore().FetchObject<om::Entity>(args.get<std::string>("pawn", ""));
 
@@ -314,6 +314,9 @@ void Simulation::InitializeGameObjects()
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
    freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
+   if (core::Config::GetInstance().Get<bool>("mods.stonehearth.enable_water", false)) {
+      waterTightRegionBuilder_ = std::unique_ptr<phys::WaterTightRegionBuilder>(new phys::WaterTightRegionBuilder(octtree_->GetNavGrid()));
+   }
 
    scriptHost_.reset(new lua::ScriptHost("server", [this](int storeId) {
       return AllocDatastore();
@@ -383,6 +386,7 @@ void Simulation::ShutdownGameObjects()
    error_browser_.reset();
    scriptHost_.reset();
 
+   waterTightRegionBuilder_.reset();
    freeMotion_.reset();
    octtree_.reset();
 }
@@ -401,12 +405,13 @@ void Simulation::CreateGame()
    now_ = clock_->GetTime();
    modList_ = root_entity_->AddComponent<om::ModList>();
 
-   /*
-    * Stick a Mob on the root entity so there's a cached pointer there.  This greatly
-    * speeds up Mob::GetWorldGridLocation.  If Entity::IsCachedComponent always returned
-    * true, this wouldn't be a problem (sigh).
-    */
    root_entity_->AddComponent<om::Clock>();
+
+   om::TerrainPtr terrain = root_entity_->AddComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
@@ -670,8 +675,12 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
          job->EncodeDebugShapes(msg);
       });
    }
-   if (debug_navgrid_enabled_) {
+   if (debug_navgrid_mode_ == "navgrid") {
       GetOctTree().GetNavGrid().ShowDebugShapes(debug_navgrid_point_, debug_navgrid_pawn_, msg);
+   } else if (debug_navgrid_mode_ == "water_tight") {
+      if (waterTightRegionBuilder_) {
+         waterTightRegionBuilder_->ShowDebugShapes(debug_navgrid_point_, msg);
+      }
    }
    for (auto const& cb : _bottomLoopFns)  {
       cb();
@@ -869,6 +878,9 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
       octtree_->GetNavGrid().UpdateGameTime(now_, game_tick_interval_);
+      if (waterTightRegionBuilder_) {
+         waterTightRegionBuilder_->UpdateRegion();
+      }
 
       scriptHost_->Trigger("radiant:gameloop:end");
    }
@@ -1107,6 +1119,13 @@ void Simulation::FinishLoadingGame()
    ASSERT(root_entity_);
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
+
+   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
+
 
    // Re-call SendClientUpdates().  This will send the data
    // for everything we just loaded to the client so it can get started re-creating its

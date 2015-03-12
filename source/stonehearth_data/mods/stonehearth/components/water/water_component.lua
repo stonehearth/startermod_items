@@ -75,7 +75,7 @@ function WaterComponent:_add_water(world_location, volume)
    while volume > 0 do
       local current_layer = self._sv._current_layer:get():translated(entity_location)
       if current_layer:empty() then
-         log:warning('Current layer is empty/blocked. Water body may not be able to expand up. Unable to add water.')
+         log:debug('Current layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
          break
       end
 
@@ -102,6 +102,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
 
             local point = edge_region:get_closest_point(world_location)
+            local source_elevation_bias = 0
             local channel = nil
 
             -- TODO: incrementally update the new edge region
@@ -125,17 +126,21 @@ function WaterComponent:_add_water(world_location, volume)
                local source_adjacent_point = point
                local target_adjacent_point = current_layer:get_closest_point(point)
                channel = channel_manager:link_pressure_channel(self._entity, source_adjacent_point,
-                                                                     target_entity, target_adjacent_point)
+                                                               target_entity, target_adjacent_point)
+               source_elevation_bias = 0
             else
                local is_drop = not self:_is_blocked(point - Point3.unit_y)
                if is_drop then
                   -- establish a unidirectional link between the two water bodies using a waterfall channel
                   channel = channel_manager:link_waterfall_channel(self._entity, point)
+                  -- when adding water to the top layer, virtualize the source height because the added water
+                  -- has not contributed the height of the layer (which is zero since we are in wetting mode)
+                  source_elevation_bias = 1
                end
             end
 
             if channel then
-               volume = channel_manager:add_volume_to_channel(channel, volume, 1)
+               volume = channel_manager:add_volume_to_channel(channel, volume, source_elevation_bias)
                channel_region:add_point(point)
             else
                -- make this location wet
@@ -185,6 +190,7 @@ function WaterComponent:_create_merge_info(entity1, entity2)
    return merge_info
 end
 
+-- TODO: for channels at the same elevation, pick the closest
 function WaterComponent:_add_water_to_channels(volume)
    local channel_manager = stonehearth.hydrology:get_channel_manager()
    local water_level = self:get_water_level()
@@ -213,38 +219,33 @@ end
 
 -- push water into the channels until we max out their capacity
 -- TODO: tell hydrology service to mark saved variables as changed after this
-function WaterComponent:_fill_channels_to_capacity()
+function WaterComponent:_fill_channel_to_capacity(channel)
    local channel_manager = stonehearth.hydrology:get_channel_manager()
-   
-   self:_each_channel_ascending(function(channel)
-         local channel_height = channel.from_location.y
-         local water_level = self:get_water_level()
+   local channel_height = channel.from_location.y
+   local water_level = self:get_water_level()
 
-         if channel_height > water_level then
-            -- we're done becuase channels are sorted by increasing elevation
-            return true
-         end
+   if channel_height > water_level then
+      -- we're done becuase channels are sorted by increasing elevation
+      return true
+   end
 
-         -- get the flow volume per tick
-         local max_flow_volume = channel_manager:calculate_channel_flow_rate(channel)
-         local unused_volume = max_flow_volume - channel.queued_volume
+   -- get the flow volume per tick
+   local max_flow_volume = channel_manager:calculate_channel_flow_rate(channel)
+   local unused_volume = max_flow_volume - channel.queued_volume
 
-         if unused_volume > 0 then
-            local residual = self:_remove_water(unused_volume)
-            if residual == unused_volume then
-               -- we're done becuase no more water is available
-               return true
-            end
-            local flow_volume = unused_volume - residual
-            channel.queued_volume = channel.queued_volume + flow_volume
+   if unused_volume > 0 then
+      local residual = self:_remove_water(unused_volume)
+      if residual == unused_volume then
+         -- we're done becuase no more water is available
+         return true
+      end
+      local flow_volume = unused_volume - residual
+      channel.queued_volume = channel.queued_volume + flow_volume
 
-            if flow_volume > 0 then
-               log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
-            end
-         end
-
-         return false
-      end)
+      if flow_volume > 0 then
+         log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
+      end
+   end
 end
 
 function WaterComponent:_validate_channels()

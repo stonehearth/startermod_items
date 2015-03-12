@@ -248,7 +248,7 @@ private:
       core::Guard                 browserResizeGuard_;
       bool                        perf_hud_shown_;
       bool                        connected_;
-      bool                        enable_debug_cursor_;
+      std::string                 debug_cursor_mode_;
       bool                        save_stress_test_;
       platform::timer             save_stress_test_timer_;
       luabind::object             radiant_;

@@ -79,7 +79,7 @@ end
 function WaterTest:_water_test()
     stonehearth.calendar:set_interval(10, function()
          local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
-         --stonehearth.hydrology:add_water(3, location)
+         stonehearth.hydrology:add_water(1, location)
       end)
 end
 

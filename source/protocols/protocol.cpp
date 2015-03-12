@@ -51,6 +51,9 @@ void SendQueue::Push(google::protobuf::MessageLite const& msg)
    unsigned int requiredSize = msgSize + sizeof(uint32);
    BufferPtr buffer;
 
+   if (requiredSize >= SEND_BUFFER_SIZE) {
+      LOG(network, 0) << "buffer size " << requiredSize << " exceeds maximum of " << SEND_BUFFER_SIZE;
+   }
    ASSERT(requiredSize < SEND_BUFFER_SIZE);
 
    if (!_queue.empty() && (SEND_BUFFER_SIZE - _queue.back()->size > requiredSize)) {
