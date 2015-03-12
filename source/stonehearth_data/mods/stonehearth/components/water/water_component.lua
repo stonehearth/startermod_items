@@ -75,7 +75,7 @@ function WaterComponent:_add_water(world_location, volume)
    while volume > 0 do
       local current_layer = self._sv._current_layer:get():translated(entity_location)
       if current_layer:empty() then
-         log:warning('Current layer is empty/blocked. Water body may not be able to expand up. Unable to add water.')
+         log:debug('Current layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
          break
       end
 
@@ -102,6 +102,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
 
             local point = edge_region:get_closest_point(world_location)
+            local source_elevation_bias = 0
             local channel = nil
 
             -- TODO: incrementally update the new edge region
@@ -125,17 +126,21 @@ function WaterComponent:_add_water(world_location, volume)
                local source_adjacent_point = point
                local target_adjacent_point = current_layer:get_closest_point(point)
                channel = channel_manager:link_pressure_channel(self._entity, source_adjacent_point,
-                                                                     target_entity, target_adjacent_point)
+                                                               target_entity, target_adjacent_point)
+               source_elevation_bias = 0
             else
                local is_drop = not self:_is_blocked(point - Point3.unit_y)
                if is_drop then
                   -- establish a unidirectional link between the two water bodies using a waterfall channel
                   channel = channel_manager:link_waterfall_channel(self._entity, point)
+                  -- when adding water to the top layer, virtualize the source height because the added water
+                  -- has not contributed the height of the layer (which is zero since we are in wetting mode)
+                  source_elevation_bias = 1
                end
             end
 
             if channel then
-               volume = channel_manager:add_volume_to_channel(channel, volume, 1)
+               volume = channel_manager:add_volume_to_channel(channel, volume, source_elevation_bias)
                channel_region:add_point(point)
             else
                -- make this location wet

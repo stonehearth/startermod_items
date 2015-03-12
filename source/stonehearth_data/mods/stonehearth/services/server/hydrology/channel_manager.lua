@@ -182,11 +182,16 @@ end
 function ChannelManager:link_waterfall_channel(from_entity, from_location)
    local channel = self:get_channel(from_entity, from_location)
 
-   if channel and channel.channel_type ~= 'waterfall' then
-      assert(channel.channel_type == 'pressure')
-      -- this removes both directions of the pressure channel
-      self:remove_channel(channel)
-      channel = nil
+   if channel then
+      if channel.channel_type == 'waterfall' then
+         -- redundant from the get_channel call, but being paranoid
+         assert(channel.from_entity == from_entity)
+         assert(channel.from_location == from_location)
+      else
+         -- this removes both directions of the pressure channel
+         self:remove_channel(channel)
+         channel = nil
+      end
    end
 
    if not channel then
@@ -202,10 +207,10 @@ end
 -- the region of the source water body.
 function ChannelManager:link_pressure_channel(source_entity, source_adjacent_point, target_entity, target_adjacent_point)
    local forward_channel = self:_link_pressure_channel_unidirectional(source_entity, source_adjacent_point,
-                                                                             target_entity, source_adjacent_point)
+                                                                      target_entity, source_adjacent_point)
 
    local reverse_channel = self:_link_pressure_channel_unidirectional(target_entity, target_adjacent_point,
-                                                                             source_entity, target_adjacent_point)
+                                                                      source_entity, target_adjacent_point)
 
    forward_channel.paired_channel = reverse_channel
    reverse_channel.paired_channel = forward_channel
@@ -217,9 +222,17 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, from_
    -- note that the to_location is the same as the from_location
    local channel = self:get_channel(from_entity, from_location)
 
-   if channel and channel.channel_type ~= 'pressure' then
-      self:remove_channel(channel)
-      channel = nil
+   if channel then
+      if channel.channel_type == 'pressure' then
+         -- first two asserts are redundant from the get_channel call, but being paranoid
+         assert(channel.from_entity == from_entity)
+         assert(channel.from_location == from_location)
+         assert(channel.to_entity == to_entity)
+         assert(channel.to_location == to_location)
+      else
+         self:remove_channel(channel)
+         channel = nil
+      end
    end
 
    if not channel then
@@ -330,25 +343,32 @@ function ChannelManager:_create_water_queue_entry(entity, location, volume)
 end
 
 function ChannelManager:update_channel_types()
-   self:each_channel(function(channel)
-         assert(channel.queued_volume == 0)
-         local water_component = channel.to_entity:add_component('stonehearth:water')
-         local water_level = water_component:get_water_level()
-         local channel_height = channel.from_location.y
+   local channels = {}
 
-         if channel.channel_type == 'pressure' then
-            if water_level < channel_height then
-               self:link_waterfall_channel(channel.from_entity, channel.from_location)
-            end
-         elseif channel.channel_type == 'waterfall' then
-            if water_level > channel_height then
-               local target_adjacent_point = self:_get_best_channel_adjacent_point(channel.from_location, channel.from_entity)
-               self:link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
-            end
-         else
-            assert(false)
-         end
+   self:each_channel(function(channel)
+         table.insert(channels, channel)
       end)
+
+   -- loop over a separate collection since we're modifying the source
+   for _, channel in pairs(channels) do
+      assert(channel.queued_volume == 0)
+      local water_component = channel.to_entity:add_component('stonehearth:water')
+      local water_level = water_component:get_water_level()
+      local channel_height = channel.from_location.y
+
+      if channel.channel_type == 'pressure' then
+         if water_level < channel_height then
+            self:link_waterfall_channel(channel.from_entity, channel.from_location)
+         end
+      elseif channel.channel_type == 'waterfall' then
+         if water_level > channel_height then
+            local target_adjacent_point = self:_get_best_channel_adjacent_point(channel.from_entity, channel.from_location)
+            self:link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
+         end
+      else
+         assert(false)
+      end
+   end
 end
 
 function ChannelManager:update_channel_entities()
