@@ -26,7 +26,7 @@ WaterTightRegionBuilder::~WaterTightRegionBuilder()
 void WaterTightRegionBuilder::SetWaterTightRegion(om::Region3TiledPtr region,
                                                   dm::Boxed<csg::Region3f> *delta)
 {
-   _WaterTightRegionBuilder = region;
+   _tiles = region;
    _deltaAccumulator = delta;
 }
 
@@ -68,7 +68,7 @@ csg::Region3 WaterTightRegionBuilder::GetTileDelta(csg::Point3 const& index)
 
    // The change is simply the difference of the two shapes.
    csg::Region3 delta;
-   csg::Region3& last = *(_WaterTightRegionBuilder->GetTile(index));
+   csg::Region3& last = *(_tiles->GetTile(index));
    if (last.IsEmpty()) {
       delta = current;
    } else if (current.IsEmpty()) {
@@ -76,7 +76,7 @@ csg::Region3 WaterTightRegionBuilder::GetTileDelta(csg::Point3 const& index)
    } else {
       delta = (current - last) + (last - current);
    }
-   last = current;   // Modifies that actual tile data in _WaterTightRegionBuilder
+   last = current;   // Modifies that actual tile data in _tiles
 
    return delta;
 }
@@ -90,7 +90,7 @@ csg::Region3 WaterTightRegionBuilder::GetTileDelta(csg::Point3 const& index)
 void WaterTightRegionBuilder::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
 {
    csg::Point3 index = csg::GetChunkIndex<TILE_SIZE>(pt);
-   csg::Region3 const& shape = *_WaterTightRegionBuilder->GetTile(index);
+   csg::Region3 const& shape = *_tiles->GetTile(index);
    protocol::region3f* region = msg->add_region();
 
    csg::ToFloat(shape).SaveValue(region);
