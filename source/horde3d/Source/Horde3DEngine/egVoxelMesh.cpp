@@ -163,11 +163,16 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
 	
 	// Check triangles
    int oldBoneNum = -1;
+   Matrix4f closestM;
    Matrix4f m = _absTrans.inverted();
 	Vec3f orig = m * rayOrig;
 	Vec3f dir = m * (rayOrig + rayDir) - orig;
    std::unordered_map<int, SceneNode*> const& boneLookup = _parentModel->getBoneLookup();
-   for( uint32 i = getBatchStart(0); i < getBatchStart(0) + getBatchCount(0); i += 3 )
+
+   // Select the maximum LOD level for triangle iteration (since there will be fewer triangles!)
+   int maxLod = _geometryRes->clampLodLevel(2);
+
+   for( uint32 i = getBatchStart(maxLod); i < getBatchStart(maxLod) + getBatchCount(maxLod); i += 3 )
 	{
       int boneNum = (int)_geometryRes->getVertexData()[_geometryRes->_indexData[i + 0]].boneIndex;
 
@@ -191,12 +196,13 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
 			intersection = true;
 			if( (intsPos - orig).length() < (nearestIntsPos - orig).length() ) {
 				nearestIntsPos = intsPos;
+            closestM = m;
             intsNorm = (vert1 - vert0).cross(vert2 - vert1);
          }
 		}
 	}
 
-   intsPos = m.inverted() * nearestIntsPos;
+   intsPos = closestM.inverted() * nearestIntsPos;
 	
 	return intersection;
 }
