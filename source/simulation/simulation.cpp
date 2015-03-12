@@ -386,6 +386,7 @@ void Simulation::ShutdownGameObjects()
    error_browser_.reset();
    scriptHost_.reset();
 
+   waterTightRegionBuilder_.reset();
    freeMotion_.reset();
    octtree_.reset();
 }

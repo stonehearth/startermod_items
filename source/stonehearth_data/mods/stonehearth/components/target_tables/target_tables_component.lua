@@ -22,7 +22,7 @@ function TargetTables:get_target_table(table_name)
    local target_table = self._sv.target_tables[table_name]
 
    if target_table == nil then
-      target_table = radiant.create_controller('stonehearth:target_table')
+      target_table = radiant.create_controller('stonehearth:target_table', table_name)
       self._sv.target_tables[table_name] = target_table
    end
 
