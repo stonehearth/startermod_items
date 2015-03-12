@@ -10,7 +10,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class ApplyFreeMotionTask : public Task
 {
 public:
-   ApplyFreeMotionTask(Simulation& sim, om::MobRef mob);
+   ApplyFreeMotionTask(om::MobRef mob);
    virtual ~ApplyFreeMotionTask();
 
 public:

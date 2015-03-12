@@ -59,8 +59,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                     })
                                     ->PushObjectState();
 
-   std::shared_ptr<om::Region3MapWrapper> wrapper = std::make_shared<om::Region3MapWrapper>(_xray_region_tiles);
-   _xray_tiles_accessor = std::make_shared<om::Region3Tiled>(_tileSize, wrapper);
+   _xray_tiles_accessor = std::make_shared<om::Region3Tiled>(_tileSize, _xray_region_tiles);
 }
 
 RenderTerrain::~RenderTerrain()

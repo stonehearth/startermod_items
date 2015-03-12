@@ -30,7 +30,7 @@ App.StonehearthBulletinNotification = App.View.extend({
          }, bulletinNotificationDuration);
       }
 
-      self.$('#popup').click(function() {
+      self.$('#bulletinNotification').click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'});
          var bulletin = self.get('model');
          App.bulletinBoard.zoomToLocation(bulletin);

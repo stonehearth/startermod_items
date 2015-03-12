@@ -17,9 +17,7 @@ local CalendarService = class()
 
 function CalendarService:__init()
    self._constants = radiant.resources.load_json('/stonehearth/data/calendar/calendar_constants.json')
-   
-   self._time_tracker = radiant.lib.TimeTracker(self:get_elapsed_time())
-   
+ 
    -- build the TIME_UNIT_DURATION_S table containing how many seconds each unit of time is   
    TIME_INTERVALS.second = self._constants.seconds_per_minute
    TIME_INTERVALS.minute = self._constants.minutes_per_hour
@@ -40,14 +38,14 @@ end
 function CalendarService:initialize()
    self._sv = self.__saved_variables:get_data()
    
-   self._past_alarms = {}
-   self._future_alarms = {}
-   
    if not self._sv.date then
       --We're loading for the first time
       self._sv.date = {} -- the calendar data to export
       self._sv.start_time = {}
       self._sv.start_game_tick = 0
+      self._sv._time_tracker = radiant.create_controller('radiant:controllers:time_tracker')
+      self._sv._past_alarms = {}
+      self._sv._future_alarms = {}
 
       for _, unit in ipairs(TIME_UNITS) do
          self._sv.date[unit] = self._constants.start[unit]
@@ -188,56 +186,60 @@ function CalendarService:_create_timer(duration, fn, repeating)
    end
    assert(timeout_s >= 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
-   return self._time_tracker:set_timer(timeout_s, fn, repeating)
+   return self._sv._time_tracker:set_timer(timeout_s, fn, repeating)
 end
 
 -- alarms go off once a day
 function CalendarService:set_alarm(time, fn)
    assert(type(fn) == 'function')
    
-   local alarm = CalendarAlarm(time, fn)
+   local alarm = radiant.create_controller('stonehearth:calendar:alarm', time, fn)
    self:_queue_alarm(alarm)
    return alarm
 end
 
 function CalendarService:_queue_alarm(alarm)
    if alarm:get_expire_time() >= self._sv.seconds_today then
-      table.insert(self._future_alarms, alarm)
-      table.sort(self._future_alarms, function(l, r)
+      table.insert(self._sv._future_alarms, alarm)
+      table.sort(self._sv._future_alarms, function(l, r)
             return l:get_expire_time() < r:get_expire_time()
          end)
    else
-      table.insert(self._past_alarms, alarm)
+      table.insert(self._sv._past_alarms, alarm)
    end
+   self.__saved_variables:mark_changed()
 end
 
 function CalendarService:_fire_alarms(alarm)
    local now = self._sv.seconds_today
 
-   while #self._future_alarms > 0 do
-      local alarm = self._future_alarms[1]
+   while #self._sv._future_alarms > 0 do
+      local alarm = self._sv._future_alarms[1]
       if alarm:get_expire_time() > now then
          break
       end
-      table.remove(self._future_alarms, 1)
+      table.remove(self._sv._future_alarms, 1)
       if not alarm:is_dead() then
          alarm:fire()
-         table.insert(self._past_alarms, alarm)
+         table.insert(self._sv._past_alarms, alarm)
       end
    end
+   self.__saved_variables:mark_changed()
 end
 
 function CalendarService:_reset_all_alarms()
-   for _, alarm in pairs(self._past_alarms) do
+   for _, alarm in pairs(self._sv._past_alarms) do
       if not alarm:is_dead() then
          alarm:reset()
-         table.insert(self._future_alarms, alarm)
+         table.insert(self._sv._future_alarms, alarm)
       end
    end
-   self._past_alarms = {}
-   table.sort(self._future_alarms, function(l, r)
+   self._sv._past_alarms = {}
+   table.sort(self._sv._future_alarms, function(l, r)
          return l:get_expire_time() < r:get_expire_time()
       end)
+   self.__saved_variables:mark_changed()
+   
 end
 
 function CalendarService:get_constants()
@@ -274,7 +276,7 @@ function CalendarService:_on_event_loop(e)
    self._sv.date.date = self:format_date()
 
    self:_fire_alarms()
-   self._time_tracker:set_now(self:get_elapsed_time())
+   self._sv._time_tracker:set_now(self:get_elapsed_time())
 
    self.__saved_variables:mark_changed()
 

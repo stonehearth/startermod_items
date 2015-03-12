@@ -99,7 +99,7 @@ end
 function BuildScaffoldingManager:_destroy_builder(base, ladder_builder)
    assert(self._sv.ladder_builders[base:key_value()] == ladder_builder)
 
-   radiant.destroy_controller(ladder_builder)
+   ladder_builder:destroy()
    self._sv.ladder_builders[base:key_value()] = nil
    self.__saved_variables:mark_changed()
 end

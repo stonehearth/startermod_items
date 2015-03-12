@@ -9,10 +9,11 @@
 BEGIN_RADIANT_AUDIO_NAMESPACE
 
 class InputStream;
+class TrackInfo;
 
 const int DEF_UI_SFX_VOL = 50;
 const int DEF_MUSIC_VOL = 50;
-const int DEF_MUSIC_FADE = 1000; 
+const int DEF_MUSIC_FADE_IN = 1000; 
 const int DEF_MUSIC_LOOP = true;
 const int DEF_MUSIC_CROSSFADE = true;
 

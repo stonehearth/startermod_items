@@ -12,30 +12,30 @@ function events.__init()
    events._senders = {}
    events._async_triggers = {}
    events._dead_listeners = {}
+end
 
-   events.listen_once(radiant, 'radiant:init', function()
-      -- These events should be deleted and each client should just set a calendar or real-time timer
-      -- according to their needs. Using the events below just bunches up the processing onto a single
-      -- gameloop causing periodic stuttering.
+function events.create_listeners()   
+   -- These events should be deleted and each client should just set a calendar or real-time timer
+   -- according to their needs. Using the events below just bunches up the processing onto a single
+   -- gameloop causing periodic stuttering.
 
-      -- Fires five times a second.   
-      radiant.set_realtime_interval(200, function()
-            local now = { now = radiant.gamestate.now() }
-            events.trigger(radiant, 'stonehearth:slow_poll', now)
-         end)
+   -- Fires five times a second.   
+   radiant.set_realtime_interval(200, function()
+         local now = { now = radiant.gamestate.now() }
+         events.trigger(radiant, 'stonehearth:slow_poll', now)
+      end)
 
-      --Fires once a second.
-      radiant.set_realtime_interval(1000, function()
-            local now = { now = radiant.gamestate.now() }
-            events.trigger(radiant, 'stonehearth:very_slow_poll', now)
-         end)
+   --Fires once a second.
+   radiant.set_realtime_interval(1000, function()
+         local now = { now = radiant.gamestate.now() }
+         events.trigger(radiant, 'stonehearth:very_slow_poll', now)
+      end)
 
-      --Fires once a minute.
-      radiant.set_realtime_interval(1000 * 60, function()
-            local now = { now = radiant.gamestate.now() }
-            events.trigger(radiant, 'stonehearth:minute_poll', now)
-         end)
-   end)
+   --Fires once a minute.
+   radiant.set_realtime_interval(1000 * 60, function()
+         local now = { now = radiant.gamestate.now() }
+         events.trigger(radiant, 'stonehearth:minute_poll', now)
+      end)
 end   
 
 function events._convert_object_to_key(object)

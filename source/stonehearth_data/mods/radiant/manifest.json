@@ -5,5 +5,15 @@
    },
 
    "client_init_script" : "file(client)",
-   "server_init_script" : "file(server)"
+   "server_init_script" : "file(server)",
+
+   "controllers" :  {
+      "controllers:timer" : "file(controllers/timer_controller.lua)",
+      "controllers:time_tracker" : "file(controllers/time_tracker_controller.lua)"
+   },
+
+   "client_controllers" :  {
+      "controllers:timer" : "file(controllers/timer_controller.lua)",
+      "controllers:time_tracker" : "file(controllers/time_tracker_controller.lua)"
+   }
 }

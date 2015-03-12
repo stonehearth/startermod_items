@@ -1,3 +1,5 @@
+local TraceCategories = _radiant.dm.TraceCategories
+
 --[[
    Use this component to denote an entity that the player has
    placed in the world, but isn't actully yet constructed or placed
@@ -11,9 +13,49 @@ function GhostFormComponent:initialize(entity, json)
    self._entity = entity
 
    assert(not next(json), 'iconic_form components should not be specified in json files')
-   if not self._sv.root_entity then
+   if self._sv.root_entity then
+      self:_sync_player_ids()
+   else
       self._entity:set_debug_text(self._entity:get_debug_text() .. ' (ghost)')
    end
+end
+
+
+function GhostFormComponent:destroy()
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
+end
+
+function GhostFormComponent:_sync_player_ids()
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
+   self._unit_info_trace = self._entity:add_component('unit_info')
+                                          :trace_player_id('sync entity forms', TraceCategories.SYNC_TRACE)
+                                             :on_changed(function(player_id)
+                                                   self:_on_player_id_changed(player_id)
+                                                end)
+end
+
+function GhostFormComponent:_on_player_id_changed(player_id)
+   local function update_player_id(entity)
+      if radiant.entities.get_player_id(entity) ~= player_id then
+         radiant.entities.set_player_id(entity, player_id)
+      end
+   end
+   update_player_id(self._sv.root_entity)
+end
+
+function GhostFormComponent:_on_player_id_changed(player_id)
+   local function update_player_id(entity)
+      if radiant.entities.get_player_id(entity) ~= player_id then
+         radiant.entities.set_player_id(entit, player_id)
+      end
+   end
+   update_player_id(self._sv.root_entity)
 end
 
 function GhostFormComponent:get_root_entity()
@@ -24,6 +66,7 @@ function GhostFormComponent:set_root_entity(root_entity)
    assert(not self._sv.root_entity, 'root entity should be initialized exactly once')
    self._sv.root_entity = root_entity
    self.__saved_variables:mark_changed()
+   self:_sync_player_ids()
 
    -- some trivial error checking
    local uri = self._entity:get_uri()

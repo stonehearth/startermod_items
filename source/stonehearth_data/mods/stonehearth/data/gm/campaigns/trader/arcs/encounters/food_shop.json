@@ -2,11 +2,12 @@
    "type" : "encounter",
    "encounter_type" : "shop",
    "rarity" : "common",
+   "unique" : true,
 
    "in_edge"  : "spawn_shop",
 
    "shop_info" : {
-      "name" : "A passing caravan",
+      "name" : "A simple food cart",
       "title" : "A simple food cart rolls into town",
       "inventory" : {
          "items_matching" : {

@@ -26,8 +26,8 @@ using namespace ::radiant::simulation;
  *
  * Construct a new entity job scneduler.
  */
-EntityJobScheduler::EntityJobScheduler(Simulation& sim, om::EntityPtr entity) :
-   Job(sim, BUILD_STRING(*entity)),
+EntityJobScheduler::EntityJobScheduler(om::EntityPtr entity) :
+   Job(BUILD_STRING(*entity)),
    _recordPathfinderTimes(false),
    entity_(entity)
 {

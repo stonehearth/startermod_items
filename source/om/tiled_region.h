@@ -8,45 +8,52 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-// Abstracts operations on tile elements T in a map type
-template <typename T>
-class TileMapWrapper {
-public:
-   typedef std::function<void(csg::Region3&)> ModifyRegionFn;
-   typedef std::function<void(csg::Point3 const&, csg::Region3 const&)> EachTileCb;
+// Abstracts operations on tile elements T in a map type.  This class definition
+// exists solely for documentation purposes.  The actual code lives in template specializations
+// for each ContainerType.
 
-   TileMapWrapper() {}
-   virtual ~TileMapWrapper() {}
-   virtual void Clear() = 0;
-   virtual int NumTiles() const = 0;
-   virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) const = 0; // returns nulltr if not found
-   virtual std::shared_ptr<T> GetTile(csg::Point3 const& index) = 0; // creates tile if not found
-   virtual void EachTile(EachTileCb fn) const = 0;
-   virtual void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn) = 0;
-   virtual csg::Region3 const& GetTileRegion(std::shared_ptr<T> tile) const = 0;
+template <typename ContainerType> 
+class TiledRegionAdapter
+{
+public:
+   class TileType;
+
+   void Clear();
+   int NumTiles() const;
+   std::shared_ptr<TileType> FindTile(csg::Point3 const& index) const;
+   std::shared_ptr<TileType> GetTile(csg::Point3 const& index);
+   void EachTile(std::function<void(csg::Point3 const&, csg::Region3 const&)> fn) const;
+   void ModifyTile(csg::Point3 const& index, std::function<void(csg::Region3 &)> fn);
+   csg::Region3 const& GetTileRegion(std::shared_ptr<TileType> tile) const;
 };
 
 // Conventions for this class:
+//y
 //   indicies are always Point3
 //   parameters for modifying the region are always [base_type]3f
-template <typename T>
-class TiledRegion {
-public:
+//   tiles are always some form of integer region
+//
+template <typename ContainerType, typename TileType>
+class TiledRegion
+{
+public:     // types
+   typedef TileType TileType;
+   typedef ContainerType ContainerType;
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> IndexSet;
    typedef std::function<void(csg::Region3f const&)> ModifiedCb;
-
-   TiledRegion(csg::Point3 const& tile_size, std::shared_ptr<TileMapWrapper<T>> tile_wrapper);
+   
+public:     // public methods
+   TiledRegion(csg::Point3 const& tileSize, ContainerType& tiles);
 
    void SetModifiedCb(ModifiedCb modified_cb);
 
    bool IsEmpty() const;
    csg::Point3 GetTileSize() const;
-   std::shared_ptr<T> FindTile(csg::Point3 const& index) const; // returns nulltr if not found
-   std::shared_ptr<T> GetTile(csg::Point3 const& index); // creates tile if not found
-   void EachTile(typename TileMapWrapper<T>::EachTileCb fn) const;
+   TileType FindTile(csg::Point3 const& index) const;  // returns nulltr if not found
+   TileType GetTile(csg::Point3 const& index);         // creates tile if not found
    void Clear();
    void ClearTile(csg::Point3 const& index);
-   IndexSet const& GetChangedSet() const { return _changed_set; }
+   IndexSet const& GetChangedSet() const { return _changedSet; }
    void ClearChangedSet();
    void OptimizeChangedTiles();
 
@@ -68,8 +75,8 @@ public:
    int NumCubes() const;
 
    // keeping this inline as it gets messy otherwise
-   friend std::ostream& operator<<(std::ostream& out, TiledRegion const& tiled_region) {
-      out << tiled_region._tile_wrapper->NumTiles() << " tiles";
+   friend std::ostream& operator<<(std::ostream& out, TiledRegion const& t) {
+      out << t._tilemap.NumTiles() << " tiles";
       return out;
    }
 
@@ -78,58 +85,22 @@ private:
    void AddToChangedSet(csg::Point3 const& index);
    csg::Cube3f GetTileBounds(csg::Point3 const& index);
 
-   csg::Point3 _tile_size;
-   std::shared_ptr<TileMapWrapper<T>> _tile_wrapper;
-   IndexSet _changed_set;
-   ModifiedCb _modified_cb;
-};
-
-// Wrapper for an unordered_map of Region3
-class Region3MapWrapper : public TileMapWrapper<csg::Region3> {
-public:
-   typedef std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> TileMap;
-
-   Region3MapWrapper(TileMap& tiles);
-
-   void Clear();
-   int NumTiles() const;
-   std::shared_ptr<csg::Region3> FindTile(csg::Point3 const& index) const;
-   std::shared_ptr<csg::Region3> GetTile(csg::Point3 const& index);
-   void EachTile(EachTileCb fn) const;
-   void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn);
-   csg::Region3 const& GetTileRegion(std::shared_ptr<csg::Region3> tile) const;
-
 private:
-   TileMap& _tiles;
+   csg::Point3                         _tileSize;
+   TiledRegionAdapter<ContainerType>   _tilemap;
+   IndexSet                            _changedSet;
+   ModifiedCb                          _modifiedCb;
 };
 
-// Wrapper for a dm::Map of Region3Boxed
-class Region3BoxedMapWrapper : public TileMapWrapper<Region3Boxed> {
-public:
-   typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> TileMap;
+// Common template types.
+typedef std::unordered_map<csg::Point3, csg::Region3Ptr, csg::Point3::Hash> Region3PtrMap;
+typedef TiledRegion<Region3PtrMap, csg::Region3Ptr> Region3Tiled;
 
-   Region3BoxedMapWrapper(TileMap& tiles);
+typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> Region3BoxedPtrMap;
+typedef TiledRegion<Region3BoxedPtrMap, Region3BoxedPtr> Region3BoxedTiled;
 
-   void Clear();
-   int NumTiles() const;
-   Region3BoxedPtr FindTile(csg::Point3 const& index) const;
-   Region3BoxedPtr GetTile(csg::Point3 const& index);
-   void EachTile(EachTileCb fn) const;
-   void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn);
-   csg::Region3 const& GetTileRegion(Region3BoxedPtr tile) const;
-
-private:
-   TileMap& _tiles;
-   dm::Store& _store;
-};
-
-// typedef the common template types
-typedef TiledRegion<csg::Region3> Region3Tiled;
-typedef TiledRegion<Region3Boxed> Region3BoxedTiled;
-
-// and their shared pointers
-typedef std::shared_ptr<Region3Tiled> Region3TiledPtr;
-typedef std::shared_ptr<Region3BoxedTiled> Region3BoxedTiledPtr;
+DECLARE_SHARED_POINTER_TYPES(Region3Tiled)
+DECLARE_SHARED_POINTER_TYPES(Region3BoxedTiled)
 
 END_RADIANT_OM_NAMESPACE
 

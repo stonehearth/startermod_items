@@ -183,9 +183,16 @@ function entities.set_description(entity, description)
    end
 end
 
-function entities.get_player_id(entity)
-   local unit_info = entity:get_component('unit_info')
-   return unit_info and unit_info:get_player_id() or nil
+function entities.get_player_id(subject)
+   if radiant.util.is_a(subject, Entity) then
+      local entity = subject
+      local unit_info = entity:get_component('unit_info')
+      return unit_info and unit_info:get_player_id() or nil
+   end
+   if type(subject) == 'string' then
+      return subject
+   end
+   error(string.format('unexpected arg "%s" passed to get_player_id()', subject))
 end
 
 function entities.is_owned_by_player(entity, player_id)

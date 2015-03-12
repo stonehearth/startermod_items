@@ -7,11 +7,15 @@ mixin_class(Arc, Node)
 function Arc:initialize(info)
    self._sv._info = info
    self._sv.running_encounters = {}
-   self._log = radiant.log.create_logger('game_master.arc')
 end
 
 function Arc:restore()
 end
+
+function Arc:activate()
+   self._log = radiant.log.create_logger('game_master.arc')
+end
+
 
 -- start the arc.  this simply starts the encounter with the `start` edge_in
 --
@@ -81,6 +85,7 @@ end
 function Arc:_trigger_edge(edge_name, parent_node)
    self._log:info('triggering edge "%s"', edge_name)
 
+   local parent_ctx = parent_node:get_ctx()
    local running_encounters = self._sv.running_encounters
    local name, encounter = self._sv.encounters:elect_node(function(name, node)
          local in_edge = node:get_in_edge()
@@ -91,6 +96,10 @@ function Arc:_trigger_edge(edge_name, parent_node)
          local unique = node:get_is_unique()
          if unique and running_encounters[name] ~= nil then
             self._log:debug('skipping encounter "%s" (already running)', name)
+            return false
+         end
+         if not node:can_start(parent_ctx) then
+            self._log:debug('skipping encounter "%s" (cannot start)', name)
             return false
          end
          self._log:debug('found candidate encounter "%s"', name)
@@ -125,7 +134,7 @@ function Arc:_stop_encounter(name, encounter)
 
    self._sv.running_encounters[name] = nil
    encounter:stop()
-   --radiant.destroy_controller(encounter)
+   --encounter:destroy()
 end
 
 return Arc

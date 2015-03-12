@@ -28,6 +28,7 @@ class TerrainTileTracker;
 class MobTracker;
 class SensorTracker;
 class SensorTileTracker;
+class WaterTightRegionBuilder;
 
 DECLARE_SHARED_POINTER_TYPES(MovementGuardShapeTracker)
 DECLARE_SHARED_POINTER_TYPES(MovementModifierShapeTracker)

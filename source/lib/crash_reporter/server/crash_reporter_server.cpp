@@ -24,7 +24,6 @@ using namespace radiant;
 using namespace radiant::crash_reporter::server;
 
 static std::string const CRASH_DUMP_FILENAME = "crash.dmp";
-static std::string const HORDE_LOG_FILENAME = "gfx.log";
 static std::string const STONEHEARTH_LOG_FILENAME = "stonehearth.log";
 
 DEFINE_SINGLETON(CrashReporterServer);
@@ -87,8 +86,6 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    boost::filesystem::remove(new_dump_path);
    boost::filesystem::rename(old_dump_path, new_dump_path);
 
-   // Get Horde log
-   boost::filesystem::path horde_log_path = (old_dump_path.parent_path() / HORDE_LOG_FILENAME).string();
 
    // Get Stonehearth log
    boost::filesystem::path stonehearth_log_path = (old_dump_path.parent_path() / STONEHEARTH_LOG_FILENAME).string();
@@ -100,7 +97,6 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    // Create zip package
    std::vector<std::string> files;
    files.push_back(new_dump_path.string());
-   files.push_back(horde_log_path.string());
    files.push_back(stonehearth_log_path.string());
    CreateZip(zip_path.string(), files);
 
@@ -159,8 +155,12 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 }
 
-const int MAXSIZE = 148576;
-static char buffer[MAXSIZE];
+const int HALFSIZE = 128 * 1024;
+const int MAXSIZE = HALFSIZE * 2;
+
+static char buffer[HALFSIZE];
+static const char* MISSING_TEXT = "\n\r\n\r... middle of log file ...\n\r\n\r";
+
 // Extend this to package a list of files for submission
 void CrashReporterServer::CreateZip(std::string const& zip_filename, const std::vector<std::string>& files) const
 {
@@ -178,18 +178,24 @@ void CrashReporterServer::CreateZip(std::string const& zip_filename, const std::
       } else {
          try {
             std::ifstream infile;
-            infile.open(file, std::ifstream::in | std::ifstream::binary);
-            infile.seekg(-MAXSIZE, infile.end);
-            infile.read(buffer, MAXSIZE);
-            infile.close();
-
             std::ofstream outfile;
+
             if (boost::filesystem::exists(oversize_filename)) {
                boost::filesystem::remove(oversize_filename);
             }
+
+            infile.open(file, std::ifstream::in | std::ifstream::binary);
             outfile.open(oversize_filename, std::ofstream::out | std::ofstream::binary);
-            outfile.write(buffer, MAXSIZE);
-            outfile.write("\n", 1);
+
+            infile.read(buffer, HALFSIZE);
+            outfile.write(buffer, HALFSIZE);
+            outfile.write(MISSING_TEXT, strlen(MISSING_TEXT));
+
+            infile.seekg(-HALFSIZE, infile.end);
+            infile.read(buffer, HALFSIZE);
+            outfile.write(buffer, HALFSIZE);
+
+            infile.close();
             outfile.close();
 
             encoder.addFile(oversize_filename, unq_dump_filename);

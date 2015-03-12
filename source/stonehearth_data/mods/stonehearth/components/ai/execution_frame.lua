@@ -430,7 +430,7 @@ function ExecutionFrame:_do_destroy()
       self._carry_listener = nil
    end
    if self._debug_info then
-      radiant.destroy_datastore(self._debug_info)
+      self._debug_info:destroy()
       self._debug_info = nil
    end
 end
@@ -553,7 +553,7 @@ end
 
 function ExecutionFrame:destroy()
    self._log:spam('destroy')
-   self:_protected_call(function()   
+   self:_protected_call(function()
          self:_destroy()
          self:wait_until(DEAD)
       end)

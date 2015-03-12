@@ -71,4 +71,8 @@ function InventoryTracker:trace(reason)
    return self.__saved_variables:trace(reason)
 end
 
+function InventoryTracker:mark_changed()
+   return self.__saved_variables:mark_changed()
+end
+
 return InventoryTracker

@@ -1,6 +1,7 @@
 local build_util = require 'lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
+local TraceCategories = _radiant.dm.TraceCategories
 
 --[[
    Belongs to all objects that have been placed in the world,
@@ -18,6 +19,7 @@ function EntityFormsComponent:initialize(entity, json)
 
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            self:_sync_player_ids()
             self:_load_placement_task()
             if self._sv.should_restock then
                -- why do we need to set a 1000 ms timer just to get the effect to show up?
@@ -27,13 +29,36 @@ function EntityFormsComponent:initialize(entity, json)
                   end)
             end
          end)
-
    else
       self.__saved_variables:mark_changed()
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
             self:_post_create(json)
          end)
    end
+end
+
+function EntityFormsComponent:_sync_player_ids()
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
+   self._unit_info_trace = self._entity:add_component('unit_info')
+                                          :trace_player_id('sync entity forms', TraceCategories.SYNC_TRACE)
+                                             :on_changed(function(player_id)
+                                                   self:_on_player_id_changed(player_id)
+                                                end)
+end
+
+function EntityFormsComponent:_on_player_id_changed(player_id)
+   local function update_player_id(entity)
+      if entity then
+         if radiant.entities.get_player_id(entity) ~= player_id then
+            radiant.entities.set_player_id(entity, player_id)
+         end
+      end
+   end
+   update_player_id(self._sv.iconic_entity)
+   update_player_id(self._sv.ghost_entity)
 end
 
 function EntityFormsComponent:_post_create(json)
@@ -87,9 +112,15 @@ function EntityFormsComponent:_post_create(json)
                         :set_root_entity(self._entity)
                         :set_iconic_entity(iconic_entity)
    end
+   self:_sync_player_ids()
+   self._unit_info_trace:push_object_state()
 end
 
 function EntityFormsComponent:destroy()
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
    self:_destroy_placement_task()
 end
 

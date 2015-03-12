@@ -12,16 +12,15 @@ typedef unsigned int JobId;
 // Call back into the Simulation to measure how much time this job is taking
 #define MEASURE_JOB_TIME() \
    std::unique_ptr<perfmon::TimelineCounterGuard> __tg; \
-   if (GetSim().GetEnableJobLogging()) { \
-      __tg.reset(new perfmon::TimelineCounterGuard(GetSim().GetJobsPerfTimeline(), core::StaticString(GetName()))); \
+   if (Simulation::GetInstance().GetEnableJobLogging()) { \
+      __tg.reset(new perfmon::TimelineCounterGuard(Simulation::GetInstance().GetJobsPerfTimeline(), core::StaticString(GetName()))); \
    }
 
 class Job {
    public:
-      Job(Simulation& sim, std::string const& name);
+      Job(std::string const& name);
 
       std::string const& GetName() const;
-      Simulation& GetSim() const;
 
       JobId GetId() const;
       virtual bool IsFinished() const = 0;
@@ -32,7 +31,6 @@ class Job {
 
    private:
       static JobId                     _nextJobId;
-      Simulation&                      _sim;
       JobId                            _id;
       std::string                      _name;
 };

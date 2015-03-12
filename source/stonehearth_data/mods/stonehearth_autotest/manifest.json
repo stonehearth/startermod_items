@@ -12,6 +12,7 @@
    },
    
    "ui" :  {
-      "homepage" : "http://radiant/stonehearth/ui/root/index.html?skip_title=true)"
+      "skip_title" : true,
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html"
    }
 }

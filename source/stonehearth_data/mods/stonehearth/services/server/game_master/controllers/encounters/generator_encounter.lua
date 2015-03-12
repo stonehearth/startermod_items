@@ -3,7 +3,22 @@ local Entity = _radiant.om.Entity
 local GeneratorEncounter = class()
 
 function GeneratorEncounter:initialize()
+end
+
+function GeneratorEncounter:restore()
+end
+
+function GeneratorEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.generator')
+
+   if self._sv.timer then
+      self._sv.timer:bind(function()
+            self:_spawn_encounter()
+         end)         
+   end
+   if self._sv.source_entity then
+      self:_start_source_listener()
+   end
 end
 
 function GeneratorEncounter:start(ctx, info)
@@ -33,9 +48,10 @@ function GeneratorEncounter:start(ctx, info)
 end
 
 function GeneratorEncounter:stop()
-   if self._timer then
-      self._timer:destroy()
-      self._timer = nil
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
+      self.__saved_variables:mark_changed()
    end
    if self._source_listener then
       self._source_listener:destroy()
@@ -46,7 +62,7 @@ end
 function GeneratorEncounter:_spawn_encounter()
    local ctx = self._sv.ctx
 
-   self._log:info('spawning encounter')
+   self._log:info('spawning encounter at %s %s', stonehearth.calendar:format_time(), stonehearth.calendar:format_date())  
    ctx.arc:spawn_encounter(ctx, self._sv.spawn_edge)
    self:_start_timer()
 end
@@ -56,13 +72,14 @@ function GeneratorEncounter:_start_timer()
    
    self._log:info('setting generator timer for %s', tostring(delay))  
 
-   if self._timer then
-      self._timer:destroy()
+   if self._sv.timer then
+      self._sv.timer:destroy()
    end
-   self._timer = stonehearth.calendar:set_timer(delay, function()
-         self._log:info('spawning encounter at %s %s', stonehearth.calendar:format_time(), stonehearth.calendar:format_date())  
+
+   self._sv.timer = stonehearth.calendar:set_timer(delay, function()
          self:_spawn_encounter()
       end)
+   self.__saved_variables:mark_changed()
 end
 
 function GeneratorEncounter:_start_source_listener()
@@ -81,8 +98,8 @@ end
 
 function GeneratorEncounter:get_progress_cmd(session, response)
    local progress = {}
-   if self._timer then
-      progress.next_spawn_time = stonehearth.calendar:format_remaining_time(self._timer)
+   if self._sv.timer then
+      progress.next_spawn_time = stonehearth.calendar:format_remaining_time(self._sv.timer)
    end
    return progress;
 end

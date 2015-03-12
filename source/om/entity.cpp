@@ -45,7 +45,7 @@ void Entity::Destroy()
    // Our component datastores are manually allocated, so we manually destroy them, too.  (All
    // others go through 'sim'.
    for (auto& entry : lua_components_) {
-      entry.second->DestroyController();
+      entry.second->CallLuaDestructor();
    }
 }
 
@@ -158,7 +158,7 @@ void Entity::RemoveComponent(const char* name)
 
    auto i = lua_components_.find(name);
    if (i != lua_components_.end()) {
-      i->second->DestroyController();
+      i->second->CallLuaDestructor();
       lua_components_.Remove(name);
    }
 }

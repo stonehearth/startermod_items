@@ -18,8 +18,7 @@ using namespace ::radiant::simulation;
 
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, name_ << "(dst " << std::setw(5) << id_ << ")")
 
-PathFinderDst::PathFinderDst(Simulation& sim, AStarPathFinder& pathfinder, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb) :
-   sim_(sim),
+PathFinderDst::PathFinderDst(AStarPathFinder& pathfinder, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb) :
    dstEntity_(dst),
    srcEntity_(src),
    name_(name),
@@ -55,7 +54,8 @@ void PathFinderDst::Start()
          }
       };
 
-      auto& o = sim_.GetOctTree();
+      Simulation& sim = Simulation::GetInstance();
+      auto& o = sim.GetOctTree();
       auto mob = dstEntity->GetComponent<om::Mob>();
       if (mob) {
          transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
@@ -86,11 +86,12 @@ void PathFinderDst::ClipAdjacentToTerrain()
       if (!om::IsInWorld(dstEntity)) {
          PF_LOG(5) << *dstEntity << " is not in world.  Cannot use as destination in pathfinder!";
       } else {
-         world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, srcEntity, dstEntity);
+         world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(srcEntity, dstEntity);
          pathfinder_.WatchWorldRegion(world_space_adjacent_region_);
          PF_LOG(7) << "world space region for " << *dstEntity << " is " << world_space_adjacent_region_ << "(bounds:" << world_space_adjacent_region_.GetBounds() << ")";
 
-         phys::OctTree& octTree = sim_.GetOctTree();
+         Simulation& sim = Simulation::GetInstance();
+         phys::OctTree& octTree = sim.GetOctTree();
          octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, world_space_adjacent_region_);
          PF_LOG(7) << "standable world space region for " << *dstEntity << " is " << world_space_adjacent_region_ << "(bounds:" << world_space_adjacent_region_.GetBounds() << ")";
       }
@@ -99,11 +100,12 @@ void PathFinderDst::ClipAdjacentToTerrain()
 
 float PathFinderDst::EstimateMovementCost(csg::Point3f const& start) const
 {
+   Simulation& sim = Simulation::GetInstance();
    if (world_space_adjacent_region_.IsEmpty()) {
       return FLT_MAX;
    }
    csg::Point3f end = world_space_adjacent_region_.GetClosestPoint(start);
-   return sim_.GetOctTree().GetSquaredDistanceCost(csg::ToClosestInt(start), csg::ToClosestInt(end));
+   return sim.GetOctTree().GetSquaredDistanceCost(csg::ToClosestInt(start), csg::ToClosestInt(end));
 }
 
 bool PathFinderDst::GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const

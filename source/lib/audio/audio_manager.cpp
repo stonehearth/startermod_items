@@ -25,7 +25,10 @@ const float DEFAULT_PLAYER_EFX_VOL = 1.0f;
 
 
 //TODO: get the default volumes not from contstants, but from user-set saved files
-AudioManager::AudioManager()
+AudioManager::AudioManager() :
+   _lastUpdateTime(0),
+   _music("music"),
+   _ambient("ambient")
 {
    std::unordered_map<std::string, sf::SoundSource::AttenuationFunc> falloffLookup;
    falloffLookup["linear"] = sf::SoundSource::AttenuationFunc::Linear;
@@ -40,8 +43,10 @@ AudioManager::AudioManager()
    player_bgm_volume_ = config.Get("audio.bgm_volume", DEFAULT_PLAYER_BGM_VOL);
    player_efx_volume_ = config.Get("audio.efx_volume", DEFAULT_PLAYER_EFX_VOL);
 
-   bgm_channel_.SetPlayerVolume(player_bgm_volume_);
-   ambient_channel_.SetPlayerVolume(player_efx_volume_);
+   _music.SetPlayerVolume(player_bgm_volume_);
+   _ambient.SetPlayerVolume(player_efx_volume_);
+   _channels["music"] = &_music;
+   _channels["ambient"] = &_ambient;
 
    std::string attenFunc = config.Get("audio.attenuation_func", "inverse_clamp");
    sf::SoundSource::setAttenuationFunc(falloffLookup[attenFunc]);
@@ -59,10 +64,10 @@ AudioManager::~AudioManager()
 void AudioManager::SetPlayerVolume(float bgmVolume, float efxVolume)
 {
    player_bgm_volume_ = bgmVolume;
-   bgm_channel_.SetPlayerVolume(bgmVolume);
-
    player_efx_volume_ = efxVolume;
-   ambient_channel_.SetPlayerVolume(efxVolume);
+   
+   _channels["music"]->SetPlayerVolume(bgmVolume);
+   _channels["ambient"]->SetPlayerVolume(efxVolume);
 
    //TODO: the effects that play in the game have to get the volume from this class.
 
@@ -145,59 +150,29 @@ void AudioManager::CleanupSounds()
    sounds_.resize(c);
 }
 
-//Set some properties on the next piece of music that plays
-//TODO: use a vector and switch if there are ever more than 2 or 3 channels
-void AudioManager::SetNextMusicVolume(int volume, std::string const& channel)
+void AudioManager::PlayMusic(std::string const& channel, TrackInfo const& trackInfo)
 {
-    if (channel.compare("ambient") == 0) {
-       ambient_channel_.SetNextMusicVolume(volume);
-   } else {
-      bgm_channel_.SetNextMusicVolume(volume);
-   }
+   assert(_channels.find(channel) != _channels.end());
+   _channels[channel]->Play(trackInfo);
 }
 
-void AudioManager::SetNextMusicFade(int fade, std::string const& channel)
+void AudioManager::QueueMusic(std::string const& channel, TrackInfo const& trackInfo)
 {
-   if (channel.compare("ambient") == 0) {
-       ambient_channel_.SetNextMusicFade(fade);
-   } else {
-      bgm_channel_.SetNextMusicFade(fade);
-   }
-}
-
-void AudioManager::SetNextMusicLoop(bool loop, std::string const& channel)
-{
-   if (channel.compare("ambient") == 0) {
-       ambient_channel_.SetNextMusicLoop(loop);
-   } else {
-      bgm_channel_.SetNextMusicLoop(loop);
-   }
-}
-
-void AudioManager::SetNextMusicCrossfade(bool crossfade, std::string const& channel)
-{
-   if (channel.compare("ambient") == 0) {
-       ambient_channel_.SetNextMusicCrossfade(crossfade);
-   } else {
-      bgm_channel_.SetNextMusicCrossfade(crossfade);
-   }
-}
-
-//By default, play the music in the bgm channel. If something else
-//is specified (ambient) play it there instead.
-void AudioManager::PlayMusic(std::string const& track, std::string const& channel)
-{
-   if (channel.compare("ambient") == 0) {
-      ambient_channel_.PlayMusic(track);
-   } else {
-      bgm_channel_.PlayMusic(track);
-   }
+   assert(_channels.find(channel) != _channels.end());
+   _channels[channel]->Queue(trackInfo);
 }
 
 //Go through the music channels and call their update functions
 void AudioManager::UpdateAudio()
 {
    int current_time = platform::get_current_time_in_ms();
-   ambient_channel_.UpdateMusic(current_time);
-   bgm_channel_.UpdateMusic(current_time);
+   if (_lastUpdateTime == 0) {
+      _lastUpdateTime = current_time;
+   }
+   int dt = (current_time - _lastUpdateTime);
+   _lastUpdateTime = current_time;
+
+   for (auto& entry : _channels) {
+      entry.second->Update(dt);
+   }
 }

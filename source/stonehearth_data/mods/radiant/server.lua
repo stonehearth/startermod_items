@@ -18,35 +18,6 @@ function radiant.create_datastore(data)
    return datastore
 end
 
-function radiant.destroy_datastore(data)
-   _radiant.sim.destroy_datastore(data)
-end
-
-function radiant.create_controller(...)
-   local args = { ... }
-
-   local name = args[1]
-   args[1] = nil
-   local i = 2
-   while i <= table.maxn(args) do
-      args[i - 1] = args[i]
-      args[i] = nil
-      i = i + 1
-   end
-
-   local datastore = radiant.create_datastore()
-   local controller = datastore:create_controller('controllers', name)
-   if controller and controller.initialize then
-      controller:initialize(unpack(args, 1, table.maxn(args)))
-   end
-   return controller
-end
-
-function radiant.destroy_controller(c)
-   -- The destruction of the datastore will destroy the controller.
-   _radiant.sim.destroy_datastore(c.__saved_variables)
-end
-
 function radiant.exit(code)
    _host:exit(code)
 end
@@ -151,8 +122,22 @@ function radiant.update(profile_this_frame)
    end
 end
 
+local CONTROLLERS = {
+   'time_tracker'
+}
+
 radiant.events.listen(radiant, 'radiant:init', function(args)
       radiant._root_entity = _radiant.sim.get_object(1)
+
+      radiant._sv = radiant.__saved_variables:get_data()
+      for _, name in ipairs(CONTROLLERS) do
+         if not radiant._sv[name] then
+            radiant._sv[name] = radiant.create_controller('radiant:controllers:' .. name)
+         end
+      end
+      radiant.__saved_variables:mark_changed()
+
+      radiant.events.create_listeners()
    end)
 
 return radiant

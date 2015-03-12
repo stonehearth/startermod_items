@@ -1,3 +1,5 @@
+local TraceCategories = _radiant.dm.TraceCategories
+
 --[[
    Some items are created in the world and immediately exist.
    Other items are created as "icons" and don't have the properties of
@@ -18,9 +20,42 @@ function IconicFormComponent:initialize(entity, json)
    self._entity = entity
 
    assert(not next(json), 'iconic_form components should not be specified in json files')
-   if not self._sv.root_entity then
+   if self._sv.root_entity then
+      self:_sync_player_ids()
+   else
       self._entity:set_debug_text(self._entity:get_debug_text() .. ' (iconic)')
    end
+end
+
+function IconicFormComponent:destroy()
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
+end
+
+function IconicFormComponent:activate()
+end
+
+function IconicFormComponent:_sync_player_ids()
+   if self._unit_info_trace then
+      self._unit_info_trace:destroy()
+      self._unit_info_trace = nil
+   end
+   self._unit_info_trace = self._entity:add_component('unit_info')
+                                          :trace_player_id('sync entity forms', TraceCategories.SYNC_TRACE)
+                                             :on_changed(function(player_id)
+                                                   self:_on_player_id_changed(player_id)
+                                                end)
+end
+
+function IconicFormComponent:_on_player_id_changed(player_id)
+   local function update_player_id(entity)
+      if radiant.entities.get_player_id(entity) ~= player_id then
+         radiant.entities.set_player_id(entity, player_id)
+      end
+   end
+   update_player_id(self._sv.root_entity)
 end
 
 function IconicFormComponent:get_root_entity()
@@ -31,6 +66,7 @@ function IconicFormComponent:set_root_entity(root_entity)
    assert(not self._sv.root_entity, 'root entity should be initialized exactly once')
    self._sv.root_entity = root_entity
    self.__saved_variables:mark_changed()
+   self:_sync_player_ids()
 
    -- copy the unit_info if we're missing any bits
    local unit_info = self._entity:add_component('unit_info')

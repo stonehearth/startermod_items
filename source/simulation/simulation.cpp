@@ -51,6 +51,7 @@
 #include "lib/perfmon/frame.h"
 #include "lib/perfmon/namespace.h"
 #include "platform/sysinfo.h"
+#include "physics/water_tight_region_builder.h"
 
 // Uncomment this to only profile the pathfinding path in VTune
 // #define PROFILE_ONLY_PATHFINDING 1
@@ -63,18 +64,18 @@ namespace proto = ::radiant::tesseract::protocol;
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
 
-Simulation::Simulation(std::string const& versionStr) :
+DEFINE_SINGLETON(Simulation);
+
+Simulation::Simulation() :
    store_(nullptr),
    waiting_for_client_(true),
    noidle_(false),
    _tcp_acceptor(nullptr),
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
    begin_loading_(false),
-   _sequenceNumber(1),
-   _versionStr(versionStr)
+   _sequenceNumber(1)
 {
    OneTimeIninitializtion();
 }
@@ -109,8 +110,8 @@ void Simulation::OneTimeIninitializtion()
    // routes...
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
       json::Node args = f.args;
-      debug_navgrid_enabled_ = args.get<bool>("enabled", false);
-      if (debug_navgrid_enabled_) {
+      debug_navgrid_mode_ = args.get<std::string>("mode", "none");
+      if (debug_navgrid_mode_ != "none") {
          debug_navgrid_point_ = args.get<csg::Point3>("cursor", csg::Point3::zero);
          om::EntityPtr pawn = GetStore().FetchObject<om::Entity>(args.get<std::string>("pawn", ""));
 
@@ -241,10 +242,6 @@ void Simulation::OneTimeIninitializtion()
    });
 }
 
-std::string const& Simulation::GetVersion() const
-{
-   return _versionStr;
-}
 
 void Simulation::Initialize()
 {
@@ -297,7 +294,8 @@ void Simulation::InitializeDataObjectTraces()
 om::DataStoreRef Simulation::AllocDatastore()
 {
    auto datastore = GetStore().AllocObject<om::DataStore>();
-   datastoreMap_[datastore->GetObjectId()] = datastore;
+   dm::ObjectId id = datastore->GetObjectId();
+   datastoreMap_[id] = datastore;
    return datastore;
 }
 
@@ -315,7 +313,10 @@ void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
-   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(*this, octtree_->GetNavGrid()));
+   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
+   if (core::Config::GetInstance().Get<bool>("mods.stonehearth.enable_water", false)) {
+      waterTightRegionBuilder_ = std::unique_ptr<phys::WaterTightRegionBuilder>(new phys::WaterTightRegionBuilder(octtree_->GetNavGrid()));
+   }
 
    scriptHost_.reset(new lua::ScriptHost("server", [this](int storeId) {
       return AllocDatastore();
@@ -403,12 +404,13 @@ void Simulation::CreateGame()
    now_ = clock_->GetTime();
    modList_ = root_entity_->AddComponent<om::ModList>();
 
-   /*
-    * Stick a Mob on the root entity so there's a cached pointer there.  This greatly
-    * speeds up Mob::GetWorldGridLocation.  If Entity::IsCachedComponent always returned
-    * true, this wouldn't be a problem (sigh).
-    */
    root_entity_->AddComponent<om::Clock>();
+
+   om::TerrainPtr terrain = root_entity_->AddComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
@@ -582,14 +584,9 @@ om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
    return i != entityMap_.end() ? i->second : nullptr;
 }
 
-void Simulation::DestroyDatastore(dm::ObjectId id)
+void Simulation::RemoveDataStoreFromMap(dm::ObjectId id)
 {
-   auto i = datastoreMap_.find(id);
-   if (i != datastoreMap_.end()) {
-      om::DataStorePtr datastore = i->second;
-      datastore->DestroyController();
-      datastoreMap_.erase(i);
-   }
+   datastoreMap_.erase(id);
 }
 
 void Simulation::DestroyEntity(dm::ObjectId id)
@@ -655,7 +652,7 @@ void Simulation::AddJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
       dm::ObjectId id = entity->GetObjectId();
       auto i = entity_jobs_schedulers_.find(id);
       if (i == entity_jobs_schedulers_.end()) {
-         EntityJobSchedulerPtr ejs = std::make_shared<EntityJobScheduler>(*this, entity);
+         EntityJobSchedulerPtr ejs = std::make_shared<EntityJobScheduler>(entity);
          i = entity_jobs_schedulers_.insert(make_pair(id, ejs)).first;
          jobs_.push_back(ejs);
          SIM_LOG_GAMELOOP(5) << "created entity job scheduler " << ejs->GetId() << " for " << (*entity);
@@ -677,8 +674,12 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
          job->EncodeDebugShapes(msg);
       });
    }
-   if (debug_navgrid_enabled_) {
+   if (debug_navgrid_mode_ == "navgrid") {
       GetOctTree().GetNavGrid().ShowDebugShapes(debug_navgrid_point_, debug_navgrid_pawn_, msg);
+   } else if (debug_navgrid_mode_ == "water_tight") {
+      if (waterTightRegionBuilder_) {
+         waterTightRegionBuilder_->ShowDebugShapes(debug_navgrid_point_, msg);
+      }
    }
    for (auto const& cb : _bottomLoopFns)  {
       cb();
@@ -876,6 +877,9 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
       octtree_->GetNavGrid().UpdateGameTime(now_, game_tick_interval_);
+      if (waterTightRegionBuilder_) {
+         waterTightRegionBuilder_->UpdateRegion();
+      }
 
       scriptHost_->Trigger("radiant:gameloop:end");
    }
@@ -1115,6 +1119,13 @@ void Simulation::FinishLoadingGame()
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
 
+   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
+
+
    // Re-call SendClientUpdates().  This will send the data
    // for everything we just loaded to the client so it can get started re-creating its
    // state.  Notice that we do this *before* calling FinishLoadingGame so we can parallelize
@@ -1136,6 +1147,8 @@ void Simulation::FinishLoadingGame()
    std::vector<om::DataStorePtr> datastores;
    store_->TraceStore("sim")->OnAlloced([&datastores, this](dm::ObjectPtr obj) mutable {
       if (obj->GetObjectType() == om::DataStoreObjectType) {
+
+         dm::ObjectId id = obj->GetObjectId();
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
          datastores.emplace_back(ds);
          datastoreMap_[ds->GetObjectId()] = ds;
@@ -1169,7 +1182,7 @@ void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
                om::MobPtr mob = m.lock();
                if (mob) {
                   LOG(simulation.free_motion, 7) << "creating free motion task for entity " << id << " (no tasks exists yet)";
-                  entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob);
+                  entry.task = std::make_shared<ApplyFreeMotionTask>(mob);
                   tasks_.push_back(entry.task);
                }
             }

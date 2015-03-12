@@ -3,9 +3,14 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
+local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
+
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('game_master')
 
+local VISION_PADDING = Point2(16, 16)
 local CreateCamp = class()
 
 function CreateCamp:start(ctx, info)
@@ -54,13 +59,21 @@ function CreateCamp:_create_camp()
       ctx.npc_boss_entity = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
    end
 
+   local visible_rgn = Region2()
    for k, piece in pairs(info.pieces) do
       local uri = piece.info
       piece.info = radiant.resources.load_json(uri)
       assert(piece.info.type == 'camp_piece', string.format('camp piece at "%s" does not have type == camp_piece', uri))
       --table.insert(pieces[piece.info.size], piece)
-      self:_add_piece(piece)
+      self:_add_piece(piece, visible_rgn)
    end
+
+   -- add to the visible region for that player
+   stonehearth.terrain:get_explored_region(ctx.player_id)
+                           :modify(function(cursor)
+                                 cursor:add_region(visible_rgn)
+                              end)
+
 
    -- if there's a script associated with the mod, give it a chance to customize the camp
    if info.script then
@@ -71,14 +84,6 @@ function CreateCamp:_create_camp()
    
    -- camp created!  move onto the next encounter in the arc.
    ctx.arc:trigger_next_encounter(ctx)   
-end
-
-function CreateCamp:_create_piece(piece)
-   local x = piece.position.x
-   local z = piece.position.y
-   local rot = piece.rotation
-
-   self:_add_piece(x, z, rot, piece.info)
 end
 
 function CreateCamp:_destroy_find_location_timer()
@@ -142,7 +147,7 @@ function CreateCamp:_finalize_camp_location(location)
    self:_create_camp()
 end
 
-function CreateCamp:_add_piece(piece)
+function CreateCamp:_add_piece(piece, visible_rgn)
    local x = piece.position.x
    local z = piece.position.y
    local rot = piece.rotation
@@ -161,13 +166,15 @@ function CreateCamp:_add_piece(piece)
          if rot then
             radiant.entities.turn_to(entity, rot)
          end
+         self:_add_entity_to_visible_rgn(entity, visible_rgn)
       end
    end
 
    -- add all the people.
    if piece.info.citizens then
       for name, info in pairs(piece.info.citizens) do
-         game_master_lib.create_citizen(self._population, info, origin)
+         local citizen = game_master_lib.create_citizen(self._population, info, origin)
+         self:_add_entity_to_visible_rgn(citizen, visible_rgn)
       end
    end
 
@@ -177,6 +184,40 @@ function CreateCamp:_add_piece(piece)
       script:start(self._sv.ctx)
    end
 
+end
+
+function CreateCamp:_add_entity_to_visible_rgn(entity, visble_rgn)
+   local location = radiant.entities.get_world_grid_location(entity)
+   local pt = Point2(location.x, location.z)
+   visble_rgn:add_cube(Rect2(pt - VISION_PADDING, pt + VISION_PADDING))
+
+   local dst = entity:get_component('destination')
+   if dst then
+      self:_add_region_to_visble_rgn(entity, dst:get_region(), visble_rgn)
+   end
+   local rcs = entity:get_component('region_collision_shape')
+   if rcs then
+      self:_add_region_to_visble_rgn(entity, rcs:get_region(), visble_rgn)
+   end
+   local stockpile = entity:get_component('stockpile')
+   if stockpile then
+      local size = stockpile:get_size()
+      visble_rgn:add_cube(Rect2(size - VISION_PADDING, size + VISION_PADDING))
+   end
+
+end
+
+function CreateCamp:_add_region_to_visble_rgn(entity, rgn, visble_rgn)
+   if not rgn then
+      return
+   end
+
+   local world_rgn = radiant.entities.local_to_world(rgn:get(), entity)
+   for cube in world_rgn:each_cube() do
+      local min = Point2(cube.min.x, cube.min.z) - VISION_PADDING
+      local max = Point2(cube.max.x, cube.max.z) + VISION_PADDING
+      visble_rgn:add_cube(Rect2(min, max))
+   end
 end
 
 return CreateCamp

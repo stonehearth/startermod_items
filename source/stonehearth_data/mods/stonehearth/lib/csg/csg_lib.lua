@@ -215,7 +215,19 @@ function csg_lib._cube_touches_region(cube, region)
       return true
    end
 
+   local y_inflated = cube:inflated(Point3.unit_y)
+   if region:intersects_cube(y_inflated) then
+      return true
+   end
+
    return false
+end
+
+function csg_lib.get_non_diagonal_xz_inflated_region(region)
+   local inflated = Region3()
+   inflated:add_region(region:inflated(Point3.unit_x))
+   inflated:add_region(region:inflated(Point3.unit_z))
+   return inflated
 end
 
 return csg_lib

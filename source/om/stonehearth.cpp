@@ -37,6 +37,10 @@ Stonehearth::SetEntityForComponent(lua_State* L, luabind::object component, om::
       if (type(initialize_fn) == LUA_TFUNCTION) {
          initialize_fn(component, om::EntityRef(entity), json);
       }                  
+      object activate_fn = component["activate"];
+      if (type(activate_fn) == LUA_TFUNCTION) {
+         activate_fn(component, om::EntityRef(entity));
+      }                  
    } catch (std::exception const& e) {
       lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
       scriptHost->ReportCStackThreadException(L, e);

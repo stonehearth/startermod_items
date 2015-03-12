@@ -107,14 +107,15 @@ Client::Client() :
    perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
-   enable_debug_cursor_(false),
+   debug_cursor_mode_("none"),
    flushAndLoad_(false),
    initialUpdate_(false),
    save_stress_test_(false),
    debug_track_object_lifetime_(false),
    loading_(false),
    _lastSequenceNumber(0),
-   _nextSysInfoPostTime(0)
+   _nextSysInfoPostTime(0),
+   _currentUiScreen(InvalidScreen)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
 }
@@ -122,25 +123,6 @@ Client::Client() :
 Client::~Client()
 {
    Shutdown();
-}
-
-void Client::InitializeUI(std::string const& args)
-{
-   core::Config const& config = core::Config::GetInstance();
-   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
-   
-   std::string docroot;
-   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
-   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
-      docroot = manifest.get<std::string>("ui.homepage", "about:");
-   });
-   if (!args.empty()) {
-      if (docroot.find('?') == std::string::npos) {
-         docroot += '?';
-      }
-      docroot += args;
-   }
-   browser_->Navigate(docroot);
 }
 
 void Client::OneTimeIninitializtion()
@@ -178,6 +160,8 @@ void Client::OneTimeIninitializtion()
       browser_->OnScreenResize(r);
    });
 
+   InitializeUIScreen();
+
    if (config.Get("enable_flush_and_load", false)) {
       flushAndLoadDelay_ = config.Get("flush_and_load_delay", 1000);
       if (boost::filesystem::is_directory("mods/")) {
@@ -188,8 +172,7 @@ void Client::OneTimeIninitializtion()
                std::wstring washed(filename.c_str());
                std::wstring luaExt(L".lua");
                std::wstring jsonExt(L".json");
-               if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt))
-               {
+               if (boost::algorithm::ends_with(washed, luaExt) || boost::algorithm::ends_with(washed, jsonExt)) {
                   InitiateFlushAndLoad();
                }
             }
@@ -199,11 +182,16 @@ void Client::OneTimeIninitializtion()
 
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this](KeyboardInput const& kb) {
-         enable_debug_cursor_ = !enable_debug_cursor_;
-         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
-         if (!enable_debug_cursor_) {
+         const char* mode = kb.shift ? "water_tight" : "navgrid";
+         if (debug_cursor_mode_ != mode) {
+            debug_cursor_mode_ = mode;
+         } else {
+            debug_cursor_mode_ = "none";
+         }
+         if (debug_cursor_mode_ == "none") {
+            // toggle off
             json::Node args;
-            args.set("enabled", false);
+            args.set("mode", "none");
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
@@ -414,70 +402,20 @@ void Client::OneTimeIninitializtion()
       return result;
    });
 
-   core_reactor_->AddRoute("radiant:play_music", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_bgm");
-      try {         
-         json::Node node(f.args);
-         json::Node params = node.get_node(0);
-
-         audio::AudioManager &a = audio::AudioManager::GetInstance();
-         
-         //Get track, channel, and other optional data out of the node
-         //TODO: get the defaults from audio.cpp instead of 
-         std::string uri = "";
-         json::Node n(params.get_node("track"));
-         if (n.type() == JSON_STRING) {
-            uri = n.get_internal_node().as_string();
-         } else if (n.type() == JSON_NODE) {
-            JSONNode items = n.get("items", JSONNode());
-            csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
-            uint c = rng.GetInt<uint>(0, items.size() - 1);
-            ASSERT(c < items.size());
-            uri = items.at(c).as_string();
-         }
-         
-         std::string channel = params.get<std::string>("channel");
-
-         bool loop = params.get<bool>("loop", audio::DEF_MUSIC_LOOP);
-         a.SetNextMusicLoop(loop, channel);
-
-         int fade = params.get<int>("fade", audio::DEF_MUSIC_FADE);
-         a.SetNextMusicFade(fade, channel);
-
-         int vol = params.get<int>("volume", audio::DEF_MUSIC_VOL);
-         a.SetNextMusicVolume(vol, channel);
-
-         bool crossfade = params.get<bool>("crossfade", audio::DEF_MUSIC_CROSSFADE);
-         a.SetNextMusicCrossfade(crossfade, channel);
-         
-         a.PlayMusic(uri, channel);
-
-         result->ResolveWithMsg("success");
-      } catch (std::exception const& e) {
-         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
-      }
-      return result;
-   });
-
    core_reactor_->AddRoute("radiant:exit", [this](rpc::Function const& f) {
 	  TerminateProcess(GetCurrentProcess(), 0);
       return nullptr;
    });
 
-   core_reactor_->AddRoute("radiant:set_draw_world", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_draw_world");
-
-      try {
-         json::Node args(f.args);
-         bool drawWorld = args.get<bool>(0, false);
-         Renderer::GetInstance().SetDrawWorld(drawWorld);
-         result->ResolveWithMsg("success");
-      } catch (std::exception const& e) {
-         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
-      }
+   core_reactor_->AddRouteJ("radiant:get_current_ui_screen", [this](rpc::Function const& f) {
+      json::Node result;
+      result.set("screen", GetCurrentUIScreen());
       return result;
    });
 
+   core_reactor_->AddRouteV("radiant:show_game_screen", [this](rpc::Function const& f) {
+      SetCurrentUIScreen(GameScreen, true);
+   });
 
    core_reactor_->AddRoute("radiant:get_config_options", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:get_config_options");
@@ -595,6 +533,10 @@ void Client::OneTimeIninitializtion()
          }
          try {
             std::ifstream jsonfile((it->path() / "metadata.json").string());
+            if (!jsonfile.good()) {
+               CLIENT_LOG(3) << "ignoring directory \"" << name << "\" : no manifest.";
+               continue;
+            }
             JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
             json::Node entry;
             entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
@@ -878,7 +820,6 @@ void Client::run(int server_port)
    OneTimeIninitializtion();
    Initialize();
    CreateGame();
-   InitializeUI("");
 
    CLIENT_LOG(1) << "user feedback is " << (analytics::GetCollectionStatus() ? "on" : "off");
    
@@ -920,11 +861,13 @@ void Client::mainloop()
 
    PushPerformanceCounters();
    process_messages();
-   ProcessBrowserJobQueue();
 
    CLIENT_LOG(5) << "entering client main loop";
 
    Renderer::GetInstance().HandleResize();
+
+   perfmon::SwitchToCounter("browser queue");
+   ProcessBrowserJobQueue();
 
    if (!loading_) {
       perfmon::SwitchToCounter("update lua");
@@ -1069,14 +1012,12 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    if (initialUpdate_) {
       if (load_progress_deferred_) {
          if (loadError_.empty()) {
-            InitializeUI("state=load_finished");
+            SetCurrentUIScreen(GameScreen);
             load_progress_deferred_->Resolve(JSONNode("progress", 100.0));
          } else {
-            InitializeUI("");
+            SetCurrentUIScreen(TitleScreen);
             load_progress_deferred_->RejectWithMsg(loadError_);
-            Renderer::GetInstance().SetDrawWorld(false);
          }
-         Renderer::GetInstance().SetLoading(false);
          loading_ = false;
          loadError_.clear();
          load_progress_deferred_.reset();
@@ -1175,7 +1116,8 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
       if (obj->GetObjectType() == om::EntityObjectType) {
          std::static_pointer_cast<om::Entity>(obj)->Destroy();
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
-         std::static_pointer_cast<om::DataStore>(obj)->DestroyController();
+         // Don't call destroy.  We don't own it!
+         std::static_pointer_cast<om::DataStore>(obj)->CallLuaDestructor();
       }
    });
    if (initialUpdate_) {
@@ -1408,7 +1350,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
 
 void Client::UpdateDebugCursor()
 {
-   if (enable_debug_cursor_) {   
+   if (debug_cursor_mode_ != "none") {
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
@@ -1419,6 +1361,7 @@ void Client::UpdateDebugCursor()
          csg::Point3 pt = csg::ToInt(r.brick) + csg::ToInt(r.normal);
          om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
+         args.set("mode", debug_cursor_mode_);
          args.set("cursor", pt);
          if (selectedEntity) {
             args.set("pawn", selectedEntity->GetStoreAddress());
@@ -1427,7 +1370,7 @@ void Client::UpdateDebugCursor()
          CLIENT_LOG(5) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
-         args.set("enabled", false);
+         args.set("mode", "none");
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
       }
    }
@@ -1505,9 +1448,11 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
 
       if (std::regex_match(path, match, call_path_regex__)) {
          std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-         browserJobQueue_.emplace_back([=]() {
-            CallHttpReactor(path, query, postdata, response);
-         });
+         if (!loading_) {
+            browserJobQueue_.emplace_back([=]() {
+               CallHttpReactor(path, query, postdata, response);
+            });
+         }
          return;
       }
 
@@ -1569,17 +1514,14 @@ om::DataStoreRef Client::AllocateDatastore(int storeId)
       result = store_->AllocObject<om::DataStore>();   
    } else {
       result = authoringStore_->AllocObject<om::DataStore>();
-      datastoreMap_[result->GetObjectId()] = result;
+      dm::ObjectId id = result->GetObjectId();
+      datastoreMap_[id] = result;
    }
    return result;
 }
 
-void Client::DestroyDatastore(dm::ObjectId id) {
-   auto ds = datastoreMap_.find(id);
-   if (ds != datastoreMap_.end()) {
-      ds->second->DestroyController();
-      datastoreMap_.erase(ds);
-   }
+void Client::RemoveDataStoreFromMap(dm::ObjectId id) {
+   datastoreMap_.erase(id);
 }
 
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
@@ -1613,11 +1555,25 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
 
 void Client::ProcessBrowserJobQueue()
 {
-   perfmon::TimelineCounterGuard tcg("process job queue") ;
-
    std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-   for (const auto &fn : browserJobQueue_) {
-      fn();
+   perfmon::TimelineCounterGuard tcg("process job queue");
+
+   // Pump the browser queue until we get into the loading state,
+   // then bail.  We release the lock before calling the callback
+   // so new browser events can come in and to avoid deadlocks in
+   // case resolving a deferred somehow, magically, ends up trying
+   // to stick something else on the back of our queue, too.
+   //
+   while (!loading_ && !browserJobQueue_.empty()) {
+      std::function<void()> cb = browserJobQueue_.front();
+      browserJobQueue_.pop_front();
+      browserJobQueueLock_.unlock();
+      try {
+         cb();
+      } catch (std::exception const&e) {
+         CLIENT_LOG(0) << "error in browser job callback: " << e.what();
+      }
+      browserJobQueueLock_.lock();
    }
    browserJobQueue_.clear();
 }
@@ -1633,7 +1589,11 @@ void Client::EnableDisableSaveStressTest()
    
 void Client::ReloadBrowser()
 {
-   InitializeUI("");
+   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+
+   std::string uri = BUILD_STRING(_uiDocroot << "?current_screen=" << GetCurrentUIScreen());
+   browserJobQueue_.clear();
+   browser_->Navigate(uri);
 }
 
 void Client::RequestReload()
@@ -1756,7 +1716,7 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_.reset();
    });
 
-   Renderer::GetInstance().SetLoading(true);
+   SetCurrentUIScreen(LoadingScreen);
    Shutdown();
    Initialize();
 
@@ -1810,8 +1770,9 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
          authoredEntities_[id] = std::static_pointer_cast<om::Entity>(obj);
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
+         dm::ObjectId id = ds->GetObjectId();
          datastores.emplace_back(ds);
-         datastoreMap_[ds->GetObjectId()] = ds;
+         datastoreMap_[id] = ds;
       }
    })->PushStoreState();   
 
@@ -1845,8 +1806,26 @@ void Client::CreateGame()
 
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->CreateGame(localModList_);
-
    initialUpdate_ = true;
+}
+
+void Client::InitializeUIScreen()
+{
+   core::Config const& config = core::Config::GetInstance();
+   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
+
+   bool skipTitle;
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
+      _uiDocroot = manifest.get<std::string>("ui.homepage", "about:");
+      skipTitle = manifest.get<bool>("ui.skip_title", false);
+   });
+
+   if (!skipTitle) {
+      SetCurrentUIScreen(TitleScreen);
+   } else {
+      SetCurrentUIScreen(GameScreen);
+   }
 }
 
 void Client::CreateErrorBrowser()
@@ -1933,3 +1912,34 @@ void Client::ReportSysInfo()
       CLIENT_LOG(1) << "failed to update sysinfo:" << e.what();
    }
 }
+
+const char* Client::GetCurrentUIScreen() const
+{
+   const char *screens[] = {
+      "title_screen",
+      "game_screen",
+      "loading_screen",
+   };
+   ASSERT(_currentUiScreen >= 0 && _currentUiScreen < ARRAY_SIZE(screens));
+
+   return screens[_currentUiScreen];
+}
+
+void Client::SetCurrentUIScreen(UIScreen screen, bool browserRequested)
+{
+   if (screen == _currentUiScreen) {
+      return;
+   }
+
+   _currentUiScreen = screen;
+   Renderer& r = Renderer::GetInstance();
+   r.SetLoading(screen == LoadingScreen);
+   r.SetDrawWorld(screen == GameScreen);
+   if (scriptHost_) {
+      scriptHost_->Trigger("radiant:client:ui_screen_changed");
+   }
+   if (!browserRequested) {
+      ReloadBrowser(); // Technically, can't we just trigger?
+   }
+}
+

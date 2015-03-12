@@ -7,10 +7,32 @@ function Shop:__init()
 end
 
 function Shop:initialize(player_id)
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+
    self._sv.player_id = player_id
    self._sv.options = {}
    self._sv.level_range = { min = -1, max = -1}
+   self._sv.sellable_items = inventory:get_item_tracker('stonehearth:sellable_item_tracker')
+   self._sv._inventory = inventory
    self.__saved_variables:mark_changed()
+end
+
+function Shop:activate()
+   local inventory = self._sv._inventory
+   self._gold_trace = inventory:trace_gold('updating shop')
+                                    :on_changed(function(gold)
+                                          self._sv.gold = gold
+                                          self.__saved_variables:mark_changed()
+                                       end)
+                                    :push_object_state()
+
+end
+
+function Shop:destroy()
+   if self._gold_trace then
+      self._gold_trace:destroy()
+      self._gold_trace = nil
+   end
 end
 
 function Shop:get_name()
@@ -177,12 +199,8 @@ function Shop:stock_shop()
             num = 99,
          }
       end
-
       -- Repeat until the total combined cost of all the items exceeds the Shops max inventory net worth
    end
-
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-
    self.__saved_variables:mark_changed()
 end
 
@@ -191,8 +209,7 @@ function Shop:buy_item(uri, quantity)
    local all_sellable_items = stonehearth.shop:get_sellable_items()
    
    -- do we have enough gold?
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-   local gold = inventory:get_gold_count()
+   local gold = self._sv._inventory:get_gold_count()
    local item_cost = self._sv.shop_inventory[uri].cost
 
    -- can't buy more than what's in the shop
@@ -215,7 +232,7 @@ function Shop:buy_item(uri, quantity)
    self.__saved_variables:mark_changed()
 
    -- deduct gold from the player
-   inventory:subtract_gold(total_cost)
+   self._sv._inventory:subtract_gold(total_cost)
 
    -- spawn the item on the ground
    self:_spawn_items(uri, buy_quantity)
@@ -226,16 +243,15 @@ function Shop:buy_item_command(session, response, uri, quantity)
    local success = self:buy_item(uri, quantity)
    if success then
       response:resolve({})
-   else 
-      response:reject({})
+      return
    end
+   response:reject({})
 end
 
 function Shop:sell_item(uri, quantity)
    local sell_quantity = quantity or 1
 
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-   local sellable_items = inventory:get_items_of_type(uri)
+   local sellable_items = self._sv._inventory:get_items_of_type(uri)
 
    local item_cost
    local total_gold = 0
@@ -257,7 +273,7 @@ function Shop:sell_item(uri, quantity)
    end
 
    -- deduct gold from the player
-   inventory:add_gold(total_gold)
+   self._sv._inventory:add_gold(total_gold)
    return true
 end
 
@@ -281,23 +297,19 @@ function Shop:_spawn_items(uri, quantity)
 
    local items = {}
    items[uri] = quantity
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
+   items = radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
 
-   return true
-end
-
-function Shop:_spawn_items(uri, quantity)
-   --Add the new items to the space near the banner
-   local town = stonehearth.town:get_town(self._sv.player_id)
-   local banner = town:get_banner()
-   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
-   if not drop_origin then
-      return false
+   -- add the item to the inventory immediately so anyone displaying the 'gold' amount
+   -- will see it update immediately
+   local inventory = self._sv._inventory
+   for _, item in pairs(items) do
+      local root, iconic, _ = entity_forms.get_forms(item)
+      if iconic then
+         inventory:add_item(iconic)
+      elseif root then
+         inventory:add_item(root)
+      end
    end
-
-   local items = {}
-   items[uri] = quantity
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
 
    return true
 end

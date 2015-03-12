@@ -101,7 +101,10 @@ function CombatService:battery(context)
    local max_health = attributes_component:get_attribute('max_health')
    local health = attributes_component:get_attribute('health')
    local damage = context.damage
-   local target_exp = attributes_component:get_attribute('exp_per_hit')
+   local target_exp = attributes_component:get_attribute('exp_per_hit') 
+   if target_exp == 0 then
+      target_exp = nil
+   end
 
    if max_health ~= nil then
       if damage >= max_health * self._hit_stun_damage_threshold then
@@ -268,7 +271,9 @@ function CombatService:_set_assaulting(entity, assaulting)
    end
 
    local combat_state = self:get_combat_state(entity)
-   return combat_state:set_assaulting(assaulting)
+   if combat_state then
+      combat_state:set_assaulting(assaulting)
+   end
 end
 
 function CombatService:get_defending(entity)

@@ -391,6 +391,7 @@
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
       "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
       "weapons:giant_bone_axe" : "file(entities/weapons/giant_bone_axe)",
+      "weapons:two_handed_sword" : "file(entities/weapons/two_handed_sword)",
       "weapons:dagger" : "file(entities/weapons/dagger)",
 
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
@@ -837,7 +838,7 @@
       "sounds:blacksmith_hammer_01" : "file(data/sounds/effects/sh_blacksmith_hammer_01.wav)",
       "sounds:blacksmith_hammer_02" : "file(data/sounds/effects/sh_blacksmith_hammer_02.wav)",
       "sounds:blacksmith_hammer_03" : "file(data/sounds/effects/sh_blacksmith_hammer_03.wav)",
-
+      "sounds:combat_finished"     : "file(data/sounds/effects/sh_combat_finished.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
@@ -847,7 +848,10 @@
       "music:levelmusic_spring_night_02"     : "file(data/music/levelmusic_spring_night_02.ogg)",
       "music:daybreak_stinger_01"     : "file(data/music/daybreak_stinger_01.ogg)",
       "music:daybreak_stinger_01"     : "file(data/music/daybreak_stinger_02.ogg)",
-      "music:nightfall_stinger_01"     : "file(data/music/nightfall_stinger_01.ogg)",
+      "music:combat_start"       : "file(data/music/combat_start.ogg)",
+      "music:combat_theme_a"     : "file(data/music/combat_theme_a.ogg)",
+      "music:combat_theme_b"     : "file(data/music/combat_theme_b.ogg)",
+      "music:combat_theme_c"     : "file(data/music/combat_theme_c.ogg)",
 
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
@@ -1263,6 +1267,10 @@
          "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
          "endpoint" : "server"
       },
+      "mark_bulletin_shown" : {
+        "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
+         "endpoint" : "server" 
+      },
       "trigger_bulletin_event": {
          "controller" : "file(call_handlers/bulletin_board_call_handler.lua)",
          "endpoint" : "server"
@@ -1348,6 +1356,7 @@
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
+      "channel_manager" : "file(services/server/hydrology/channel_manager.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
 
@@ -1371,7 +1380,9 @@
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
-      "unit_control:party" : "file(services/server/unit_control/party.lua)"
+      "unit_control:party" : "file(services/server/unit_control/party.lua)",
+
+      "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)"
    },
 
    "client_controllers" :  {

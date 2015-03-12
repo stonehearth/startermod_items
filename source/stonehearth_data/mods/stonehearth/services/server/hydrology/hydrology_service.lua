@@ -1,4 +1,5 @@
 local csg_lib = require 'lib.csg.csg_lib'
+local ChannelManager = require 'services.server.hydrology.channel_manager'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -10,13 +11,9 @@ HydrologyService = class()
 function HydrologyService:initialize()
    self._sv = self.__saved_variables:get_data()
 
-   -- constant converting pressure to a flow rate per unit cross section
-   self._pressure_to_flow_rate = 1
-   self._min_flow_rate = 0.01
-
    if not self._sv._initialized then
       self._sv._water_bodies = {}
-      self._sv._channels = {}
+      self._sv._channel_manager = radiant.create_controller('stonehearth:channel_manager')
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -32,12 +29,19 @@ function HydrologyService:initialize()
 end
 
 function HydrologyService:destroy()
+   radiant.destroy_controller(self._sv._channel_manager)
+
    self:_destroy_terrain_delta_trace()
+end
+
+function HydrologyService:get_channel_manager()
+   return self._sv._channel_manager
 end
 
 function HydrologyService:_trace_terrain_delta()
    local terrain_component = radiant._root_entity:add_component('terrain')
-   self._delta_trace = terrain_component:trace_delta_region('hydrology service', TraceCategories.SYNC_TRACE)
+   self._water_tight_region = terrain_component:get_water_tight_region()
+   self._delta_trace = terrain_component:trace_water_tight_region_delta('hydrology service', TraceCategories.SYNC_TRACE)
       :on_changed(function(delta_region)
             self:_on_terrain_changed(delta_region)
          end)
@@ -57,12 +61,14 @@ function HydrologyService:_on_terrain_changed(delta_region)
       return
    end
 
+   local channel_manager = self:get_channel_manager()
+
    for id, entity in pairs(self._sv._water_bodies) do
       -- fast-ish rejection test to see if the delta region modifies the water region or its container
       if self:_bounds_intersects_water_body(inflated_delta_bounds, entity) then
          local modified_water_region = self:_get_affected_water_region(delta_region, entity)
          for point in modified_water_region:each_point() do
-            if radiant.terrain.is_terrain(point) then
+            if self._water_tight_region:contains_point(point) then
                -- TODO: merge may have occured
                -- TODO: check for unused volume
                -- TODO: check for bisection at end
@@ -73,34 +79,58 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
          local modified_container_region = self:_get_affected_container_region(delta_region, entity)
          for point in modified_container_region:each_point() do
-            if not radiant.terrain.is_terrain(point) then
+            if not self._water_tight_region:contains_point(point) then
                local target_entity = self:create_water_body(point)
-               local target_adjacent_point = self:_get_closest_point_to(point, entity)
+               local target_adjacent_point = self:_get_best_channel_adjacent_point(point, entity)
                local channel
 
                if point.y == target_adjacent_point.y then
-                  channel = self:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
+                  channel = channel_manager:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
                else
                   -- TODO: handle vertical case
-                  channel = self:link_waterfall_channel(entity, point)
+                  channel = channel_manager:link_waterfall_channel(entity, point)
                end
 
                -- TODO: we should probably add_volume_to_channel here
             end
          end
+
+         -- TODO: remove channels that are no longer adjacent to the entity
       end
    end
 end
 
--- point and result are in world coordinates
-function HydrologyService:_get_closest_point_to(world_point, entity)
-   local water_component = entity:add_component('stonehearth:water')
+-- can be faster if necessary
+function HydrologyService:_get_best_channel_adjacent_point(point, entity)
    local entity_location = radiant.entities.get_world_grid_location(entity)
-   local local_point = world_point - entity_location
+   local water_component = entity:add_component('stonehearth:water')
    local water_region = water_component:get_region():get()
-   local local_closest_point = water_region:get_closest_point(local_point)
-   local closest_point = local_closest_point:translated(entity_location)
-   return closest_point
+
+   local point_region = Region3()
+   point_region:add_point(point - entity_location)
+   local adjacent = nil
+
+   local inflated = csg_lib.get_non_diagonal_xz_inflated_region(point_region)
+   local intersection = inflated:intersect_region(water_region)
+   if not intersection:empty() then
+      adjacent = intersection:get_closest_point(point)
+   end
+
+   if not adjacent then
+      inflated = point_region:inflated(Point3.unit_y)
+      intersection = inflated:intersect_region(water_region)
+      if not intersection:empty() then
+         adjacent = intersection:get_closest_point(point)
+      end
+   end
+
+   if not adjacent then
+      -- point is not adjacent to entity
+      assert(false)
+   end
+
+   local world_adjacent = adjacent + entity_location
+   return world_adjacent
 end
 
 -- bounds are in world coordinates
@@ -183,7 +213,7 @@ function HydrologyService:create_water_body(location)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = entity
-   self._sv._channels[id] = {}
+   self._sv._channel_manager:allocate_channels(entity)
    radiant.terrain.place_entity_at_exact_location(entity, location)
    self.__saved_variables:mark_changed()
 
@@ -211,7 +241,7 @@ function HydrologyService:remove_water_body(entity)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = nil
-   self._sv._channels[id] = nil
+   self._sv._channel_manager:deallocate_channels(entity)
    self.__saved_variables:mark_changed()
 end
 
@@ -250,227 +280,13 @@ function HydrologyService:remove_water(volume, location, entity)
    return volume
 end
 
-function HydrologyService:link_waterfall_channel(from_entity, from_location)
-   local channel = stonehearth.hydrology:get_channel(from_entity, from_location)
-
-   if channel and channel.channel_type ~= 'waterfall' then
-      stonehearth.hydrology:remove_channel(from_entity, from_location)
-      channel = nil
-   end
-
-   if not channel then
-      local to_entity, to_location = self:_get_waterfall_target(from_location)
-      local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
-      channel = self:_add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
-   end
-   return channel
-end
-
-function HydrologyService:_get_waterfall_target(from_location)
-   local to_location = radiant.terrain.get_point_on_terrain(from_location)
-   local to_entity = self:get_water_body(to_location)
-   if not to_entity then
-      to_entity = self:create_water_body(to_location)
-   end
-   return to_entity, to_location
-end
-
--- Confusing, but the source_adjacent_point is inside the target and the target_adjacent_point
--- is inside the source. This is because the from_location of the channel is defined to be outside
--- the region of the source water body.
-function HydrologyService:link_pressure_channel(source_entity, source_adjacent_point, target_entity, target_adjacent_point)
-   local forward_channel = self:_link_pressure_channel_unidirectional(source_entity, source_adjacent_point,
-                                                                      target_entity, source_adjacent_point)
-
-   local reverse_channel = self:_link_pressure_channel_unidirectional(target_entity, target_adjacent_point,
-                                                                      source_entity, target_adjacent_point)
-
-   return forward_channel
-end
-
-function HydrologyService:_link_pressure_channel_unidirectional(from_entity, from_location, to_entity, to_location)
-   -- note that the to_location is the same as the from_location
-   local channel = stonehearth.hydrology:get_channel(from_entity, from_location)
-
-   if channel and channel.channel_type ~= 'pressure' then
-      stonehearth.hydrology:remove_channel(from_entity, from_location)
-      channel = nil
-   end
-
-   if not channel then
-      channel = self:_add_channel(from_entity, from_location, to_entity, to_location, 'pressure', nil)
-   end
-   return channel
-end
-
-function HydrologyService:get_channel(from_entity, from_location)
-   local channels = self:get_channels(from_entity)
-   local key = self:_point_to_key(from_location)
-   local channel = channels[key]   
-   return channel
-end
-
-function HydrologyService:get_channels(from_entity)
-   local channels = self._sv._channels[from_entity:get_id()]
-   return channels
-end
-
-function HydrologyService:remove_channel(from_entity, from_location)
-   local channels = self:get_channels(from_entity)
-   local key = self:_point_to_key(from_location)
-   local channel = channels[key]
-
-   log:debug('Removing %s channel from %s at %s', channel.channel_type, from_entity, from_location)
-
-   if not channel then
-      return
-   end
-
-   channels[key] = nil
-   self:_destroy_channel(channel)
-
-   self.__saved_variables:mark_changed()
-end
-
-function HydrologyService:_destroy_channel(channel)
-   if channel.channel_entity then
-      radiant.entities.destroy_entity(channel.channel_entity)
-   end
-end
-
-function HydrologyService:sort_channels_ascending(channels)
-   local meta_channels = {}
-   for _, channel in pairs(channels) do
-      -- extract the elevation so we don't keep going to c++ during the sort
-      table.insert(meta_channels, { channel = channel, elevation = channel.from_location.y })
-   end
-
-   table.sort(meta_channels, function(a, b)
-         return a.elevation < b.elevation
-      end)
-
-   local sorted_channels = {}
-   for _, entry in ipairs(meta_channels) do
-      table.insert(sorted_channels, entry.channel)
-   end
-
-   return sorted_channels
-end
-
-function HydrologyService:_each_channel(callback_fn)
-   for id, channels in pairs(self._sv._channels) do
-      for _, channel in pairs(channels) do
-         local stop = callback_fn(channel)
-         if stop then
-            return
-         end
-      end
-   end
-end
-
-function HydrologyService:_each_channel_ascending(callback_fn)
-   local channels = {}
-   self:_each_channel(function(channel)
-         table.insert(channels, channel)
-      end)
-
-   local sorted_channels = self:sort_channels_ascending(channels)
-   for _, channel in ipairs(sorted_channels) do
-      callback_fn(channel)
-   end
-end
-
-function HydrologyService:_add_channel(from_entity, from_location, to_entity, to_location, channel_type, channel_entity)
-   log:debug('Adding %s channel from %s at %s to %s at %s', channel_type, from_entity, from_location, to_entity, to_location)
-
-   local channel = self:_create_channel(from_entity, from_location, to_entity, to_location, channel_type, channel_entity)
-   local key = self:_point_to_key(from_location)
-   local channels = self:get_channels(from_entity)
-   channels[key] = channel
-
-   self.__saved_variables:mark_changed()
-   return channel
-end
-
-function HydrologyService:_create_waterfall(from_entity, from_location, to_entity, to_location)
-   local waterfall = radiant.entities.create_entity('stonehearth:terrain:waterfall')
-   radiant.terrain.place_entity_at_exact_location(waterfall, from_location)
-   local waterfall_component = waterfall:add_component('stonehearth:waterfall')
-   waterfall_component:set_height(from_location.y - to_location.y)
-   waterfall_component:set_source(from_entity)
-   waterfall_component:set_target(to_entity)
-   return waterfall
-end
-
-function HydrologyService:add_volume_to_channel(channel, volume, source_elevation_bias)
-   assert(volume >= 0)
-
-   -- get the flow volume per tick
-   local max_flow_volume = self:calculate_channel_flow_rate(channel, source_elevation_bias)
-
-   if max_flow_volume <= 0 then
-      -- not enough pressure to add water to channel
-      -- the channel in the reverse direction may flow this way however
-      return volume
-   end
-
-   local unused_volume = max_flow_volume - channel.queued_volume
-   local flow_volume = math.min(unused_volume, volume)
-   channel.queued_volume = channel.queued_volume + flow_volume
-   volume = volume - flow_volume
-
-   if flow_volume > 0 then
-      log:spam('Added %d to channel for %s at %s', flow_volume, channel.from_entity, channel.from_location)
-   end
-
-   return volume
-end
-
--- source elevation bias is used when we want to compute the flow rate for a packet of water
--- that moves directly into the channel and skips being part of the source height
-function HydrologyService:calculate_channel_flow_rate(channel, source_elevation_bias)
-   source_elevation_bias = source_elevation_bias or 0
-
-   if channel.channel_type == 'waterfall' then
-      local water_component = channel.from_entity:add_component('stonehearth:water')
-      local water_elevation = water_component:get_water_elevation() + source_elevation_bias
-      local target_elevation = channel.from_location.y
-      local flow_rate = self:calculate_flow_rate(water_elevation, target_elevation)
-      return flow_rate
-   end
-
-   if channel.channel_type == 'pressure' then
-      local from_water_component = channel.from_entity:add_component('stonehearth:water')
-      local to_water_component = channel.to_entity:add_component('stonehearth:water')
-      local from_water_elevation = from_water_component:get_water_elevation() + source_elevation_bias
-      local to_water_elevation = to_water_component:get_water_elevation()
-      local flow_rate = self:calculate_flow_rate(from_water_elevation, to_water_elevation)
-      return flow_rate
-   end
-end
-
--- returns flow rate in voxels / tick / unit square
--- flow rate may be negative
-function HydrologyService:calculate_flow_rate(from_elevation, to_elevation)
-   local pressure = from_elevation - to_elevation
-   local flow_rate = pressure * self._pressure_to_flow_rate
-
-   -- stop flowing when less than a "drop" of water
-   -- we don't want to keep computing immaterial deltas
-   if flow_rate < self._min_flow_rate then
-      flow_rate = 0
-   end
-
-   return flow_rate
-end
-
 function HydrologyService:can_merge_water_bodies(entity1, entity2)
    assert(entity1 ~= entity2)
    local water_component1 = entity1:add_component('stonehearth:water')
    local water_component2 = entity2:add_component('stonehearth:water')
-   local water_elevation1 = water_component1:get_water_elevation()
-   local water_elevation2 = water_component2:get_water_elevation()
-   local elevation_delta = math.abs(water_elevation1 - water_elevation2)
+   local water_level1 = water_component1:get_water_level()
+   local water_level2 = water_component2:get_water_level()
+   local elevation_delta = math.abs(water_level1 - water_level2)
 
    -- quick and easy test. occurs a lot when merging wetted regions.
    if elevation_delta == 0 then
@@ -506,6 +322,29 @@ function HydrologyService:merge_water_bodies(entity1, entity2)
    return master
 end
 
+-- orders entities by increasing elevation
+function HydrologyService:_order_entities(entity1, entity2)
+   local entity1_elevation = radiant.entities.get_world_grid_location(entity1).y
+   local entity2_elevation = radiant.entities.get_world_grid_location(entity2).y
+
+   if entity1_elevation == entity2_elevation then
+      -- if at the same elevation prefer the larger water body
+      local volume1 = entity1:add_component('stonehearth:water'):get_region():get():get_area()
+      local volume2 = entity2:add_component('stonehearth:water'):get_region():get():get_area()
+      if volume1 > volume2 then
+         return entity1, entity2
+      else
+         return entity2, entity1
+      end
+   end
+
+   if entity1_elevation < entity2_elevation then
+      return entity1, entity2
+   else
+      return entity2, entity1
+   end
+end
+
 function HydrologyService:_merge_water_bodies_impl(master, mergee)
    assert(master ~= mergee)
    local master_location = radiant.entities.get_world_grid_location(master)
@@ -513,8 +352,8 @@ function HydrologyService:_merge_water_bodies_impl(master, mergee)
    log:debug('Merging %s at %s with %s at %s', master, master_location, mergee, mergee_location)
 
    self:_merge_regions(master, mergee)
-   self:_merge_channels(master, mergee)
    self:_merge_water_queue(master, mergee)
+   self._sv._channel_manager:merge_channels(master, mergee)
 
    self:remove_water_body(mergee)
    radiant.entities.destroy_entity(mergee)
@@ -534,8 +373,8 @@ function HydrologyService:_merge_regions(master, mergee)
    assert(master_layer_elevation == mergee_layer_elevation)
 
    -- get the heights of the current layers
-   local master_layer_height = master_component:get_water_elevation() - master_layer_elevation
-   local mergee_layer_height = mergee_component:get_water_elevation() - mergee_layer_elevation
+   local master_layer_height = master_component:get_water_level() - master_layer_elevation
+   local mergee_layer_height = mergee_component:get_water_level() - mergee_layer_elevation
    assert(master_layer_height <= 1)
    assert(mergee_layer_height <= 1)
 
@@ -574,34 +413,6 @@ function HydrologyService:_merge_regions(master, mergee)
       end)
 end
 
-function HydrologyService:_merge_channels(master, mergee)
-   local master_channels = self:get_channels(master)
-   local mergee_channels = self:get_channels(mergee)
-
-   -- reparent all mergee channels to master
-   for key, channel in pairs(mergee_channels) do
-      assert(channel.from_entity == mergee)
-
-      channel.from_entity = master
-      master_channels[key] = channel
-      mergee_channels[key] = nil
-   end
-
-   -- redirect all channels from mergee to master
-   self:_each_channel(function(channel)
-      assert(channel.from_entity ~= mergee)
-
-      if channel.to_entity == mergee then
-         channel.to_entity = master
-      end
-
-      if channel.from_entity == channel.to_entity then
-         -- channel now goes to itself, so destroy it
-         self:remove_channel(channel.from_entity, channel.from_location)
-      end
-   end)
-end
-
 function HydrologyService:_merge_water_queue(master, mergee)
    if not self._water_queue then
       return
@@ -618,21 +429,17 @@ end
 function HydrologyService:_on_tick()
    log:spam('Start tick')
 
-   -- TODO: should we process waterfall channels first?
-   -- process channels in order of increasing elevation
-   self:_each_channel_ascending(function(channel)
-         local water_component = channel.from_entity:add_component('stonehearth:water')
-         water_component:_fill_channels_to_capacity()
-      end)
+   self._sv._channel_manager:fill_channels_to_capacity()
 
    -- TODO: fix the channel rendering lagging the volume by 1 tick
-   self:_update_channel_entities()
+   self._sv._channel_manager:update_channel_entities()
 
    log:spam('Emptying channels into water queue')
-   self._water_queue = self:_empty_channels()
+   self._water_queue = self._sv._channel_manager:empty_channels()
 
    -- check when the channels are empty to avoid destroying channels with queued water
    self:_check_for_channel_merge()
+   self._sv._channel_manager:update_channel_types()
 
    for i, entry in ipairs(self._water_queue) do
       self:add_water(entry.volume, entry.location, entry.entity)
@@ -645,34 +452,11 @@ function HydrologyService:_on_tick()
    self.__saved_variables:mark_changed()
 end
 
--- orders entities by increasing elevation
-function HydrologyService:_order_entities(entity1, entity2)
-   local entity1_elevation = radiant.entities.get_world_grid_location(entity1).y
-   local entity2_elevation = radiant.entities.get_world_grid_location(entity2).y
-
-   if entity1_elevation == entity2_elevation then
-      -- if at the same elevation prefer the larger water body
-      local volume1 = entity1:add_component('stonehearth:water'):get_region():get():get_area()
-      local volume2 = entity2:add_component('stonehearth:water'):get_region():get():get_area()
-      if volume1 > volume2 then
-         return entity1, entity2
-      else
-         return entity2, entity1
-      end
-   end
-
-   if entity1_elevation < entity2_elevation then
-      return entity1, entity2
-   else
-      return entity2, entity1
-   end
-end
-
 function HydrologyService:_check_for_channel_merge()
    -- TODO: can we clean this up?
    repeat
       local restart = false
-      self:_each_channel(function(channel)
+      self._sv._channel_manager:each_channel(function(channel)
             if self:can_merge_water_bodies(channel.from_entity, channel.to_entity) then
                self:merge_water_bodies(channel.from_entity, channel.to_entity)
                restart = true
@@ -681,64 +465,6 @@ function HydrologyService:_check_for_channel_merge()
             return nil
          end)
    until not restart
-end
-
-function HydrologyService:_empty_channels()
-   local water_queue = {}
-
-   self:_each_channel(function(channel)
-         if channel.queued_volume > 0 then
-            local entry = self:_create_water_queue_entry(channel.to_entity, channel.to_location, channel.queued_volume)
-            table.insert(water_queue, entry)
-         end
-
-         -- empty the channel so we can queue for the next iteration
-         channel.queued_volume = 0
-      end)
-
-   self.__saved_variables:mark_changed()
-
-   return water_queue
-end
-
-function HydrologyService:_create_water_queue_entry(entity, location, volume)
-   local entry = {
-      entity = entity,
-      location = location,
-      volume = volume
-   }
-   return entry
-end
-
-function HydrologyService:_update_channel_entities()
-   self:_each_channel(function(channel)
-         if channel.channel_entity then
-            local waterfall_component = channel.channel_entity:get_component('stonehearth:waterfall')
-            if waterfall_component then
-               waterfall_component:set_volume(channel.queued_volume)
-            end
-         end
-      end)
-end
-
-function HydrologyService:_create_channel(from_entity, from_location, to_entity, to_location, channel_type, channel_entity)
-   local channel = {
-      from_entity = from_entity,
-      from_location = from_location,
-      to_entity = to_entity,
-      to_location = to_location,
-      channel_type = channel_type,
-      channel_entity = channel_entity,
-      queued_volume = 0
-   }
-
-   self.__saved_variables:mark_changed()
-
-   return channel
-end
-
-function HydrologyService:_point_to_key(point)
-   return string.format('%d,%d,%d', point.x, point.y, point.z)
 end
 
 return HydrologyService

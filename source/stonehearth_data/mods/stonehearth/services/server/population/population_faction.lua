@@ -6,18 +6,22 @@ local personality_service = stonehearth.personality
 function PopulationFaction:__init(player_id, kingdom, saved_variables)
    self.__saved_variables = saved_variables
    self._sv = self.__saved_variables:get_data()
+   self._log = radiant.log.create_logger('population')
    if player_id then
       self._sv.kingdom = kingdom
       self._sv.player_id = player_id
       self._sv.citizens = {}
-      self._sv.citizen_scores = {}
-      self._sv.notifications = {}
+      self._sv.bulletins = {}
+      self._sv._global_vision = {}
       self._sv.is_npc = true
+      self._sv.threat_level = 0
    end
+
+   self._sensor_traces = {}
    self._data = radiant.resources.load_json(self._sv.kingdom)
 
    for id, citizen in pairs(self._sv.citizens) do
-      self:_listen_for_entity_death(citizen)
+      self:_monitor_citizen(citizen)
    end
 end
 
@@ -68,7 +72,7 @@ function PopulationFaction:create_town_name()
    return composite_name
 end
 
-function PopulationFaction:create_new_citizen()   
+function PopulationFaction:create_new_citizen()
    local gender
 
    -- xxx, replace this with a coin flip using rng
@@ -103,27 +107,92 @@ function PopulationFaction:create_new_citizen()
 
    self.__saved_variables:mark_changed()
 
-   self:_listen_for_entity_death(citizen)
+   self:_monitor_citizen(citizen)
 
    return citizen
 end
 
-function PopulationFaction:_listen_for_entity_death(citizen)
+function PopulationFaction:_monitor_citizen(citizen)
+   local citizen_id = citizen:get_id()
+
+   -- listen for entity destroy bulletins so we'll know when the pass away
    radiant.events.listen(citizen, 'radiant:entity:pre_destroy', self, self._on_entity_destroyed)
+
+   -- subscribe to their sensor so we can look for trouble.
+   local sensor_list = citizen:get_component('sensor_list')
+   if sensor_list then
+      local sensor = sensor_list:get_sensor('sight')
+      if sensor then
+         self._sensor_traces[citizen_id] = sensor:trace_contents('monitoring threat level')
+                                                      :on_added(function(visitor_id, visitor)
+                                                            self:_on_seen_by(citizen_id, visitor_id, visitor)
+                                                         end)
+                                                      :on_removed(function(visitor_id)
+                                                            self:_on_unseen_by(citizen_id, visitor_id)
+                                                         end)
+                                                      :push_object_state()
+
+      end
+   end   
+end
+
+function PopulationFaction:_get_threat_level(visitor)
+   if radiant.entities.is_friendly(self._sv.player_id, visitor) then
+      return 0
+   end
+   return radiant.entities.get_attribute(visitor, 'menace', 0)
+end
+
+function PopulationFaction:_on_seen_by(spotter_id, visitor_id, visitor)
+   local threat_level = self:_get_threat_level(visitor)
+   if threat_level <= 0 then
+      -- not interesting.  move along!
+      return
+   end
+
+   local entry = self._sv._global_vision[visitor_id]
+   if not entry then
+      entry = {
+         seen_by = { [spotter_id] = true },
+         threat_level = threat_level,
+         entity = visitor,
+      }
+      self._sv._global_vision[visitor_id] = entry
+
+      self:_update_threat_level()
+
+      radiant.events.trigger_async(self, 'stonehearth:population:new_threat', {
+            entity_id = visitor_id,
+            entity = visitor,
+         });     
+   end 
+   entry.seen_by[spotter_id] = true
+end
+
+function PopulationFaction:_on_unseen_by(spotter_id, visitor_id)
+   local entry = self._sv._global_vision[visitor_id]
+   if entry then
+      entry.seen_by[spotter_id] = nil
+      self._log:debug("visitor %d still seen by %d citizens", visitor_id, radiant.size(entry.seen_by))
+      if radiant.empty(entry.seen_by) then
+         self._sv._global_vision[visitor_id] = nil
+         self:_update_threat_level()
+      end
+   end
 end
 
 --Will show a simple notification that zooms to a citizen when clicked. 
 --will expire if the citizen isn't around anymore
 function PopulationFaction:show_notification_for_citizen(citizen, title)
    local citizen_id = citizen:get_id()
-   if not self._sv.notifications[citizen_id] then
-      self._sv.notifications[citizen_id] = {}
-   elseif self._sv.notifications[citizen_id][title] then
+   if not self._sv.bulletins[citizen_id] then
+      self._sv.bulletins[citizen_id] = {}
+   elseif self._sv.bulletins[citizen_id][title] then
       --If a bulletin already exists for this citizen with this title, remove it to replace with the new one
-      local bulletin_id = self._sv.notifications[citizen_id][title]:get_id()
+      local bulletin_id = self._sv.bulletins[citizen_id][title]:get_id()
       stonehearth.bulletin_board:remove_bulletin(bulletin_id)
    end
-   self._sv.notifications[citizen_id][title] = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+   self._sv.bulletins[citizen_id][title] = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
             :set_callback_instance(self)
             :set_data({
                title = title,
@@ -132,21 +201,62 @@ function PopulationFaction:show_notification_for_citizen(citizen, title)
            })
 end
 
-function PopulationFaction:_on_entity_destroyed(args)  
-   self._sv.citizens[args.entity_id] = nil
+function PopulationFaction:_on_entity_destroyed(evt)
+   local entity_id = evt.entity_id
+
+   -- update the score
+   if self._sv.citizens[entity_id] then
+      self:_on_citizen_destroyed(entity_id)
+   end
+   if self._sv._global_vision[entity_id] then
+      self:_on_global_vision_entity_destroyed(evt.entity_id)
+   end
+end
+
+function PopulationFaction:_on_citizen_destroyed(entity_id)
+   self._sv.citizens[entity_id] = nil
    stonehearth.score:update_aggregate_score(self._sv.player_id)
 
-   --remove associated bulletins
-   if self._sv.notifications[args.entity_id] then
-      for title, bulletin in pairs(self._sv.notifications[args.entity_id]) do
+   -- remove associated bulletins
+   local bulletins = self._sv.bulletins[entity_id]
+   if bulletins then
+      self._sv.bulletins[entity_id] = nil
+      for title, bulletin in pairs(bulletins) do
          local bulletin_id = bulletin:get_id()
          stonehearth.bulletin_board:remove_bulletin(bulletin_id)
       end
+   end   
+
+   -- nuke sensors
+   local sensor_trace = self._sensor_traces[entity_id]
+   if sensor_trace then
+      self._sensor_traces[entity_id] = nil
+      sensor_trace:destroy()
    end
-   
+
+   -- global vision
+   for visitor_id, _ in pairs(self._sv._global_vision) do
+      self:_on_unseen_by(entity_id, visitor_id)
+   end
+
    self.__saved_variables:mark_changed()
    return radiant.events.UNLISTEN
 end
+
+function PopulationFaction:_on_global_vision_entity_destroyed(entity_id)
+   self._sv._global_vision[entity_id] = nil
+   self:_update_threat_level()
+end
+
+function PopulationFaction:_update_threat_level()
+   local threat_level = 0
+   for _, entry in pairs(self._sv._global_vision) do
+      threat_level = threat_level + entry.threat_level
+   end
+   self._sv.threat_level = threat_level
+   self.__saved_variables:mark_changed()
+end
+
 
 function PopulationFaction:customize_citizen(entity, all_variants, this_variant)   
    local variant = all_variants[this_variant]
@@ -237,3 +347,4 @@ function PopulationFaction:find_closest_townsperson_to(entity)
 end
 
 return PopulationFaction
+ 

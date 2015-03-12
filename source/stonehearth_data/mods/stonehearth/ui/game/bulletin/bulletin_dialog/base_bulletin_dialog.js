@@ -19,6 +19,11 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
       }
    },
 
+   destroy: function() {
+      this._callCallback('closed_callback');
+      this._super();
+   },
+
    // if the ui_view value changes while we're up, ask App.bulletinBoard
    // to re-create a new view and destory us when that view becomes visible.
    _checkView : function() {
@@ -41,12 +46,14 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
       var instance = bulletin.callback_instance;
       var method = bulletin.data[callback_key];
 
-      radiant.call_obj(instance, method)
-         .done(function(response) {
-            if (response.trigger_event) {
-               $(top).trigger(response.trigger_event.event_name, response.trigger_event.event_data);
-            }
-         });
+      if (method) {
+         radiant.call_obj(instance, method)
+            .done(function(response) {
+               if (response.trigger_event) {
+                  $(top).trigger(response.trigger_event.event_name, response.trigger_event.event_data);
+               }
+            });
+      }
    },
 
    _wireButtonToCallback: function(buttonid, callback, keepAround) {

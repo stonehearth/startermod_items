@@ -11,6 +11,9 @@
 // *************************************************************************************************
 
 #include "radiant.h"
+#include "radiant_logger.h"
+#include "core/config.h"
+
 #include "egCom.h"
 #include "utMath.h"
 #include "egModules.h"
@@ -32,7 +35,13 @@ namespace Horde3D {
 
 EngineConfig::EngineConfig()
 {
-	maxLogLevel = 4;
+   // preserve the hold horde logging behavior, defaulting to 4.  but if the user overrides it,
+   // use what's in their user_settings.json file!
+   radiant::core::Config& config = radiant::core::Config::GetInstance();
+   if (config.Get<int>("logging.horde.general", -999) == -999) {
+      log_levels_.horde.general = 4;
+   }
+
 	trilinearFiltering = true;
 	maxAnisotropy = 1;
 	texCompression = false;
@@ -60,10 +69,6 @@ float EngineConfig::getOption( EngineOptions::List param )
    Modules::renderer().getEngineCapabilities(&rendererCaps, &gpuCaps);
 	switch( param )
 	{
-	case EngineOptions::MaxLogLevel:
-		return (float)maxLogLevel;
-	case EngineOptions::MaxNumMessages:
-		return (float)Modules::log().getMaxNumMessages();
 	case EngineOptions::TrilinearFiltering:
 		return trilinearFiltering ? 1.0f : 0.0f;
 	case EngineOptions::MaxAnisotropy:
@@ -112,12 +117,6 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 	
 	switch( param )
 	{
-	case EngineOptions::MaxLogLevel:
-		maxLogLevel = ftoi_r( value );
-		return true;
-	case EngineOptions::MaxNumMessages:
-		Modules::log().setMaxNumMessages( (uint32)ftoi_r( value ) );
-		return true;
 	case EngineOptions::TrilinearFiltering:
 		trilinearFiltering = (value != 0);
 		return true;
@@ -224,100 +223,27 @@ bool EngineConfig::isGlobalShaderFlagSet(const char* name)
 // Class EngineLog
 // *************************************************************************************************
 
-
-void EngineLog::dumpMessages()
+EngineLog::EngineLog()
 {
-   if (!_outf.is_open()) {
-      return;
-   }
-
-   while (!_messages.empty())
-   {
-      const LogMessage& message = _messages.front();
-      _outf << "[";
-      _outf << std::fixed << std::setw(9) << std::setfill('0') << message.time;
-      _outf << " ";
-		
-      switch(message.level)
-      {
-      case 1:
-         _outf << "ERR]";
-         break;
-      case 2:
-         _outf << "WRN]";
-         break;
-      case 3:
-         _outf << "INF]";
-         break;
-      case 4:
-         _outf << "DBG]";
-         break;
-      case 5:
-         _outf << "PRF]";
-         break;
-      break;
-         default:
-         _outf << "DBG]";
-      }
-		
-      _outf << " ";
-      _outf << message.text.c_str();
-      _outf << "\n";
-      _messages.pop();
-   }
-   _outf.flush();	
-}
-
-EngineLog::EngineLog(std::string const& logFilePath)
-{
-   _timer.Start();
-	_maxNumMessages = 512;
-	// Reset log file
-	_outf.setf( std::ios::fixed );
-	_outf.precision( 3 );
-
-	_outf.open(logFilePath, std::ios::out );	
 }
 
 
 void EngineLog::pushMessage( int level, const char *msg, va_list args )
 {
-   float time = radiant::perfmon::CounterToMilliseconds(_timer.GetElapsed()) / 1000.0f;
-
 #if defined( PLATFORM_WIN )
 #pragma warning( push )
 #pragma warning( disable:4996 )
-	vsnprintf( _textBuf, 2048, msg, args );
+	vsnprintf( _textBuf, ARRAY_SIZE(_textBuf), msg, args );
 #pragma warning( pop )
 #else
-	vsnprintf( _textBuf, 2048, msg, args );
+	vsnprintf( _textBuf, ARRAY_SIZE(_textBuf), msg, args );
 #endif
-	
-	if( _messages.size() < _maxNumMessages - 1 )
-	{
-		_messages.push( LogMessage( _textBuf, level, time ) );
-	}
-	else if( _messages.size() == _maxNumMessages - 1 )
-	{
-		_messages.push( LogMessage( "Message queue is full", 1, time ) );
-	}
-
-   dumpMessages();
-
-#if defined( PLATFORM_WIN ) && defined( H3D_DEBUGGER_OUTPUT )
-	const TCHAR *headers[6] = { TEXT(""), TEXT("  [h3d-err] "), TEXT("  [h3d-warn] "), TEXT("[h3d] "), TEXT("  [h3d-dbg] "), TEXT("[h3d- ] ")};
-	
-	OutputDebugString( headers[std::min( (uint32)level, (uint32)5 )] );
-	OutputDebugStringA( _textBuf );
-	OutputDebugString( TEXT("\r\n") );
-#endif
+   LOG(horde.general, (unsigned int)level) << _textBuf;
 }
 
 
 void EngineLog::writeError( const char *msg, ... )
 {
-	if( Modules::config().maxLogLevel < 1 ) return;
-
 	va_list args;
 	va_start( args, msg );
 	pushMessage( 1, msg, args );
@@ -327,8 +253,6 @@ void EngineLog::writeError( const char *msg, ... )
 
 void EngineLog::writeWarning( const char *msg, ... )
 {
-	if( Modules::config().maxLogLevel < 2 ) return;
-
 	va_list args;
 	va_start( args, msg );
 	pushMessage( 2, msg, args );
@@ -338,8 +262,6 @@ void EngineLog::writeWarning( const char *msg, ... )
 
 void EngineLog::writeInfo( const char *msg, ... )
 {
-	if( Modules::config().maxLogLevel < 3 ) return;
-
 	va_list args;
 	va_start( args, msg );
 	pushMessage( 3, msg, args );
@@ -349,8 +271,6 @@ void EngineLog::writeInfo( const char *msg, ... )
 
 void EngineLog::writeDebugInfo( const char *msg, ... )
 {
-	if( Modules::config().maxLogLevel < 4 ) return;
-
 	va_list args;
 	va_start( args, msg );
 	pushMessage( 4, msg, args );
@@ -367,19 +287,6 @@ void EngineLog::writePerfInfo(const char *msg, ...)
 	va_start( args, msg );
 	pushMessage( 5, msg, args );
 	va_end( args );
-}
-
-
-bool EngineLog::getMessage( LogMessage &msg )
-{
-	if( !_messages.empty() )
-	{
-		msg = _messages.front();
-		_messages.pop();
-		return true;
-	}
-	else
-		return false;
 }
 
 void EngineLog::SetNotifyErrorCb(ReportErrorCb const& cb)

@@ -316,12 +316,12 @@ App.StonehearthPromotionTree = App.View.extend({
       }
 
       if (jobDescription.parent_job != undefined) {
-         var parentJobController = self._citizenJobData[selectedJob.parent_job];
-         var parentRequiredLevel = selectedJob.parent_level_requirement;
+         var parentJobController = self._citizenJobData[jobDescription.parent_job];
+         var parentRequiredLevel = jobDescription.parent_level_requirement;
          
          if (parentJobController != undefined && parentJobController != "stonehearth:jobs:worker" && parentRequiredLevel > 0) {
             $.each(self._citizenJobData, function(jobUri, jobData) {
-               if (jobUri == selectedJob.parent_job && jobData.last_gained_lv >= parentRequiredLevel) {
+               if (jobUri == jobDescription.parent_job && jobData.last_gained_lv >= parentRequiredLevel) {
                   requirementsMet = true;
                   return requirementsMet;
                }

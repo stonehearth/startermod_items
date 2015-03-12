@@ -361,28 +361,43 @@ public:
    }
 
    TraceRenderFramePromisePtr OnFrameStart(std::string const& reason, luabind::object cb) {
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
       luabind::object callback(L_, cb);
       guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         try {
+            luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
       });
       return shared_from_this();
    }
 
    TraceRenderFramePromisePtr OnFrameFinished(std::string const& reason, luabind::object cb) {
-      luabind::object callback(L_, cb);
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
+      luabind::object callback(cb_thread, cb);
       guards_ += frame_finished_slot_.Register([=](FrameStartInfo const &info) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         try {
+            luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
       });
       return shared_from_this();
    }
 
    TraceRenderFramePromisePtr OnServerTick(std::string const& reason, luabind::object cb) {
-      luabind::object callback(L_, cb);
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
+      luabind::object callback(cb_thread, cb);
       guards_ += server_tick_slot_.Register([=](int now) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
-         luabind::call_function<void>(callback, now);
+         try {
+            luabind::call_function<void>(callback, now);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
       });
       return shared_from_this();
    }
@@ -429,14 +444,6 @@ om::DataStoreRef Client_CreateDataStore(lua_State* L)
    om::DataStoreRef db = Client::GetInstance().AllocateDatastore(Client::GetInstance().GetAuthoringStore().GetStoreId());
    db.lock()->SetData(newtable(L));
    return db;
-}
-
-void Client_DestroyDataStore(lua_State* L, om::DataStoreRef ds)
-{
-   auto datastore = ds.lock();
-   if (datastore) {
-      Client::GetInstance().DestroyDatastore(datastore->GetObjectId());
-   }
 }
 
 bool Client_IsValidStandingRegion(lua_State* L, csg::Region3f const& r)
@@ -516,6 +523,12 @@ static csg::Point2f Client_GetMousePosition()
    return csg::ToFloat(Client::GetInstance().GetMousePosition());
 }
 
+
+static const char* Client_GetCurrentUIScreen()
+{
+   return Client::GetInstance().GetCurrentUIScreen();
+}
+
 static std::string Client_SnapScreenShot(const char* tag)
 {
    char date[256];
@@ -580,12 +593,12 @@ void lua::client::open(lua_State* L)
             def("alloc_region3",                   &Client_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2fBoxed>),
             def("create_datastore",                &Client_CreateDataStore),
-            def("destroy_datastore",               &Client_DestroyDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             def("get_mouse_position",              &Client_GetMousePosition),
             def("snap_screenshot",                 &Client_SnapScreenShot),
+            def("get_current_ui_screen",           &Client_GetCurrentUIScreen),
 
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)

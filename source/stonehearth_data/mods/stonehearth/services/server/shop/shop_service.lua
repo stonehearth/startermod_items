@@ -32,6 +32,10 @@ function ShopService:create_shop(player_id, name, options)
    return shop
 end
 
+function ShopService:destroy_shop(shop)
+   shop:destroy()
+end
+
 ---Returns a table (keyed by uri) of an instance of every item in the world which is stockable.  These 
 -- are all the entities mentioned in the manifest of every mod which have the stonehearth:net_worth 
 -- entity data where shop_info.sellable = true.

@@ -45,7 +45,7 @@ function GrowingComponent:_create_load_timer()
             if self._sv.expire_time then
                --We're going to grow more so set up the recurring growth timer
                self._growth_timer = stonehearth.calendar:set_interval(self._growth_period, function()
-                                    self:_grow()
+                                       self:_grow()
                                     end)
                self._sv.expire_time = self._growth_timer:get_expire_time()
             end

@@ -61,7 +61,7 @@ function BulletinBoardService:remove_bulletin(bulletin)
    local datastore = self:get_datastore(player_id)
    local bulletins = datastore:get_data().bulletins
 
-   radiant.destroy_controller(bulletins[bulletin_id])
+   bulletins[bulletin_id]:destroy()
    bulletins[bulletin_id] = nil
    self._sv.bulletin_to_player_map[bulletin_id] = nil
    datastore:mark_changed()
@@ -90,6 +90,11 @@ function BulletinBoardService:get_datastore(player_id)
    end
 
    return datastore
+end
+
+function BulletinBoardService:mark_shown(bulletin_id)
+   local bulletin = self:get_bulletin(bulletin_id)
+   bulletin:set_shown(true)
 end
 
 function BulletinBoardService:_add_bulletin(player_id, bulletin)

@@ -34,9 +34,7 @@ struct EngineOptions
 {
 	enum List
 	{
-		MaxLogLevel = 1,
-		MaxNumMessages,
-		TrilinearFiltering,
+		TrilinearFiltering = 1,
 		MaxAnisotropy,
 		TexCompression,
 		SRGBLinearization,
@@ -115,7 +113,7 @@ struct LogMessage
 class EngineLog
 {
 public:
-	EngineLog(std::string const& logFilePath);
+	EngineLog();
 
 	void writeError( const char *msg, ... );
 	void writeWarning( const char *msg, ... );
@@ -123,13 +121,6 @@ public:
 	void writeDebugInfo( const char *msg, ... );
    void writePerfInfo(const char *msg, ...);
 
-   void dumpMessages();
-
-	bool getMessage( LogMessage &msg );
-
-	uint32 getMaxNumMessages() { return _maxNumMessages; }
-	void setMaxNumMessages( uint32 maxNumMessages ) { _maxNumMessages = maxNumMessages; }
-	
    typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
    void SetNotifyErrorCb(ReportErrorCb const& cb);
    void ReportError(::radiant::om::ErrorBrowser::Record const&);
@@ -139,11 +130,7 @@ protected:
 	void pushMessage( int level, const char *msg, va_list ap );
 
 protected:
-   radiant::perfmon::Timer   _timer;
 	char                      _textBuf[2048];
-	uint32                    _maxNumMessages;
-	std::queue< LogMessage >  _messages;
-   std::ofstream             _outf;
    ReportErrorCb             error_cb_;
    std::vector<::radiant::om::ErrorBrowser::Record> errors_;
 

@@ -58,7 +58,7 @@ class Client : public core::Singleton<Client> {
       void DestroyAuthoringEntity(dm::ObjectId id);
 
       om::DataStoreRef AllocateDatastore(int storeId);
-      void DestroyDatastore(dm::ObjectId id);
+      void RemoveDataStoreFromMap(dm::ObjectId id);
       dm::Store& GetStore() { return *store_; }
       dm::Store& GetAuthoringStore() { return *authoringStore_; }
       phys::OctTree& GetOctTree() const { return *octtree_; }
@@ -79,6 +79,17 @@ class Client : public core::Singleton<Client> {
       typedef std::function<void(float)> TraceRenderFrameHandlerCb;
 
       csg::Point2 GetMousePosition() const;
+
+      enum UIScreen {
+         InvalidScreen = -1,
+         TitleScreen = 0,
+         GameScreen,
+         LoadingScreen,
+      };
+
+      const char* GetCurrentUIScreen() const;
+      void SetCurrentUIScreen(UIScreen screen, bool browserRequested = false);
+
 
    private:
       NO_COPY_CONSTRUCTOR(Client);
@@ -141,7 +152,7 @@ class Client : public core::Singleton<Client> {
       void EnableDisableSaveStressTest();
       void EnableDisableLifetimeTracking();
       void OneTimeIninitializtion();
-      void InitializeUI(std::string const& state);
+      void InitializeUI();
       void Initialize();
       void InitializeDataObjects();
       void InitializeDataObjectTraces();
@@ -160,6 +171,7 @@ class Client : public core::Singleton<Client> {
       void LoadClientState(boost::filesystem::path const& savedir);
       void CreateGame();
       void CreateErrorBrowser();
+      void InitializeUIScreen();
       void ReportLoadProgress();
       void RestoreDatastores();
       rpc::ReactorDeferredPtr StartPerformanceCounterPush();
@@ -199,7 +211,7 @@ private:
 
       // the ui browser object...
       std::unique_ptr<chromium::IBrowser>    browser_;      
-      std::vector<std::function<void()>>     browserJobQueue_;
+      std::deque<std::function<void()>>      browserJobQueue_;
       std::mutex                             browserJobQueueLock_;
 
       // client side command dispatching...
@@ -236,7 +248,7 @@ private:
       core::Guard                 browserResizeGuard_;
       bool                        perf_hud_shown_;
       bool                        connected_;
-      bool                        enable_debug_cursor_;
+      std::string                 debug_cursor_mode_;
       bool                        save_stress_test_;
       platform::timer             save_stress_test_timer_;
       luabind::object             radiant_;
@@ -271,6 +283,8 @@ private:
       int                         _lastSequenceNumber;
       int                         _nextSysInfoPostTime;
 
+      UIScreen                    _currentUiScreen;
+      std::string                 _uiDocroot;
       bool                        loading_;
       std::string                 loadError_;
 };

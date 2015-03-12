@@ -41,7 +41,7 @@ end
 
 function CameraService:pop_controller()
    local c = table.remove(self._sv.controllers, #self._sv.controllers)
-   radiant.destroy_controller(c)
+   c:destroy()
 end
 
 
@@ -85,7 +85,6 @@ function CameraService:set_position(position)
    -- in the stack, but hold off for now to see how well this works.
    self:controller_top():set_position(position)
 end
-
 
 function CameraService:look_at(pos)
    local rot = Quat()

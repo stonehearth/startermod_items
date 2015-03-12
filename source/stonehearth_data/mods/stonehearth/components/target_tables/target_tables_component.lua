@@ -14,7 +14,7 @@ end
 
 function TargetTables:destroy()
    for _, target_table in pairs(self._sv.target_tables) do
-      radiant.destroy_controller(target_table)
+      target_table:destroy()
    end
 end
 

@@ -16,6 +16,10 @@ function radiant.size(t)
    return c
 end
 
+function radiant.empty(t)
+   return not next(t)
+end
+
 function radiant.report_traceback(err)
    local traceback = debug.traceback()
    _host:report_error(err, traceback)
@@ -66,4 +70,31 @@ function radiant.not_yet_implemented(fmt, ...)
    local info = debug.getinfo(2, 'Sfl')
    local tail = fmt and (': ' .. string.format(fmt, ...)) or ''
    error(string.format('NOT YET IMPLEMENTED (%s:%d)', info.source, info.currentline) .. tail)
+end
+
+
+function radiant.create_controller(...)
+   local args = { ... }
+   local name = args[1]
+   args[1] = nil
+   local i = 2
+   while i <= table.maxn(args) do
+      args[i - 1] = args[i]
+      args[i] = nil
+      i = i + 1
+   end
+
+   local datastore = radiant.create_datastore()
+   local controller = datastore:create_controller(name)
+   if not controller then
+      return
+   end
+
+   if controller.initialize then
+      controller:initialize(unpack(args, 1, table.maxn(args)))
+   end
+   if controller.activate then
+      controller:activate()
+   end
+   return controller
 end

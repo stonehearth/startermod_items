@@ -2,12 +2,14 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local DialogTreeEncounter = class()
 
+function DialogTreeEncounter:activate()
+   self._log = radiant.log.create_logger('game_master.encounters.dialog_tree')
+end
+
 function DialogTreeEncounter:start(ctx, info)
    self._sv.ctx = ctx
    self._sv._info = info
    self._sv.bulletin_data = {}
-
-   self._log = radiant.log.create_logger('game_master.encounters.dialog_tree')   
 
    assert(info.start_node)
    assert(info.nodes)

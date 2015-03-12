@@ -99,25 +99,26 @@ end
 function Party:remove_member(id)
    local entry = self._sv.members[id]
    if entry then
-      local member = entry.entity
-      if member and member:is_valid() then
-         member:add_component('stonehearth:party_member')
-                  :set_party(nil)
-         member:add_component('stonehearth:equipment')
-                  :unequip_item('stonehearth:party:party_abilities')
-         self._party_tg:remove_worker(member:get_id())
-      end
       self._sv.members[id] = nil
       self._sv.party_size = self._sv.party_size - 1
       self.__saved_variables:mark_changed()
+      
+      local member = entry.entity
+      if member and member:is_valid() then        
+         member:add_component('stonehearth:equipment')
+                  :unequip_item('stonehearth:party:party_abilities')
+         member:add_component('stonehearth:party_member')
+                  :set_party(nil)
+         self._party_tg:remove_worker(member:get_id())
+      end
    end
 end
 
 function Party:each_member()
-   local id
-   return function()      
+   local id, entry
+   return function()
       id, entry = next(self._sv.members, id)
-      return id, entry.entity
+      return id, (entry and entry.entity)
    end
 end
 

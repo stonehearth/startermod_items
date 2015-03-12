@@ -2,9 +2,11 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local ShopEncounter = class()
 
-function ShopEncounter:start(ctx, info)
+function ShopEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.dialog_tree')   
+end
 
+function ShopEncounter:start(ctx, info)
    assert(info.name)
    assert(info.title)
    assert(info.inventory)
@@ -18,6 +20,7 @@ function ShopEncounter:start(ctx, info)
                           :set_data({
                               shop = shop,
                               title = info.title,
+                              closed_callback = '_on_closed',
                            })
    self._sv.ctx = ctx
    self._sv.shop = shop
@@ -27,11 +30,25 @@ function ShopEncounter:start(ctx, info)
 end
 
 function ShopEncounter:stop()
+   self:_destroy_shop()
    self:_destroy_bulletin()
 end
 
--- ends the current conversation
---
+function ShopEncounter:_on_closed()
+   self._log:debug('shop bulletin closed.  terminating encounter.')
+   local ctx = self._sv.ctx
+   ctx.arc:terminate(ctx)
+end
+
+function ShopEncounter:_destroy_shop()
+   local shop = self._sv.shop
+   if shop then
+      stonehearth.shop:destroy_shop(shop)
+      self._sv.shop = nil
+      self.__saved_variables:mark_changed()
+   end
+end
+
 function ShopEncounter:_destroy_bulletin()
    local bulletin = self._sv.bulletin
    if bulletin then

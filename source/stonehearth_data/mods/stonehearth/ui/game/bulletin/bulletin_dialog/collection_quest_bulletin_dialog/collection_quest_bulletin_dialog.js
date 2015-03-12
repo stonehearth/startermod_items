@@ -1,7 +1,6 @@
 App.StonehearthCollectionQuestBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 	templateName: 'collectionQuestBulletinDialog',
 
-
    didInsertElement: function() {
       this._super();
       this._wireButtonToCallback('#collectionPayButton',    'collection_pay_callback');
