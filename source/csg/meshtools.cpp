@@ -89,13 +89,15 @@ void Mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& 
 {
    csg::Point4f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
 
+   float polyOffsetFactor = boneIndex > 0 ? 1.0f - (boneIndex / 10000.0f) : 1.0f;
+
    if (vertices.empty()) {
-      bounds.SetMin(points[0] + offset_);
-      bounds.SetMax(points[0] + offset_);
+      bounds.SetMin((points[0] * polyOffsetFactor) + offset_);
+      bounds.SetMax((points[0] * polyOffsetFactor) + offset_);
    }
    int vlast = static_cast<int>(vertices.size());
    for (int i = 0; i < 4; i++) {
-      Point3f offsetPoint = points[i] + offset_;
+      Point3f offsetPoint = (points[i] * polyOffsetFactor) + offset_;
       vertices.emplace_back(Vertex(offsetPoint, (float)boneIndex, normal, color));
       bounds.Grow(offsetPoint);
    }
