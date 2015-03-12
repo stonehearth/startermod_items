@@ -7,9 +7,6 @@ local MUSIC_PRIORITIES = {
 }
 -- music
 
-local NO_AMBIENT = {
-}
-
 local IDLE_DAY_AMBIENT = {
    track    = 'stonehearth:ambient:summer_day',
    loop     = true,
@@ -47,7 +44,6 @@ local IDLE_NIGHT_MUSIC = {
 
 local TITLE_MUSIC = {
    track    = 'stonehearth:music:title_screen',
-   fade_in  = 100,
    loop     = true,
 }
 
@@ -285,6 +281,11 @@ end
 function Sound:_change_music(now)
    assert(self._current_ui_screen)
 
+   if self._current_ui_screen == 'loading_screen' then
+      -- keep playing whatever happened to be playing before the load
+      return
+   end
+
    local channels = self._screens[self._current_ui_screen]
    assert(channels)
    
@@ -300,7 +301,7 @@ function Sound:_play_sound(sound)
 end
 
 function Sound:_choose_best_track(tracks)
-   local best_priority, best_track = nil, NO_AMBIENT
+   local best_priority, best_track = nil, {}
 
    for requestor, info in pairs(tracks) do
       local priority = info.priority or 0
