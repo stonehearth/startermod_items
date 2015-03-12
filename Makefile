@@ -74,7 +74,7 @@ official-build-git-tag:
 	git config --global user.email "radbot@radiant-entertainment.com"
 	git config --global user.name "Radiant Robot"
 	git tag -f -a "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)" -m "Official build built on $(BAMBOO_BUILD_TIME)" $(BAMBOO_BRANCH_REVISION)
-	git remote add central $(GITHUB_REPOSITORY)
+	-git remote add central $(GITHUB_REPOSITORY)
 	git push --no-verify central "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
 	git ls-remote --exit-code --tags central "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
 
