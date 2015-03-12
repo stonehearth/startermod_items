@@ -240,14 +240,14 @@ function Sound:_on_time_changed(date)
    -- sounds
    if date.hour == event_times.sunrise and not self._sunrise_sound_played then
       self._sunrise_sound_played = true
-      if not self._in_combat then
+      if not self:_in_combat() then
          self:_play_sound(ROOSTER_SOUND)
          self:_play_sound(DAYBREAK_SOUND)
       end
    end
    if date.hour == event_times.sunset and not self._sunset_sound_played then
       self._sunset_sound_played = true
-      if not self._in_combat then
+      if not self:_in_combat() then
          self:_play_sound(OWL_SOUND)
          self:_play_sound(NIGHTFALL_SOUND)
       end
