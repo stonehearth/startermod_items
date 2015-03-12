@@ -16,7 +16,6 @@
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
-#include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
 #include "csg/iterators.h"
 #include "csg/random_number_generator.h"
@@ -668,14 +667,6 @@ void Renderer::BuildStarfield()
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
-}
-
-void Renderer::ShowPerfHud(bool value) {
-   if (value && !perf_hud_) {
-      perf_hud_.reset(new PerfHud(*this));
-   } else if (!value && perf_hud_) {
-      delete perf_hud_.release();
-   }
 }
 
 // These options should be worded so that they can default to false

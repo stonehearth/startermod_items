@@ -65,6 +65,8 @@
 #include "om/stonehearth.h"
 #include "lib/perfmon/timer.h"
 #include "renderer/render_node.h"
+#include "renderer/perfhud/perfhud.h"
+#include "renderer/perfhud/flame_graph_hud.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -104,7 +106,6 @@ Client::Client() :
    currentCursor_(NULL),
    next_input_id_(1),
    mouse_position_(csg::Point2::zero),
-   perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
    enable_debug_cursor_(false),
@@ -199,8 +200,22 @@ void Client::OneTimeIninitializtion()
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this](KeyboardInput const& kb) {
-         perf_hud_shown_ = !perf_hud_shown_;
-         renderer.ShowPerfHud(perf_hud_shown_);
+         bool havePerfHud = _perfHud != nullptr;
+         bool haveFlameGraphHud = _flameGraphHud != nullptr;
+         Renderer& renderer = Renderer::GetInstance();
+
+         _perfHud.reset();
+         _flameGraphHud.reset();
+
+         if (kb.shift) {
+            if (!haveFlameGraphHud) {
+               _flameGraphHud.reset(new FlameGraphHud(renderer));
+            }
+         } else {
+            if (!havePerfHud) {
+               _perfHud.reset(new PerfHud(renderer));
+            }
+         }
       };
       _commands[GLFW_KEY_F11] = [&renderer](KeyboardInput const& kb) {
          // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
@@ -819,7 +834,7 @@ void Client::run(int server_port)
    CLIENT_LOG(1) << "user feedback is " << (analytics::GetCollectionStatus() ? "on" : "off");
    
    while (renderer.IsRunning()) {
-      perfmon::BeginFrame(perf_hud_shown_);
+      perfmon::BeginFrame(_perfHud != nullptr);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
       mainloop();
    }

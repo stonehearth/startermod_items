@@ -247,6 +247,7 @@ private:
       csg::Point2                 mouse_position_;
       core::Guard                 browserResizeGuard_;
       bool                        perf_hud_shown_;
+      bool                        flame_graph_shown_;
       bool                        connected_;
       bool                        enable_debug_cursor_;
       bool                        save_stress_test_;
@@ -287,6 +288,8 @@ private:
       std::string                 _uiDocroot;
       bool                        loading_;
       std::string                 loadError_;
+      std::unique_ptr<PerfHud>         _perfHud;
+      std::unique_ptr<FlameGraphHud>   _flameGraphHud;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

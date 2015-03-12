@@ -20,6 +20,7 @@ class StaticString
 public:
    StaticString(std::string const& s);
    StaticString(const char* s);
+   StaticString(const char* s, size_t len);
    operator const char*() const { return _value; }
 
 private:

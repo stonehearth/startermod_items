@@ -50,7 +50,9 @@
 #include "remote_client.h"
 #include "lib/perfmon/frame.h"
 #include "lib/perfmon/namespace.h"
+#include "lib/perfmon/flame_graph.h"
 #include "platform/sysinfo.h"
+
 
 // Uncomment this to only profile the pathfinding path in VTune
 // #define PROFILE_ONLY_PATHFINDING 1
@@ -832,6 +834,7 @@ void Simulation::main()
    while (1) {
       Mainloop();
       ++_sequenceNumber;
+      //flameGraphs.Swap();
    }
 }
 

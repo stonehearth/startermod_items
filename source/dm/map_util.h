@@ -61,7 +61,7 @@ template <int Namespace=-1>
 class CStringKeyTransform
 {
 public:
-   const char* operator()(const char* key);
+   const char* operator()(const char* key, size_t n = std::string::npos);
 
 private:
    static std::string __key;

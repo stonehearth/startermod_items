@@ -13,10 +13,14 @@
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
 #include "lib/perfmon/timeline.h"
+#include "lib/perfmon/flame_graph.h"
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
 #include "low_mem_allocator.h"
+#include "lua_flame_graph.h"
+
+#pragma optimize ( "" , off )
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -30,6 +34,15 @@ DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 #define SH_LOG(level)    LOG(script_host, level)
 
 extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud);
+
+typedef void (*luaJIT_profile_callback)(void *data, lua_State *L,
+					int samples, int vmstate);
+
+extern "C" bool luaJIT_profile_start(lua_State *L, const char *mode,
+				     luaJIT_profile_callback cb, void *data);
+extern "C" void luaJIT_profile_stop(lua_State *L);
+extern "C" const char *luaJIT_profile_dumpstack(lua_State *L, const char *fmt,
+					        int depth, size_t *len);
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -255,6 +268,8 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    site_(site),
    error_count(0),
    _allocDs(allocDs),
+   _privateL(nullptr),
+   cb_thread_(nullptr),
    L_(nullptr)
 {
    current_line = 0;
@@ -262,10 +277,25 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
 
    bytes_allocated_ = 0;
-   filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
-   enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
-   enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
-   std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
+   filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("filter_lua_exceptions", true);
+   enable_profile_memory_ = core::Config::GetInstance().Get<bool>("enable_lua_memory_profiler", false);
+   enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("enable_lua_cpu_profiler", false);
+
+   // f - Profile with precision down to the function level.
+   // l - Profile with precision down to the line level.
+   // i<number> — Sampling interval in milliseconds (default 10ms).
+   cpu_profile_mode_ = core::Config::GetInstance().Get<std::string>("lua_cpu_profile_mode", "f");
+
+   // p - Preserve the full path for module names. Otherwise only the file name is used.
+   // f - Dump the function name if it can be derived. Otherwise use module:line.
+   // F - Ditto, but dump module:name.
+   // l - Dump module:line.
+   // Z - Zap the following characters for the last dumped frame.
+   // All other characters are added verbatim to the output string.
+   cpu_profile_stack_fmt_ = core::Config::GetInstance().Get<std::string>("lua_cpu_profiler_stack_fmt", "pf\n");
+   cpu_profile_stack_depth_ = core::Config::GetInstance().Get<int>("lua_cpu_profiler_stack_depth", -100);
+
+   std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua_gc_setting", "auto");
 
    if (gc_setting == "auto") {
       _gc_setting = 0;
@@ -307,6 +337,7 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    }
    ASSERT(L_);
 
+   modules_.emplace(L_, ModuleMap());
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
 
@@ -331,8 +362,8 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
                .def("enum_objects",    &ScriptHost::EnumObjects)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
-               .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
-               .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
+               .def("require",         &ScriptHost::Require)
+               .def("require_script",  &ScriptHost::RequireScript)
                .def("get_error_count", &ScriptHost::GetErrorCount)
          ]
       ]
@@ -343,12 +374,52 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
       if (luaL_dostring(L_, "jit.off()") != 0) {
          LUA_LOG(0) << "Failed to disable jit. " << lua_tostring(L_, -1);
       } else {
-         LUA_LOG(0) << "luajit disabled.";
+         LUA_LOG(0) << "luajit disabled."; 
       }
    }
 
    globals(L_)["package"]["path"] = "";
    globals(L_)["package"]["cpath"] = "";
+
+   if (enable_profile_cpu_ && strcmp(log::GetCurrentThreadName(), "server") == 0) {
+      _privateL = luaL_newstate();
+      set_pcall_callback(PCallCallbackFn);
+      luaL_openlibs(_privateL);
+      luabind::open(_privateL);
+      luabind::bind_class_info(_privateL);
+      modules_.emplace(_privateL, ModuleMap());
+
+      module(_privateL) [
+         namespace_("_radiant") [
+            namespace_("lua") [
+               lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
+            ]
+         ]
+      ];
+
+      // XXXXXXXXXXXXXXXXXXX: USE THE THING IN REGISTER/.H
+      auto register_var_args_fn = [=](lua_CFunction f) -> object {
+         lua_register(_privateL, "_radiant_tmp_fn", f);
+         return globals(_privateL)["_radiant_tmp_fn"];
+      };
+
+      globals(_privateL)["package"]["path"] = "";
+      globals(_privateL)["package"]["cpath"] = "";
+      globals(_privateL)["require"] = register_var_args_fn([](lua_State* L) -> int {
+         ScriptHost* sh = ScriptHost::GetScriptHost(L);
+         if (!sh) {
+            luaL_error(L, "could not find script host in interpreter");
+         }
+         const char* path = luaL_checkstring(L, 1);
+         luabind::object obj = sh->RequireInterp(sh->GetPrivateInterpreter(), BUILD_STRING("radiant.lib." << path));
+         obj.push(L);
+         return 1;
+      });
+      globals(_privateL)["_host"] = object(_privateL, this);
+
+      _luaFlameGraph.reset(new LuaFlameGraph(_privateL, *this));
+      luaJIT_profile_start(L_, cpu_profile_mode_.c_str(), LuaProfileFn, this);
+   }
 
    // xxx : all c -> lua functions (except maybe update) should be on this clean callback thread.
    // this is to prevent state corruption and all sorts of other confusion which can result
@@ -361,8 +432,11 @@ ScriptHost::~ScriptHost()
 {
    LUA_LOG(1) << "Shutting down script host.";
    FullGC();
-   required_.clear();
+   modules_.clear();
    lua_close(L_);
+   if (_privateL) {
+      lua_close(_privateL);
+   }
    ASSERT(this->bytes_allocated_ == 0);
    LUA_LOG(1) << "Script host destroyed.";
 }
@@ -596,6 +670,11 @@ lua_State* ScriptHost::GetInterpreter()
    return L_;
 }
 
+lua_State* ScriptHost::GetPrivateInterpreter()
+{
+   return _privateL;
+}
+
 lua_State* ScriptHost::GetCallbackThread()
 {
    return cb_thread_;
@@ -621,7 +700,7 @@ void ScriptHost::GC(platform::timer &timer)
    }
 }
 
-luabind::object ScriptHost::LoadScript(std::string const& path)
+luabind::object ScriptHost::LoadScript(lua_State* L, std::string const& path)
 {
    luabind::object obj;
 
@@ -629,7 +708,7 @@ luabind::object ScriptHost::LoadScript(std::string const& path)
    
    int error;
    try {
-      error = luaL_loadfile_from_resource(L_, path.c_str());
+      error = luaL_loadfile_from_resource(L, path.c_str());
    } catch (std::exception const& e) {
       LUA_LOG(1) << e.what();
       return luabind::object();
@@ -638,24 +717,37 @@ luabind::object ScriptHost::LoadScript(std::string const& path)
    if (error == LUA_ERRFILE) {
       ReportStackException("lua", BUILD_STRING("Could not open script file \"" << path << "\"."), "");
    } else if (error != 0) {
-      std::string error = lua_tostring(L_, -1);
+      std::string error = lua_tostring(L, -1);
       ReportStackException("lua", BUILD_STRING("Error loading \"" << path << "\"."), error);
-      lua_pop(L_, 1);
+      lua_pop(L, 1);
       return obj;
    }
-   if (lua_pcall(L_, 0, LUA_MULTRET, 0) != 0) {
-      std::string error = lua_tostring(L_, -1);
+   if (lua_pcall(L, 0, LUA_MULTRET, 0) != 0) {
+      std::string error = lua_tostring(L, -1);
       ReportStackException("lua", BUILD_STRING("Error loading \"" << path << "\"."), error);
-      lua_pop(L_, 1);
+      lua_pop(L, 1);
       return obj;
    }
 
-   obj = luabind::object(luabind::from_stack(L_, -1));
-   lua_pop(L_, 1);
+   if (_luaFlameGraph) {
+      _luaFlameGraph->IndexFile(path);
+   }
+   obj = luabind::object(luabind::from_stack(L, -1));
+   lua_pop(L, 1);
    return obj;
 }
 
 luabind::object ScriptHost::Require(std::string const& s)
+{
+   return RequireInterp(L_, s);
+}
+
+luabind::object ScriptHost::RequireScript(std::string const& path)
+{
+   return RequireScriptInterp(L_, path);
+}
+
+luabind::object ScriptHost::RequireInterp(lua_State* L, std::string const& s)
 {
    std::string path;
 
@@ -665,10 +757,10 @@ luabind::object ScriptHost::Require(std::string const& s)
 
    path = boost::algorithm::join(parts, "/") + ".lua";
 
-   return RequireScript(path);
+   return RequireScriptInterp(L, path);
 }
 
-luabind::object ScriptHost::RequireScript(std::string const& path)
+luabind::object ScriptHost::RequireScriptInterp(lua_State* L, std::string const& path)
 {
    res::ResourceManager2 const& rm = res::ResourceManager2::GetInstance();
    std::string canonical_path;
@@ -682,14 +774,20 @@ luabind::object ScriptHost::RequireScript(std::string const& path)
 
    luabind::object obj;
 
-   auto i = required_.find(canonical_path);
-   if (i != required_.end()) {
+   auto j = modules_.find(L);
+   if (j == modules_.end()) {
+      luaL_error(L, BUILD_STRING("unrecognized interpreter " << L).c_str());
+   }
+   ModuleMap& modules = j->second;
+
+   auto i = modules.find(canonical_path);
+   if (i != modules.end()) {
       obj = i->second;
    } else {
       LUA_LOG(5) << "requiring script " << canonical_path;
-      required_[canonical_path] = luabind::object();
-      obj = LoadScript(canonical_path);
-      required_[canonical_path] = obj;
+      modules[canonical_path] = luabind::object();
+      obj = LoadScript(L, canonical_path);
+      modules[canonical_path] = obj;
    }
    return obj;
 }
@@ -1161,5 +1259,31 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
       }
    }
    return module;
+}
+
+void ScriptHost::LuaProfileFn(void *data, lua_State *L, int samples, int vmstate)
+{
+   static_cast<ScriptHost*>(data)->LuaProfileCb(L, samples, vmstate);
+}
+
+void ScriptHost::LuaProfileCb(lua_State *L, int samples, int vmstate)
+{
+   ASSERT(!_luaFlameGraph->IsIndexing());
+
+   size_t len = 0;
+   const char* stack = luaJIT_profile_dumpstack(L, cpu_profile_stack_fmt_.c_str(), cpu_profile_stack_depth_, &len);
+
+   perfmon::FlameGraph &g = flameGraphs.LockFrontBuffer();
+   g.AddLuaBacktrace(stack, len, [this](core::StaticString fileLine) {
+      const char* start = fileLine;
+      const char* colon = strchr(start, ':');
+      if (!colon) {
+         return fileLine;
+      }
+      core::StaticString file(start, colon - start);
+      int line = atoi(colon + 1);
+      return _luaFlameGraph->MapFileLineToFunction(file, line);
+   });
+   flameGraphs.UnlockFrontBuffer();
 }
 

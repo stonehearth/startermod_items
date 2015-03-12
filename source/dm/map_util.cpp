@@ -26,7 +26,7 @@ std::size_t dm::Dbj2Hash(const char *str)
  * Hash all `key`s with the same value into a single, stable char*
  */
 template <int Namespace>
-const char* CStringKeyTransform<Namespace>::operator()(const char* key)
+const char* CStringKeyTransform<Namespace>::operator()(const char* key, size_t n)
 {
    /*
     * The same types get created on the client and the server, so we need to
@@ -40,7 +40,10 @@ const char* CStringKeyTransform<Namespace>::operator()(const char* key)
     * Use the static __key to do all our operations.  Constructing a new
     * string here on the stack would alloc, which is what we're trying to avoid!
     */
-   __key = key;
+   if (n == std::string::npos) {
+      n = strlen(key);
+   }
+   __key.replace(0, std::string::npos, key, n);
 
    auto i = __strtab.find(__key);
    if (i == __strtab.end()) {

@@ -9,6 +9,7 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 // Forward Defines
 class Renderer;
 class PerfHud;
+class FlameGraphHud;
 class RenderContext;
 class Clock;
 class RenderNode;

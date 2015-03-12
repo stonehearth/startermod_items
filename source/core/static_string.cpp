@@ -15,3 +15,8 @@ StaticString::StaticString(const char* s)
 {
    _value = dm::SafeCStringTable()(s);
 }
+
+StaticString::StaticString(const char* s, size_t len)
+{
+   _value = dm::SafeCStringTable()(s, len);
+}

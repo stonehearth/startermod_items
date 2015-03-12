@@ -1,3 +1,31 @@
+local function a_function()
+   local a = foo:on_changed(function(ab)
+                        local a = ab
+                     end)
+
+   a_function(function()
+         return 1
+      end)
+   local l = {
+      foo = function()
+      tostring(function()
+            return 2
+         end)
+      end,
+      bar = function()
+      end
+   }
+   local function baz()
+
+
+
+
+
+
+   end
+   return l
+end
+
 -- unclasslib.lua 2.03
 
 -- PRIVATE

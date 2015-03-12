@@ -6,6 +6,7 @@
 #include "om/error_browser/error_browser.h"
 #include "om/om.h"
 #include "lib/perfmon/perfmon.h"
+#include "core/static_string.h"
 
 class JSONNode;
 
@@ -20,6 +21,7 @@ public:
 
    lua_State* GetInterpreter();
    lua_State* GetCallbackThread();
+   lua_State* GetPrivateInterpreter();
 
    void CreateGame(om::ModListPtr mods);
    void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
@@ -60,8 +62,6 @@ public: // the static interface
    static ScriptHost* GetScriptHost(dm::Store const& store);
    static lua_State* GetInterpreter(lua_State* L) { return GetScriptHost(L)->GetInterpreter(); }
    static lua_State* GetCallbackThread(lua_State* L) { return GetScriptHost(L)->GetCallbackThread(); }
-   static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
-   static luabind::object RequireScript(lua_State* L, std::string const& path) { return GetScriptHost(L)->RequireScript(path); }
    static luabind::object JsonToLua(lua_State* L, JSONNode const& json) { return GetScriptHost(L)->JsonToLua(json); }
    static JSONNode LuaToJson(lua_State* L, luabind::object obj) { return GetScriptHost(L)->LuaToJson(obj); }
    static void ReportCStackException(lua_State* L, std::exception const& e) { return GetScriptHost(L)->ReportCStackThreadException(L, e); }
@@ -69,11 +69,15 @@ public: // the static interface
    static bool CoerseToBool(luabind::object const& o);
 
 private:
+   luabind::object RequireInterp(lua_State* L, std::string const& name);
+   luabind::object RequireScriptInterp(lua_State* L, std::string const& name);
+
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void* LuaAllocLowMemFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
+   static void LuaProfileFn(void *data, lua_State *L, int samples, int vmstate);
    void Log(const char* category, int level, const char* str);
    void Exit(int code);
    int GetLogLevel(std::string const& category);
@@ -87,19 +91,27 @@ private:
    JSONNode LuaToJsonImpl(luabind::object obj);
 
 private:
-   luabind::object LoadScript(std::string const& path);
+   void LuaProfileCb(lua_State *L, int samples, int vmstate);
+   luabind::object LoadScript(lua_State* L, std::string const& path);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
    void SetPerformanceCounter(const char* name, double value, const char* kind);
    bool WriteObject(const char* modname, const char* objectName, luabind::object o);
    luabind::object ReadObject(const char* modname, const char* objectName);
    luabind::object EnumObjects(const char* modname, const char* path);
+   
+   typedef std::unordered_map<std::string, luabind::object> ModuleMap;
 
 private:
    lua_State*           L_;
    lua_State*           cb_thread_;
+   lua_State*           _privateL;
    std::string          site_;
-   std::map<std::string, luabind::object> required_;
+
+   // this is silly.  we should have an Interpreter class which abstracts this away, then
+   // have a _sandbox and _privileged Interpreter instead of L_ and _private.
+   std::unordered_map<lua_State*, ModuleMap> modules_;
+
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
    ReportErrorCb        error_cb_;
@@ -120,12 +132,16 @@ private:
    // CPU profiling
    bool                 enable_profile_cpu_;
    bool                 profile_cpu_;
-
+   std::string          cpu_profile_mode_;
+   std::string          cpu_profile_stack_fmt_;
+   int                  cpu_profile_stack_depth_;
+   bool                 _mappingLuaFile;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
-   AllocDataStoreFn     _allocDs;
+   AllocDataStoreFn                 _allocDs;
+   std::unique_ptr<LuaFlameGraph>   _luaFlameGraph;
 };
 
 END_RADIANT_LUA_NAMESPACE
