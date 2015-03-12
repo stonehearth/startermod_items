@@ -405,6 +405,11 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index)
    return *tile;
 }
 
+NavGridTile const& NavGrid::GridTile(csg::Point3 const& pt) const
+{
+   return const_cast<NavGrid*>(this)->GridTile(pt);
+}
+
 /*
  * -- NavGrid::NotifyTileDirty
  *
@@ -1173,7 +1178,7 @@ float NavGrid::GetMovementSpeedAt(csg::Point3 const& worldPoint)
  * spiking the CPU.
  *
  */
-core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb)
+core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb) const
 {
    return _dirtyTilesSlot.Register(cb);
 }

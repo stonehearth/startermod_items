@@ -367,10 +367,12 @@ dm::ObjectId RenderEntity::GetObjectId() const
 
 void RenderEntity::SetRenderInfoDirtyBits(int bits)
 {
-   auto i = components_.find("render_info");
-   if (i != components_.end()) {
-      std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
-      ri->SetDirtyBits(bits);
+   if (!destroyed_) {
+      auto i = components_.find("render_info");
+      if (i != components_.end()) {
+         std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
+         ri->SetDirtyBits(bits);
+      }
    }
 }
 
