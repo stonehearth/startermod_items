@@ -39,6 +39,36 @@ Vertex::Vertex(Point3f const& p, float bIndex, Point3f const& n, Color4 const& c
    SetColor(c);
 }
 
+Vertex::Vertex(Point3f const& p, Point3f const& n, Color4 const& c)
+{
+   SetLocation(p);
+   boneIndex = 0;
+   SetNormal(n);
+   SetColor(c);
+}
+
+Vertex::Vertex(Point3f const& p, Point3f const& n, Color3 const& c)
+{
+   SetLocation(p);
+   boneIndex = 0;
+   SetNormal(n);
+   color[1] = (float)(c.r / 255.0);
+   color[2] = (float)(c.g / 255.0);
+   color[3] = (float)(c.b / 255.0);
+   color[4] = 1;
+}
+
+Vertex::Vertex(Point3f const& p, Point3f const& n, Point4f const& c)
+{
+   SetLocation(p);
+   boneIndex = 0;
+   SetNormal(n);
+   color[0] = (float)c[0];
+   color[1] = (float)c[1];
+   color[2] = (float)c[2];
+   color[3] = (float)c[3];
+}
+
 void Vertex::SetLocation(Point3f const& p)
 {
    location[0] = (float)p.x;

@@ -17,6 +17,9 @@ struct Vertex {
    float     normal[3];
    float     color[4];
 
+   Vertex(Point3f const&p, Point3f const&n, Point4f const& c);
+   Vertex(Point3f const&p, Point3f const&n, Color3 const& c);
+   Vertex(Point3f const&p, Point3f const&n, Color4 const& c);
    Vertex(Point3f const& p, float bIndex, Point3f const& n, Point4f const& c);
    Vertex(Point3f const& p, float bIndex, Point3f const& n, Color3 const& c);
    Vertex(Point3f const& p, float bIndex, Point3f const& n, Color4 const& c);
