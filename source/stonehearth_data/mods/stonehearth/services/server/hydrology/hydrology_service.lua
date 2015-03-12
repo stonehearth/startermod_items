@@ -80,14 +80,14 @@ function HydrologyService:_on_terrain_changed(delta_region)
          local modified_container_region = self:_get_affected_container_region(delta_region, entity)
          for point in modified_container_region:each_point() do
             if not self._water_tight_region:contains_point(point) then
+               -- TODO: no need to create channel if top layer height is 0
                local target_entity = self:create_water_body(point)
-               local target_adjacent_point = self:_get_best_channel_adjacent_point(point, entity)
+               local target_adjacent_point = self:_get_best_channel_adjacent_point(entity, point)
                local channel
 
                if point.y == target_adjacent_point.y then
                   channel = channel_manager:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
                else
-                  -- TODO: handle vertical case
                   channel = channel_manager:link_waterfall_channel(entity, point)
                end
 
@@ -101,7 +101,7 @@ function HydrologyService:_on_terrain_changed(delta_region)
 end
 
 -- can be faster if necessary
-function HydrologyService:_get_best_channel_adjacent_point(point, entity)
+function HydrologyService:_get_best_channel_adjacent_point(entity, point)
    local entity_location = radiant.entities.get_world_grid_location(entity)
    local water_component = entity:add_component('stonehearth:water')
    local water_region = water_component:get_region():get()
@@ -302,14 +302,17 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
 
    -- if transferring a small volume of water through the channel would equalize heights, then allow merge
    -- TODO: consider optimizing repeated calls to O(n) get_area()
-   local merge_volume_threshold = 1
-   local entity1_layer_area = water_component1._sv._current_layer:get():get_area()
-   local entity2_layer_area = water_component2._sv._current_layer:get():get_area()
-   local entity1_delta_height = merge_volume_threshold / entity1_layer_area
-   local entity2_delta_height = merge_volume_threshold / entity2_layer_area
-   if entity1_delta_height + entity2_delta_height >= elevation_delta then
-      assert(elevation_delta < 1)
-      return true
+   local merge_elevation_threshold = 0.10
+   if elevation_delta < merge_elevation_threshold then
+      local merge_volume_threshold = 1
+      local entity1_layer_area = water_component1._sv._current_layer:get():get_area()
+      local entity2_layer_area = water_component2._sv._current_layer:get():get_area()
+      local entity1_delta_height = merge_volume_threshold / entity1_layer_area
+      local entity2_delta_height = merge_volume_threshold / entity2_layer_area
+      if entity1_delta_height + entity2_delta_height >= elevation_delta then
+         assert(elevation_delta < 1)
+         return true
+      end
    end
 
    return false
@@ -429,6 +432,8 @@ end
 function HydrologyService:_on_tick()
    log:spam('Start tick')
 
+   self:_update_performance_counters()
+
    self._sv._channel_manager:fill_channels_to_capacity()
 
    -- TODO: fix the channel rendering lagging the volume by 1 tick
@@ -442,7 +447,9 @@ function HydrologyService:_on_tick()
    self._sv._channel_manager:update_channel_types()
 
    for i, entry in ipairs(self._water_queue) do
-      self:add_water(entry.volume, entry.location, entry.entity)
+      local unused_volume = self:add_water(entry.volume, entry.location, entry.entity)
+      -- TODO: we currently lose the water if the water body cannot grow (e.g. punch a hole in the wall below water level)
+      -- maybe add it back to where it came from
    end
 
    self._water_queue = nil
@@ -465,6 +472,20 @@ function HydrologyService:_check_for_channel_merge()
             return nil
          end)
    until not restart
+end
+
+function HydrologyService:_update_performance_counters()
+   local num_water_bodies = 0
+   for id, entity in pairs(self._sv._water_bodies) do
+      num_water_bodies = num_water_bodies + 1
+   end
+   radiant.set_performance_counter('num_water_bodies', num_water_bodies)
+
+   local num_channels = 0
+   self._sv._channel_manager:each_channel(function(channel)
+         num_channels = num_channels + 1
+      end)
+   radiant.set_performance_counter('num_channels', num_channels)
 end
 
 return HydrologyService
