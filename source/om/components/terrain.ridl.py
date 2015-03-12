@@ -23,6 +23,7 @@ class Terrain(Component):
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref))
    get_terrain_ring_tesselator = ridl.Method(TerrainRingTesselatorPtr()).const
 
+   _declare_constructor = True
    _generate_construct_object = True
 
    _includes = [
