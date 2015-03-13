@@ -1,8 +1,6 @@
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.om.Point3
 
-require 'lualibs.unclasslib'
-
 -- if these variables don't exist yet, they never will.  put them in the global
 -- namespace so we can check them before using (otherwise strict.lua will kick
 -- us in the teeth just for checking against nil)
@@ -116,6 +114,8 @@ end
 function string:ends_with(suffix)
    return suffix == '' or self:sub(-suffix:len()) == suffix
 end
+
+require 'lualibs.unclasslib'
 
 -- augment checks with the some radiant native types.
 require 'lualibs.checks'
