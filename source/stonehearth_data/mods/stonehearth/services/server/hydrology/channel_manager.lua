@@ -338,11 +338,13 @@ function ChannelManager:empty_channels()
 end
 
 function ChannelManager:_create_water_queue_entry(channel)
+   -- this looks a lot like a channel, but it's not a channel
    local entry = {
-      entity = channel.to_entity,
-      location = channel.to_location,
-      volume = channel.queued_volume,
-      channel = channel
+      from_entity = channel.from_entity,
+      from_location = channel.from_location,
+      to_entity = channel.to_entity,
+      to_location = channel.to_location,
+      volume = channel.queued_volume
    }
    return entry
 end
