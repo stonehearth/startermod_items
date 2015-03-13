@@ -94,7 +94,12 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
                if point.y == target_adjacent_point.y then
                   if self._water_tight_region:contains_point(point - Point3.unit_y) then
-                     local target_entity = self:create_water_body(point)
+                     -- must check to see if the water body already exists
+                     -- this happens when a block was a container for multiple water bodies
+                     local target_entity = self:get_water_body(point)
+                     if not target_entity then
+                        target_entity = stonehearth.hydrology:create_water_body(point)
+                     end
                      channel = channel_manager:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
                   else
                      channel = channel_manager:link_waterfall_channel(entity, point)
@@ -236,6 +241,8 @@ function HydrologyService:create_water_body(location)
    return entity
 end
 
+-- O(n) on the number of cubes in all water bodies
+-- can be much faster by caching bounds of water bodies
 function HydrologyService:get_water_body(location)
    for id, entity in pairs(self._sv._water_bodies) do
       local entity_location = radiant.entities.get_world_grid_location(entity)
@@ -476,6 +483,8 @@ function HydrologyService:_merge_water_queue(master, mergee)
       if entry.to_entity == mergee then
          entry.to_entity = master
       end
+
+      -- Ok if from_entity now equals to_entity. We have queued water that needs to go somewhere!
    end
 end
 
