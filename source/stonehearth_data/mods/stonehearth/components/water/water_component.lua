@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -6,8 +7,6 @@ local log = radiant.log.create_logger('water')
 local WaterComponent = class()
 
 function WaterComponent:__init()
-   -- the volume of water consumed to make a block wet
-   self._wetting_volume = 0.25
 end
 
 function WaterComponent:initialize(entity, json)
@@ -95,7 +94,7 @@ function WaterComponent:_add_water(world_location, volume)
 
          -- grow the region until we run out of volume or edges
          while volume > 0 and not edge_region:empty() do
-            if volume < self._wetting_volume * 0.5 then
+            if volume < constants.hydrology.WETTING_VOLUME * 0.5 then
                -- too little volume to wet a block, so just let it evaporate
                volume = 0
                break
@@ -248,13 +247,46 @@ function WaterComponent:_fill_channel_to_capacity(channel)
    end
 end
 
-function WaterComponent:_validate_channels()
+function WaterComponent:update_channel_types()
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   local channels = {}
+
    self:_each_channel(function(channel)
-         if channel.from_location.y ~= channel.to_location.y then
-            local water_level = self:get_water_level()
-            -- CHECKCHECK
-         end
+         table.insert(channels, channel)
       end)
+
+   -- loop over a separate collection since we're modifying the source
+   for _, channel in pairs(channels) do
+      assert(channel.queued_volume == 0)
+      local target_water_component = channel.to_entity:add_component('stonehearth:water')
+      local target_water_level = target_water_component:get_water_level()
+      local channel_height = channel.from_location.y
+
+      if channel.channel_type == 'pressure' then
+         if target_water_level < channel_height then
+            channel_manager:link_waterfall_channel(channel.from_entity, channel.from_location)
+         end
+      elseif channel.channel_type == 'waterfall' then
+         -- TODO: this could also convert to a vertical pressure channel -- CHECKCHECK
+         -- CHECKCHECK perform merge on target_water_level
+         if channel.subtype == 'vertical' then
+            local source_water_level = self:get_water_level()
+            -- recall that vertical waterfall channels have their from_location inside the water body
+            if source_water_level <= channel_height then
+               local location = radiant.entities.get_world_grid_location(self._entity)
+               self:_remove_from_region(channel.from_location - location)
+               channel_manager:remove_channel(channel)
+            end
+         else
+            if target_water_level > channel_height then
+               local target_adjacent_point = stonehearth.hydrology:_get_best_channel_adjacent_point(channel.from_entity, channel.from_location)
+               channel_manager:link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
+            end
+         end
+      else
+         assert(false)
+      end
+   end
 end
 
 function WaterComponent:_each_channel(callback_fn)
@@ -306,6 +338,22 @@ function WaterComponent:_add_to_layer(region)
          cursor:add_region(region)
          cursor:optimize_by_merge()
       end)
+
+   self.__saved_variables:mark_changed()
+end
+
+-- point in local coordinates
+function WaterComponent:_remove_from_region(point)
+   self._sv.region:modify(function(cursor)
+         cursor:subtract_point(point)
+         -- optimize_by_merge doesn't usually help for single subtractions
+      end)
+
+   self._sv._current_layer:modify(function(cursor)
+         cursor:subtract_point(point)
+      end)
+
+   self.__saved_variables:mark_changed()
 end
 
 -- return value and parameters all in world coordinates
@@ -563,7 +611,7 @@ function WaterComponent:_is_watertight(region_collision_shape)
 end
 
 function WaterComponent:_subtract_wetting_volume(volume)
-   volume = volume - self._wetting_volume
+   volume = volume - constants.hydrology.WETTING_VOLUME
    volume = math.max(volume, 0)
    return volume
 end
