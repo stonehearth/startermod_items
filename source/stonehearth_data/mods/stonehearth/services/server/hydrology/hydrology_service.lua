@@ -94,7 +94,12 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
                if point.y == target_adjacent_point.y then
                   if self._water_tight_region:contains_point(point - Point3.unit_y) then
-                     local target_entity = self:create_water_body(point)
+                     -- must check to see if the water body already exists
+                     -- this happens when a block was a container for multiple water bodies
+                     local target_entity = self:get_water_body(point)
+                     if not target_entity then
+                        target_entity = stonehearth.hydrology:create_water_body(point)
+                     end
                      channel = channel_manager:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
                   else
                      channel = channel_manager:link_waterfall_channel(entity, point)
@@ -236,6 +241,8 @@ function HydrologyService:create_water_body(location)
    return entity
 end
 
+-- O(n) on the number of cubes in all water bodies
+-- can be much faster by caching bounds of water bodies
 function HydrologyService:get_water_body(location)
    for id, entity in pairs(self._sv._water_bodies) do
       local entity_location = radiant.entities.get_world_grid_location(entity)
@@ -467,11 +474,17 @@ function HydrologyService:_merge_water_queue(master, mergee)
       return
    end
 
+   -- redirect all mergee references to master
    for _, entry in ipairs(self._water_queue) do
-      -- redirect all mergee references to master
-      if entry.entity == mergee then
-         entry.entity = master
+      if entry.from_entity == mergee then
+         entry.from_entity = master
       end
+
+      if entry.to_entity == mergee then
+         entry.to_entity = master
+      end
+
+      -- Ok if from_entity now equals to_entity. We have queued water that needs to go somewhere!
    end
 end
 
@@ -493,18 +506,14 @@ function HydrologyService:_on_tick()
    self:_update_channel_types()
 
    for i, entry in ipairs(self._water_queue) do
-      local unused_volume = self:add_water(entry.volume, entry.location, entry.entity)
+      local unused_volume = self:add_water(entry.volume, entry.to_location, entry.to_entity)
       if unused_volume > 0 then
-         local channel = entry.channel
-         -- waterfall channels should not fail
-         assert(channel.channel_type == 'pressure')
-
          -- add the water back to where it came from
-         self:add_water(unused_volume, channel.from_location, channel.from_entity)
+         self:add_water(unused_volume, entry.from_location, entry.from_entity)
 
          -- what else to we need to test for before merging?
-         log:info('%s is fully bounded and is merging with %s', channel.to_entity, channel.from_entity)
-         self:merge_water_bodies(channel.from_entity, channel.to_entity, true)
+         log:info('%s is fully bounded and is merging with %s', entry.to_entity, entry.from_entity)
+         self:merge_water_bodies(entry.from_entity, entry.to_entity, true)
       end
    end
 
