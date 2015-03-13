@@ -23,18 +23,36 @@ function ScaffoldingManager:activate()
 end
 
 
-function ScaffoldingManager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
+function ScaffoldingManager:request_scaffolding_for(requestor, blueprint_rgn, project_rgn, normal)
    checks('self', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3')
 
    local id = self:_get_next_id()
-   local builder = radiant.create_controller('stonehearth:build:scaffolding_builder_1d', self, id, blueprint_rgn, project_rgn, normal)
+   local builder = radiant.create_controller('stonehearth:build:scaffolding_builder_1d', self, id, requestor, blueprint_rgn, project_rgn, normal)
 
    self._sv.builders[id] = builder
    self.__saved_variables:mark_changed()
 
-   self:_create_scaffolding_entity(id, owner, builder, normal)
+   self:_create_scaffolding_entity(id, requestor, builder, normal)
    
    return builder
+end
+
+function ScaffoldingManager:_remove_scaffolding_builder(id)
+   if self._sv.ladder_builders[id] then
+      self._sv.ladder_builders[id] = nil
+      if self._sv.ladders[id] then
+         self._sv.ladders[id]:destroy()
+         self._sv.ladders[id] = nil
+      end
+      if self._sv.scaffolding[id] then
+         radiant.entities.destroy_entity(self._sv.scaffolding[id])
+         self._sv.scaffolding[id] = nil
+      end
+      if self._sv.fabricators[id] then
+         radiant.entities.destroy_entity(self._sv.fabricators[id])
+         self._sv.fabricators = nil
+      end
+   end
 end
 
 function ScaffoldingManager:_get_next_id()
@@ -81,8 +99,6 @@ function ScaffoldingManager:_create_scaffolding_entity(id, owner, builder, norma
 
    self._sv.scaffolding[id] = scaffolding
    self._sv.fabricators[id] = fabricator
-
-   self:_on_scaffolding_region_changed(id)
 end
 
 
