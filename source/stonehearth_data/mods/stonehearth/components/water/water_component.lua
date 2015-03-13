@@ -461,6 +461,7 @@ function WaterComponent:_remove_height(volume)
    return residual
 end
 
+-- TODO: don't raise into another water body
 function WaterComponent:_raise_layer()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local new_layer_index = self._sv._current_layer_index + 1
@@ -504,9 +505,13 @@ function WaterComponent:_raise_layer()
 end
 
 function WaterComponent:_lower_layer()
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local new_layer_index = self._sv._current_layer_index - 1
    log:debug('Lowering layer for %s to %d', self._entity, new_layer_index + entity_location.y)
+
+   local old_layer_elevation = self:get_current_layer_elevation()
+   local orphaned_channels = self:_get_channels_at_elevation(old_layer_elevation)
 
    local lowered_layer = self:_get_layer(new_layer_index)
 
@@ -553,11 +558,11 @@ function WaterComponent:_lower_layer()
       child_water_component:_recalculate_current_layer()
 
       -- reparent channels on top layer to child
-      local channel_manager = stonehearth.hydrology:get_channel_manager()
-      local child_channels = self:_get_channels_at_elevation(child_water_component:get_current_layer_elevation())
-      channel_manager:reparent_channels(child_channels, child)
+      channel_manager:reparent_channels(orphaned_channels, child)
 
       log:debug('Top layer from %s becoming new entity %s', self._entity, child)
+   else
+      channel_manager:remove_channels(orphaned_channels)
    end
 
    self.__saved_variables:mark_changed()
