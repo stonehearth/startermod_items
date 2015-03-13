@@ -467,10 +467,14 @@ function HydrologyService:_merge_water_queue(master, mergee)
       return
    end
 
+   -- redirect all mergee references to master
    for _, entry in ipairs(self._water_queue) do
-      -- redirect all mergee references to master
-      if entry.entity == mergee then
-         entry.entity = master
+      if entry.from_entity == mergee then
+         entry.from_entity = master
+      end
+
+      if entry.to_entity == mergee then
+         entry.to_entity = master
       end
    end
 end
@@ -493,18 +497,14 @@ function HydrologyService:_on_tick()
    self:_update_channel_types()
 
    for i, entry in ipairs(self._water_queue) do
-      local unused_volume = self:add_water(entry.volume, entry.location, entry.entity)
+      local unused_volume = self:add_water(entry.volume, entry.to_location, entry.to_entity)
       if unused_volume > 0 then
-         local channel = entry.channel
-         -- waterfall channels should not fail
-         assert(channel.channel_type == 'pressure')
-
          -- add the water back to where it came from
-         self:add_water(unused_volume, channel.from_location, channel.from_entity)
+         self:add_water(unused_volume, entry.from_location, entry.from_entity)
 
          -- what else to we need to test for before merging?
-         log:info('%s is fully bounded and is merging with %s', channel.to_entity, channel.from_entity)
-         self:merge_water_bodies(channel.from_entity, channel.to_entity, true)
+         log:info('%s is fully bounded and is merging with %s', entry.to_entity, entry.from_entity)
+         self:merge_water_bodies(entry.from_entity, entry.to_entity, true)
       end
    end
 

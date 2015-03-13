@@ -21,7 +21,7 @@ local Fabricator = class()
 function Fabricator:__init(name, entity, blueprint, project)
    self.name = name
 
-   self._log = radiant.log.create_logger('build')
+   self._log = radiant.log.create_logger('build.fabricator')
                         :set_prefix('fab for ' .. tostring(blueprint))
                         :set_entity(entity)
 

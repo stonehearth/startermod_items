@@ -109,4 +109,8 @@ function util.split_string(str)
    return fields
 end
 
+-- when a check fails, use util.typename to get the type of the
+-- argument
+checkers.__get_typename = util.typename
+
 return util

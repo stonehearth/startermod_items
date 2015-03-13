@@ -107,7 +107,9 @@ Browser::~Browser()
 void Browser::OnBeforeCommandLineProcessing(CefString const& process_type, CefRefPtr<CefCommandLine> command_line)
 {
    if (core::Config::GetInstance().Get<bool>("disable_browser_gpu", true)) {
-      command_line->AppendArgument("disable-gpu");
+      command_line->AppendSwitch("disable-gpu");
+      command_line->AppendSwitch("disable-gpu-compositing");
+      command_line->AppendSwitch("disable-gpu-rasterization");
    }
 }
 
