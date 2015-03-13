@@ -51,7 +51,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, csg::Point2 cons
    CefSettings settings;   
 
    CefString(&settings.log_file) = (core::System::GetInstance().GetTempDirectory() / "chromium.log").wstring().c_str();
-   std::string logSeverity = core::Config::GetInstance().Get<std::string>("chromium_log_severity", "default");
+   std::string logSeverity = core::Config::GetInstance().Get<std::string>("chromium_log_severity", "disable");
    if (logSeverity == "verbose") {
       settings.log_severity = LOGSEVERITY_VERBOSE;
    } else if (logSeverity == "info") {
@@ -107,7 +107,9 @@ Browser::~Browser()
 void Browser::OnBeforeCommandLineProcessing(CefString const& process_type, CefRefPtr<CefCommandLine> command_line)
 {
    if (core::Config::GetInstance().Get<bool>("disable_browser_gpu", true)) {
-      command_line->AppendArgument("disable-gpu");
+      command_line->AppendSwitch("disable-gpu");
+      command_line->AppendSwitch("disable-gpu-compositing");
+      command_line->AppendSwitch("disable-gpu-rasterization");
    }
 }
 

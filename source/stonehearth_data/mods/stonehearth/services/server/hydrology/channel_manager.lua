@@ -1,15 +1,10 @@
+local constants = require 'constants'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local log = radiant.log.create_logger('water')
 
 local ChannelManager = class()
-
--- constant converting pressure to a flow rate per unit cross section
-local PRESSURE_TO_FLOW_RATE = 1
-
--- a 'drop' of water
-local MIN_FLOW_RATE = 0.01
 
 function ChannelManager:initialize()
    assert(self._sv)
@@ -161,6 +156,12 @@ function ChannelManager:calculate_channel_flow_rate(channel, source_elevation_bi
    end
 
    local flow_rate = self:calculate_flow_rate(source_elevation, target_elevation)
+
+   if flow_rate > 0 and channel.channel_type == 'pressure' then
+      -- this is a bit hacky. used to avoid exponentially long convergence
+      flow_rate = math.max(flow_rate, constants.hydrology.MIN_PRESSURE_FLOW_RATE)
+   end
+
    return flow_rate
 end
 
@@ -168,22 +169,23 @@ end
 -- flow rate may be negative
 function ChannelManager:calculate_flow_rate(from_elevation, to_elevation)
    local pressure = from_elevation - to_elevation
-   local flow_rate = pressure * PRESSURE_TO_FLOW_RATE
+   local flow_rate = pressure * constants.hydrology.PRESSURE_TO_FLOW_RATE
 
    -- stop flowing when less than a "drop" of water
    -- we don't want to keep computing immaterial deltas
-   if flow_rate < MIN_FLOW_RATE then
+   if flow_rate < constants.hydrology.MIN_FLOW_RATE then
       flow_rate = 0
    end
 
    return flow_rate
 end
 
-function ChannelManager:link_waterfall_channel(from_entity, from_location)
+function ChannelManager:link_waterfall_channel(from_entity, from_location, subtype)
    local channel = self:get_channel(from_entity, from_location)
 
    if channel then
       if channel.channel_type == 'waterfall' then
+         assert(channel.subtype == subtype)
          -- redundant from the get_channel call, but being paranoid
          assert(channel.from_entity == from_entity)
          assert(channel.from_location == from_location)
@@ -198,6 +200,8 @@ function ChannelManager:link_waterfall_channel(from_entity, from_location)
       local to_entity, to_location = self:_get_waterfall_target(from_location)
       local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
       channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
+      -- TODO: formalize this
+      channel.subtype = subtype
    end
    return channel
 end
@@ -320,7 +324,7 @@ function ChannelManager:empty_channels()
 
    self:each_channel(function(channel)
          if channel.queued_volume > 0 then
-            local entry = self:_create_water_queue_entry(channel.to_entity, channel.to_location, channel.queued_volume)
+            local entry = self:_create_water_queue_entry(channel)
             table.insert(water_queue, entry)
          end
 
@@ -333,42 +337,14 @@ function ChannelManager:empty_channels()
    return water_queue
 end
 
-function ChannelManager:_create_water_queue_entry(entity, location, volume)
+function ChannelManager:_create_water_queue_entry(channel)
    local entry = {
-      entity = entity,
-      location = location,
-      volume = volume
+      entity = channel.to_entity,
+      location = channel.to_location,
+      volume = channel.queued_volume,
+      channel = channel
    }
    return entry
-end
-
-function ChannelManager:update_channel_types()
-   local channels = {}
-
-   self:each_channel(function(channel)
-         table.insert(channels, channel)
-      end)
-
-   -- loop over a separate collection since we're modifying the source
-   for _, channel in pairs(channels) do
-      assert(channel.queued_volume == 0)
-      local water_component = channel.to_entity:add_component('stonehearth:water')
-      local water_level = water_component:get_water_level()
-      local channel_height = channel.from_location.y
-
-      if channel.channel_type == 'pressure' then
-         if water_level < channel_height then
-            self:link_waterfall_channel(channel.from_entity, channel.from_location)
-         end
-      elseif channel.channel_type == 'waterfall' then
-         if water_level > channel_height then
-            local target_adjacent_point = self:_get_best_channel_adjacent_point(channel.from_entity, channel.from_location)
-            self:link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
-         end
-      else
-         assert(false)
-      end
-   end
 end
 
 function ChannelManager:update_channel_entities()

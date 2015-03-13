@@ -42,6 +42,7 @@ function BuildService:initialize()
    self._sv = self.__saved_variables:get_data()
    if not self._sv.next_building_id then
       self._sv.next_building_id = 1 -- used to number newly created buildings
+      self._sv.ladder_manager = radiant.create_controller('stonehearth:build_ladder_manager')
       self._sv.scaffolding_manager = radiant.create_controller('stonehearth:build_scaffolding_manager')
       self.__saved_variables:mark_changed()
    end
@@ -1192,7 +1193,7 @@ end
 function BuildService:create_ladder_command(session, response, ladder_uri, location, normal)
    normal = ToPoint3(normal)
    location = ToPoint3(location)
-   self._sv.scaffolding_manager:request_ladder_to(session.player_id, location, normal, true)
+   self._sv.ladder_manager:request_ladder_to(session.player_id, location, normal, true)
    return true
 end
 
@@ -1201,14 +1202,18 @@ function BuildService:remove_ladder_command(session, response, ladder_entity)
       local ladder = ladder_entity:get_component('stonehearth:ladder')
       if ladder then
          local base = radiant.entities.get_world_grid_location(ladder_entity)
-         self._sv.scaffolding_manager:remove_ladder(base)
+         self._sv.ladder_manager:remove_ladder(base)
       end
    end
    return true
 end
 
 function BuildService:request_ladder_to(owner, climb_to, normal)
-   return self._sv.scaffolding_manager:request_ladder_to(owner, climb_to, normal)
+   return self._sv.ladder_manager:request_ladder_to(owner, climb_to, normal)
+end
+
+function BuildService:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
+   return self._sv.scaffolding_manager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
 end
 
 function BuildService:instabuild_command(session, response, building)

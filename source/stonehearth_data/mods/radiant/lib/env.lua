@@ -1,3 +1,6 @@
+local Entity = _radiant.om.Entity
+local Point3 = _radiant.om.Point3
+
 -- if these variables don't exist yet, they never will.  put them in the global
 -- namespace so we can check them before using (otherwise strict.lua will kick
 -- us in the teeth just for checking against nil)
@@ -113,3 +116,30 @@ function string:ends_with(suffix)
 end
 
 require 'lualibs.unclasslib'
+
+-- augment checks with the some radiant native types.
+require 'lualibs.checks'
+
+local NATIVE_CHECKS = {
+   Entity         = _radiant.om.Entity,
+   Region3Boxed   = _radiant.om.Region3Boxed,
+   Point3         = _radiant.csg.Point3,
+   Region3        = _radiant.csg.Region3,
+}
+for name, expected_type in pairs(NATIVE_CHECKS) do
+   assert(not checkers[name])
+   checkers[name] = function(x)
+      return radiant.util.is_a(x, expected_type)
+   end
+end
+
+-- add a 'self' check to improve readiblity in methods.
+function checkers.self(x)
+   return type(x) == 'table'
+end
+
+-- check for radiant controllers.
+function checkers.controller(x)
+   return radiant.util.is_instance(x) and
+          radiant.util.is_a(x.__saved_variables, _radiant.om.DataStore)
+end
