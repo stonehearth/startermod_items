@@ -6,9 +6,9 @@ local Region3 = _radiant.csg.Region3
 local INFINITE = 1000000
 
 local log = radiant.log.create_logger('build.scaffolding')
-local BuildScaffoldingManager = class()
+local ScaffoldingManager = class()
 
-function BuildScaffoldingManager:initialize()
+function ScaffoldingManager:initialize()
    self._sv.ladder_builders = {}
    self._sv.builders = {}
    self._sv.ladders = {}
@@ -19,15 +19,15 @@ function BuildScaffoldingManager:initialize()
    self.__saved_variables:mark_changed()
 end
 
-function BuildScaffoldingManager:activate()
+function ScaffoldingManager:activate()
 end
 
 
-function BuildScaffoldingManager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
+function ScaffoldingManager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
    checks('self', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3')
 
    local id = self:_get_next_id()
-   local builder = radiant.create_controller('stonehearth:scaffolding_builder', self, id, blueprint_rgn, project_rgn, normal)
+   local builder = radiant.create_controller('stonehearth:build:scaffolding_builder_1d', self, id, blueprint_rgn, project_rgn, normal)
 
    self._sv.builders[id] = builder
    self.__saved_variables:mark_changed()
@@ -37,14 +37,14 @@ function BuildScaffoldingManager:request_scaffolding_for(owner, blueprint_rgn, p
    return builder
 end
 
-function BuildScaffoldingManager:_get_next_id()
+function ScaffoldingManager:_get_next_id()
    local id = self._sv.next_id 
    self._sv.next_id = self._sv.next_id + 1
    self.__saved_variables:mark_changed()
    return id
 end
 
-function BuildScaffoldingManager:_on_active_changed(id, active)
+function ScaffoldingManager:_on_active_changed(id, active)
    checks('self', 'number', 'boolean')
    
    local blueprint = self._sv.scaffolding[id]
@@ -53,7 +53,7 @@ function BuildScaffoldingManager:_on_active_changed(id, active)
    end
 end
 
-function BuildScaffoldingManager:_create_scaffolding_entity(id, owner, builder, normal)
+function ScaffoldingManager:_create_scaffolding_entity(id, owner, builder, normal)
    checks('self', 'number', 'Entity', 'controller', '?Point3')
 
    local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding', { owner = owner })
@@ -86,7 +86,7 @@ function BuildScaffoldingManager:_create_scaffolding_entity(id, owner, builder, 
 end
 
 
-function BuildScaffoldingManager:_on_scaffolding_region_changed(id)
+function ScaffoldingManager:_on_scaffolding_region_changed(id)
    local old_ladder = self._sv.ladders[id]
    self._sv.ladders[id] = self:_create_ladder(id)
 
@@ -95,7 +95,7 @@ function BuildScaffoldingManager:_on_scaffolding_region_changed(id)
    end
 end
 
-function BuildScaffoldingManager:_create_ladder(id)
+function ScaffoldingManager:_create_ladder(id)
    -- put a ladder in column 0.  this one is 2 units away from the
    -- project in the direction of the normal (as the scaffolding itself
    -- is 1 unit away)
@@ -121,4 +121,4 @@ function BuildScaffoldingManager:_create_ladder(id)
                                               normal)      
 end
 
-return BuildScaffoldingManager
+return ScaffoldingManager
