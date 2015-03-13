@@ -27,8 +27,21 @@ private:
    > Allocator;
 
 private:
-   void *            _allocatorMemory;
-   Allocator         _allocator;
+   std::string LowMemAllocator::FormatSize(int size) const;
+
+private:
+   void *                     _allocatorMemory;
+   Allocator                  _allocator;
+
+   int                        _allocCount;
+   int                        _byteCount;
+   int                        _freeCount;
+   size_t                     _heapSize;
+   bool                       _warnedHeapFull;
+   platform::timer            _reportTimer;
+
+   std::unordered_map<void*, int>               _allocSizes;
+   std::unordered_map<int, std::vector<void*>>  _freelist;
 };
 
 END_RADIANT_LUA_NAMESPACE
