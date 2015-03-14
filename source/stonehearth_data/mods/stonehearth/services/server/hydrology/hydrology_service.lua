@@ -44,6 +44,10 @@ function HydrologyService:get_channel_manager()
    return self._sv._channel_manager
 end
 
+function HydrologyService:get_water_tight_region()
+   return self._water_tight_region
+end
+
 function HydrologyService:_trace_terrain_delta()
    local terrain_component = radiant._root_entity:add_component('terrain')
    self._water_tight_region = terrain_component:get_water_tight_region()
