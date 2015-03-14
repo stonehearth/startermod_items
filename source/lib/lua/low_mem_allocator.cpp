@@ -19,7 +19,7 @@ static const int VerboseReportsLogLevel = 1;
 
 typedef long (*NtAllocateVirtualMemoryFn)(HANDLE handle, void **addr, ULONG zbits,
 		       size_t *size, ULONG alloctype, ULONG prot);
-typedef long (*NtFreeVirtualMemoryFn)(HANDLE ProcessHandle, PVOID *BaseAddress, PSIZE_T RegionSize, ULONG FreeType);
+typedef long (*NtFreeVirtualMemoryFn)(HANDLE ProcessHandle, void **BaseAddress, size_t* RegionSize, ULONG FreeType);
 
 DEFINE_SINGLETON(LowMemAllocator);
 
