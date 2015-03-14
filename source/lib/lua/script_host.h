@@ -72,7 +72,6 @@ private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
-   static void* LuaAllocLowMemFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
    void Exit(int code);
