@@ -764,6 +764,7 @@ bool NavGrid::IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region)
 {
    bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
 
+   NG_LOG(7) << "Entering ::IsBlocked() for " << entity;
    bool stopped = ForEachTrackerInShape(region, [this, ignoreSmallObjects, &entity](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
       
@@ -771,15 +772,19 @@ bool NavGrid::IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region)
       if (entity != tracker->GetEntity()) {
          switch (tracker->GetType()) {
          case TrackerType::COLLISION:
+            NG_LOG(7) << entity <<  " intersected collision box of " << tracker->GetEntity() << ".  ::IsBlocked() returning true.";
             stop = !ignoreSmallObjects || !IsSmallObject(tracker->GetEntity());
             break;
          case TrackerType::TERRAIN:
+            NG_LOG(7) << entity <<  " intersected terrain.  ::IsBlocked() returning true.";
             stop = true;
             break;
          }
       }
       return stop;
    });
+   NG_LOG(7) << "Exiting ::IsBlocked() for " << entity << "(blocked? " << std::boolalpha << stopped << ")";
+
    return stopped;      // if we had to stop iteration, we must be blocked!
 }
 
@@ -1099,6 +1104,7 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om:
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::CollisionShape const& worldShape)
 {
    if (IsBlocked(entity, worldShape)) {
+      NG_LOG(7) << "::IsStandable for " << entity << " returning false.  Shape is blocked!";
       return false;
    }
    return RegionIsSupported(entity, location, csg::ToInt(worldShape));

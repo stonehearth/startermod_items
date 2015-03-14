@@ -323,6 +323,7 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
    // Also: we never call 'clear' on tempTrackers_, because it's only purpose is to hold
    // a list of weak refs to the actual trackers that we can safely iterate over; no
    // need to call destroy on that list (since they're weak refs).
+#if 0
    while (begin != end && numTrackers < tempSize) {
       tempTrackers_[numTrackers++] = begin->second;
       ++begin;
@@ -332,13 +333,20 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
       numTrackers++;
       ++begin;
    }
+#else
+   std::vector<CollisionTrackerRef> trackers(std::distance(begin, end));
+   while (begin != end) {
+      trackers.emplace_back(begin->second);
+      ++begin;
+   }
+#endif
 
-   for (int i = 0; i < numTrackers; i++) {
-      CollisionTrackerPtr tracker = tempTrackers_[i].lock();
+   for (auto const& t : trackers) {
+      CollisionTrackerPtr tracker = t.lock();
       if (tracker) {
          om::EntityPtr entity = tracker->GetEntity();
          if (entity) {
-            NG_LOG(7) << "calling ForEachTracker callback on " << *entity;
+            NG_LOG(7) << "calling ForEachTracker callback on " << entity;
             stopped = cb(tracker);
             if (stopped) {
                break;

@@ -1,14 +1,16 @@
 #include "pch.h"
+#include "core/config.h"
+#include "core/system.h"
+#include "low_mem_allocator.h"
+
 extern "C" {
 #  include "lib/lua/lua.h"
 }
 
-#pragma optimize ( "" , off )
-
 using namespace radiant;
 using namespace radiant::lua;
 
-static bool jitEnabled;
+static bool __jitEnabled;
 
 HMODULE luadll;
 static void *LoadSymbol(const char* name)
@@ -18,7 +20,7 @@ static void *LoadSymbol(const char* name)
 
 bool lua::JitIsEnabled()
 {
-   return jitEnabled;
+   return __jitEnabled;
 }
 
 
@@ -133,12 +135,23 @@ static const char * (__cdecl *luaL_findtable_fn)(lua_State *L, int idx, const ch
 static void (__cdecl *luaL_openlibs_fn)(lua_State *L);
 static lua_State *(__cdecl *lj_state_newstate_fn)(lua_Alloc f, void *ud);
 
-void lua::Initialize(bool enableJit)
+void lua::Initialize()
 {
-   jitEnabled = enableJit;
-   luadll = LoadLibraryExW(enableJit ? L"lua-5.1.5.jit.dll" : L"lua-5.1.5.dll", NULL, 0);
+   bool is64Bit = core::System::IsProcess64Bit();
+   bool enableJit = core::Config::GetInstance().Get<bool>("enable_lua_jit", true);
 
-   LOG(lua.data, 0) << "lua jit is " << (enableJit ? "enabled" : "disabled");
+   if (enableJit && is64Bit) {
+      bool success = LowMemAllocator::GetInstance().Start();
+      if (!success) {
+         LOG(lua.memory, 0) << "failed to start low memory allocator.  disabling lua jit!";
+         enableJit = false;
+      }
+   }
+
+   __jitEnabled = enableJit;
+   luadll = LoadLibraryExW(__jitEnabled ? L"lua-5.1.5.jit.dll" : L"lua-5.1.5.dll", NULL, 0);
+
+   LOG(lua.data, 0) << "lua jit is " << (__jitEnabled ? "enabled" : "disabled");
 
    lua_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lua_newstate");
    lua_close_fn = (void(*)(lua_State *L))LoadSymbol("lua_close");

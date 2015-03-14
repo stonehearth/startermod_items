@@ -208,7 +208,7 @@ int Application::Run(int argc, const char** argv)
    crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([&]() {
       core::Config& config = core::Config::GetInstance();
 
-      lua::Initialize(config.Get<bool>("enable_lua_jit", true));
+      lua::Initialize();
 
       // Need to load all singletons before spawning threads.
       res::ResourceManager2::GetInstance();

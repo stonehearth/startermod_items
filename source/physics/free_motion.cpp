@@ -65,8 +65,8 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
 {
    om::MobPtr mob = entity->GetComponent<om::Mob>();
 
-   LOG(physics.free_motion, 4) << "Unsticking entity " << *entity;
-
+   std::weak_ptr<om::Entity> root;
+   LOG(physics.free_motion, 4) << "Unsticking entity " << *entity << " @ " << mob->GetWorldTransform(root);
 
    if (mob && !mob->GetInFreeMotion() && !mob->GetIgnoreGravity()) {
       om::Mob::MobCollisionTypes type = mob->GetMobCollisionType();
@@ -107,4 +107,5 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
          }
       }
    }
+   LOG(physics.free_motion, 4) << "Post unstick, entity " << *entity << " @ " << mob->GetWorldTransform(root);
 }

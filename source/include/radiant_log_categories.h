@@ -22,6 +22,7 @@
    BEGIN_GROUP(lua) \
       ADD_CATEGORY(code) \
       ADD_CATEGORY(data) \
+      ADD_CATEGORY(memory) \
    END_GROUP(lua) \
    \
    BEGIN_GROUP(physics) \
