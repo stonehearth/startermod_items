@@ -187,6 +187,10 @@ perf-exp: test-stage test-package run-perf-exp
 decoda-project:
 	scripts/make_decoda_project.py stonehearth.deproj source/stonehearth_data/mods
 
+.PHONY: shed-decoda-project
+shed-decoda-project:
+	scripts/make_decoda_project.py shed.deproj modules/stonehearth-editor
+
 .PHONY: dependency-graph
 dependency-graph:
 	cmake -H. -B$(BUILD_DIR) -G"Visual Studio 11" --graphviz=deps.dot
