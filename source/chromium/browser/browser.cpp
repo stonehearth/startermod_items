@@ -609,7 +609,8 @@ void Browser::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle curs
 // xxx - nuke this...
 bool Browser::HasMouseFocus(int x, int y)
 {
-   WindowToBrowser(x, y);
+   x = (int)((x / (float)_screenSize.x) * _uiSize.x);
+   y = (int)((y / (float)_screenSize.y) * _uiSize.y);
 
    if (x < 0 || y < 0 || x >= _uiSize.x || y >= _uiSize.y) {
       return false;

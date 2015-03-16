@@ -208,6 +208,7 @@ private:
    perfmon::Timeline                   perf_jobs_;
    bool                                enable_job_logging_;
    platform::timer                     log_jobs_timer_;
+   platform::timer                     lua_memory_timer_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
    core::Guard                         jobs_perf_guard_;

@@ -4,6 +4,7 @@
 #include "namespace.h"
 #include <memory>
 #include <mutex>
+#include <tbb/spin_mutex.h>
 
 BEGIN_RADIANT_CORE_NAMESPACE
 
@@ -12,7 +13,7 @@ class Singleton
 {
 public:
    static Derived& GetInstance() {
-      std::lock_guard<boost::detail::spinlock> lock(_lock);
+      tbb::spin_mutex::scoped_lock lock(_lock);
 
       ASSERT(!destroyed_);
       if (destroyed_) {
@@ -50,7 +51,7 @@ private:
    static std::unique_ptr<Derived> singleton_;
    static bool destroyed_;
    static bool constructed_;
-   static boost::detail::spinlock _lock;
+   static tbb::spin_mutex _lock;
 };
 
 // Must be done once in a .cpp file somewhere to declare the singleton variable
@@ -58,7 +59,7 @@ private:
    std::unique_ptr<Cls> core::Singleton<Cls>::singleton_; \
    bool core::Singleton<Cls>::constructed_ = false; \
    bool core::Singleton<Cls>::destroyed_ = false; \
-   boost::detail::spinlock core::Singleton<Cls>::_lock;
+   tbb::spin_mutex core::Singleton<Cls>::_lock;
 
 END_RADIANT_CORE_NAMESPACE
 
