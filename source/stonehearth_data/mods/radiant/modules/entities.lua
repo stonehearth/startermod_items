@@ -228,7 +228,7 @@ end
 
 -- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
-   if not entity:is_valid() then
+   if not entity or not entity:is_valid() then
       return nil
    end
    if entity:get_id() == 1 then
