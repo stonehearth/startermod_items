@@ -53,7 +53,6 @@ void radiant::log::Init(boost::filesystem::path const& logfile)
    log_level_names_["spam"] = SPAM;
 
    SetCurrentThreadName("main");
-   LOG(core.log, 0) << "logger initialized";
 }
 
 int radiant::log::GetDefaultLogLevel()
