@@ -21,6 +21,7 @@ STAGE              = sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh $(STAGE_FLAGS
 STAGE_ROOT         = build/stage/stonehearth
 STEAM_PACKAGE_ROOT = build/steam-package
 ZIP_PACKAGE_ROOT   = build/game-package
+DEBUG_PACKAGE_ROOT = build/debug-package
 TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
 TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
 
@@ -221,6 +222,22 @@ steam-package:
 	-mkdir -p $(STEAM_PACKAGE_ROOT)
 	-rm $(STEAM_PACKAGE_ROOT)/stonehearth-steam.zip
 	cd $(STONEHEARTH_ROOT)/scripts/steampipe && $(7ZA) a -bd -r -tzip -mx=9 $(STONEHEARTH_ROOT)/$(STEAM_PACKAGE_ROOT)/stonehearth-steam.zip *
+
+.PHONY: debug-package
+debug-package:
+	echo 'creating debug package'
+	-rm $(DEBUG_PACKAGE_ROOT)/../stonehearth-debug.zip
+	-rm -rf $(DEBUG_PACKAGE_ROOT)
+	mkdir -p $(DEBUG_PACKAGE_ROOT)
+	-robocopy build/x86 $(DEBUG_PACKAGE_ROOT)/build/x86 *.pdb *.dll *.exe -s -xf CompilerId*.exe
+	-robocopy build/x64 $(DEBUG_PACKAGE_ROOT)/build/x64 *.pdb *.dll *.exe -s -xf CompilerId*.exe
+	-robocopy source $(DEBUG_PACKAGE_ROOT)/source *.c *.cpp *.cc *.h *.hh *.hpp -s
+	cp modules/luajit/src/x86/lua-5.1.5.jit.pdb $(DEBUG_PACKAGE_ROOT)/build/x86/source/stonehearth/RelWithDebInfo/
+	cp modules/luajit/src/x64/lua-5.1.5.jit.pdb $(DEBUG_PACKAGE_ROOT)/build/x64/source/stonehearth/RelWithDebInfo/
+	cp modules/lua/package/lua-5.1.5-coco/solutions/Release/lua-5.1.5.pdb $(DEBUG_PACKAGE_ROOT)/build/x86/source/stonehearth/RelWithDebInfo/
+	cp modules/lua/package/lua-5.1.5-coco/solutions/x64/Release/lua-5.1.5.pdb $(DEBUG_PACKAGE_ROOT)/build/x64/source/stonehearth/RelWithDebInfo/
+	-rm $(DEBUG_PACKAGE_ROOT)/stonehearth-debug.zip
+	cd $(DEBUG_PACKAGE_ROOT) && $(7ZA) a -bd -r -tzip $(STONEHEARTH_ROOT)/$(DEBUG_PACKAGE_ROOT)/stonehearth-debug.zip *
 
 .PHONY: docs
 docs:
