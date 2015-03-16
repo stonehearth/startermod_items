@@ -135,6 +135,9 @@ void Renderer::OneTimeIninitializtion()
             const std::wstring sufx[] = {L".shader", L".json", L".png", L".tga", L".jpg", L".glsl", L".xml", L".state"};
 
             for (int i = 0; i < 8; i++) {
+               if (filename.length() - sufx[i].length() - 1 < 0) {
+                  continue;
+               }
                if (filename.compare(filename.length() - sufx[i].length() - 1, sufx[i].length(), sufx[i]) == 0) {
                   Renderer::GetInstance().FlushMaterials();
                }
