@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "low_mem_allocator.h"
 #include "core/config.h"
+#include "core/system.h"
 #include <iomanip>
 #include <tbb/spin_mutex.h>
 #include <boost/interprocess/creation_tags.hpp>
@@ -51,8 +52,13 @@ bool LowMemAllocator::InitializeAllocator()
 {
    ASSERT(!_allocatorMemory);
    ASSERT(_state == UnInitialized);
+   ASSERT(core::System::IsProcess64Bit());
 
-   int mb = core::Config::GetInstance().Get<int>("luajit_lowmem_size", 512); 
+   // We only use the LowMemAllocator on 64-bit systems, so allocating a lot of address
+   // space here shouldn't be a problem, unless we start hitting the commit limits of
+   // the operating system (UG!).  If that happens, I expect we'll hit the 
+   // actualSize != requestedSize case, below, a lot.
+   int mb = core::Config::GetInstance().Get<int>("luajit_lowmem_size", 768); 
    size_t requestedSize = mb * 1024 * 1024;
 
    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
@@ -233,7 +239,20 @@ void *LowMemAllocator::Allocate(size_t size)
 
    // either we shouldn't be using the free list or it's empty.  either way, alloc.
    if (!ptr) {
-      ptr = _allocator.allocate(size);
+      try {
+         ptr = _allocator.allocate(size);
+      } catch (boost::interprocess::bad_alloc const& e) {
+         // we ran out of memory.  this means either there's a *serious* leak in lua or we somehow allocated
+         // too much.  Look at the memory report in the log for this crash to see which
+         std::string msg = BUILD_STRING("error in lua allocator attempting to allocate " << size  << "bytes (" << e.what() << ")");
+         LOG(lua.memory, 0) << msg;
+         ReportMemoryStats(true);
+
+         // Now report to the user that we're going to down, why, then crash so we get a report on the
+         // server.
+         ::MessageBox(NULL, msg.c_str(), "Stonehearth Assertion Failed", MB_OK | MB_ICONEXCLAMATION);
+         throw new CrashException();
+      }
    }
 
    return ptr;
