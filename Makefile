@@ -45,10 +45,6 @@ clean:
 clean-all:
 	rm -rf build
 
-# the legacy official-build target.  does nothing!
-.PHONY: official-build
-official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage game-package steam-package debug-package
-
 # the current official targets.  builds are done in this order with these shells:
 #
 #    official-build-setup 	 (32-bit shell)
@@ -68,7 +64,7 @@ official-build-x64: official-build-platform
 official-build-platform: submodules init-build configure crash_reporter stonehearth symbols
 
 .PHONY: official-build-package
-official-build-package: stage game-package steam-package official-build-git-tag
+official-build-package: stage game-package steam-package debug-package official-build-git-tag
 
 .PHONY: official-build-git-tag
 official-build-git-tag:
