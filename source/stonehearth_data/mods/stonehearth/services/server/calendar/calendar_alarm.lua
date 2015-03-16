@@ -37,6 +37,7 @@ function CalendarAlarm:fire()
    assert(not self._sv.is_dead)
    if not self._fn then
       radiant.log.write('calendar', 0, 'alarm for time %s has no callback.  killing.', tostring(self._sv.time))
+      self:destroy()
       return
    end
    self._fn()
