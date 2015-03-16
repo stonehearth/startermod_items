@@ -63,7 +63,8 @@ App.RootView = Ember.ContainerView.extend({
       $('#' + this._shellView.elementId).hide();
       $('#' + this._gameView.elementId).show();
 
-      App.stonehearthTutorials = new StonehearthTutorialManager();
+      // Uncomment out this line after top fixes the tutorials
+      //App.stonehearthTutorials = new StonehearthTutorialManager();
 
       /*
       setTimeout(function() {
