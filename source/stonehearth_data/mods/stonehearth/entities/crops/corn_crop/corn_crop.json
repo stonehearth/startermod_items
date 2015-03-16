@@ -53,7 +53,7 @@
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
-         "growth_period" : "1h",
+         "growth_period" : "18h",
          "growth_stages" : [
             {
                "model_name" : "corn_1",
