@@ -21,6 +21,9 @@ function ChannelManager:allocate_channels(from_entity)
 end
 
 function ChannelManager:deallocate_channels(from_entity)
+   local channels = self:get_channels(from_entity)
+   self:remove_channels(channels)
+
    self._sv._channels[from_entity:get_id()] = nil
    self.__saved_variables:mark_changed()
 end
@@ -69,6 +72,12 @@ function ChannelManager:remove_channel(channel)
 
    if paired_channel then
       self:_remove_unidirectional_channel(paired_channel)
+   end
+end
+
+function ChannelManager:remove_channels(channels)
+   for _, channel in pairs(channels) do
+      self:remove_channel(channel)
    end
 end
 
@@ -338,11 +347,13 @@ function ChannelManager:empty_channels()
 end
 
 function ChannelManager:_create_water_queue_entry(channel)
+   -- this looks a lot like a channel, but it's not a channel
    local entry = {
-      entity = channel.to_entity,
-      location = channel.to_location,
-      volume = channel.queued_volume,
-      channel = channel
+      from_entity = channel.from_entity,
+      from_location = channel.from_location,
+      to_entity = channel.to_entity,
+      to_location = channel.to_location,
+      volume = channel.queued_volume
    }
    return entry
 end

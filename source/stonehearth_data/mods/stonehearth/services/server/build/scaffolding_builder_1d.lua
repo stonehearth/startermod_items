@@ -1,4 +1,5 @@
 local priorities = require('constants').priorities.simple_labor
+local build_util = require 'stonehearth.lib.build_util'
 
 local Cube3   = _radiant.csg.Cube3
 local Point2  = _radiant.csg.Point2
@@ -7,42 +8,59 @@ local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
 local TraceCategories = _radiant.dm.TraceCategories
 
-local ScaffoldingBuilder = class()
 local log = radiant.log.create_logger('scaffolding_builder')
-
 local INFINITE = 1000000
 
-ScaffoldingBuilder.BUILD = 'build'
-ScaffoldingBuilder.TEAR_DOWN = 'teardown'
+local ScaffoldingBuilder_OneDim = class()
 
-function ScaffoldingBuilder:initialize(manager, id, blueprint_rgn, project_rgn, normal)
+ScaffoldingBuilder_OneDim.SOLID_STRUCTURE_TYPES = {
+   'stonehearth:roof',
+   'stonehearth:wall',
+   'stonehearth:column',
+   'stonehearth:floor',
+}
+
+ScaffoldingBuilder_OneDim.BUILD = 'build'
+ScaffoldingBuilder_OneDim.TEAR_DOWN = 'teardown'
+
+function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn, project_rgn, normal)
+   checks('self', 'controller', 'number', 'Entity', 'Region3Boxed', 'Region3Boxed', 'Point3')
+
    self._sv.id = id
    self._sv.active = false
+   self._sv.entity = entity
    self._sv.manager = manager
    self._sv.normal = normal
    self._sv.project_rgn = project_rgn
    self._sv.blueprint_rgn = blueprint_rgn
-   self._sv.mode = ScaffoldingBuilder.BUILD 
+   self._sv.mode = ScaffoldingBuilder_OneDim.BUILD 
    self._sv.scaffolding_rgn = _radiant.sim.alloc_region3()   
 end
 
-function ScaffoldingBuilder:activate()
+function ScaffoldingBuilder_OneDim:activate()
+   radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
+         self._sv.manager:_remove_scaffolding_builder(self._sv.id)
+      end)
    self:_on_active_changed()
 end
 
-function ScaffoldingBuilder:get_scaffolding_region()
+function ScaffoldingBuilder_OneDim:destroy()
+   self:_untrace_blueprint_and_project()
+end
+
+function ScaffoldingBuilder_OneDim:get_scaffolding_region()
    return self._sv.scaffolding_rgn
 end
 
-function ScaffoldingBuilder:get_normal()
+function ScaffoldingBuilder_OneDim:get_normal()
    return self._sv.normal
 end
 
-function ScaffoldingBuilder:get_active()
+function ScaffoldingBuilder_OneDim:get_active()
    return self._sv.active
 end
 
-function ScaffoldingBuilder:set_active(active)
+function ScaffoldingBuilder_OneDim:set_active(active)
    checks('self', '?boolean')
 
    if active ~= self._sv.active then
@@ -52,7 +70,7 @@ function ScaffoldingBuilder:set_active(active)
    end
 end
 
-function ScaffoldingBuilder:set_mode(mode)
+function ScaffoldingBuilder_OneDim:set_mode(mode)
    checks('self', 'string')
 
    if mode ~= self._sv.mode then
@@ -65,7 +83,7 @@ function ScaffoldingBuilder:set_mode(mode)
    end
 end
 
-function ScaffoldingBuilder:_on_active_changed()
+function ScaffoldingBuilder_OneDim:_on_active_changed()
    local active = self._sv.active
 
    if active then
@@ -77,7 +95,7 @@ function ScaffoldingBuilder:_on_active_changed()
    self._sv.manager:_on_active_changed(self._sv.id, active)
 end
 
-function ScaffoldingBuilder:_untrace_blueprint_and_project()
+function ScaffoldingBuilder_OneDim:_untrace_blueprint_and_project()
    if self._project_trace then
       self._project_trace:destroy()
       self._project_trace = nil
@@ -86,30 +104,42 @@ function ScaffoldingBuilder:_untrace_blueprint_and_project()
       self._blueprint_trace:destroy()
       self._blueprint_trace = nil
    end
+   if self._gameloop_listener then
+      self._gameloop_listener:destroy()
+      self._gameloop_listener = nil
+   end
 end
 
-function ScaffoldingBuilder:_trace_blueprint_and_project()
+function ScaffoldingBuilder_OneDim:_trace_blueprint_and_project()
    assert(self._sv.active)
    assert(not self._project_trace)
    assert(not self._blueprint_trace)
 
-   self._project_trace = self._sv.project_rgn:trace('scaffolding builder', TraceCategories.SYNC_TRACE)
-                                                :on_changed(function()
-                                                      self:_update_scaffolding_size()
-                                                   end)
+   local building = build_util.get_building_for(self._sv.entity)
 
-   self._blueprint_trace = self._sv.blueprint_rgn:trace('scaffolding builder', TraceCategories.SYNC_TRACE)
-                                                      :on_changed(function()
-                                                            self:_update_scaffolding_size()
-                                                         end)
+   local function mark_dirty()
+      self:_mark_dirty()
+   end
+
+   self._project_trace     = self._sv.project_rgn:trace('scaffolding builder'):on_changed(mark_dirty)
+   self._blueprint_trace   = self._sv.blueprint_rgn:trace('scaffolding builder'):on_changed(mark_dirty)
+   self._building_listener = radiant.events.listen(building, 'stonehearth:construction:structure_finished_changed', mark_dirty)
 end
 
-function ScaffoldingBuilder:_update_scaffolding_size()
-   local teardown = self._sv.mode == ScaffoldingBuilder.TEAR_DOWN
-   local blueprint_finished = self:_get_blueprint_finished()
+function ScaffoldingBuilder_OneDim:_mark_dirty()
+   if not self._gameloop_listener then
+      self._gameloop_listener = radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+            self._gameloop_listener = nil
+            self:_update_scaffolding_size()
+         end )
+   end
+end
+
+function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
+   local teardown = self._sv.mode == ScaffoldingBuilder_OneDim.TEAR_DOWN
    
    if not teardown then
-      if not blueprint_finished then
+      if not self:_get_blueprint_finished() then
          -- still not done with the blueprint.  cover the whole thing
          self:_cover_project_region(teardown)
       else
@@ -124,15 +154,29 @@ function ScaffoldingBuilder:_update_scaffolding_size()
    self:_update_ladder_region()
 end
 
-function ScaffoldingBuilder:_get_blueprint_finished()
-   local project_rgn = self._sv.project_rgn:get()
-   local blueprint_rgn = self._sv.blueprint_rgn:get()
+function ScaffoldingBuilder_OneDim:_get_blueprint_finished()
+   if not self._sv.entity:is_valid() then
+      return
+   end
 
-   return project_rgn:get_area() == blueprint_rgn:get_area()
+   local building = build_util.get_building_for(self._sv.entity)
+   local all_structures = building:get_component('stonehearth:building')
+                                       :get_all_structures()
+
+   for i, name in pairs(ScaffoldingBuilder_OneDim.SOLID_STRUCTURE_TYPES) do
+      for _, entry in pairs(all_structures[name]) do
+         local finished = entry.entity:get_component('stonehearth:construction_progress')
+                                          :get_finished()
+         if not finished then
+            return false
+         end
+      end
+   end
+   return true
 end
 
 -- why is this function so big!?
-function ScaffoldingBuilder:_cover_project_region(teardown)
+function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
    
@@ -256,8 +300,8 @@ function ScaffoldingBuilder:_cover_project_region(teardown)
    end)
 end
 
-function ScaffoldingBuilder:_update_ladder_region()
+function ScaffoldingBuilder_OneDim:_update_ladder_region()
    self._sv.manager:_on_scaffolding_region_changed(self._sv.id)
 end
 
-return ScaffoldingBuilder
+return ScaffoldingBuilder_OneDim

@@ -461,6 +461,7 @@ function WaterComponent:_remove_height(volume)
    return residual
 end
 
+-- TODO: don't raise into another water body
 function WaterComponent:_raise_layer()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local new_layer_index = self._sv._current_layer_index + 1
@@ -504,9 +505,13 @@ function WaterComponent:_raise_layer()
 end
 
 function WaterComponent:_lower_layer()
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local new_layer_index = self._sv._current_layer_index - 1
    log:debug('Lowering layer for %s to %d', self._entity, new_layer_index + entity_location.y)
+
+   local old_layer_elevation = self:get_current_layer_elevation()
+   local orphaned_channels = self:_get_channels_at_elevation(old_layer_elevation)
 
    local lowered_layer = self:_get_layer(new_layer_index)
 
@@ -537,6 +542,11 @@ function WaterComponent:_lower_layer()
    local residual_top_layer = top_layer - projected_lower_layer
 
    if not residual_top_layer:empty() then
+      -- we do this to avoid having to create vertical channels to remove each unsupported block
+      residual_top_layer = self:_remove_unsupported_region(residual_top_layer)
+   end
+
+   if not residual_top_layer:empty() then
       -- top layer becomes a new water body with a potentially non-contiguous wet region
       -- TODO: probably need to create an entity for each contiguous set
       residual_top_layer:optimize_by_merge()
@@ -553,16 +563,30 @@ function WaterComponent:_lower_layer()
       child_water_component:_recalculate_current_layer()
 
       -- reparent channels on top layer to child
-      local channel_manager = stonehearth.hydrology:get_channel_manager()
-      local child_channels = self:_get_channels_at_elevation(child_water_component:get_current_layer_elevation())
-      channel_manager:reparent_channels(child_channels, child)
+      channel_manager:reparent_channels(orphaned_channels, child)
 
       log:debug('Top layer from %s becoming new entity %s', self._entity, child)
+   else
+      channel_manager:remove_channels(orphaned_channels)
    end
 
    self.__saved_variables:mark_changed()
 
    return true
+end
+
+function WaterComponent:_remove_unsupported_region(layer)
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   local water_tight_region = stonehearth.hydrology:get_water_tight_region()
+
+   -- project one unit down and to world coordinates
+   local projected_layer = layer:translated(location - Point3.unit_y)
+   local supported_region = water_tight_region:intersect_region(projected_layer)
+
+   -- project one unit up and back to local coordinates
+   supported_region:translate(Point3.unit_y - location)
+   local result = layer:intersect_region(supported_region)
+   return result
 end
 
 function WaterComponent:_recalculate_current_layer()

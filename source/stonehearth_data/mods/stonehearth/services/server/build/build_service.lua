@@ -42,8 +42,8 @@ function BuildService:initialize()
    self._sv = self.__saved_variables:get_data()
    if not self._sv.next_building_id then
       self._sv.next_building_id = 1 -- used to number newly created buildings
-      self._sv.ladder_manager = radiant.create_controller('stonehearth:build_ladder_manager')
-      self._sv.scaffolding_manager = radiant.create_controller('stonehearth:build_scaffolding_manager')
+      self._sv.ladder_manager = radiant.create_controller('stonehearth:build:ladder_manager')
+      self._sv.scaffolding_manager = radiant.create_controller('stonehearth:build:scaffolding_manager')
       self.__saved_variables:mark_changed()
    end
 end

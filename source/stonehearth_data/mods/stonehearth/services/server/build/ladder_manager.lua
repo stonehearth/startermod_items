@@ -2,9 +2,9 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build.ladder')
-local BuildLadderManager = class()
+local LadderManager = class()
 
-function BuildLadderManager:initialize()
+function LadderManager:initialize()
    self._sv.ladder_builders = {}
    self._sv.scaffolding_builders = {}
    self._sv.next_id = 2
@@ -15,7 +15,7 @@ end
 -- xxx: this is only correct in a world where the terrain doesn't change. 
 -- we should take a pass over all the ladder building code and make sure
 -- it can handle cases where the ground around the latter starts moving.
-function BuildLadderManager:request_ladder_to(owner, to, normal, removable)   
+function LadderManager:request_ladder_to(owner, to, normal, removable)   
    if not self:_should_build_rung(to) then
       -- the destination is not actually a valid rung.  this will result in a 0
       -- height ladder!  we should probably make a ladder builder anyway and just
@@ -28,7 +28,7 @@ function BuildLadderManager:request_ladder_to(owner, to, normal, removable)
    
    local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if not ladder_builder then
-      ladder_builder = radiant.create_controller('stonehearth:ladder_builder', self, owner, base, normal, removable)
+      ladder_builder = radiant.create_controller('stonehearth:build:ladder_builder', self, owner, base, normal, removable)
       self._sv.ladder_builders[base:key_value()] = ladder_builder
       self.__saved_variables:mark_changed()
    end
@@ -39,7 +39,7 @@ function BuildLadderManager:request_ladder_to(owner, to, normal, removable)
       end)
 end
 
-function BuildLadderManager:remove_ladder(base)
+function LadderManager:remove_ladder(base)
    local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if ladder_builder then
       ladder_builder:clear_all_points()
@@ -48,7 +48,7 @@ end
 
 -- returns the location where a ladder to reach `to` should be
 -- built
-function BuildLadderManager:get_base_of_ladder_to(to)
+function LadderManager:get_base_of_ladder_to(to)
    local base = Point3(to.x, to.y, to.z)
    local ladder_height = 0
 
@@ -59,7 +59,7 @@ function BuildLadderManager:get_base_of_ladder_to(to)
    return base
 end
 
-function BuildLadderManager:_should_build_rung(pt)
+function LadderManager:_should_build_rung(pt)
    local function is_empty_enough(entity)
       if entity:get_id() == 1 then
          log:spam(' %s is terrain.  no.', entity)
@@ -98,7 +98,7 @@ function BuildLadderManager:_should_build_rung(pt)
    return true
 end
 
-function BuildLadderManager:_destroy_builder(base, ladder_builder)
+function LadderManager:_destroy_builder(base, ladder_builder)
    assert(self._sv.ladder_builders[base:key_value()] == ladder_builder)
 
    ladder_builder:destroy()
@@ -106,4 +106,4 @@ function BuildLadderManager:_destroy_builder(base, ladder_builder)
    self.__saved_variables:mark_changed()
 end
 
-return BuildLadderManager
+return LadderManager
