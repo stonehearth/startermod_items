@@ -1603,15 +1603,19 @@ void Client::RequestReload()
 
 rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
 {
+   rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("client save");
    if (saveid.empty()) {
       CLIENT_LOG(0) << "ignoring save request: saveid is empty";
-      return nullptr;
+      d->ResolveWithMsg("stonehearth:no_saveid");
+      return d;
    }
 
    if (client_save_deferred_) {
       CLIENT_LOG(0) << "ignoring save request: request is already in flight";
-      return nullptr;
+      d->ResolveWithMsg("stonehearth:save_in_progress");
+      return d;
    }
+
    ASSERT(!server_save_deferred_);
 
    fs::path tmpdir  = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR;
@@ -1619,12 +1623,14 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
       remove_all(tmpdir);
    }
    fs::create_directories(tmpdir);
+
+   SaveClientScreenShot(tmpdir);
    SaveClientState(tmpdir);
 
    json::Node args;
    args.set("saveid", SAVE_TEMP_DIR);
 
-   client_save_deferred_ = std::make_shared<rpc::ReactorDeferred>("client save");
+   client_save_deferred_ = d;
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
    server_save_deferred_->Done([this, saveid, tmpdir, gameinfo](JSONNode const&n) {
@@ -1650,6 +1656,7 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
       server_save_deferred_ = nullptr;
       remove_all(tmpdir);
    });
+
    return client_save_deferred_;
 }
 
@@ -1737,11 +1744,15 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
    return load_progress_deferred_;
 }
 
-void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
+void Client::SaveClientScreenShot(boost::filesystem::path const& savedir)
 {
    auto&r = Renderer::GetInstance();
    r.RenderOneFrame(r.GetLastRenderTime(), r.GetLastRenderAlpha(), true);
    h3dutScreenshot((savedir / "screenshot.png").string().c_str(), r.GetScreenshotTexture());
+}
+
+void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
+{
    std::ofstream metadata((savedir / "metadata.json").string());
    metadata << gameinfo.write_formatted() << std::endl;
 }
