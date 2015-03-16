@@ -56,9 +56,10 @@ void Application::InitializeCrashReporting()
    if (config.Get("enable_crash_dump_server", true)) {
       std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
       std::string const userid = config.GetUserID();
+      std::string const sessionid = config.GetSessionID();
       crash_dump_uri_ = config.Get("crash_dump_server", REPORT_CRASHDUMP_URI);
 
-      crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid);
+      crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid, sessionid);
    }
 }
 
