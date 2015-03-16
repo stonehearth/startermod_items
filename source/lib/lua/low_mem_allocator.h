@@ -42,6 +42,7 @@ private:
    void* LuaAlloc(void *ptr, size_t osize, size_t nsize);
    std::string LowMemAllocator::FormatSize(size_t size) const;
    void *Allocate(size_t size);
+   void ReportMemoryStatsUnlocked(bool force);
    void Deallocate(void *ptr, size_t size);
     
    inline bool UseFreeList(size_t size) {
