@@ -137,7 +137,11 @@ void* LowMemAllocator::LuaAlloc(void *ptr, size_t osize, size_t nsize)
 void LowMemAllocator::ReportMemoryStats(bool force)
 {
    tbb::spin_mutex::scoped_lock lock(__lock);
+   ReportMemoryStatsUnlocked(force);
+}
 
+void LowMemAllocator::ReportMemoryStatsUnlocked(bool force)
+{
    if (_state != Started) {
       LOG(lua.memory, 1) << "not using low memory allocator";
       return;
@@ -244,9 +248,9 @@ void *LowMemAllocator::Allocate(size_t size)
       } catch (boost::interprocess::bad_alloc const& e) {
          // we ran out of memory.  this means either there's a *serious* leak in lua or we somehow allocated
          // too much.  Look at the memory report in the log for this crash to see which
-         std::string msg = BUILD_STRING("error in lua allocator attempting to allocate " << size  << "bytes (" << e.what() << ")");
+         std::string msg = BUILD_STRING("error in lua allocator attempting to allocate " << size  << " bytes (" << e.what() << ")");
          LOG(lua.memory, 0) << msg;
-         ReportMemoryStats(true);
+         ReportMemoryStatsUnlocked(true);
 
          // Now report to the user that we're going to down, why, then crash so we get a report on the
          // server.
