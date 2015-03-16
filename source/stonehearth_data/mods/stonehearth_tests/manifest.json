@@ -7,6 +7,7 @@
    "server_init_script" : "file(stonehearth_tests_server)",
    "ui" :  {
       "skip_title" : true,
+      "empty" : "http://radiant/stonehearth/ui/root/empty.html",
       "homepage" : "http://radiant/stonehearth/ui/root/index.html"
    }
 }

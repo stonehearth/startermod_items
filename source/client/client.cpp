@@ -414,7 +414,7 @@ void Client::OneTimeIninitializtion()
    });
 
    core_reactor_->AddRouteV("radiant:show_game_screen", [this](rpc::Function const& f) {
-      SetCurrentUIScreen(GameScreen, true);
+      SetCurrentUIScreen(GameScreen, false);
    });
 
    core_reactor_->AddRoute("radiant:get_config_options", [this](rpc::Function const& f) {
@@ -1686,6 +1686,19 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
    }
 
    loading_ = true;
+
+   // Navigate to the empty page--this effectively shuts down the UI, removes all polling
+   // and listeners to server-side stuff, so that we don't spam logs or consume unnecessary
+   // cycles.
+   core::Config const& config = core::Config::GetInstance();
+   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   std::string emptyUrl;
+   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
+      emptyUrl = manifest.get<std::string>("ui.empty", "about:");
+   });
+   browser_->Navigate(emptyUrl);
+   
    loadError_.clear();
    load_progress_deferred_ = deferred;
    ASSERT(server_load_deferred_ == nullptr);
@@ -1716,7 +1729,8 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_.reset();
    });
 
-   SetCurrentUIScreen(LoadingScreen);
+   // We just navigated to the empty screen, so don't reload the UI (or we'll spam the client).
+   SetCurrentUIScreen(LoadingScreen, false);
    Shutdown();
    Initialize();
 
@@ -1925,7 +1939,7 @@ const char* Client::GetCurrentUIScreen() const
    return screens[_currentUiScreen];
 }
 
-void Client::SetCurrentUIScreen(UIScreen screen, bool browserRequested)
+void Client::SetCurrentUIScreen(UIScreen screen, bool reloadRequested)
 {
    if (screen == _currentUiScreen) {
       return;
@@ -1938,8 +1952,9 @@ void Client::SetCurrentUIScreen(UIScreen screen, bool browserRequested)
    if (scriptHost_) {
       scriptHost_->Trigger("radiant:client:ui_screen_changed");
    }
-   if (!browserRequested) {
-      ReloadBrowser(); // Technically, can't we just trigger?
+
+   if (reloadRequested) {
+      ReloadBrowser();
    }
 }
 
