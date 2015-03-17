@@ -8,8 +8,6 @@
 using namespace ::radiant;
 using namespace ::radiant::phys;
 
-#pragma optimize( "", off )
-
 WaterTightRegionBuilder::WaterTightRegionBuilder(NavGrid const& ng) :
    _navgrid(ng),
    _deltaAccumulator(nullptr)
