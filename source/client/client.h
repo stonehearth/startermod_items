@@ -88,7 +88,7 @@ class Client : public core::Singleton<Client> {
       };
 
       const char* GetCurrentUIScreen() const;
-      void SetCurrentUIScreen(UIScreen screen, bool browserRequested = false);
+      void SetCurrentUIScreen(UIScreen screen, bool reloadRequested = true);
 
 
    private:

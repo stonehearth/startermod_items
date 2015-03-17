@@ -124,7 +124,7 @@ bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool
 	char *renderer = (char *)glGetString( GL_RENDERER );
 	char *version = (char *)glGetString( GL_VERSION );
 
-	Modules::log().writeInfo( "Initializing GL2 backend using OpenGL driver '%s' by '%s' on '%s'",
+   Modules::log().writeError( "Initializing GL2 backend using OpenGL driver '%s' by '%s' on '%s'",
 	                          version, vendor, renderer );
 	
 	// Init extensions

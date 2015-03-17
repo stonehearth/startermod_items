@@ -13,6 +13,7 @@
 
    "ui" :  {
       "skip_title" : true,
+      "empty" : "http://radiant/stonehearth/ui/root/empty.html",
       "homepage" : "http://radiant/stonehearth/ui/root/index.html"
    }
 }

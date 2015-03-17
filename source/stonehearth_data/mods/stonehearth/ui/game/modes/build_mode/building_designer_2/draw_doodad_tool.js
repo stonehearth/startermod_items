@@ -33,7 +33,7 @@ var DrawDoodadTool;
                      self.brush = brush;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('brush', brush);
+                     self.buildingDesigner.saveKey('doodadBrush', brush);
 
                      // Re/activate the doodad tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
@@ -51,7 +51,7 @@ var DrawDoodadTool;
       restoreState: function(state) {
          var self = this;
 
-         var selector = state.brush ? '.' + self.materialClass + '[brush="' + state.brush + '"]' :  '.' + self.materialClass;
+         var selector = state.doodadBrush ? '.' + self.materialClass + '[brush="' + state.doodadBrush + '"]' :  '.' + self.materialClass;
          var selectedMaterial = $($(selector)[0]);
          $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');

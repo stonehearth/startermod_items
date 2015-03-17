@@ -78,7 +78,7 @@ vec3 getRandomVec(const vec2 texCoords)
 void main()
 {
   float radius = 0.5;
-  const float intensity = 1.0;
+  const float intensity = 0.5;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
   vec3 origin = toCameraSpace(texCoords, attribs.r);

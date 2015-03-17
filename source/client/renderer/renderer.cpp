@@ -164,14 +164,14 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
    }
 
    config_.enable_vsync.value = false;
-   if (gpuScore <= 250) {
+   if (gpuScore <= 500) {
       config_.use_high_quality.value = false;
 
       config_.screen_width.value = 1280;
       config_.screen_height.value = 720;
       config_.draw_distance.value = 500;
       config_.use_shadows.value = false;
-   } else if (gpuScore <= 500) {
+   } else if (gpuScore <= 1000) {
       config_.use_high_quality.value = false;
 
       config_.screen_width.value = 1280;
@@ -179,7 +179,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.draw_distance.value = 1000;
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 1;
-   } else if (gpuScore <= 750) {
+   } else if (gpuScore <= 1500) {
       config_.use_high_quality.value = false;
 
       config_.screen_width.value = 1920;
@@ -187,7 +187,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.draw_distance.value = 1000;
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 2;
-   } else if (gpuScore <= 1000) {
+   } else if (gpuScore <= 2500) {
       config_.use_high_quality.value = true;
 
       config_.screen_width.value = 1920;
@@ -197,7 +197,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.enable_ssao.value = false;
       config_.shadow_quality.value = 2;
       config_.num_msaa_samples.value = 0;
-   } else if (gpuScore <= 2000) {
+   } else if (gpuScore <= 3500) {
       config_.use_high_quality.value = true;
 
       config_.screen_width.value = 1920;
@@ -207,7 +207,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.enable_ssao.value = false;
       config_.shadow_quality.value = 3;
       config_.num_msaa_samples.value = 1;
-   } else if (gpuScore <= 3000) {
+   } else if (gpuScore <= 4500) {
       config_.use_high_quality.value = true;
 
       config_.screen_width.value = 1920;

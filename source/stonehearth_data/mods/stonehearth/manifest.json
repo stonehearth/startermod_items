@@ -1493,6 +1493,7 @@
       "scaffolding_renderer" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
    "ui" :  {
+      "empty" : "http://radiant/stonehearth/ui/root/empty.html",
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",
       "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",
