@@ -5,7 +5,7 @@
    "in_edge"  : "spawn_city_raids",
 
    "generator_info" :  {
-      "delay" : "12h+4h",
+      "delay" : "22h+4h",
       "source_entity" : "npc_boss_entity",
       "spawn_edge" : "city_raid"
    }

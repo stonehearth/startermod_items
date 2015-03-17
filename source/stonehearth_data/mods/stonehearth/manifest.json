@@ -1334,8 +1334,10 @@
       "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
-      "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
-      "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
+      "build:ladder_manager" : "file(services/server/build/ladder_manager.lua)",
+      "build:scaffolding_manager" : "file(services/server/build/scaffolding_manager.lua)",
+      "build:ladder_builder" : "file(services/server/build/ladder_builder.lua)",
+      "build:scaffolding_builder_1d" : "file(services/server/build/scaffolding_builder_1d.lua)",
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
@@ -1360,6 +1362,7 @@
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
+      "channel_manager" : "file(services/server/hydrology/channel_manager.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
 
@@ -1383,7 +1386,9 @@
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
-      "unit_control:party" : "file(services/server/unit_control/party.lua)"
+      "unit_control:party" : "file(services/server/unit_control/party.lua)",
+
+      "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)"
    },
 
    "client_controllers" :  {

@@ -13,8 +13,8 @@ using namespace ::radiant::simulation;
 
 #define FM_LOG(level)      LOG_CATEGORY(simulation.free_motion, level, BUILD_STRING(*entity))
 
-ApplyFreeMotionTask::ApplyFreeMotionTask(Simulation& sim, om::MobRef m) :
-   Task(sim, "apply free movement"),
+ApplyFreeMotionTask::ApplyFreeMotionTask(om::MobRef m) :
+   Task("apply free movement"),
    mob_(m)
 {
 }
@@ -38,7 +38,7 @@ bool ApplyFreeMotionTask::Work(platform::timer const& timer)
    if (mob->GetInFreeMotion()) {
       // Accleration due to gravity is 9.8 m/(s*s).  One block is one meter.
       // You do the math (oh wait.  there isn't any! =)
-      float acceleration = 9.8f / static_cast<float>(GetSim().GetGameTickInterval());
+      float acceleration = 9.8f / static_cast<float>(Simulation::GetInstance().GetGameTickInterval());
 
       // Update velocity.  Terminal velocity is currently 1-block per tick
       // to make it really easy to figure out where the thing lands.
@@ -50,7 +50,7 @@ bool ApplyFreeMotionTask::Work(platform::timer const& timer)
       velocity.position.y = std::max(velocity.position.y, -1.0);
 
       // Update position
-      phys::NavGrid &ng = GetSim().GetOctTree().GetNavGrid();
+      phys::NavGrid &ng = Simulation::GetInstance().GetOctTree().GetNavGrid();
       csg::Transform next, current = mob->GetTransform();
 
       next.position = current.position + velocity.position;

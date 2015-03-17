@@ -14,7 +14,7 @@ end
 
 function TargetTables:destroy()
    for _, target_table in pairs(self._sv.target_tables) do
-      radiant.destroy_controller(target_table)
+      target_table:destroy()
    end
 end
 
@@ -22,7 +22,7 @@ function TargetTables:get_target_table(table_name)
    local target_table = self._sv.target_tables[table_name]
 
    if target_table == nil then
-      target_table = radiant.create_controller('stonehearth:target_table')
+      target_table = radiant.create_controller('stonehearth:target_table', table_name)
       self._sv.target_tables[table_name] = target_table
    end
 

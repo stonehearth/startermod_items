@@ -1,9 +1,6 @@
-radiant.lib.TimeTracker = require 'modules.time_tracker'
-
-local time_tracker = radiant.lib.TimeTracker(_host:get_realtime())
 
 radiant.events.listen(radiant, 'stonehearth:gameloop', function()
-      time_tracker:set_now(_host:get_realtime())
+      radiant._sv.time_tracker:set_now(_host:get_realtime())
    end)
 
 function radiant.get_realtime()
@@ -12,11 +9,11 @@ function radiant.get_realtime()
 end
 
 function radiant.set_realtime_timer(delay_ms, fn)
-   return time_tracker:set_timer(delay_ms / 1000, fn)
+   return radiant._sv.time_tracker:set_timer(delay_ms / 1000, fn)
 end
 
 function radiant.set_realtime_interval(delay_ms, fn)
-   return time_tracker:set_interval(delay_ms / 1000, fn)
+   return radiant._sv.time_tracker:set_interval(delay_ms / 1000, fn)
 end
 
 function radiant.set_performance_counter(name, value, kind)

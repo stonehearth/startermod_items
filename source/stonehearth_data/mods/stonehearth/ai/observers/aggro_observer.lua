@@ -60,15 +60,17 @@ function AggroObserver:_on_removed_from_sensor(id)
 end
 
 function AggroObserver:_add_hostile_to_aggro_table(enemy)
-   if self:_is_killable(enemy) then
-      local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-      local current = target_table:get_value(enemy)
-      if current == nil then
-         -- the first time we see the enemy, we bump their aggro up by their menace
-         -- stat
-         local menace = radiant.entities.get_attribute(enemy, 'menace') or 1
-         target_table:modify_value(enemy, menace)
-      end
+   if not self:_is_killable(enemy) then
+      return
+   end
+
+   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+   local current = target_table:get_value(enemy)
+   if current == nil then
+      -- the first time we see the enemy, we bump their aggro up by their menace
+      -- stat
+      local menace = radiant.entities.get_attribute(enemy, 'menace', 1)
+      target_table:modify_value(enemy, menace)
    end
 end
 
@@ -97,30 +99,36 @@ end
 
 -- note that an entity is considered an ally of itself
 function AggroObserver:_on_ally_battery(context)
-   if self:_is_killable(context.attacker) then
-      local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-      if target_table then
-         local aggro = context.damage
-         if context.target ~= self._entity then
-            -- aggro from allies getting hit is less than self getting hit
-            aggro = aggro * self._ally_aggro_ratio
-         end
-         target_table:modify_value(context.attacker, aggro)
+   if not self:_is_killable(context.attacker) then
+      return
+   end
+
+   local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+   if target_table then
+      local aggro = context.damage
+      if context.target ~= self._entity then
+         -- aggro from allies getting hit is less than self getting hit
+         aggro = aggro * self._ally_aggro_ratio
       end
+      target_table:modify_value(context.attacker, aggro)
    end
 end
 
 function AggroObserver:_is_killable(target)
    if not target or not target:is_valid() then
+      self._log:spam('target is invalid in :_is_killable().  returning false')
       return false
    end
    local attributes_component = target:get_component('stonehearth:attributes')
    if not attributes_component then 
+      self._log:spam('%s has no attributes component :_is_killable().  returning false', target)
       return false
    end
 
    local health = attributes_component:get_attribute('health')
    local is_killable = health and health > 0
+
+   self._log:spam('%s health is %d in :_is_killable().  returning %s', target, tostring(health), tostring(is_killable))
    return is_killable
 end
 

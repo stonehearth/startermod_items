@@ -12,8 +12,8 @@ std::ostream& simulation::operator<<(std::ostream& o, const LuaJob& pf)
    return o << "[LuaJob " << pf.GetId() << " " << pf.GetName() << "]";
 }
 
-LuaJob::LuaJob(Simulation& sim, std::string const& name, object cb) :
-   Job(sim, name),
+LuaJob::LuaJob(std::string const& name, object cb) :
+   Job(name),
    finished_(false),
    cb_(cb)
 {

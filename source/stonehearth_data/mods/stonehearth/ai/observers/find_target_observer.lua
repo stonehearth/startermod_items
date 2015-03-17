@@ -153,7 +153,7 @@ function FindTargetObserver:_check_for_target()
 
    if self._task then
       -- self._task should be nil if it is completed
-      assert(not self._task:is_completed())
+      assert(self._task:is_active())
 
       if target == self._target then
          -- same target, let the existing task run

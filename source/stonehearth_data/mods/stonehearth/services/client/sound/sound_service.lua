@@ -10,14 +10,14 @@ local MUSIC_PRIORITIES = {
 local IDLE_DAY_AMBIENT = {
    track    = 'stonehearth:ambient:summer_day',
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 60,
 }
 
 local IDLE_NIGHT_AMBIENT = {
    track    = 'stonehearth:ambient:summer_night',
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 20,
 }
 
@@ -28,7 +28,7 @@ local IDLE_DAY_MUSIC = {
       'stonehearth:music:levelmusic_spring_day_03',
    },
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 35,
 }
 
@@ -38,12 +38,20 @@ local IDLE_NIGHT_MUSIC = {
       'stonehearth:music:levelmusic_spring_night_02',
    },
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 35,
 }
 
 local TITLE_MUSIC = {
    track    = 'stonehearth:music:title_screen',
+   loop     = true,
+   volume   = 50,
+}
+
+local COMBAT_AMBIENT = {
+   fade_in = 500,
+   track = '',
+   priority = MUSIC_PRIORITIES.COMBAT   
 }
 
 local COMBAT_MUSIC = {
@@ -197,7 +205,8 @@ function Sound:_on_population_changed(data)
 
    if data.threat_level > 0 then
       self._combat_started = true
-      self:recommend_game_music('combat', 'music', COMBAT_MUSIC)
+      self:recommend_game_music('combat', 'music',   COMBAT_MUSIC)
+      self:recommend_game_music('combat', 'ambient', COMBAT_AMBIENT)
    else
       if self._combat_started and self._current_music_info['music'] == COMBAT_MUSIC then
          self._combat_started = false
@@ -208,11 +217,16 @@ function Sound:_on_population_changed(data)
          -- music at all.
          self:recommend_game_music('combat', 'music', KILL_COMBAT_MUSIC)
          radiant.set_realtime_timer(KILL_COMBAT_MUSIC.fade_in, function()
-               self:recommend_game_music('combat', 'music', nil)
+               self:recommend_game_music('combat', 'music',   nil)
+               self:recommend_game_music('combat', 'ambient', nil)
                self:_play_sound(COMBAT_FINISHED_SOUND)
             end)
       end
    end
+end
+
+function Sound:_in_combat()
+   return self._combat_started
 end
 
 function Sound:_on_time_changed(date)
@@ -227,13 +241,17 @@ function Sound:_on_time_changed(date)
    -- sounds
    if date.hour == event_times.sunrise and not self._sunrise_sound_played then
       self._sunrise_sound_played = true
-      self:_play_sound(ROOSTER_SOUND)
-      self:_play_sound(DAYBREAK_SOUND)
+      if not self:_in_combat() then
+         self:_play_sound(ROOSTER_SOUND)
+         self:_play_sound(DAYBREAK_SOUND)
+      end
    end
    if date.hour == event_times.sunset and not self._sunset_sound_played then
       self._sunset_sound_played = true
-      self:_play_sound(OWL_SOUND)
-      self:_play_sound(NIGHTFALL_SOUND)
+      if not self:_in_combat() then
+         self:_play_sound(OWL_SOUND)
+         self:_play_sound(NIGHTFALL_SOUND)
+      end
    end
 
    -- music
@@ -264,11 +282,16 @@ end
 function Sound:_change_music(now)
    assert(self._current_ui_screen)
 
+   if self._current_ui_screen == 'loading_screen' then
+      -- keep playing whatever happened to be playing before the load
+      return
+   end
+
    local channels = self._screens[self._current_ui_screen]
    assert(channels)
    
    for channel_name, _ in pairs(ALL_CHANNELS) do
-      self._log:debug('choosing best track for %s', channel_name)
+      self._log:spam('choosing best track for %s', channel_name)
       local info = self:_choose_best_track(channels[channel_name])
       self:_update_music_channel(channel_name, info)
    end
@@ -279,13 +302,13 @@ function Sound:_play_sound(sound)
 end
 
 function Sound:_choose_best_track(tracks)
-   local best_priority, best_track
+   local best_priority, best_track = nil, {}
 
    for requestor, info in pairs(tracks) do
       local priority = info.priority or 0
-      self._log:debug('comparing %s priority %d to current %s.', requestor, priority, tostring(best_priority))
+      self._log:spam('comparing %s priority %d to current %s.', requestor, priority, tostring(best_priority))
       if not best_priority or priority > best_priority then
-         self._log:debug('better!')
+         self._log:spam('better!')
          best_priority, best_track = priority, info
       end
    end
@@ -295,22 +318,28 @@ end
 function Sound:_update_music_channel(channel_name, info)
    local current_info = self._current_music_info[channel_name]
 
-   if current_info ~= info then
-      self._current_music_info[channel_name] = info
+   if current_info == info then
+      self._log:detail('keeping last music track')
+      return
+   end
 
-      if info.playlist then
-         for i, info in ipairs(info.playlist) do
-            local trackinfo = self:_get_trackinfo(info)
-            if i == 1 then
-               _radiant.audio.play_music(channel_name, trackinfo);
-            else
-               _radiant.audio.queue_music(channel_name, trackinfo);
-            end
-         end
-      else
+   self._current_music_info[channel_name] = info
+
+   if info.playlist then
+      for i, info in ipairs(info.playlist) do
          local trackinfo = self:_get_trackinfo(info)
-         _radiant.audio.play_music(channel_name, trackinfo);
+         if i == 1 then
+            self._log:debug('playing music track %s', trackinfo.track)
+            _radiant.audio.play_music(channel_name, trackinfo);
+         else
+            self._log:debug('queueing music track %s', trackinfo.track)
+            _radiant.audio.queue_music(channel_name, trackinfo);
+         end
       end
+   else
+      local trackinfo = self:_get_trackinfo(info)
+      self._log:debug('playing music track %s', trackinfo.track)
+      _radiant.audio.play_music(channel_name, trackinfo);
    end
 end
 

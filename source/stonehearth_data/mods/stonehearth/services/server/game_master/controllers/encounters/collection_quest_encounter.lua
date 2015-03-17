@@ -6,7 +6,19 @@ local rng = _radiant.csg.get_default_rng()
 local CollectionQuest = class()
 
 function CollectionQuest:initialize()
+end
+
+function CollectionQuest:activate()
    self._log = radiant.log.create_logger('game_master.encounters.collection_quest')
+
+   if self._sv.collection_timer then
+      self._sv.collection_timer:bind(function()
+            self:_on_collection_timer_expired()
+         end)
+   end
+   if self._sv.ctx then
+      self:_cache_player_tracking_data()
+   end
 end
 
 function CollectionQuest:start(ctx, info)
@@ -246,7 +258,7 @@ function CollectionQuest:_update_progress(items)
 end
 
 function CollectionQuest:_start_collection_timer()
-   assert(not self._collection_timer)
+   assert(not self._sv.collection_timer)
 
    local duration = self._sv._info.duration
    local override = radiant.util.get_config('game_master.encounters.collection_quest.duration')
@@ -254,15 +266,17 @@ function CollectionQuest:_start_collection_timer()
       duration = override
    end
 
-   self._collection_timer = stonehearth.calendar:set_timer(duration, function()
+   self._sv.collection_timer = stonehearth.calendar:set_timer(duration, function()
          self:_on_collection_timer_expired()
       end)
+   self.__saved_variables:mark_changed()
 end
 
 function CollectionQuest:_stop_collection_timer()
-   if self._collection_timer then
-      self._collection_timer:destroy()
-      self._collection_timer = nil
+   if self._sv.collection_timer then
+      self._sv.collection_timer:destroy()
+      self._sv.collection_timer = nil
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -357,8 +371,8 @@ end
 
 function CollectionQuest:get_progress_cmd(session, response)
    local progress = {}
-   if self._collection_timer then      
-      progress.time_left = stonehearth.calendar:format_remaining_time(self._collection_timer)
+   if self._sv.collection_timer then      
+      progress.time_left = stonehearth.calendar:format_remaining_time(self._sv.collection_timer)
    end
    return progress;
 end

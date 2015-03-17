@@ -23,7 +23,7 @@ class Simulation;
 
 class EntityJobScheduler : public Job {
 public:
-   EntityJobScheduler(Simulation& sim, om::EntityPtr entity);
+   EntityJobScheduler(om::EntityPtr entity);
    virtual ~EntityJobScheduler();
 
    typedef std::unordered_map<int, PathFinderRef> PathFinderMap;

@@ -13,6 +13,20 @@ function Bulletin:initialize(id)
    self.__saved_variables:mark_changed()
 end
 
+function Bulletin:activate()
+   --We were a bulletin that was going to be destroyed at some future point
+   if self._sv.active_duration_timer then
+      self._sv.active_duration_timer:bind(function()
+         stonehearth.bulletin_board:remove_bulletin(self._sv.id)
+         self:_stop_duration_timer()
+      end)
+   end
+end
+
+function Bulletin:destroy()
+   self:_stop_duration_timer()
+end
+
 -- unique id for the bulletin
 function Bulletin:get_id()
    return self._sv.id
@@ -60,6 +74,23 @@ function Bulletin:set_data(data)
    self.__saved_variables:mark_changed()
 
    return self
+end
+
+--If you don't want the bulletin to stick around forever, set this value
+function Bulletin:set_active_duration(duration)
+   self._sv.active_duration_timer = stonehearth.calendar:set_timer(duration, function()
+      stonehearth.bulletin_board:remove_bulletin(self._sv.id)
+      self:_stop_duration_timer()
+   end)
+   self.__saved_variables:mark_changed()
+end
+
+function Bulletin:_stop_duration_timer()
+   if self._sv.active_duration_timer then
+      self._sv.active_duration_timer:destroy()
+      self._sv.active_duration_timer = nil
+      self.__saved_variables:mark_changed()
+   end
 end
 
 -- xxx: this function goes against the grain of the rest of the api.  either rename

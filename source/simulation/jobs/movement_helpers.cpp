@@ -18,11 +18,11 @@ MovementHelper::MovementHelper(int logLevel) :
 {
 }
 
-bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3f const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3f& closestPoint) const
+bool MovementHelper::GetClosestPointAdjacentToEntity(csg::Point3f const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3f& closestPoint) const
 {
-   csg::Region3f region = MovementHelper::GetRegionAdjacentToEntity(sim, srcEntity, dstEntity);
+   csg::Region3f region = MovementHelper::GetRegionAdjacentToEntity(srcEntity, dstEntity);
 
-   phys::OctTree& octTree = sim.GetOctTree();
+   phys::OctTree& octTree = Simulation::GetInstance().GetOctTree();
    octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, region);
 
    if (region.IsEmpty()) {
@@ -35,8 +35,9 @@ bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point
    return true;
 }
 
-csg::Region3f MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
+csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
 {
+   Simulation& sim = Simulation::GetInstance();
    phys::OctTree& octTree = sim.GetOctTree();
 
    if (!dstEntity || !srcEntity) {
@@ -145,9 +146,10 @@ static std::vector<csg::Point3> const& GetElevationOffsets(om::EntityPtr entity,
 // returns true if this is a legal move (doesn't check adjacency yet though due to high game speed issues)
 // to contains the updated standing location
 // reversible indicates whether to include moves that cannot be reversed and (may cause the entity to get stuck)
-bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, bool const reversible,
+bool MovementHelper::TestAdjacentMove(om::EntityPtr entity, bool const reversible,
                                       csg::Point3 const& from, int dx, int dz, csg::Point3& to) const
 {
+   Simulation& sim = Simulation::GetInstance();
    phys::OctTree& octTree = sim.GetOctTree();
    csg::Point3 base(from.x + dx, from.y, from.z + dz);
 
@@ -166,7 +168,7 @@ bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, boo
 // returns the points on the direct line path from start to end
 // if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
-bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3f const& start, csg::Point3f const& end, std::vector<csg::Point3f> &result) const
+bool MovementHelper::GetPathPoints(om::EntityPtr const& entity, bool reversible, csg::Point3f const& start, csg::Point3f const& end, std::vector<csg::Point3f> &result) const
 {
    int const x0 = csg::ToClosestInt(start.x);
    int const z0 = csg::ToClosestInt(start.z);
@@ -210,7 +212,7 @@ bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity,
 
          ASSERT(next_dx != 0 || next_dz != 0);
 
-         passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, next_dx, next_dz, next);
+         passable = MovementHelper::TestAdjacentMove(entity, reversible, current, next_dx, next_dz, next);
          if (!passable) {
             break;
          }

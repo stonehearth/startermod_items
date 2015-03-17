@@ -58,7 +58,7 @@ class Client : public core::Singleton<Client> {
       void DestroyAuthoringEntity(dm::ObjectId id);
 
       om::DataStoreRef AllocateDatastore(int storeId);
-      void DestroyDatastore(dm::ObjectId id);
+      void RemoveDataStoreFromMap(dm::ObjectId id);
       dm::Store& GetStore() { return *store_; }
       dm::Store& GetAuthoringStore() { return *authoringStore_; }
       phys::OctTree& GetOctTree() const { return *octtree_; }
@@ -211,7 +211,7 @@ private:
 
       // the ui browser object...
       std::unique_ptr<chromium::IBrowser>    browser_;      
-      std::vector<std::function<void()>>     browserJobQueue_;
+      std::deque<std::function<void()>>      browserJobQueue_;
       std::mutex                             browserJobQueueLock_;
 
       // client side command dispatching...
@@ -248,7 +248,7 @@ private:
       core::Guard                 browserResizeGuard_;
       bool                        perf_hud_shown_;
       bool                        connected_;
-      bool                        enable_debug_cursor_;
+      std::string                 debug_cursor_mode_;
       bool                        save_stress_test_;
       platform::timer             save_stress_test_timer_;
       luabind::object             radiant_;

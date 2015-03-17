@@ -146,15 +146,8 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
       ]
    ];
    globals(L)["_reactor"] = object(L, reactor.get());
-
-   // use lua_register, as call and call_obj are varargs function
-   // and luabind tries to do exact signature matching.
-   auto register_var_args_fn = [=](lua_CFunction f) -> object {
-      lua_register(L, "_radiant_tmp_fn", f);
-      return globals(L)["_radiant_tmp_fn"];
-   };
-
+  
    object radiant = globals(L)["_radiant"];
-   radiant["call"] = register_var_args_fn(&call);
-   radiant["call_obj"] = register_var_args_fn(&call_obj);
+   radiant["call"] = GetPointerToCFunction(L, &call);
+   radiant["call_obj"] = GetPointerToCFunction(L, &call_obj);
 }

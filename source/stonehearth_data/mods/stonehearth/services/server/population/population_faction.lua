@@ -234,6 +234,11 @@ function PopulationFaction:_on_citizen_destroyed(entity_id)
       sensor_trace:destroy()
    end
 
+   -- global vision
+   for visitor_id, _ in pairs(self._sv._global_vision) do
+      self:_on_unseen_by(entity_id, visitor_id)
+   end
+
    self.__saved_variables:mark_changed()
    return radiant.events.UNLISTEN
 end

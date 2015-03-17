@@ -21,6 +21,7 @@
 #include "protocols/tesseract.pb.h"
 #include "lib/perfmon/store.h"
 #include "lib/perfmon/timeline.h"
+#include "core/singleton.h"
 #include "protocol.h"
 
 using boost::asio::ip::tcp;
@@ -47,18 +48,16 @@ class PathFinder;
 class FollowPath;
 class Path;
 
-class Simulation
+class Simulation : public core::Singleton<Simulation>
 {
 public:
-   Simulation(std::string const& versionStr);
+   Simulation();
    ~Simulation();
-
-   std::string const& GetVersion() const;
 
    om::DataStoreRef Simulation::AllocDatastore();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
-   void DestroyDatastore(dm::ObjectId id);
+   void RemoveDataStoreFromMap(dm::ObjectId id);
    void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
    /* New object model stuff goes here */
@@ -156,6 +155,7 @@ private:
    std::unique_ptr<dm::Store>                            store_;
    std::unique_ptr<phys::OctTree>                        octtree_;
    std::unique_ptr<phys::FreeMotion>                     freeMotion_;
+   std::unique_ptr<phys::WaterTightRegionBuilder>        waterTightRegionBuilder_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.
@@ -164,7 +164,7 @@ private:
    int                                          now_;
    bool                                         _showDebugNodes;
    bool                                         _singleStepPathFinding;
-   bool                                         debug_navgrid_enabled_;
+   std::string                                  debug_navgrid_mode_;
    csg::Point3                                  debug_navgrid_point_;
    om::EntityRef                                debug_navgrid_pawn_;
 
@@ -208,6 +208,7 @@ private:
    perfmon::Timeline                   perf_jobs_;
    bool                                enable_job_logging_;
    platform::timer                     log_jobs_timer_;
+   platform::timer                     lua_memory_timer_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
    core::Guard                         jobs_perf_guard_;
@@ -220,7 +221,6 @@ private:
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
    std::vector<std::function<void()>>  _bottomLoopFns;
-   std::string                         _versionStr;
    int                                 _sequenceNumber;
 };
 

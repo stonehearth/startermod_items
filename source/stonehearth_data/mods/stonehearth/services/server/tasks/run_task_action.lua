@@ -142,10 +142,10 @@ function RunTaskAction:destroy()
    end
    
    if self._debug_info then
-      radiant.destroy_datastore(self._debug_info)
+      self._debug_info:destroy()
       self._debug_info = nil
    end
-
+   
    if self._started_listener then
       self._started_listener:destroy()
       self._started_listener = nil

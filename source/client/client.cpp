@@ -107,7 +107,7 @@ Client::Client() :
    perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
-   enable_debug_cursor_(false),
+   debug_cursor_mode_("none"),
    flushAndLoad_(false),
    initialUpdate_(false),
    save_stress_test_(false),
@@ -182,11 +182,16 @@ void Client::OneTimeIninitializtion()
 
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this](KeyboardInput const& kb) {
-         enable_debug_cursor_ = !enable_debug_cursor_;
-         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
-         if (!enable_debug_cursor_) {
+         const char* mode = kb.shift ? "water_tight" : "navgrid";
+         if (debug_cursor_mode_ != mode) {
+            debug_cursor_mode_ = mode;
+         } else {
+            debug_cursor_mode_ = "none";
+         }
+         if (debug_cursor_mode_ == "none") {
+            // toggle off
             json::Node args;
-            args.set("enabled", false);
+            args.set("mode", "none");
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
@@ -856,11 +861,13 @@ void Client::mainloop()
 
    PushPerformanceCounters();
    process_messages();
-   ProcessBrowserJobQueue();
 
    CLIENT_LOG(5) << "entering client main loop";
 
    Renderer::GetInstance().HandleResize();
+
+   perfmon::SwitchToCounter("browser queue");
+   ProcessBrowserJobQueue();
 
    if (!loading_) {
       perfmon::SwitchToCounter("update lua");
@@ -1109,7 +1116,8 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
       if (obj->GetObjectType() == om::EntityObjectType) {
          std::static_pointer_cast<om::Entity>(obj)->Destroy();
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
-         std::static_pointer_cast<om::DataStore>(obj)->DestroyController();
+         // Don't call destroy.  We don't own it!
+         std::static_pointer_cast<om::DataStore>(obj)->CallLuaDestructor();
       }
    });
    if (initialUpdate_) {
@@ -1342,7 +1350,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
 
 void Client::UpdateDebugCursor()
 {
-   if (enable_debug_cursor_) {   
+   if (debug_cursor_mode_ != "none") {
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
@@ -1353,6 +1361,7 @@ void Client::UpdateDebugCursor()
          csg::Point3 pt = csg::ToInt(r.brick) + csg::ToInt(r.normal);
          om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
+         args.set("mode", debug_cursor_mode_);
          args.set("cursor", pt);
          if (selectedEntity) {
             args.set("pawn", selectedEntity->GetStoreAddress());
@@ -1361,7 +1370,7 @@ void Client::UpdateDebugCursor()
          CLIENT_LOG(5) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
-         args.set("enabled", false);
+         args.set("mode", "none");
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
       }
    }
@@ -1439,9 +1448,11 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
 
       if (std::regex_match(path, match, call_path_regex__)) {
          std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-         browserJobQueue_.emplace_back([=]() {
-            CallHttpReactor(path, query, postdata, response);
-         });
+         if (!loading_) {
+            browserJobQueue_.emplace_back([=]() {
+               CallHttpReactor(path, query, postdata, response);
+            });
+         }
          return;
       }
 
@@ -1503,17 +1514,14 @@ om::DataStoreRef Client::AllocateDatastore(int storeId)
       result = store_->AllocObject<om::DataStore>();   
    } else {
       result = authoringStore_->AllocObject<om::DataStore>();
-      datastoreMap_[result->GetObjectId()] = result;
+      dm::ObjectId id = result->GetObjectId();
+      datastoreMap_[id] = result;
    }
    return result;
 }
 
-void Client::DestroyDatastore(dm::ObjectId id) {
-   auto ds = datastoreMap_.find(id);
-   if (ds != datastoreMap_.end()) {
-      ds->second->DestroyController();
-      datastoreMap_.erase(ds);
-   }
+void Client::RemoveDataStoreFromMap(dm::ObjectId id) {
+   datastoreMap_.erase(id);
 }
 
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
@@ -1547,11 +1555,25 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
 
 void Client::ProcessBrowserJobQueue()
 {
-   perfmon::TimelineCounterGuard tcg("process job queue") ;
-
    std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-   for (const auto &fn : browserJobQueue_) {
-      fn();
+   perfmon::TimelineCounterGuard tcg("process job queue");
+
+   // Pump the browser queue until we get into the loading state,
+   // then bail.  We release the lock before calling the callback
+   // so new browser events can come in and to avoid deadlocks in
+   // case resolving a deferred somehow, magically, ends up trying
+   // to stick something else on the back of our queue, too.
+   //
+   while (!loading_ && !browserJobQueue_.empty()) {
+      std::function<void()> cb = browserJobQueue_.front();
+      browserJobQueue_.pop_front();
+      browserJobQueueLock_.unlock();
+      try {
+         cb();
+      } catch (std::exception const&e) {
+         CLIENT_LOG(0) << "error in browser job callback: " << e.what();
+      }
+      browserJobQueueLock_.lock();
    }
    browserJobQueue_.clear();
 }
@@ -1567,7 +1589,10 @@ void Client::EnableDisableSaveStressTest()
    
 void Client::ReloadBrowser()
 {
+   std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+
    std::string uri = BUILD_STRING(_uiDocroot << "?current_screen=" << GetCurrentUIScreen());
+   browserJobQueue_.clear();
    browser_->Navigate(uri);
 }
 
@@ -1745,8 +1770,9 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
          authoredEntities_[id] = std::static_pointer_cast<om::Entity>(obj);
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
+         dm::ObjectId id = ds->GetObjectId();
          datastores.emplace_back(ds);
-         datastoreMap_[ds->GetObjectId()] = ds;
+         datastoreMap_[id] = ds;
       }
    })->PushStoreState();   
 

@@ -6,6 +6,17 @@ local Mission = require 'services.server.game_master.controllers.missions.missio
 local RaidStockpilesMission = class()
 mixin_class(RaidStockpilesMission, Mission)
 
+function RaidStockpilesMission:activate()
+   if self._sv.update_orders_timer then
+      self._sv.update_orders_timer:bind(function()
+            self:_update_party_orders()
+         end)
+   end
+   if self._sv.sighted_bulletin_data then
+      self:_listen_for_sighted()
+   end
+end
+
 function RaidStockpilesMission:can_start(ctx, info)
    assert(ctx)
    assert(ctx.enemy_player_id)
@@ -33,8 +44,13 @@ end
 function RaidStockpilesMission:start(ctx, info)
    self._sv.ctx = ctx
    self._sv.party = self:_create_party(ctx, info)
+
+   if info.sighted_bulletin then
+      self._sv.sighted_bulletin_data = info.sighted_bulletin
+      self.__saved_variables:mark_changed()
+      self:_listen_for_sighted()
+   end
    self:_update_party_orders(ctx, info)
-   self:_listen_for_sighted(ctx, info)
 end
 
 function RaidStockpilesMission:stop()
@@ -46,9 +62,10 @@ function RaidStockpilesMission:stop()
       self._stockpile_listener:destroy()
       self._stockpile_listener = nil
    end
-   if self._update_orders_timer then
-      self._update_orders_timer:destroy()
-      self._update_orders_timer = nil
+   if self._sv.update_orders_timer then
+      self._sv.update_orders_timer:destroy()
+      self._sv.update_orders_timer = nil
+      self.__saved_variables:mark_changed()
    end
    local bulletin = self._sv.sighted_bulletin
    if bulletin then
@@ -58,13 +75,8 @@ function RaidStockpilesMission:stop()
    end   
 end
 
-function RaidStockpilesMission:_listen_for_sighted(ctx, info)
-   if not info.sighted_bulletin then
-      return
-   end
-   self._sv.sighted_bulletin_data = info.sighted_bulletin
-   self.__saved_variables:mark_changed()
-
+function RaidStockpilesMission:_listen_for_sighted()
+   local ctx = self._sv.ctx
    local population = stonehearth.population:get_population(ctx.player_id)
    if population then
       self._sighted_listener = radiant.events.listen(population, 'stonehearth:population:new_threat', self, self._on_player_new_threat)
@@ -101,9 +113,10 @@ end
 function RaidStockpilesMission:_update_party_orders()
    local ctx = self._sv.ctx
    
-   if self._update_orders_timer then
-      self._update_orders_timer:destroy()
-      self._update_orders_timer = nil
+   if self._sv.update_orders_timer then
+      self._sv.update_orders_timer:destroy()
+      self._sv.update_orders_timer = nil
+      self.__saved_variables:mark_changed()
    end   
 
    local raid_stockpile = self:_find_closest_stockpile(ctx.enemy_location, ctx.player_id)
@@ -164,13 +177,15 @@ function RaidStockpilesMission:_check_stockpile(e)
 end
 
 function RaidStockpilesMission:_pick_random_spot(ctx)
-   if self._update_orders_timer then
-      self._update_orders_timer:destroy()
-      self._update_orders_timer = nil
+   if self._sv.update_orders_timer then
+      self._sv.update_orders_timer:destroy()
+      self._sv.update_orders_timer = nil
+      self.__saved_variables:mark_changed()
    end   
-   self._update_orders_timer = stonehearth.calendar:set_timer('4h', function()
+   self._sv.update_orders_timer = stonehearth.calendar:set_timer('4h', function()
          self:_update_party_orders()
       end)
+   self.__saved_variables:mark_changed()
 
    local town = stonehearth.town:get_town(self._sv.ctx.player_id)
    if not town then

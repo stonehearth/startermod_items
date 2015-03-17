@@ -22,7 +22,7 @@ function DynamicScenarioService:force_spawn_scenario(scenario_uri)
 
    local new_scenario = self:_create_scenario(scenario)
    if not new_scenario:can_spawn() then
-      radiant.destroy_controller(new_scenario)
+      new_scenario:destroy()
       return
    end
    
@@ -65,7 +65,7 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
             info.buildup = info.buildup + 1
             if not best_info or info.buildup > best_info.buildup then
                if best_scenario then
-                  radiant.destroy_controller(best_scenario)
+                  best_scenario:destroy()
                end
                best_info = info
                best_scenario = scenario
@@ -73,7 +73,7 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
          end
 
          if scenario ~= best_scenario then
-            radiant.destroy_controller(scenario)
+            scenario:destroy()
          end
       end
    end
@@ -118,7 +118,7 @@ function DynamicScenarioService:num_running_scenarios()
          num_running = num_running + 1
       else 
          local s = table.remove(self._sv.running_scenarios, i)
-         radiant.destroy_controller(s)
+         s:destroy()
       end
    end
    self.__saved_variables:mark_changed()

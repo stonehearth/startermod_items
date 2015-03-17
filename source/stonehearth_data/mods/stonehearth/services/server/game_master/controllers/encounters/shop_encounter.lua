@@ -2,9 +2,11 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local ShopEncounter = class()
 
-function ShopEncounter:start(ctx, info)
+function ShopEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.dialog_tree')   
+end
 
+function ShopEncounter:start(ctx, info)
    assert(info.name)
    assert(info.title)
    assert(info.inventory)

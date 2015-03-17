@@ -86,9 +86,9 @@ static ConstructSearchOrder __init;
  *
  */
 
-std::shared_ptr<BfsPathFinder> BfsPathFinder::Create(Simulation& sim, om::EntityPtr entity, std::string const& name, int range)
+std::shared_ptr<BfsPathFinder> BfsPathFinder::Create(om::EntityPtr entity, std::string const& name, int range)
 {
-   std::shared_ptr<BfsPathFinder> pathfinder(new BfsPathFinder(sim, entity, name, range));
+   std::shared_ptr<BfsPathFinder> pathfinder(new BfsPathFinder(entity, name, range));
    all_pathfinders_.push_back(pathfinder);
    return pathfinder;
 }
@@ -115,15 +115,15 @@ void BfsPathFinder::ComputeCounters(std::function<void(const char*, double, cons
  *
  */
 
-BfsPathFinder::BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string const& name, int max_range) :
-   PathFinder(sim, name),
+BfsPathFinder::BfsPathFinder(om::EntityPtr entity, std::string const& name, int max_range) :
+   PathFinder(name),
    entity_(entity),
    search_order_index_(-1),
    running_(false),
    destinationCount_(0),
    max_travel_distance_(static_cast<float>(max_range))
 {
-   pathfinder_ = AStarPathFinder::Create(sim, BUILD_STRING(name << " (bfs)"), entity);
+   pathfinder_ = AStarPathFinder::Create(BUILD_STRING(name << " (bfs)"), entity);
    BFS_LOG(3) << "creating bfs pathfinder";
 }
 
@@ -272,7 +272,7 @@ BfsPathFinderPtr BfsPathFinder::Start()
    explored_distance_ = 0;
    travel_distance_ = 0;
    
-   om::EntityContainerPtr container = GetSim().GetRootEntity()->GetComponent<om::EntityContainer>();
+   om::EntityContainerPtr container = Simulation::GetInstance().GetRootEntity()->GetComponent<om::EntityContainer>();
    if (container) {
       // Suppose some item is created which is reachable, but inside the explored radius.  We
       // really should manually add that item to the pathfinder, too, right?  To get this 100%
@@ -536,7 +536,7 @@ void BfsPathFinder::AddTileToSearch(csg::Point3 const& index)
 {
    BFS_LOG(9) << "adding tile " << index << " to search.";
 
-   phys::NavGrid& ng = GetSim().GetOctTree().GetNavGrid();
+   phys::NavGrid& ng = Simulation::GetInstance().GetOctTree().GetNavGrid();
    ng.ForEachEntityAtIndex(index, [this](om::EntityPtr entity) {
       dm::ObjectId id = entity->GetObjectId();
       ConsiderEntity(entity);

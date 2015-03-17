@@ -1,5 +1,6 @@
 #include "../pch.h"
 #include "open.h"
+#include "build_number.h"
 #include "csg/util.h"
 #include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
@@ -28,24 +29,15 @@ std::ostream& operator<<(std::ostream& os, Simulation const&s)
    return (os << "[radiant simulation]");
 }
 
-static Simulation& GetSim(lua_State* L)
-{
-   Simulation* sim = object_cast<Simulation*>(globals(L)["_sim"]);
-   if (!sim) {
-      throw std::logic_error("could not find script host in interpreter");
-   }
-   return *sim;
-}
-
 std::string Sim_GetVersion(lua_State* L)
 {
-   return GetSim(L).GetVersion();
+   return PRODUCT_FILE_VERSION_STR;
 }
 
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
-   return GetSim(L).GetStore().AllocObject<T>();
+   return Simulation::GetInstance().GetStore().AllocObject<T>();
 }
 
 om::EntityRef Sim_CreateEntity(lua_State* L, const char* uri)
@@ -62,10 +54,10 @@ luabind::object Sim_GetObject(lua_State* L, object id)
    int id_type = type(id);
    if (id_type == LUA_TNUMBER) {
       dm::ObjectId object_id = object_cast<int>(id);
-      obj = GetSim(L).GetStore().FetchObject<dm::Object>(object_id);
+      obj = Simulation::GetInstance().GetStore().FetchObject<dm::Object>(object_id);
    } else if (id_type == LUA_TSTRING) {
       const char* addr = object_cast<const char*>(id);
-      obj = GetSim(L).GetStore().FetchObject<dm::Object>(addr);
+      obj = Simulation::GetInstance().GetStore().FetchObject<dm::Object>(addr);
    }
    lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
    luabind::object lua_obj = host->CastObjectToLua(obj);
@@ -75,18 +67,10 @@ luabind::object Sim_GetObject(lua_State* L, object id)
 om::DataStoreRef Sim_AllocDataStore(lua_State* L)
 {
    // Return the weak ptr version.
-   om::DataStoreRef datastore = GetSim(L).AllocDatastore();
+   om::DataStoreRef datastore = Simulation::GetInstance().AllocDatastore();
    datastore.lock()->SetData(newtable(L));
 
    return datastore;
-}
-
-void Sim_DestroyDatastore(lua_State* L, om::DataStoreRef ds)
-{
-   auto datastore = ds.lock();
-   if (datastore) {
-      GetSim(L).DestroyDatastore(datastore->GetObjectId());
-   }
 }
 
 void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
@@ -95,20 +79,19 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
       entity = nullptr;
-      GetSim(L).DestroyEntity(id);
+      Simulation::GetInstance().DestroyEntity(id);
    }
 }
 
 DirectPathFinderPtr Sim_CreateDirectPathFinder(lua_State *L, om::EntityRef entityRef)
 {
-   Simulation &sim = GetSim(L);
-   return std::make_shared<DirectPathFinder>(sim, entityRef);
+   return std::make_shared<DirectPathFinder>(entityRef);
 }
 
 std::shared_ptr<LuaJob> Sim_CreateJob(lua_State *L, std::string const& name, object cb)
 {
-   Simulation &sim = GetSim(L);
-   std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(sim, name, object(lua::ScriptHost::GetCallbackThread(L), cb));
+   Simulation &sim = Simulation::GetInstance();
+   std::shared_ptr<LuaJob> job = std::make_shared<LuaJob>(name, object(lua::ScriptHost::GetCallbackThread(L), cb));
    sim.AddJob(job);
    return job;
 }
@@ -120,7 +103,7 @@ std::shared_ptr<dm::StoreSaveState> Sim_CreateSaveState(lua_State *L)
 
 void Sim_LoadObject(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
 {
-   Simulation &sim = GetSim(L);
+   Simulation &sim = Simulation::GetInstance();
    if (s) {
       s->Load(sim.GetStore());
    }
@@ -128,7 +111,7 @@ void Sim_LoadObject(lua_State *L, std::shared_ptr<dm::StoreSaveState> s)
 
 std::shared_ptr<dm::StoreSaveState> Sim_SaveObject(lua_State *L, dm::ObjectId id)
 {
-   Simulation &sim = GetSim(L);
+   Simulation &sim = Simulation::GetInstance();
    std::shared_ptr<dm::StoreSaveState> store = std::make_shared<dm::StoreSaveState>();
    store->Save(sim.GetStore(), id);
    return store;
@@ -152,7 +135,7 @@ TracerBufferedWrapperPtr Sim_CreateTracer(lua_State* L, const char* name)
    static int c = (int)dm::USER_DEFINED_TRACES;
    dm::TraceCategories category = (dm::TraceCategories)(c++);
 
-   Simulation &sim = GetSim(L);
+   Simulation &sim = Simulation::GetInstance();
    TracerBufferedWrapperPtr tracer = std::make_shared<TracerBufferedWrapper>(name, sim.GetStore(), category);
    sim.GetStore().AddTracer(tracer, category);
    return tracer;
@@ -160,14 +143,14 @@ TracerBufferedWrapperPtr Sim_CreateTracer(lua_State* L, const char* name)
 
 float Sim_GetBaseWalkSpeed(lua_State* L)
 {
-   return GetSim(L).GetBaseWalkSpeed();
+   return Simulation::GetInstance().GetBaseWalkSpeed();
 }
 
 bool Sim_IsValidMove(lua_State *L, om::EntityRef entityRef, bool reversible, csg::Point3f const& from, csg::Point3f const& to)
 {
    om::EntityPtr entity = entityRef.lock();
    if (entity) {
-      Simulation &sim = GetSim(L);
+      Simulation &sim = Simulation::GetInstance();
       phys::OctTree& octTree = sim.GetOctTree();
       bool valid = octTree.ValidMove(entity, reversible, csg::ToClosestInt(from), csg::ToClosestInt(to));
       return valid;
@@ -181,8 +164,8 @@ AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std:
    AStarPathFinderPtr pf;
    om::EntityPtr source = s.lock();
    if (source) {
-      Simulation &sim = GetSim(L);
-      pf = AStarPathFinder::Create(sim, name, source);
+      Simulation &sim = Simulation::GetInstance();
+      pf = AStarPathFinder::Create(name, source);
       sim.AddJobForEntity(source, pf);
       return pf;
    }
@@ -192,11 +175,11 @@ AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std:
 
 BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, std::string const& name, int range)
 {
-   Simulation &sim = GetSim(L);
+   Simulation &sim = Simulation::GetInstance();
    BfsPathFinderPtr pf;
    om::EntityPtr source = s.lock();
    if (source) {
-      pf = BfsPathFinder::Create(sim, source, name, range);
+      pf = BfsPathFinder::Create(source, name, range);
       sim.AddJobForEntity(source, pf);
       return pf;
    }
@@ -207,9 +190,9 @@ template <typename T>
 void Pathfinder_Destroy(lua_State* L, std::shared_ptr<T> pf)
 {
    if (pf) {
-      Simulation &sim = GetSim(L);
+      Simulation &sim = Simulation::GetInstance();
       pf->Stop();
-      GetSim(L).RemoveJobForEntity(pf->GetEntity().lock(), pf); 
+      Simulation::GetInstance().RemoveJobForEntity(pf->GetEntity().lock(), pf); 
    }
 }
 
@@ -221,7 +204,7 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
       luabind::object solved_cb = luabind::object(cb_thread, unsafe_solved_cb);
  
       pf->SetSolvedCb([solved_cb, cb_thread] (PathPtr path) mutable {
-         MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
+         MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "lua cb");
          try {
             luabind::object result = solved_cb(luabind::object(cb_thread, path));
             if (luabind::type(result) == LUA_TBOOLEAN) {
@@ -244,7 +227,7 @@ std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::obj
       luabind::object exhausted_cb = luabind::object(cb_thread, unsafe_exhausted_cb);
 
       pf->SetSearchExhaustedCb([exhausted_cb, cb_thread]() mutable {
-         MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
+         MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "lua cb");
          try {
             exhausted_cb();
          } catch (std::exception const& e) {
@@ -262,7 +245,7 @@ FilterResultCachePtr FilterResultCache_SetFilterFn(FilterResultCachePtr frc, lua
       luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
 
       frc->SetFilterFn([filter_fn, cb_thread](om::EntityPtr e) -> bool {
-         MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
+         MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "lua cb");
          try {
             LOG_CATEGORY(simulation.pathfinder.bfs, 5, "calling filter function on " << *e);
             luabind::object result = luabind::call_function<luabind::object>(filter_fn, om::EntityRef(e));
@@ -349,7 +332,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region3",             &Sim_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",             &Sim_AllocObject<om::Region2fBoxed>),
             def("create_datastore",          &Sim_AllocDataStore),
-            def("destroy_datastore",         &Sim_DestroyDatastore),
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
             def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder", &Sim_CreateDirectPathFinder),

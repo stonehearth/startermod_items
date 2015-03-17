@@ -52,8 +52,7 @@ function JobComponent:destroy()
 
    --destroy all the controllers
    for uri, controller in pairs(self._sv.job_controllers) do
-      radiant.destroy_controller(controller)
-      controller = nil
+      controller:destroy()
    end
    self._sv.curr_job_controller = nil
 
@@ -373,7 +372,8 @@ function JobComponent:_level_up()
       has_race_perks = true
    end
    
-   stonehearth.bulletin_board:post_bulletin(player_id)
+   --post the bulletin
+   local level_bulletin = stonehearth.bulletin_board:post_bulletin(player_id)
       :set_ui_view('StonehearthLevelUpBulletinDialog')
       :set_callback_instance(self)
       :set_type('level_up')
@@ -386,6 +386,7 @@ function JobComponent:_level_up()
          has_race_perks = has_race_perks, 
          race_perks = race_perk_descriptions
       })
+      :set_active_duration('6h')
 
    --Trigger an event so people can extend the class system
    radiant.events.trigger_async(self._entity, 'stonehearth:level_up', {

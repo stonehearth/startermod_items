@@ -7,8 +7,7 @@ using namespace ::radiant::simulation;
 
 JobId Job::_nextJobId = 1;
 
-Job::Job(Simulation& sim, std::string const& name)  :
-   _sim(sim),
+Job::Job(std::string const& name)  :
    _id(_nextJobId++),
    _name(BUILD_STRING("jid:" << _id << " " << name))
 {
@@ -22,11 +21,6 @@ JobId Job::GetId() const
 std::string const& Job::GetName() const
 {
    return _name;
-}
-
-Simulation& Job::GetSim() const
-{
-   return _sim;
 }
 
 std::string Job::GetProgress()

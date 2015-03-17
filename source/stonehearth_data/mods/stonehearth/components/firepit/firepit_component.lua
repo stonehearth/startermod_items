@@ -9,8 +9,6 @@ FirepitComponent.__classname = 'FirepitComponent'
 function FirepitComponent:initialize(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
-   self._log = radiant.log.create_logger('firepit')
-                              :set_entity(entity)
 
    self._light_task = nil
    self._fire_effect = json.fire_effect
@@ -45,6 +43,11 @@ function FirepitComponent:initialize(entity, json)
                               end
                            end)
 
+end
+
+function FirepitComponent:activate()
+   self._log = radiant.log.create_logger('firepit')
+                              :set_entity(self._entity)
 end
 
 function FirepitComponent:destroy()
@@ -123,6 +126,8 @@ function FirepitComponent:_start_or_stop_firepit()
    local curr_time = stonehearth.calendar:get_time_and_date()
    local should_light_fire = curr_time.hour >= time_constants.event_times.sunset or
                              curr_time.hour < time_constants.event_times.sunrise 
+
+   self._log:debug('start or stop? (lit:%s should_light:%s)', tostring(self._sv.is_lit), tostring(should_light_fire))
 
    --If we should already be lit (ie, from load, then just jump straight to light)
    if self._sv.is_lit and should_light_fire then

@@ -46,7 +46,6 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    initialized_(false),
    destroyed_(false),
    skeleton_(*this),
-   visible_override_(true),
    visible_override_ref_count_(0),
    parentOverride_(false)
 {
@@ -368,10 +367,12 @@ dm::ObjectId RenderEntity::GetObjectId() const
 
 void RenderEntity::SetRenderInfoDirtyBits(int bits)
 {
-   auto i = components_.find("render_info");
-   if (i != components_.end()) {
-      std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
-      ri->SetDirtyBits(bits);
+   if (!destroyed_) {
+      auto i = components_.find("render_info");
+      if (i != components_.end()) {
+         std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
+         ri->SetDirtyBits(bits);
+      }
    }
 }
 
@@ -477,7 +478,7 @@ std::string const& RenderEntity::GetModelVariantOverride() const
 // Returns true if all visibility requests are true.
 bool RenderEntity::GetVisibleOverride() const
 {
-   return visible_override_;
+   return visible_override_ref_count_ == 0;
 }
 
 // The visible_override_ref_count_ indicates the number of outstanding requests to hide the entity.
@@ -493,22 +494,16 @@ void RenderEntity::SetVisibleOverride(bool visible)
          visible_override_ref_count_++;
       }
    }
-   visible_override_ = visible_override_ref_count_ == 0;
-   SetRenderInfoDirtyBits(RenderRenderInfo::VISIBLE_DIRTY);
+   if (visible_override_ref_count_ == 0 || visible_override_ref_count_ == 1) {
+      SetRenderInfoDirtyBits(RenderRenderInfo::VISIBLE_DIRTY);
+   }
 }
 
 // Returns a handle used to request visibility changes to the entity.
 // The entity is visible if all requestors set visible to true
 RenderEntity::VisibilityHandlePtr RenderEntity::GetVisibilityOverrideHandle()
 {
-   om::EntityPtr entityPtr = entity_.lock();
-   if (entityPtr) {
-      RenderEntityPtr renderEntityPtr = Renderer::GetInstance().GetRenderEntity(entityPtr);
-      ASSERT(renderEntityPtr.get() == this);
-      RenderEntity::VisibilityHandlePtr handle = std::make_shared<VisibilityHandle>(renderEntityPtr);
-      return handle;
-   }
-   return nullptr;
+   return std::make_shared<VisibilityHandle>(shared_from_this());
 }
 
 RenderEntity::VisibilityHandle::VisibilityHandle(RenderEntityRef renderEntityRef) :
@@ -527,7 +522,7 @@ void RenderEntity::VisibilityHandle::SetVisible(bool visible)
    if (visible != visible_) {
       visible_ = visible;
       RenderEntityPtr renderEntityPtr = renderEntityRef_.lock();
-      if (renderEntityPtr && renderEntityPtr->IsValid()) {
+      if (renderEntityPtr) {
          renderEntityPtr->SetVisibleOverride(visible);
       }
    }

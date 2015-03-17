@@ -11,7 +11,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class DirectPathFinder : public std::enable_shared_from_this<DirectPathFinder>
 {
 public:
-   DirectPathFinder(Simulation &sim, om::EntityRef entityRef);
+   DirectPathFinder(om::EntityRef entityRef);
 
 public:
    std::shared_ptr<DirectPathFinder> SetStartLocation(csg::Point3f const& startLocation);
@@ -25,7 +25,6 @@ private:
    bool GetEndPoints(csg::Point3f& start, csg::Point3f& endLocation) const;
    bool GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const;
 
-   Simulation& sim_;
    csg::Point3f startLocation_;
    csg::Point3f endLocation_;
    om::EntityRef entityRef_;
