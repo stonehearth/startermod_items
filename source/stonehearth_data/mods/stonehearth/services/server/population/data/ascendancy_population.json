@@ -63,7 +63,9 @@
       "Mavel",
       "Pounder",
       "Zedro",
-      "Rayne"
+      "Rayne",
+      "Rook",
+      "Belltower"
    ],
    "given_names" : {
       "male" : [
@@ -103,7 +105,11 @@
          "Trevlon",
          "Alex",
          "Ragnar",
-         "Trevion"
+         "Trevion",
+         "Andwyn",
+         "Jhon",
+         "Riley",
+         "Wynd"
       ],
       "female" : [
          "Dara",
@@ -147,7 +153,15 @@
          "Silene",
          "Lily",
          "Amelia",
-         "Kali"
+         "Kali",
+         "Maggie",
+         "Iris",
+         "Tippy",
+         "Lizzy",
+         "Tessa",
+         "Lynone",
+         "Rose",
+         "Emilia"
       ]
    }, 
    "town_pieces" : {
