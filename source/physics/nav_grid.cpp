@@ -29,6 +29,8 @@
 #include "physics_util.h"
 #include <EASTL/fixed_set.h>
 
+#pragma optimize ("" ,off)
+
 using namespace radiant;
 using namespace radiant::phys;
 
@@ -132,7 +134,7 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
       }
       case om::RegionCollisionShapeObjectType: {
          auto rcs = std::static_pointer_cast<om::RegionCollisionShape>(component);
-         tracker = CreateRegionCollisonShapeTracker(rcs);
+         tracker = CreateRegionCollisionShapeTracker(rcs);
          CreateCollisionTypeTrace(rcs);
          break;
       }
@@ -202,11 +204,11 @@ void NavGrid::RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId compone
 }
 
 /*
- * -- NavGrid::CreateRegionCollisonShapeTracker
+ * -- NavGrid::CreateRegionCollisionShapeTracker
  *
  * Create a tracker for the RegionCollisionShape based on the RegionCollisionType.
  */
-CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(om::RegionCollisionShapePtr regionCollisionShapePtr)
+CollisionTrackerPtr NavGrid::CreateRegionCollisionShapeTracker(om::RegionCollisionShapePtr regionCollisionShapePtr)
 {
    om::EntityPtr entity = regionCollisionShapePtr->GetEntityPtr();
    auto regionCollisionType = regionCollisionShapePtr->GetRegionCollisionType();
@@ -261,7 +263,7 @@ void NavGrid::OnCollisionTypeChanged(om::RegionCollisionShapeRef regionCollision
 
       NG_LOG(7) << "RegionCollisionType changed on " << *entity;
       RemoveComponentTracker(entityId, componentId);
-      CollisionTrackerPtr tracker = CreateRegionCollisonShapeTracker(regionCollisionShapePtr);
+      CollisionTrackerPtr tracker = CreateRegionCollisionShapeTracker(regionCollisionShapePtr);
       AddComponentTracker(tracker, regionCollisionShapePtr);
    }
 }
@@ -445,8 +447,13 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
          break;
    }
    csg::Cube3 tile = csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE);
+
+   IsStandableQuery q;
+   if (p) {
+      q = IsStandableQuery(this, p);
+   }
    for (csg::Point3 i : csg::EachPoint(tile)) {
-      bool standable = p != nullptr ? IsStandable(p, i) : IsStandable(i);
+      bool standable = p != nullptr ? q.IsStandable(i) : IsStandable(i);
       if (standable) {
          protocol::coord* coord = msg->add_coords();
          i.SaveValue(coord);
@@ -900,6 +907,7 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    return !IsBlocked(worldPoint) && IsSupported(worldPoint);
 }
 
+
 /*
  * -- NavGrid::IsOccupied
  *
@@ -1060,35 +1068,99 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   return IsStandable(entity, location, entity->GetComponent<om::Mob>());
+   return IsStandableQuery(this, entity).IsStandable(location);
 }
 
-/*
- * Specialized version that knows the entity has a mob.  This version exists so clients
- * can cache the result of "entity->GetComponent<om::Mob>()" rather than calling the
- * previous version repeatedly (matters in tight loops!)
- */
-bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om::MobPtr const& mob)
+NavGrid::IsStandableQuery::IsStandableQuery() :
+   _ng(nullptr),
+   _method(INVALID_QUERY)
 {
-   if (mob) {
-      if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-         return IsStandable(location) &&
-                CanPassThrough(entity, location) &&
-                !IsBlocked(location + csg::Point3::unitY) &&
-                !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
-      } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
-         return IsStandable(location) && CanPassThrough(entity, location);
+}
+
+NavGrid::IsStandableQuery::IsStandableQuery(NavGrid *ng, om::EntityPtr const& entity) :
+   _ng(ng),
+   _entity(entity),
+   _method(INVALID_QUERY)
+{
+   if (entity) {
+      _entity = entity;
+      om::MobPtr mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+            _method = IsStandableQuery::HUMANOID;
+            return;
+         }
+         if (mob->GetMobCollisionType() == om::Mob::TINY) {
+            _method = IsStandableQuery::TINY;
+            return;
+         }
+      }
+      
+      _lastQueryPoint = csg::Point3::zero;
+      _worldCollisionShape = GetEntityWorldCollisionShape(entity, csg::Point3::zero);
+
+      if (!_ng->UseFastCollisionDetection(entity)) {
+         _method = IsStandableQuery::INTERSECT_TRACKERS;
+         return;
+      }
+
+      if (!_worldCollisionShape.IsEmpty()) {
+         _method = IsStandableQuery::INTERSECT_NAVGRID;
+         return;
+      }
+
+      _method = IsStandableQuery::POINT;
+   }
+}
+
+
+void NavGrid::IsStandableQuery::MoveWorldCollisionShape(csg::Point3 const& location) const
+{
+   if (_method == IsStandableQuery::INTERSECT_NAVGRID ||
+       _method == IsStandableQuery::INTERSECT_TRACKERS) {
+
+      // _worldCollisionShape contains the shape of the entity position at
+      // _lastQueryPoint.  In order to do this query, we need to move it
+      // over by the difference between that and the location.
+      csg::Point3 delta = location - _lastQueryPoint;
+      if (delta != csg::Point3::zero) {
+         _lastQueryPoint = location;
+         _worldCollisionShape.Translate(csg::ToFloat(delta));
       }
    }
+}
 
-   csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);
-   if (!UseFastCollisionDetection(entity)) {
-      return IsStandable(entity, location, shape);
+bool NavGrid::IsStandableQuery::IsStandable(csg::Point3 const& location) const
+{
+   MoveWorldCollisionShape(location);
+
+   switch (_method) {
+   case IsStandableQuery::INVALID_QUERY:
+      return false;
+   
+   case IsStandableQuery::POINT:
+      return _ng->IsStandable(location);
+   
+   case IsStandableQuery::TINY:
+      return _ng->IsStandable(location) &&
+             _ng->CanPassThrough(_entity, location);
+
+   case IsStandableQuery::HUMANOID:
+      return _ng->IsStandable(location) &&
+             _ng->CanPassThrough(_entity, location) &&
+             !_ng->IsBlocked(location + csg::Point3::unitY) &&
+             !_ng->IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
+   
+   case IsStandableQuery::INTERSECT_NAVGRID:
+      return _ng->IsStandable(csg::ToInt(_worldCollisionShape));
+   
+   case IsStandableQuery::INTERSECT_TRACKERS:
+      return _ng->IsStandable(_entity, location, _worldCollisionShape);
+   
+   default:
+      ASSERT(false);
    }
-   if (!shape.IsEmpty()) {
-      return IsStandable(csg::ToInt(shape));
-   }
-   return IsStandable(location);
+   return false;
 }
 
 /*
@@ -1127,26 +1199,24 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg
 csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt)
 {
    csg::Point3 location = bounds_.GetClosestPoint(csg::ToClosestInt(pt));
+   IsStandableQuery q = IsStandableQuery(this, entity);
 
    csg::CollisionShape collisionShape = GetEntityWorldCollisionShape(entity, location);
    if (collisionShape.IsEmpty()) {
       collisionShape.AddUnique(csg::ToFloat(location));
    }
-
-   NG_LOG(7) << "collision region for " << *entity << " at " << location << " is " << collisionShape.GetBounds() << " in ::GetStandablePoint.";
-   
    csg::Point3 direction(0, IsBlocked(entity, collisionShape) ? 1 : -1, 0);
-
+   
+   NG_LOG(7) << "collision region for " << *entity << " at " << location << " is " << collisionShape.GetBounds() << " in ::GetStandablePoint.";  
    NG_LOG(7) << "::GetStandablePoint search direction is " << direction;
 
    while (bounds_.Contains(location)) {
       NG_LOG(7) << "::GetStandablePoint checking location " << location;
-      if (IsStandable(entity, location, collisionShape)) {
+      if (q.IsStandable(location)) {
          NG_LOG(7) << "Found it!  Breaking";
          break;
       }
       NG_LOG(7) << "Still not standable.  Searching...";
-      collisionShape.Translate(csg::ToFloat(direction));
       location += direction;
    }
    return location;
@@ -1222,7 +1292,7 @@ bool NavGrid::UseFastCollisionDetection(om::EntityPtr entity) const
          return false;
       }
       if (GetMobCollisionType(entity) == om::Mob::TITAN) {
-         // can't use the fast collsion detection path here because titan's aren't
+         // can't use the fast collision detection path here because titan's aren't
          // obstructed by small objects.
          return false;
       }
@@ -1259,7 +1329,10 @@ csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Poin
             switch (rcs->GetRegionCollisionType()) {
             case om::RegionCollisionShape::SOLID: {
                csg::Region3f region = LocalToWorld(shape->Get(), entity);
-               region.Translate(csg::ToFloat(location) - pos);
+               csg::Point3f delta = csg::ToFloat(location) - pos;
+               if (delta != csg::Point3f::zero) {
+                  region.Translate(delta);
+               }
                return region;
             }
             default:

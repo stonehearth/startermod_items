@@ -52,7 +52,42 @@ class NavGrid {
       bool IsStandable(csg::Point3 const& worldPoint);
       bool IsStandable(csg::Region3 const& worldRegion);
       bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt);
-      bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt, om::MobPtr const& mob);
+
+      // The standable query object is useful when you want to make many, many
+      // ::IsStandable queries using the same entity.  It is much more efficient than
+      // calling any other variant of ::IsStndable, especially when the entity in question
+      // has a region collision shape.
+      class IsStandableQuery {
+      public:
+         IsStandableQuery();
+         IsStandableQuery(NavGrid *ng, om::EntityPtr const& e);
+
+         om::EntityPtr const& GetEntity() const { return _entity; }
+         bool IsStandable(csg::Point3 const& pt) const;
+         bool IsBlocked(csg::Point3 const& pt) const;
+
+      private:
+         friend NavGrid;
+         void MoveWorldCollisionShape(csg::Point3 const& pt) const;
+
+      private:
+         enum Method {
+            INVALID_QUERY,
+            TINY,          
+            HUMANOID,
+            POINT,
+            INTERSECT_NAVGRID,
+            INTERSECT_TRACKERS,
+         };
+
+      private:
+         NavGrid*                      _ng;
+         Method                        _method;
+         om::EntityPtr                 _entity;
+         mutable csg::Point3           _lastQueryPoint;         // useful only for INTERSECT_* calls
+         mutable csg::CollisionShape   _worldCollisionShape;
+      };
+
       csg::Point3 GetStandablePoint(csg::Point3 const& pt);
       csg::Point3 GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt);
 
@@ -124,13 +159,13 @@ private:
       typedef boost::container::flat_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerFlatMap;
       typedef std::unordered_map<dm::ObjectId, CollisionTrackerFlatMap> CollisionTrackerMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisionTrackerDtorMap;
-      typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisonTypeTraceMap;
+      typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisionTypeTraceMap;
       typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> TerrainTileCollisionTrackerMap;
 
    private:
       void AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component);
       void RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId componentId);
-      CollisionTrackerPtr CreateRegionCollisonShapeTracker(om::RegionCollisionShapePtr regionCollisionShapePtr);
+      CollisionTrackerPtr CreateRegionCollisionShapeTracker(om::RegionCollisionShapePtr regionCollisionShapePtr);
       void CreateCollisionTypeTrace(om::RegionCollisionShapePtr regionCollisionShapePtr);
       void OnCollisionTypeChanged(om::RegionCollisionShapeRef regionCollisionShapeRef);
 
@@ -144,7 +179,7 @@ private:
       int                              now_;
       CollisionTrackerMap              collision_trackers_;
       CollisionTrackerDtorMap          collision_tracker_dtors_;
-      CollisonTypeTraceMap             collision_type_traces_;
+      CollisionTypeTraceMap            collision_type_traces_;
       TerrainTileCollisionTrackerMap   terrain_tile_collision_trackers_;
       csg::Cube3                       bounds_;
       mutable core::Slot<csg::Point3>  _dirtyTilesSlot;
