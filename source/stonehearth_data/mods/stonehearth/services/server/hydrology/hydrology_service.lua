@@ -11,9 +11,9 @@ HydrologyService = class()
 
 function HydrologyService:initialize()
    -- prevent oscillation by making sure we can flow to under the merge threshold
-   assert(constants.hydrology.MIN_PRESSURE_FLOW_RATE <= constants.hydrology.MERGE_ELEVATION_THRESHOLD)
-   assert(constants.hydrology.MIN_PRESSURE_FLOW_RATE <= constants.hydrology.MERGE_VOLUME_THRESHOLD)
-   assert(constants.hydrology.MIN_PRESSURE_FLOW_RATE >= constants.hydrology.MIN_FLOW_RATE)
+   assert(constants.hydrology.MIN_FLOW_RATE <= constants.hydrology.MERGE_ELEVATION_THRESHOLD)
+   assert(constants.hydrology.MIN_FLOW_RATE <= constants.hydrology.MERGE_VOLUME_THRESHOLD)
+   assert(constants.hydrology.MIN_FLOW_RATE >= constants.hydrology.STOP_FLOW_THRESHOLD)
 
    self._sv = self.__saved_variables:get_data()
 
@@ -349,6 +349,7 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    return false
 end
 
+-- CHECKCHECK -- handle case when merging with wetted layers to keep 0 layer height
 -- You better know what you're doing if allow_uneven_top_layers is true!
 function HydrologyService:merge_water_bodies(entity1, entity2, allow_uneven_top_layers)
    if allow_uneven_top_layers == nil then
@@ -530,6 +531,7 @@ end
 
 function HydrologyService:_check_for_channel_merge()
    -- TODO: can we clean this up?
+   -- TODO: only check once for bidirectional channels
    repeat
       local restart = false
       self._sv._channel_manager:each_channel(function(channel)

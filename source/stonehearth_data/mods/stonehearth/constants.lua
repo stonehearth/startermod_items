@@ -261,11 +261,11 @@ local constants = {
 
    hydrology = {
       PRESSURE_TO_FLOW_RATE = 1,        -- constant converting pressure to a flow rate per unit cross section
-      MIN_FLOW_RATE = 0.01,             -- a 'drop' of water. don't flow below this threshold to avoid immaterial calculations
+      STOP_FLOW_THRESHOLD = 0.01,       -- a 'drop' of water. don't flow below this threshold to avoid immaterial calculations
+      MIN_FLOW_RATE = 0.1,              -- minimum flow rate through a channel to avoid exponentially long merge times
       WETTING_VOLUME = 0.25,            -- the volume of water consumed to make a block wet
       MERGE_ELEVATION_THRESHOLD = 0.1,  -- how close the water levels have to be before allowing a standard merge
       MERGE_VOLUME_THRESHOLD = 1,       -- how much water has to flow to equalize water levels for a merge
-      MIN_PRESSURE_FLOW_RATE = 0.1,     -- minimum flow rate through a pressure channel to avoid exponentially long merge times
    },
 }
 
