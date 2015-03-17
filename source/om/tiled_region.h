@@ -1,6 +1,7 @@
 #ifndef _RADIANT_OM_TILED_REGION_H
 #define _RADIANT_OM_TILED_REGION_H
 
+#include <unordered_set>
 #include "radiant.h"
 #include "dm/map.h"
 #include "dm/store.h"
@@ -44,6 +45,7 @@ public:     // types
    
 public:     // public methods
    TiledRegion(csg::Point3 const& tileSize, ContainerType& tiles);
+   ~TiledRegion();
 
    void SetModifiedCb(ModifiedCb modified_cb);
 
@@ -87,9 +89,9 @@ private:
 
 private:
    csg::Point3                         _tileSize;
-   TiledRegionAdapter<ContainerType>   _tilemap;
    IndexSet                            _changedSet;
    ModifiedCb                          _modifiedCb;
+   TiledRegionAdapter<ContainerType>   _tilemap;
 };
 
 // Common template types.

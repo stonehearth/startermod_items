@@ -17,6 +17,11 @@ TiledRegion<ContainerType, TileType>::TiledRegion(csg::Point3 const& tileSize, C
 }
 
 template <typename ContainerType, typename TileType>
+TiledRegion<ContainerType, TileType>::~TiledRegion()
+{
+}
+
+template <typename ContainerType, typename TileType>
 void TiledRegion<ContainerType, TileType>::SetModifiedCb(ModifiedCb modified_cb)
 {
    _modifiedCb = modified_cb;  
@@ -246,6 +251,7 @@ public:     // types
 
 public:
    TiledRegionAdapter(Region3PtrMap& container) : _container(container) { }
+   ~TiledRegionAdapter() { }
 
    void Clear() {
       for (auto const& entry : _container) {
@@ -308,6 +314,7 @@ public:     // types
 
 public:
    TiledRegionAdapter(Region3BoxedPtrMap& container) : _container(container) { }
+   ~TiledRegionAdapter() { }
 
    void Clear() {
       for (auto const& entry : _container) {

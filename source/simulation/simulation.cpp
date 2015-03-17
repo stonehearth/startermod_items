@@ -27,6 +27,7 @@
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include "lib/lua/script_host.h"
+#include "lib/lua/low_mem_allocator.h"
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/sim/open.h"
@@ -60,6 +61,8 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 namespace proto = ::radiant::tesseract::protocol;
+
+static const int LUA_MEMORY_STATS_INTERVAL = 60 * 1000;
 
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
@@ -386,6 +389,7 @@ void Simulation::ShutdownGameObjects()
    error_browser_.reset();
    scriptHost_.reset();
 
+   waterTightRegionBuilder_.reset();
    freeMotion_.reset();
    octtree_.reset();
 }
@@ -851,6 +855,10 @@ void Simulation::Mainloop()
       perf_timeline_.BeginFrame();
       PushPerformanceCounters();
       next_counter_push_.set(500);
+   }
+   if (lua_memory_timer_.expired()) {
+      lua::LowMemAllocator::GetInstance().ReportMemoryStats();
+      lua_memory_timer_.set(LUA_MEMORY_STATS_INTERVAL);
    }
    if (enable_job_logging_ && log_jobs_timer_.expired()) {
       perf_jobs_.BeginFrame();

@@ -287,8 +287,8 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
       if (isJitEnabled) {
          // 64-bit builds of LuaJit use their own internal allocator which takes memory.
          // Use luaL_newstate to create the interpreter.  Use luaL_newstate to allocate
-         // the interpreter and don't call any of the setalloc functions
-         L_ = lj_state_newstate(LuaAllocLowMemFn, this);
+         // the interpreter and don't call any of the setalloc functions         
+         L_ = lj_state_newstate(LowMemAllocator::LuaAllocFn, this);
       } else {
          // 64-bit without jit.  We can use all our crazy allocators.
          L_ = lua_newstate(LuaAllocFn, this);
@@ -494,27 +494,6 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
             host->alloc_map[key][realloced] = nsize;
             host->alloc_backmap[realloced] = key;
          }
-      }
-   }
-   return realloced;
-}
-
-void* ScriptHost::LuaAllocLowMemFn(void *ud, void *ptr, size_t osize, size_t nsize)
-{
-   ScriptHost* host = static_cast<ScriptHost*>(ud);
-   LowMemAllocator& allocator = LowMemAllocator::GetInstance();
-
-   void *realloced;
-
-   host->bytes_allocated_ += (int)(nsize - osize);
-   if (nsize == 0) {
-      allocator.deallocate(ptr);
-      realloced = nullptr;
-   } else {
-      realloced = allocator.allocate(nsize);
-      if (osize) {
-         memcpy(realloced, ptr, std::min(nsize, osize));
-         allocator.deallocate(ptr);
       }
    }
    return realloced;

@@ -1,10 +1,16 @@
 TargetTable = class()
 
 -- TODO: decay scores over time and remove if below 0
-function TargetTable:initialize()
+function TargetTable:initialize(name)
    assert(self._sv)
+   self._sv.name = name
    self._sv.targets = {}
    self.__saved_variables:mark_changed()
+end
+
+function TargetTable:activate()
+   self._log = radiant.log.create_logger('target_tables')
+                              :set_prefix(self._sv.name or '??')
 end
 
 function TargetTable:destroy()
@@ -67,6 +73,8 @@ function TargetTable:modify_value(target, delta)
       self._sv.targets[id] = entry
    end
    entry.value = entry.value + delta
+
+   self._log:spam('value for %s is now %.2f (delta: %.2f)', target, entry.value, delta)
    self.__saved_variables:mark_changed()
    self:_signal_changed()
 end

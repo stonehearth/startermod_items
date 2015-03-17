@@ -9,7 +9,7 @@ local log = radiant.log.create_logger('ladder_builder')
 function LadderBuilder:initialize(manager, owner, base, normal, removeable)
    self._sv.climb_to = {}
 
-   local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder', { ownwer = owner })
+   local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder', { owner = owner })
    self._ladder_dtor_trace = ladder:trace('ladder dtor')
                                        :on_destroyed(function()
                                              self._sv.manager:_destroy_builder(self._sv.base, self)
@@ -76,14 +76,26 @@ function LadderBuilder:add_point(to)
    assert(self._sv.ladder:is_valid())
 
    log:debug('adding point %s to ladder', to)
-   self._sv.climb_to[to:key_value()] = to
+   table.insert(self._sv.climb_to, to)
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
 
 function LadderBuilder:remove_point(to)
    log:debug('removing point %s from ladder', to)
-   self._sv.climb_to[to:key_value()] = nil
+
+   local c = #self._sv.climb_to
+   local climb_to = self._sv.climb_to
+   for i=1,c do
+      if climb_to[i] == to then
+         local last_point = table.remove(climb_to, c)
+         if i < c then
+            climb_to[i] = last_point
+            assert(#climb_to == c - 1)
+         end
+         break
+      end
+   end
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end

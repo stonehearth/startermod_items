@@ -48,6 +48,7 @@ function WaterRenderer:_update()
 
    local render_region = Region3()
    for cube in region:each_cube() do
+      -- TODO: only update height if cube reaches top layer
       cube.max.y = math.min(cube.max.y, height)
       cube.min.y = cube.min.y - 0.001 -- cube must have non-zero thickness for the outline node to generate geometry
       render_region:add_cube(cube)

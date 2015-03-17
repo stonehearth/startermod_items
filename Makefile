@@ -1,5 +1,6 @@
 include make/settings.mk
 
+GITHUB_REPOSITORY  = https://github.com/radent/stonehearth.git
 STONEHEARTH_ROOT   = ${CURDIR}
 MAKE_ROOT          = $(STONEHEARTH_ROOT)/make
 MAKE_ROOT_DOS      = $(shell pwd -W)/make
@@ -73,9 +74,8 @@ official-build-git-tag:
 	git config --global user.email "radbot@radiant-entertainment.com"
 	git config --global user.name "Radiant Robot"
 	git tag -f -a "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)" -m "Official build built on $(BAMBOO_BUILD_TIME)" $(BAMBOO_BRANCH_REVISION)
-	git remote add central $(BAMBOO_RCS_SERVER)
-	git push central "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
-	git ls-remote --exit-code --tags central "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
+	git push --no-verify $(GITHUB_REPOSITORY) "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
+	git ls-remote --exit-code --tags $(GITHUB_REPOSITORY) "$(BAMBOO_BRANCH_NAME)_$(BAMBOO_BUILD_NUMBER)"
 
 # fake-official-build-x86 and fake-official-build-x64 for testing in a developer environment
 fake-official-build-%:
@@ -126,19 +126,19 @@ symbols:
 # the cef-symbols target requires updating radbot@support-stage's .authorized_keys
 .PHONY: cef-symbols
 cef-symbols:
-	-rm $(BUILD_DIR)/libcef.sym
+	-rm $(BUILD_DIR)/libcef.dll.sym
 	modules/breakpad/build/$(RADIANT_BUILD_PLATFORM)/release/dump_syms.exe \
 		$(STONEHEARTH_ROOT)/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows64/Release/libcef.dll > \
-		$(BUILD_DIR)/libcef.sym
-	scp $(BUILD_DIR)/libcef.sym radbot@support-stage:/home/radbot/libcef.sym
-	ssh radbot@support-stage "./publish_symbols.sh libcef"
+		$(BUILD_DIR)/libcef.dll.sym
+	scp $(BUILD_DIR)/libcef.dll.sym radbot@support-stage:/home/radbot/libcef.dll.sym
+	ssh radbot@support-stage "./publish_symbols.sh libcef.dll"
 
-	-rm $(BUILD_DIR)/libcef.sym
+	-rm $(BUILD_DIR)/libcef.dll.sym
 	modules/breakpad/build/$(RADIANT_BUILD_PLATFORM)/release/dump_syms.exe \
 		$(STONEHEARTH_ROOT)/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows32/Release/libcef.dll > \
-		$(BUILD_DIR)/libcef.sym
-	scp $(BUILD_DIR)/libcef.sym radbot@support-stage:/home/radbot/libcef.sym
-	ssh radbot@support-stage "./publish_symbols.sh libcef"
+		$(BUILD_DIR)/libcef.dll.sym
+	scp $(BUILD_DIR)/libcef.dll.sym radbot@support-stage:/home/radbot/libcef.dll.sym
+	ssh radbot@support-stage "./publish_symbols.sh libcef.dll"
 
 .PHONY: ide
 ide: configure ide-only
@@ -186,6 +186,10 @@ perf-exp: test-stage test-package run-perf-exp
 .PHONY: decoda-project
 decoda-project:
 	scripts/make_decoda_project.py stonehearth.deproj source/stonehearth_data/mods
+
+.PHONY: shed-decoda-project
+shed-decoda-project:
+	scripts/make_decoda_project.py shed.deproj modules/stonehearth-editor
 
 .PHONY: dependency-graph
 dependency-graph:

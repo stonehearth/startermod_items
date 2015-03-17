@@ -191,12 +191,16 @@ function CombatStateComponent:set_attack_leash(center, range)
    }
    self.__saved_variables:mark_changed()
    radiant.events.trigger_async(self._entity, 'stonehearth:combat_state:leash_changed')
+end
 
-   return radiant.lib.Destructor(function()
-         self._sv.leash = nil
-         self.__saved_variables:mark_changed()
-         radiant.events.trigger_async(self._entity, 'stonehearth:combat_state:leash_changed')
-      end)
+-- xxxs: this only works if there's one person who wants to use the leash (currently the
+-- party code).  once another guy comes along, we need to have some leash priority system
+-- or something
+--
+function CombatStateComponent:remove_attack_leash()
+   self._sv.leash = nil
+   self.__saved_variables:mark_changed()
+   radiant.events.trigger_async(self._entity, 'stonehearth:combat_state:leash_changed')
 end
 
 -- combat actions can come from two sources:

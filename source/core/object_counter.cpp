@@ -2,6 +2,7 @@
 #include "platform/utils.h"
 #include "object_counter.h"
 #include <mutex>
+#include <tbb/spin_mutex.h>
 
 using namespace ::radiant;
 using namespace ::radiant::core;
@@ -9,7 +10,7 @@ using namespace ::radiant::core;
 #if defined(ENABLE_OBJECT_COUNTER)
 
 bool ObjectCounterBase::__track_objects;
-boost::detail::spinlock ObjectCounterBase::__lock;
+tbb::spin_mutex ObjectCounterBase::__lock;
 ObjectCounterBase::CounterMap ObjectCounterBase::__counters;
 ObjectCounterBase::ObjectMap ObjectCounterBase::__objects;
 
@@ -82,7 +83,7 @@ void ObjectCounterBase::ForEachObjectDeltaCount(CounterMap const& checkpoint, Fo
    SortedCounters sorted;
 
    {
-      std::lock_guard<boost::detail::spinlock> lock(__lock);
+      tbb::spin_mutex::scoped_lock lock(__lock);
 
       auto checkpoint_end = checkpoint.end();
       for (const auto& entry : __counters) {
@@ -110,7 +111,7 @@ void ObjectCounterBase::ForEachObjectCount(ForEachObjectCountCb cb)
    SortedCounters sorted;
 
    {
-      std::lock_guard<boost::detail::spinlock> lock(__lock);
+      tbb::spin_mutex::scoped_lock lock(__lock);
       for (const auto& entry : __counters) {
          sorted.insert(std::make_pair(entry.second, entry.first));
       }
@@ -127,7 +128,7 @@ void ObjectCounterBase::ForEachObjectCount(ForEachObjectCountCb cb)
 
 void ObjectCounterBase::IncrementObjectCount(ObjectCounterBase *that, std::type_info const& t)
 {
-   std::lock_guard<boost::detail::spinlock> lock(__lock);
+   tbb::spin_mutex::scoped_lock lock(__lock);
 
    auto i = __counters.find(std::type_index(t));
    if (i != __counters.end()) {
@@ -151,7 +152,7 @@ void ObjectCounterBase::IncrementObjectCount(ObjectCounterBase *that, std::type_
 
 void ObjectCounterBase::DecrementObjectCount(ObjectCounterBase *that, std::type_info const& t)
 {
-   std::lock_guard<boost::detail::spinlock> lock(__lock);
+   tbb::spin_mutex::scoped_lock lock(__lock);
    __counters[std::type_index(t)]--;
    if (__track_objects) {
       __objects.erase(that);
@@ -167,7 +168,7 @@ void ObjectCounterBase::DecrementObjectCount(ObjectCounterBase *that, std::type_
 
 int ObjectCounterBase::GetObjectCount(std::type_info const& t)
 {
-   std::lock_guard<boost::detail::spinlock> lock(__lock);
+   tbb::spin_mutex::scoped_lock lock(__lock);
    auto i = __counters.find(std::type_index(t));
    return i != __counters.end() ? i->second : 0;
 }

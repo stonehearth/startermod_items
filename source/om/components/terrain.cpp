@@ -20,6 +20,15 @@ std::ostream& operator<<(std::ostream& os, Terrain const& o)
    return (os << "[Terrain]");
 }
 
+Terrain::Terrain()
+{
+   terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
+}
+
+Terrain::~Terrain()
+{
+}
+
 void Terrain::LoadFromJson(json::Node const& obj)
 {
 }
@@ -35,7 +44,6 @@ void Terrain::ConstructObject()
 
    csg::Point3 tileSize(phys::TILE_SIZE, phys::TILE_SIZE, phys::TILE_SIZE);
    water_tight_region_ = std::make_shared<om::Region3Tiled>(tileSize, water_tight_region_tiles_);
-   terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
 }
 
 Terrain& Terrain::SetConfigFileName(std::string value)

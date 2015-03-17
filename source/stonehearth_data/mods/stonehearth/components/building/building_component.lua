@@ -602,6 +602,7 @@ end
 -- progress component
 --
 function Building:_on_child_finished(changed)
+   radiant.events.trigger_async(self._entity, 'stonehearth:construction:structure_finished_changed')
    local function children_finished(entity)
       if entity and entity:is_valid() then
          if entity ~= self._entity then

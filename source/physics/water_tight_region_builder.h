@@ -41,7 +41,7 @@ private: // instance variables
    core::Guard             _onTileDirtyGuard;
    DirtyTileSet            _dirtyTiles;
 
-   om::Region3TiledPtr        _WaterTightRegionBuilder;
+   om::Region3TiledPtr        _tiles;
    dm::Boxed<csg::Region3f>*  _deltaAccumulator;
 };
 

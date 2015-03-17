@@ -39,7 +39,7 @@ EngineConfig::EngineConfig()
    // use what's in their user_settings.json file!
    radiant::core::Config& config = radiant::core::Config::GetInstance();
    if (config.Get<int>("logging.horde.general", -999) == -999) {
-      log_levels_.horde.general = 4;
+      log_levels_.horde.general = 2;
    }
 
 	trilinearFiltering = true;

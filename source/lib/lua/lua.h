@@ -6,7 +6,7 @@
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
-void Initialize(bool enableJit);
+void Initialize();
 bool JitIsEnabled();
 
 class ScriptHost;
