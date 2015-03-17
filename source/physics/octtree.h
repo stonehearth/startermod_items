@@ -37,11 +37,11 @@ class OctTree {
       float GetSquaredDistanceCost(const csg::Point3& src, const csg::Point3& dst) const;
 
       bool ValidMove(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
-      bool ValidMove(NavGrid::IsStandableQuery const& q, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
+      bool ValidMove(NavGrid::Query const& q, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 
    protected:
       bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
-      bool ValidDiagonalMove(NavGrid::IsStandableQuery const& q, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
+      bool ValidDiagonalMove(NavGrid::Query const& q, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
       bool ValidElevationChange(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 
    private:

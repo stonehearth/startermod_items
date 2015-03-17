@@ -29,8 +29,6 @@
 #include "physics_util.h"
 #include <EASTL/fixed_set.h>
 
-#pragma optimize ("" ,off)
-
 using namespace radiant;
 using namespace radiant::phys;
 
@@ -448,9 +446,9 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
    }
    csg::Cube3 tile = csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE);
 
-   IsStandableQuery q;
+   Query q;
    if (p) {
-      q = IsStandableQuery(this, p);
+      q = Query(this, p);
    }
    for (csg::Point3 i : csg::EachPoint(tile)) {
       bool standable = p != nullptr ? q.IsStandable(i) : IsStandable(i);
@@ -1068,16 +1066,16 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   return IsStandableQuery(this, entity).IsStandable(location);
+   return Query(this, entity).IsStandable(location);
 }
 
-NavGrid::IsStandableQuery::IsStandableQuery() :
+NavGrid::Query::Query() :
    _ng(nullptr),
    _method(INVALID_QUERY)
 {
 }
 
-NavGrid::IsStandableQuery::IsStandableQuery(NavGrid *ng, om::EntityPtr const& entity) :
+NavGrid::Query::Query(NavGrid *ng, om::EntityPtr const& entity) :
    _ng(ng),
    _entity(entity),
    _method(INVALID_QUERY)
@@ -1087,74 +1085,73 @@ NavGrid::IsStandableQuery::IsStandableQuery(NavGrid *ng, om::EntityPtr const& en
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
          if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-            _method = IsStandableQuery::HUMANOID;
+            _method = Query::HUMANOID;
             return;
          }
          if (mob->GetMobCollisionType() == om::Mob::TINY) {
-            _method = IsStandableQuery::TINY;
+            _method = Query::TINY;
             return;
          }
       }
       
       _lastQueryPoint = csg::Point3::zero;
       _worldCollisionShape = GetEntityWorldCollisionShape(entity, csg::Point3::zero);
+      if (_worldCollisionShape.IsEmpty()) {
+         _worldCollisionShape.AddUnique(csg::Point3f::zero);
+      }
 
       if (!_ng->UseFastCollisionDetection(entity)) {
-         _method = IsStandableQuery::INTERSECT_TRACKERS;
+         _method = Query::INTERSECT_TRACKERS;
          return;
       }
 
       if (!_worldCollisionShape.IsEmpty()) {
-         _method = IsStandableQuery::INTERSECT_NAVGRID;
+         _method = Query::INTERSECT_NAVGRID;
          return;
       }
 
-      _method = IsStandableQuery::POINT;
+      _method = Query::POINT;
    }
 }
 
 
-void NavGrid::IsStandableQuery::MoveWorldCollisionShape(csg::Point3 const& location) const
+void NavGrid::Query::MoveWorldCollisionShape(csg::Point3 const& location) const
 {
-   if (_method == IsStandableQuery::INTERSECT_NAVGRID ||
-       _method == IsStandableQuery::INTERSECT_TRACKERS) {
-
-      // _worldCollisionShape contains the shape of the entity position at
-      // _lastQueryPoint.  In order to do this query, we need to move it
-      // over by the difference between that and the location.
-      csg::Point3 delta = location - _lastQueryPoint;
-      if (delta != csg::Point3::zero) {
-         _lastQueryPoint = location;
-         _worldCollisionShape.Translate(csg::ToFloat(delta));
-      }
+   // _worldCollisionShape contains the shape of the entity position at
+   // _lastQueryPoint.  In order to do this query, we need to move it
+   // over by the difference between that and the location.
+   csg::Point3 delta = location - _lastQueryPoint;
+   if (delta != csg::Point3::zero) {
+      _lastQueryPoint = location;
+      _worldCollisionShape.Translate(csg::ToFloat(delta));
    }
 }
 
-bool NavGrid::IsStandableQuery::IsStandable(csg::Point3 const& location) const
+bool NavGrid::Query::IsStandable(csg::Point3 const& location) const
 {
-   MoveWorldCollisionShape(location);
-
    switch (_method) {
-   case IsStandableQuery::INVALID_QUERY:
+   case Query::INVALID_QUERY:
       return false;
    
-   case IsStandableQuery::POINT:
+   case Query::POINT:
       return _ng->IsStandable(location);
    
-   case IsStandableQuery::TINY:
+   case Query::TINY:
       return _ng->IsStandable(location) &&
              _ng->CanPassThrough(_entity, location);
 
-   case IsStandableQuery::HUMANOID:
+   case Query::HUMANOID:
       return _ng->IsStandable(location) &&
              _ng->CanPassThrough(_entity, location) &&
              !_ng->IsBlocked(location + csg::Point3::unitY) &&
              !_ng->IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
    
-   case IsStandableQuery::INTERSECT_NAVGRID:
+   case Query::INTERSECT_NAVGRID:
+      MoveWorldCollisionShape(location);
       return _ng->IsStandable(csg::ToInt(_worldCollisionShape));
    
-   case IsStandableQuery::INTERSECT_TRACKERS:
+   case Query::INTERSECT_TRACKERS:
+      MoveWorldCollisionShape(location);
       return _ng->IsStandable(_entity, location, _worldCollisionShape);
    
    default:
@@ -1162,6 +1159,38 @@ bool NavGrid::IsStandableQuery::IsStandable(csg::Point3 const& location) const
    }
    return false;
 }
+
+bool NavGrid::Query::IsBlocked(csg::Point3 const& location) const
+{
+   switch (_method) {
+   case Query::INVALID_QUERY:
+      return false;
+   
+   case Query::POINT:
+      return _ng->IsBlocked(location);
+   
+   case Query::TINY:
+      return _ng->IsBlocked(location);
+
+   case Query::HUMANOID:
+      return _ng->IsBlocked(location) ||
+             _ng->IsBlocked(location + csg::Point3::unitY) ||
+             _ng->IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
+   
+   case Query::INTERSECT_NAVGRID:
+      MoveWorldCollisionShape(location);
+      return _ng->IsBlocked(csg::ToInt(_worldCollisionShape));
+   
+   case Query::INTERSECT_TRACKERS:
+      MoveWorldCollisionShape(location);
+      return _ng->IsBlocked(_entity, _worldCollisionShape);
+   
+   default:
+      ASSERT(false);
+   }
+   return false;
+}
+
 
 /*
  * -- NavGrid::IsStandable
@@ -1199,15 +1228,11 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg
 csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt)
 {
    csg::Point3 location = bounds_.GetClosestPoint(csg::ToClosestInt(pt));
-   IsStandableQuery q = IsStandableQuery(this, entity);
+   Query q = Query(this, entity);
 
-   csg::CollisionShape collisionShape = GetEntityWorldCollisionShape(entity, location);
-   if (collisionShape.IsEmpty()) {
-      collisionShape.AddUnique(csg::ToFloat(location));
-   }
-   csg::Point3 direction(0, IsBlocked(entity, collisionShape) ? 1 : -1, 0);
+   csg::Point3 direction(0, q.IsBlocked(pt) ? 1 : -1, 0);
    
-   NG_LOG(7) << "collision region for " << *entity << " at " << location << " is " << collisionShape.GetBounds() << " in ::GetStandablePoint.";  
+   NG_LOG(7) << "collision region for " << *entity << " at " << location << " in ::GetStandablePoint.";  
    NG_LOG(7) << "::GetStandablePoint search direction is " << direction;
 
    while (bounds_.Contains(location)) {

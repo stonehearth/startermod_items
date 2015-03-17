@@ -138,13 +138,13 @@ bool OctTree::ValidMove(om::EntityPtr const& entity,
                         csg::Point3 const& fromLocation,
                         csg::Point3 const& toLocation) const
 {
-   return ValidMove(NavGrid::IsStandableQuery(&navgrid_, entity),
+   return ValidMove(NavGrid::Query(&navgrid_, entity),
                     reversible,
                     fromLocation,
                     toLocation);
 }
 
-bool OctTree::ValidMove(NavGrid::IsStandableQuery const& q,
+bool OctTree::ValidMove(NavGrid::Query const& q,
                         bool const reversible,
                         csg::Point3 const& fromLocation,
                         csg::Point3 const& toLocation) const
@@ -214,7 +214,7 @@ bool OctTree::ValidElevationChange(om::EntityPtr const& entity, bool const rever
 
 // tests diagonal specific requirements
 // the two adjacent non-diagonal paths to the destination must be walkable with a height equal to either the from or to location
-bool OctTree::ValidDiagonalMove(NavGrid::IsStandableQuery const& q, csg::Point3 const& from, csg::Point3 const& to) const
+bool OctTree::ValidDiagonalMove(NavGrid::Query const& q, csg::Point3 const& from, csg::Point3 const& to) const
 {
    // path 1 - x first, y value of from
    {
@@ -274,7 +274,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
    int validDiagonals[] = {0, 0, 0, 0};
 
    int bitMask = 1;
-   NavGrid::IsStandableQuery q = NavGrid::IsStandableQuery(&navgrid_, entity);
+   NavGrid::Query q = NavGrid::Query(&navgrid_, entity);
    for (const auto& direction : cardinal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);

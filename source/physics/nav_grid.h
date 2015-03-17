@@ -53,14 +53,12 @@ class NavGrid {
       bool IsStandable(csg::Region3 const& worldRegion);
       bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt);
 
-      // The standable query object is useful when you want to make many, many
-      // ::IsStandable queries using the same entity.  It is much more efficient than
-      // calling any other variant of ::IsStndable, especially when the entity in question
-      // has a region collision shape.
-      class IsStandableQuery {
+      // The query object is useful when you want to make many, many queries using the same
+      // entity.
+      class Query {
       public:
-         IsStandableQuery();
-         IsStandableQuery(NavGrid *ng, om::EntityPtr const& e);
+         Query();
+         Query(NavGrid *ng, om::EntityPtr const& e);
 
          om::EntityPtr const& GetEntity() const { return _entity; }
          bool IsStandable(csg::Point3 const& pt) const;
@@ -84,8 +82,8 @@ class NavGrid {
          NavGrid*                      _ng;
          Method                        _method;
          om::EntityPtr                 _entity;
-         mutable csg::Point3           _lastQueryPoint;         // useful only for INTERSECT_* calls
-         mutable csg::CollisionShape   _worldCollisionShape;
+         mutable csg::Point3           _lastQueryPoint;        // used only for INTERSECT_* methods
+         mutable csg::CollisionShape   _worldCollisionShape;   // used only for INTERSECT_* methods
       };
 
       csg::Point3 GetStandablePoint(csg::Point3 const& pt);
@@ -125,6 +123,8 @@ class NavGrid {
       void OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId entityId, TrackerType type);
 
 private:
+      friend Query;
+
       typedef std::function<bool(CollisionTrackerPtr)> ForEachTrackerCb;
       typedef std::function<bool(csg::Point3 const& index, NavGridTile&)> ForEachTileCb;
       typedef std::function<bool(csg::Point3 const& index)> ForEachPointCb;
