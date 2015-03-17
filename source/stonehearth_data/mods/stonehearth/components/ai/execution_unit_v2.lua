@@ -1,4 +1,5 @@
 local Entity = _radiant.om.Entity
+local DataStore = _radiant.om.DataStore
 
 local ExecutionUnitV2 = class()
 
@@ -59,8 +60,8 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('get_log')
    chain_function('set_status_text')
    chain_function('set_cost')
-   chain_function('protect_entity')
-   chain_function('unprotect_entity')
+   chain_function('protect_argument')
+   chain_function('unprotect_argument')
   
    local actions = {
       -- for filters only   
@@ -414,7 +415,6 @@ function ExecutionUnitV2:_clear_think_output_from_thinking()
       self._log:debug('ignoring clear_think_output in dead state')
       return
    end
-
    self:_set_state(THINKING)
    self._frame:_unit_not_ready(self)
 end
@@ -580,10 +580,12 @@ function ExecutionUnitV2:_do_start()
                self._frame:abort()
                radiant.not_reached('abort does not return')
             end)
-         -- if we made it here, unsafe_interrupt() could not deliver our cb.
-         -- we have no choice but to keep running!
-         radiant.log.write('stonehearth', 0, '"%s" action, failed to abort on entity destruction.' ..
-                                             '  did you forget to unprotect it?', self._action.name)
+         if not self:in_state(DEAD, STOPPED) then
+            -- if we made it here, unsafe_interrupt() could not deliver our cb.
+            -- we have no choice but to keep running!
+            radiant.log.write('stonehearth', 0, '"%s" action, failed to abort on entity destruction.' ..
+                                                '  did you forget to unprotect it?', self._action.name)
+         end
       end)
    self._object_monitor:resume()
 
@@ -661,16 +663,39 @@ function ExecutionUnitV2:__set_cost(cost)
    self._cost = cost
 end
 
-function ExecutionUnitV2:__protect_entity(entity)
-   if entity and entity:is_valid() and self._object_monitor then
-      self._object_monitor:protect_object(entity)
+function ExecutionUnitV2:_enable_argument_protection(object_monitor, obj, protect)
+   if not object_monitor then
+      return
+   end
+
+   local protected_obj = nil
+
+   if radiant.util.is_a(obj, Entity) and obj:is_valid() then
+      protected_obj = obj
+   elseif radiant.util.is_instance(obj) then
+      local datastore = obj.__saved_variables
+      if radiant.util.is_a(datastore, DataStore) and datastore:is_valid() then
+         protected_obj = datastore
+      end
+   end
+
+   if protected_obj then
+      if protect then
+         self._log:detail('protecting %s', protected_obj)
+         object_monitor:protect_object(protected_obj)
+      else
+         self._log:detail('unprotecting %s', protected_obj)
+         object_monitor:unprotect_object(protected_obj)
+      end
    end
 end
 
-function ExecutionUnitV2:__unprotect_entity(entity)
-   if entity and entity:is_valid() and self._object_monitor then
-      self._object_monitor:unprotect_object(entity)
-   end
+function ExecutionUnitV2:__protect_argument(obj)
+   self:_enable_argument_protection(self._object_monitor, obj, true)
+end
+
+function ExecutionUnitV2:__unprotect_argument(obj)
+   self:_enable_argument_protection(self._object_monitor, obj, false)
 end
 
 function ExecutionUnitV2:__set_status_text(format, ...)
@@ -885,9 +910,7 @@ function ExecutionUnitV2:_create_object_monitor()
    self._log:detail('creating object monitor')
    local object_monitor = ObjectMonitor(self._log)
    for _, obj in pairs(self._args) do
-      if radiant.util.is_a(obj, Entity) then
-         object_monitor:protect_object(obj)
-      end
+      self:_enable_argument_protection(object_monitor, obj, true)
    end
    object_monitor:set_destroyed_cb(function()
          self._log:debug('stopping thinking by request of object monitor!')
@@ -900,7 +923,7 @@ end
 
 function ExecutionUnitV2:_destroy_object_monitor()
    if self._object_monitor then
-      self._log:detail('destroying object monitor')
+      self._log:detail('destroying object monitor. was running = %s', self._object_monitor:is_running())
       self._object_monitor:destroy()
       self._object_monitor = nil
    end
