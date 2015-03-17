@@ -280,13 +280,13 @@ Region<S, C> const& Region<S, C>::operator&=(Cube const& cube)
    Validate();
 
    while (i < size) {
-      Cube replacement = cubes_[i] & cube;
-      if (replacement.IsEmpty()) {
+      Cube& src = cubes_[i];
+      if (src.Intersects(cube)) {
+         src.Clip(cube);
+         ++i;
+      } else {
          cubes_[i] = cubes_[size - 1];
          size--;
-      } else {
-         cubes_[i] = replacement;
-         i++;
       }
    }
    cubes_.resize(size);

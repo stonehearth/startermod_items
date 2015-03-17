@@ -201,14 +201,8 @@ Cube<S, C> Cube<S, C>::operator-() const
 template <typename S, int C>
 Cube<S, C> Cube<S, C>::Intersected(Cube const& other) const
 {
-   Cube result;
-   for (int i = 0; i < C; i++) {
-      result.min[i] = std::max(min[i], other.min[i]);
-      result.max[i] = std::min(max[i], other.max[i]);
-      if (result.max[i] < result.min[i]) {
-         result.max[i] = result.min[i];
-      }
-   }
+   Cube result = *this;
+   result.Clip(other);
    return result;
 }
 
@@ -289,16 +283,8 @@ bool Cube<S, C>::operator!=(Cube const& other) const
 template <typename S, int C>
 Cube<S, C> Cube<S, C>::operator&(Cube const& other) const
 {
-   Cube result;
-
-   result.tag_ = tag_;
-   for (int i = 0; i < C; i++) {
-      result.min[i] = std::max(min[i], other.min[i]);
-      result.max[i] = std::min(max[i], other.max[i]);
-      if (result.max[i] < result.min[i]) {
-         result.max[i] = result.min[i];
-      }
-   }
+   Cube result = *this;
+   result.Clip(other);
    return result;
 }
 
@@ -456,6 +442,64 @@ void Cube<S, C>::Grow(Cube const& cube)
 {
    Grow(cube.min);
    Grow(cube.max);
+}
+
+template <typename S, int C>
+static inline void ClipFn(Cube<S, C>& l, Cube<S, C> const& r);
+
+template <typename S>
+static inline void ClipFn(Cube<S, 1>& l, Cube<S, 1> const& r)
+{
+   l.min.x = std::max(l.min.x, r.min.x);
+   l.max.x = std::min(l.max.x, r.max.x);
+   if (l.max.x < l.min.x) {
+      l.max.x = l.min.x;
+   }
+}
+
+template <typename S>
+static inline void ClipFn(Cube<S, 2>& l, Cube<S, 2> const& r)
+{
+   l.min.x = std::max(l.min.x, r.min.x);
+   l.max.x = std::min(l.max.x, r.max.x);
+   if (l.max.x < l.min.x) {
+      l.max.x = l.min.x;
+   }
+
+   l.min.y = std::max(l.min.y, r.min.y);
+   l.max.y = std::min(l.max.y, r.max.y);
+   if (l.max.y < l.min.y) {
+      l.max.y = l.min.y;
+   }
+}
+
+template <typename S>
+static inline void ClipFn(Cube<S, 3>& l, Cube<S, 3> const& r)
+{
+   l.min.x = std::max(l.min.x, r.min.x);
+   l.max.x = std::min(l.max.x, r.max.x);
+   if (l.max.x < l.min.x) {
+      l.max.x = l.min.x;
+   }
+
+   l.min.y = std::max(l.min.y, r.min.y);
+   l.max.y = std::min(l.max.y, r.max.y);
+   if (l.max.y < l.min.y) {
+      l.max.y = l.min.y;
+   }
+
+   l.min.z = std::max(l.min.z, r.min.z);
+   l.max.z = std::min(l.max.z, r.max.z);
+   if (l.max.z < l.min.z) {
+      l.max.z = l.min.z;
+   }
+}
+
+
+template <class S, int C>
+void Cube<S, C>::Clip(Cube<S, C> const& cube)
+{
+   ClipFn(*this, cube);
 }
 
 template <int C>

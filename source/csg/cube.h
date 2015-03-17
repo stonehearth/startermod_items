@@ -41,6 +41,7 @@ public:
    void SetMax(Point const& max_value) { max = max_value; }
    void Grow(Point const& pt);
    void Grow(Cube const& cube); 
+   void Clip(Cube const& cube); 
    bool CombineWith(Cube const& cube);
 
    void SetZero() {
