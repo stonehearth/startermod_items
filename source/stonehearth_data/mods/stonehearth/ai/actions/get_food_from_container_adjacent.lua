@@ -24,7 +24,7 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
 
    -- consume the stack after the effect finishes.  this might end up destroying the container
    -- so unprotect it first
-   ai:unprotect_entity(container)
+   ai:unprotect_argument(container)
    local stacks_per_serving = container_data.stacks_per_serving or 1
    if not radiant.entities.consume_stack(container, stacks_per_serving) then
       radiant.entities.destroy_entity(food)

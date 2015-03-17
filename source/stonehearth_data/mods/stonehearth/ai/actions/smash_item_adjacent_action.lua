@@ -23,7 +23,7 @@ function SmashItemAdjacent:run(ai, entity, args)
    log:info("%s picking up %s", entity, item)
    radiant.entities.turn_to_face(entity, item)
    ai:execute('stonehearth:run_effect', { effect = 'work', times = 3 })
-   ai:unprotect_entity(item)
+   ai:unprotect_argument(item)
    radiant.entities.kill_entity(item)
 end
 
