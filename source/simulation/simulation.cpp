@@ -27,7 +27,7 @@
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include "lib/lua/script_host.h"
-#include "lib/lua/low_mem_allocator.h"
+#include "lib/lua/caching_allocator.h"
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/sim/open.h"
