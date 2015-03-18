@@ -21,7 +21,7 @@ function MineAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, args.point_of_interest)
    ai:execute('stonehearth:run_effect', { effect = 'mine' })
 
-   ai:unprotect_entity(args.mining_zone)
+   ai:unprotect_argument(args.mining_zone)
 
    local mining_zone_component = args.mining_zone:add_component('stonehearth:mining_zone')
    local loot = mining_zone_component:mine_point(args.point_of_interest)

@@ -24,7 +24,7 @@ function HarvestResourceNodeAdjacent:run(ai, entity, args)
 
    if factory then
       radiant.entities.turn_to_face(entity, node)
-      ai:unprotect_entity(node)
+      ai:unprotect_argument(node)
       
       local location = radiant.entities.get_world_grid_location(entity)
       repeat

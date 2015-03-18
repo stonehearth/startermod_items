@@ -1651,7 +1651,7 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
    });
 
    server_save_deferred_->Always([this, tmpdir] {
-      CLIENT_LOG(3) << "clearing save deferred pointers";
+      CLIENT_LOG(1) << "clearing save deferred pointers";
       client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
       remove_all(tmpdir);
@@ -1662,6 +1662,8 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
 
 void Client::DeleteSaveGame(std::string const& saveid)
 {
+   ASSERT(!saveid.empty());
+
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
    if (fs::is_directory(savedir)) {
       remove_all(savedir);

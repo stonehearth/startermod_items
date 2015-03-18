@@ -30,7 +30,7 @@ function CalendarAlarm:destroy()
 end
 
 function CalendarAlarm:is_dead()
-   return self._sv.is_dead
+   return self._sv.is_dead or not self._fn
 end
 
 function CalendarAlarm:fire()

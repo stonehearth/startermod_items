@@ -277,10 +277,10 @@ function CompoundAction:start(ai, entity, args)
    self._log:detail('finished starting all compound action frames')
 
    for _, obj in pairs(self._args) do
-      if radiant.util.is_a(obj, Entity) and obj:is_valid() then
-         self._log:detail('unprotecting %s at the bottom of start', obj)
-         ai:unprotect_entity(obj)
-      end
+      -- unprotect the arguments when starting a compound action
+      -- the individual sub-actions will protect their own arguments and we don't want to fail
+      -- if the sub-action is supposed to destroy the entity
+      ai:unprotect_argument(obj)
    end      
 end
 
