@@ -1127,13 +1127,6 @@ void Simulation::FinishLoadingGame()
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
 
-   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
-   if (waterTightRegionBuilder_) {
-      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
-                                                    terrain->GetWaterTightRegionDelta());
-   }
-
-
    // Re-call SendClientUpdates().  This will send the data
    // for everything we just loaded to the client so it can get started re-creating its
    // state.  Notice that we do this *before* calling FinishLoadingGame so we can parallelize
@@ -1146,6 +1139,13 @@ void Simulation::FinishLoadingGame()
    InitializeDataObjectTraces();
    store_->OnLoaded();
    GetOctTree().SetRootEntity(root_entity_);
+
+   // do this after loading the datastores, so that the terrain component has a chance to perform any loading logic it needs
+   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {

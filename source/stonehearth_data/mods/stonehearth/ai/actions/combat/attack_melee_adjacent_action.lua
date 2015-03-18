@@ -69,7 +69,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    stonehearth.combat:start_cooldown(entity, attack_info)
 
    -- the target might die when we attack them, so unprotect now!
-   ai:unprotect_entity(target)
+   ai:unprotect_argument(target)
    
    local impact_time = radiant.gamestate.now() + attack_info.time_to_impact
    self._assault_context = AssaultContext('melee', entity, target, impact_time)

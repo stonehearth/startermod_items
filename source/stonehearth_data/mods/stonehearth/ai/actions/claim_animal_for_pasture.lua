@@ -45,7 +45,7 @@ function ClaimAnimalForPasture:run(ai, entity, args)
       shepherd_class:add_trailing_animal(args.animal, args.pasture)
    end
 
-   ai:unprotect_entity(args.animal)
+   ai:unprotect_argument(args.animal)
 end
 
 return ClaimAnimalForPasture

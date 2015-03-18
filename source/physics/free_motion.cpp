@@ -14,7 +14,7 @@ FreeMotion::FreeMotion(NavGrid &ng) :
    _ng(ng)
 {
    _guard = _ng.NotifyTileDirty([this](csg::Point3 const& index) {
-      LOG(physics.free_motion, 4) << "Adding tile " << index << " to dirty set.";
+      LOG(physics.free_motion, 9) << "Adding tile " << index << " to dirty set.";
       stdutil::UniqueInsert(_dirtyTiles, index);
    });
 }
@@ -44,7 +44,7 @@ void FreeMotion::ProcessDirtyTiles(platform::timer& t)
  */
 void FreeMotion::ProcessDirtyTile(csg::Point3 const& index)
 {
-   LOG(physics.free_motion, 4) << "Unsticking entities on tile " << index;
+   LOG(physics.free_motion, 9) << "Unsticking entities on tile " << index;
    _ng.ForEachEntityAtIndex(index, [this](om::EntityPtr e) {
       if (e->GetObjectId() != 1) {
          UnstickEntity(e);
