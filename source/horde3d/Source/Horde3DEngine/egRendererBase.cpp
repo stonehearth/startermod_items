@@ -754,6 +754,17 @@ bool RenderDevice::getTextureData( uint32 texObj, int slice, int mipLevel, void 
 // Shaders
 // =================================================================================================
 
+int RenderDevice::getShaderBytes(uint32 shaderId, char* buff, int buff_size)
+{
+   GLsizei progLen;
+   GLenum format;
+   RDIShader const& s = _shaders.getRef(shaderId);
+   glGetProgramBinary(s.oglProgramObj, buff_size, &progLen, &format, buff);
+
+   return progLen;
+}
+
+
 uint32 RenderDevice::createShaderProgram( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc )
 {
 	int status;

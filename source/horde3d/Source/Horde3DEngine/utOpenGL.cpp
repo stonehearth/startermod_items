@@ -172,6 +172,7 @@ PFNGLDEBUGMESSAGECONTROLARBPROC   glDebugMessageControlARB   = 0x0;
 PFNGLDEBUGMESSAGEINSERTARBPROC    glDebugMessageInsertARB    = 0x0;
 PFNGLDEBUGMESSAGECALLBACKARBPROC  glDebugMessageCallbackARB  = 0x0;
 PFNGLGETDEBUGMESSAGELOGARBPROC    glGetDebugMessageLogARB    = 0x0;
+PFNGLGETPROGRAMBINARYPROC         glGetProgramBinary         = 0x0;
 
 // GL_EXT_framebuffer_object
 PFNGLISRENDERBUFFEREXTPROC glIsRenderbufferEXT = 0x0;
@@ -445,6 +446,11 @@ bool initOpenGLExtensions()
       r &= (glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDPROC) platGetProcAddress( "glDrawArraysInstanced" )) != 0x0;
       r &= (glDrawElementsInstanced = (PFNGLDRAWELEMENTSINSTANCEDPROC) platGetProcAddress( "glDrawElementsInstanced" )) != 0x0;
       r &= (glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC) platGetProcAddress( "glMapBufferRange" )) != 0x0;
+   }
+
+   if (reportedVer >= 41) {
+   	// GL 4.1
+      r &= (glGetProgramBinary = (PFNGLGETPROGRAMBINARYPROC) platGetProcAddress( "glGetProgramBinary" )) != 0x0;
    }
 
    if ((glExt::ARB_debug_output = isExtensionSupported("GL_ARB_debug_output"))) {
