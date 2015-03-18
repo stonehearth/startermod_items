@@ -291,21 +291,23 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
          L_ = lj_state_newstate(LowMemAllocator::LuaAllocFn, this);
       } else {
          // 64-bit without jit.  We can use all our crazy allocators.
-         L_ = lua_newstate(LuaAllocFn, this);
-         lua_setalloc2f(L_, LuaAllocFnWithState, this);
+         L_ = lua_newstate(LowMemAllocator::LuaAllocFn, this);
       }
    } else {
       if (!isJitEnabled) {
          // 32-bit without jit.  We can use all our crazy allocators.
-         L_ = lua_newstate(LuaAllocFn, this);
-         lua_setalloc2f(L_, LuaAllocFnWithState, this);
+         L_ = lua_newstate(LowMemAllocator::LuaAllocFn, this);
       } else {
          // 32-bit with jit.  Don't install our LuaAllocFnWithState callbacks, as LuaJit
          // doesn't know how to call it.
-         L_ = lua_newstate(LuaAllocFn, this);
+         L_ = lua_newstate(LowMemAllocator::LuaAllocFn, this);
       }
    }
    ASSERT(L_);
+   if (enable_profile_memory_) {
+      // This will fail if the jit is on.
+      lua_setalloc2f(L_, LuaAllocFnWithState, this);
+   }
 
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
@@ -457,64 +459,43 @@ std::string ExtractAllocKey(lua_State *l) {
 void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State *L)
 {
    ScriptHost* host = static_cast<ScriptHost*>(ud);
-   void *realloced = ScriptHost::LuaAllocFn(ud, ptr, osize, nsize);
-   if (host->enable_profile_memory_) {
-      if (realloced && ptr && host->alloc_backmap[ptr] != "") {
+   ASSERT(host->enable_profile_memory_);
+
+   void *realloced = LowMemAllocator::LuaAllocFn(ud, ptr, osize, nsize);
+   if (realloced && ptr && host->alloc_backmap[ptr] != "") {
+      ASSERT(nsize > 0);
+      std::string oldKey = host->alloc_backmap[ptr];
+      host->alloc_map[oldKey].erase(ptr);
+      host->alloc_backmap.erase(ptr);
+      host->alloc_map[oldKey][realloced] = nsize;
+      host->alloc_backmap[realloced] = oldKey;
+   } else {
+      host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
+      if (host->alloc_map[host->alloc_backmap[ptr]].size() == 0) {
+         host->alloc_map.erase(host->alloc_backmap[ptr]);
+      }
+      host->alloc_backmap.erase(ptr);
+      if (realloced) {
          ASSERT(nsize > 0);
-         std::string oldKey = host->alloc_backmap[ptr];
-         host->alloc_map[oldKey].erase(ptr);
-         host->alloc_backmap.erase(ptr);
-         host->alloc_map[oldKey][realloced] = nsize;
-         host->alloc_backmap[realloced] = oldKey;
-      } else {
-         host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
-         if (host->alloc_map[host->alloc_backmap[ptr]].size() == 0) {
-            host->alloc_map.erase(host->alloc_backmap[ptr]);
-         }
-         host->alloc_backmap.erase(ptr);
-         if (realloced) {
-            ASSERT(nsize > 0);
-            std::string key = "unknown";
-            lua_State *l = L;
-            if (l != nullptr) {
-               lua_Debug stack;
-               int r = lua_getstack(l, 0, &stack);
+         std::string key = "unknown";
+         lua_State *l = L;
+         if (l != nullptr) {
+            lua_Debug stack;
+            int r = lua_getstack(l, 0, &stack);
 
-               if (!r) {
-                  l = host->L_;
+            if (!r) {
+               l = host->L_;
 
-                  if (l) {
-                     r = lua_getstack(l, 0, &stack);
-                  }
-               }
-               if (r) {
-                  key = ExtractAllocKey(l);
+               if (l) {
+                  r = lua_getstack(l, 0, &stack);
                }
             }
-            host->alloc_map[key][realloced] = nsize;
-            host->alloc_backmap[realloced] = key;
+            if (r) {
+               key = ExtractAllocKey(l);
+            }
          }
-      }
-   }
-   return realloced;
-}
-
- void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
-{
-   ScriptHost* host = static_cast<ScriptHost*>(ud);
-   void *realloced;
-
-   host->bytes_allocated_ += (int)(nsize - osize);
-
-
-   if (nsize == 0) {
-      delete [] ptr;
-      realloced = nullptr;
-   } else {
-      realloced = new char[nsize];
-      if (osize) {
-         memcpy(realloced, ptr, std::min(nsize, osize));
-         delete [] ptr;
+         host->alloc_map[key][realloced] = nsize;
+         host->alloc_backmap[realloced] = key;
       }
    }
    return realloced;

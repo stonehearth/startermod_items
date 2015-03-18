@@ -16,9 +16,10 @@ public:
    LowMemAllocator();
    ~LowMemAllocator();
 
-   bool Start();
+   void Start(bool useLowMemory);
    void ReportMemoryStats(bool force = false);
 
+   inline bool IsUsingLowMemory() const { return _lowMemoryHeap != nullptr; }
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
 
 private:
@@ -38,7 +39,7 @@ private:
       CannotStart,
    };
 private:
-   bool InitializeAllocator();
+   void InitializeLowMemoryAllocator();
    void* LuaAlloc(void *ptr, size_t osize, size_t nsize);
    std::string LowMemAllocator::FormatSize(size_t size) const;
    void *Allocate(size_t size);
@@ -50,12 +51,12 @@ private:
    }
 
 private:
-   void *                     _allocatorMemory;
-   Allocator                  _allocator;
+   void *                     _lowMemoryHeap;
+   Allocator                  _lowMemoryAllocator;
+   size_t                     _lowMemoryHeapSize;
 
    State                      _state;
    size_t                     _byteCount;
-   size_t                     _heapSize;
    bool                       _warnedHeapFull;
    platform::timer            _reportTimer;
 
