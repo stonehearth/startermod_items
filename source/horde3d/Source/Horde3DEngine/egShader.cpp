@@ -654,6 +654,41 @@ void ShaderResource::compileCombination(ShaderCombination &combination)
 	}
 	else
 	{
+      if (Modules::config().dumpCompiledShaders)
+      {
+         std::string fileName = _name;
+
+         for (int i = 0; i < fileName.size(); i++) {
+            if (fileName[i] == '/' || fileName[i] == '\\') {
+               fileName[i] = '_';
+            }
+         }
+         for (const auto& flag : Modules::config().shaderFlags)
+         {
+		      fileName += "_" + flag;
+         }
+         const size_t buff_size = 1 << 21;
+         std::vector<char> buff;
+         buff.reserve(buff_size);
+         buff.resize(buff_size);
+
+         int len = gRDI->getShaderBytes(combination.shaderObj, buff.data(), buff_size);
+
+         boost::filesystem::path path = radiant::core::System::GetInstance().GetTempDirectory();
+			std::ofstream out((path / fileName).string(), ios::binary);
+
+         for (int i = 0; i < len; i++) {
+            if (buff[i] >= 32 && buff[i] <= 126) {
+               out << buff[i];
+            }
+
+            if (buff[i] == ';') {
+               out << "\r\n";
+            }
+         }
+			out.close();
+      }
+
 		gRDI->bindShader( combination.shaderObj );
 
 		// Find samplers in compiled shader

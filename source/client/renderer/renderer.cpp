@@ -726,6 +726,8 @@ void Renderer::GetConfigOptions()
    config_.disable_pinned_memory.value = config.Get("renderer.disable_pinned_memory", false);
 
    config_.run_once.value = config.Get("renderer.run_once", false);
+
+   config_.dump_compiled_shaders.value = config.Get("renderer.dump_compiled_shaders", false);
    
    _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
 
@@ -813,6 +815,8 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
       h3dSetOption(H3DOptions::ShadowMapQuality, (float)config_.shadow_quality.value);
       h3dSetOption(H3DOptions::MaxLights, (float)config_.max_lights.value);
       h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
+      h3dSetOption(H3DOptions::DumpCompiledShaders, config_.dump_compiled_shaders.value);
+
 
       SelectPipeline();
 

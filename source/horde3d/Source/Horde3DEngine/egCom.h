@@ -49,7 +49,8 @@ struct EngineOptions
       EnableShadows,
       EnableStatsLogging,
       DisablePinnedMemory,
-      MaxLights
+      MaxLights,
+      DumpCompiledShaders
 	};
 };
 
@@ -84,6 +85,7 @@ public:
    bool  enableStatsLogging;
    bool  disablePinnedMemory;
    int   maxLights;
+   bool dumpCompiledShaders;
    std::set<std::string> shaderFlags;
 };
 

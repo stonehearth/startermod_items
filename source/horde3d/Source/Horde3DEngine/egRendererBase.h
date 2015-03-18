@@ -408,6 +408,8 @@ public:
 	void setShaderConst( int loc, RDIShaderConstType type, void const* values, uint32 count = 1 );
 	void setShaderSampler( int loc, uint32 texUnit );
 
+   int getShaderBytes(uint32 shaderId, char* buff, int buff_size);
+
 	// Renderbuffers
 	uint32 createRenderBuffer(uint32 width, uint32 height, TextureFormats::List format,
 	                          bool depth, uint32 numColBufs, uint32 samples, uint32 numMips = 0, bool cubeMap = false);
