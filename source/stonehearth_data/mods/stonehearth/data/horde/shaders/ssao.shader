@@ -107,10 +107,12 @@ void main()
 
     float sampleOcclusion;
     // Range check:
-    float rangeCheck = abs(origin.z - sampledDepth) <  radius ? 1.0 : 0.0;
+    float rangeCheck = 1.0 - step(radius, abs(origin.z - sampledDepth));
+    //float rangeCheck = abs(origin.z - sampledDepth) < radius ? 1.0 : 0.0;
 
     // Old and busted (and faster :P)
-    occlusion += sampledDepth < ssaoSample.z ? 1.0 * rangeCheck : 0.0;
+    //occlusion += sampledDepth < ssaoSample.z ? 1.0 * rangeCheck : 0.0;
+    occlusion += rangeCheck * (1.0 - step(ssaoSample.z, sampledDepth));
 
     // New hotness:
     //sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? 1.0 : 0.0;
