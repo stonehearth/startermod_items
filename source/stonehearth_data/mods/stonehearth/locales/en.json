@@ -65,7 +65,8 @@
 
    "settings_system" : "System",
    "settings_enable_64bit" : "Use 64-bit (Requires Restart)",
-   "settings_send_anon_data" : "Send anonymous feedback",
+   "settings_enable_lua_jit" : "Use Lua JIT (Requires Restart)",
+   "settings_send_anon_data" : "Send anonymous feedback to help improve Stonehearth!",
 
 
    "new_game_embark_button" : "Embark!",

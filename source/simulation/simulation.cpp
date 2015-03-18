@@ -275,8 +275,8 @@ void Simulation::ShutdownDataObjects()
 void Simulation::InitializeDataObjectTraces()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
-   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
-   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);  
+   pathfinder_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);
 
    store_->AddTracer(lua_traces_, dm::LUA_ASYNC_TRACES);
    store_->AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
@@ -719,6 +719,8 @@ void Simulation::ProcessJobList()
       SIM_LOG(5) << "skipping job processing (single step is on).";
       return;
    }
+   pathfinder_traces_->Flush();
+
    SIM_LOG_GAMELOOP(7) << "processing job list";
 
 #if defined(PROFILE_ONLY_PATHFINDING)

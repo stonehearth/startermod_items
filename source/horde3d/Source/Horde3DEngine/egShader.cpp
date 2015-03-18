@@ -658,7 +658,7 @@ void ShaderResource::compileCombination(ShaderCombination &combination)
       {
          std::string fileName = _name;
 
-         for (int i = 0; i < fileName.size(); i++) {
+         for (unsigned int i = 0; i < fileName.size(); i++) {
             if (fileName[i] == '/' || fileName[i] == '\\') {
                fileName[i] = '_';
             }
