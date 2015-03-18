@@ -4,6 +4,20 @@
 #include "radiant_assert.h"
 #include <sstream>
 
+#define RADIANT_OPT_LEVEL_DEV       0
+#define RADIANT_OPT_LEVEL_ALPHA     1
+#define RADIANT_OPT_LEVEL_BETA      2
+#define RADIANT_OPT_LEVEL_RC        3
+#define RADIANT_OPT_LEVEL_RELEASE   4
+
+#if !defined(RADIANT_OPT_LEVEL)
+#  define RADIANT_OPT_LEVEL RADIANT_OPT_LEVEL_DEV
+#endif
+
+#if defined(_M_X64) || defined(__amd64__)
+#define RADIANT_X64     1
+#endif
+
 #define OFFSET_OF(t, f)    (int)(&((t *)(NULL))->f)
 #define ARRAY_SIZE(a)      ((sizeof (a)) / sizeof((a)[0]))
 
