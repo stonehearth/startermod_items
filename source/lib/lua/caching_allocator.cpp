@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "low_mem_allocator.h"
+#include "caching_allocator.h"
 #include "core/config.h"
 #include "core/system.h"
 #include <iomanip>
@@ -22,11 +22,11 @@ typedef long (*NtAllocateVirtualMemoryFn)(HANDLE handle, void **addr, ULONG zbit
 		       size_t *size, ULONG alloctype, ULONG prot);
 typedef long (*NtFreeVirtualMemoryFn)(HANDLE ProcessHandle, void **BaseAddress, size_t* RegionSize, ULONG FreeType);
 
-DEFINE_SINGLETON(LowMemAllocator);
+DEFINE_SINGLETON(CachingAllocator);
 
 tbb::spin_mutex __lock;
 
-LowMemAllocator::LowMemAllocator() :
+CachingAllocator::CachingAllocator() :
    _byteCount(0),
    _lowMemoryHeapSize(0),
    _freelistByteCount(0),
@@ -36,7 +36,7 @@ LowMemAllocator::LowMemAllocator() :
 {
 }
 
-void LowMemAllocator::Start(bool useLowMemory)
+void CachingAllocator::Start(bool useLowMemory)
 {
    if (_state == UnInitialized) {
       if (useLowMemory) {
@@ -45,13 +45,13 @@ void LowMemAllocator::Start(bool useLowMemory)
    }
 }
 
-void LowMemAllocator::InitializeLowMemoryAllocator()
+void CachingAllocator::InitializeLowMemoryAllocator()
 {
    ASSERT(_lowMemoryHeap == nullptr);
    ASSERT(_state == UnInitialized);
    ASSERT(core::System::IsProcess64Bit());
 
-   // We only use the LowMemAllocator on 64-bit systems, so allocating a lot of address
+   // We only use the CachingAllocator on 64-bit systems, so allocating a lot of address
    // space here shouldn't be a problem, unless we start hitting the commit limits of
    // the operating system (UG!).  If that happens, I expect we'll hit the 
    // actualSize != requestedSize case, below, a lot.
@@ -101,12 +101,12 @@ void LowMemAllocator::InitializeLowMemoryAllocator()
 }
 
 
-void* LowMemAllocator::LuaAllocFn(void *, void *ptr, size_t osize, size_t nsize)
+void* CachingAllocator::LuaAllocFn(void *, void *ptr, size_t osize, size_t nsize)
 {
-   return LowMemAllocator::GetInstance().LuaAlloc(ptr, osize, nsize);
+   return CachingAllocator::GetInstance().LuaAlloc(ptr, osize, nsize);
 }
 
-void* LowMemAllocator::LuaAlloc(void *ptr, size_t osize, size_t nsize)
+void* CachingAllocator::LuaAlloc(void *ptr, size_t osize, size_t nsize)
 {
    void *realloced;
 
@@ -131,16 +131,15 @@ void* LowMemAllocator::LuaAlloc(void *ptr, size_t osize, size_t nsize)
    return realloced;
 }
 
-void LowMemAllocator::ReportMemoryStats(bool force)
+void CachingAllocator::ReportMemoryStats(bool force)
 {
    tbb::spin_mutex::scoped_lock lock(__lock);
    ReportMemoryStatsUnlocked(force);
 }
 
-void LowMemAllocator::ReportMemoryStatsUnlocked(bool force)
+void CachingAllocator::ReportMemoryStatsUnlocked(bool force)
 {
    if (_state != Started) {
-      LOG(lua.memory, 1) << "not using low memory allocator";
       return;
    }
 
@@ -198,12 +197,12 @@ void LowMemAllocator::ReportMemoryStatsUnlocked(bool force)
    }
 }
 
-LowMemAllocator::~LowMemAllocator()
+CachingAllocator::~CachingAllocator()
 {
    free(_lowMemoryHeap);
 }
 
-std::string LowMemAllocator::FormatSize(size_t size) const
+std::string CachingAllocator::FormatSize(size_t size) const
 {
    static std::string suffixes[] = { "B", "KB", "MB", "GB", "TB", "PB" /* lol! */ };
    std::string* suffix = suffixes;
@@ -215,7 +214,7 @@ std::string LowMemAllocator::FormatSize(size_t size) const
    return BUILD_STRING(std::fixed << std::setw(5) << std::setprecision(3) << total << " " << *suffix);
 };
 
-void *LowMemAllocator::Allocate(size_t size)
+void *CachingAllocator::Allocate(size_t size)
 {
    tbb::spin_mutex::scoped_lock lock(__lock);
 
@@ -263,7 +262,7 @@ void *LowMemAllocator::Allocate(size_t size)
    return ptr;
 }
 
-void LowMemAllocator::Deallocate(void *ptr, size_t size)
+void CachingAllocator::Deallocate(void *ptr, size_t size)
 {
    tbb::spin_mutex::scoped_lock lock(__lock);
 

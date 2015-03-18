@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "core/config.h"
 #include "core/system.h"
-#include "low_mem_allocator.h"
+#include "caching_allocator.h"
 
 extern "C" {
 #  include "lib/lua/lua.h"
@@ -140,12 +140,12 @@ void lua::Initialize()
    bool is64Bit = core::System::IsProcess64Bit();
    bool enableJit = core::Config::GetInstance().Get<bool>("enable_lua_jit", true);
 
-   LowMemAllocator &la = LowMemAllocator::GetInstance();
+   CachingAllocator &la = CachingAllocator::GetInstance();
 
    bool useLowMemory = enableJit && is64Bit;
    la.Start(useLowMemory);
    if (useLowMemory && !la.IsUsingLowMemory()) {
-      LOG(lua.memory, 0) << "failed to start low memory allocator.  disabling lua jit!";
+      LOG(lua.memory, 0) << "failed to allocate low memory.  disabling lua jit!";
       enableJit = false;
    }
 

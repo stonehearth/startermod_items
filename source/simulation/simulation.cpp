@@ -859,7 +859,7 @@ void Simulation::Mainloop()
       next_counter_push_.set(500);
    }
    if (lua_memory_timer_.expired()) {
-      lua::LowMemAllocator::GetInstance().ReportMemoryStats();
+      lua::CachingAllocator::GetInstance().ReportMemoryStats();
       lua_memory_timer_.set(LUA_MEMORY_STATS_INTERVAL);
    }
    if (enable_job_logging_ && log_jobs_timer_.expired()) {

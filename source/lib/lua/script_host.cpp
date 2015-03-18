@@ -16,7 +16,7 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
-#include "low_mem_allocator.h"
+#include "caching_allocator.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -288,19 +288,19 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
          // 64-bit builds of LuaJit use their own internal allocator which takes memory.
          // Use luaL_newstate to create the interpreter.  Use luaL_newstate to allocate
          // the interpreter and don't call any of the setalloc functions         
-         L_ = lj_state_newstate(LowMemAllocator::LuaAllocFn, this);
+         L_ = lj_state_newstate(CachingAllocator::LuaAllocFn, this);
       } else {
          // 64-bit without jit.  We can use all our crazy allocators.
-         L_ = lua_newstate(LowMemAllocator::LuaAllocFn, this);
+         L_ = lua_newstate(CachingAllocator::LuaAllocFn, this);
       }
    } else {
       if (!isJitEnabled) {
          // 32-bit without jit.  We can use all our crazy allocators.
-         L_ = lua_newstate(LowMemAllocator::LuaAllocFn, this);
+         L_ = lua_newstate(CachingAllocator::LuaAllocFn, this);
       } else {
          // 32-bit with jit.  Don't install our LuaAllocFnWithState callbacks, as LuaJit
          // doesn't know how to call it.
-         L_ = lua_newstate(LowMemAllocator::LuaAllocFn, this);
+         L_ = lua_newstate(CachingAllocator::LuaAllocFn, this);
       }
    }
    ASSERT(L_);
@@ -461,7 +461,7 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
    ScriptHost* host = static_cast<ScriptHost*>(ud);
    ASSERT(host->enable_profile_memory_);
 
-   void *realloced = LowMemAllocator::LuaAllocFn(ud, ptr, osize, nsize);
+   void *realloced = CachingAllocator::LuaAllocFn(ud, ptr, osize, nsize);
    if (realloced && ptr && host->alloc_backmap[ptr] != "") {
       ASSERT(nsize > 0);
       std::string oldKey = host->alloc_backmap[ptr];
