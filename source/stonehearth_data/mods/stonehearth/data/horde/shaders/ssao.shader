@@ -44,12 +44,13 @@ in vec2 texCoords;
 out vec4 fragColor;
 
 
-vec2 getSampleDepth(const vec2 texCoords, const float screenSpaceDistance) {
-  ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize.xy));
-
-  int mipLevel = 0;//clamp(int(floor(log2(screenSpaceDistance) - LOG_MAX_OFFSET)), 0, MAX_MIP_LEVEL);
-
-  return texelFetch(depthBuffer, pixelCoords >> mipLevel, mipLevel).ra;
+float getSampleDepth(const vec2 texCoords/*, const float screenSpaceDistance*/) {
+  // To be used when I get mipmaps working correctly.
+  //ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize.xy));
+  //int mipLevel = 0;//clamp(int(floor(log2(screenSpaceDistance) - LOG_MAX_OFFSET)), 0, MAX_MIP_LEVEL);
+  //return texelFetch(depthBuffer, pixelCoords >> mipLevel, mipLevel).ra;
+  
+  return texture2D(depthBuffer, texCoords).r;
 }
 
 
@@ -102,14 +103,16 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location.
-    vec2 sampledDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize.xy));
+    float sampledDepth = getSampleDepth(offset.xy); //, length((offset.xy - texCoords) * frameBufSize.xy));
 
     float sampleOcclusion;
     // Range check:
-    float rangeCheck = abs(origin.z - sampledDepth.x) <  radius ? 1.0 : 0.0;
+    float rangeCheck = 1.0 - step(radius, abs(origin.z - sampledDepth));
+    //float rangeCheck = abs(origin.z - sampledDepth) < radius ? 1.0 : 0.0;
 
     // Old and busted (and faster :P)
-    occlusion += sampledDepth.x < ssaoSample.z ? 1.0 * rangeCheck : 0.0;
+    //occlusion += sampledDepth < ssaoSample.z ? 1.0 * rangeCheck : 0.0;
+    occlusion += rangeCheck * (1.0 - step(ssaoSample.z, sampledDepth));
 
     // New hotness:
     //sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? 1.0 : 0.0;
