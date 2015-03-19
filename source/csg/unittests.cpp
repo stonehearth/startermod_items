@@ -440,6 +440,50 @@ TEST(RegionTools3, ForEachEdge) {
    });
 }
 
+static int RunCubeMerge(bool merge)
+{
+   // Merging in the y-axis is worse case for the EarlyExit strategy, so let's use
+   // that (it still wins!).
+
+   csg::Cube3f c1 = csg::Cube3f::one;
+   csg::Cube3f c2 = csg::Cube3f::one.Translated(csg::Point3f(0, merge ? 1 : 10, 0));
+
+   platform::timer t(PERF_TEST_DURATION_SECONDS * 1000);
+
+   int count = 0;
+   while (!t.expired()) {
+      csg::Cube3f cmerge = c1;
+      ASSERT(cmerge.CombineWith(c2) == merge);
+      count++;
+   }
+   std::cout << (long long)(count / (float)PERF_TEST_DURATION_SECONDS)  << " cubes per second." << std::endl;
+   return count;
+}
+
+TEST(CubePerf, EarlyExitNoMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::EarlyExit);
+   int count = RunCubeMerge(false);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(CubePerf, AreaComputationNoMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::AreaComputation);
+   int count = RunCubeMerge(false);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(CubePerf, EarlyExitMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::EarlyExit);
+   int count = RunCubeMerge(true);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(CubePerf, AreaComputationMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::AreaComputation);
+   int count = RunCubeMerge(true);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
 
 void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
 {
