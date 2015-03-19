@@ -254,7 +254,7 @@ void Simulation::Initialize()
 
 void Simulation::Shutdown()
 {
-   scriptHost_->DoParanoidShutdown();
+   scriptHost_->Shutdown();
    store_->DisableAndClearTraces();
    ShutdownLuaObjects();
    ShutdownDataObjectTraces();

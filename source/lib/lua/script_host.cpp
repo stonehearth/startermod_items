@@ -255,7 +255,8 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    site_(site),
    error_count(0),
    _allocDs(allocDs),
-   L_(nullptr)
+   L_(nullptr),
+   shut_down_(false)
 {
    current_line = 0;
    *current_file = '\0';
@@ -387,9 +388,15 @@ void paranoid_hook(lua_State *L, lua_Debug *ar)
 
 // We can install a line-hook on shutdown, to ensure that if any Lua code is executed, we immediately assert.
 // In A Perfect World, Lua should never run during a shutdown.
-void ScriptHost::DoParanoidShutdown()
+void ScriptHost::Shutdown()
 {
+   shut_down_ = true;
    lua_sethook(L_, paranoid_hook, LUA_MASKLINE, 0);
+}
+
+bool ScriptHost::IsShutDown() const
+{
+   return shut_down_;
 }
 
 int ScriptHost::GetErrorCount() const
