@@ -645,8 +645,8 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
    // the data whenever someone calls Complete.
    response->AddRef();
    std::shared_ptr<rpc::HttpDeferred> deferred(new rpc::HttpDeferred(CefString(url)), [=](rpc::HttpDeferred* p) {
-      response->Release();
       delete p;
+      response->Release();
    });
    deferred->Done([=](rpc::HttpResponse const& r) {
       response->SetResponse(r.code, r.content, r.mime_type);

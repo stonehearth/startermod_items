@@ -23,6 +23,7 @@ public:
 
    void CreateGame(om::ModListPtr mods);
    void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
+   void DoParanoidShutdown();
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);

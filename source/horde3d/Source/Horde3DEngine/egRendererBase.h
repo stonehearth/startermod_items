@@ -94,6 +94,7 @@ struct DeviceCaps
 
    const char* vendor;
    const char* renderer;
+   const char* version;
 };
 
 struct EngineGpuCaps

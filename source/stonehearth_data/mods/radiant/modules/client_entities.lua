@@ -131,6 +131,10 @@ function client_entities.get_player_id(entity)
    return unit_info and unit_info:get_player_id() or nil
 end
 
+function client_entities.is_owned_by_player(entity, player_id)
+   return client_entities.get_player_id(entity) == player_id
+end
+
 function client_entities.move_to(entity, location)
    radiant.check.is_entity(entity)
 
@@ -167,11 +171,6 @@ function client_entities.remove_child(parent, child)
    if component then
       component:remove_child(child:get_id())
    end
-end
-
-function client_entities.get_player_id(entity)
-   local unit_info = entity:get_component('unit_info')
-   return unit_info and unit_info:get_player_id() or nil
 end
 
 function client_entities.local_to_world(pt, e)

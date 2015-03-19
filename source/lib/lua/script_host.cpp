@@ -369,6 +369,29 @@ ScriptHost::~ScriptHost()
    LUA_LOG(1) << "Script host destroyed.";
 }
 
+
+void paranoid_hook(lua_State *L, lua_Debug *ar)
+{
+   std::string error = BUILD_STRING("LUA code executing on shutdown:\n");
+   std::string traceback = GetLuaTraceback(L);
+
+   LUA_LOG(0) << error;
+
+   std::string item;
+   std::stringstream sstb(traceback);
+   while(std::getline(sstb, item)) {
+      LUA_LOG(0) << "   " << item;
+   }
+   ASSERT(false);
+}
+
+// We can install a line-hook on shutdown, to ensure that if any Lua code is executed, we immediately assert.
+// In A Perfect World, Lua should never run during a shutdown.
+void ScriptHost::DoParanoidShutdown()
+{
+   lua_sethook(L_, paranoid_hook, LUA_MASKLINE, 0);
+}
+
 int ScriptHost::GetErrorCount() const
 {
    return error_count;
