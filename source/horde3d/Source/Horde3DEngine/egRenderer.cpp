@@ -144,6 +144,14 @@ void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpu
       // It is _possible_ (apparently?  According to Horde guys?  Harumph.) that, even with GL3.x support claimed, we won't get
       // the stencil buffer we deserve, so be doubly paranoid and check that that is our render target depth format.
       rendererCaps->HighQualityRendererSupported = gRDI->_depthFormat == GL_DEPTH24_STENCIL8 && gRDI->getCaps().glVersion >= 30;
+
+      // The following vendor/driver combinations break some aspect of the HQ renderer.
+
+      // This combo doesn't like const vec3 arrays in GLSL (supported in GLSL since 3.0, and this driver is supposedly 4.2 compliant!)
+      if (strstr(gRDI->getCaps().vendor, "Intel") != nullptr && strstr(gRDI->getCaps().version, "10.18.10.3345") != nullptr) {
+         rendererCaps->HighQualityRendererSupported = false;
+      }
+
       rendererCaps->ShadowsSupported = gpuCompatibility_.canDoShadows;
    }
 

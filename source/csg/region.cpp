@@ -18,8 +18,12 @@ using namespace ::radiant::csg;
 // times per operation (sometimes n times!).  It's only useful when debugging
 // known Region errors, or changing implementation details.
 
-#define REGION_PARANOIA_LEVEL 1
-
+#if defined(REGION_PARANOIA_LEVEL)
+#elif RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+#  define REGION_PARANOIA_LEVEL 1
+#else
+#  define REGION_PARANOIA_LEVEL 0
+#endif
 
 template <class S, int C>
 Region<S, C>::Region()
@@ -762,11 +766,9 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 
 template <int C>
 Region<double, C> csg::ToFloat(Region<int, C> const& region) {
-   // xxx: how about a fast path that looks for cubes?  T(2n) usually
-
    Region<double, C> result;
    for (Cube<int, C> const& cube : EachCube(region)) {
-      result.Add(ToFloat(cube));    // make no be unique due to rounding!  see csg::ToInt(Cube)
+      result.AddUnique(ToFloat(cube));
    }
    return result;
 }
@@ -776,12 +778,70 @@ Region<double, C> const& csg::ToFloat(Region<double, C> const& region) {
    return region;
 }
 
+#define FAST_COPY(c)                   \
+   integer = static_cast<int>(in.c);         \
+   if (in.c - integer != 0.0) return false;  \
+   out.c = integer;
+
+template <int C>
+static inline bool FastToInt(Cube<double, C> const& in, Cube<int, C>& out);
+
+template <>
+static inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
+{
+   int integer;
+   FAST_COPY(min.x);
+   FAST_COPY(max.x);
+   out.SetTag(in.GetTag());
+   return true;
+}
+
+template <>
+static inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
+{
+   int integer;
+   FAST_COPY(min.x);
+   FAST_COPY(max.x);
+   FAST_COPY(min.y);
+   FAST_COPY(max.y);
+   out.SetTag(in.GetTag());
+   return true;
+}
+
+template <>
+static inline bool FastToInt(Cube<double, 3> const& in, Cube<int, 3>& out)
+{
+   int integer;
+   FAST_COPY(min.x);
+   FAST_COPY(max.x);
+   FAST_COPY(min.z);
+   FAST_COPY(max.z);
+   FAST_COPY(min.y);
+   FAST_COPY(max.y);
+   out.SetTag(in.GetTag());
+   return true;
+}
+
 template <int C>
 Region<int, C> csg::ToInt(Region<double, C> const& region) {
    Region<int, C> result;
-   for (Cube<double, C> const& cube : EachCube(region)) {
-      result.Add(ToInt(cube)); // so expensive!
+   
+   Region<double, C>::CubeVector const& cubes = region.GetContents();
+   uint i = 0, c = cubes.size();
+
+   while (i < c) {
+      Cube<int, C> icube;
+      if (!FastToInt(cubes[i], icube)) {
+         break;
+      }
+      result.AddUnique(icube);
+      ++i;
    }
+   while (i < c) {
+      result.Add(ToInt(cubes[i])); // so expensive!
+      ++i;
+   }
+
    return result;
 }
 

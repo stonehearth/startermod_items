@@ -23,6 +23,7 @@ public:
 
    void CreateGame(om::ModListPtr mods);
    void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
+   void DoParanoidShutdown();
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
@@ -71,7 +72,6 @@ public: // the static interface
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
-   static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
    void Exit(int code);

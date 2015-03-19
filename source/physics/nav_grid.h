@@ -2,6 +2,7 @@
 #define _RADIANT_PHYSICS_NAV_GRID_H
 
 #include <unordered_map>
+#include <deque>
 #include <boost/container/flat_map.hpp>
 #include "namespace.h"
 #include "om/om.h"
@@ -149,6 +150,8 @@ private:
    public: // helper methods
       friend NavGridTile;
       void SignalTileDirty(csg::Point3 const& index);
+      std::vector<CollisionTrackerRef> CheckoutTrackerVector();
+      void ReleaseTrackerVector(std::vector<CollisionTrackerRef>& trackers);
 
       NavGridTile& GridTile(csg::Point3 const& pt);
       NavGridTile const& GridTile(csg::Point3 const& pt) const;
@@ -183,6 +186,8 @@ private:
       TerrainTileCollisionTrackerMap   terrain_tile_collision_trackers_;
       csg::Cube3                       bounds_;
       mutable core::Slot<csg::Point3>  _dirtyTilesSlot;
+      tbb::spin_mutex                  _trackerVectorLock;
+      std::deque<std::vector<CollisionTrackerRef>> _trackerVectors;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

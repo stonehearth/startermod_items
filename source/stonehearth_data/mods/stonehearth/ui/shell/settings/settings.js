@@ -198,6 +198,14 @@ App.SettingsView = Ember.View.extend({
             self.set('context.enable_64bit', enabled);
          });
 
+      radiant.call('radiant:get_config', 'enable_lua_jit')
+         .done(function(o) {
+            // o.enable_lua_jit can be true, false, or undefined here.  if it's undefined or
+            // true, we want to turn 64-bit mode on!
+            var enabled = o.enable_lua_jit  != false;
+            self.set('context.enable_lua_jit', enabled);
+         });
+
       radiant.call('radiant:get_config', 'collect_analytics')
          .done(function(o) {
             var enabled = o.collect_analytics != false;
@@ -314,6 +322,7 @@ App.SettingsView = Ember.View.extend({
       radiant.call('radiant:set_audio_config', audioConfig);
 
       radiant.call('radiant:set_config', 'enable_64_bit', $('#opt_enable64bit').is(':checked'));
+      radiant.call('radiant:set_config', 'enable_lua_jit', $('#opt_enableLuaJit').is(':checked'));
       radiant.call('radiant:set_config', 'collect_analytics', $('#opt_enableCollectAnalytics').is(':checked'));
    },
 

@@ -86,7 +86,7 @@ function ZoneRenderer:set_current_items(current_items)
    -- temp items now contains the list of removed items
    removed_items = temp_items
 
-   self:_update_item_states(added_items, self:_in_hud_mode())
+   self:_update_item_states(added_items, self:_show_hud_view())
    self:_update_item_states(removed_items, false)
 
    -- make a copy of current items for the next update
@@ -99,7 +99,7 @@ function ZoneRenderer:set_current_items(current_items)
 end
 
 function ZoneRenderer:_update_selectable()
-   local ground_selectable = self:_in_hud_mode() and self._is_selectable
+   local ground_selectable = self:_show_hud_view() and self._is_selectable
    stonehearth.selection:set_selectable(self._render_entity:get_entity(), ground_selectable)
 end
 
@@ -136,7 +136,7 @@ function ZoneRenderer:_on_ui_mode_changed()
    if self._ui_view_mode ~= mode then
       self._ui_view_mode = mode
 
-      self:_update_item_states(self._items, self:_in_hud_mode())
+      self:_update_item_states(self._items, self:_show_hud_view())
       self:_regenerate_designation_node()
       -- no need to regenerate ground node
 
@@ -146,6 +146,17 @@ end
 
 function ZoneRenderer:_in_hud_mode()
    return self._ui_view_mode == 'hud'
+end
+
+function ZoneRenderer:_is_owned_by_player()
+   local entity = self._render_entity:get_entity()
+   local result = radiant.entities.is_owned_by_player(entity, 'player_1')
+   return result
+end
+
+function ZoneRenderer:_show_hud_view()
+   local result = self:_in_hud_mode() and self:_is_owned_by_player()
+   return result
 end
 
 function ZoneRenderer:_destroy_designation_node()
@@ -159,7 +170,7 @@ function ZoneRenderer:_regenerate_designation_node()
    self:_destroy_designation_node()
 
    if self._designation_color_interior and self._designation_color_border then
-      if self:_in_hud_mode() and not self._region:empty() then
+      if self:_show_hud_view() and not self._region:empty() then
          self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
                                   self._designation_color_interior, self._designation_color_border, self._use_coarse_collision)
       end

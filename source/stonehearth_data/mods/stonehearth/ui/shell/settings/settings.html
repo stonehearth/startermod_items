@@ -81,6 +81,10 @@
                   <label for="opt_enable64bit">{{i18n stonehearth:settings_enable_64bit}}</label>
                </div>
                <div class="setting">
+                  <input type="checkbox" id="opt_enableLuaJit" {{bind-attr checked="enable_lua_jit"}}>
+                  <label for="opt_enableLuaJit">{{i18n stonehearth:settings_enable_lua_jit}}</label>
+               </div>
+               <div class="setting">
                   <input type="checkbox" id="opt_enableCollectAnalytics" {{bind-attr checked="collect_analytics"}}>
                   <label for="opt_enableCollectAnalytics">{{i18n stonehearth:settings_send_anon_data}}</label>
                </div>

@@ -1,5 +1,5 @@
-#ifndef _RADIANT_LUA_LOW_MEM_ALLOCATOR_H
-#define _RADIANT_LUA_LOW_MEM_ALLOCATOR_H
+#ifndef _RADIANT_LUA_CACHING_ALLOCATOR_H
+#define _RADIANT_LUA_CACHING_ALLOCATOR_H
 
 #include <array>
 #include <boost/interprocess/managed_external_buffer.hpp>
@@ -11,14 +11,15 @@
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
-class LowMemAllocator : public core::Singleton<LowMemAllocator> {
+class CachingAllocator : public core::Singleton<CachingAllocator> {
 public:
-   LowMemAllocator();
-   ~LowMemAllocator();
+   CachingAllocator();
+   ~CachingAllocator();
 
-   bool Start();
+   void Start(bool useLowMemory);
    void ReportMemoryStats(bool force = false);
 
+   inline bool IsUsingLowMemory() const { return _lowMemoryHeap != nullptr; }
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
 
 private:
@@ -38,9 +39,9 @@ private:
       CannotStart,
    };
 private:
-   bool InitializeAllocator();
+   void InitializeLowMemoryAllocator();
    void* LuaAlloc(void *ptr, size_t osize, size_t nsize);
-   std::string LowMemAllocator::FormatSize(size_t size) const;
+   std::string CachingAllocator::FormatSize(size_t size) const;
    void *Allocate(size_t size);
    void ReportMemoryStatsUnlocked(bool force);
    void Deallocate(void *ptr, size_t size);
@@ -50,12 +51,12 @@ private:
    }
 
 private:
-   void *                     _allocatorMemory;
-   Allocator                  _allocator;
+   void *                     _lowMemoryHeap;
+   Allocator                  _lowMemoryAllocator;
+   size_t                     _lowMemoryHeapSize;
 
    State                      _state;
    size_t                     _byteCount;
-   size_t                     _heapSize;
    bool                       _warnedHeapFull;
    platform::timer            _reportTimer;
 
@@ -67,4 +68,4 @@ private:
 
 END_RADIANT_LUA_NAMESPACE
 
-#endif //  _RADIANT_LUA_LOW_MEM_ALLOCATOR_H
+#endif //  _RADIANT_LUA_CACHING_ALLOCATOR_H

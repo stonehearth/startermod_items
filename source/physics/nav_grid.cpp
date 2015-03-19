@@ -1411,3 +1411,42 @@ bool NavGrid::CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& wor
    csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
    return GridTile(index).CanPassThrough(entity, offset);
 }
+
+
+/*
+ * -- NavGrid::CheckoutTrackerVector
+ *
+ * Return a vector of CollisionTrackerRef's a NavGridTile can use as scratch
+ * space.  We keep these around and hand them out to tiles who need them.  The
+ * alterative would be to allocate the vectors on the stack, which is very very
+ * malloc heavy.
+ *
+ */
+
+std::vector<CollisionTrackerRef> NavGrid::CheckoutTrackerVector()
+{
+   tbb::spin_mutex::scoped_lock lock(_trackerVectorLock);
+   if (_trackerVectors.empty()) {
+      return std::vector<CollisionTrackerRef>();
+   }
+   std::vector<CollisionTrackerRef> v = std::move(_trackerVectors.front());
+   _trackerVectors.pop_front();
+   return v;
+}
+
+
+/*
+ * -- NavGrid::ReleaseTrackerVector
+ *
+ * Put brack a tracker checked out with CheckoutTrackerVector so someone
+ * else can use it.
+ *
+ */
+
+void NavGrid::ReleaseTrackerVector(std::vector<CollisionTrackerRef>& trackers)
+{
+   tbb::spin_mutex::scoped_lock lock(_trackerVectorLock);
+   _trackerVectors.emplace_back(std::move(trackers));
+}
+
+
