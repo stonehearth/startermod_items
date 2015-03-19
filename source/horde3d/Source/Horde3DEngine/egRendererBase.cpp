@@ -168,6 +168,7 @@ bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool
    _caps.hasInstancing = _caps.glVersion >= 33;
    _caps.renderer = renderer;
    _caps.vendor = vendor;
+   _caps.version = version;
    _caps.cardType = getCardType(vendor);
    _caps.hasPinnedMemory = glExt::AMD_pinned_memory;
    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_caps.maxTextureSize);
