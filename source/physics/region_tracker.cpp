@@ -18,7 +18,7 @@ using namespace radiant::phys;
 template <typename BoxedRegion>
 RegionTracker<BoxedRegion>::RegionTracker(NavGrid& ng, TrackerType type, om::EntityPtr entity) :
    CollisionTracker(ng, type, entity),
-   last_bounds_(csg::CollisionBox::zero)
+   _lastBounds(csg::Cube3::zero)
 {
 }
 
@@ -33,7 +33,7 @@ RegionTracker<BoxedRegion>::RegionTracker(NavGrid& ng, TrackerType type, om::Ent
 template <typename BoxedRegion>
 RegionTracker<BoxedRegion>::~RegionTracker()
 {
-   GetNavGrid().OnTrackerDestroyed(last_bounds_, GetEntityId(), GetType());
+   GetNavGrid().OnTrackerDestroyed(csg::ToFloat(_lastBounds), GetEntityId(), GetType());
 }
 
 /* 
@@ -44,7 +44,7 @@ RegionTracker<BoxedRegion>::~RegionTracker()
 template <typename BoxedRegion>
 void RegionTracker<BoxedRegion>::SetRegionTrace(RegionTracePtr trace)
 {
-   trace_ = trace->OnModified([this]() {
+   _trace = trace->OnModified([this]() {
                      MarkChanged();
                   })
                   ->PushObjectState();
@@ -61,11 +61,11 @@ void RegionTracker<BoxedRegion>::MarkChanged()
 {
    BoxedRegionPtr region = GetRegion();
    if (region) {
-      Cube bounds = region->Get().GetBounds();
-      bounds = LocalToWorld(bounds, GetEntity());
-      csg::CollisionBox newBounds = csg::ToFloat(bounds);
-      GetNavGrid().OnTrackerBoundsChanged(last_bounds_, newBounds, shared_from_this());
-      last_bounds_ = newBounds;
+      _region = LocalToWorld(region->Get(), GetEntity());
+      csg::Cube3 bounds = csg::ToInt(_region.GetBounds());
+
+      GetNavGrid().OnTrackerBoundsChanged(csg::ToFloat(_lastBounds), csg::ToFloat(bounds), shared_from_this());
+      _lastBounds = bounds;
    }
 }
 
@@ -80,12 +80,15 @@ csg::Region3 RegionTracker<BoxedRegion>::GetOverlappingRegion(csg::Cube3 const& 
 {
    BoxedRegionPtr region = GetRegion();
    if (region) {
-      csg::Region3 r = csg::ToInt(region->Get());
-
       if (GetType() == PLATFORM) { 	         
-         r -= r.Translated(-csg::Point3::unitY);   // Just the tops, please
+         // Just the tops, please
+         csg::Point3 const& min = _lastBounds.min;
+         csg::Point3 const& max = _lastBounds.max;
+         csg::Cube3 top(csg::Point3(min.x, max.y - 1, min.z), max);
+
+         return csg::ToInt(_region) & (top & bounds);
       }
-      return LocalToWorld(r, GetEntity()) & bounds;
+      return csg::ToInt(_region) & bounds;
    }
    return csg::Region3::zero;
 }
@@ -100,8 +103,7 @@ bool RegionTracker<BoxedRegion>::Intersects(csg::CollisionBox const& worldBounds
 {
    BoxedRegionPtr region = GetRegion();
    if (region) {
-      Region r = LocalToWorld(region->Get(), GetEntity());
-      return r.Intersects(csg::ConvertTo<ScalarType, 3>(worldBounds));
+      return _region.Intersects(csg::ConvertTo<ScalarType, 3>(worldBounds));
    }
    return false;
 }

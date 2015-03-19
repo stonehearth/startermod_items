@@ -100,7 +100,8 @@ private:
 private:
    std::weak_ptr<Mob>      cached_mob_component_;
 };
-std::ostream& operator<<(std::ostream& os, const Entity& o);
+std::ostream& operator<<(std::ostream& os, Entity const& o);
+std::ostream& operator<<(std::ostream& os, std::shared_ptr<Entity> const& o);
 
 bool IsRootEntity(EntityRef entityRef);
 bool IsRootEntity(EntityPtr entityPtr);

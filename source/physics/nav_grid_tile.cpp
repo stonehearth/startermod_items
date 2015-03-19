@@ -314,31 +314,33 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb) const
 {
-   int tempSize = (int)tempTrackers_.size();
-   int numTrackers = 0;
    bool stopped = false;
 
    // It's important here not to modify the trackers array at all during iterator.
    // Otherwise, we'll invalidate the `end` iterator and certainly blow up somewhere!
-   // Also: we never call 'clear' on tempTrackers_, because it's only purpose is to hold
-   // a list of weak refs to the actual trackers that we can safely iterate over; no
-   // need to call destroy on that list (since they're weak refs).
-   while (begin != end && numTrackers < tempSize) {
-      tempTrackers_[numTrackers++] = begin->second;
+   std::vector<CollisionTrackerRef> trackers = _ng.CheckoutTrackerVector();
+
+   uint trackerCount = 0, vectorSize = (uint)trackers.size();
+   while (begin != end && trackerCount < vectorSize) {
+      trackers[trackerCount++] = begin->second;
       ++begin;
    }
    while (begin != end) {
-      tempTrackers_.emplace_back(begin->second);
-      numTrackers++;
+      trackers.emplace_back(begin->second);
+      trackerCount++;
       ++begin;
    }
 
-   for (int i = 0; i < numTrackers; i++) {
-      CollisionTrackerPtr tracker = tempTrackers_[i].lock();
+   // Warning: tracker.size() may be LARGE than the number of trackers in the array,
+   // since we don't want to pay the cost of destructing all those weak ptrs.  Use
+   // `trackerCount` instead.  That means we can't use a range based for loop here, too.
+
+   for (uint i = 0; i < trackerCount; ++i) {
+      CollisionTrackerPtr tracker = trackers[i].lock();
       if (tracker) {
          om::EntityPtr entity = tracker->GetEntity();
          if (entity) {
-            NG_LOG(7) << "calling ForEachTracker callback on " << *entity;
+            NG_LOG(7) << "calling ForEachTracker callback on " << entity;
             stopped = cb(tracker);
             if (stopped) {
                break;
@@ -346,6 +348,8 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
          }
       }
    }
+   _ng.ReleaseTrackerVector(trackers);
+
    return stopped;
 }
 

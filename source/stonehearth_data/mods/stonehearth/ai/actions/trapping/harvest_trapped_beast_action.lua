@@ -38,7 +38,7 @@ function HarvestTrappedBeast:run(ai, entity, args)
       trapped_entity = nil
    end
 
-   ai:unprotect_entity(args.trap)
+   ai:unprotect_argument(args.trap)
    radiant.entities.destroy_entity(args.trap)
 
    radiant.events.trigger_async(entity, 'stonehearth:clear_trap', {trapped_entity_id = trapped_entity_id})

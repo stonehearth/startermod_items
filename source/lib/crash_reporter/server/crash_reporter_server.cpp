@@ -41,12 +41,14 @@ static std::string WstringToString(std::wstring const& input_string)
 
 void CrashReporterServer::Run(std::string const& pipe_name, std::string const& dump_path, std::string const& uri,
                               std::string const& userid,
+                              std::string const& sessionid,
                               std::function<void()> const& exit_process_function)
 {
    pipe_name_ = pipe_name;
    dump_path_ = dump_path;
    uri_ = uri;
    userid_ = userid;
+   sessionid_ = sessionid;
    exit_process_function_ = exit_process_function;
 
    bool success = StartCrashGenerationServer();
@@ -113,6 +115,7 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    query << "branch="    << PRODUCT_BRANCH;
    query << "&cpu_arch=" << (core::System::IsProcess64Bit() ? "x64" : "x32");
    query << "&userid="   << userid_;
+   query << "&sessionid="<< sessionid_;
    query << "&product="  << PRODUCT_NAME;
    query << "&build="    << PRODUCT_BUILD_NUMBER;
    query << "&revision=" << PRODUCT_REVISION;

@@ -15,6 +15,19 @@ public:
    typedef Point<S, C> Point;
    typedef Region<S, C> Region;
 
+   class Compare {
+   public:
+      bool operator()(Cube const& lhs, Cube const& rhs) {
+         if (lhs.min != rhs.min) {
+            return Point::Compare()(lhs.min, rhs.min);
+         }
+         if (lhs.max != rhs.max) {
+            return Point::Compare()(lhs.max, rhs.max);
+         }
+         return lhs.GetTag() < rhs.GetTag();
+      }
+   };
+
 public:
    static Cube<S, C> zero;
    static Cube<S, C> one;
@@ -41,6 +54,7 @@ public:
    void SetMax(Point const& max_value) { max = max_value; }
    void Grow(Point const& pt);
    void Grow(Cube const& cube); 
+   void Clip(Cube const& cube); 
    bool CombineWith(Cube const& cube);
 
    void SetZero() {
@@ -95,6 +109,16 @@ public:
 
    int GetTag() const { return tag_; }
    void SetTag(int tag) { tag_ = tag; }
+
+public:
+   enum CombineStrategy {
+      EarlyExit,
+      AreaComputation,
+   };
+   static void SetCombineStrategy(CombineStrategy s);
+
+private:
+   static CombineStrategy  __combineStrategy;
 
 public:
    template <class T> void SaveValue(T* msg) const {

@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "core/config.h"
 #include "core/system.h"
+<<<<<<< HEAD
 #include "low_mem_allocator.h"
+=======
+#include "caching_allocator.h"
+>>>>>>> release
 
 extern "C" {
 #  include "lib/lua/lua.h"
@@ -140,12 +144,13 @@ void lua::Initialize()
    bool is64Bit = core::System::IsProcess64Bit();
    bool enableJit = core::Config::GetInstance().Get<bool>("enable_lua_jit", true);
 
-   if (enableJit && is64Bit) {
-      bool success = LowMemAllocator::GetInstance().Start();
-      if (!success) {
-         LOG(lua.memory, 0) << "failed to start low memory allocator.  disabling lua jit!";
-         enableJit = false;
-      }
+   CachingAllocator &la = CachingAllocator::GetInstance();
+
+   bool useLowMemory = enableJit && is64Bit;
+   la.Start(useLowMemory);
+   if (useLowMemory && !la.IsUsingLowMemory()) {
+      LOG(lua.memory, 0) << "failed to allocate low memory.  disabling lua jit!";
+      enableJit = false;
    }
 
    __jitEnabled = enableJit;
@@ -874,9 +879,11 @@ extern "C" lua_Alloc2 lua_getalloc2f(lua_State *L, void **ud)
 extern "C" void lua_setalloc2f(lua_State *L, lua_Alloc2 f, void *ud)
 {
    ASSERT(lua_setalloc2f_fn);
-   if (lua_setalloc2f_fn) {
-      (*lua_setalloc2f_fn)(L, f, ud);
+   if (!lua_setalloc2f_fn) {
+      LOG(lua.code, 1) << "could not find lua_setalloc2f entry point in lua dll.  is the jit on?";
+      return;
    }
+   (*lua_setalloc2f_fn)(L, f, ud);
 }
 
 extern "C" void lua_setlevel(lua_State *from, lua_State *to)

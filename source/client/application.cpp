@@ -56,9 +56,10 @@ void Application::InitializeCrashReporting()
    if (config.Get("enable_crash_dump_server", true)) {
       std::string const crash_dump_path = core::System::GetInstance().GetTempDirectory().string();
       std::string const userid = config.GetUserID();
+      std::string const sessionid = config.GetSessionID();
       crash_dump_uri_ = config.Get("crash_dump_server", REPORT_CRASHDUMP_URI);
 
-      crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid);
+      crash_reporter::client::CrashReporterClient::GetInstance().Start(crash_dump_path, crash_dump_uri_, userid, sessionid);
    }
 }
 
@@ -161,10 +162,11 @@ int Application::Run(int argc, const char** argv)
 
       TypeRegistry::Initialize();
       json::InitialzeErrorHandler();
-      core::Config::GetInstance().Load(argc, argv);
+      core::Config &config  = core::Config::GetInstance();
+      config.Load(argc, argv);
 
       if (ShouldRelaunch64Bit()) {
-         std::string binary = core::Config::GetInstance().Get<std::string>("x64_binary", "x64\\Stonehearth.exe");
+         std::string binary = config.Get<std::string>("x64_binary", "x64\\Stonehearth.exe");
          core::Process p(binary, GetCommandLine());
          if (p.IsRunning()) {
             p.Detach();
@@ -174,7 +176,7 @@ int Application::Run(int argc, const char** argv)
 
       bool show_console = false;
       DEBUG_ONLY(show_console = true;)
-      if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
+      if (config.Get<bool>("logging.show_console", show_console)) {
          radiant::log::InitConsole();
       }
       radiant::log::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
@@ -185,6 +187,8 @@ int Application::Run(int argc, const char** argv)
          LOG(protobuf, 0) << " " << message;
       });
       APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR << " (" << (core::System::IsProcess64Bit() ? "x64" : "x32") << ")";
+      LOG(core.config, 1) << "user id is    " << config.GetUserID();
+      LOG(core.config, 1) << "session id is " << config.GetSessionID();
 
       perfmon::Timer_Init();
    } catch (std::exception const& e) {
