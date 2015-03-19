@@ -485,7 +485,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
       uint start = c;
 
       while (merged < c) {
-         ASSERT(merged > 0);
+         ASSERT(merged >= 0);
 
          uint candidate = merged;
          for (uint i = 0; i < merged; i++) {
