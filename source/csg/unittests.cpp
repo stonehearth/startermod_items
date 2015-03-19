@@ -440,6 +440,121 @@ TEST(RegionTools3, ForEachEdge) {
    });
 }
 
+static int RunCubeMerge(bool merge)
+{
+   // Merging in the y-axis is worse case for the EarlyExit strategy, so let's use
+   // that (it still wins!).
+
+   csg::Cube3f c1 = csg::Cube3f::one;
+   csg::Cube3f c2 = csg::Cube3f::one.Translated(csg::Point3f(0, merge ? 1 : 10, 0));
+
+   platform::timer t(PERF_TEST_DURATION_SECONDS * 1000);
+
+   int count = 0;
+   while (!t.expired()) {
+      csg::Cube3f cmerge = c1;
+      ASSERT(cmerge.CombineWith(c2) == merge);
+      count++;
+   }
+   std::cout << (long long)(count / (float)PERF_TEST_DURATION_SECONDS)  << " cubes per second." << std::endl;
+   return count;
+}
+
+TEST(CubePerf, EarlyExitNoMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::EarlyExit);
+   int count = RunCubeMerge(false);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(CubePerf, AreaComputationNoMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::AreaComputation);
+   int count = RunCubeMerge(false);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(CubePerf, EarlyExitMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::EarlyExit);
+   int count = RunCubeMerge(true);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+TEST(CubePerf, AreaComputationMerge) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::AreaComputation);
+   int count = RunCubeMerge(true);
+   RecordProperty("CubesPerSecond", count / PERF_TEST_DURATION_SECONDS);
+}
+
+csg::Region3f const& CreateRandomRegion()
+{
+   static csg::Region3f r;
+   if (r.IsEmpty()) {
+      srand(0);
+      for (uint i = 0; i < 2000; i++) {
+         Point3f min, max;
+         for (int i = 0; i < 3; i++) {
+            min[i] = rand() % 200;
+            max[i] = rand() % 200;
+         }
+         r += Cube3f::Construct(min, max);
+      }
+   }
+   return r;
+}
+
+long long ChecksumRegion(csg::Region3f const& r)
+{
+   long long checksum = 0;
+   csg::Cube3 bounds = csg::ToInt(r.GetBounds());
+   for (csg::Point3 p : csg::EachPoint(bounds)) {
+      bool found = false;
+      for (csg::Cube3f const& c : csg::EachCube(r)) {
+         if (c.Contains(csg::ToFloat(p))) {
+            checksum += c.GetTag() + 1;
+            checksum *= 13417;
+            found = true;
+            break;
+         }
+      }
+      if (!found) {
+         checksum *= 139851;
+      }
+   }
+   return checksum;
+}
+
+int RunRegionOptimize(std::function<csg::Region3f const&()> getRegion)
+{
+   csg::Region3f const& r = getRegion();
+   csg::Region3f o = r;
+
+   int startCubes = o.GetCubeCount();
+
+   perfmon::Timer t;
+   t.Start();
+   o.OptimizeByMerge();
+   t.Stop();
+   //std::cout << "checksumming regions...";
+   //ASSERT(ChecksumRegion(r) == ChecksumRegion(o));
+
+   int ms = perfmon::CounterToMilliseconds(t.GetElapsed());
+   std::cout << ms << " ms to optimize (" << o.GetCombineCount() << " combines, cubes " << startCubes << " -> " << o.GetCubeCount() << ")" << std::endl;
+   return ms;
+}
+
+TEST(OptimizeRegionPerf, OptimizeRandomRegionWorkForward) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::EarlyExit);
+   csg::Region3f::SetOptimizeStrategy(csg::Region3f::WorkForward);
+   int t = RunRegionOptimize(CreateRandomRegion);
+   RecordProperty("TimeToOptimze", t);
+}
+
+TEST(OptimizeRegionPerf, OptimizeRandomRegionWorkBackward) {
+   csg::Cube3f::SetCombineStrategy(csg::Cube3f::EarlyExit);
+   csg::Region3f::SetOptimizeStrategy(csg::Region3f::WorkBackward);
+   int t = RunRegionOptimize(CreateRandomRegion);
+   RecordProperty("TimeToOptimze", t);
+}
+
 
 void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
 {
@@ -453,5 +568,6 @@ void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, cons
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  perfmon::Timer_Init();
   return RUN_ALL_TESTS();
 }

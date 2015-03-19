@@ -25,8 +25,24 @@ using namespace ::radiant::csg;
 #  define REGION_PARANOIA_LEVEL 0
 #endif
 
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+#  define INCREMENT_COMBINE_COUNT() ++_combineCount
+#else
+#  define INCREMENT_COMBINE_COUNT()
+#endif
+
+template <class S, int C>
+void Region<S, C>::SetOptimizeStrategy(OptimizeStrategy s)
+{
+   __optimizeStrategy = s;
+}
+
+
 template <class S, int C>
 Region<S, C>::Region()
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+    : _combineCount(0)
+#endif
 {
 #if !defined(EASTL_REGIONS)
    cubes_.reserve(INITIAL_CUBE_SPACE);
@@ -455,6 +471,48 @@ void Region<S, C>::OptimizeOneTagByMerge()
    if (IsEmpty()) {
       return;
    }
+
+   // Sorting is just a win for both algorithms.
+   std::sort(cubes_.begin(), cubes_.end(), Cube::Compare());
+
+   // Testing shows that WorkForward is always better in time and compression
+   // than WorkBackward.  Consider removing WorkBackward in the future.
+
+   if (__optimizeStrategy == WorkForward) {
+      //   merged:      everything below this is fully merged.
+      //   count:       number of valid cubes.  
+      uint merged = 1, c = cubes_.size();
+      uint start = c;
+
+      while (merged < c) {
+         ASSERT(merged >= 0);
+
+         uint candidate = merged;
+         for (uint i = 0; i < merged; i++) {
+            INCREMENT_COMBINE_COUNT();
+            if (cubes_[i].CombineWith(cubes_[candidate])) {
+               // first of all, we don't need candidate anymore.  kill it
+               cubes_[candidate] = cubes_[--c];
+
+               // next, we've potentially ruined our invariant by modifying
+               // a cube in the merged list.  the ith node becomes the new
+               // candidate!
+               --merged;
+               std::swap(cubes_[merged], cubes_[i]);
+               break;
+            }
+         }
+
+         if (candidate == merged) {
+            ++merged;
+         }
+      }
+      cubes_.resize(c);
+      Validate();
+
+      return;
+   }
+
 #if REGION_PARANOIA_LEVEL > 1
    ASSERT(ContainsAtMostOneTag());
 #endif
@@ -472,6 +530,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
       // check ith cube against all cubes > i
       j = i + 1;
       while (j < size) {
+         INCREMENT_COMBINE_COUNT();
          if (cubes_[i].CombineWith(cubes_[j])) {
             cubes_[j] = cubes_[size-1];
             size--;
@@ -490,6 +549,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
             
          j = 0;
          while (j < subSize) {
+            INCREMENT_COMBINE_COUNT();
             if (cubes_[i].CombineWith(cubes_[j])) {
                cubes_[j] = cubes_[subSize-1];
                subSize--;
@@ -927,6 +987,8 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
    template Cls Cls::Inflated(const Cls::Point& pt) const; \
+   template void Cls::SetOptimizeStrategy(OptimizeStrategy s); \
+   Cls::OptimizeStrategy Cls::__optimizeStrategy = Cls::OptimizeStrategy::WorkForward; \
 
 MAKE_REGION(Region3)
 MAKE_REGION(Region3f)

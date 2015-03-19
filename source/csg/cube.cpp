@@ -79,6 +79,12 @@ bool csg::Cube3Intersects(const Cube3f& rgn, const Ray3& ray, double& distance)
    return Cube3IntersectsImpl(rgn, ray, distance);
 }
 
+template <class S, int C>
+void Cube<S, C>::SetCombineStrategy(CombineStrategy s)
+{
+   __combineStrategy = s;
+}
+
 
 template <typename S, int C>
 Cube<S, C>::Cube() :
@@ -558,18 +564,254 @@ Cube<int, C> const& csg::ToInt(Cube<int, C> const& cube) {
    return cube;
 }
 
-template <class S, int C>
-bool Cube<S, C>::CombineWith(Cube const& cube)
+template <typename Cube>
+static inline bool MergeLeft(Cube &into, Cube const& other)
 {
-   if (tag_ != cube.tag_) {
+   into.min.x = other.min.x;
+   return true;
+}
+
+template <typename Cube>
+static inline bool MergeRight(Cube &into, Cube const& other)
+{
+   into.max.x = other.max.x;
+   return true;
+}
+
+template <typename Cube>
+static inline bool MergeBottom(Cube &into, Cube const& other)
+{
+   into.min.y = other.min.y;
+   return true;
+}
+
+template <typename Cube>
+static inline bool MergeTop(Cube &into, Cube const& other)
+{
+   into.max.y = other.max.y;
+   return true;
+}
+
+template <typename Cube>
+static inline bool MergeFront(Cube &into, Cube const& other)
+{
+   into.min.z = other.min.z;
+   return true;
+}
+
+template <typename Cube>
+static inline bool MergeBack(Cube &into, Cube const& other)
+{
+   into.max.z = other.max.z;
+   return true;
+}
+
+template <class S, int C>
+static inline bool CombineWithFast(Cube<S, C>& into, Cube<S, C> const& other);
+
+template <class S>
+static inline bool CombineWithFast(Cube<S, 1>& into, Cube<S, 1> const& other)
+{
+   if (into.min.x == other.max.x) {
+      return MergeLeft(into, other);
+   } else if (into.max.x == other.min.x) {
+      return MergeRight(into, other);
+   }
+   return false;
+}
+
+template <class S>
+static inline bool CombineWithFast(Cube<S, 2>& into, Cube<S, 2> const& other)
+{
+   if (into.min.x > other.max.x ||
+       into.max.x < other.min.x ||
+       into.min.y > other.max.y ||
+       into.max.y < other.min.y) {
       return false;
    }
+
+
+   if (into.min.x == other.max.x) {
+      if (into.min.y == other.min.y) {
+         if (into.max.y == other.max.y) {
+            return MergeLeft(into, other);
+         }
+      }
+   } else if (into.max.x == other.min.x) {
+      if (into.min.y == other.min.y) {
+         if (into.max.y == other.max.y) {
+            return MergeRight(into, other);
+         }
+      }
+   } else if (into.min.y == other.max.y) {
+      if (into.min.x == other.min.x) {
+         if (into.max.x == other.max.x) {
+            return MergeBottom(into, other);
+         }
+      }
+   } else if (into.max.y == other.min.y) {
+      if (into.min.x == other.min.x) {
+         if (into.max.x == other.max.x) {
+            return MergeTop(into, other);
+         }
+      }
+   }
+   return false;
+}
+
+template <class S>
+static inline bool CombineWithFast(Cube<S, 3>& into, Cube<S, 3> const& other)
+{
+   if (into.min.x > other.max.x ||
+       into.max.x < other.min.x ||
+       into.min.z > other.max.z ||
+       into.max.z < other.min.z ||
+       into.min.y > other.max.y ||
+       into.max.y < other.min.y) {
+      return false;
+   }
+
+   if (into.min.x == other.max.x) {
+      if (into.min.z == other.min.z) {
+         if (into.max.z == other.max.z) {
+            if (into.min.y == other.min.y) {
+               if (into.max.y == other.max.y) {
+                  return MergeLeft(into, other);
+               }
+            }
+         }
+      }
+   } else if (into.max.x == other.min.x) {
+      if (into.min.z == other.min.z) {
+         if (into.max.z == other.max.z) {
+            if (into.min.y == other.min.y) {
+               if (into.max.y == other.max.y) {
+                  return MergeRight(into, other);
+               }
+            }
+         }
+      }
+   } else if (into.min.z == other.max.z) {
+      if (into.min.x == other.min.x) {
+         if (into.max.x == other.max.x) {
+            if (into.min.y == other.min.y) {
+               if (into.max.y == other.max.y) {
+                  return MergeFront(into, other);
+               }
+            }
+         }
+      }
+   } else if (into.max.z == other.min.z) {
+      if (into.min.x == other.min.x) {
+         if (into.max.x == other.max.x) {
+            if (into.min.y == other.min.y) {
+               if (into.max.y == other.max.y) {
+                  return MergeBack(into, other);
+               }
+            }
+         }
+      }
+   } else if (into.min.y == other.max.y) {
+      if (into.min.x == other.min.x) {
+         if (into.max.x == other.max.x) {
+            if (into.min.z == other.min.z) {
+               if (into.max.z == other.max.z) {
+                  return MergeBottom(into, other);
+               }
+            }
+         }
+      }
+   } else if (into.max.y == other.min.y) {
+      if (into.min.x == other.min.x) {
+         if (into.max.x == other.max.x) {
+            if (into.min.z == other.min.z) {
+               if (into.max.z == other.max.z) {
+                  return MergeTop(into, other);
+               }
+            }
+         }
+      }
+   }
+   return false;
+}
+
+
+// #define CHECK_FAST_MERGING_RESULT
+
+#if defined(CHECK_FAST_MERGING_RESULT)
+template <typename Cube>
+class ValidateMerge {
+public:
+   ValidateMerge(Cube const* c1, Cube const* c2) :
+      _c1(c1),
+      _c2(c2),
+      _origA1(c1->GetArea()),
+      _origA2(c2->GetArea()),
+      _origC1(*c1),
+      _origC2(*c2),
+      _merged(-1)
+   {
+   }
+
+   void SetResult(bool expected) { _merged = expected ? 1 : 0; }
+
+   ~ValidateMerge() {
+      ASSERT(*_c2 == _origC2);
+      ASSERT(_merged != -1);
+      bool ok;
+
+      if (_merged) {
+         _a3 = _c1->GetArea();
+         ASSERT(_origC1 != *_c1);            // modified the 1st arg
+         ok = (_a3 == _origA1 + _origA2);    // and its area is the sum of the original 2
+      } else {
+         ASSERT(_origC1 == *_c1);            // did not modify the 1st arg
+         _theoryMerge = _origC1;
+         _theoryMerge .Grow(_origC2);
+         _a3 = _theoryMerge .GetArea();
+         ok = (_a3 != _origA1 + _origA2);    // should not have _merged.
+      }
+      if (!ok) {
+         CombineWithFast(_origC1, _origC2);
+      }
+   }
+
+private:
+   typename Cube::ScalarType  _origA1;
+   typename Cube::ScalarType  _origA2;
+   typename Cube::ScalarType  _a3;
+   Cube                       _origC1;
+   Cube                       _origC2;
+   Cube                       _theoryMerge;
+   Cube const*                _c1;
+   Cube const*                _c2;
+   int                        _merged;
+};
+#endif
+
+template <class S, int C>
+bool Cube<S, C>::CombineWith(Cube<S, C> const& other)
+{
+   if (tag_ != other.tag_) {
+      return false;
+   }
+   if (__combineStrategy == CombineStrategy::EarlyExit) {
+#if defined(CHECK_FAST_MERGING_RESULT)
+      ValidateMerge<Cube> validator(this, &other);
+      bool result = CombineWithFast(*this, other);
+      validator.SetResult(result);
+      return result;
+#else
+      return CombineWithFast(*this, other);
+#endif
+   }
+
    Cube together(*this);
-   together.Grow(cube);
+   together.Grow(other);
 
    S a1 = together.GetArea();
    S a2 = GetArea();
-   S a3 = cube.GetArea();
+   S a3 = other.GetArea();
    S a4 = a2 + a3;
    if (a1 == a4) {
       *this = together;
@@ -609,6 +851,8 @@ Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
    template Cls Cls::Intersected(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
    template Cls::Region Cls::GetBorder() const; \
+   template void Cls::SetCombineStrategy(CombineStrategy s); \
+   Cls::CombineStrategy Cls::__combineStrategy = Cls::CombineStrategy::EarlyExit; \
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
