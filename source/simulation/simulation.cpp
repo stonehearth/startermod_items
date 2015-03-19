@@ -254,6 +254,8 @@ void Simulation::Initialize()
 
 void Simulation::Shutdown()
 {
+   scriptHost_->DoParanoidShutdown();
+   store_->DisableAndClearTraces();
    ShutdownLuaObjects();
    ShutdownDataObjectTraces();
    ShutdownGameObjects();
@@ -360,7 +362,6 @@ void Simulation::ShutdownGameObjects()
       std::unordered_map<dm::ObjectId, om::EntityPtr> keepAlive = entityMap_;
       entityMap_.clear();
    }
-   SIM_LOG(1) << "All entities have been destroyed.";
 
    // The act of destroying entities may run lua code which may mutate our state.  Therefore,
    // make sure we clear out our state *after* they're all dead.
@@ -368,7 +369,15 @@ void Simulation::ShutdownGameObjects()
    jobs_.clear();
    tasks_.clear();
    freeMotionTasks_.clear();
-   datastoreMap_.clear();
+
+   // Likewise, remove the datastore datastructure before destroying the datastores, so
+   // that lua code that touches the datastore map on datastore destruction doesn't blow us up.
+   {
+      std::unordered_map<dm::ObjectId, om::DataStorePtr> keepAlive = datastoreMap_;
+      datastoreMap_.clear();
+   }
+
+   SIM_LOG(1) << "All entities and datastores have been destroyed.";
 
    clock_ = nullptr;
    root_entity_ = nullptr;

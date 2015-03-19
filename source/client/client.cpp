@@ -654,6 +654,8 @@ void Client::Initialize()
 
 void Client::Shutdown()
 {
+   scriptHost_->DoParanoidShutdown();
+   store_->DisableAndClearTraces();
    ShutdownLuaObjects();
    ShutdownGameObjects();
    ShutdownDataObjectTraces();
