@@ -1,8 +1,86 @@
-App.StonehearthSettingsView = App.View.extend({
-   templateName: 'settings',
+// Message from Tom
+// --------------------------
+// This file is a crime against nature!!! Here's what's going on
+//
+// 1) Originally this was written in our usual, hacky way, going around ember
+//    and having the view do all the work of grabbing data, etc.
+// 2) In an attempt to restore sanity to the system, we're starting to do things
+//    "the ember way" (starting 3/18/2015), meaning.
+//    a) Ember auto-instantiates the view and controller when the 'openModal' action
+//       is invoked in esc_menu.html
+//    b) The controller SHOULD BE responsible for grabbing and managing the data.
+//    c) The view SHOULD BE responsible for just displaying the data
+//
+// 3) Other controllers that need to access the settings can do dependency injecting by
+//    adding "needs: ['settings']" to their definition. Yay!
+//
+// 4) Of course, neither 2a nor 2b are true for now. The settings controller grabs the
+//    data, and the view grabs ANOTHER copy of the data and uses that copy.
+//
+// SO, Things to do when we get the time:
+//
+// 1) SettingsView should get its data from the controller, not make it's own calls
+// 2) The settings template should bind to data directly in the controller where possible.
+//    example: <div>{{controller.get.config_options.foo}}
+// 3) SettingsView should make its own computed properties when necessary. Check gfxCardString
+//    for an example of how to do this
+// 4) SettingsController should have an action to change all the settings. The view should
+//    call this.get('controller').send('setOptions', options)
+
+
+App.SettingsController = Ember.Controller.extend({
+   foo: 'foo',
+
+   init: function() {
+      console.log('settings controller!');
+      var self = this;
+
+      radiant.call('radiant:get_audio_config')
+         .done(function(o) {
+            self.set('audio_options', o);
+         });
+
+      radiant.call('radiant:get_config_options')
+         .done(function(o) {
+            if (!o.shadows.allowed) {
+               o.shadows.value = false;
+            }
+
+            self.set('config_options', o)
+         });
+
+      radiant.call('radiant:get_config', 'enable_64_bit')
+         .done(function(o) {
+            // o.enable_64_bit can be true, false, or undefined here.  if it's undefined or
+            // true, we want to turn 64-bit mode on!
+            var enabled = o.enable_64_bit != false;
+            self.set('enable_64_bit', enabled)
+         });
+
+      radiant.call('radiant:get_config', 'collect_analytics')
+         .done(function(o) {
+            var enabled = o.collect_analytics != false;
+            self.set('collect_analytics', enabled)
+         });
+   }
+});
+
+App.SettingsView = Ember.View.extend({
    classNames: ['flex', 'fullScreen'],
    closeOnEsc: true,
    modal: true,
+
+   gfxCardString: function() {
+      var configOptions = this.get('controller.config_options');
+      if (configOptions) {
+         var str = i18n.t('stonehearth:settings_gfx_cardinfo', {
+               "gpuRenderer": configOptions.gfx_card_renderer, 
+               "gpuDriver": configOptions.gfx_card_driver
+            });
+
+         this.set('gfxCardString', str);         
+      }
+   }.observes('controller.config_options'),
 
    low_quality : function() {
       return !this.get('context.use_high_quality');
@@ -13,6 +91,10 @@ App.StonehearthSettingsView = App.View.extend({
          $('#aaNumSlider').slider('option', 'disabled', this.get('low_quality'));
       }
    }.observes('low_quality'),
+
+   foo : function() {
+      console.log('yay!')
+   }.observes('controller.audio_options'),
 
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
@@ -146,11 +228,6 @@ App.StonehearthSettingsView = App.View.extend({
          o.use_high_quality.value = false;
       }
       self.set('context.use_high_quality', o.use_high_quality.value);
-
-      $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
-         "gpuRenderer": o.gfx_card_renderer, 
-         "gpuDriver": o.gfx_card_driver
-      }));
 
       $('#aaNumSlider').slider({
          value: self.get('context.num_msaa_samples'),

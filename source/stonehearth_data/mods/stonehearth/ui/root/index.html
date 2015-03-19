@@ -5,13 +5,6 @@
    <title>Stonehearth UI</title>
    <link rel="stylesheet" type="text/css" href="/stonehearth/ui/root/css/jqueryui.css" />
    <link type="text/css" rel="stylesheet" href="/stonehearth/ui/root/css/rickshaw.min.css">
-</head>
-
-<body>
-
-   <script type="text/x-handlebars" data-template-name="index">
-      {{render "Root"}}
-   </script>
 
    <!-- core radiant libraries -->
    <script src="/radiant/js/external/underscore-1.5.2.js"></script>
@@ -112,8 +105,15 @@
                });
             }
          });
+   </script>
 
+</head>
 
+<body>
+
+   <script type="text/x-handlebars">
+      {{render "Root"}}
+      {{outlet 'modal'}}
    </script>
 
 </body>

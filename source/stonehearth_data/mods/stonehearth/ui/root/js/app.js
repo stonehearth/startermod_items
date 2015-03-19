@@ -223,5 +223,22 @@ App = Ember.Application.createWithMixins({
 App.stonehearth = {};
 
 App.Router.map(function() {
+  
+});
 
+App.ApplicationRoute = Ember.Route.extend({
+  actions: {
+    openModal: function(modalName) {
+      return this.render(modalName, {
+        into: 'application',
+        outlet: 'modal'
+      });
+    },
+    closeModal: function() {
+        return this.disconnectOutlet({
+          outlet: 'modal',
+          parentView: 'application'
+        });
+      }    
+  }
 });
