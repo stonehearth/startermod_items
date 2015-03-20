@@ -199,7 +199,7 @@ function JobComponent:promote_to(job_uri, options)
             radiant.create_controller(self._job_json.controller, self._entity)
       end
       self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
-      self:_call_job('promote', self._job_json, talisman_entity)
+      self:_call_job('promote', self._job_json, {talisman = talisman_entity})
       self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
       self:_set_unit_info(self._sv.curr_job_name)
 

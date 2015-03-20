@@ -78,7 +78,7 @@ function HeightMapRenderer:render_height_map_to_region(region3, height_map, unde
    local bedrock_region = self:_get_bedrock_region(height_map, 4)
    region3:add_region(bedrock_region)
 
-   region3:optimize_by_merge()
+   region3:optimize_by_merge('heightmaprenderer:render_height_map_to_region()')
 end
 
 function HeightMapRenderer:_convert_height_map_to_region3(height_map, add_fn)

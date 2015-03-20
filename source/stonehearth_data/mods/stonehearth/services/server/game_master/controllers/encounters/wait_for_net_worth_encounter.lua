@@ -3,6 +3,11 @@ local WaitForNetWorthEncounter = class()
 
 function WaitForNetWorthEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.wait_for_net_worth')
+   if self._sv.timer then
+      self._sv.timer:bind(function()
+         self:_check_net_worth()
+      end)
+   end
 end
 
 function WaitForNetWorthEncounter:start(ctx, info)
@@ -19,21 +24,32 @@ function WaitForNetWorthEncounter:start(ctx, info)
       return
    end
 
-   self._timer = stonehearth.calendar:set_interval('1h', function()
-         local threshold = self._sv.threshold
-         local total = self:_get_current_net_worth()
-         self._log:info('checking net worth score.  %d >? %d', total, threshold)
-         if total > threshold then
-            self._log:info('triggering next edge')
-            ctx.arc:trigger_next_encounter(ctx)
-         end
+   self._sv.timer = stonehearth.calendar:set_interval('1h', function()
+         self:_check_net_worth()
       end)
+   self.__saved_variables:mark_changed()
 end
 
 function WaitForNetWorthEncounter:stop()
-   if self._timer then
-      self._timer:destroy()
-      self._timer = nil
+   self:_stop_timer()
+end
+
+function WaitForNetWorthEncounter:_stop_timer()
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
+      self.__saved_variables:mark_changed()
+   end
+end
+
+function WaitForNetWorthEncounter:_check_net_worth()
+   local threshold = self._sv.threshold
+   local total = self:_get_current_net_worth()
+   self._log:info('checking net worth score.  %d >? %d', total, threshold)
+   if total > threshold then
+      local ctx = self._sv.ctx
+      self._log:info('triggering next edge')
+      ctx.arc:trigger_next_encounter(ctx)
    end
 end
 

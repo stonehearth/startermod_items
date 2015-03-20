@@ -235,7 +235,7 @@ void csg::RegionToMesh(csg::Region3 const& region, Mesh &mesh, csg::Point3f cons
    csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       if (optimizePlanes) {
          csg::Region2 optPlane = plane;
-         optPlane.OptimizeByMerge();
+         optPlane.OptimizeByMerge("converting region to mesh plane");
          mesh.AddRegion(optPlane, pi);
       } else {
          mesh.AddRegion(plane, pi);

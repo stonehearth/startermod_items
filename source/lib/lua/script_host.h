@@ -25,6 +25,8 @@ public:
 
    void CreateGame(om::ModListPtr mods);
    void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
+   void Shutdown();
+   bool IsShutDown() const;
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
@@ -74,8 +76,6 @@ private:
 
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
-   static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
-   static void* LuaAllocLowMemFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    static void LuaProfileFn(void *data, lua_State *L, int samples, int vmstate);
    void Log(const char* category, int level, const char* str);
@@ -140,7 +140,9 @@ private:
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
-   AllocDataStoreFn                 _allocDs;
+   AllocDataStoreFn     _allocDs;
+
+   bool                 shut_down_;
    std::unique_ptr<LuaFlameGraph>   _luaFlameGraph;
 };
 

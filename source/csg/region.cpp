@@ -1,12 +1,16 @@
 #include "pch.h"
+#include <tbb/spin_mutex.h>
 #include "region.h"
 #include "util.h"
+#include "core/static_string.h"
+#include "lib/perfmon/timer.h"
 #include "protocols/store.pb.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-#define REGION_LOG(level)    LOG(csg.region, level)
+#define REGION_LOG(level)   LOG(csg.region, level) << " [region:" << this << " ~size:" << (cubes_.size()) << "]"
+#define CHURN_LOG(level)    LOG(csg.churn, level)  << " [region:" << this << " churn:" << _churn << " ~size:" << (cubes_.size()) << "]"
 
 // REGION_PARANOIA_LEVEL determines how aggressively we should error check
 // regions for internal consistency.
@@ -18,11 +22,40 @@ using namespace ::radiant::csg;
 // times per operation (sometimes n times!).  It's only useful when debugging
 // known Region errors, or changing implementation details.
 
-#define REGION_PARANOIA_LEVEL 1
+#if defined(REGION_PARANOIA_LEVEL)
+#elif RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+#  define REGION_PARANOIA_LEVEL 1
+#else
+#  define REGION_PARANOIA_LEVEL 0
+#endif
+
+// #define REGION_PROFILE_OPTIMIZE
+
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+#  define INCREMENT_COMBINE_COUNT() ++_combineCount
+#else
+#  define INCREMENT_COMBINE_COUNT()
+#endif
+
+#if defined(REGION_PROFILE_OPTIMIZE)
+   static tbb::spin_mutex __optimizeProfilerLock;
+   static std::unordered_map<core::StaticString, perfmon::CounterValueType, core::StaticString::Hash> __optimizeProfiler;
+   static perfmon::CounterValueType __optimizeLastReportTime = 0;
+#endif
+
+template <class S, int C>
+void Region<S, C>::SetOptimizeStrategy(OptimizeStrategy s)
+{
+   __optimizeStrategy = s;
+}
 
 
 template <class S, int C>
-Region<S, C>::Region()
+Region<S, C>::Region() :
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+   _combineCount(0),
+#endif
+   _churn(0)
 {
 #if !defined(EASTL_REGIONS)
    cubes_.reserve(INITIAL_CUBE_SPACE);
@@ -30,7 +63,11 @@ Region<S, C>::Region()
 }
 
 template <class S, int C>
-Region<S, C>::Region(Cube const& cube)
+Region<S, C>::Region(Cube const& cube) :
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+   _combineCount(0),
+#endif
+   _churn(0)
 {
 #if !defined(EASTL_REGIONS)
    cubes_.reserve(INITIAL_CUBE_SPACE);
@@ -44,6 +81,7 @@ template <class S, int C>
 Region<S, C>::Region(Region const&& r)
 {
    cubes_ = std::move(r.cubes_);
+   _churn = r._churn;
 }
 
 template <class S, int C>
@@ -73,6 +111,8 @@ bool Region<S, C>::IsEmpty() const
 template <class S, int C>
 void Region<S, C>::Clear()
 {
+   _churn = 0;
+   CHURN_LOG(7) << "resetting churn on clear";
    cubes_.clear();
 }
 
@@ -115,6 +155,8 @@ void Region<S, C>::AddUnique(Cube const& cube)
 #endif
 
    if (cubes_.empty() || !cubes_.back().CombineWith(cube)) {
+      ++_churn;
+      CHURN_LOG(7) << "incremented churn in add unique";
       cubes_.push_back(cube);
    } else {
       // The cube on the back has been merged with the new cube.
@@ -127,7 +169,9 @@ void Region<S, C>::AddUnique(Cube const& cube)
          if (!cubes_[c-2].CombineWith(cubes_[c-1])) {
             break;
          }
-         c--;
+         --_churn;
+         --c;
+         CHURN_LOG(7) << "decremented churn in add unique due to merge";
       }
       cubes_.resize(c);
    }
@@ -146,6 +190,8 @@ void Region<S, C>::AddUnique(Region const& region)
 #endif
       cubes_.push_back(cube);
    }
+   _churn += region._churn;
+   CHURN_LOG(7) << "merged other region's churn of " << region._churn << " in add unique";
    Validate();
 }
 
@@ -174,6 +220,8 @@ void Region<S, C>::Subtract(Cube const& cube)
          if (replacement.IsEmpty()) {
             cubes_[i] = cubes_[size - 1];
             size--;
+            _churn--;
+            CHURN_LOG(7) << "elimininated cube in subtract";
          } else {
             cubes_[i] = replacement[0];
             added.insert(added.end(), replacement.cubes_.begin() + 1, replacement.cubes_.end());
@@ -183,6 +231,11 @@ void Region<S, C>::Subtract(Cube const& cube)
    }
    cubes_.resize(size);
    cubes_.insert(cubes_.end(), added.begin(), added.end());
+   size_t addCount = added.size();
+   if (addCount) {
+      _churn += added.size();
+      CHURN_LOG(7) << "added " << added.size() << " cubes in subtract";
+   }
 
    Validate();
 }
@@ -280,13 +333,13 @@ Region<S, C> const& Region<S, C>::operator&=(Cube const& cube)
    Validate();
 
    while (i < size) {
-      Cube replacement = cubes_[i] & cube;
-      if (replacement.IsEmpty()) {
+      Cube& src = cubes_[i];
+      if (src.Intersects(cube)) {
+         src.Clip(cube);
+         ++i;
+      } else {
          cubes_[i] = cubes_[size - 1];
          size--;
-      } else {
-         cubes_[i] = replacement;
-         i++;
       }
    }
    cubes_.resize(size);
@@ -415,11 +468,21 @@ std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTag() const
 }
 
 template <class S, int C>
-void Region<S, C>::OptimizeByMerge()
+void Region<S, C>::OptimizeByMerge(const char* reason)
 {
-   if (IsEmpty()) {
+   size_t count = cubes_.size();
+   if (count <= 1) {
       return;
    }
+
+   if (_churn < count) {
+      CHURN_LOG(9) << "ignoring optimize: " << reason;
+      ++_churn;
+      return;
+   }
+#if defined(REGION_PROFILE_OPTIMIZE)
+   perfmon::CounterValueType start = perfmon::Timer::GetCurrentCounterValueType();
+#endif
 
    Cube bounds = GetBounds();
    Point dimensions = bounds.GetMax() - bounds.GetMin();
@@ -430,18 +493,57 @@ void Region<S, C>::OptimizeByMerge()
 
    if (regions.size() == 1) {
       OptimizeOneTagByMerge();
-      return;
+   } else {
+      Clear();
+      for (auto const& i : regions) {
+         Region& region = *i.second;
+         region.OptimizeOneTagByMerge();
+         AddUnique(region);
+      }
    }
+#if defined(REGION_PROFILE_OPTIMIZE)
+   {
+      tbb::spin_mutex::scoped_lock lock(__optimizeProfilerLock);
+    
+      perfmon::CounterValueType end = perfmon::Timer::GetCurrentCounterValueType();
+      __optimizeProfiler[reason] += end - start;
 
-   Clear();
+      if (perfmon::CounterToMilliseconds(end - __optimizeLastReportTime) > 5000) {
+         if (__optimizeLastReportTime> 0) {
+            typedef std::pair<core::StaticString, perfmon::CounterValueType> ReasonTime;
+            perfmon::CounterValueType maxDuration = 0;
+            std::vector<ReasonTime> order;
+            for (auto const &entry : __optimizeProfiler) {
+               maxDuration = std::max(maxDuration, entry.second);
+               order.emplace_back(entry);
+            }     
+            // Sort by total size 
+            std::sort(order.begin(), order.end(), [](ReasonTime const& lhs, ReasonTime const& rhs) -> bool {
+               return lhs.second > rhs.second;
+            });
 
-   for (auto const& i : regions) {
-      Region& region = *i.second;
-      region.OptimizeOneTagByMerge();
-      AddUnique(region);
+            // Write the table.
+            LOG(csg.region, 0) << "--- region optimization times --------------------------------------------";
+            for (auto const &o : order) {
+               core::StaticString reason = o.first;
+               perfmon::CounterValueType duration = o.second;
+
+               size_t rows = duration * 30 / maxDuration;
+               ASSERT(rows >= 0 && rows <= 30);
+               std::string stars(rows, '#');
+
+               LOG(csg.region, 0) << std::setw(42) << reason << " : "
+                                  << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
+                                  << stars;
+            }
+         }
+         __optimizeLastReportTime= end;
+      }
    }
+#endif
 
-   REGION_LOG(7) << "# cubes after optimization: " << GetCubeCount();
+   _churn = 0;
+   CHURN_LOG(7) << "resetting churn after optimize: " << reason;
 }
 
 // assumes all cubes have the same tag
@@ -451,6 +553,49 @@ void Region<S, C>::OptimizeOneTagByMerge()
    if (IsEmpty()) {
       return;
    }
+
+   // Sorting is just a win for both algorithms.
+   std::sort(cubes_.begin(), cubes_.end(), Cube::Compare());
+
+   // Testing shows that WorkForward is always better in time and compression
+   // than WorkBackward.  Consider removing WorkBackward in the future.
+
+   if (__optimizeStrategy == WorkForward) {
+      //   merged:      everything below this is fully merged.
+      //   count:       number of valid cubes.  
+      uint merged = 1, c = cubes_.size();
+      uint start = c;
+
+      while (merged < c) {
+         ASSERT(merged >= 0);
+
+         uint candidate = merged;
+         for (uint i = 0; i < merged; i++) {
+            INCREMENT_COMBINE_COUNT();
+            if (cubes_[i].CombineWith(cubes_[candidate])) {
+               // first of all, we don't need candidate anymore.  kill it
+               cubes_[candidate] = cubes_[--c];
+
+               // next, we've potentially ruined our invariant by modifying
+               // a cube in the merged list.  the ith node becomes the new
+               // candidate!
+               --merged;
+               std::swap(cubes_[merged], cubes_[i]);
+               break;
+            }
+         }
+
+         if (candidate == merged) {
+            ++merged;
+         }
+      }
+      cubes_.resize(c);
+      Validate();
+
+      CHURN_LOG(3) << "optimize reduced cubes from " << start << " to " << c;
+      return;
+   }
+
 #if REGION_PARANOIA_LEVEL > 1
    ASSERT(ContainsAtMostOneTag());
 #endif
@@ -468,6 +613,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
       // check ith cube against all cubes > i
       j = i + 1;
       while (j < size) {
+         INCREMENT_COMBINE_COUNT();
          if (cubes_[i].CombineWith(cubes_[j])) {
             cubes_[j] = cubes_[size-1];
             size--;
@@ -486,6 +632,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
             
          j = 0;
          while (j < subSize) {
+            INCREMENT_COMBINE_COUNT();
             if (cubes_[i].CombineWith(cubes_[j])) {
                cubes_[j] = cubes_[subSize-1];
                subSize--;
@@ -544,9 +691,16 @@ S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds) const
 // good optimization for regions with cubes that clump together
 // not so great for regions with multiple tags
 template <class S, int C>
-void Region<S, C>::OptimizeByOctTree(S minCubeSize)
+void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
 {
-   if (IsEmpty()) {
+   size_t count = cubes_.size();
+   if (count <= 1) {
+      return;
+   }
+
+   if (_churn < count) {
+      CHURN_LOG(9) << "ignoring optimize: " << reason;
+      ++_churn;
       return;
    }
 
@@ -565,6 +719,8 @@ void Region<S, C>::OptimizeByOctTree(S minCubeSize)
          AddUnique(region);
       }
    }
+   _churn = 0;
+   CHURN_LOG(7) << "resetting churn after optimize by oct tree: " << reason;
 }
 
 // assumes all cubes have the same tag
@@ -762,11 +918,9 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 
 template <int C>
 Region<double, C> csg::ToFloat(Region<int, C> const& region) {
-   // xxx: how about a fast path that looks for cubes?  T(2n) usually
-
    Region<double, C> result;
    for (Cube<int, C> const& cube : EachCube(region)) {
-      result.Add(ToFloat(cube));    // make no be unique due to rounding!  see csg::ToInt(Cube)
+      result.AddUnique(ToFloat(cube));
    }
    return result;
 }
@@ -776,12 +930,70 @@ Region<double, C> const& csg::ToFloat(Region<double, C> const& region) {
    return region;
 }
 
+#define FAST_COPY(c)                   \
+   integer = static_cast<int>(in.c);         \
+   if (in.c - integer != 0.0) return false;  \
+   out.c = integer;
+
+template <int C>
+static inline bool FastToInt(Cube<double, C> const& in, Cube<int, C>& out);
+
+template <>
+static inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
+{
+   int integer;
+   FAST_COPY(min.x);
+   FAST_COPY(max.x);
+   out.SetTag(in.GetTag());
+   return true;
+}
+
+template <>
+static inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
+{
+   int integer;
+   FAST_COPY(min.x);
+   FAST_COPY(max.x);
+   FAST_COPY(min.y);
+   FAST_COPY(max.y);
+   out.SetTag(in.GetTag());
+   return true;
+}
+
+template <>
+static inline bool FastToInt(Cube<double, 3> const& in, Cube<int, 3>& out)
+{
+   int integer;
+   FAST_COPY(min.x);
+   FAST_COPY(max.x);
+   FAST_COPY(min.z);
+   FAST_COPY(max.z);
+   FAST_COPY(min.y);
+   FAST_COPY(max.y);
+   out.SetTag(in.GetTag());
+   return true;
+}
+
 template <int C>
 Region<int, C> csg::ToInt(Region<double, C> const& region) {
    Region<int, C> result;
-   for (Cube<double, C> const& cube : EachCube(region)) {
-      result.Add(ToInt(cube)); // so expensive!
+   
+   Region<double, C>::CubeVector const& cubes = region.GetContents();
+   uint i = 0, c = cubes.size();
+
+   while (i < c) {
+      Cube<int, C> icube;
+      if (!FastToInt(cubes[i], icube)) {
+         break;
+      }
+      result.AddUnique(icube);
+      ++i;
    }
+   while (i < c) {
+      result.Add(ToInt(cubes[i])); // so expensive!
+      ++i;
+   }
+
    return result;
 }
 
@@ -861,12 +1073,14 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template bool Cls::Intersects(const Cls&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
-   template void Cls::OptimizeByMerge(); \
-   template void Cls::OptimizeByOctTree(Cls::ScalarType); \
+   template void Cls::OptimizeByMerge(const char*); \
+   template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
    template Cls::Cube Cls::GetBounds() const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
    template Cls Cls::Inflated(const Cls::Point& pt) const; \
+   template void Cls::SetOptimizeStrategy(OptimizeStrategy s); \
+   Cls::OptimizeStrategy Cls::__optimizeStrategy = Cls::OptimizeStrategy::WorkForward; \
 
 MAKE_REGION(Region3)
 MAKE_REGION(Region3f)

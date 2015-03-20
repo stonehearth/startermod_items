@@ -29,6 +29,11 @@ function TimeTracker:get_now()
    return self._sv._now
 end
 
+function TimeTracker:increment_now(delta)
+   local new_time = self._sv._now + delta
+   self:set_now(new_time)
+end
+
 function TimeTracker:set_interval(duration, fn)
    return self:set_timer(duration, fn, true)
 end

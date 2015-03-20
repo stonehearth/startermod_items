@@ -88,7 +88,7 @@ class Client : public core::Singleton<Client> {
       };
 
       const char* GetCurrentUIScreen() const;
-      void SetCurrentUIScreen(UIScreen screen, bool browserRequested = false);
+      void SetCurrentUIScreen(UIScreen screen, bool reloadRequested = true);
 
 
    private:
@@ -167,6 +167,7 @@ class Client : public core::Singleton<Client> {
       rpc::ReactorDeferredPtr LoadGame(std::string const& gameid);
       void DeleteSaveGame(std::string const& gameid);
       void SaveClientState(boost::filesystem::path const& savedir);
+      void SaveClientScreenShot(boost::filesystem::path const& savedir);
       void SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo);
       void LoadClientState(boost::filesystem::path const& savedir);
       void CreateGame();
@@ -249,7 +250,7 @@ private:
       bool                        perf_hud_shown_;
       bool                        flame_graph_shown_;
       bool                        connected_;
-      bool                        enable_debug_cursor_;
+      std::string                 debug_cursor_mode_;
       bool                        save_stress_test_;
       platform::timer             save_stress_test_timer_;
       luabind::object             radiant_;

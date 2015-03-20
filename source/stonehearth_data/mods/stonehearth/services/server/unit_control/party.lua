@@ -99,6 +99,10 @@ end
 function Party:remove_member(id)
    local entry = self._sv.members[id]
    if entry then
+      self._sv.members[id] = nil
+      self._sv.party_size = self._sv.party_size - 1
+      self.__saved_variables:mark_changed()
+      
       local member = entry.entity
       if member and member:is_valid() then        
          member:add_component('stonehearth:equipment')
@@ -107,9 +111,6 @@ function Party:remove_member(id)
                   :set_party(nil)
          self._party_tg:remove_worker(member:get_id())
       end
-      self._sv.members[id] = nil
-      self._sv.party_size = self._sv.party_size - 1
-      self.__saved_variables:mark_changed()
    end
 end
 
@@ -211,13 +212,16 @@ end
 function Party:_update_leashes()
    local banner = self:get_active_banner()
    for _, entry in pairs(self._sv.members) do
+      local cs = entry.entity:add_component('stonehearth:combat_state')
+
       if entry.leash then
          entry.leash:destroy()
          entry.leash = nil
       end
       if banner then
-         entry.leash = entry.entity:add_component('stonehearth:combat_state')
-                                       :set_attack_leash(banner.location, self._sv.leash_range)
+         cs:set_attack_leash(banner.location, self._sv.leash_range)
+      else
+         cs:remove_attack_leash()
       end
    end
 end

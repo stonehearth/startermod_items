@@ -65,7 +65,7 @@ public:
 
    csg::Point3 GetIndex() const;
 
-   bool ForEachTracker(ForEachTrackerCb const& cb);
+   bool ForEachTracker(ForEachTrackerCb const& cb) const;
    bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb);
 
    enum ChangeNotifications {
@@ -109,7 +109,7 @@ private:
    void RefreshTileData();
    void OnTrackerAdded(CollisionTrackerPtr tracker);
    void PruneExpiredChangeTrackers();
-   bool ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb);
+   bool ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb) const;
 
    enum DirtyBits {
       BASE_VECTORS =    (1 << 0),
@@ -123,7 +123,6 @@ private:
    csg::Point3                               _index;
    std::unique_ptr<NavGridTileData>          data_;
    core::Slot<ChangeNotification>            changed_slot_;
-   std::vector<CollisionTrackerRef>          tempTrackers_;
    int                                       _expireTime;
 };
 

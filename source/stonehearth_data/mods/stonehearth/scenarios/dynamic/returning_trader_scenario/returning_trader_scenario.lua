@@ -50,7 +50,8 @@ function ReturningTrader:initialize()
 
    --Make a dummy entity to hold the lease on desired items
    --TODO: replace with the actual caravan entity once they move in the world
-   self._sv.trader_entity = radiant.entities.create_entity()   
+   self._sv.trader_entity = radiant.entities.create_entity()
+   radiant.entities.set_player_id(self._sv.trader_entity, 'trader')
    self._sv.leased_items = {}
 
    self:_load_data()

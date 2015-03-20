@@ -41,7 +41,7 @@ function TeardownLadderAdjacent:run(ai, entity, args)
       return false
    end
    
-   ai:unprotect_entity(args.ladder)
+   ai:unprotect_argument(args.ladder)
    while not full() and not builder:is_ladder_finished() do
       radiant.entities.turn_to_face(entity, ladder)
       ai:execute('stonehearth:run_effect', { effect = 'work' })

@@ -83,7 +83,7 @@ void System::Log(const char* src)
 
 bool System::IsProcess64Bit()
 {
-#if defined(_M_X64) || defined(__amd64__)
+#if defined(RADIANT_X64)
    return true;
 #endif
    return false;
@@ -91,7 +91,7 @@ bool System::IsProcess64Bit()
 
 bool System::IsPlatform64Bit()
 {
-#if defined(_M_X64) || defined(__amd64__)
+#if defined(RADIANT_X64)
    return true;
 #else
    BOOL bIsWow64 = FALSE;

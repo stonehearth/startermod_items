@@ -1,4 +1,8 @@
 #include "pch.h"
+#include "core/config.h"
+#include "core/system.h"
+#include "caching_allocator.h"
+
 extern "C" {
 #  include "lib/lua/lua.h"
 }
@@ -6,7 +10,7 @@ extern "C" {
 using namespace radiant;
 using namespace radiant::lua;
 
-static bool jitEnabled;
+static bool __jitEnabled;
 
 HMODULE luadll;
 static void *LoadSymbol(const char* name)
@@ -16,7 +20,7 @@ static void *LoadSymbol(const char* name)
 
 bool lua::JitIsEnabled()
 {
-   return jitEnabled;
+   return __jitEnabled;
 }
 
 static lua_State * (__cdecl *lua_newstate_fn)(lua_Alloc f, void *ud);
@@ -140,12 +144,30 @@ static void (*luaJIT_profile_stop_fn)(lua_State *L);
 static const char *(*luaJIT_profile_dumpstack_fn)(lua_State *L, const char *fmt,
 					     int depth, size_t *len);
 
-void lua::Initialize(bool enableJit)
+void lua::Initialize()
 {
-   jitEnabled = enableJit;
-   luadll = LoadLibraryExW(enableJit ? L"lua-5.1.5.jit.dll" : L"lua-5.1.5.dll", NULL, 0);
+   bool is64Bit = core::System::IsProcess64Bit();
+   bool enableJit = core::Config::GetInstance().Get<bool>("enable_lua_jit", true);
 
-   LOG(lua.data, 0) << "lua jit is " << (enableJit ? "enabled" : "disabled");
+   // xxx: temporary code idea: disable luajit entirely if we're in 64-bit mode.
+   if (enableJit && is64Bit && !core::Config::GetInstance().Get<bool>("force_lua_jit", false)) {
+      LOG(lua.code, 0) << "lua jit disabled in 64-bit builds.  set force_lua_jit to override";
+      enableJit = false;
+   }
+
+   CachingAllocator &la = CachingAllocator::GetInstance();
+
+   bool useLowMemory = enableJit && is64Bit;
+   la.Start(useLowMemory);
+   if (useLowMemory && !la.IsUsingLowMemory()) {
+      LOG(lua.memory, 0) << "failed to allocate low memory.  disabling lua jit!";
+      enableJit = false;
+   }
+
+   __jitEnabled = enableJit;
+   luadll = LoadLibraryExW(__jitEnabled ? L"lua-5.1.5.jit.dll" : L"lua-5.1.5.dll", NULL, 0);
+
+   LOG(lua.data, 0) << "lua jit is " << (__jitEnabled ? "enabled" : "disabled");
 
    lua_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lua_newstate");
    lua_close_fn = (void(*)(lua_State *L))LoadSymbol("lua_close");
@@ -874,9 +896,11 @@ extern "C" lua_Alloc2 lua_getalloc2f(lua_State *L, void **ud)
 extern "C" void lua_setalloc2f(lua_State *L, lua_Alloc2 f, void *ud)
 {
    ASSERT(lua_setalloc2f_fn);
-   if (lua_setalloc2f_fn) {
-      (*lua_setalloc2f_fn)(L, f, ud);
+   if (!lua_setalloc2f_fn) {
+      LOG(lua.code, 1) << "could not find lua_setalloc2f entry point in lua dll.  is the jit on?";
+      return;
    }
+   (*lua_setalloc2f_fn)(L, f, ud);
 }
 
 extern "C" void lua_setlevel(lua_State *from, lua_State *to)

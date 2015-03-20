@@ -14,13 +14,15 @@ function SelectShepherd:start_thinking(ai, entity, args)
    self._ai = ai
    local equipment_component = entity:get_component('stonehearth:equipment')
    local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
-   local shepherded_component = pasture_tag:get_component('stonehearth:shepherded_animal')
-   local args = {
-      should_follow = shepherded_component:get_following(),
-      shepherd =  shepherded_component:get_last_shepherd()
-   }
-   self._follow_listener = radiant.events.listen(entity, 'stonehearth:shepherded_animal_follow_status_change', self, self._on_follow_changed)
-   self:_on_follow_changed(args)
+   if pasture_tag then 
+      local shepherded_component = pasture_tag:get_component('stonehearth:shepherded_animal')
+      local args = {
+         should_follow = shepherded_component:get_following(),
+         shepherd =  shepherded_component:get_last_shepherd()
+      }
+      self._follow_listener = radiant.events.listen(entity, 'stonehearth:shepherded_animal_follow_status_change', self, self._on_follow_changed)
+      self:_on_follow_changed(args)
+   end 
 end
 
 function SelectShepherd:_on_follow_changed(args)

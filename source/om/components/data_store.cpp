@@ -268,8 +268,6 @@ void DataStore::CallLuaDestructor()
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
       }
-      _controllerDestructor = luabind::object();
-      _controllerObject = luabind::object();
    }
 }
 

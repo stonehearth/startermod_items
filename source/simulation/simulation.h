@@ -155,6 +155,7 @@ private:
    std::unique_ptr<dm::Store>                            store_;
    std::unique_ptr<phys::OctTree>                        octtree_;
    std::unique_ptr<phys::FreeMotion>                     freeMotion_;
+   std::unique_ptr<phys::WaterTightRegionBuilder>        waterTightRegionBuilder_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
    // Good stuff down here.
@@ -163,7 +164,7 @@ private:
    int                                          now_;
    bool                                         _showDebugNodes;
    bool                                         _singleStepPathFinding;
-   bool                                         debug_navgrid_enabled_;
+   std::string                                  debug_navgrid_mode_;
    csg::Point3                                  debug_navgrid_point_;
    om::EntityRef                                debug_navgrid_pawn_;
 
@@ -182,7 +183,7 @@ private:
    std::vector<tesseract::protocol::Update>  buffered_updates_;
 
    dm::TracerSyncPtr       object_model_traces_;
-   dm::TracerSyncPtr       pathfinder_traces_;
+   dm::TracerBufferedPtr   pathfinder_traces_;
    dm::TracerBufferedPtr   lua_traces_;
    dm::StoreTracePtr       store_trace_;
 
@@ -207,6 +208,7 @@ private:
    perfmon::Timeline                   perf_jobs_;
    bool                                enable_job_logging_;
    platform::timer                     log_jobs_timer_;
+   platform::timer                     lua_memory_timer_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
    core::Guard                         jobs_perf_guard_;

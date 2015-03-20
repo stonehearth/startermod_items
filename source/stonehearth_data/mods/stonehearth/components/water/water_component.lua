@@ -1,4 +1,3 @@
-local channel_lib = require 'services.server.hydrology.channel_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -57,6 +56,7 @@ function WaterComponent:_add_water(world_location, volume)
    log:detail('Adding %d water to %s at %s', volume, self._entity, world_location)
 
    assert(volume >= 0)
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local channel_region = Region3()
    local merge_info = nil
@@ -75,7 +75,7 @@ function WaterComponent:_add_water(world_location, volume)
    while volume > 0 do
       local current_layer = self._sv._current_layer:get():translated(entity_location)
       if current_layer:empty() then
-         log:warning('Current layer is empty/blocked. Water body may not be able to expand up. Unable to add water.')
+         log:debug('Current layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
          break
       end
 
@@ -102,6 +102,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
 
             local point = edge_region:get_closest_point(world_location)
+            local source_elevation_bias = 0
             local channel = nil
 
             -- TODO: incrementally update the new edge region
@@ -124,18 +125,22 @@ function WaterComponent:_add_water(world_location, volume)
                -- the region of the source water body.
                local source_adjacent_point = point
                local target_adjacent_point = current_layer:get_closest_point(point)
-               channel = channel_lib.link_pressure_channel(self._entity, source_adjacent_point,
-                                                                     target_entity, target_adjacent_point)
+               channel = channel_manager:link_pressure_channel(self._entity, source_adjacent_point,
+                                                               target_entity, target_adjacent_point)
+               source_elevation_bias = 0
             else
                local is_drop = not self:_is_blocked(point - Point3.unit_y)
                if is_drop then
                   -- establish a unidirectional link between the two water bodies using a waterfall channel
-                  channel = channel_lib.link_waterfall_channel(self._entity, point)
+                  channel = channel_manager:link_waterfall_channel(self._entity, point)
+                  -- when adding water to the top layer, virtualize the source height because the added water
+                  -- has not contributed the height of the layer (which is zero since we are in wetting mode)
+                  source_elevation_bias = 1
                end
             end
 
             if channel then
-               volume = channel_lib.add_volume_to_channel(channel, volume, 1)
+               volume = channel_manager:add_volume_to_channel(channel, volume, source_elevation_bias)
                channel_region:add_point(point)
             else
                -- make this location wet
@@ -144,7 +149,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
          end
 
-         delta_region:optimize_by_merge()
+         delta_region:optimize_by_merge('water:_add_water() delta region')
          delta_region:translate(-entity_location)
          self:_add_to_layer(delta_region)
 
@@ -185,7 +190,9 @@ function WaterComponent:_create_merge_info(entity1, entity2)
    return merge_info
 end
 
+-- TODO: for channels at the same elevation, pick the closest
 function WaterComponent:_add_water_to_channels(volume)
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
    local water_level = self:get_water_level()
 
    self:_each_channel_ascending(function(channel)
@@ -196,7 +203,7 @@ function WaterComponent:_add_water_to_channels(volume)
             return true
          end
 
-         volume = channel_lib.add_volume_to_channel(channel, volume)
+         volume = channel_manager:add_volume_to_channel(channel, volume)
 
          if volume <= 0 then
             -- we're done when we've used up all the water
@@ -212,36 +219,33 @@ end
 
 -- push water into the channels until we max out their capacity
 -- TODO: tell hydrology service to mark saved variables as changed after this
-function WaterComponent:_fill_channels_to_capacity()
-   self:_each_channel_ascending(function(channel)
-         local channel_height = channel.from_location.y
-         local water_level = self:get_water_level()
+function WaterComponent:_fill_channel_to_capacity(channel)
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   local channel_height = channel.from_location.y
+   local water_level = self:get_water_level()
 
-         if channel_height > water_level then
-            -- we're done becuase channels are sorted by increasing elevation
-            return true
-         end
+   if channel_height > water_level then
+      -- we're done becuase channels are sorted by increasing elevation
+      return true
+   end
 
-         -- get the flow volume per tick
-         local max_flow_volume = channel_lib.calculate_channel_flow_rate(channel)
-         local unused_volume = max_flow_volume - channel.queued_volume
+   -- get the flow volume per tick
+   local max_flow_volume = channel_manager:calculate_channel_flow_rate(channel)
+   local unused_volume = max_flow_volume - channel.queued_volume
 
-         if unused_volume > 0 then
-            local residual = self:_remove_water(unused_volume)
-            if residual == unused_volume then
-               -- we're done becuase no more water is available
-               return true
-            end
-            local flow_volume = unused_volume - residual
-            channel.queued_volume = channel.queued_volume + flow_volume
+   if unused_volume > 0 then
+      local residual = self:_remove_water(unused_volume)
+      if residual == unused_volume then
+         -- we're done becuase no more water is available
+         return true
+      end
+      local flow_volume = unused_volume - residual
+      channel.queued_volume = channel.queued_volume + flow_volume
 
-            if flow_volume > 0 then
-               log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
-            end
-         end
-
-         return false
-      end)
+      if flow_volume > 0 then
+         log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
+      end
+   end
 end
 
 function WaterComponent:_validate_channels()
@@ -262,10 +266,11 @@ function WaterComponent:_each_channel_ascending(callback_fn)
 end
 
 function WaterComponent:_each_channel_impl(callback_fn, ascending)
-   local channels = stonehearth.hydrology:get_channels(self._entity)
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   local channels = channel_manager:get_channels(self._entity)
 
    if ascending then
-      channels = channel_lib.sort_channels_ascending(channels)
+      channels = channel_manager:sort_channels_ascending(channels)
    end
 
    for _, channel in pairs(channels) do
@@ -277,7 +282,8 @@ function WaterComponent:_each_channel_impl(callback_fn, ascending)
 end
 
 function WaterComponent:_get_channels_at_elevation(elevation)
-   local channels = stonehearth.hydrology:get_channels(self._entity)
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   local channels = channel_manager:get_channels(self._entity)
    local subset = {}
 
    for key, channel in pairs(channels) do
@@ -293,12 +299,12 @@ end
 function WaterComponent:_add_to_layer(region)
    self._sv.region:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('water:_add_to_layer() (region)')
       end)
 
    self._sv._current_layer:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('water:_add_to_layer() (current layer)')
       end)
 end
 
@@ -327,7 +333,7 @@ function WaterComponent:_get_edge_region(region, channel_region)
    -- TODO: just make these regions channels to nowhere
    edge_region = edge_region:intersect_cube(world_bounds)
 
-   edge_region:optimize_by_merge()
+   edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
 end
@@ -427,14 +433,14 @@ function WaterComponent:_raise_layer()
    -- subtract any new terrain obstructions
    local intersection = radiant.terrain.intersect_region(raised_layer)
    raised_layer:subtract_region(intersection)
-   raised_layer:optimize_by_merge()
+   raised_layer:optimize_by_merge('water:_raise_layer() (raised layer)')
 
    -- back to local space
    raised_layer:translate(-entity_location)
 
    self._sv.region:modify(function(cursor)
          cursor:add_region(raised_layer)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('water:_raise_layer() (updating region)')
       end)
 
    self._sv._current_layer:modify(function(cursor)
@@ -484,7 +490,8 @@ function WaterComponent:_lower_layer()
 
    if not residual_top_layer:empty() then
       -- top layer becomes a new water body with a potentially non-contiguous wet region
-      residual_top_layer:optimize_by_merge()
+      -- TODO: probably need to create an entity for each contiguous set
+      residual_top_layer:optimize_by_merge('water:_lower_layer (residual top layer)')
       local parent_location = radiant.entities.get_world_grid_location(self._entity)
       local child_location = residual_top_layer:get_rect(0).min + parent_location
       residual_top_layer:translate(parent_location - child_location)
@@ -498,8 +505,9 @@ function WaterComponent:_lower_layer()
       child_water_component:_recalculate_current_layer()
 
       -- reparent channels on top layer to child
+      local channel_manager = stonehearth.hydrology:get_channel_manager()
       local child_channels = self:_get_channels_at_elevation(child_water_component:get_current_layer_elevation())
-      stonehearth.hydrology:reparent_channels(child_channels, child)
+      channel_manager:reparent_channels(child_channels, child)
 
       log:debug('Top layer from %s becoming new entity %s', self._entity, child)
    end
@@ -527,7 +535,7 @@ function WaterComponent:_get_layer(elevation)
    bounds.max.y = elevation + 1
 
    local layer = region:intersect_cube(bounds)
-   layer:optimize_by_merge()
+   layer:optimize_by_merge('water:_get_layer() (elevation:' .. tostring(elevation) .. ')')
    return layer
 end
 

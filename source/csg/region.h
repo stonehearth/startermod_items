@@ -97,6 +97,22 @@ public:
    Region<S, C> const& operator+=(Point const& pt) { return operator+=(Cube(pt)); }
    Region<S, C> const& operator-=(Point const& pt) { return operator-=(Cube(pt)); }
 
+public:
+   enum OptimizeStrategy {
+      WorkBackward,
+      WorkForward,
+   };
+
+   static void SetOptimizeStrategy(OptimizeStrategy s);
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+   size_t GetCombineCount() const { return _combineCount; }
+#else
+   size_t GetCombineCount() const { return 0; }
+#endif
+
+private:
+   static OptimizeStrategy __optimizeStrategy;
+
 private:
    void Validate() const;
    bool ContainsAtMostOneTag() const;
@@ -120,10 +136,16 @@ public:
       }
    }
 
-   void OptimizeByOctTree(S minCubeSize);
-   void OptimizeByMerge();
+   void OptimizeByOctTree(const char* reason, S minCubeSize);
+   void OptimizeByMerge(const char* reason);
+
+public:
+#if defined(REGION_COUNT_OPTIMIZE_COMBINES)
+   size_t         _combineCount;
+#endif
 
 private:
+   int            _churn;
    CubeVector     cubes_;
 };
 

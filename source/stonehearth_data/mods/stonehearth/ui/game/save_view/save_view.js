@@ -43,34 +43,64 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
          });
    },
 
+   enableButtons : function(enabled) {
+      if (enabled) {
+         this.$('#deleteSaveButton').removeClass('disabled')
+         this.$('#overwriteSaveButton').removeClass('disabled')
+         this.$('#createSaveButton').removeClass('disabled')
+      } else {
+         this.$('#deleteSaveButton').addClass('disabled')
+         this.$('#overwriteSaveButton').addClass('disabled')
+         this.$('#createSaveButton').addClass('disabled')
+      }
+   },
+
+   saveGame : function(saveid) {
+      var self = this;
+      var d = new Date();
+      var gameDate = App.gameView.getDate().date 
+      var gameTime = App.gameView.getDate().time;
+
+      if (!saveid) {
+         saveid = String(d.getTime());
+      }
+
+      self.enableButtons(false);
+
+      radiant.call("radiant:client:save_game", saveid, { 
+            name: "",
+            town_name: App.stonehearthClient.settlementName(),
+            game_date: gameDate,
+            game_time: gameTime,
+            timestamp: d.getTime(),
+            time: d.toLocaleString(),
+            jobs: {
+               crafters: App.population.getNumCrafters(),
+               workers: App.population.getNumWorkers(),
+               soldiers: App.population.getNumSoldiers(),
+            }
+         })
+         .always(function() {
+            self.enableButtons(true);
+            self.refreshList();
+         });
+   },
+
    actions: {
       saveGame: function() {
+         // isn't there a more Ember-y way to do this?
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-         var self = this;
-         var d = new Date();
-         var t = d.getTime();
-         var gameDate = App.gameView.getDate().date 
-         var gameTime = App.gameView.getDate().time;
-
-         radiant.call("radiant:client:save_game", String(t), { 
-               name: "",
-               town_name: App.stonehearthClient.settlementName(),
-               game_date: gameDate,
-               game_time: gameTime,
-               timestamp: d.getTime(),
-               time: d.toLocaleString(),
-               jobs: {
-                  crafters: App.population.getNumCrafters(),
-                  workers: App.population.getNumWorkers(),
-                  soldiers: App.population.getNumSoldiers(),
-               }
-            })
-            .always(function() {
-               self.refreshList();
-            });
+         this.saveGame();
       },
 
        overwriteSaveGame: function() {
+         if (this.$('#overwriteSaveButton').hasClass('disabled')) {
+            return;
+         }
+
          var self = this;
          var d = new Date();
          var t = d.getTime();
@@ -91,16 +121,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
                      label: "Yes",
                      click: function() {
                         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-                        radiant.call("radiant:client:save_game", key, { 
-                              name: "",
-                              town_name: App.stonehearthClient.settlementName(),
-                              game_date: gameDate,
-                              game_time: gameTime,
-                              time: d.toLocaleString()
-                           })
-                           .always(function() {
-                              self.refreshList();
-                           });
+                        self.saveGame(key);
                      }
                   },
                   {
@@ -110,6 +131,10 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
             });
       },
       deleteSaveGame: function() {
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+         
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
          var self = this;
          var key = this.getListView().getSelectedKey();

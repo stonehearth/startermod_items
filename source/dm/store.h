@@ -87,6 +87,7 @@ public:
 
    bool Save(std::string const& filename, std::string& error);
    bool Load(std::string const& filename, std::string& error, ObjectMap& objects, LoadProgressCb const& cb);
+   void DisableAndClearTraces();
 
    std::string SaveObject(dm::ObjectId, std::string& error);
    bool LoadObject(std::string const& input, std::string& error);
@@ -176,6 +177,7 @@ private:
    RecordFieldMap recordFieldMap_;
    TracerMap      tracers_;
    bool           saving_;
+   bool           tracing_disabled_;
    std::vector<Streamer*> streamers_;
    StoreTraces    store_traces_;
 };

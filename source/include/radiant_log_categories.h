@@ -22,6 +22,7 @@
    BEGIN_GROUP(lua) \
       ADD_CATEGORY(code) \
       ADD_CATEGORY(data) \
+      ADD_CATEGORY(memory) \
    END_GROUP(lua) \
    \
    BEGIN_GROUP(physics) \
@@ -34,6 +35,7 @@
    BEGIN_GROUP(csg) \
       ADD_CATEGORY(meshtools) \
       ADD_CATEGORY(region) \
+      ADD_CATEGORY(churn) \
    END_GROUP(csg) \
    \
    BEGIN_GROUP(core) \

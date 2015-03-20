@@ -126,18 +126,20 @@ void RenderEntity::Destroy()
    destroyed_ = true;
    lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
 
-   // xxx: share this with render_lua_component!!
-   for (const auto& entry : lua_invariants_) {
-      luabind::object obj = entry.second;
-      if (obj) {
-         try {
-            luabind::object fn = obj["destroy"];
-            if (fn) {
-               fn(obj);
+   if (!script->IsShutDown()) {
+      // xxx: share this with render_lua_component!!
+      for (const auto& entry : lua_invariants_) {
+         luabind::object obj = entry.second;
+         if (obj) {
+            try {
+               luabind::object fn = obj["destroy"];
+               if (fn) {
+                  fn(obj);
+               }
+            } catch (std::exception const& e) {
+               E_LOG(1) << "error destroying component renderer: " << e.what();
+               script->ReportCStackThreadException(obj.interpreter(), e);
             }
-         } catch (std::exception const& e) {
-            E_LOG(1) << "error destroying component renderer: " << e.what();
-            script->ReportCStackThreadException(obj.interpreter(), e);
          }
       }
    }
@@ -367,10 +369,12 @@ dm::ObjectId RenderEntity::GetObjectId() const
 
 void RenderEntity::SetRenderInfoDirtyBits(int bits)
 {
-   auto i = components_.find("render_info");
-   if (i != components_.end()) {
-      std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
-      ri->SetDirtyBits(bits);
+   if (!destroyed_) {
+      auto i = components_.find("render_info");
+      if (i != components_.end()) {
+         std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
+         ri->SetDirtyBits(bits);
+      }
    }
 }
 

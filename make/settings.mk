@@ -8,7 +8,7 @@ ifeq ($(BUILD_TYPE),)
   ifneq ($(BAMBOO_PRODUCT_BUILDTYPE),)
      BUILD_TYPE=$(BAMBOO_PRODUCT_BUILDTYPE)
   else
-     BUILD_TYPE   ?= debug
+     BUILD_TYPE   ?= opt
   endif
 endif
 
@@ -27,6 +27,30 @@ endif
 
 ifeq (_$(MSBUILD_CONFIGURATION)_, __)
    $(error Unknown BUILD_TYPE=$(BUILD_TYPE). Must be debug, opt, or release.)
+endif
+
+ifeq ($(RADIANT_OPT_LEVEL),)
+  ifneq ($(BAMBOO_PRODUCT_OPT_LEVEL),)
+     RADIANT_OPT_LEVEL=$(BAMBOO_PRODUCT_OPT_LEVEL)
+  else
+     RADIANT_OPT_LEVEL ?= develop
+  endif
+endif
+
+ifeq ($(RADIANT_OPT_LEVEL),develop)
+   RADIANT_CMAKE_FLAGS := $(RADIANT_CMAKE_FLAGS) -DRADIANT_OPT_LEVEL=develop
+endif
+ifeq ($(RADIANT_OPT_LEVEL),alpha)
+	RADIANT_CMAKE_FLAGS := $(RADIANT_CMAKE_FLAGS) -DRADIANT_OPT_LEVEL=alpha
+endif
+ifeq ($(RADIANT_OPT_LEVEL),beta)
+	RADIANT_CMAKE_FLAGS := $(RADIANT_CMAKE_FLAGS) -DRADIANT_OPT_LEVEL=beta
+endif
+ifeq ($(RADIANT_OPT_LEVEL),rc)
+	RADIANT_CMAKE_FLAGS := $(RADIANT_CMAKE_FLAGS) -DRADIANT_OPT_LEVEL=rc
+endif
+ifeq ($(RADIANT_OPT_LEVEL),release)
+	RADIANT_CMAKE_FLAGS := $(RADIANT_CMAKE_FLAGS) -DRADIANT_OPT_LEVEL=release
 endif
 
 ifneq ($(ENABLE_MEMPRO),)

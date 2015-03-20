@@ -1356,6 +1356,7 @@
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
+      "channel_manager" : "file(services/server/hydrology/channel_manager.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
 
@@ -1492,6 +1493,7 @@
       "scaffolding_renderer" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
    "ui" :  {
+      "empty" : "http://radiant/stonehearth/ui/root/empty.html",
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",
       "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",

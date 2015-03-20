@@ -17,10 +17,8 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
-#include "low_mem_allocator.h"
+#include "caching_allocator.h"
 #include "lua_flame_graph.h"
-
-#pragma optimize ( "" , off )
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -268,9 +266,14 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    site_(site),
    error_count(0),
    _allocDs(allocDs),
+<<<<<<< HEAD
    _privateL(nullptr),
    cb_thread_(nullptr),
    L_(nullptr)
+=======
+   L_(nullptr),
+   shut_down_(false)
+>>>>>>> release
 {
    current_line = 0;
    *current_file = '\0';
@@ -317,25 +320,27 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
       if (isJitEnabled) {
          // 64-bit builds of LuaJit use their own internal allocator which takes memory.
          // Use luaL_newstate to create the interpreter.  Use luaL_newstate to allocate
-         // the interpreter and don't call any of the setalloc functions
-         L_ = lj_state_newstate(LuaAllocLowMemFn, this);
+         // the interpreter and don't call any of the setalloc functions         
+         L_ = lj_state_newstate(CachingAllocator::LuaAllocFn, this);
       } else {
          // 64-bit without jit.  We can use all our crazy allocators.
-         L_ = lua_newstate(LuaAllocFn, this);
-         lua_setalloc2f(L_, LuaAllocFnWithState, this);
+         L_ = lua_newstate(CachingAllocator::LuaAllocFn, this);
       }
    } else {
       if (!isJitEnabled) {
          // 32-bit without jit.  We can use all our crazy allocators.
-         L_ = lua_newstate(LuaAllocFn, this);
-         lua_setalloc2f(L_, LuaAllocFnWithState, this);
+         L_ = lua_newstate(CachingAllocator::LuaAllocFn, this);
       } else {
          // 32-bit with jit.  Don't install our LuaAllocFnWithState callbacks, as LuaJit
          // doesn't know how to call it.
-         L_ = lua_newstate(LuaAllocFn, this);
+         L_ = lua_newstate(CachingAllocator::LuaAllocFn, this);
       }
    }
    ASSERT(L_);
+   if (enable_profile_memory_) {
+      // This will fail if the jit is on.
+      lua_setalloc2f(L_, LuaAllocFnWithState, this);
+   }
 
    modules_.emplace(L_, ModuleMap());
    set_pcall_callback(PCallCallbackFn);
@@ -441,6 +446,35 @@ ScriptHost::~ScriptHost()
    LUA_LOG(1) << "Script host destroyed.";
 }
 
+
+void paranoid_hook(lua_State *L, lua_Debug *ar)
+{
+   std::string error = BUILD_STRING("LUA code executing on shutdown:\n");
+   std::string traceback = GetLuaTraceback(L);
+
+   LUA_LOG(0) << error;
+
+   std::string item;
+   std::stringstream sstb(traceback);
+   while(std::getline(sstb, item)) {
+      LUA_LOG(0) << "   " << item;
+   }
+   ASSERT(false);
+}
+
+// We can install a line-hook on shutdown, to ensure that if any Lua code is executed, we immediately assert.
+// In A Perfect World, Lua should never run during a shutdown.
+void ScriptHost::Shutdown()
+{
+   shut_down_ = true;
+   lua_sethook(L_, paranoid_hook, LUA_MASKLINE, 0);
+}
+
+bool ScriptHost::IsShutDown() const
+{
+   return shut_down_;
+}
+
 int ScriptHost::GetErrorCount() const
 {
    return error_count;
@@ -531,85 +565,43 @@ std::string ExtractAllocKey(lua_State *l) {
 void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State *L)
 {
    ScriptHost* host = static_cast<ScriptHost*>(ud);
-   void *realloced = ScriptHost::LuaAllocFn(ud, ptr, osize, nsize);
-   if (host->enable_profile_memory_) {
-      if (realloced && ptr && host->alloc_backmap[ptr] != "") {
+   ASSERT(host->enable_profile_memory_);
+
+   void *realloced = CachingAllocator::LuaAllocFn(ud, ptr, osize, nsize);
+   if (realloced && ptr && host->alloc_backmap[ptr] != "") {
+      ASSERT(nsize > 0);
+      std::string oldKey = host->alloc_backmap[ptr];
+      host->alloc_map[oldKey].erase(ptr);
+      host->alloc_backmap.erase(ptr);
+      host->alloc_map[oldKey][realloced] = nsize;
+      host->alloc_backmap[realloced] = oldKey;
+   } else {
+      host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
+      if (host->alloc_map[host->alloc_backmap[ptr]].size() == 0) {
+         host->alloc_map.erase(host->alloc_backmap[ptr]);
+      }
+      host->alloc_backmap.erase(ptr);
+      if (realloced) {
          ASSERT(nsize > 0);
-         std::string oldKey = host->alloc_backmap[ptr];
-         host->alloc_map[oldKey].erase(ptr);
-         host->alloc_backmap.erase(ptr);
-         host->alloc_map[oldKey][realloced] = nsize;
-         host->alloc_backmap[realloced] = oldKey;
-      } else {
-         host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
-         if (host->alloc_map[host->alloc_backmap[ptr]].size() == 0) {
-            host->alloc_map.erase(host->alloc_backmap[ptr]);
-         }
-         host->alloc_backmap.erase(ptr);
-         if (realloced) {
-            ASSERT(nsize > 0);
-            std::string key = "unknown";
-            lua_State *l = L;
-            if (l != nullptr) {
-               lua_Debug stack;
-               int r = lua_getstack(l, 0, &stack);
+         std::string key = "unknown";
+         lua_State *l = L;
+         if (l != nullptr) {
+            lua_Debug stack;
+            int r = lua_getstack(l, 0, &stack);
 
-               if (!r) {
-                  l = host->L_;
+            if (!r) {
+               l = host->L_;
 
-                  if (l) {
-                     r = lua_getstack(l, 0, &stack);
-                  }
-               }
-               if (r) {
-                  key = ExtractAllocKey(l);
+               if (l) {
+                  r = lua_getstack(l, 0, &stack);
                }
             }
-            host->alloc_map[key][realloced] = nsize;
-            host->alloc_backmap[realloced] = key;
+            if (r) {
+               key = ExtractAllocKey(l);
+            }
          }
-      }
-   }
-   return realloced;
-}
-
-void* ScriptHost::LuaAllocLowMemFn(void *ud, void *ptr, size_t osize, size_t nsize)
-{
-   ScriptHost* host = static_cast<ScriptHost*>(ud);
-   LowMemAllocator& allocator = LowMemAllocator::GetInstance();
-
-   void *realloced;
-
-   host->bytes_allocated_ += (int)(nsize - osize);
-   if (nsize == 0) {
-      allocator.deallocate(ptr);
-      realloced = nullptr;
-   } else {
-      realloced = allocator.allocate(nsize);
-      if (osize) {
-         memcpy(realloced, ptr, std::min(nsize, osize));
-         allocator.deallocate(ptr);
-      }
-   }
-   return realloced;
-}
-
- void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
-{
-   ScriptHost* host = static_cast<ScriptHost*>(ud);
-   void *realloced;
-
-   host->bytes_allocated_ += (int)(nsize - osize);
-
-
-   if (nsize == 0) {
-      delete [] ptr;
-      realloced = nullptr;
-   } else {
-      realloced = new char[nsize];
-      if (osize) {
-         memcpy(realloced, ptr, std::min(nsize, osize));
-         delete [] ptr;
+         host->alloc_map[key][realloced] = nsize;
+         host->alloc_backmap[realloced] = key;
       }
    }
    return realloced;

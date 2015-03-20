@@ -56,57 +56,54 @@ static void ModifyBoxed(BoxedType& boxed, luabind::object cb)
 }
 
 template <typename T>
-static csg::Point3f TiledRegion_GetTileSize(std::shared_ptr<TiledRegion<T>> tiled_region)
+static csg::Point3f TiledRegion_GetTileSize(std::shared_ptr<T> tiled_region)
 {
-   csg::Point3f tile_size = csg::ToFloat(tiled_region->GetTileSize());
-   return tile_size;
+   return csg::ToFloat(tiled_region->GetTileSize());
 }
 
 template <typename T>
-static std::shared_ptr<T> TiledRegion_GetTile(std::shared_ptr<TiledRegion<T>> tiled_region, csg::Point3f const& index)
+static typename T::TileType TiledRegion_GetTile(std::shared_ptr<T> tiled_region, csg::Point3f const& index)
 {
-   std::shared_ptr<T> tile = tiled_region->GetTile(csg::ToInt(index));
-   return tile;
+   return tiled_region->GetTile(csg::ToInt(index));
 }
 
 template <typename T>
-static std::shared_ptr<T> TiledRegion_FindTile(std::shared_ptr<TiledRegion<T>> tiled_region, csg::Point3f const& index)
+static typename T::TileType TiledRegion_FindTile(std::shared_ptr<T> tiled_region, csg::Point3f const& index)
 {
-   std::shared_ptr<T> tile = tiled_region->FindTile(csg::ToInt(index));
-   return tile;
+   return tiled_region->FindTile(csg::ToInt(index));
 }
 
 template <typename T>
-static void TiledRegion_ClearTile(std::shared_ptr<TiledRegion<T>> tiled_region, csg::Point3f const& index)
+static void TiledRegion_ClearTile(std::shared_ptr<T> tiled_region, csg::Point3f const& index)
 {
    tiled_region->ClearTile(csg::ToInt(index));
 }
 
-template <typename T>
+template <typename TiledRegion>
 static scope RegisterTiledRegion(const char* name)
 {
-   return lua::RegisterTypePtr_NoTypeInfo<TiledRegion<T>>(name)
-      .def("is_empty",               &TiledRegion<T>::IsEmpty)
-      .def("clear",                  &TiledRegion<T>::Clear)
-      .def("add_point",              &TiledRegion<T>::AddPoint)
-      .def("add_cube",               &TiledRegion<T>::AddCube)
-      .def("add_region",             &TiledRegion<T>::AddRegion)
-      .def("subtract_point",         &TiledRegion<T>::SubtractPoint)
-      .def("subtract_cube",          &TiledRegion<T>::SubtractCube)
-      .def("subtract_region",        &TiledRegion<T>::SubtractRegion)
-      .def("intersect_point",        &TiledRegion<T>::IntersectPoint)
-      .def("intersect_cube",         &TiledRegion<T>::IntersectCube)
-      .def("intersect_region",       &TiledRegion<T>::IntersectRegion)
-      .def("contains_point",         &TiledRegion<T>::ContainsPoint)
-      .def("get_tile_size",          &TiledRegion_GetTileSize<T>)
-      .def("get_tile",               &TiledRegion_GetTile<T>)
-      .def("find_tile",              &TiledRegion_FindTile<T>)
-      .def("clear_tile",             &TiledRegion_ClearTile<T>)
-      .def("num_tiles",              &TiledRegion<T>::NumTiles)
-      .def("num_cubes",              &TiledRegion<T>::NumCubes)
-      .def("each_changed_index",     &TiledRegion<T>::GetChangedSet, return_stl_iterator)
-      .def("clear_changed_set",      &TiledRegion<T>::ClearChangedSet)
-      .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles);
+   return lua::RegisterTypePtr_NoTypeInfo<TiledRegion>(name)
+      .def("is_empty",               &TiledRegion::IsEmpty)
+      .def("clear",                  &TiledRegion::Clear)
+      .def("add_point",              &TiledRegion::AddPoint)
+      .def("add_cube",               &TiledRegion::AddCube)
+      .def("add_region",             &TiledRegion::AddRegion)
+      .def("subtract_point",         &TiledRegion::SubtractPoint)
+      .def("subtract_cube",          &TiledRegion::SubtractCube)
+      .def("subtract_region",        &TiledRegion::SubtractRegion)
+      .def("intersect_point",        &TiledRegion::IntersectPoint)
+      .def("intersect_cube",         &TiledRegion::IntersectCube)
+      .def("intersect_region",       &TiledRegion::IntersectRegion)
+      .def("contains_point",         &TiledRegion::ContainsPoint)
+      .def("get_tile_size",          &TiledRegion_GetTileSize<TiledRegion>)
+      .def("get_tile",               &TiledRegion_GetTile<TiledRegion>)
+      .def("find_tile",              &TiledRegion_FindTile<TiledRegion>)
+      .def("clear_tile",             &TiledRegion_ClearTile<TiledRegion>)
+      .def("num_tiles",              &TiledRegion::NumTiles)
+      .def("num_cubes",              &TiledRegion::NumCubes)
+      .def("each_changed_index",     &TiledRegion::GetChangedSet, return_stl_iterator)
+      .def("clear_changed_set",      &TiledRegion::ClearChangedSet)
+      .def("optimize_changed_tiles", &TiledRegion::OptimizeChangedTiles);
 }
 
 static scope RegisterTerrainRingTesselator()
@@ -172,9 +169,9 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
                .def("push_object_state",  &LuaDeepRegion3fGuard::PushObjectState)
                .def("destroy",            &LuaDeepRegion3fGuard::Destroy)
             ,
-            RegisterTiledRegion<Region3Boxed>("Region3BoxedTiled")
+            RegisterTiledRegion<Region3BoxedTiled>("Region3BoxedTiled")
             ,
-            RegisterTiledRegion<csg::Region3>("Region3Tiled")
+            RegisterTiledRegion<Region3Tiled>("Region3Tiled")
             ,
             RegisterTerrainRingTesselator()
          ]

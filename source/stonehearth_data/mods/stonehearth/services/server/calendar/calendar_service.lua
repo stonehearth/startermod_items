@@ -38,15 +38,14 @@ end
 function CalendarService:initialize()
    self._sv = self.__saved_variables:get_data()
    
-   self._sv._past_alarms = {}
-   self._sv._future_alarms = {}
-   
    if not self._sv.date then
       --We're loading for the first time
       self._sv.date = {} -- the calendar data to export
       self._sv.start_time = {}
       self._sv.start_game_tick = 0
       self._sv._time_tracker = radiant.create_controller('radiant:controllers:time_tracker')
+      self._sv._past_alarms = {}
+      self._sv._future_alarms = {}
 
       for _, unit in ipairs(TIME_UNITS) do
          self._sv.date[unit] = self._constants.start[unit]

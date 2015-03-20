@@ -7,20 +7,17 @@ local MUSIC_PRIORITIES = {
 }
 -- music
 
-local NO_AMBIENT = {
-}
-
 local IDLE_DAY_AMBIENT = {
    track    = 'stonehearth:ambient:summer_day',
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 60,
 }
 
 local IDLE_NIGHT_AMBIENT = {
    track    = 'stonehearth:ambient:summer_night',
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 20,
 }
 
@@ -31,7 +28,7 @@ local IDLE_DAY_MUSIC = {
       'stonehearth:music:levelmusic_spring_day_03',
    },
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 35,
 }
 
@@ -41,14 +38,14 @@ local IDLE_NIGHT_MUSIC = {
       'stonehearth:music:levelmusic_spring_night_02',
    },
    loop     = true,
-   fade_in  = 4000,
+   fade_in  = 2000,
    volume   = 35,
 }
 
 local TITLE_MUSIC = {
    track    = 'stonehearth:music:title_screen',
-   fade_in  = 100,
    loop     = true,
+   volume   = 50,
 }
 
 local COMBAT_AMBIENT = {
@@ -244,14 +241,14 @@ function Sound:_on_time_changed(date)
    -- sounds
    if date.hour == event_times.sunrise and not self._sunrise_sound_played then
       self._sunrise_sound_played = true
-      if not self._in_combat then
+      if not self:_in_combat() then
          self:_play_sound(ROOSTER_SOUND)
          self:_play_sound(DAYBREAK_SOUND)
       end
    end
    if date.hour == event_times.sunset and not self._sunset_sound_played then
       self._sunset_sound_played = true
-      if not self._in_combat then
+      if not self:_in_combat() then
          self:_play_sound(OWL_SOUND)
          self:_play_sound(NIGHTFALL_SOUND)
       end
@@ -285,6 +282,11 @@ end
 function Sound:_change_music(now)
    assert(self._current_ui_screen)
 
+   if self._current_ui_screen == 'loading_screen' then
+      -- keep playing whatever happened to be playing before the load
+      return
+   end
+
    local channels = self._screens[self._current_ui_screen]
    assert(channels)
    
@@ -300,7 +302,7 @@ function Sound:_play_sound(sound)
 end
 
 function Sound:_choose_best_track(tracks)
-   local best_priority, best_track = nil, NO_AMBIENT
+   local best_priority, best_track = nil, {}
 
    for requestor, info in pairs(tracks) do
       local priority = info.priority or 0

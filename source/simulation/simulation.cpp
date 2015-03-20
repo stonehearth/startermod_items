@@ -27,6 +27,7 @@
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include "lib/lua/script_host.h"
+#include "lib/lua/caching_allocator.h"
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/sim/open.h"
@@ -52,6 +53,7 @@
 #include "lib/perfmon/namespace.h"
 #include "lib/perfmon/flame_graph.h"
 #include "platform/sysinfo.h"
+#include "physics/water_tight_region_builder.h"
 
 
 // Uncomment this to only profile the pathfinding path in VTune
@@ -61,6 +63,8 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 namespace proto = ::radiant::tesseract::protocol;
+
+static const int LUA_MEMORY_STATS_INTERVAL = 60 * 1000;
 
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
@@ -74,7 +78,6 @@ Simulation::Simulation() :
    _tcp_acceptor(nullptr),
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
    begin_loading_(false),
    _sequenceNumber(1)
@@ -112,8 +115,8 @@ void Simulation::OneTimeIninitializtion()
    // routes...
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
       json::Node args = f.args;
-      debug_navgrid_enabled_ = args.get<bool>("enabled", false);
-      if (debug_navgrid_enabled_) {
+      debug_navgrid_mode_ = args.get<std::string>("mode", "none");
+      if (debug_navgrid_mode_ != "none") {
          debug_navgrid_point_ = args.get<csg::Point3>("cursor", csg::Point3::zero);
          om::EntityPtr pawn = GetStore().FetchObject<om::Entity>(args.get<std::string>("pawn", ""));
 
@@ -253,6 +256,8 @@ void Simulation::Initialize()
 
 void Simulation::Shutdown()
 {
+   scriptHost_->Shutdown();
+   store_->DisableAndClearTraces();
    ShutdownLuaObjects();
    ShutdownDataObjectTraces();
    ShutdownGameObjects();
@@ -274,8 +279,8 @@ void Simulation::ShutdownDataObjects()
 void Simulation::InitializeDataObjectTraces()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
-   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
-   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);  
+   pathfinder_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);
 
    store_->AddTracer(lua_traces_, dm::LUA_ASYNC_TRACES);
    store_->AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
@@ -316,6 +321,9 @@ void Simulation::InitializeGameObjects()
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
    freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
+   if (core::Config::GetInstance().Get<bool>("mods.stonehearth.enable_water", false)) {
+      waterTightRegionBuilder_ = std::unique_ptr<phys::WaterTightRegionBuilder>(new phys::WaterTightRegionBuilder(octtree_->GetNavGrid()));
+   }
 
    scriptHost_.reset(new lua::ScriptHost("server", [this](int storeId) {
       return AllocDatastore();
@@ -356,7 +364,6 @@ void Simulation::ShutdownGameObjects()
       std::unordered_map<dm::ObjectId, om::EntityPtr> keepAlive = entityMap_;
       entityMap_.clear();
    }
-   SIM_LOG(1) << "All entities have been destroyed.";
 
    // The act of destroying entities may run lua code which may mutate our state.  Therefore,
    // make sure we clear out our state *after* they're all dead.
@@ -364,7 +371,15 @@ void Simulation::ShutdownGameObjects()
    jobs_.clear();
    tasks_.clear();
    freeMotionTasks_.clear();
-   datastoreMap_.clear();
+
+   // Likewise, remove the datastore datastructure before destroying the datastores, so
+   // that lua code that touches the datastore map on datastore destruction doesn't blow us up.
+   {
+      std::unordered_map<dm::ObjectId, om::DataStorePtr> keepAlive = datastoreMap_;
+      datastoreMap_.clear();
+   }
+
+   SIM_LOG(1) << "All entities and datastores have been destroyed.";
 
    clock_ = nullptr;
    root_entity_ = nullptr;
@@ -385,6 +400,7 @@ void Simulation::ShutdownGameObjects()
    error_browser_.reset();
    scriptHost_.reset();
 
+   waterTightRegionBuilder_.reset();
    freeMotion_.reset();
    octtree_.reset();
 }
@@ -403,12 +419,13 @@ void Simulation::CreateGame()
    now_ = clock_->GetTime();
    modList_ = root_entity_->AddComponent<om::ModList>();
 
-   /*
-    * Stick a Mob on the root entity so there's a cached pointer there.  This greatly
-    * speeds up Mob::GetWorldGridLocation.  If Entity::IsCachedComponent always returned
-    * true, this wouldn't be a problem (sigh).
-    */
    root_entity_->AddComponent<om::Clock>();
+
+   om::TerrainPtr terrain = root_entity_->AddComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
@@ -672,8 +689,12 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
          job->EncodeDebugShapes(msg);
       });
    }
-   if (debug_navgrid_enabled_) {
+   if (debug_navgrid_mode_ == "navgrid") {
       GetOctTree().GetNavGrid().ShowDebugShapes(debug_navgrid_point_, debug_navgrid_pawn_, msg);
+   } else if (debug_navgrid_mode_ == "water_tight") {
+      if (waterTightRegionBuilder_) {
+         waterTightRegionBuilder_->ShowDebugShapes(debug_navgrid_point_, msg);
+      }
    }
    for (auto const& cb : _bottomLoopFns)  {
       cb();
@@ -709,6 +730,8 @@ void Simulation::ProcessJobList()
       SIM_LOG(5) << "skipping job processing (single step is on).";
       return;
    }
+   pathfinder_traces_->Flush();
+
    SIM_LOG_GAMELOOP(7) << "processing job list";
 
 #if defined(PROFILE_ONLY_PATHFINDING)
@@ -847,6 +870,10 @@ void Simulation::Mainloop()
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }
+   if (lua_memory_timer_.expired()) {
+      lua::CachingAllocator::GetInstance().ReportMemoryStats();
+      lua_memory_timer_.set(LUA_MEMORY_STATS_INTERVAL);
+   }
    if (enable_job_logging_ && log_jobs_timer_.expired()) {
       perf_jobs_.BeginFrame();
       log_jobs_timer_.set(2000);
@@ -872,6 +899,9 @@ void Simulation::Mainloop()
       ProcessJobList();
       FireLuaTraces();
       octtree_->GetNavGrid().UpdateGameTime(now_, game_tick_interval_);
+      if (waterTightRegionBuilder_) {
+         waterTightRegionBuilder_->UpdateRegion();
+      }
 
       scriptHost_->Trigger("radiant:gameloop:end");
    }
@@ -1123,6 +1153,13 @@ void Simulation::FinishLoadingGame()
    InitializeDataObjectTraces();
    store_->OnLoaded();
    GetOctTree().SetRootEntity(root_entity_);
+
+   // do this after loading the datastores, so that the terrain component has a chance to perform any loading logic it needs
+   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {

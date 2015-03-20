@@ -30,6 +30,9 @@ class Region3fBoxedPtr(ridl.Type):
    name = "Region3fBoxedPtr"
    outer_box_type = "Region3fBoxedPtrBoxed"
 
+class Region3TiledPtr(ridl.Type):
+   name = "Region3TiledPtr"
+
 class Region3BoxedTiledPtr(ridl.Type):
    name = "Region3BoxedTiledPtr"
 

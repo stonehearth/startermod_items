@@ -5,6 +5,7 @@
 #include "om/region.h"
 #include "dm/dm.h"
 #include "resources/res_manager.h"
+#include "physics/namespace.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -19,6 +20,15 @@ std::ostream& operator<<(std::ostream& os, Terrain const& o)
    return (os << "[Terrain]");
 }
 
+Terrain::Terrain()
+{
+   terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
+}
+
+Terrain::~Terrain()
+{
+}
+
 void Terrain::LoadFromJson(json::Node const& obj)
 {
 }
@@ -31,15 +41,26 @@ void Terrain::SerializeToJson(json::Node& node) const
 void Terrain::ConstructObject()
 {
    Component::ConstructObject();
+   DeferredInitialize();
+}
 
-   terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
+void Terrain::OnLoadObject(dm::SerializationType r)
+{
+   ReadConfigFile();
+   DeferredInitialize();
+}
 
-   config_file_name_trace_ = TraceConfigFileName("terrain", dm::OBJECT_MODEL_TRACES)
-      ->OnModified([this]() {
-         res::ResourceManager2::GetInstance().LookupJson(config_file_name_, [&](const json::Node& node) {
-            terrainRingTesselator_->LoadFromJson(node);
-         });
-      });
+void Terrain::DeferredInitialize()
+{
+   csg::Point3 tileSize(phys::TILE_SIZE, phys::TILE_SIZE, phys::TILE_SIZE);
+   water_tight_region_ = std::make_shared<om::Region3Tiled>(tileSize, water_tight_region_tiles_);
+}
+
+Terrain& Terrain::SetConfigFileName(std::string value)
+{
+   config_file_name_ = value;
+   ReadConfigFile();
+   return *this;
 }
 
 TerrainRingTesselatorPtr Terrain::GetTerrainRingTesselator() const
@@ -130,10 +151,9 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
    return point;
 }
 
-Region3BoxedTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
+Region3BoxedTiledPtr Terrain::CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles)
 {
-   std::shared_ptr<Region3BoxedMapWrapper> wrapper = std::make_shared<Region3BoxedMapWrapper>(tiles);
-   return std::make_shared<Region3BoxedTiled>(TILE_SIZE, wrapper);
+   return std::make_shared<Region3BoxedTiled>(TILE_SIZE, tiles);
 }
 
 Region3BoxedTiledPtr Terrain::GetTiles()
@@ -159,4 +179,21 @@ Region3BoxedTiledPtr Terrain::GetInteriorTiles()
 csg::Point3 const& Terrain::GetTileSize() const
 {
    return TILE_SIZE;
+}
+
+dm::Boxed<csg::Region3f>* Terrain::GetWaterTightRegionDelta()
+{
+   return &water_tight_region_delta_;
+}
+
+Region3TiledPtr Terrain::GetWaterTightRegion()
+{
+   return water_tight_region_;
+}
+
+void Terrain::ReadConfigFile()
+{
+   res::ResourceManager2::GetInstance().LookupJson(*config_file_name_, [&](const json::Node& node) {
+      terrainRingTesselator_->LoadFromJson(node);
+   });
 }

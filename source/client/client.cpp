@@ -108,7 +108,7 @@ Client::Client() :
    mouse_position_(csg::Point2::zero),
    connected_(false),
    game_clock_(nullptr),
-   enable_debug_cursor_(false),
+   debug_cursor_mode_("none"),
    flushAndLoad_(false),
    initialUpdate_(false),
    save_stress_test_(false),
@@ -183,11 +183,16 @@ void Client::OneTimeIninitializtion()
 
    if (config.Get("enable_debug_keys", false)) {
       _commands[GLFW_KEY_F1] = [this](KeyboardInput const& kb) {
-         enable_debug_cursor_ = !enable_debug_cursor_;
-         CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
-         if (!enable_debug_cursor_) {
+         const char* mode = kb.shift ? "water_tight" : "navgrid";
+         if (debug_cursor_mode_ != mode) {
+            debug_cursor_mode_ = mode;
+         } else {
+            debug_cursor_mode_ = "none";
+         }
+         if (debug_cursor_mode_ == "none") {
+            // toggle off
             json::Node args;
-            args.set("enabled", false);
+            args.set("mode", "none");
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
@@ -424,7 +429,7 @@ void Client::OneTimeIninitializtion()
    });
 
    core_reactor_->AddRouteV("radiant:show_game_screen", [this](rpc::Function const& f) {
-      SetCurrentUIScreen(GameScreen, true);
+      SetCurrentUIScreen(GameScreen, false);
    });
 
    core_reactor_->AddRoute("radiant:get_config_options", [this](rpc::Function const& f) {
@@ -664,6 +669,8 @@ void Client::Initialize()
 
 void Client::Shutdown()
 {
+   scriptHost_->Shutdown();
+   store_->DisableAndClearTraces();
    ShutdownLuaObjects();
    ShutdownGameObjects();
    ShutdownDataObjectTraces();
@@ -1360,7 +1367,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
 
 void Client::UpdateDebugCursor()
 {
-   if (enable_debug_cursor_) {   
+   if (debug_cursor_mode_ != "none") {
       auto &renderer = Renderer::GetInstance();
       csg::Point2 pt = renderer.GetMousePosition();
 
@@ -1371,6 +1378,7 @@ void Client::UpdateDebugCursor()
          csg::Point3 pt = csg::ToInt(r.brick) + csg::ToInt(r.normal);
          om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
+         args.set("mode", debug_cursor_mode_);
          args.set("cursor", pt);
          if (selectedEntity) {
             args.set("pawn", selectedEntity->GetStoreAddress());
@@ -1379,7 +1387,7 @@ void Client::UpdateDebugCursor()
          CLIENT_LOG(5) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
-         args.set("enabled", false);
+         args.set("mode", "none");
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
       }
    }
@@ -1612,15 +1620,19 @@ void Client::RequestReload()
 
 rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
 {
+   rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("client save");
    if (saveid.empty()) {
       CLIENT_LOG(0) << "ignoring save request: saveid is empty";
-      return nullptr;
+      d->ResolveWithMsg("stonehearth:no_saveid");
+      return d;
    }
 
    if (client_save_deferred_) {
       CLIENT_LOG(0) << "ignoring save request: request is already in flight";
-      return nullptr;
+      d->ResolveWithMsg("stonehearth:save_in_progress");
+      return d;
    }
+
    ASSERT(!server_save_deferred_);
 
    fs::path tmpdir  = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR;
@@ -1628,12 +1640,14 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
       remove_all(tmpdir);
    }
    fs::create_directories(tmpdir);
+
+   SaveClientScreenShot(tmpdir);
    SaveClientState(tmpdir);
 
    json::Node args;
    args.set("saveid", SAVE_TEMP_DIR);
 
-   client_save_deferred_ = std::make_shared<rpc::ReactorDeferred>("client save");
+   client_save_deferred_ = d;
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
    server_save_deferred_->Done([this, saveid, tmpdir, gameinfo](JSONNode const&n) {
@@ -1654,16 +1668,19 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
    });
 
    server_save_deferred_->Always([this, tmpdir] {
-      CLIENT_LOG(3) << "clearing save deferred pointers";
+      CLIENT_LOG(1) << "clearing save deferred pointers";
       client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
       remove_all(tmpdir);
    });
+
    return client_save_deferred_;
 }
 
 void Client::DeleteSaveGame(std::string const& saveid)
 {
+   ASSERT(!saveid.empty());
+
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
    if (fs::is_directory(savedir)) {
       remove_all(savedir);
@@ -1695,6 +1712,19 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
    }
 
    loading_ = true;
+
+   // Navigate to the empty page--this effectively shuts down the UI, removes all polling
+   // and listeners to server-side stuff, so that we don't spam logs or consume unnecessary
+   // cycles.
+   core::Config const& config = core::Config::GetInstance();
+   std::string main_mod = config.Get<std::string>("game.main_mod", "stonehearth");
+   res::ResourceManager2& resource_manager = res::ResourceManager2::GetInstance();
+   std::string emptyUrl;
+   resource_manager.LookupManifest(main_mod, [&](const res::Manifest& manifest) {
+      emptyUrl = manifest.get<std::string>("ui.empty", "about:");
+   });
+   browser_->Navigate(emptyUrl);
+   
    loadError_.clear();
    load_progress_deferred_ = deferred;
    ASSERT(server_load_deferred_ == nullptr);
@@ -1725,18 +1755,23 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_.reset();
    });
 
-   SetCurrentUIScreen(LoadingScreen);
+   // We just navigated to the empty screen, so don't reload the UI (or we'll spam the client).
+   SetCurrentUIScreen(LoadingScreen, false);
    Shutdown();
    Initialize();
 
    return load_progress_deferred_;
 }
 
-void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
+void Client::SaveClientScreenShot(boost::filesystem::path const& savedir)
 {
    auto&r = Renderer::GetInstance();
    r.RenderOneFrame(r.GetLastRenderTime(), r.GetLastRenderAlpha(), true);
    h3dutScreenshot((savedir / "screenshot.png").string().c_str(), r.GetScreenshotTexture());
+}
+
+void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
+{
    std::ofstream metadata((savedir / "metadata.json").string());
    metadata << gameinfo.write_formatted() << std::endl;
 }
@@ -1934,7 +1969,7 @@ const char* Client::GetCurrentUIScreen() const
    return screens[_currentUiScreen];
 }
 
-void Client::SetCurrentUIScreen(UIScreen screen, bool browserRequested)
+void Client::SetCurrentUIScreen(UIScreen screen, bool reloadRequested)
 {
    if (screen == _currentUiScreen) {
       return;
@@ -1947,8 +1982,9 @@ void Client::SetCurrentUIScreen(UIScreen screen, bool browserRequested)
    if (scriptHost_) {
       scriptHost_->Trigger("radiant:client:ui_screen_changed");
    }
-   if (!browserRequested) {
-      ReloadBrowser(); // Technically, can't we just trigger?
+
+   if (reloadRequested) {
+      ReloadBrowser();
    }
 }
 
