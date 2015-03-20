@@ -6,6 +6,7 @@
 #include "om/om.h"
 #include <memory>
 #include <unordered_set>
+#include "csg\point.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -33,14 +34,14 @@ public:
 
    FilterResultCachePtr SetFilterFn(FilterFn fn);
    FilterResultCachePtr ClearCacheEntry(dm::ObjectId id);
-   bool ConsiderEntity(om::EntityPtr entity);
+   bool ConsiderEntity(om::EntityPtr& entity);
 
 private:
    struct Entry {
-      Entry(bool v, dm::TracePtr t) : value(v), trace(t) { }
+      Entry(bool v, csg::Point3f& point) : value(v), location(point) { }
 
       bool value;
-      dm::TracePtr trace;
+      csg::Point3f location;
    };
 private:
    typedef std::unordered_map<dm::ObjectId, Entry> FilterResults;
