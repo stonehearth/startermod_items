@@ -11,8 +11,15 @@ local FixtureFabricator = class()
 
 -- initialize a new fixture fabricator
 function FixtureFabricator:initialize(entity, json)
-   self._sv = self.__saved_variables:get_data()
    self._entity = entity
+   self._sv = self.__saved_variables:get_data()
+
+   if not self._sv.intitialized then
+      self._sv.finished = false
+      self._sv.always_show_ghost = false
+      self._sv.intitialized = true
+   end
+
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          self:_restore()
       end)
@@ -71,6 +78,15 @@ function FixtureFabricator:get_uri()
    return self._sv.fixture_uri
 end
 
+function FixtureFabricator:set_always_show_ghost(always_show_ghost)
+   self._sv.always_show_ghost = always_show_ghost
+   self.__saved_variables:mark_changed()
+end
+
+function FixtureFabricator:get_always_show_ghost()
+   return self._sv.always_show_ghost
+end
+
 function FixtureFabricator:instabuild()
    if not self._sv.fixture then
       self._sv.fixture = radiant.entities.create_entity(self._sv.fixture_uri, { owner = self._entity })
@@ -106,8 +122,6 @@ end
 --
 function FixtureFabricator:start_project(fixture, normal, rotation)
    if radiant.util.is_a(fixture, Entity) then
-      fixture:get_component('stonehearth:entity_forms')
-                  :set_fixture_fabricator(self._entity)
       self._sv.fixture = fixture
    end
    self._sv.normal = normal
@@ -337,12 +351,16 @@ function FixtureFabricator:accumulate_costs(cost)
 end
 
 function FixtureFabricator:_set_finished()
+   self._sv.finished = true
+
    self:_destroy_placeable_item_trace()
 
    self._entity:get_component('stonehearth:construction_progress')
                   :set_finished(true)
 
    self:_update_auto_destroy_trace()
+
+   self.__saved_variables:mark_changed()
 end
 
 function FixtureFabricator:_update_auto_destroy_trace()
