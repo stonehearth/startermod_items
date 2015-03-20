@@ -604,6 +604,11 @@ end
 -- this is arguably wrong, since the mining zone will shrink as it is mined.  However, we don't see any 
 -- visual artifacting (right now!), and only updating on blueprint change is potentially a lot faster.
 function Fabricator:_update_total_mining_region()
+   if not self._blueprint_dst:is_valid() then
+      -- everything is being destroyed
+      return
+   end
+
    self._total_mining_region:modify(function(cursor)
          local world_region = radiant.entities.local_to_world(self._blueprint_dst:get_region():get(), self._entity)
          world_region = radiant.terrain.intersect_region(world_region)
