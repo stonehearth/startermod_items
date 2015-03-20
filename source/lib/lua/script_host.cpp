@@ -828,11 +828,13 @@ typedef struct {
    int totalBytes;
 } _MemSample;
 
-void ScriptHost::WriteMemoryProfile(std::string const& filename) const
+void ScriptHost::WriteMemoryProfile(std::string const& filename)
 {
    if (!enable_profile_memory_) {
       return;
    }
+
+   FullGC();
 
    std::vector<_MemSample> samples;
    int grand_total = 0;
