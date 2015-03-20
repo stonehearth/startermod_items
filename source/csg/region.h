@@ -136,8 +136,8 @@ public:
       }
    }
 
-   void OptimizeByOctTree(S minCubeSize);
-   void OptimizeByMerge();
+   void OptimizeByOctTree(const char* reason, S minCubeSize);
+   void OptimizeByMerge(const char* reason);
 
 public:
 #if defined(REGION_COUNT_OPTIMIZE_COMBINES)
@@ -145,6 +145,7 @@ public:
 #endif
 
 private:
+   int            _churn;
    CubeVector     cubes_;
 };
 

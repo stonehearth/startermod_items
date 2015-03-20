@@ -131,7 +131,7 @@ function create_world(env)
    
    local midpoint = r:get_bounds().min:to_int()
    r:translate(-midpoint)
-   r:optimize_by_merge()
+   r:optimize_by_merge('create world')
    local terrain = radiant._root_entity:add_component('terrain')
    terrain:add_tile(r)
 
