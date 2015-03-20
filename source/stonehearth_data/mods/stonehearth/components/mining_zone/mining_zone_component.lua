@@ -100,7 +100,7 @@ end
 -- region is a boxed region
 function MiningZoneComponent:set_region(region)
    region:modify(function(cursor)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('new mining zone region')
       end)
 
    self._sv.region = region
@@ -176,7 +176,7 @@ end
 function MiningZoneComponent:_on_region_changed()
    -- cache the region bounds
    self._sv.region:modify(function(cursor)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('mining zone region changed')
       end)
    self.__saved_variables:mark_changed()
 
@@ -290,7 +290,7 @@ function MiningZoneComponent:_update_destination()
          end
 
          -- mostly for debugging
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('mining:_update_destination()')
       end)
 
    self:_update_adjacent()
@@ -308,7 +308,7 @@ function MiningZoneComponent:_get_working_region(zone_cube, zone_location)
 
    local working_region = radiant.terrain.intersect_region(zone_region)
    working_region:set_tag(0)
-   working_region:optimize_by_merge()
+   working_region:optimize_by_merge('mining:_get_working_region()')
    return working_region, zone_reserved_region
 end
 
@@ -454,7 +454,7 @@ function MiningZoneComponent:_update_adjacent_full()
    self._destination_component:get_adjacent():modify(function(cursor)
          cursor:clear()
          cursor:add_region(adjacent)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('mining:_update_adjacent_full()')
       end)
 end
 
@@ -494,7 +494,7 @@ function MiningZoneComponent:_update_adjacent_incremental()
    self._destination_component:get_adjacent():modify(function(cursor)
          cursor:subtract_region(dirty_adjacent)
          cursor:add_region(adjacent_fragment)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('mining:_update_adjacent_incremental()')
       end)
 
    self._last_unreserved_region = unreserved_region
@@ -516,7 +516,7 @@ function MiningZoneComponent:_get_unreserved_region()
    local destination_region = self._destination_component:get_region():get()
    local reserved_region = self._destination_component:get_reserved():get()
    local unreserved_region = destination_region - reserved_region
-   unreserved_region:optimize_by_merge() -- probably unnecessary
+   unreserved_region:optimize_by_merge('mining:_get_unreserved_region()') -- probably unnecessary
    return unreserved_region
 end
 
@@ -597,7 +597,7 @@ function MiningZoneComponent:_update_designation()
             cursor:add_cube(extended_cube)
          end
 
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('mining:_update_designation()')
       end)
 end
 

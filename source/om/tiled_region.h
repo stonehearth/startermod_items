@@ -57,7 +57,7 @@ public:     // public methods
    void ClearTile(csg::Point3 const& index);
    IndexSet const& GetChangedSet() const { return _changedSet; }
    void ClearChangedSet();
-   void OptimizeChangedTiles();
+   void OptimizeChangedTiles(const char* reason);
 
    void AddPoint(csg::Point3f const& point, int tag = 0);
    void AddCube(csg::Cube3f const& cube);

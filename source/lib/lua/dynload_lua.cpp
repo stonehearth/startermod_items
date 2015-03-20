@@ -140,6 +140,12 @@ void lua::Initialize()
    bool is64Bit = core::System::IsProcess64Bit();
    bool enableJit = core::Config::GetInstance().Get<bool>("enable_lua_jit", true);
 
+   // xxx: temporary code idea: disable luajit entirely if we're in 64-bit mode.
+   if (enableJit && is64Bit && !core::Config::GetInstance().Get<bool>("force_lua_jit", false)) {
+      LOG(lua.code, 0) << "lua jit disabled in 64-bit builds.  set force_lua_jit to override";
+      enableJit = false;
+   }
+
    CachingAllocator &la = CachingAllocator::GetInstance();
 
    bool useLowMemory = enableJit && is64Bit;

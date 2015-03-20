@@ -1,6 +1,7 @@
 #ifndef _RADIANT_CORE_STATIC_STRING_H
 #define _RADIANT_CORE_STATIC_STRING_H
 
+#include <functional>
 #include "radiant_macros.h"
 #include "namespace.h"
 
@@ -21,6 +22,12 @@ public:
    StaticString(std::string const& s);
    StaticString(const char* s);
    operator const char*() const { return _value; }
+
+   struct Hash {
+      inline std::size_t operator()(StaticString const& s) {
+         return std::hash<const char *>()(static_cast<const char*>(s));
+      }
+   };
 
 private:
    const char*    _value;

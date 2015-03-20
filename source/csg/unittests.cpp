@@ -531,7 +531,7 @@ int RunRegionOptimize(std::function<csg::Region3f const&()> getRegion)
 
    perfmon::Timer t;
    t.Start();
-   o.OptimizeByMerge();
+   o.OptimizeByMerge("unit test");
    t.Stop();
    //std::cout << "checksumming regions...";
    //ASSERT(ChecksumRegion(r) == ChecksumRegion(o));
