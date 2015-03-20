@@ -11,6 +11,10 @@ local FixtureFabricator = class()
 
 -- initialize a new fixture fabricator
 function FixtureFabricator:initialize(entity, json)
+   self._log = radiant.log.create_logger('build')
+      :set_prefix('fixture_fabricator')
+      :set_entity(entity)
+
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
@@ -63,7 +67,12 @@ function FixtureFabricator:get_project()
 end
 
 function FixtureFabricator:set_teardown()
-   -- noop.
+   if self._sv.fixture then
+      self._sv.fixture:get_component('stonehearth:entity_forms')
+         :cancel_placement_tasks()
+   end
+
+   self:_set_finished()
 end
 
 function FixtureFabricator:get_normal()
@@ -141,28 +150,16 @@ end
 -- either create or destroy the tasks depending on our current state
 --
 function FixtureFabricator:_start_project()
-   local run_teardown_task, run_fabricate_task = false, false
-
    local cp = self._entity:get_component('stonehearth:construction_progress')
    local active = cp:get_active()
    local finished = cp:get_finished()
    local teardown = cp:get_teardown()
    local dependencies_finished = cp:get_dependencies_finished()
 
-   if not finished and dependencies_finished then
-      run_teardown_task = teardown
-      run_fabricate_task = not teardown
-   end
-   
-   -- Now apply the deltas.  Create tasks that need creating and destroy
-   -- ones that need destroying.
-   assert(not run_teardown_task)
-
-   if run_fabricate_task then
+   if not finished and dependencies_finished and not teardown then
       self:_place_fixture()
    end
 end
-
 
 -- start the fabricate task if it's not already running
 --
@@ -350,6 +347,8 @@ function FixtureFabricator:accumulate_costs(cost)
    end
 end
 
+-- set_finished this may be called when we're done placing the item
+-- as well as when cancelling placement for teardown
 function FixtureFabricator:_set_finished()
    self._sv.finished = true
 
@@ -364,7 +363,9 @@ function FixtureFabricator:_set_finished()
 end
 
 function FixtureFabricator:_update_auto_destroy_trace()
-   assert(self._sv.fixture)
+   if not self._sv.fixture then
+      return
+   end
 
    -- now that we're built, if the bed somehow moves off the building, remove the
    -- blueprint from the building.  this can happen when people start re-arranging

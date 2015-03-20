@@ -9,7 +9,7 @@ local FixtureFabricatorRenderer = class()
 --
 function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
    self._ui_mode_visible = false
-   self._fixture_placed = false
+   self._finished = false
    self._always_show_ghost = false
    self._render_entity = render_entity
    self._visibility_handle = render_entity:get_visibility_override_handle()
@@ -32,7 +32,7 @@ function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
 
    self._ff_trace = fixture_fabricator:trace_data('render trace')
                      :on_changed(function()
-                           self._fixture_placed = fixture_fabricator:get_data().finished
+                           self._finished = fixture_fabricator:get_data().finished
                            self._always_show_ghost = fixture_fabricator:get_data().always_show_ghost
                            self:_update_render_state()
                         end)
@@ -59,7 +59,7 @@ function FixtureFabricatorRenderer:destroy()
 end
 
 function FixtureFabricatorRenderer:_is_visible()
-   if self._fixture_placed then
+   if self._finished then
       return false
    end
 
