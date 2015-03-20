@@ -326,7 +326,7 @@ Region csg::GetAdjacent(Region const& r, bool allow_diagonals)
       }
    }
 
-   adjacent.OptimizeByMerge();
+   adjacent.OptimizeByMerge("csg::GetAdjacent compuation");
    return adjacent;
 }
 

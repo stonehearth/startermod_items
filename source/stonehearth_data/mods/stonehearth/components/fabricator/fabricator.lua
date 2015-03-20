@@ -497,7 +497,7 @@ function Fabricator:_update_dst_region()
       end
       dst_region = dr
    end
-   dst_region:optimize_by_merge()
+   dst_region:optimize_by_merge('fabricator dst')
 
    --self._log:detail('update dst region')
    --self:_log_region(rcs_rgn, 'region collision shape ->')

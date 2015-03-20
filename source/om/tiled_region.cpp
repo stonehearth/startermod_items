@@ -213,11 +213,11 @@ void TiledRegion<ContainerType, TileType>::ClearChangedSet()
 }
 
 template <typename ContainerType, typename TileType>
-void TiledRegion<ContainerType, TileType>::OptimizeChangedTiles()
+void TiledRegion<ContainerType, TileType>::OptimizeChangedTiles(const char* reason)
 {
    for (csg::Point3 index : _changedSet) {
-      _tilemap.ModifyTile(index, [](csg::Region3& cursor) {
-         cursor.OptimizeByMerge();
+      _tilemap.ModifyTile(index, [reason](csg::Region3& cursor) {
+         cursor.OptimizeByMerge(reason);
       });
    }
 }

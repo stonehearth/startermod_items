@@ -149,7 +149,7 @@ function WaterComponent:_add_water(world_location, volume)
             end
          end
 
-         delta_region:optimize_by_merge()
+         delta_region:optimize_by_merge('water:_add_water() delta region')
          delta_region:translate(-entity_location)
          self:_add_to_layer(delta_region)
 
@@ -299,12 +299,12 @@ end
 function WaterComponent:_add_to_layer(region)
    self._sv.region:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('water:_add_to_layer() (region)')
       end)
 
    self._sv._current_layer:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('water:_add_to_layer() (current layer)')
       end)
 end
 
@@ -333,7 +333,7 @@ function WaterComponent:_get_edge_region(region, channel_region)
    -- TODO: just make these regions channels to nowhere
    edge_region = edge_region:intersect_cube(world_bounds)
 
-   edge_region:optimize_by_merge()
+   edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
 end
@@ -433,14 +433,14 @@ function WaterComponent:_raise_layer()
    -- subtract any new terrain obstructions
    local intersection = radiant.terrain.intersect_region(raised_layer)
    raised_layer:subtract_region(intersection)
-   raised_layer:optimize_by_merge()
+   raised_layer:optimize_by_merge('water:_raise_layer() (raised layer)')
 
    -- back to local space
    raised_layer:translate(-entity_location)
 
    self._sv.region:modify(function(cursor)
          cursor:add_region(raised_layer)
-         cursor:optimize_by_merge()
+         cursor:optimize_by_merge('water:_raise_layer() (updating region)')
       end)
 
    self._sv._current_layer:modify(function(cursor)
@@ -491,7 +491,7 @@ function WaterComponent:_lower_layer()
    if not residual_top_layer:empty() then
       -- top layer becomes a new water body with a potentially non-contiguous wet region
       -- TODO: probably need to create an entity for each contiguous set
-      residual_top_layer:optimize_by_merge()
+      residual_top_layer:optimize_by_merge('water:_lower_layer (residual top layer)')
       local parent_location = radiant.entities.get_world_grid_location(self._entity)
       local child_location = residual_top_layer:get_rect(0).min + parent_location
       residual_top_layer:translate(parent_location - child_location)
@@ -535,7 +535,7 @@ function WaterComponent:_get_layer(elevation)
    bounds.max.y = elevation + 1
 
    local layer = region:intersect_cube(bounds)
-   layer:optimize_by_merge()
+   layer:optimize_by_merge('water:_get_layer() (elevation:' .. tostring(elevation) .. ')')
    return layer
 end
 

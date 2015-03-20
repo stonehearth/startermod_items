@@ -271,7 +271,7 @@ function SubterraneanViewService:_update_dirty_tiles()
       _radiant.renderer.mark_dirty_index(index:to_float())
    end
 
-   self._xray_tiles:optimize_changed_tiles()
+   self._xray_tiles:optimize_changed_tiles('optimizing xray region')
    self._xray_tiles:clear_changed_set()
    self._dirty_xray_tiles = {}
 end
