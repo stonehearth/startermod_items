@@ -54,27 +54,41 @@ App.RootView = Ember.ContainerView.extend({
 
       App.gotoGame = function() {
          self.gotoGame();
-      }
+      };
 
       App.gotoShell = function() {
          self.gotoShell();
-      }
+      };
 
       App.getGameMode = function() {
          return self._game_mode_manager.getGameMode();
-      }
+      };
 
       App.setGameMode = function(mode) {
          self._game_mode_manager.setGameMode(mode);
-      }
+      };
 
       App.setVisionMode = function(mode) {
          self._game_mode_manager.setVisionMode(mode);
-      }
+      };
 
       App.getVisionMode = function() {
          return self._game_mode_manager.getVisionMode();
-      }
+      };
+
+      App.waitForFrames = function(numFrames, callback) {
+         var f = function(numFramesLeft, callback) {
+            if (numFramesLeft <= 0) {
+               callback();
+            } else {
+               App.waitForFrames(numFrames - 1, callback);
+            }
+         };
+
+         window.requestAnimationFrame(function(frameTime) {
+            f(numFrames, callback);
+         });
+      };
    },
 
    didInsertElement: function() {
