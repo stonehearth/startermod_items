@@ -1,5 +1,6 @@
 
-// Common functionality between the save and load views
+// This is the LEGACY confirm view, used by most of the application at this point.
+// XXX, remove this once the last call to App.gameView.addView(App.StonehearthConfirmView is gone
 App.StonehearthConfirmView = App.View.extend({
    templateName: 'confirmView',
    classNames: ['flex', 'fullScreen'],
@@ -42,5 +43,22 @@ App.StonehearthConfirmView = App.View.extend({
       }
 
       this._super();
+   }
+});
+
+// This is the new confirm view, that works the way ember expects. This view gets onto the
+// screen by being rendered into an outlet (usually the 'modalmodal' outlet)
+
+App.ConfirmView = App.View.extend({
+   classNames: ['flex', 'fullScreen'],
+   modal: true,
+
+   actions: {
+      clickButton: function(buttonData) {
+         if (buttonData && buttonData.click) {
+            buttonData.click();
+         }
+         this.destroy();
+      }
    }
 });

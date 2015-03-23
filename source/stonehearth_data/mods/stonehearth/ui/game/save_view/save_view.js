@@ -1,265 +1,28 @@
+// This is the controller. It is responsible for two things.
+// 1) Managing the data that is provided to the view. Any big transforms should be done in the controller, not the view
+// 2) Publishing an actions API for use by the view and other controllers.
 
-// Common functionality between the save and load views
-App.StonehearthSaveLoadView = App.View.extend({
-
-   didInsertElement: function() {
-      this._super();
-
-      this.$('.saveList').on( 'click', '.row', function() {        
-         console.log($(this).attr('key'));
-      });
-   },
-
-   getListView: function() {
-      // a bit of a hack. grab the Ember View for the list from its element
-      var viewEl = this.$('#saves').children()[0]
-      var id = $(viewEl).attr('id');
-
-      return Ember.View.views[id];
-   },
-
-   refreshList: function() {
-      var list = this.getListView();
-      list.refresh();
-   }
-
-});
-
-App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
-   templateName: 'saveView',
-   classNames: ['flex'],
-   modal: true,
+App.SaveController = Ember.Controller.extend({
 
    init: function() {
       this._super();
+      this._getSaves();
    },
 
-   didInsertElement: function() {
-      this._super();
-      this.$('#saveView').position({
-            my: 'center center',
-            at: 'center center-150',
-            of: '#modalOverlay'
-         });
-   },
-
-   enableButtons : function(enabled) {
-      if (enabled) {
-         this.$('#deleteSaveButton').removeClass('disabled')
-         this.$('#overwriteSaveButton').removeClass('disabled')
-         this.$('#createSaveButton').removeClass('disabled')
-      } else {
-         this.$('#deleteSaveButton').addClass('disabled')
-         this.$('#overwriteSaveButton').addClass('disabled')
-         this.$('#createSaveButton').addClass('disabled')
-      }
-   },
-
-   saveGame : function(saveid) {
-      var self = this;
-      // We let the UI update first, because saving ca
-      self.enableButtons(false);
-
-      App.waitForFrames(3, function() {
-         self._runSave(saveid);
-      });
-   },
-
-   _runSave: function(saveid) {
-      var self = this;
-      var d = new Date();
-      var gameDate = App.gameView.getDate().date 
-      var gameTime = App.gameView.getDate().time;
-
-      if (!saveid) {
-         saveid = String(d.getTime());
-      }
-
-      radiant.call("radiant:client:save_game", saveid, { 
-            name: "",
-            town_name: App.stonehearthClient.settlementName(),
-            game_date: gameDate,
-            game_time: gameTime,
-            timestamp: d.getTime(),
-            time: d.toLocaleString(),
-            jobs: {
-               crafters: App.population.getNumCrafters(),
-               workers: App.population.getNumWorkers(),
-               soldiers: App.population.getNumSoldiers(),
-            }
-         })
-         .always(function() {
-            self.enableButtons(true);
-            self.refreshList();
-         });
-   },
-
-   actions: {
-      saveGame: function() {
-         // isn't there a more Ember-y way to do this?
-         if (this.$('#deleteSaveButton').hasClass('disabled')) {
-            return;
-         }
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-         this.saveGame();
-      },
-
-       overwriteSaveGame: function() {
-         if (this.$('#overwriteSaveButton').hasClass('disabled')) {
-            return;
-         }
-
-         var self = this;
-         var d = new Date();
-         var t = d.getTime();
-         var gameDate = App.gameView.getDate().date 
-         var gameTime = App.gameView.getDate().time;
-         var key = String(this.getListView().getSelectedKey());
-
-         if (!key || key == '') {
-            return
-         }
-         
-         App.gameView.addView(App.StonehearthConfirmView, 
-            { 
-               title : "Confirm Save Overwrite",
-               message : "Do you really want to completely, unrevokably overwrite this save game?",
-               buttons : [
-                  { 
-                     label: "Yes",
-                     click: function() {
-                        radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-                        self.saveGame(key);
-                     }
-                  },
-                  {
-                     label: "No!"
-                  }
-               ] 
-            });
-      },
-      deleteSaveGame: function() {
-         if (this.$('#deleteSaveButton').hasClass('disabled')) {
-            return;
-         }
-         
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-         var self = this;
-         var key = this.getListView().getSelectedKey();
-
-         if (key) {
-            App.gameView.addView(App.StonehearthConfirmView, 
-               { 
-                  title : "Confirm Delete",
-                  message : "Do you really want to delete this save game?",
-                  buttons : [
-                     { 
-                        label: "Yes",
-                        click: function() {
-                           radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash' });
-                           radiant.call("radiant:client:delete_save_game", String(key))
-                              .always(function() {
-                                 self.refreshList();
-                              });
-                        }
-                     },
-                     {
-                        label: "No!"
-                     }
-                  ] 
-               });
-         }
-      }
-   }
-
-});
-
-
-App.StonehearthLoadView = App.StonehearthSaveLoadView.extend({
-   templateName: 'loadView',
-   classNames: ['flex'],
-   modal: true,
-
-   init: function() {
-      this._super();
-   },
-
-   didInsertElement: function() {
-      this._super();
-      this.$('#loadView').position({
-            my: 'center center',
-            at: 'center center-150',
-            of: '#modalOverlay'
-         });
-   },
-
-   actions: {
-      loadGame: function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-         var self = this;
-         var key = this.getListView().getSelectedKey();
-
-         if (key) {
-            radiant.call("radiant:client:load_game", key);
-            // At this point, we just wait to be killed by the client.
-         }
-      },
-   }
-
-});
-
-
-App.StonehearthSaveListView = App.View.extend({
-   templateName: 'saveList',
-   classNames: [],
-
-   _updateSelectedScreenshot: function() {
-      var self = this;
-      var currentScreenshot = undefined;
-
-      var selected = this.$('.selected');
-      if (selected) {
-         var key = selected.attr('key');
-         var saved_games = self.get('saved_games');
-         if (saved_games && key) {
-            currentScreenshot = saved_games[key].screenshot;
-         }
-      }
-      self.set('currentScreenshot', currentScreenshot);
-   },
-
-   didInsertElement: function() {
-      var self = this;
-      this._super();
-
-      this.$().on( 'click', '.row', function() {
-         self.$().find('.row').removeClass('selected');
-         $(this).addClass('selected');
-         self._updateSelectedScreenshot();
-      });
-      this.refresh();
-   },
- 
-   refresh: function() {
+   // grab all the saves from the server
+   _getSaves: function() {
       var self = this;
       radiant.call("radiant:client:get_save_games")
-               .done(function(json) {
-                  self.set('saved_games', json);
-                  
-                  // select the first save after the view re-renderes.
-                  Ember.run.scheduleOnce('afterRender', this, function() {
-                     var rows = self.$('.saveList .row');
-
-                     if (rows.length > 0) {
-                        $(rows[0]).click()
-                     }
-                  });
-               });
+         .done(function(json) {
+            var formattedSaves = self._formatSaves(json);
+            self.set('saves', formattedSaves);
+         });
    },
 
-   saves: function() {
+   // reformat the save map into an array sorted by time, for the view to consume
+   _formatSaves: function(saves) {
       var saveKey = App.stonehearthClient.gameState.saveKey;
-      var vals = radiant.map_to_array(this.get('saved_games'), function(k ,v) {
+      var vals = radiant.map_to_array(saves, function(k ,v) {
          v.key = k;
          if (k == saveKey) {
             v.current = true;
@@ -281,10 +44,225 @@ App.StonehearthSaveListView = App.View.extend({
       });
 
       return vals;
-   }.property('saved_games'),
-
-   getSelectedKey: function() {
-      return this.$().find('.selected').attr('key');
    },
 
+   // the action interface
+   actions: {
+      saveGame: function(saveid) {
+         var self = this;
+         var d = new Date();
+         var gameDate = App.gameView.getDate().date 
+         var gameTime = App.gameView.getDate().time;
+
+         if (!saveid) {
+            saveid = String(d.getTime());
+         }
+
+         self.set('opInProgress', true);
+
+         radiant.call("radiant:client:save_game", saveid, { 
+               name: "",
+               town_name: App.stonehearthClient.settlementName(),
+               game_date: gameDate,
+               game_time: gameTime,
+               timestamp: d.getTime(),
+               time: d.toLocaleString(),
+               jobs: {
+                  crafters: App.population.getNumCrafters(),
+                  workers: App.population.getNumWorkers(),
+                  soldiers: App.population.getNumSoldiers(),
+               }
+            })
+            .always(function() {
+               self.set('opInProgress', false);
+               self._getSaves();
+            });
+      },
+
+      loadGame: function(key) {
+         radiant.call("radiant:client:load_game", key);         
+      },
+
+      deleteSaveGame: function(key) {
+         var self = this;
+
+         if (key) {
+            self.set('opInProgress', true);
+            radiant.call("radiant:client:delete_save_game", String(key))
+               .always(function() {
+                  self._getSaves();
+                  self.set('opInProgress', false);
+               });
+         }
+      },
+   },
+});
+
+// This is the view. It has two jobs
+// 1) Render to the screen through the template
+// 2) Handle user interaction and invoke the controller
+App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
+   classNames: ['flex'],
+   modal: true,
+
+   init: function() {
+      this._super();
+   },
+
+   didInsertElement: function() {
+      this._super();
+      this.$('#saveView').position({
+            my: 'center center',
+            at: 'center center-150',
+            of: '#modalOverlay'
+         });
+   },
+
+   // when a controller op is in progress (saving, etc), disable the buttons
+   enableButtons : function(enabled) {
+      //XXX use bind-attr to do this
+      var enabled = !this.get('controller.opInProgress');
+
+      if (this.$()) {
+         if (enabled) {
+            this.$('#deleteSaveButton').removeClass('disabled')
+            this.$('#overwriteSaveButton').removeClass('disabled')
+            this.$('#createSaveButton').removeClass('disabled')
+         } else {
+            this.$('#deleteSaveButton').addClass('disabled')
+            this.$('#overwriteSaveButton').addClass('disabled')
+            this.$('#createSaveButton').addClass('disabled')
+         }
+      }
+   }.observes('controller.opInProgress'),
+
+   // when the array of saves is updated, select the first save
+   _selectFirstSave: function() {
+      var saves = this.get('controller.saves');
+      if (saves) {
+         this.set('selectedSave', saves[0]);   
+      }
+   }.observes('controller.saves'),
+
+   // when the user selects a new save, manipulate the css classes so it highlights in the view
+   _updateSelection: function() {
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         // Update the UI. XXX, is there a way to do this without jquery?
+         var key = this.get('selectedSave.key');
+
+         this.$('.saveSlot').removeClass('selected');
+         
+         if (key) {
+            this.$('[key=' + key + ']').addClass('selected');
+         }
+      });
+      
+   }.observes('selectedSave'),
+
+   actions: {
+      selectSave: function(save) {
+         if (save) {
+            this.set('selectedSave', save)
+         }
+      },
+
+      saveGame: function() {
+         // isn't there a more Ember-y way to do this?
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+         this.get("controller").send('saveGame');
+      },
+
+      loadGame: function() {
+         // isn't there a more Ember-y way to do this?
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+         var key = this.get('selectedSave.key');
+
+         if (key) {
+            this.get("controller").send('loadGame', key);
+         }
+         
+      },
+
+      overwriteSaveGame: function() {
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (this.$('#overwriteSaveButton').hasClass('disabled')) {
+            return;
+         }
+
+         var self = this;
+         var key = this.get('selectedSave.key');
+
+         if (!key || key == '') {
+            return;
+         }
+         
+         // open the confirmation screen
+         self.triggerAction({
+            action:'openInOutlet',               
+            actionContext: {
+               viewName: 'confirm',   
+               outletName: 'modalmodal',
+               controller: {
+                  title: i18n.t('stonehearth:save_confim_overwrite_title'),
+                  message: i18n.t('stonehearth:save_confirm_overwrite_message'),
+                  buttons: [
+                     { 
+                        label: i18n.t('stonehearth:yes'),
+                        click: function() {
+                           radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash' });
+                           self.get("controller").send('saveGame', key);
+                        }
+                     },
+                     {
+                        label: i18n.t('stonehearth:no')
+                     }
+                  ]
+               }
+            }
+         });         
+      },
+
+      deleteSaveGame: function() {
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+         
+         var self = this;
+         var key = this.get('selectedSave.key');
+
+         if (!key || key == '') {
+            return;
+         }
+
+         // open the confirmation screen
+         self.triggerAction({
+            action:'openInOutlet',               
+            actionContext: {
+               viewName: 'confirm',   
+               outletName: 'modalmodal',
+               controller: {
+                  title: i18n.t('stonehearth:save_confim_delete_title'),
+                  message: i18n.t('stonehearth:save_confirm_delete_message'),
+                  buttons: [
+                     { 
+                        label: i18n.t('stonehearth:yes'),
+                        click: function() {
+                           radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash' });
+                           self.get("controller").send('deleteSaveGame', key);
+                        }
+                     },
+                     {
+                        label: i18n.t('stonehearth:no')
+                     }
+                  ]
+               }
+            }
+         });
+      }
+   }
 });
