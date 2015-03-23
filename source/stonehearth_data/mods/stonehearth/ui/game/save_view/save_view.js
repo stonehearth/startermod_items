@@ -57,6 +57,16 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
 
    saveGame : function(saveid) {
       var self = this;
+      // We let the UI update first, because saving ca
+      self.enableButtons(false);
+
+      App.waitForFrames(3, function() {
+         self._runSave(saveid);
+      });
+   },
+
+   _runSave: function(saveid) {
+      var self = this;
       var d = new Date();
       var gameDate = App.gameView.getDate().date 
       var gameTime = App.gameView.getDate().time;
@@ -64,8 +74,6 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
       if (!saveid) {
          saveid = String(d.getTime());
       }
-
-      self.enableButtons(false);
 
       radiant.call("radiant:client:save_game", saveid, { 
             name: "",
