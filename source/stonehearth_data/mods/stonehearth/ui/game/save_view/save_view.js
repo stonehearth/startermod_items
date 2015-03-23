@@ -2,10 +2,10 @@
 // 1) Managing the data that is provided to the view. Any big transforms should be done in the controller, not the view
 // 2) Publishing an actions API for use by the view and other controllers.
 
-App.SaveController = App.View.extend({
-   needs: ['settings'],
+App.SaveController = Ember.Controller.extend({
 
    init: function() {
+      this._super();
       this._getSaves();
    },
 
