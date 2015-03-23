@@ -48,16 +48,6 @@ App.StonehearthEscMenuView = App.View.extend({
          App.gameView.addView(App.StonehearthSettingsView);
       },
 
-      save: function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-         App.gameView.addView(App.StonehearthSaveView);
-      },
-
-      load: function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-         App.gameView.addView(App.StonehearthLoadView);
-      },
-
       postBug: function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
          App.gameView.addView(App.StonehearthPostBugView);

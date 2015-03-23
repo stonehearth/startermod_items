@@ -10,3 +10,20 @@
      
    </div>
 </script>
+
+<script type="text/x-handlebars" data-template-name="confirm">
+   <div id="confirmView" class="gui">
+      <div class="window">
+         <div class="title">{{controller.title}}</div>
+         <p>{{{controller.message}}}</p>
+         <div id="buttons">
+            {{#each controller.buttons}}
+               <a href="#" {{action 'clickButton' this target=view}}>
+                  <button {{bind-attr id=this.id}}>{{this.label}}</button>
+               </a>
+            {{/each}}
+         </div>
+      </div>
+     
+   </div>
+</script>

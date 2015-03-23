@@ -228,6 +228,20 @@ App.Router.map(function() {
 
 App.ApplicationRoute = Ember.Route.extend({
   actions: {
+    openInOutlet: function(actionContext) {
+      return this.render(actionContext.viewName, {
+        controller: actionContext.controller,
+        into: 'application',
+        outlet: actionContext.outletName,
+      });
+    },
+    closeOutlet: function(outletName) {
+        return this.disconnectOutlet({
+          outlet: outletName,
+          parentView: 'application'
+        });
+    },
+
     openModal: function(modalName) {
       return this.render(modalName, {
         into: 'application',
@@ -239,6 +253,6 @@ App.ApplicationRoute = Ember.Route.extend({
           outlet: 'modal',
           parentView: 'application'
         });
-      }    
+    },
   }
 });
