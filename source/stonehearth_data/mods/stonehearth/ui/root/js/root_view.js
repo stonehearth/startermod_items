@@ -3,14 +3,12 @@ App.RootController = Ember.Controller.extend({
 
    _autoSave: function() {
       var self = this;
-
-      radiant.call('radiant:get_config', 'enable_auto_save')
-         .done(function(response) {
-            if (response.enable_auto_save) {
-               var saveController = self.get('controllers.save');
-               saveController.send('saveGame', 'auto_save');
-            }
-         })
+      var saveController = self.get('controllers.save');
+      var enabled = saveController.get('auto_save');
+      
+      if (enabled) {
+         saveController.send('saveGame', 'auto_save');
+      }      
    },
 
    actions: {

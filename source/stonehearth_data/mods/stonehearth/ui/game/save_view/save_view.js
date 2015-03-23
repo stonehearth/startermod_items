@@ -2,7 +2,7 @@
 // 1) Managing the data that is provided to the view. Any big transforms should be done in the controller, not the view
 // 2) Publishing an actions API for use by the view and other controllers.
 
-App.SaveController = Ember.Controller.extend({
+App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
 
    init: function() {
       this._super();
@@ -78,6 +78,16 @@ App.SaveController = Ember.Controller.extend({
 
          self.set('opInProgress', true);
 
+
+         // show the "saving.... message"
+         self.triggerAction({
+            action:'openInOutlet',               
+            actionContext: {
+               viewName: 'savePopup',   
+               outletName: 'modalmodal'
+            }
+         });
+
          radiant.call("radiant:client:save_game", saveid, { 
                name: saveid == 'auto_save' ? i18n.t('stonehearth:auto_save_prefix') : '',
                town_name: App.stonehearthClient.settlementName(),
@@ -94,6 +104,14 @@ App.SaveController = Ember.Controller.extend({
             .always(function() {
                self.set('opInProgress', false);
                self._getSaves();
+
+               // hide the "saving.... message"
+               self.triggerAction({
+                  action:'closeOutlet',               
+                  actionContext: {
+                     outletName: 'modalmodal'
+                  }
+               });               
             });
       },
 

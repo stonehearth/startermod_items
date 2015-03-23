@@ -28,18 +28,6 @@
    </div>
 </script>
 
-<script type="text/x-handlebars" data-template-name="loadView">
-   <div id="loadView" class="gui">
-      <div class="window">
-         <div class="title">Load Game</div>
-         <div id="saves">
-         {{ view saveList }}
-         </div>
-         <a href="#" {{action 'loadGame' target="view"}}><button id="loadButton">{{i18n stonehearth:load_game}}</button></a>
-      </div>     
-   </div>
-</script>
-
 <script type="text/x-handlebars" data-template-name='_saveList'>
    <div class="screenshot_container">
       <div id="savelist_screenshot">
@@ -77,3 +65,10 @@
    </div>
 </script>
 
+<script type="text/x-handlebars" data-template-name="savePopup">
+   <div id="savePopup">
+      <div id="message">
+         {{i18n stonehearth:save_in_progress}}      
+      </div>
+   </div>
+</script>

@@ -235,9 +235,9 @@ App.ApplicationRoute = Ember.Route.extend({
         outlet: actionContext.outletName,
       });
     },
-    closeOutlet: function(outletName) {
+    closeOutlet: function(actionContext) {
         return this.disconnectOutlet({
-          outlet: outletName,
+          outlet: actionContext.outletName,
           parentView: 'application'
         });
     },
