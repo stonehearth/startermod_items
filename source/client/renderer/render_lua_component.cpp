@@ -50,8 +50,10 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
 
 RenderLuaComponent::~RenderLuaComponent()
 {
-   if (component_renderer_) {
-      lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+   lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
+   // RenderLuaComponents run code manually on destruction, so we have to double-check to ensure we
+   // even have a valid Lua runtime to run in!
+   if (component_renderer_ && !script->IsShutDown()) {
       try {
          luabind::object fn = component_renderer_["destroy"];
          if (fn) {

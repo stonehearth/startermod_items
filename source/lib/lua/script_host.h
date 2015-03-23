@@ -23,7 +23,8 @@ public:
 
    void CreateGame(om::ModListPtr mods);
    void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
-   void DoParanoidShutdown();
+   void Shutdown();
+   bool IsShutDown() const;
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
@@ -31,7 +32,7 @@ public:
    void GC(platform::timer &timer);
    void FullGC();
    int GetAllocBytesCount() const;
-   void WriteMemoryProfile(std::string const& filename) const;
+   void WriteMemoryProfile(std::string const& filename);
    void DumpHeap(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
@@ -125,6 +126,8 @@ private:
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
    AllocDataStoreFn     _allocDs;
+
+   bool                 shut_down_;
 };
 
 END_RADIANT_LUA_NAMESPACE

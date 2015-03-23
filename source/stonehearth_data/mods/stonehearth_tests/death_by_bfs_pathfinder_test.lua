@@ -8,7 +8,7 @@ function HarvestTest:__init()
    self:create_world()
 
    -- lotta logs.  let's get these into some stockpiles.
-   self:place_item_cluster('stonehearth:resources:wood:oak_log', 32, 32, 20, 20)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 32, 32, 20, 20, 'player_1')
 
    -- said stockpiles, all with different filters.  now we can't share filter
    -- functions!  NOOOOOOO.
@@ -16,7 +16,7 @@ function HarvestTest:__init()
       for z = -48,-8,8 do
          local stockpile = self:place_stockpile_cmd('player_1', x, z, 7, 7)
          local filter = {
-            'wood',
+            'resource wood',
          }
          table.insert(filter, string.format('unique value %d x %d', x, z))
          stockpile:get_component('stonehearth:stockpile')
