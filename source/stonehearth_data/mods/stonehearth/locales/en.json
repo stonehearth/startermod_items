@@ -26,6 +26,8 @@
    "save_confirm_delete_message" : "Do you really want to delete this save game?",
    "save_confim_overwrite_title" : "Confirm Save Overwrite",
    "save_confirm_overwrite_message" : "Do you really want to completely, unrevokably overwrite this save game?",
+   "save_autosave" : "Automatically save periodically",
+   "auto_save_prefix" : "Auto save: ",
 
    "opt_title" : "Help us make Stonehearth better!",
    "opt_text" : "Will you allow us to collect anonymous performance and gameplay data to help us tune future versions of the game?",

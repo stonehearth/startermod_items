@@ -17,6 +17,12 @@
          <a href="#" {{action saveGame target="view"}}>
             <button id="createSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_new}}</button>
          </a>
+
+         <div id="autoSaveSetting">
+            {{input type="checkbox" id="autoSaveCheckbox" checked=controller.auto_save}}
+            <label for="autoSaveCheckbox">{{i18n stonehearth:save_autosave}}</label>
+         </div>
+
       </div>
      
    </div>
@@ -45,7 +51,7 @@
          <a {{action 'selectSave' this target=view}}>
             <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key }} >
                <div class="gameInfo">
-                  <div class="name">{{this.gameinfo.town_name}}</div>
+                  <div class="name">{{this.gameinfo.name}}{{this.gameinfo.town_name}}</div>
                   <div class="gameTime">{{this.gameinfo.game_date}}, {{this.gameinfo.game_time}}</div>
                   <div class="time">Saved {{this.gameinfo.time}}</div>
                   {{#if differentVersions}}

@@ -7,6 +7,7 @@ App.SaveController = Ember.Controller.extend({
    init: function() {
       this._super();
       this._getSaves();
+      this._getAutoSaveSetting();
    },
 
    // grab all the saves from the server
@@ -46,6 +47,23 @@ App.SaveController = Ember.Controller.extend({
       return vals;
    },
 
+   _getAutoSaveSetting: function() {
+      var self = this;
+
+      radiant.call('radiant:get_config', 'enable_auto_save')
+         .done(function(response) {
+            self.set('auto_save', response.enable_auto_save == true);
+         })
+   },
+
+   _toggleAutoSave: function() {
+      // XXX, this pattern is a little weird, but it lets us
+      // 1. use dual-binding between a checkbox and the data in the controller
+      // 2. have a clean API in actions
+      var enabled = this.get('auto_save');
+      this.send('enableAutoSave', enabled);
+   }.observes('auto_save'),
+
    // the action interface
    actions: {
       saveGame: function(saveid) {
@@ -61,7 +79,7 @@ App.SaveController = Ember.Controller.extend({
          self.set('opInProgress', true);
 
          radiant.call("radiant:client:save_game", saveid, { 
-               name: "",
+               name: saveid == 'auto_save' ? i18n.t('stonehearth:auto_save_prefix') : '',
                town_name: App.stonehearthClient.settlementName(),
                game_date: gameDate,
                game_time: gameTime,
@@ -95,6 +113,10 @@ App.SaveController = Ember.Controller.extend({
                });
          }
       },
+
+      enableAutoSave: function(enable) {
+         radiant.call('radiant:set_config', 'enable_auto_save', enable);
+      }
    },
 });
 
@@ -126,10 +148,12 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
       if (this.$()) {
          if (enabled) {
             this.$('#deleteSaveButton').removeClass('disabled')
+            this.$('#loadSaveButton').removeClass('disabled')
             this.$('#overwriteSaveButton').removeClass('disabled')
             this.$('#createSaveButton').removeClass('disabled')
          } else {
             this.$('#deleteSaveButton').addClass('disabled')
+            this.$('#loadSaveButton').addClass('disabled')
             this.$('#overwriteSaveButton').addClass('disabled')
             this.$('#createSaveButton').addClass('disabled')
          }

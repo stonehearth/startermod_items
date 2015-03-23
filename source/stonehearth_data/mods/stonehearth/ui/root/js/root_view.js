@@ -1,3 +1,34 @@
+App.RootController = Ember.Controller.extend({
+   needs: ['save'],
+
+   _autoSave: function() {
+      var self = this;
+
+      radiant.call('radiant:get_config', 'enable_auto_save')
+         .done(function(response) {
+            if (response.enable_auto_save) {
+               var saveController = self.get('controllers.save');
+               saveController.send('saveGame', 'auto_save');
+            }
+         })
+   },
+
+   actions: {
+      // every 5 minutes, check if autosave is enabled, and if it is, save.
+      tryAutoSave: function(start) {
+         var self = this;
+
+         if (start) {
+            this._intervalTicket = setInterval(function() { 
+                  self._autoSave();
+               }, 5 * 60 * 1000);
+         } else {
+            clearInterval(this._intervalTicket);
+         }
+      },
+   },
+}),
+
 App.RootView = Ember.ContainerView.extend({
 
    init: function() {
@@ -68,6 +99,7 @@ App.RootView = Ember.ContainerView.extend({
 
       $(document).trigger('stonehearthGameStarted');
 
+      this.get('controller').send('tryAutoSave', true);
       /*
       setTimeout(function() {
          App.stonehearthTutorials.start();
@@ -78,6 +110,8 @@ App.RootView = Ember.ContainerView.extend({
    gotoShell: function() {
       $('#' + this._gameView.elementId).hide();
       $('#' + this._shellView.elementId).show();
+
+      this.get('controller').send('tryAutoSave', false);
    }
 
 });
