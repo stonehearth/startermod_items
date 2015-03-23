@@ -26,6 +26,7 @@ public:
    LuaFlameGraph(lua_State* L, ScriptHost& sh);
 
    core::StaticString MapFileLineToFunction(core::StaticString file, int line);
+
    void IndexFile(core::StaticString file);
    bool IsIndexing() { return _indexing; }
 

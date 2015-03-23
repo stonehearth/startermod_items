@@ -1,3 +1,5 @@
+_host:log('env', 0, 'including env')
+
 -- if these variables don't exist yet, they never will.  put them in the global
 -- namespace so we can check them before using (otherwise strict.lua will kick
 -- us in the teeth just for checking against nil)
@@ -8,6 +10,16 @@ if not decoda_output then
    decoda_output = false
 end
 
+-- register all threads with the backend
+if false then
+   local cocreate = coroutine.create
+   coroutine.create = function(f, ...)
+    local co = cocreate(function(...)
+      return f(...)
+    end, ...)
+    _host:register_thread(co)end
+end
+         
 -- this function is only valid in very specific circumstances!  specfically, the
 -- caller must be called DIRECTLY from a 3rd party module source file.
 __get_current_module_name = function(depth)
@@ -45,15 +57,23 @@ require = function(s)
    -- level 1 would be the __get_current_module_name function in env.lua...
    -- level 2 would be the caller of this function (e.g. require in env.lua...)
    -- level 3 is the caller of the caller, which is in the module we're looking for!
+   local mod
    local modname = __get_current_module_name(3)
    if modname then
-      local mod = _host:require(modname .. '.' .. s)
-      if mod then
-         return mod
-      end
+      mod = _host:require(modname .. '.' .. s)
    end
-   -- try the full path...
-   return _host:require(s)
+
+   if not mod then
+      -- try the full path...
+      mod =  _host:require(s)
+   end
+
+   if not mod then
+      -- try radiant.lib
+      mod = _host:require('radiant.lib.' .. s)
+   end
+   
+   return mod
 end
 
 -- We need to redefine 'next' and 'pairs' in order to allow for traversal of tables that have 

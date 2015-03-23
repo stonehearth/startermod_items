@@ -7,6 +7,11 @@
 BEGIN_RADIANT_RES_NAMESPACE
 
 class IModule;
+class LuaFileMapper;
+class ResourceCompiler;
+
+DECLARE_SHARED_POINTER_TYPES(LuaFileMapper);
+DECLARE_SHARED_POINTER_TYPES(ResourceCompiler)
 
 END_RADIANT_RES_NAMESPACE
 

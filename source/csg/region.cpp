@@ -475,7 +475,7 @@ void Region<S, C>::OptimizeByMerge(const char* reason)
       return;
    }
 
-   if (_churn < count) {
+   if (_churn < (int)count) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
       return;
@@ -698,7 +698,7 @@ void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
       return;
    }
 
-   if (_churn < count) {
+   if (_churn < (int)count) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
       return;

@@ -1,26 +1,26 @@
 #include "radiant.h"
 #include "flame_graph.h"
+#include "timer.h"
 
 using namespace radiant;
 using namespace radiant::perfmon;
+
+#pragma optimize ( "", off )
 
 core::DoubleBuffer<perfmon::FlameGraph> flameGraphs;
 
 StackFrame::StackFrame(core::StaticString name) :
    _name(name),
-   _count(1),
+   _count(0),
    _childTotalCount(0)
 {
 }
 
 StackFrame* StackFrame::AddStackFrame(core::StaticString name)
 {
-   ++_childTotalCount;
-
    // O(n), but much more cache-friendly then a hashtable.
    for (StackFrame& c : _children) {
       if (c._name == name) {
-         ++c._count;
          return &c;
       }
    }
@@ -50,30 +50,78 @@ std::vector<StackFrame> const& StackFrame::GetChildren() const
    return _children;
 }
 
+void StackFrame::CollectStats(TimeTable &stats, FunctionNameStack& stack) const
+{
+   bool recursive = std::find(stack.begin(), stack.end(), _name) != stack.end();
+
+   if (!recursive) {
+      stats[_name] += _count;
+   }
+
+   stack.emplace_back(_name);
+   for (StackFrame const& c : _children) {
+      c.CollectStats(stats, stack);
+   }
+   stack.pop_back();
+}
+
+
 FlameGraph::FlameGraph() :
    _base("base"),
+   _first(true),
    _depth(0)
 {
 }
 
-void FlameGraph::AddLuaBacktrace(const char* backtrace, int len, TranslateFn translateFn)
+StackFrame *FlameGraph::GetBaseStackFrame()
 {
-   const char *start = backtrace, *p = backtrace;
-   StackFrame *current = &_base;
-   int depth = 0;
-
-   for (int i = 0; i < len; i++, p++) {
-      if (*p == ';') {
-         core::StaticString name(start, p - start);
-         current = current->AddStackFrame(translateFn(name));
-         start = p + 1;
-         ++depth;
-      }
-   }
-   _depth = std::max(_depth, depth);
+   return &_base;
 }
 
 void FlameGraph::Clear()
 {
    _base.Clear();
+}
+
+void FlameGraph::PushFrame(core::StaticString fn)
+{
+   if (_first) {
+      _stack.push(&_base);
+      _first = false;
+   }
+
+   ASSERT(!_stack.empty());
+   StackFrame *s = _stack.top().frame->AddStackFrame(fn);
+   _stack.push(StackEntry(s));
+}
+
+void FlameGraph::PopFrame(core::StaticString fn)
+{
+   StackEntry e = _stack.top();
+   _stack.pop();
+
+   if (e.frame->GetName() != fn) {
+      LOG_(0) << "popping " << fn << " " << e.frame->GetName() << " " << strcmp(e.frame->GetName(), fn);
+   }
+
+   ASSERT(e.frame->GetName() == fn);
+   ASSERT(!_stack.empty());
+
+   e.frame->IncrementCount(e.GetElapsed());
+}
+
+FlameGraph::StackEntry::StackEntry(StackFrame* f) :
+   frame(f),
+   start(Timer::GetCurrentCounterValueType())
+{
+}
+
+CounterValueType FlameGraph::StackEntry::GetElapsed() const
+{
+   return Timer::GetCurrentCounterValueType() - start;
+}
+
+void FlameGraph::CollectStats(TimeTable& stats) const
+{
+   _base.CollectStats(stats, StackFrame::FunctionNameStack());
 }

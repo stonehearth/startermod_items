@@ -1,28 +1,37 @@
 #ifndef _RADIANT_PERFMON_FLAMEGRAPH_H
 #define _RADIANT_PERFMON_FLAMEGRAPH_H
 
+#include <stack>
 #include <unordered_map>
 #include "namespace.h"
 #include "core/static_string.h"
 
 BEGIN_RADIANT_PERFMON_NAMESPACE
 
+typedef std::unordered_map<core::StaticString, CounterValueType, core::StaticString::Hash> TimeTable;
+
 class StackFrame {
+public:
+   typedef std::vector<core::StaticString> FunctionNameStack;
+
 public:
    StackFrame(core::StaticString name);
 
    core::StaticString GetName() const { return _name; }
-   int GetCount() const { return _count; }
-   int GetChildrenTotalCount() const { return _childTotalCount; }
+   CounterValueType GetCount() const { return _count; }
+   void IncrementCount(CounterValueType c) { _count += c; }
+   CounterValueType GetChildrenTotalCount() const { return _childTotalCount; }
    std::vector<StackFrame> const& GetChildren() const;
 
    StackFrame* AddStackFrame(core::StaticString name);
    void Clear();
 
+   void CollectStats(TimeTable &stats, FunctionNameStack& stack) const;
+
 private:
    core::StaticString         _name;
-   unsigned int               _count;
-   unsigned int               _childTotalCount;
+   CounterValueType           _count;
+   CounterValueType           _childTotalCount;
    std::vector<StackFrame>    _children;
 };
 
@@ -31,15 +40,30 @@ class FlameGraph
 public:
    FlameGraph();
 
-   typedef std::function<core::StaticString(core::StaticString name)> TranslateFn;
-   void AddLuaBacktrace(const char* backtrace, int len, TranslateFn translateFn);
+public:
    void Clear();
    int GetDepth() const { return _depth; }
-   StackFrame const& GetBaseFrame() const { return _base; }
+   StackFrame* GetBaseStackFrame();
+
+   void PushFrame(core::StaticString fn);
+   void PopFrame(core::StaticString fn);
+
+   void CollectStats(TimeTable& stats) const;
 
 private:
-   StackFrame        _base;
-   int               _depth;
+   struct StackEntry {
+      StackFrame*       frame;
+      CounterValueType  start;
+
+      CounterValueType GetElapsed() const;
+      StackEntry(StackFrame* f);
+   };
+private:
+   bool                    _first;
+   StackFrame              *_current;
+   StackFrame              _base;
+   std::stack<StackEntry>  _stack;
+   int                     _depth;
 };
 
 END_RADIANT_PERFMON_NAMESPACE

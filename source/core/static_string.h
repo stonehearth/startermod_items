@@ -19,16 +19,28 @@ BEGIN_RADIANT_CORE_NAMESPACE
 class StaticString
 {
 public:
+   StaticString(StaticString const& );
    StaticString(std::string const& s);
    StaticString(const char* s);
    StaticString(const char* s, size_t len);
    operator const char*() const { return _value; }
+
+   // for when we KNOW a const char* came from another StaticString and we don't
+   // want to hash it again.
+   static StaticString FromPreviousStaticStringValue(const char* value) {
+      StaticString s;
+      s._value = value;
+      return s;
+   }
 
    struct Hash {
       inline std::size_t operator()(StaticString const& s) {
          return std::hash<const char *>()(static_cast<const char*>(s));
       }
    };
+
+private:
+   StaticString() { }
 
 private:
    const char*    _value;

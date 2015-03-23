@@ -54,6 +54,8 @@
 #include "lib/audio/audio.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/perfmon/flame_graph.h"
+#include "lib/perfmon/report.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
 #include "dm/receiver.h"
@@ -119,6 +121,9 @@ Client::Client() :
    _currentUiScreen(InvalidScreen)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
+   _allocDataStoreFn = [this](int storeId) {
+      return AllocateDatastore(storeId);
+   };
 }
 
 Client::~Client()
@@ -230,9 +235,9 @@ void Client::OneTimeIninitializtion()
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
       };
-      _commands[GLFW_KEY_NUM_LOCK] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
+
       _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
-      // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
+      _commands[GLFW_KEY_KP_ADD] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
    }
 
    // Reactors...
@@ -679,9 +684,7 @@ void Client::Shutdown()
 
 void Client::InitializeDataObjects()
 {
-   scriptHost_.reset(new lua::ScriptHost("client", [this](int storeId) {
-      return AllocateDatastore(storeId);
-   }));
+   scriptHost_.reset(new lua::ScriptHost("client"));
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
 
@@ -1829,7 +1832,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->LoadGame(localModList_, authoredEntities_, datastores);  
+   scriptHost_->LoadGame(localModList_, _allocDataStoreFn, authoredEntities_, datastores);  
    initialUpdate_ = true;
 
    platform::SysInfo::LogMemoryStatistics("Finished Loading Client", 0);
@@ -1849,7 +1852,7 @@ void Client::CreateGame()
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->CreateGame(localModList_);
+   scriptHost_->CreateGame(localModList_, _allocDataStoreFn);
    initialUpdate_ = true;
 }
 

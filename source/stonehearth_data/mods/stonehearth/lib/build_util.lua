@@ -461,4 +461,33 @@ function build_util.unpack_entity(id, entity_map)
    return entity
 end
 
+function build_util.unpack_entity(id, entity_map)
+end
+
+function build_util.grow_walls_visitor(around_entity, visitor_cb)
+   -- only grow walls around floor.   
+   local building = build_util.get_building_for(around_entity)
+
+   -- accumulate all the floor tiles in the building into a single, opaque region
+   local floor_region = building:get_component('stonehearth:building')
+                                    :calculate_floor_region()
+
+
+   local origin = radiant.entities.get_world_grid_location(building)
+
+   -- convert each 2d edge to 3d min and max coordinates and add a wall span
+   -- for each one.
+   local edges = floor_region:get_edge_list()
+   for edge in edges:each_edge() do
+      local min = self:_edge_point_to_point(edge.min) + origin
+      local max = self:_edge_point_to_point(edge.max) + origin
+      local normal = Point3(edge.normal.x, 0, edge.normal.y)
+
+      if min ~= max then
+         self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
+      end
+   end
+end
+
+
 return build_util

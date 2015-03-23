@@ -291,6 +291,7 @@ private:
       std::string                 loadError_;
       std::unique_ptr<PerfHud>         _perfHud;
       std::unique_ptr<FlameGraphHud>   _flameGraphHud;
+      std::function<om::DataStoreRef(int storeId)> _allocDataStoreFn;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

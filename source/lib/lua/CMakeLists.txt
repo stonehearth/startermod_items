@@ -14,7 +14,6 @@ add_library(lua
             dynload_lua.cpp
             script_host.cpp
             data_object.cpp
-            lua_supplemental.cpp
             lua_flame_graph.cpp
             analytics/open_analytics.cpp
             audio/open_audio.cpp

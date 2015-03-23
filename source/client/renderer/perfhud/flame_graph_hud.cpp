@@ -40,7 +40,7 @@ FlameGraphHud& FlameGraphHud::Render()
    csg::Rect2f rc = bounds_;
    rc.min.y = rc.max.y - height;
 
-   RenderStackFrame(g.GetBaseFrame(), rc, csg::Color3::red);
+   RenderStackFrame(*g.GetBaseStackFrame(), rc, csg::Color3::red);
    flameGraphs.UnlockFrontBuffer();
    return *this;
 }

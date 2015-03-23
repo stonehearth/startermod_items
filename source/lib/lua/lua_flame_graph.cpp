@@ -68,3 +68,4 @@ void LuaFlameGraph::IndexFile(core::StaticString filename)
 
    _indexing = false;
 }
+

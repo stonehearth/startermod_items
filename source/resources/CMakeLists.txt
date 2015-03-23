@@ -10,6 +10,8 @@ add_library(resources STATIC
             directory_module.cpp
             zip_module.cpp
             res_manager.cpp
+            lua_file_mapper.cpp
+            resource_compiler.cpp
             )
 
 target_link_libraries(resources

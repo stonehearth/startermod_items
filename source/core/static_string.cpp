@@ -6,6 +6,11 @@ using namespace ::radiant;
 using namespace ::radiant::core;
 
 
+StaticString::StaticString(StaticString const& s)
+{
+   _value = s._value;
+}
+
 StaticString::StaticString(std::string const& s)
 {
    _value = dm::SafeCStringTable()(s.c_str());

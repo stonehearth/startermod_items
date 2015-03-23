@@ -22,6 +22,7 @@ template <typename T> std::string Repr(T const& obj);
 
 #define LUA_LOG(level)     LOG(lua.code, level)
 
+DECLARE_SHARED_POINTER_TYPES(ScriptHost);
 DECLARE_SHARED_POINTER_TYPES(TraceWrapper);
 
 END_RADIANT_LUA_NAMESPACE

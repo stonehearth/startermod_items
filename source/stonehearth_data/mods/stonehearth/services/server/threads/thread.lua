@@ -209,6 +209,7 @@ function Thread:start(...)
                self._should_resume = false
             end, error_handler)
       end)
+   _radiant.register_thread(self._co)
    Thread.all_threads[self._co] = self
 
    self._log:detail('starting thread')   
