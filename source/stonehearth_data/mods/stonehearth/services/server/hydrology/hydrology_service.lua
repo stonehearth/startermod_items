@@ -26,9 +26,15 @@ function HydrologyService:initialize()
    end
 
    if radiant.util.get_config('enable_water', false) then
-      stonehearth.calendar:set_interval(10, function()
-            self:_on_tick()
-         end)
+      if self._sv.water_tick then
+         self._sv.water_tick:bind(function()
+               self:_on_tick()
+            end)
+      else
+         self._sv.water_tick = stonehearth.calendar:set_interval(10, function()
+               self:_on_tick()
+            end)
+         end
    end
 
    self:_trace_terrain_delta()
