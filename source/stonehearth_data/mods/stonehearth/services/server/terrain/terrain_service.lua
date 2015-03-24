@@ -168,7 +168,7 @@ function TerrainService:_update_regions()
 
                      local seconds = Timer.measure(
                         function()
-                           region2:optimize_by_oct_tree(64)
+                           region2:optimize_by_oct_tree('unexplored region', 64)
                         end
                      )
                      log:debug('Optimization time: %.3fs', seconds)

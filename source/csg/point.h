@@ -146,6 +146,14 @@ public:
       }
    };
 
+
+   class Compare {
+   public:
+      bool operator()(Point const& lhs, Point const& rhs) {
+         return lhs.x < rhs.x;
+      }
+   };
+
    Point operator/(S amount) const {
       // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
@@ -253,6 +261,16 @@ public:
       inline size_t operator()(Point<S, 2> const& p) const {
          return static_cast<size_t>(p.x * 73856093) ^
                 static_cast<size_t>(p.y * 19349669);
+      }
+   };
+
+   class Compare {
+   public:
+      bool operator()(Point const& lhs, Point const& rhs) {
+         if (lhs.x != rhs.x) {
+            return lhs.x < rhs.x;
+         }
+         return lhs.y < rhs.y;
       }
    };
 
@@ -384,6 +402,21 @@ public:
                 static_cast<size_t>(p.z * 83492791);
       }
    };
+
+
+   class Compare {
+   public:
+      bool operator()(Point const& lhs, Point const& rhs) {
+         if (lhs.x != rhs.x) {
+            return lhs.x < rhs.x;
+         }
+         if (lhs.z != rhs.z) {
+            return lhs.z < rhs.z;
+         }
+         return lhs.y < rhs.y;
+      }
+   };
+
 
    Point operator/(S amount) const {
       // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly

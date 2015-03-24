@@ -82,7 +82,8 @@ function entities.kill_entity(entity)
 
       --Trigger a more general event, for non-affiliated components
       radiant.events.trigger_async(radiant.entities, 'stonehearth:entity_killed', {
-         entity = entity,
+         -- TODO: for now.  Realistically, we'd like to know if this was an adult, a child, a pet, etc.
+         sentient = entity:get_component('stonehearth:ai') ~= nil,
          id = entity:get_id(),
          name = radiant.entities.get_display_name(entity),
          player_id = radiant.entities.get_player_id(entity)

@@ -206,12 +206,12 @@ static void Sky_SetStarfieldBrightness(float brightness) {
    Renderer::GetInstance().SetStarfieldBrightness(brightness);
 }
 
-static void Renderer_SetVisibleRegion(std::string const& uri) {
-   Renderer::GetInstance().SetVisibleRegion(uri);
+static bool Renderer_SetVisibleRegion(std::string const& uri) {
+   return Renderer::GetInstance().SetVisibleRegion(uri);
 }
 
-static void Renderer_SetExploredRegion(std::string const& uri) {
-   Renderer::GetInstance().SetExploredRegion(uri);
+static bool Renderer_SetExploredRegion(std::string const& uri) {
+   return Renderer::GetInstance().SetExploredRegion(uri);
 }
 
 static void Renderer_EnablePerfLogging(bool enable)

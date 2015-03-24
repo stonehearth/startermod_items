@@ -238,11 +238,10 @@ function PlaceItemCallHandler:place_item_on_structure(session, response, item, l
    end
    
    location = location - radiant.entities.get_world_grid_location(structure_entity)
-   stonehearth.build:add_fixture(structure_entity, item, location, normal, rotation)
+   stonehearth.build:add_fixture(structure_entity, item, location, normal, rotation, true)
 
    return true
 end
-
 
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
@@ -286,7 +285,7 @@ function PlaceItemCallHandler:place_item_type_on_structure(session, response, en
    local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
    assert(data, 'must send entity-forms root entity to place_item_type_on_structure')
    location = location - radiant.entities.get_world_grid_location(structure_entity)
-   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal, rotation)
+   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal, rotation, true)
    return true
 end
 
@@ -297,8 +296,7 @@ function PlaceItemCallHandler:undeploy_item(session, response, item)
       efc:set_should_restock(not current_value)
    end   
 
-   return true;
+   return true
 end
-
 
 return PlaceItemCallHandler

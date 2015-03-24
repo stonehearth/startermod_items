@@ -83,6 +83,8 @@ struct RendererConfig {
    
    RendererConfigEntry<bool> disable_pinned_memory;
    RendererConfigEntry<bool> run_once;
+
+   RendererConfigEntry<bool> dump_compiled_shaders;
 };
 
 struct SystemStats {

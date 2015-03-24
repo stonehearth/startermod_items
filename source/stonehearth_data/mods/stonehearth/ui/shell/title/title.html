@@ -5,7 +5,7 @@
       
       <div id="menubar">
          <a href="#" {{action exit target="view"}}>{{i18n stonehearth:title_screen_exit}}</a>
-         <a href="#" {{action settings target="view"}}>{{i18n stonehearth:title_screen_settings}}</a>
+         <a href="#" {{action 'openModal' 'settings'}}>{{i18n stonehearth:title_screen_settings}}</a>
          <!--
          <a href="#">{{i18n stonehearth:title_screen_credits}}</a>
          -->
@@ -45,7 +45,7 @@
          <a href="#" {{action newGame target="view"}}>
             <button id="newGameButton" class="flat">{{i18n stonehearth:title_screen_new_game}}</button>
          </a>
-         <a href="#" {{action loadGame target="view"}}>
+         <a href="#" {{action 'openModal' 'save'}}>
             <button id="loadGameButton" class="flat">{{i18n stonehearth:title_screen_load_game}}</button>
          </a>
 

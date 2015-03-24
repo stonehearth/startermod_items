@@ -165,12 +165,6 @@ function ChannelManager:calculate_channel_flow_rate(channel, source_elevation_bi
    end
 
    local flow_rate = self:calculate_flow_rate(source_elevation, target_elevation)
-
-   if flow_rate > 0 and channel.channel_type == 'pressure' then
-      -- this is a bit hacky. used to avoid exponentially long convergence
-      flow_rate = math.max(flow_rate, constants.hydrology.MIN_PRESSURE_FLOW_RATE)
-   end
-
    return flow_rate
 end
 
@@ -180,10 +174,14 @@ function ChannelManager:calculate_flow_rate(from_elevation, to_elevation)
    local pressure = from_elevation - to_elevation
    local flow_rate = pressure * constants.hydrology.PRESSURE_TO_FLOW_RATE
 
-   -- stop flowing when less than a "drop" of water
-   -- we don't want to keep computing immaterial deltas
+   -- establish a minimum flow rate to avoid computing immaterial deltas
+   -- also avoids exponential convergence
    if flow_rate < constants.hydrology.MIN_FLOW_RATE then
-      flow_rate = 0
+      if flow_rate < constants.hydrology.STOP_FLOW_THRESHOLD then
+         flow_rate = 0
+      else
+         flow_rate = constants.hydrology.MIN_FLOW_RATE
+      end
    end
 
    return flow_rate

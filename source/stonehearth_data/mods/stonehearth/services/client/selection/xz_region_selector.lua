@@ -390,7 +390,7 @@ function XZRegionSelector:_compute_endpoint(q0, q1)
       end
    end
 
-   self._valid_region_cache:optimize_by_merge()
+   self._valid_region_cache:optimize_by_merge('xzregionselector:_compute_endpoint')
    local resolved_q1 = self._valid_region_cache:get_closest_point(q1)
    return resolved_q1
 end

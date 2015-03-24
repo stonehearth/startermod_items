@@ -11,7 +11,7 @@ function OreVein:initialize(properties, context, services)
    local ore_network = stonehearth.mining:create_ore_network(location, properties.kind, properties.data)
    local terrain_shape = radiant.terrain.intersect_region(ore_network)
    local intersected_ore_network = ore_network:intersect_region(terrain_shape)
-   intersected_ore_network:optimize_by_merge()
+   intersected_ore_network:optimize_by_merge('ore:initialize()')
    radiant.terrain.add_region(intersected_ore_network)
 end
 

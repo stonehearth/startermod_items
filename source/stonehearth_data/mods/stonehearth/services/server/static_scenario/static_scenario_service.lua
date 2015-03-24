@@ -115,7 +115,7 @@ function StaticScenarioService:reveal_region(world_space_region, activation_filt
 
    if num_rects >= self._sv._last_optimized_rect_count * self._region_optimization_threshold then
       log:debug('Optimizing scenario region')
-      revealed_region:optimize_by_oct_tree(8)
+      revealed_region:optimize_by_oct_tree('revealed region', 8)
       self._sv._last_optimized_rect_count = revealed_region:get_num_rects()
    end
 

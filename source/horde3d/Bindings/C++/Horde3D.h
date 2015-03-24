@@ -115,7 +115,8 @@ struct H3DOptions
       EnableShadows,
       EnableStatsLogging,
       DisablePinnedMemory,
-      MaxLights
+      MaxLights,
+      DumpCompiledShaders
 	};
 };
 

@@ -58,7 +58,7 @@ bool CrashReporterClient::OnException(void* context, EXCEPTION_POINTERS* exinfo,
    return true;
 }
 
-void CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid)
+void CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid, std::string const& sessionid)
 {
    ASSERT(!running_);
 
@@ -68,7 +68,9 @@ void CrashReporterClient::Start(std::string const& crash_dump_path, std::string 
       "\"" << pipe_name << " \" " << 
       "\"" << crash_dump_path << "\" " <<
       "\"" << crash_dump_uri << "\" " <<
-      "\"" << userid << "\"");
+      "\"" << userid << "\" "
+      "\"" << sessionid << "\""
+      );
 
    core::System::Log(BUILD_STRING("starting crash reporter: " << command_line));
    crash_reporter_server_process_.reset(new radiant::core::Process(command_line));

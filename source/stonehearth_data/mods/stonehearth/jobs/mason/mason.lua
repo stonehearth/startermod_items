@@ -19,7 +19,8 @@ function MasonClass:restore()
    self.__saved_variables:mark_changed()
 end
 
-function MasonClass:promote(json, talisman_entity)
+function MasonClass:promote(json, options)
+   local talisman_entity = options and options.talisman
    job_helper.promote(self._sv, json)
 
    local crafter_component = self._sv._entity:add_component("stonehearth:crafter", json.crafter) 

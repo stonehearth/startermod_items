@@ -41,7 +41,17 @@ void Terrain::SerializeToJson(json::Node& node) const
 void Terrain::ConstructObject()
 {
    Component::ConstructObject();
+   DeferredInitialize();
+}
 
+void Terrain::OnLoadObject(dm::SerializationType r)
+{
+   ReadConfigFile();
+   DeferredInitialize();
+}
+
+void Terrain::DeferredInitialize()
+{
    csg::Point3 tileSize(phys::TILE_SIZE, phys::TILE_SIZE, phys::TILE_SIZE);
    water_tight_region_ = std::make_shared<om::Region3Tiled>(tileSize, water_tight_region_tiles_);
 }
@@ -186,9 +196,4 @@ void Terrain::ReadConfigFile()
    res::ResourceManager2::GetInstance().LookupJson(*config_file_name_, [&](const json::Node& node) {
       terrainRingTesselator_->LoadFromJson(node);
    });
-}
-
-void Terrain::OnLoadObject(dm::SerializationType r)
-{
-   ReadConfigFile();
 }

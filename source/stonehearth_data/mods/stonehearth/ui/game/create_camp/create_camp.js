@@ -16,7 +16,7 @@ App.StonehearthCreateCampView = App.View.extend({
 
       App.stonehearthClient.showTip('Click the banner to choose your settlement\'s location');
 
-      this.$('#banner').click(function() {
+      this.$('#bannerClick').click(function() {
          self._placeBanner();
       })
    },
@@ -104,11 +104,13 @@ App.StonehearthCreateCampView = App.View.extend({
    _showBanner: function() {
       this._bannerPlaced = false
       $('#banner').animate({ 'bottom' : -22 }, 100);
+      $('#bannerClick').show();
    },
 
    _hideBanner: function() {
       this._bannerPlaced = true
       this.$('#banner').animate({ 'bottom' : -300 }, 100);
+      $('#bannerClick').hide();
    },
 
    _hideScroll: function(id, callback) {

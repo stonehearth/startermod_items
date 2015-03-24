@@ -1,6 +1,8 @@
 {
    "ok" : "OK",
    "cancel" : "Cancel",
+   "yes" : "Yes",
+   "no" : "No",
    "accept" : "Accept",
    "decline" : "Decline",
    "back" : "Back",
@@ -18,6 +20,15 @@
    "title_screen_load_game": "Load Game",
    "title_screen_quick_start": "Quick Start",
    "title_screen_patch_notes": "Show Patch Notes",
+
+   "save_view_title" : "Saved Games",
+   "save_confim_delete_title" : "Confirm Delete",
+   "save_confirm_delete_message" : "Do you really want to delete this save game?",
+   "save_confim_overwrite_title" : "Confirm Save Overwrite",
+   "save_confirm_overwrite_message" : "Do you really want to completely, unrevokably overwrite this save game?",
+   "save_autosave" : "Automatically save periodically",
+   "auto_save_prefix" : "Auto save: ",
+   "save_in_progress" : "Saving...",
 
    "opt_title" : "Help us make Stonehearth better!",
    "opt_text" : "Will you allow us to collect anonymous performance and gameplay data to help us tune future versions of the game?",
@@ -65,7 +76,8 @@
 
    "settings_system" : "System",
    "settings_enable_64bit" : "Use 64-bit (Requires Restart)",
-   "settings_send_anon_data" : "Send anonymous feedback",
+   "settings_enable_lua_jit" : "Use Lua JIT (Requires Restart)",
+   "settings_send_anon_data" : "Send anonymous feedback to help improve Stonehearth!",
 
 
    "new_game_embark_button" : "Embark!",
@@ -117,8 +129,7 @@
    "mineral_4": "Ample",
 
    "esc_menu_resume": "Resume",
-   "esc_menu_save": "Save Game",
-   "esc_menu_load": "Load Game",
+   "esc_menu_save": "Save or Load Game",
    "esc_menu_options": "Options",
    "esc_menu_quit_to_menu": "Quit to Main Menu",
    "esc_menu_exit_game": "Exit Game",

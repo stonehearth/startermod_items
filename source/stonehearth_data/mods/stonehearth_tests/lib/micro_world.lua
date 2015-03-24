@@ -58,12 +58,12 @@ function MicroWorld:place_item(uri, x, z, player_id, options)
    return entity
 end
 
-function MicroWorld:place_item_cluster(uri, x, z, w, h)
+function MicroWorld:place_item_cluster(uri, x, z, w, h, player_id)
    w = w and w or 3
    h = h and h or 3
    for i = x, x+w-1 do
       for j = z, z+h-1 do
-         self:place_item(uri, i, j)
+         self:place_item(uri, i, j, player_id)
       end
    end
 end

@@ -3,9 +3,8 @@
       <div class="window">
          <div class="title">Stonehearth</div>
          <a href="#" {{action "resume" target="view"}}><button>{{i18n stonehearth:esc_menu_resume}}</button></a>
-         <a href="#" {{action "save" target="view"}}><button>{{i18n stonehearth:esc_menu_save}}</button></a>
-         <a href="#" {{action "load" target="view"}}><button>{{i18n stonehearth:esc_menu_load}}</button></a>
-         <a href="#" {{action "settings" target="view"}}><button>{{i18n stonehearth:esc_menu_options}}</button></a>
+         <button {{action 'openModal' 'save'}} clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:esc_menu_save}}</button>
+         <button {{action 'openModal' 'settings'}} clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:esc_menu_options}}</button>
          <!--
          <a href="#" {{action "quitToMainMenu" target="view"}}><button>{{i18n stonehearth:esc_menu_quit_to_menu}}</button></a>
          -->

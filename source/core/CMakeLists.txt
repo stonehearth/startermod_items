@@ -1,5 +1,6 @@
 FIND_PACKAGE(Poco REQUIRED)
 FIND_PACKAGE(Libjson REQUIRED)
+FIND_PACKAGE(Tbb REQUIRED)
 
 include_directories(${Poco_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
@@ -24,4 +25,5 @@ target_link_libraries(core
                       ${Poco_LIBRARIES}
                       ${Libjson_LIBRARIES}
                       ${VTune_LIBRARIES}
+                      ${Tbb_LIBRARIES}
                       )
