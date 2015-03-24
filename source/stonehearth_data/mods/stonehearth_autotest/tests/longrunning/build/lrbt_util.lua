@@ -104,7 +104,10 @@ function lrbt_util.create_wooden_wall(session, p0, p1)
 end
 
 function lrbt_util.grow_wooden_walls(session, building)
-   return stonehearth.build:grow_walls(building, WOODEN_COLUMN, WOODEN_WALL)
+   local floors = building:get_component('stonehearth:building')
+                           :get_floors()
+   local _, floor = next(floors)
+   return stonehearth.build:grow_walls(floor, WOODEN_COLUMN, WOODEN_WALL)
 end
 
 function lrbt_util.grow_wooden_roof(session, building)
