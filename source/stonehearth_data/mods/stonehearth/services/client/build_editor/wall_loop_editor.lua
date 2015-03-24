@@ -172,7 +172,10 @@ end
 
 function WallLoopEditor:_create_column_editor(column_uri)
    local column_editor = StructureEditor()
-   column_editor:create_blueprint(column_uri, 'stonehearth:column')      
+   local column = column_editor:create_blueprint(column_uri, 'stonehearth:column')      
+   column:get_component('stonehearth:column')
+            :layout()
+
    return column_editor
 end
 

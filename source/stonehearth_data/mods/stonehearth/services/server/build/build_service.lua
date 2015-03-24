@@ -730,27 +730,6 @@ function BuildService:_merge_building_into(merge_into, building)
 end
 
 
--- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
--- 1-unit removed from where the floor is for each edge, so we add in the
--- accumualted normal for both the min and the max, with one small wrinkle:
--- the edges returned by :each_edge() live in the coordinate space of the
--- grid tile *lines* not the grid tile.  a consequence of this is that points
--- whose normals point in the positive direction end up getting pushed out
--- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
--- accumulated normal in grid-tile space (as opposed to grid-line space) to
--- prove this to yourself if you don't believe me.
-function BuildService:_edge_point_to_point(edge_point)
-   local point = Point3(edge_point.location.x, 0, edge_point.location.y)
-   if edge_point.accumulated_normals.x <= 0 then
-      point.x = point.x + edge_point.accumulated_normals.x
-   end
-   if edge_point.accumulated_normals.y <= 0 then
-      point.z = point.z + edge_point.accumulated_normals.y
-   end
-   return point
-end
-
-
 function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    -- look for floor that we can merge into.
    local c0 = self:_get_blueprint_at_point(p0)
@@ -778,46 +757,32 @@ end
 --
 --    @param session - the session for the player initiating the request
 --    @param response - a response object which we'll write the result into
---    @param building - the building whose floor we need to put walls around
+--    @param floor - the floor we need to put walls around
 --    @param columns_uri - the type of columns to generate
 --    @param walls_uri - the type of walls to generate
 --
-function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
+function BuildService:grow_walls_command(session, response, floor, columns_uri, walls_uri)
    local success = self:do_command('grow_walls', response, function()
-         self:grow_walls(building, columns_uri, walls_uri)
+         self:grow_walls(floor, columns_uri, walls_uri)
       end)
    return success or nil
 end
 
-function BuildService:grow_walls(building, columns_uri, walls_uri)
+function BuildService:grow_walls(floor, columns_uri, walls_uri)
    -- until we are smarter about the way we build walls, refuse to grow anything
    -- if any wall exists.  this prevents many stacking wall issues.
+   local building = build_util.get_building_for(floor)
    local structures = building:get_component('stonehearth:building')
                               :get_all_structures()
+                              
    if next(structures['stonehearth:wall']) then
       self._log:info('already have walls in building %s.  not growing.', building)
       return
    end
 
-   -- accumulate all the floor tiles in the building into a single, opaque region
-   local floor_region = building:get_component('stonehearth:building')
-                                    :calculate_floor_region()
-
-
-   local origin = radiant.entities.get_world_grid_location(building)
-
-   -- convert each 2d edge to 3d min and max coordinates and add a wall span
-   -- for each one.
-   local edges = floor_region:get_edge_list()
-   for edge in edges:each_edge() do
-      local min = self:_edge_point_to_point(edge.min) + origin
-      local max = self:_edge_point_to_point(edge.max) + origin
-      local normal = Point3(edge.normal.x, 0, edge.normal.y)
-
-      if min ~= max then
+   build_util.grow_walls_around(floor, function(min, max, normal)
          self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
-      end
-   end
+      end)
 end
 
 

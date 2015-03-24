@@ -214,6 +214,9 @@ function client_entities.is_child_of(entity, query_parent)
    return parent == query_parent
 end
 
+function client_entities.is_temporary_entity(entity)
+   return entity:get_store_id() ~= 2
+end
 
 client_entities.__init()
 return client_entities

@@ -1462,7 +1462,7 @@
       "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
    },
    "client_components" : {
-      "building" : "file(components/building/building_client_component.lua)",
+      "building" : "file(components/building/building_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
