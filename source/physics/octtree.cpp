@@ -133,8 +133,21 @@ void OctTree::OnComponentAdded(dm::ObjectId id, om::ComponentPtr component)
    }       
 }
 
-bool OctTree::ValidMove(om::EntityPtr const& entity, bool const reversible,
-                        csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const
+bool OctTree::ValidMove(om::EntityPtr const& entity,
+                        bool const reversible,
+                        csg::Point3 const& fromLocation,
+                        csg::Point3 const& toLocation) const
+{
+   return ValidMove(NavGrid::Query(&navgrid_, entity),
+                    reversible,
+                    fromLocation,
+                    toLocation);
+}
+
+bool OctTree::ValidMove(NavGrid::Query const& q,
+                        bool const reversible,
+                        csg::Point3 const& fromLocation,
+                        csg::Point3 const& toLocation) const
 {
    int const dx = toLocation.x - fromLocation.x;
    int const dy = toLocation.y - fromLocation.y;
@@ -147,20 +160,20 @@ bool OctTree::ValidMove(om::EntityPtr const& entity, bool const reversible,
 
    // check elevation changes
    if (dy != 0) {
-      if (!ValidElevationChange(entity, reversible, fromLocation, toLocation)) {
+      if (!ValidElevationChange(q.GetEntity(), reversible, fromLocation, toLocation)) {
          return false;
       }
    }
 
    // check that destination is standable
    // not checking that source location is standable so that entities can move off of invalid squares (newly invalid, bugged, etc)
-   if (!navgrid_.IsStandable(entity, toLocation)) {
+   if (!q.IsStandable(toLocation)) {
       return false;
    }
 
    // if diagonal, check diagonal constraints
    if (dx != 0 && dz != 0) {
-      if (!ValidDiagonalMove(entity, fromLocation, toLocation)) {
+      if (!ValidDiagonalMove(q, fromLocation, toLocation)) {
          return false;
       }
    }
@@ -201,18 +214,18 @@ bool OctTree::ValidElevationChange(om::EntityPtr const& entity, bool const rever
 
 // tests diagonal specific requirements
 // the two adjacent non-diagonal paths to the destination must be walkable with a height equal to either the from or to location
-bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& from, csg::Point3 const& to) const
+bool OctTree::ValidDiagonalMove(NavGrid::Query const& q, csg::Point3 const& from, csg::Point3 const& to) const
 {
    // path 1 - x first, y value of from
    {
       csg::Point3 pt(to.x, from.y, from.z);
-      if (!navgrid_.IsStandable(entity, pt)) {
+      if (!q.IsStandable(pt)) {
          return false;
       }
       if (from.y != to.y) {
          // path 1 - x first, y value of toLocation
          pt.y = to.y;
-         if (!navgrid_.IsStandable(entity, pt)) {
+         if (!q.IsStandable(pt)) {
             return false;
          }
       }
@@ -221,13 +234,13 @@ bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& 
    // path 2 - z first, y value of fromLocation
    {
       csg::Point3 pt(from.x, from.y, to.z);
-      if (!navgrid_.IsStandable(entity, pt)) {
+      if (!q.IsStandable(pt)) {
          return false;
       }
       if (from.y != to.y) {
          // path 1 - x first, y value of toLocation
          pt.y = to.y;
-         if (!navgrid_.IsStandable(entity, pt)) {
+         if (!q.IsStandable(pt)) {
             return false;
          }
       }
@@ -260,12 +273,12 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
    static const int diagonalMasks[] = {5, 10, 6, 9};
    int validDiagonals[] = {0, 0, 0, 0};
 
-   const om::MobPtr mob = entity->GetComponent<om::Mob>();
    int bitMask = 1;
+   NavGrid::Query q = NavGrid::Query(&navgrid_, entity);
    for (const auto& direction : cardinal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (navgrid_.IsStandable(entity, to, mob)) {
+         if (q.IsStandable(to)) {
             // As we figure out what is standable and what isn't, record those results in a bit-vector.
             // This will help us (drastically!) below with diagonals.
             validDiagonals[-dy + 1] |= bitMask;
@@ -291,7 +304,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
             continue;
          }
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (!navgrid_.IsStandable(entity, to, mob)) {
+         if (!q.IsStandable(to)) {
             continue;
          }
          cb(to, GetAdjacentMovementCost(from, to));
@@ -302,7 +315,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
 
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
-      if (navgrid_.IsStandable(entity, to, mob)) {
+      if (q.IsStandable(to)) {
          OT_LOG(9) << to << " is standable.  adding to list";
          cb(to, GetAdjacentMovementCost(from, to));
       } else {

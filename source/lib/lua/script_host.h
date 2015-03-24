@@ -23,6 +23,8 @@ public:
 
    void CreateGame(om::ModListPtr mods);
    void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
+   void Shutdown();
+   bool IsShutDown() const;
 
    luabind::object Require(std::string const& name);
    luabind::object RequireScript(std::string const& path);
@@ -30,7 +32,7 @@ public:
    void GC(platform::timer &timer);
    void FullGC();
    int GetAllocBytesCount() const;
-   void WriteMemoryProfile(std::string const& filename) const;
+   void WriteMemoryProfile(std::string const& filename);
    void DumpHeap(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
@@ -71,7 +73,6 @@ public: // the static interface
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
-   static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
    void Exit(int code);
@@ -125,6 +126,8 @@ private:
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
    AllocDataStoreFn     _allocDs;
+
+   bool                 shut_down_;
 };
 
 END_RADIANT_LUA_NAMESPACE

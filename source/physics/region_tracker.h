@@ -44,8 +44,9 @@ private:
    NO_COPY_CONSTRUCTOR(RegionTracker)
 
 private:
-   RegionTracePtr          trace_;
-   csg::CollisionBox       last_bounds_;
+   RegionTracePtr       _trace;
+   csg::Cube3           _lastBounds;
+   Region               _region;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

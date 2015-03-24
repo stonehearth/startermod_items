@@ -29,7 +29,7 @@ end
 function OreBlockRenderer:_update()
    self:_destroy_outline_node()
 
-   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, self._region, self._edge_color, self._face_color)
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, self._region, self._edge_color, self._face_color, 'materials/transparent.material.json')
 end
 
 return OreBlockRenderer

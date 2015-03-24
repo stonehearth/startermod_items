@@ -8,7 +8,7 @@
 
             <div class="setting">
                <label>{{i18n stonehearth:settings_card}}</label>
-               <span id="gfxCardString"></span>
+               <span id="gfxCardString">{{view.gfxCardString}}</span>
             </div>
 
             <div class="setting">
@@ -79,6 +79,10 @@
                <div class="setting">
                   <input type="checkbox" id="opt_enable64bit" {{bind-attr checked="enable_64bit"}}>
                   <label for="opt_enable64bit">{{i18n stonehearth:settings_enable_64bit}}</label>
+               </div>
+               <div class="setting">
+                  <input type="checkbox" id="opt_enableLuaJit" {{bind-attr checked="enable_lua_jit"}}>
+                  <label for="opt_enableLuaJit">{{i18n stonehearth:settings_enable_lua_jit}}</label>
                </div>
                <div class="setting">
                   <input type="checkbox" id="opt_enableCollectAnalytics" {{bind-attr checked="collect_analytics"}}>

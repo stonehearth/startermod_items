@@ -9,6 +9,15 @@ using namespace ::radiant::om;
 
 #define E_LOG(level)    LOG_CATEGORY(om.entity, level, *this)
 
+std::ostream& ::radiant::om::operator<<(std::ostream& os, std::shared_ptr<Entity> const& o)
+{
+   Entity const* obj = o.get();
+   if (obj) {
+      return os << *obj;
+   }
+   return (os << "(invalid Entity)");
+}
+
 std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 {
    // ug! luabind!!

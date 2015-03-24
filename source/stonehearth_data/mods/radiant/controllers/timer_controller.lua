@@ -1,4 +1,4 @@
-TimeTracker = class()
+local log = radiant.log.create_logger('timer')
 local Timer = class()
 
 function Timer:initialize(start_time, duration, fn, repeating)
@@ -9,6 +9,8 @@ function Timer:initialize(start_time, duration, fn, repeating)
    self._sv._expire_time = start_time + duration
    self._sv._repeating = repeating
    self._fn = fn
+
+   log:debug('start time: %f, expires: %f', self._sv._start_time, self._sv._expire_time)
 end
 
 function Timer:destroy()
@@ -23,7 +25,6 @@ end
 function Timer:is_active()
    return self._sv._active
 end
-
 
 function Timer:get_expire_time()
    return self._sv._expire_time

@@ -118,7 +118,7 @@ function HilightService:_create_coordinate_nodes(brick)
    local face_color = Color4(0, 0, 0, 0)
    local region = Region3()
    region:add_point(Point3.zero)
-   self._box_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
+   self._box_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color, 'materials/transparent.material.json')
    self._box_node:set_position(brick)
 end
 

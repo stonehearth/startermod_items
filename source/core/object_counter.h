@@ -7,7 +7,7 @@
 #include <map>
 #include <unordered_map>
 #include <typeindex>
-#include <boost/smart_ptr/detail/spinlock.hpp>
+#include <tbb/spin_mutex.h>
 
 /* 
  * Object Counter
@@ -72,7 +72,7 @@ protected:
    static int GetObjectCount(std::type_info const& t);
 
 private:
-   static boost::detail::spinlock __lock;
+   static tbb::spin_mutex __lock;
    static CounterMap __counters;
    static ObjectMap __objects;
    static bool __track_objects;

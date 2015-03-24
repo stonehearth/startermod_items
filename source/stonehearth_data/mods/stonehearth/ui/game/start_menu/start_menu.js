@@ -104,6 +104,7 @@ App.StonehearthStartMenuView = App.View.extend({
          .done(function(json) {
             self._buildMenu(json);
             self._addHotkeys();
+            self._tracePopulation();
 
             // hide menus that are in development
             radiant.call('radiant:get_config', 'show_in_progress_ui')
@@ -129,12 +130,6 @@ App.StonehearthStartMenuView = App.View.extend({
             }
          });
 
-      radiant.call('stonehearth:get_population')
-         .done(function(response){
-            // xxx: setting 'uri' causes the view to re-reinitialize itself!
-            //self.set('uri', response.population);
-         });
-
       /*
       $('#startMenu').on( 'mouseover', 'a', function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover'});
@@ -147,35 +142,20 @@ App.StonehearthStartMenuView = App.View.extend({
 
    },
 
-   _onCitizensChanged: function() {
-      var citizenMap = this.get('context.citizens');
-      var vals = radiant.map_to_array(citizenMap);
-      this.set('context.citizensArray', vals);
-    }.observes('context.citizens.[]'),
-
-   _onCitizenjobChanged: function() {
-      var self = this;
-      var citizensArray = this.get('context.citizensArray');
-
-      self._foundjobs = {}
-      radiant.each(citizensArray, function(i, citizen) {
-         var job_uri = citizen['stonehearth:job']['job_uri'];
-         self._foundjobs[job_uri] = true;
-      });
-
-      self._updateMenuLocks();
-   }.observes('context.citizensArray.@each.stonehearth:job'),
-
-   _updateMenuLocks: function() {
-      var self = this;
-
-      if (!self.$()) {
-         return;
+   destroy: function() {
+      if (this._popTrace) {
+         this._popTrace.destroy();
       }
+   },
 
-      $.each(this._foundjobs, function(job, _) {
-         $( ".selector" ).progressbar({ disabled: true });
-         self.$('#startMenu').stonehearthMenu('unlock', job);
+   _trackJobs: function(citizens) {
+      // find all the jobs in the population
+      radiant.each(citizens, function(_, citizen) {
+         var job = citizen['stonehearth:job'];
+         if (job) {
+            // unlock this job in the menu
+            self.$('#startMenu').stonehearthMenu('unlock', job.job_uri.alias);
+         }
       });
    },
 
@@ -188,6 +168,27 @@ App.StonehearthStartMenuView = App.View.extend({
          }
       });
 
+   },
+
+   // create a trace to enable and disable menu items based on the jobs
+   // in the population
+   _tracePopulation: function() {
+      var self = this;
+
+      var components = {
+         "citizens" : {
+            "*" : {
+               "stonehearth:job" : {
+                  "job_uri" : {}
+               }
+            }
+         }
+      };
+
+      self._popTrace = new RadiantTrace(App.population.getUri(), components, { bubbleNotificationsUp: true })
+         .progress(function(pop) {
+            self._trackJobs(pop.citizens);
+         })
    },
 
    _onMenuClick: function(menuId, nodeData) {

@@ -27,7 +27,7 @@
 //#include "native_commands/create_room_cmd.h"
 #include "jobs/job.h"
 #include "lib/lua/script_host.h"
-#include "lib/lua/low_mem_allocator.h"
+#include "lib/lua/caching_allocator.h"
 #include "lib/lua/res/open.h"
 #include "lib/lua/rpc/open.h"
 #include "lib/lua/sim/open.h"
@@ -254,6 +254,8 @@ void Simulation::Initialize()
 
 void Simulation::Shutdown()
 {
+   scriptHost_->Shutdown();
+   store_->DisableAndClearTraces();
    ShutdownLuaObjects();
    ShutdownDataObjectTraces();
    ShutdownGameObjects();
@@ -275,8 +277,8 @@ void Simulation::ShutdownDataObjects()
 void Simulation::InitializeDataObjectTraces()
 {
    object_model_traces_ = std::make_shared<dm::TracerSync>("sim objects");
-   pathfinder_traces_ = std::make_shared<dm::TracerSync>("sim pathfinder");
-   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);  
+   pathfinder_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);
+   lua_traces_ = std::make_shared<dm::TracerBuffered>("sim lua", *store_);
 
    store_->AddTracer(lua_traces_, dm::LUA_ASYNC_TRACES);
    store_->AddTracer(object_model_traces_, dm::LUA_SYNC_TRACES);
@@ -360,7 +362,6 @@ void Simulation::ShutdownGameObjects()
       std::unordered_map<dm::ObjectId, om::EntityPtr> keepAlive = entityMap_;
       entityMap_.clear();
    }
-   SIM_LOG(1) << "All entities have been destroyed.";
 
    // The act of destroying entities may run lua code which may mutate our state.  Therefore,
    // make sure we clear out our state *after* they're all dead.
@@ -368,7 +369,15 @@ void Simulation::ShutdownGameObjects()
    jobs_.clear();
    tasks_.clear();
    freeMotionTasks_.clear();
-   datastoreMap_.clear();
+
+   // Likewise, remove the datastore datastructure before destroying the datastores, so
+   // that lua code that touches the datastore map on datastore destruction doesn't blow us up.
+   {
+      std::unordered_map<dm::ObjectId, om::DataStorePtr> keepAlive = datastoreMap_;
+      datastoreMap_.clear();
+   }
+
+   SIM_LOG(1) << "All entities and datastores have been destroyed.";
 
    clock_ = nullptr;
    root_entity_ = nullptr;
@@ -719,6 +728,8 @@ void Simulation::ProcessJobList()
       SIM_LOG(5) << "skipping job processing (single step is on).";
       return;
    }
+   pathfinder_traces_->Flush();
+
    SIM_LOG_GAMELOOP(7) << "processing job list";
 
 #if defined(PROFILE_ONLY_PATHFINDING)
@@ -857,7 +868,7 @@ void Simulation::Mainloop()
       next_counter_push_.set(500);
    }
    if (lua_memory_timer_.expired()) {
-      lua::LowMemAllocator::GetInstance().ReportMemoryStats();
+      lua::CachingAllocator::GetInstance().ReportMemoryStats();
       lua_memory_timer_.set(LUA_MEMORY_STATS_INTERVAL);
    }
    if (enable_job_logging_ && log_jobs_timer_.expired()) {
@@ -1127,13 +1138,6 @@ void Simulation::FinishLoadingGame()
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
 
-   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
-   if (waterTightRegionBuilder_) {
-      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
-                                                    terrain->GetWaterTightRegionDelta());
-   }
-
-
    // Re-call SendClientUpdates().  This will send the data
    // for everything we just loaded to the client so it can get started re-creating its
    // state.  Notice that we do this *before* calling FinishLoadingGame so we can parallelize
@@ -1146,6 +1150,13 @@ void Simulation::FinishLoadingGame()
    InitializeDataObjectTraces();
    store_->OnLoaded();
    GetOctTree().SetRootEntity(root_entity_);
+
+   // do this after loading the datastores, so that the terrain component has a chance to perform any loading logic it needs
+   om::TerrainPtr terrain = root_entity_->GetComponent<om::Terrain>();
+   if (waterTightRegionBuilder_) {
+      waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
+                                                    terrain->GetWaterTightRegionDelta());
+   }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {

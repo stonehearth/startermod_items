@@ -51,7 +51,7 @@ function TameTrappedBeast:run(ai, entity, args)
       radiant.events.trigger_async(entity, 'stonehearth:befriend_pet', {pet_id = pet_id})
    end
 
-   ai:unprotect_entity(args.trap)
+   ai:unprotect_argument(args.trap)
    radiant.entities.destroy_entity(args.trap)
 end
 

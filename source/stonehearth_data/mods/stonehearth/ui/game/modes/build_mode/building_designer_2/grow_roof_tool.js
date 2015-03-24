@@ -54,7 +54,7 @@ var GrowRoofTool;
                      self.brush = brush;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('brush', brush);
+                     self.buildingDesigner.saveKey('roofBrush', brush);
                      self.buildingDesigner.reactivateTool(self.buildTool);
 
                      self._onMaterialChange('roof', self.brush);
@@ -122,7 +122,7 @@ var GrowRoofTool;
       restoreState: function(state) {
          var self = this;
 
-         var selector = state.brush ? '.' + self.materialClass + '[brush="' + state.brush + '"]' :  '.' + self.materialClass;
+         var selector = state.roofBrush ? '.' + self.materialClass + '[brush="' + state.roofBrush + '"]' :  '.' + self.materialClass;
          var selectedMaterial = $($(selector)[0]);
          $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');

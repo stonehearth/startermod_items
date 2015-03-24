@@ -35,6 +35,7 @@
    BEGIN_GROUP(csg) \
       ADD_CATEGORY(meshtools) \
       ADD_CATEGORY(region) \
+      ADD_CATEGORY(churn) \
    END_GROUP(csg) \
    \
    BEGIN_GROUP(core) \

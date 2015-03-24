@@ -1004,12 +1004,14 @@ typedef void (GLAPIENTRYP PFNGLDEBUGMESSAGECALLBACKARBPROC) (GLDEBUGPROCARB call
 typedef unsigned int (GLAPIENTRYP PFNGLGETDEBUGMESSAGELOGARBPROC) (unsigned int count, int bufsize,
    unsigned int* sources,unsigned int* types, unsigned int* ids,
    unsigned int* severities, int* lengths, char* messageLog);
- 
+typedef void (GLAPIENTRYP PFNGLGETPROGRAMBINARYPROC) (GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, GLvoid *binary);
+
 extern PFNGLDEBUGMESSAGECONTROLARBPROC  glDebugMessageControlARB;
 extern PFNGLDEBUGMESSAGEINSERTARBPROC   glDebugMessageInsertARB;
 extern PFNGLDEBUGMESSAGECALLBACKARBPROC glDebugMessageCallbackARB;
 extern PFNGLGETDEBUGMESSAGELOGARBPROC   glGetDebugMessageLogARB;
 
+extern PFNGLGETPROGRAMBINARYPROC        glGetProgramBinary;
 #endif // GL_VERSION_4_1
 
 }  // namespace h3dGL

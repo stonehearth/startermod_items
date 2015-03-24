@@ -44,7 +44,8 @@ Store::Store(int which, std::string const& name) :
    nextObjectId_(1),
    nextGenerationId_(1),
    name_(name),
-   saving_(false)
+   saving_(false),
+   tracing_disabled_(false)
 {
    ASSERT(storeId_);
 
@@ -59,6 +60,17 @@ Store::Store(int which, std::string const& name) :
 Store::~Store(void)
 {
 }
+
+
+// Destroy all of our traces, and ensure we don't create new ones (this is to be used during shutdown).
+void Store::DisableAndClearTraces()
+{
+   tracing_disabled_ = true;
+   store_traces_.clear();
+   traces_.clear();
+   tracers_.clear();
+}
+
 
 //
 // -- Store::AddStreamer
@@ -601,6 +613,7 @@ bool Store::IsDynamicObject(ObjectId id)
 
 StoreTracePtr Store::TraceStore(const char* reason)
 {
+   ASSERT(!tracing_disabled_);
    StoreTracePtr trace = std::make_shared<StoreTrace>(*this);
    store_traces_.push_back(trace);
    return trace;
@@ -629,6 +642,7 @@ TracerPtr Store::GetTracer(int category)
 
 void Store::AddTracer(TracerPtr set, int category)
 {
+   ASSERT(!tracing_disabled_);
    auto entry = tracers_.insert(std::make_pair(category, set));
    if (!entry.second) {
       throw std::logic_error(BUILD_STRING("duplicate tracer category " << category));
@@ -746,6 +760,7 @@ void Store::OnRecordFieldChanged(Record const& record)
 #define TRACE_TYPE_METHOD(Cls) \
    template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Store::Trace ## Cls ## Changes(const char* reason, Cls const& o, int category) \
    {  \
+      ASSERT(!tracing_disabled_); \
       dm::ObjectId id = o.GetObjectId(); \
       std::shared_ptr<Cls ## Trace<Cls>> trace; \
       ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Cls); \
@@ -755,6 +770,7 @@ void Store::OnRecordFieldChanged(Record const& record)
    \
    template <typename Cls> std::shared_ptr<Cls ## Trace<Cls>> Store::Trace ## Cls ## Changes(const char* reason, Cls const& o, Tracer* tracer) \
    {  \
+      ASSERT(!tracing_disabled_); \
       dm::ObjectId id = o.GetObjectId(); \
       std::shared_ptr<Cls ## Trace<Cls>> trace; \
       ADD_TRACE_TO_TRACER(trace, tracer, Cls) \
@@ -771,6 +787,7 @@ TRACE_TYPE_METHOD(Map)
 
 template <> std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char* reason, Record const& o, int category)
 {
+   ASSERT(!tracing_disabled_);
    dm::ObjectId id = o.GetObjectId();
    std::shared_ptr<RecordTrace<Record>> trace;
    ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Record);
@@ -783,6 +800,7 @@ template <> std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const
 
 template <> std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char* reason, Record const& o, Tracer*tracer)
 {
+   ASSERT(!tracing_disabled_);
    dm::ObjectId id = o.GetObjectId();
    std::shared_ptr<RecordTrace<Record>> trace;
    ADD_TRACE_TO_TRACER(trace, tracer, Record)

@@ -45,6 +45,7 @@ function FabricatorClientComponent:begin_editing(blueprint, project, editing_reg
          o.blueprint = blueprint
          o.project = project
          o.editing_region = editing_region
+         o.editing = true
       end)
       
    local function trace_region(entity)

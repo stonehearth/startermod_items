@@ -9,7 +9,8 @@ local FixtureFabricatorRenderer = class()
 --
 function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
    self._ui_mode_visible = false
-   self._fixture_visible = false
+   self._finished = false
+   self._always_show_ghost = false
    self._render_entity = render_entity
    self._visibility_handle = render_entity:get_visibility_override_handle()
 
@@ -31,7 +32,8 @@ function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
 
    self._ff_trace = fixture_fabricator:trace_data('render trace')
                      :on_changed(function()
-                           self._fixture_visible = not fixture_fabricator:get_data().finished
+                           self._finished = fixture_fabricator:get_data().finished
+                           self._always_show_ghost = fixture_fabricator:get_data().always_show_ghost
                            self:_update_render_state()
                         end)
                      :push_object_state()
@@ -56,10 +58,22 @@ function FixtureFabricatorRenderer:destroy()
    end
 end
 
+function FixtureFabricatorRenderer:_is_visible()
+   if self._finished then
+      return false
+   end
+
+   if self._always_show_ghost then
+      return true
+   end
+
+   return self._ui_mode_visible
+end
+
 -- Called whenever the UI view mode changes.  Hides the entity if we're not in hud mode.
 --
 function FixtureFabricatorRenderer:_update_render_state()
-   local visible = self._fixture_visible and self._ui_mode_visible
+   local visible = self:_is_visible()
    self._visibility_handle:set_visible(visible)
 end
 

@@ -100,11 +100,20 @@ function EntitySelector:_get_selected_entity(x, y)
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(x, y)
 
-   for result in s:each_result() do
+   for qr in s:each_result() do
       -- skip the cursor...
-      local entity = result.entity
-      if entity and (not self._filter_fn or self._filter_fn(entity)) then
-         return entity
+      local entity = qr.entity
+      if entity then
+         if not self._filter_fn then
+            return entity
+         end
+         local result = self._filter_fn(qr)
+         if result == stonehearth.selection.FILTER_IGNORE then
+         elseif result == true then
+            return entity
+         elseif result == false then
+            return nil
+         end
       end
    end
 end

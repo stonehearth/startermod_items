@@ -121,7 +121,7 @@ function Building:calculate_floor_region()
          if floor_region:contains(pt) then
             optimized_region:add_point(pt)
             if try_merge then
-               optimized_region:optimize_by_merge()
+               optimized_region:optimize_by_merge('building:calculate_floor_region')
             end
          else
             try_merge = true
