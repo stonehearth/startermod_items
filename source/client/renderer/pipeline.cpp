@@ -259,7 +259,8 @@ RenderNodePtr
 Pipeline::CreateRegionOutlineNode(H3DNode parent,
                                   csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
-                                  csg::Color4 const& face_color)
+                                  csg::Color4 const& face_color,
+                                  std::string const& material)
 {
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
    csg::RegionTools3f tools;
@@ -289,7 +290,7 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
       });
 
       RenderNodePtr face_node = RenderNode::CreateCsgMeshNode(group_node->GetNode(), mesh)
-         ->SetMaterial("materials/transparent.material.json");
+         ->SetMaterial(material);
 
       h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
       EnablePolygonOffset(face_node->GetNode());
