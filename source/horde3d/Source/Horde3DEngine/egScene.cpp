@@ -910,27 +910,27 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 
 
 // *************************************************************************************************
-// Class SceneManager
+// Class Scene
 // *************************************************************************************************
 
-SceneManager::SceneManager()
+Scene::Scene()
 {
    initialize();
 }
 
 
-SceneManager::~SceneManager()
+Scene::~Scene()
 {
    shutdown();
 }
 
-void SceneManager::reset()
+void Scene::reset()
 {
    shutdown();
    initialize();
 }
 
-void SceneManager::shutdown()
+void Scene::shutdown()
 {
    delete _spatialGraph; _spatialGraph = nullptr;
 
@@ -946,7 +946,7 @@ void SceneManager::shutdown()
    _nodeTrackers.clear();
 }
 
-void SceneManager::initialize()
+void Scene::initialize()
 {
    SceneNode *rootNode = GroupNode::factoryFunc( GroupNodeTpl( "RootNode" ) );
    rootNode->_handle = RootNode;
@@ -961,7 +961,7 @@ void SceneManager::initialize()
    }
 }
 
-void SceneManager::registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
+void Scene::registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
 								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
 {
 	NodeRegEntry entry;
@@ -974,7 +974,7 @@ void SceneManager::registerType( int type, std::string const& typeString, NodeTy
 }
 
 
-NodeRegEntry *SceneManager::findType( int type )
+NodeRegEntry *Scene::findType( int type )
 {
 	map< int, NodeRegEntry >::iterator itr = _registry.find( type );
 	
@@ -983,7 +983,7 @@ NodeRegEntry *SceneManager::findType( int type )
 }
 
 
-NodeRegEntry *SceneManager::findType( std::string const& typeString )
+NodeRegEntry *Scene::findType( std::string const& typeString )
 {
 	map< int, NodeRegEntry >::iterator itr = _registry.begin();
 
@@ -997,21 +997,21 @@ NodeRegEntry *SceneManager::findType( std::string const& typeString )
 	return 0x0;
 }
 
-void SceneManager::updateNodes()
+void Scene::updateNodes()
 {
    radiant::perfmon::TimelineCounterGuard un("updateNodes");
 	getRootNode().update();
 }
 
 
-void SceneManager::updateSpatialNode(SceneNode const& node) 
+void Scene::updateSpatialNode(SceneNode const& node) 
 { 
    _spatialGraph->updateNode(node);
    updateNodeTrackers(&node);
 }
 
 
-void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
+void Scene::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
                                  uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue, bool forceNoInstancing, uint32 userFlags )
 {
    radiant::perfmon::TimelineCounterGuard uq("updateQueues");
@@ -1087,14 +1087,14 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
 }
 
 
-std::vector<SceneNode const*>& SceneManager::getLightQueue() 
+std::vector<SceneNode const*>& Scene::getLightQueue() 
 { 
    ASSERT(_currentQuery != -1);
    return _queryCache[_currentQuery].lightQueue;
 }
 
 
-RenderableQueue& SceneManager::getRenderableQueue(int itemType) 
+RenderableQueue& Scene::getRenderableQueue(int itemType) 
 { 
    ASSERT(_currentQuery != -1);
    RenderableQueues& renderQueues = _queryCache[_currentQuery].renderableQueues;
@@ -1105,13 +1105,13 @@ RenderableQueue& SceneManager::getRenderableQueue(int itemType)
    return renderQueues[itemType];
 }
 
-RenderableQueues& SceneManager::getRenderableQueues()
+RenderableQueues& Scene::getRenderableQueues()
 {
    ASSERT(_currentQuery != -1);
    return _queryCache[_currentQuery].renderableQueues;
 }
 
-InstanceRenderableQueue& SceneManager::getInstanceRenderableQueue(int itemType)
+InstanceRenderableQueue& Scene::getInstanceRenderableQueue(int itemType)
 {
    ASSERT(_currentQuery != -1);
    InstanceRenderableQueues& renderQueues = _queryCache[_currentQuery].instanceRenderableQueues;
@@ -1121,7 +1121,7 @@ InstanceRenderableQueue& SceneManager::getInstanceRenderableQueue(int itemType)
    return renderQueues[itemType];
 }
 
-NodeHandle SceneManager::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
+NodeHandle Scene::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 {
 	if( parent == 0x0 ) return 0;
 	
@@ -1158,7 +1158,7 @@ NodeHandle SceneManager::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 }
 
 
-NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
+NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
 {
 	if( node == 0x0 ) return 0;
 	
@@ -1192,14 +1192,14 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 }
 
 
-NodeHandle SceneManager::addNodes( SceneNode &parent, SceneGraphResource &sgRes )
+NodeHandle Scene::addNodes( SceneNode &parent, SceneGraphResource &sgRes )
 {
 	// Parse root node
 	return parseNode( *sgRes.getRootNode(), &parent );
 }
 
 
-void SceneManager::removeNodeRec( SceneNode &node )
+void Scene::removeNodeRec( SceneNode &node )
 {
 	NodeHandle handle = node._handle;
 	
@@ -1228,7 +1228,7 @@ void SceneManager::removeNodeRec( SceneNode &node )
 }
 
 
-void SceneManager::removeNode( SceneNode &node )
+void Scene::removeNode( SceneNode &node )
 {
 	SceneNode *parent = node._parent;
 	SceneNode *nodeAddr = &node;
@@ -1260,7 +1260,7 @@ void SceneManager::removeNode( SceneNode &node )
 }
 
 
-bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
+bool Scene::relocateNode( SceneNode &node, SceneNode &parent )
 {
 	if( node._handle == RootNode ) return false;
 	
@@ -1296,13 +1296,13 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 }
 
 
-void SceneManager::registerNodeTracker(SceneNode const* tracker, std::function<void(SceneNode const* updatedNode)> nodeChangedCb)
+void Scene::registerNodeTracker(SceneNode const* tracker, std::function<void(SceneNode const* updatedNode)> nodeChangedCb)
 {
    _nodeTrackers[tracker] = nodeChangedCb;
 }
 
 
-void SceneManager::clearNodeTracker(SceneNode const* tracker)
+void Scene::clearNodeTracker(SceneNode const* tracker)
 {
    auto &i = _nodeTrackers.find(tracker);
 
@@ -1312,7 +1312,7 @@ void SceneManager::clearNodeTracker(SceneNode const* tracker)
 }
 
 
-void SceneManager::updateNodeTrackers(SceneNode const* node)
+void Scene::updateNodeTrackers(SceneNode const* node)
 {
    for (auto const& i : _nodeTrackers) {
       if (i.first->getBBox().intersects(node->getBBox())) {
@@ -1322,7 +1322,7 @@ void SceneManager::updateNodeTrackers(SceneNode const* node)
 }
 
 
-int SceneManager::findNodes( SceneNode &startNode, std::string const& name, int type )
+int Scene::findNodes( SceneNode &startNode, std::string const& name, int type )
 {
    _findResults.clear();
 
@@ -1342,7 +1342,7 @@ int SceneManager::findNodes( SceneNode &startNode, std::string const& name, int 
 }
 
 
-void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, int type )
+void Scene::_findNodes( SceneNode &startNode, std::string const& name, int type )
 {
 	
 	if( type == SceneNodeTypes::Undefined || startNode._type == type )
@@ -1359,7 +1359,7 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 	}
 }
 
-void SceneManager::fastCastRayInternal(int userFlags)
+void Scene::fastCastRayInternal(int userFlags)
 {
    const Vec3f rayEnd = _rayOrigin + _rayDirection;
    _spatialGraph->castRay(_rayOrigin, _rayDirection, [this, userFlags, rayEnd](boost::container::flat_set<SceneNode const*> const& nodes) {
@@ -1407,7 +1407,7 @@ void SceneManager::fastCastRayInternal(int userFlags)
 }
 
 
-void SceneManager::castRayInternal( SceneNode &node, int userFlags )
+void Scene::castRayInternal( SceneNode &node, int userFlags )
 {
    if( !(node._accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	{
@@ -1452,7 +1452,7 @@ void SceneManager::castRayInternal( SceneNode &node, int userFlags )
 }
 
 
-int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest, int userFlags )
+int Scene::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, int numNearest, int userFlags )
 {
 	_castRayResults.resize( 0 );  // Clear without affecting capacity
 
@@ -1471,7 +1471,7 @@ int SceneManager::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &r
 }
 
 
-bool SceneManager::getCastRayResult( int index, CastRayResult &crr )
+bool Scene::getCastRayResult( int index, CastRayResult &crr )
 {
 	if( (uint32)index < _castRayResults.size() )
 	{
@@ -1484,7 +1484,7 @@ bool SceneManager::getCastRayResult( int index, CastRayResult &crr )
 }
 
 
-int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion )
+int Scene::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion )
 {
 	// Note: This function is a bit hacky with all the hard-coded node types
 	
@@ -1498,7 +1498,7 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 }
 
 
-void SceneManager::clearQueryCache()
+void Scene::clearQueryCache()
 {
    // Do a pass to see if we have too many renderable queues.  TODO(klochek): collect some stats
    // for each queue, so that we can more-intelligently get rid of disused queues.
@@ -1524,7 +1524,7 @@ void SceneManager::clearQueryCache()
 }
 
 
-int SceneManager::_checkQueryCache(const SpatialQuery& query)
+int Scene::_checkQueryCache(const SpatialQuery& query)
 {
    for (int i = 0; i < _queryCacheCount; i++)
    {
@@ -1580,7 +1580,7 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
    return -1;
 }
 
-SceneNode *SceneManager::resolveNodeHandle(NodeHandle handle)
+SceneNode *Scene::resolveNodeHandle(NodeHandle handle)
 {
    auto i = _nodes.find(handle), end = _nodes.end();
    return i != end ? i->second : nullptr;

@@ -254,7 +254,7 @@ protected:
 
 private:
 
-   friend class SceneManager;
+   friend class Scene;
 	friend class SpatialGraph;
    friend class GridSpatialGraph;
 	friend class Renderer;
@@ -282,7 +282,7 @@ public:
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 
 	friend class Renderer;
-	friend class SceneManager;
+	friend class Scene;
 
 protected:
 	GroupNode( const GroupNodeTpl &groupTpl );
@@ -411,14 +411,20 @@ struct SpatialQueryResult
 };
 
 // =================================================================================================
+class SceneManager {
+	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
+	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
 
-class SceneManager
+};
+
+
+class Scene
 {
 public:
-	SceneManager();
-	~SceneManager();
+	Scene();
+	~Scene();
 
-        void reset();
+   void reset();
 
 	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
 	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );

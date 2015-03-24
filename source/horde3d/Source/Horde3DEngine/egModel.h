@@ -124,7 +124,7 @@ protected:
 	bool                          _nodeListDirty;  // An animatable node has been attached to model
 	bool                          _morpherUsed, _morpherDirty;
 
-	friend class SceneManager;
+	friend class Scene;
 	friend class SceneNode;
 	friend class Renderer;
 };

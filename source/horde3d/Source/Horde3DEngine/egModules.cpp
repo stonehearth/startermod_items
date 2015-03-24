@@ -55,7 +55,7 @@ bool                   Modules::_errorFlag = false;
 EngineConfig           *Modules::_engineConfig = 0x0;
 EngineLog              *Modules::_engineLog = 0x0;
 StatManager            *Modules::_statManager = 0x0;
-SceneManager           *Modules::_sceneManager = 0x0;
+Scene                  *Modules::_sceneManager = 0x0;
 ResourceManager        *Modules::_resourceManager = 0x0;
 RenderDevice           *Modules::_renderDevice = 0x0;
 Renderer               *Modules::_renderer = 0x0;
@@ -86,7 +86,7 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
 	if( _extensionManager == 0x0 ) _extensionManager = new ExtensionManager();
 	if( _engineLog == 0x0 ) _engineLog = new EngineLog();
 	if( _engineConfig == 0x0 ) _engineConfig = new EngineConfig();
-	if( _sceneManager == 0x0 ) _sceneManager = new SceneManager();
+	if( _sceneManager == 0x0 ) _sceneManager = new Scene();
 	if( _resourceManager == 0x0 ) _resourceManager = new ResourceManager();
 	if( _renderDevice == 0x0 ) _renderDevice = new RenderDevice();
 	gRDI = _renderDevice;
