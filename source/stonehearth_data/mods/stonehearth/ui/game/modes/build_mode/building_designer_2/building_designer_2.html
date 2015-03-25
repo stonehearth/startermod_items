@@ -16,6 +16,32 @@
    <div class="window mainWindow">
       <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
 
+      <div id="toolPalettePicker">
+         <div id="toolPaletteBuild" tab="buildPalette">build</div>
+         <div id="toolPaletteDecorate" tab="decorateTab">deco</div>
+         <div id="toolPaletteVoxels" tab="voxelsTab">voxel</div>
+         <div id="toolPaletteReady" tab="readyTab">rdy!</div>
+      </div>
+      <div id="toolPalette">
+         <div class="palette" id="buildPalette">
+            <img id="buildPaletteBackground" usemap="#buildPaletteMap"/>
+            <div class="selectionDisplay" />
+         </div>
+
+         <!-- the build palette image map. -->
+         <map name="buildPaletteMap" id="buildPaletteMap">
+            <area shape="rect" coords="418,308,420,310" alt="Image Map" style="outline:none;" title="Image Map" />
+            <area palette="buildPalette" tool="floor" shape="poly" coords="65,232,158,260,269,241,270,267,158,284,65,255" style="outline:none;" />
+            <area palette="buildPalette" tool="grow_floor" shape="poly" coords="66,155,157,182,270,164,270,187,158,206,66,177" style="outline:none;" />
+            <area palette="buildPalette" tool="roof" shape="poly" coords="63,143,160,171,223,88,281,149,299,134,222,52,124,22,48,127" style="outline:none;" />
+            <area palette="buildPalette" tool="door" shape="poly" coords="195,211,228,206,228,248,196,253" style="outline:none;" />
+            <area palette="buildPalette" tool="window" shape="poly" coords="120,205,98,198,100,225,121,233" style="outline:none;" />
+            <area palette="buildPalette" tool="grow_walls" shape="poly" coords="68,143,69,233,159,259,265,241,264,145,221,97,158,172" style="outline:none;" />
+            <area palette="buildPalette" tool="wall" shape="poly" coords="265,234,332,255,365,249,364,109,270,80,251,85,297,132,282,149,267,146" style="outline:none;" target="_self"  />
+            <area palette="buildPalette" tool="road" shape="poly" coords="195,276,230,271,288,290,252,298" style="outline:none;" />
+         </map>
+
+      </div>
       <div class="tools">
          <h2>Tools</h2>
          <div id="tools">
@@ -29,7 +55,7 @@
       <div id="tabs">
 
          <div class="tabPage" id="defaultTab" style="display: block">
-            Choose a tool on the left
+
          </div>
 
          <div class="tabPage" id="itemMaterialTab">        

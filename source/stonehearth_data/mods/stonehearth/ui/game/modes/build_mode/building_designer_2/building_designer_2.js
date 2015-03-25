@@ -9,6 +9,15 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
    didInsertElement: function() {
       var self = this;
 
+      this.$('#buildPaletteMap area').click(function() {
+         var el = $(this);
+         var tool = el.attr('tool');
+         var palette = el.attr('palette');
+
+         self.$('#' + palette + ' .selectionDisplay').css({
+               'background-image' : 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + tool + '.png)'
+            });
+      });
       // TODO, maybe?  I think the argument can be made that all of these should just be sub-views,
       // and could be just declared directly within the HTML of whatever designer you want.  The
       // only wrinkle is that these views would need to expose the 'tool' interface as well, and

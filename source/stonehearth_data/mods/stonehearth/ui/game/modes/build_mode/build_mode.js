@@ -33,9 +33,16 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       // is clicked.
       $(top).on('stonehearth_building_templates', function() {
          self._showBuildingTemplatesView();
-         //self._showBuildingDesignerView();
       });
 
+      // show the custom building editor
+      $(top).on('stonehearth_building_designer', function() {
+         self._showBuildingTemplatesView();
+         self._showBuildingDesignerView('editor');
+      });
+
+      // XXX, I think these are totally unused and shoul be deleted. -- Tom
+      /*
       // show the building editor
       $(top).on('stonehearth_building_editor', function() {
          self._showBuildingDesignerView('editor');
@@ -45,6 +52,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       $(top).on('stonehearth_building_overview', function() {
          self._showBuildingDesignerView('overview');
       });
+      */
 
       // show the road ui
       $(top).on('stonehearth_build_road', function() {
