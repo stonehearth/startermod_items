@@ -64,13 +64,10 @@ function Fabricator:__init(name, entity, blueprint, project)
    table.insert(self._traces, self._fabricator_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
    table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
    
-   if self._blueprint_construction_progress then
-      self._dependencies_finished = self._blueprint_construction_progress:check_dependencies()
-      self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
-   else
-      self._dependencies_finished = true
-   end   
    self:_trace_blueprint_and_project()
+
+   self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_can_start_changed)
+   self:_on_can_start_changed()
 end
 
 function Fabricator:destroy()
@@ -96,6 +93,7 @@ end
 function Fabricator:set_active(active)
    self._active = active
    if self._active then
+      self:_on_can_start_changed()
       self:_start_project()
    else
       self:_stop_project()
@@ -171,13 +169,18 @@ function Fabricator:_create_new_project()
    end   
 end
 
-function Fabricator:_on_dependencies_finished_changed()
-   self._dependencies_finished = self._blueprint_construction_progress
-                                                :get_dependencies_finished()
-   self._log:debug('got stonehearth:construction:dependencies_finished_changed event (dependencies finished = %s)',
-                   tostring(self._dependencies_finished))
+function Fabricator:_on_can_start_changed()
+   if not self._active then
+      return
+   end
+   local can_start = build_util.can_start_building(self._blueprint)
+   if can_start ~= self._can_start then
+      self._can_start = can_start
+      self._log:debug('got stonehearth:construction:dependencies_finished_changed event (dependencies finished = %s)',
+                      tostring(self._can_start))
 
-   self:_start_project()
+      self:_start_project()
+   end
 end
 
 function Fabricator:get_material()
@@ -333,12 +336,12 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)', tostring(self._active), tostring(self._should_teardown), self._finished, self._dependencies_finished)
+   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)', tostring(self._active), tostring(self._should_teardown), self._finished, self._can_start)
    if self._finished then
       return
    end
 
-   if self._active and self._dependencies_finished then
+   if self._active and self._can_start then
       if self._should_teardown then
          run_teardown_task = true
       else

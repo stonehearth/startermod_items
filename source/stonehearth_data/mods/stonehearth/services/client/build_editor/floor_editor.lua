@@ -34,7 +34,7 @@ function FloorEditor:go(response, floor_uri, options)
 
       -- the default xz region selector will grab the blocks adjacent to the one
       -- the cursor is under.  we want to sink into the terrain, so return the
-      -- actual brink we're pointing to instead
+      -- actual brick we're pointing to instead
       selector:select_front_brick(false)
       selector:set_validation_offset(Point3.unit_y)
 
@@ -42,7 +42,6 @@ function FloorEditor:go(response, floor_uri, options)
       -- sure we get points on a plane.  if we're not sinking, though, we want to
       -- pierce the cursor to make sure we hit the actual ground.
       selector:allow_select_cursor(true)
-
       selector:require_unblocked(false)
    else
       -- at least when placing slabs, make sure there's empty space when dragging

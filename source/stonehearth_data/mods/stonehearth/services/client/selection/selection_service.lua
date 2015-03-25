@@ -75,7 +75,12 @@ SelectionService.floor_xz_region_support_filter = function(result, raise_selecto
             end
             return true
          end
-         -- if we blueprint which is not floor, bail
+
+         -- drawing on top of other blueprints is fine if we're in slab mode
+         if not raise_selector then
+            return true
+         end
+         -- otherwise, return false
          return false
       end
    end
