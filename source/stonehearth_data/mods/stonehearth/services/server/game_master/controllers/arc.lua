@@ -52,7 +52,7 @@ function Arc:trigger_next_encounter(ctx)
    -- TODO: other encounters from this arc may still be around (waiting on boss death, etc)
    -- but they should (?) resolve themselves on their own
    if type(out_edge) == 'string' and out_edge == 'arc:finish' then
-      radiant.events.trigger(self, 'stonehearth:arc_finish', {prev_node = encounter})
+      radiant.events.trigger(self, 'stonehearth:arc_finish', {prev_ctx = ctx})
       return
    end
 
