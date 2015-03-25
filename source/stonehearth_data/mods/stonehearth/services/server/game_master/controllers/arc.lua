@@ -46,6 +46,16 @@ function Arc:trigger_next_encounter(ctx)
       return
    end
 
+   -- if the edge is "arc:finish" then the arc has officially ended. Let
+   -- parent campaign know it's OK to start another arc. 
+   -- As a nicety, pass the current node, in case the next arc wants context
+   -- TODO: other encounters from this arc may still be around (waiting on boss death, etc)
+   -- but they should (?) resolve themselves on their own
+   if type(out_edge) == 'string' and out_edge == 'arc:finish' then
+      radiant.events.trigger(self, 'stonehearth:arc_finish', {prev_node = encounter})
+      return
+   end
+
    -- trigger all the edges in the out_edge list, in order.  if there's just a single
    -- edge to trigger, we let out_edge be a string.
    if type(out_edge) == 'string' then
