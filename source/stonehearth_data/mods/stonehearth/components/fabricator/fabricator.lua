@@ -336,7 +336,8 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)', tostring(self._active), tostring(self._should_teardown), self._finished, self._can_start)
+   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)',
+                     tostring(self._active), tostring(self._should_teardown), tostring(self._finished), tostring(self._can_start))
    if self._finished then
       return
    end
