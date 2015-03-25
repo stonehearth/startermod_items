@@ -171,11 +171,36 @@ function lrbt_cases.peaked_roof(autotest, session)
          floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(5, 11, 5)))
       end,
       function()
-         building = build_util.get_building_for(floor)
-         lrbt_util.grow_wooden_walls(session, building)
+         lrbt_util.grow_wooden_walls(session, floor)
       end,
       function()
          lrbt_util.grow_wooden_roof(session, building)
+      end,
+   }
+end
+
+
+function lrbt_cases.two_storeys(autotest, session)
+   local bounds = Cube3(Point3(0, 9, 0), Point3(4, 10, 4))
+   local floor, second_floor
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, bounds)
+         autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
+      end,
+      function()
+         lrbt_util.grow_wooden_walls(session, floor)
+      end,
+      function()
+         bounds:translate(Point3(0, STOREY_HEIGHT + 1, 0))
+         bounds = bounds:inflated(Point3(1, 0, 1))
+         second_floor = lrbt_util.create_wooden_floor(session, bounds)
+      end,
+      function()
+         lrbt_util.grow_wooden_walls(session, second_floor)
+      end,
+      function()
+         --lrbt_util.grow_wooden_roof(session, build_util.get_building_for(floor))
       end,
    }
 end
