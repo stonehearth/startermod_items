@@ -638,7 +638,9 @@ end
 
 function Building:can_start_building(entity)
    local entry = self:_get_entry_for_structure(entity)
-   assert(entry)
+   if not entry then
+      return false
+   end
    assert(entry.dependencies)
 
    self._log:detail('checking to see if %s @ %s can start', entity, radiant.entities.get_location_aligned(entity))
@@ -696,7 +698,9 @@ function Building:_compute_dependencies()
       end
    end
    for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do
-      init_dependencies(entry)
+      -- don't call init_dependencies, since we have no region
+      entry.dependencies = {}
+      entry.inverse_dependencies = {}  
 
       local fixture = entry.entity
       local parent = fixture:get_component('mob')

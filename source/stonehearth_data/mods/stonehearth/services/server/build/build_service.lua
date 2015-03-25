@@ -1210,6 +1210,9 @@ function BuildService:instabuild_command(session, response, building)
 end
 
 function BuildService:instabuild(building)
+   building:get_component('stonehearth:building')
+               :set_active(true)
+
    self:_call_all_children(building, function(entity)
          local cp = entity:get_component('stonehearth:construction_progress')
          if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
