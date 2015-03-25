@@ -669,6 +669,9 @@ function Building:load_from_template(template, options, entity_map)
 end
 
 function Building:finish_restoring_template()
+   if not radiant.is_server then
+      return
+   end
    self:_restore_structure_traces()
 
    self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
