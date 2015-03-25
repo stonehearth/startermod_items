@@ -295,6 +295,22 @@ function build_util.get_blueprint_for(entity)
    return blueprint
 end
 
+function build_util.can_start_building(blueprint)
+   local building = build_util.get_building_for(blueprint)
+   if not building then
+      assert(blueprint:get_uri() == 'stonehearth:scaffolding') -- special case...
+      return true
+   end
+   return building:get_component('stonehearth:building')
+                      :can_start_building(blueprint)
+end
+
+function build_util.blueprint_is_finished(blueprint)
+   assert(build_util.is_blueprint(blueprint))
+   return blueprint:get_component('stonehearth:construction_progress')
+                        :get_finished()
+end
+
 
 function build_util.get_cost(building)
    local costs = {
@@ -508,18 +524,40 @@ local function edge_point_to_point_inset(edge_point)
    return point
 end
 
-function build_util.grow_walls_around(floor, visitor_fn)
-   local floor_region = floor:get_component('destination')
-                                 :get_region()
-                                    :get()
+function build_util.get_footprint_region2(blueprint)
+   local region = blueprint:get_component('destination')
+                                    :get_region()
+                                       :get()
 
    -- calculate the local footprint of the floor.
    local footprint = Region2()
-   for cube in floor_region:each_cube() do
+   for cube in region:each_cube() do
       local rect = Rect2(Point2(cube.min.x, cube.min.z),
                          Point2(cube.max.x, cube.max.z))
       footprint:add_cube(rect)
    end
+   return footprint
+end
+
+function build_util.get_footprint_region3(blueprint)
+   local region = blueprint:get_component('destination')
+                                    :get_region()
+                                       :get()
+
+   local base = region:get_bounds().min.y - 1
+
+   -- calculate the local footprint of the floor.
+   local footprint = Region3()
+   for cube in region:each_cube() do
+      local rect = Cube3(Point3(cube.min.x, base,     cube.min.z),
+                         Point3(cube.max.x, base + 1, cube.max.z))
+      footprint:add_cube(rect)
+   end
+   return footprint
+end
+
+function build_util.grow_walls_around(floor, visitor_fn)
+   local footprint = build_util.get_footprint_region2(floor)
 
    -- figure out where the columns and walls should go in world space
    local building = build_util.get_building_for(floor)

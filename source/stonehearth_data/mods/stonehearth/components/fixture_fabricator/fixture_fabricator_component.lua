@@ -154,7 +154,7 @@ function FixtureFabricator:_start_project()
    local active = cp:get_active()
    local finished = cp:get_finished()
    local teardown = cp:get_teardown()
-   local dependencies_finished = cp:get_dependencies_finished()
+   local dependencies_finished = build_util.can_start_building(self._entity)
 
    if not finished and dependencies_finished and not teardown then
       self:_place_fixture()

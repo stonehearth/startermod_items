@@ -948,10 +948,6 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
 
          wall:add_component('stonehearth:construction_data')
                   :set_normal(normal)
-
-         wall:add_component('stonehearth:construction_progress')
-                     :add_dependency(column_a)
-                     :add_dependency(column_b)
       end)
 end
 
@@ -1032,9 +1028,6 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
    end
 
    self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal, rotation, always_show_ghost)
-
-   fixture_blueprint:add_component('stonehearth:construction_progress')
-                        :add_dependency(parent_entity)
 
    -- fixtures can be added to the building after it's already been started.
    -- if this is the case, go ahead and start the placing process
