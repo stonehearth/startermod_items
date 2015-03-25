@@ -543,8 +543,13 @@ end
 function Building:_on_child_finished(changed)
    local entry = self:_get_entry_for_structure(changed.entity)
    assert(entry)
-   for id, entity in pairs(entry.inverse_dependencies) do
-      radiant.events.trigger_async(entity, 'stonehearth:construction:dependencies_finished_changed')
+
+   self._log:detail('got finish changed notification from %s', entry.entity)
+   if entry.inverse_dependencies then
+      for id, entity in pairs(entry.inverse_dependencies) do
+         self._log:detail(' -- notifying %s', entity)
+         radiant.events.trigger_async(entity, 'stonehearth:construction:dependencies_finished_changed')
+      end
    end
 
    radiant.events.trigger_async(self._entity, 'stonehearth:construction:structure_finished_changed')
