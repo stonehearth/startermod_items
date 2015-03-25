@@ -362,7 +362,7 @@ function BuildService:erase_floor(session, box)
 
    for _, floor in pairs(all_overlapping_floor) do
       floor:add_component('stonehearth:floor')
-               :remove_region_from_floor(Region3(box))
+               :remove_world_region_from_floor(Region3(box))
    end
 end
 
@@ -546,7 +546,8 @@ function BuildService:_subtract_region_from_floor_kinds(building_ent, kinds, reg
       end
    end
    for _, road in pairs(roads) do
-      road:get_component('stonehearth:floor'):remove_region_from_floor(region)
+      road:get_component('stonehearth:floor')
+               :remove_world_region_from_floor(region)
    end
 end
 
@@ -568,7 +569,7 @@ function BuildService:_merge_floor_into_building(building_ent, floor_type, floor
          local envelope = radiant.entities.local_to_world(fc:get_region():get(), building_floor_ent)
                               :inflated(Point3(1, 1, 1))
          if envelope:intersects_region(floor_region) then
-            fc:add_region_to_floor(floor_region)
+            fc:add_world_region_to_floor(floor_region)
             return building_floor_ent
          end
       end
@@ -675,10 +676,11 @@ function BuildService:_add_new_floor_to_building(building, floor_uri, floor_regi
 
    local floor_ent = self:_create_blueprint(building, floor_uri, local_origin, function(floor)
          floor:add_component('stonehearth:floor')
-                  :add_region_to_floor(floor_region:translated(-local_origin))
-                  :set_category(floor_type)
+                  :add_world_region_to_floor(floor_region)
       end)
                
+   floor_ent:get_component('stonehearth:floor')
+               :set_category(floor_type) -- xxx: must be called after the floor has a fabricator for roads.  ug!
    return floor_ent
 end
 
