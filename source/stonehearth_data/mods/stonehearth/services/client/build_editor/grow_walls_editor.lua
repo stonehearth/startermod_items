@@ -58,10 +58,6 @@ function GrowWallsEditor:go(response, columns_uri, walls_uri)
                -- no building for this blueprint.  weird!  bail.
                return false
             end
-            if build_util.has_walls(building) then
-               -- ignore buildings which already have walls
-               return false
-            end
             local floor = blueprint:get_component('stonehearth:floor')
             if not floor then
                -- only grow around floor

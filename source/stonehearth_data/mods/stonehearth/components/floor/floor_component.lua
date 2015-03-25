@@ -30,17 +30,17 @@ end
 -- adds the `region` in world coordinates to the floor
 --    @param region - the region to add to the floor, in world coordinates
 --
-function Floor:add_region_to_floor(region)
-   local brush_shape = self._entity:get_component('stonehearth:construction_data'):get_brush()
-   local building = self._entity:get_component('mob'):get_parent()
-   local origin = radiant.entities.get_world_grid_location(building)
+function Floor:add_world_region_to_floor(world_region)
+   local brush_shape = self._entity:get_component('stonehearth:construction_data')
+                                       :get_brush()
+   local origin = radiant.entities.get_world_grid_location(self._entity)
    local brush = _radiant.voxel.create_brush(brush_shape)
                                     :set_origin(origin)
 
    self._entity:get_component('destination')
                   :get_region()
                      :modify(function(c)                           
-                           local shape = region:translated(-origin)
+                           local shape = world_region:translated(-origin)
                            local floor = brush:paint_through_stencil(shape)
                            c:add_region(floor)
                            c:optimize_by_merge('growing floor')
@@ -78,14 +78,13 @@ function Floor:get_category()
    return self._sv.category
 end
 
-function Floor:remove_region_from_floor(region)
-   local building = self._entity:get_component('mob'):get_parent()
-   local origin = radiant.entities.get_world_grid_location(building)
+function Floor:remove_world_region_from_floor(world_region)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
 
    self._entity:get_component('destination')
                   :get_region()
                      :modify(function(c)                           
-                           local shape = region:translated(-origin)
+                           local shape = world_region:translated(-origin)
                            c:subtract_region(shape)
                            c:optimize_by_merge('shrinking floor')
                         end)         
