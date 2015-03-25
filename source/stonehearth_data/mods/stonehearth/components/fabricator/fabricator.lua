@@ -90,6 +90,10 @@ function Fabricator:destroy()
    end
 end
 
+function Fabricator:set_scaffolding(scaffolding)
+   self._scaffolding = scaffolding
+end
+
 function Fabricator:set_active(active)
    self._active = active
    if self._active then
@@ -331,8 +335,6 @@ function Fabricator:remove_block(location)
 end
 
 function Fabricator:_start_project()
-   local run_teardown_task, run_fabricate_task
-
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
@@ -342,26 +344,24 @@ function Fabricator:_start_project()
       return
    end
 
-   if self._active and self._can_start then
-      if self._should_teardown then
-         run_teardown_task = true
-      else
-         run_fabricate_task = true
-      end
-   end
-   
+   local active = self._active and self._can_start
+
+
    -- Now apply the deltas.  Create tasks that need creating and destroy
    -- ones that need destroying.
-   if run_teardown_task then
-      self:_start_teardown_task()
+   if active then
+      if self._should_teardown then
+         self:_start_teardown_task()
+      else
+         self:_start_fabricate_task()
+      end
    else
       self:_destroy_teardown_task()
+      self:_destroy_fabricate_task()
    end
    
-   if run_fabricate_task then
-      self:_start_fabricate_task()
-   else
-      self:_destroy_fabricate_task()
+   if self._scaffolding then
+      self._scaffolding:set_active(active)
    end
 end
 

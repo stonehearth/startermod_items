@@ -39,6 +39,7 @@ function FabricatorComponent:_restore()
                                  self._entity,
                                  self._sv.blueprint,
                                  self._sv.project)
+   self._fabricator:set_scaffolding(self._sv.scaffolding)
    self._fabricator:set_teardown(self._sv.teardown)
    self._fabricator:set_active(self._sv.active)
    radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)   
@@ -69,11 +70,6 @@ function FabricatorComponent:set_active(enabled)
    
    self._fabricator:set_active(enabled)
    
-   -- scaffolding entities are child of the fabricator, so start them, too
-   if self._sv.scaffolding then
-      self._sv.scaffolding:set_active(enabled)
-   end
-
    self._sv.active = enabled
    self.__saved_variables:mark_changed()
 end
@@ -104,6 +100,7 @@ function FabricatorComponent:start_project(blueprint)
       local blueprint_rgn = blueprint:get_component('destination'):get_region()
 
       self._sv.scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal)
+      self._fabricator:set_scaffolding(self._sv.scaffolding)
    end
 
    -- remember the blueprint and project
