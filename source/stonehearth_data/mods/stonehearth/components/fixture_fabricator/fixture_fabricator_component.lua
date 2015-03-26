@@ -154,7 +154,15 @@ function FixtureFabricator:_start_project()
    local active = cp:get_active()
    local finished = cp:get_finished()
    local teardown = cp:get_teardown()
-   local dependencies_finished = cp:get_dependencies_finished()
+
+   -- fixture fabricators are weird.  in the case where a fixture fabricator was
+   -- added to an already completed building, the wall we're on will not have
+   -- us listed as an inverse dependency, which will cause all sorts of trouble.
+   -- just manually check to see 
+   local structure = self._entity:get_component('mob')
+                                       :get_parent()
+   local dependencies_finished = build_util.blueprint_is_finished(structure)
+
 
    if not finished and dependencies_finished and not teardown then
       self:_place_fixture()

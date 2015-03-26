@@ -8,8 +8,6 @@ local TraceCategories = _radiant.dm.TraceCategories
 local ScaffoldingRenderer = class()
 local log = radiant.log.create_logger('scaffolding.renderer')
 
-local USE_SCAFFOLDING_MGR = radiant.util.get_config('enable_scaffolding_manager', false);
-
 function ScaffoldingRenderer:__init(render_entity, ed)
    -- Pull some render parameters out of the entity data
    self._lattice = ed.lattice
@@ -42,10 +40,6 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    self._entity = render_entity:get_entity()
    self._collsion_shape = self._entity:add_component('region_collision_shape')
 
-   if not USE_SCAFFOLDING_MGR then
-      self._vertical_pathing_region = self._entity:get_component('vertical_pathing_region')
-   end
-   
    self._construction_data = self._entity:get_component('stonehearth:construction_data')
    
    if self._collsion_shape and self._construction_data then
@@ -122,19 +116,6 @@ function ScaffoldingRenderer:_update_shape(mode)
    else
       extra:copy_region(self._segment_region)
       self._segment_region:clear()
-   end
-
-   -- update the ladder
-   if not USE_SCAFFOLDING_MGR then
-      local ladder_region = self._vertical_pathing_region:get_region():get()  
-      local ladder_points = {}
-      local show_region_bounds = show_region and show_region:get_bounds() or self._segment_region:get_bounds()
-      for pt in ladder_region:each_point() do
-         if pt.y >= show_region_bounds.min.y and pt.y < show_region_bounds.max.y then
-            table.insert(ladder_points, pt)
-         end
-      end
-      self:_rebuild_ladder(ladder_points)
    end
 
    -- Compute the y-rotation for all the nodes.  This is based on the direction of
@@ -317,27 +298,6 @@ function ScaffoldingRenderer:_get_highest_y(pt)
       top_node_data.top_y = highest_y
    end
    return top_node_data.top_y
-end
-
-if not USE_SCAFFOLDING_MGR then
-   function ScaffoldingRenderer:_rebuild_ladder(points)
-      -- make sure we have enough nodes!
-      local num_points = #points
-      local needed = num_points - #self._ladder
-      for _ = 1,needed do
-         table.insert(self._ladder, self:_create_node(Point3(0, 0, 0), 'ladder'))
-      end
-
-      local ladder_size = #self._ladder  
-      for i, pt in ipairs(points) do
-         local node = self._ladder[i]
-         self:_move_node(node, pt)    
-         node:set_visible(true)
-      end
-      for i=num_points+1,ladder_size do
-         self._ladder[i]:set_visible(false)
-      end
-   end
 end
 
 return ScaffoldingRenderer

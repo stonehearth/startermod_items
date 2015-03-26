@@ -282,11 +282,17 @@ function Wall:connect_to(column_a, column_b, normal)
    self._sv.normal = normal
    self._sv.pos_a = radiant.entities.get_location_aligned(column_a)
    self._sv.pos_b = radiant.entities.get_location_aligned(column_b)
+   self._sv.column_a = column_a
+   self._sv.column_b = column_b
    self.__saved_variables:mark_changed()
 
    self:_compute_wall_measurements()
    radiant.entities.move_to(self._entity, self._position)
    return self
+end
+
+function Wall:get_columns()
+   return self._sv.column_a, self._sv.column_b
 end
 
 function Wall:_compute_wall_measurements()

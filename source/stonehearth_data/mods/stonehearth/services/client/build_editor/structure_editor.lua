@@ -69,12 +69,14 @@ end
 
 function StructureEditor:create_blueprint(blueprint_uri, structure_type)
    self:_initialize_proxies(blueprint_uri, structure_type)
+   return self._proxy_blueprint
 end
 
 function StructureEditor:move_to(location)
    radiant.entities.move_to(self._proxy_blueprint, location)
    radiant.entities.move_to(self._proxy_fabricator, location)
 end
+
 
 function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    self._proxy_blueprint = radiant.entities.create_entity(blueprint_uri)
@@ -90,22 +92,23 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    self._proxy_fabricator:add_component('region_collision_shape')
                            :set_region(_radiant.client.alloc_region3())
 
-   self._proxy_blueprint:add_component('stonehearth:construction_data')
-                           :begin_editing(self._blueprint)
-
    self._structure = self._proxy_blueprint:add_component(structure_type)
-                                                :clone_from(self._blueprint)
-                                                :begin_editing(self._blueprint)
-                                                :layout()
-   
+
+   if self._blueprint then
+      self._proxy_blueprint:add_component('stonehearth:construction_data')
+                              :begin_editing(self._blueprint)
+
+      self._structure:clone_from(self._blueprint)
+                     :begin_editing(self._blueprint)
+                     :layout()
+   end
+
    local editing_reserved_region = self._structure:get_editing_reserved_region()
    self._proxy_fabricator:add_component('stonehearth:fabricator')
-         :begin_editing(self._proxy_blueprint, self._project, editing_reserved_region)
+                           :begin_editing(self._proxy_blueprint, self._project, editing_reserved_region)
 
    self._proxy_blueprint:add_component('stonehearth:construction_progress')
                            :begin_editing(self._building_container, self._proxy_fabricator)
-
-
    -- hide the fabricator and structure...
    self:_show_editing_objects(false)
 end

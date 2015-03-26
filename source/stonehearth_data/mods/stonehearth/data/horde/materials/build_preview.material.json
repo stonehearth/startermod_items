@@ -1,0 +1,17 @@
+{
+	"materials" : {
+		"SELECTABLE" : {
+			"name" : "materials/selected.material.json"
+		}
+	},
+	"shaders" : {
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/color_only.shader"
+		},
+      "BLOOM" : {
+         "state" : "states/voxel/blend.state",
+         "shader" : "shaders/color_only.shader"
+      }
+	}
+}

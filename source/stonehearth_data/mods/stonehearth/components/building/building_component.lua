@@ -156,14 +156,6 @@ function Building:add_structure(entity)
             entity = entity,
             structure = structure,
          }
-
-         if structure_type == ROOF then
-            self:_create_roof_dependencies(entity)
-         elseif structure_type == FLOOR then
-            self:_create_floor_dependencies(entity)
-         elseif structure_type == WALL then
-            self:_create_wall_dependencies(entity)
-         end
          self:_trace_entity(entity)
          self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
                                        :add_structure(entity)         
@@ -188,11 +180,6 @@ function Building:_remove_structure(entity)
          self.__saved_variables:mark_changed()
          if structure_type == ROOF then
             layout_roof = true
-            self:_remove_roof_dependencies(entity)
-         elseif structure_type == FLOOR then
-            self:_remove_floor_dependencies(entity)
-         elseif structure_type == WALL then
-            self:_remove_wall_dependencies(entity)
          end
          break
       end      
@@ -205,56 +192,6 @@ function Building:_remove_structure(entity)
       self:layout_roof()
    end
 end
-
-function Building:_create_wall_dependencies(wall)
-   local wall_cp = wall:get_component('stonehearth:construction_progress')
-   for _, entry in pairs(self._sv.structures[FLOOR]) do
-      local floor = entry.entity
-      wall_cp:add_dependency(floor)
-   end
-   for _, entry in pairs(self._sv.structures[ROOF]) do
-      local roof = entry.entity
-      wall_cp:loan_scaffolding_to(roof)      
-   end   
-end
-
-function Building:_remove_wall_dependencies(wall)
-end
-
-function Building:_create_floor_dependencies(floor)
-   for _, entry in pairs(self._sv.structures[WALL]) do
-      local wall = entry.entity
-      wall:get_component('stonehearth:construction_progress')
-               :add_dependency(floor)
-   end
-end
-
-function Building:_remove_floor_dependencies(floor)
-end
-
-function Building:_create_roof_dependencies(roof)
-   for _, entry in pairs(self._sv.structures[WALL]) do
-      local structure = entry.entity
-
-      -- don't build the roof until we've built all the supporting structures
-      roof:add_component('stonehearth:construction_progress')
-                  :add_dependency(structure)
-
-      -- loan out some scaffolding
-      structure:get_component('stonehearth:construction_progress')
-                  :loan_scaffolding_to(roof)
-   end
-end
-
-function Building:_remove_roof_dependencies(roof)
-   for _, entry in pairs(self._sv.structures[WALL]) do
-      local structure = entry.entity
-      -- unloan out some scaffolding
-      structure:get_component('stonehearth:construction_progress')
-                  :unloan_scaffolding_to(roof)
-   end
-end
-
 
 function Building:_save_trace(entity, trace)
    local id = entity:get_id()
@@ -286,6 +223,8 @@ function Building:set_active(enabled)
    if enabled then
       self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
                                  :clear_traces()
+      self:_compute_dependencies()
+      self:_compute_inverse_dependencies()
    end
 end
 
@@ -296,8 +235,8 @@ function Building:_trace_entity(entity, loading)
          self:_remove_structure(entity)
       end)
 
-   self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
-         self:_on_child_finished()
+   self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function(e)
+         self:_on_child_finished(e)
       end)
 
    if entity:get_component('stonehearth:roof') then
@@ -602,7 +541,22 @@ end
 -- progress component
 --
 function Building:_on_child_finished(changed)
+   local entry = self:_get_entry_for_structure(changed.entity)
+   assert(entry)
+
+   self._log:detail('got finish changed notification from %s', entry.entity)
+   if entry.inverse_dependencies then
+      for id, entity in pairs(entry.inverse_dependencies) do
+         self._log:detail(' -- notifying %s', entity)
+         radiant.events.trigger_async(entity, 'stonehearth:construction:dependencies_finished_changed')
+      end
+   end
+
    radiant.events.trigger_async(self._entity, 'stonehearth:construction:structure_finished_changed')
+   self:_update_building_finished()
+end
+
+function Building:_update_building_finished(changed)
    local function children_finished(entity)
       if entity and entity:is_valid() then
          if entity ~= self._entity then
@@ -669,6 +623,9 @@ function Building:load_from_template(template, options, entity_map)
 end
 
 function Building:finish_restoring_template()
+   if not radiant.is_server then
+      return
+   end
    self:_restore_structure_traces()
 
    self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
@@ -680,6 +637,102 @@ function Building:finish_restoring_template()
          if cp then
             cp:finish_restoring_template()
          end
+      end
+   end
+end
+
+function Building:can_start_building(entity)
+   local entry = self:_get_entry_for_structure(entity)
+   if not entry then
+      return false
+   end
+   assert(entry.dependencies)
+
+   self._log:detail('checking to see if %s @ %s can start', entity, radiant.entities.get_location_aligned(entity))
+   for id, dependency in pairs(entry.dependencies) do
+      if not build_util.blueprint_is_finished(dependency) then
+         self._log:detail('   - %s @ %s not finished!  no', dependency, radiant.entities.get_location_aligned(dependency))
+         return false
+      else
+         self._log:detail('   - %s @ %s finished!', dependency, radiant.entities.get_location_aligned(dependency))         
+      end
+   end
+   self._log:detail('yay!!')
+   return true
+end
+
+
+function Building:_get_support_dependncies(blueprint)
+   -- all blueprints must have everything supporting it finished before
+   -- starting.
+   local footprint = build_util.get_footprint_region3(blueprint)
+   footprint = radiant.entities.local_to_world(footprint, blueprint)
+
+   return radiant.terrain.get_entities_in_region(footprint, function(e)
+         return build_util.is_blueprint(e)
+      end)
+end
+
+function Building:_compute_dependencies()
+   local function init_dependencies(entry)
+      assert(not entry.dependencies)
+      assert(not entry.inverse_dependencies)
+      entry.dependencies = self:_get_support_dependncies(entry.entity)
+      entry.inverse_dependencies = {}  
+   end
+
+   -- these guys are easy
+   for _, kind in pairs({ FLOOR, ROOF, COLUMN }) do
+      for _, entry in pairs(self._sv.structures[kind]) do
+         init_dependencies(entry)
+      end
+   end
+
+   -- these guys, not so much
+   for _, entry in pairs(self._sv.structures[WALL]) do
+      init_dependencies(entry)
+
+      local wall = entry.entity
+      local col_a, col_b = wall:get_component(WALL)
+                                    :get_columns()
+      if col_a then
+         entry.dependencies[col_a:get_id()] = col_a
+      end
+      if col_b then
+         entry.dependencies[col_b:get_id()] = col_b
+      end
+   end
+   for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do
+      -- don't call init_dependencies, since we have no region
+      entry.dependencies = {}
+      entry.inverse_dependencies = {}  
+
+      local fixture = entry.entity
+      local parent = fixture:get_component('mob')
+                                 :get_parent()
+                                 
+      entry.dependencies[parent:get_id()] = parent
+   end
+end
+
+function Building:_compute_inverse_dependencies()
+   for _, kind in ipairs(STRUCTURE_TYPES) do
+      for id, entry in pairs(self._sv.structures[kind]) do
+         assert(entry.dependencies)
+         for _, dep in pairs(entry.dependencies) do
+            local depe = self:_get_entry_for_structure(dep)
+            depe.inverse_dependencies[id] = entry.entity
+         end
+      end
+   end
+end
+
+function Building:_get_entry_for_structure(entity)
+   local id = entity:get_id()
+   for _, kind in ipairs(STRUCTURE_TYPES) do
+      local entry = self._sv.structures[kind][id]
+      if entry then
+         return entry
       end
    end
 end
