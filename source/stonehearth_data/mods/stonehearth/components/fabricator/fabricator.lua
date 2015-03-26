@@ -359,7 +359,7 @@ function Fabricator:_start_project()
       self:_destroy_teardown_task()
       self:_destroy_fabricate_task()
    end
-   
+
    if self._scaffolding then
       self._scaffolding:set_active(active)
    end
@@ -510,9 +510,18 @@ function Fabricator:_update_dst_region()
    -- Any region that needs mining should be removed from our destination region.
    for zone, mining_dst in pairs(self._mining_zones) do
       local mining_region = mining_dst:get_region():get()
-      local fab_mining_region = mining_region:translated(-radiant.entities.get_world_location(radiant.entities.get_parent(self._entity)) + radiant.entities.get_world_location(zone))
+      if not mining_region:empty() then
+         local parent = radiant.entities.get_parent(self._entity)
+         local parent_pos = radiant.entities.get_world_location(parent)
+         local zone_pos = radiant.entities.get_world_location(zone)
+         if parent_pos == nil then
+            parent_pos = Point3(0, 0, 0)
+         end
+         local offset = zone_pos - parent_pos
+         local fab_mining_region = mining_region:translated(offset)
 
-      dst_region:subtract_region(fab_mining_region)
+         dst_region:subtract_region(fab_mining_region)
+      end
    end
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
