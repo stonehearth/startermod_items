@@ -182,6 +182,13 @@ function lrbt_cases.peaked_roof(autotest, session)
    }
 end
 
+function lrbt_cases.floating_wall(autotest, session)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(5, 13, 5), Point3(9, 13, 5))
+      end,
+   }
+end
 
 function lrbt_cases.two_storeys(autotest, session)
    local bounds = Cube3(Point3(0, 9, 0), Point3(4, 10, 4))

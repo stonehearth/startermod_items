@@ -4,6 +4,7 @@ local Cube3   = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
 local INFINITE = 1000000
+local CLIP_SOLID = _radiant.physics.Physics.CLIP_SOLID
 
 local log = radiant.log.create_logger('build.scaffolding')
 local ScaffoldingManager = class()
@@ -176,12 +177,15 @@ function ScaffoldingManager:_create_new_scaffolding(rblock)
 end
 
 function ScaffoldingManager:_update_scaffolding_region(sblock)
+   local merged = Region3()
+   for rblock, _ in pairs(sblock.regions) do
+      local r = rblock.region:get():translated(rblock.origin)
+      merged:add_region(r)
+   end   
+   merged:translate(-sblock.origin)
+   
    sblock.region:modify(function(cursor)
-         cursor:clear()
-         for rblock, _ in pairs(sblock.regions) do
-            local offset = rblock.origin - sblock.origin
-            cursor:add_region(rblock.region:get():translated(offset))
-         end
+         cursor:copy_region(merged)
       end)
 
    local climb_to = self:_compute_ladder_top(sblock)

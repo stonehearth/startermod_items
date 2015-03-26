@@ -93,15 +93,21 @@ function FabricatorComponent:start_project(blueprint)
    -- so the pathfinder can find it's way to regions which need to be constructed
    local project = self._fabricator:get_project()
 
+   -- add scaffolding!
    local ci = blueprint:get_component('stonehearth:construction_data')
-   if ci:needs_scaffolding() then
-      local normal = ci:get_normal()
-      local project_rgn = project:get_component('destination'):get_region()
-      local blueprint_rgn = blueprint:get_component('destination'):get_region()
-
-      self._sv.scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal)
-      self._fabricator:set_scaffolding(self._sv.scaffolding)
+   local normal = ci:get_normal()
+   if not normal then
+      -- this is bogus, but will get us by for now.
+      local column = blueprint:get_component('stonehearth:column')
+      if column then
+         normal = Point3(0, 0, -1)
+      end
    end
+   local project_rgn = project:get_component('destination'):get_region()
+   local blueprint_rgn = blueprint:get_component('destination'):get_region()
+
+   self._sv.scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal)
+   self._fabricator:set_scaffolding(self._sv.scaffolding)
 
    -- remember the blueprint and project
    self._sv.project = project

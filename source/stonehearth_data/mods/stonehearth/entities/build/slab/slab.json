@@ -6,7 +6,6 @@
       },
       "stonehearth:construction_data" : {
          "type" : "slab",
-         "needs_scaffolding" : false,
          "allow_crouching_construction" : true,         
          "paint_through_blueprint" : true
       }
