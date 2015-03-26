@@ -8,6 +8,9 @@ local WOODEN_COLUMN = 'stonehearth:wooden_column'
 local WOODEN_WALL = 'stonehearth:wooden_wall'
 local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
 local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
+
+local BRICK_SLAB = 'stonehearth:brick_slab_1'
+
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 local lrbt_cases = {}
@@ -202,6 +205,16 @@ function lrbt_cases.two_storeys(autotest, session)
       function()
          --lrbt_util.grow_wooden_roof(session, build_util.get_building_for(floor))
       end,
+   }
+end
+
+function lrbt_cases.giant_slab(autotest, session)
+   local slab
+   local cube = Cube3(Point3(0, 9, 0), Point3(4, 15, 4))
+   return {
+      function()
+         slab = stonehearth.build:add_floor(session, BRICK_SLAB, cube)
+      end
    }
 end
 

@@ -40,12 +40,13 @@ end
 function lrbt_util.fund_construction(autotest, buildings)
    local x, y = 18, 20
    
+   lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:wood:oak_log')
    for _, building in pairs(buildings) do
       local cost = build_util.get_cost(building)
       for material, _ in pairs(cost.resources) do
-         if material:find('wood') then
+         if material:find('stone') then
             x = x - 2
-            lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:wood:oak_log')
+            lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:stone:hunk_of_stone')
          end
       end
       local stockpile_x = x
