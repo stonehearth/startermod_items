@@ -79,6 +79,11 @@ $.widget( "stonehearth.stonehearthMenu", {
       }
    },
 
+   unlock: function(jobAlias) {
+      var alias = jobAlias.split(":").join('\\:');
+      this.element.find('[job=' + alias + ']').removeClass('locked');
+   },
+
    _create: function() {
       var self = this;
 
@@ -104,6 +109,11 @@ $.widget( "stonehearth.stonehearthMenu", {
          var menuItem = $(this);
          var id = menuItem.attr('id');
          var nodeData = self._dataToMenuItemMap[id]
+
+         if (menuItem.hasClass('locked')) {
+            //XXX, play a "bonk" sound
+            return;
+         }
 
          if (nodeData.clickSound) {
             radiant.call('radiant:play_sound', {'track' : nodeData.clickSound});
@@ -196,6 +206,11 @@ $.widget( "stonehearth.stonehearthMenu", {
                      .append('<div class=hotkey>' + hotkey + '</div>')
                      .appendTo(el);
 
+         if (node.required_job) {
+            item.attr('job', node.required_job);
+            item.addClass('locked'); // initially lock all nodes that require a job. The user of the menu will unlock them
+         }
+
          self._buildTooltip(item);
 
          if (node.items) {
@@ -221,10 +236,19 @@ $.widget( "stonehearth.stonehearthMenu", {
       var description = node.description;
       var hotkey = node.hotkey;
 
+      if (node.required_job_text) {
+         description = description + '<p>' + '<span class=warn>' + node.required_job_text + '</span></p>';
+      };
+
+      var content = '<div class=title>' + name + '</div>' + 
+                    '<div class=description>' + description + '</div>';
+
+      if (node.hotkey) {
+         content = content + '<div class=hotkey>' + i18n.t('stonehearth:hotkey') + ' <span class=key>' + node.hotkey + '</span></div>';
+      }
+
       item.tooltipster({
-         content: $('<div class=title>' + name + '</div>' + 
-                    '<div class=description>' + description + '</div>' + 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + hotkey + '</span></div>')
+         content: $(content)
       });
    }
 

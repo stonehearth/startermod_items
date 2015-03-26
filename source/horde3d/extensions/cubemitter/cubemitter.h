@@ -261,7 +261,7 @@ class CubemitterNode : public SceneNode
 public:
 	static SceneNodeTpl *parsingFunc( std::map< std::string, std::string > &attribs );
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
-   static void renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
+   static void renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
                    const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel);
 
 	~CubemitterNode();

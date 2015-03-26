@@ -63,7 +63,7 @@ end
 
 -- Returns the tracking data
 --
-function InventoryTracker:get_tracking_data(key)
+function InventoryTracker:get_tracking_data()
    return self._sv.tracking_data
 end
 

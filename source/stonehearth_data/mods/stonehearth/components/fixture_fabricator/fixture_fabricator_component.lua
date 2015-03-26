@@ -11,8 +11,19 @@ local FixtureFabricator = class()
 
 -- initialize a new fixture fabricator
 function FixtureFabricator:initialize(entity, json)
-   self._sv = self.__saved_variables:get_data()
+   self._log = radiant.log.create_logger('build')
+      :set_prefix('fixture_fabricator')
+      :set_entity(entity)
+
    self._entity = entity
+   self._sv = self.__saved_variables:get_data()
+
+   if not self._sv.intitialized then
+      self._sv.finished = false
+      self._sv.always_show_ghost = false
+      self._sv.intitialized = true
+   end
+
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          self:_restore()
       end)
@@ -56,7 +67,12 @@ function FixtureFabricator:get_project()
 end
 
 function FixtureFabricator:set_teardown()
-   -- noop.
+   if self._sv.fixture then
+      self._sv.fixture:get_component('stonehearth:entity_forms')
+         :cancel_placement_tasks()
+   end
+
+   self:_set_finished()
 end
 
 function FixtureFabricator:get_normal()
@@ -69,6 +85,15 @@ end
 
 function FixtureFabricator:get_uri()
    return self._sv.fixture_uri
+end
+
+function FixtureFabricator:set_always_show_ghost(always_show_ghost)
+   self._sv.always_show_ghost = always_show_ghost
+   self.__saved_variables:mark_changed()
+end
+
+function FixtureFabricator:get_always_show_ghost()
+   return self._sv.always_show_ghost
 end
 
 function FixtureFabricator:instabuild()
@@ -106,8 +131,6 @@ end
 --
 function FixtureFabricator:start_project(fixture, normal, rotation)
    if radiant.util.is_a(fixture, Entity) then
-      fixture:get_component('stonehearth:entity_forms')
-                  :set_fixture_fabricator(self._entity)
       self._sv.fixture = fixture
    end
    self._sv.normal = normal
@@ -127,28 +150,24 @@ end
 -- either create or destroy the tasks depending on our current state
 --
 function FixtureFabricator:_start_project()
-   local run_teardown_task, run_fabricate_task = false, false
-
    local cp = self._entity:get_component('stonehearth:construction_progress')
    local active = cp:get_active()
    local finished = cp:get_finished()
    local teardown = cp:get_teardown()
-   local dependencies_finished = cp:get_dependencies_finished()
 
-   if not finished and dependencies_finished then
-      run_teardown_task = teardown
-      run_fabricate_task = not teardown
-   end
-   
-   -- Now apply the deltas.  Create tasks that need creating and destroy
-   -- ones that need destroying.
-   assert(not run_teardown_task)
+   -- fixture fabricators are weird.  in the case where a fixture fabricator was
+   -- added to an already completed building, the wall we're on will not have
+   -- us listed as an inverse dependency, which will cause all sorts of trouble.
+   -- just manually check to see 
+   local structure = self._entity:get_component('mob')
+                                       :get_parent()
+   local dependencies_finished = build_util.blueprint_is_finished(structure)
 
-   if run_fabricate_task then
+
+   if not finished and dependencies_finished and not teardown then
       self:_place_fixture()
    end
 end
-
 
 -- start the fabricate task if it's not already running
 --
@@ -336,17 +355,25 @@ function FixtureFabricator:accumulate_costs(cost)
    end
 end
 
+-- set_finished this may be called when we're done placing the item
+-- as well as when cancelling placement for teardown
 function FixtureFabricator:_set_finished()
+   self._sv.finished = true
+
    self:_destroy_placeable_item_trace()
 
    self._entity:get_component('stonehearth:construction_progress')
                   :set_finished(true)
 
    self:_update_auto_destroy_trace()
+
+   self.__saved_variables:mark_changed()
 end
 
 function FixtureFabricator:_update_auto_destroy_trace()
-   assert(self._sv.fixture)
+   if not self._sv.fixture then
+      return
+   end
 
    -- now that we're built, if the bed somehow moves off the building, remove the
    -- blueprint from the building.  this can happen when people start re-arranging

@@ -123,7 +123,6 @@ private:
    csg::Point3                               _index;
    std::unique_ptr<NavGridTileData>          data_;
    core::Slot<ChangeNotification>            changed_slot_;
-   mutable std::vector<CollisionTrackerRef>  tempTrackers_;
    int                                       _expireTime;
 };
 

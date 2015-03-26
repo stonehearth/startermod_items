@@ -1,18 +1,22 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Point3 = _radiant.csg.Point3
-local Point3 = _radiant.csg.Point3
+local Color4 = _radiant.csg.Color4
 local TraceCategories = _radiant.dm.TraceCategories
 
 local FabricatorRenderer = class()
 
 local MODEL_OFFSET = Point3(0.5, 0, 0.5)
+local PREVIEW_EDGE_COLOR = Color4(0, 255, 255, 192)
+local PREVIEW_FACE_COLOR = Color4(0, 255, 255, 16)
 
 function FabricatorRenderer:initialize(render_entity, fabricator)
    self._entity = render_entity:get_entity()
    self._parent_node = render_entity:get_node()
    self._render_entity = render_entity
    self._visibility_handle = render_entity:get_visibility_override_handle()
+
+   self._show_preview_mode = fabricator:get_data().editing
 
    local blueprint = fabricator:get_data().blueprint
    assert(blueprint)
@@ -142,14 +146,21 @@ function FabricatorRenderer:_update_region(region)
       self._render_node:destroy()
       self._render_node = nil
    end
+   if self._preview_render_node then
+      self._preview_render_node:destroy()
+      self._preview_render_node = nil
+   end
 
    if not self._blueprint_cp:get_teardown() and region then
       self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._blueprint_cd)
-      self._render_node:set_name(string.format('fab for %s', tostring(self._entity)))
-
       local material = self._render_entity:get_material_path('normal')
       self._render_node:set_material(material)
       self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.json')
+
+      if self._show_preview_mode then
+         self._preview_render_node = _radiant.client.create_region_outline_node(self._parent_node, region:get(), PREVIEW_EDGE_COLOR, PREVIEW_FACE_COLOR, 'materials/build_preview.material.json')
+         self._preview_render_node:set_position(MODEL_OFFSET)
+      end
    end
 end
 

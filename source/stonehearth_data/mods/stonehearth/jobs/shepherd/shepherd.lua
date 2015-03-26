@@ -172,11 +172,15 @@ function ShepherdClass:_create_xp_listeners()
 end
 
 function ShepherdClass:_remove_xp_listeners()
-   self._find_animal_listener:destroy()
-   self._find_animal_listener = nil
+   if self._find_animal_listener then
+      self._find_animal_listener:destroy()
+      self._find_animal_listener = nil
+   end
 
-   self._harvest_renwable_resources_listener:destroy()
-   self._harvest_renwable_resources_listener = nil
+   if self._harvest_renwable_resources_listener then
+      self._harvest_renwable_resources_listener:destroy()
+      self._harvest_renwable_resources_listener = nil
+   end
 end
 
 -- When we tame an animal, grant some XP

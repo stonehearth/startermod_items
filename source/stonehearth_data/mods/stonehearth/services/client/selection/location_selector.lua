@@ -152,7 +152,7 @@ end
 --
 function LocationSelector:set_cursor_entity(cursor_entity)   
    self._cursor_entity = cursor_entity
-   self._cursor_render_entity = _radiant.client.create_render_entity(1, cursor_entity)
+   self._cursor_render_entity = _radiant.client.create_render_entity(H3DRootNode, cursor_entity)
    return self
 end
 

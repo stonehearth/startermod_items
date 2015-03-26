@@ -83,6 +83,8 @@ struct RendererConfig {
    
    RendererConfigEntry<bool> disable_pinned_memory;
    RendererConfigEntry<bool> run_once;
+
+   RendererConfigEntry<bool> dump_compiled_shaders;
 };
 
 struct SystemStats {
@@ -254,6 +256,8 @@ class Renderer
       bool              drawWorld_;
       uint32            fowRenderTarget_;
 
+      H3DNode           mainSceneRoot_;
+      H3DNode           fowSceneRoot_;
       H3DResourceMap    pipelines_;
    	std::string       currentPipeline_;
 

@@ -36,9 +36,15 @@ end
 
 function TerrainService:_register_events()
    -- fires about once per second at game speed 1
-   stonehearth.calendar:set_interval(110, function()
-         self:_on_tick()
-      end)
+   if self._sv.tick_timer then
+      self._sv.tick_timer:bind(function()
+            self:_on_tick()
+         end)
+   else
+      self._sv.tick_timer = stonehearth.calendar:set_interval(110, function()
+            self:_on_tick()
+         end)
+   end
 end
 
 function TerrainService:_on_tick()
@@ -168,7 +174,7 @@ function TerrainService:_update_regions()
 
                      local seconds = Timer.measure(
                         function()
-                           region2:optimize_by_oct_tree(64)
+                           region2:optimize_by_oct_tree('unexplored region', 64)
                         end
                      )
                      log:debug('Optimization time: %.3fs', seconds)

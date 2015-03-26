@@ -2,6 +2,9 @@ local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
+local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 local Quaternion = _radiant.csg.Quaternion
 
 local build_util = {}
@@ -189,8 +192,17 @@ end
 --
 --    @param entity - the entity to be tested for blueprintedness
 --
-function build_util.is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil and not build_util.is_building(entity)
+function build_util.is_blueprint(entity, opt_component)
+   if entity:get_component('stonehearth:construction_progress') == nil then
+      return false
+   end
+   if build_util.is_building(entity) then
+      return false
+   end
+   if opt_component ~= nil and entity:get_component(opt_component) == nil then
+      return false
+   end
+   return true
 end
 
 function build_util.is_building(entity)
@@ -281,6 +293,22 @@ end
 function build_util.get_blueprint_for(entity)
    local fabricator, blueprint, project = build_util.get_fbp_for(entity)
    return blueprint
+end
+
+function build_util.can_start_building(blueprint)
+   local building = build_util.get_building_for(blueprint)
+   if not building then
+      assert(blueprint:get_uri() == 'stonehearth:scaffolding') -- special case...
+      return true
+   end
+   return building:get_component('stonehearth:building')
+                      :can_start_building(blueprint)
+end
+
+function build_util.blueprint_is_finished(blueprint)
+   assert(build_util.is_blueprint(blueprint))
+   return blueprint:get_component('stonehearth:construction_progress')
+                        :get_finished()
 end
 
 
@@ -459,6 +487,107 @@ function build_util.unpack_entity(id, entity_map)
       entity = entity_map[id]
    end
    return entity
+end
+
+-- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
+-- 1-unit removed from where the floor is for each edge, so we add in the
+-- accumualted normal for both the min and the max, with one small wrinkle:
+-- the edges returned by :each_edge() live in the coordinate space of the
+-- grid tile *lines* not the grid tile.  a consequence of this is that points
+-- whose normals point in the positive direction end up getting pushed out
+-- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
+-- accumulated normal in grid-tile space (as opposed to grid-line space) to
+-- prove this to yourself if you don't believe me.
+--
+local function edge_point_to_point(edge_point)
+   local point = Point3(edge_point.location.x, 0, edge_point.location.y)
+   if edge_point.accumulated_normals.x <= 0 then
+      point.x = point.x + edge_point.accumulated_normals.x
+   end
+   if edge_point.accumulated_normals.y <= 0 then
+      point.z = point.z + edge_point.accumulated_normals.y
+   end
+   return point
+end
+
+-- just like edge_point_to_point, but don't move the points out in the
+-- xz plane.  instead, move the up 1 in the y direction
+--
+local function edge_point_to_point_inset(edge_point)
+   local point = Point3(edge_point.location.x, 1, edge_point.location.y)
+   if edge_point.accumulated_normals.x > 0 then
+      point.x = point.x - edge_point.accumulated_normals.x
+   end
+   if edge_point.accumulated_normals.y > 0 then
+      point.z = point.z - edge_point.accumulated_normals.y
+   end
+   return point
+end
+
+function build_util.get_footprint_region2(blueprint)
+   local region = blueprint:get_component('destination')
+                                    :get_region()
+                                       :get()
+
+   -- calculate the local footprint of the floor.
+   local footprint = Region2()
+   for cube in region:each_cube() do
+      local rect = Rect2(Point2(cube.min.x, cube.min.z),
+                         Point2(cube.max.x, cube.max.z))
+      footprint:add_cube(rect)
+   end
+   return footprint
+end
+
+function build_util.get_footprint_region3(blueprint)
+   local region = blueprint:get_component('destination')
+                                    :get_region()
+                                       :get()
+
+   local base = region:get_bounds().min.y - 1
+
+   -- calculate the local footprint of the floor.
+   local footprint = Region3()
+   for cube in region:each_cube() do
+      local rect = Cube3(Point3(cube.min.x, base,     cube.min.z),
+                         Point3(cube.max.x, base + 1, cube.max.z))
+      footprint:add_cube(rect)
+   end
+   return footprint
+end
+
+function build_util.grow_walls_around(floor, visitor_fn)
+   local footprint = build_util.get_footprint_region2(floor)
+
+   -- figure out where the columns and walls should go in world space
+   local building = build_util.get_building_for(floor)
+   local floor_origin = radiant.entities.get_world_grid_location(floor)
+   local building_origin = radiant.entities.get_world_grid_location(building)
+
+   -- if the floor is below the origin of the building, make sure the walls and
+   -- columns are not!   
+   local height = floor_origin.y - building_origin.y
+   if height < 0 then
+      floor_origin.y = floor_origin.y - height
+   end
+
+   -- if the floor is on the 2nd storey or higher, we grow walls in an 'inset'
+   -- pattern.  instead of drawing the walls around the floor, we draw them on
+   -- top of it.
+   local ep2p = height > 0 and edge_point_to_point_inset or edge_point_to_point
+   
+   -- convert each 2d edge to 3d min and max coordinates and add a wall span
+   -- for each one.
+   local edges = footprint:get_edge_list()
+   for edge in edges:each_edge() do
+      local min = ep2p(edge.min) + floor_origin
+      local max = ep2p(edge.max) + floor_origin
+      local normal = Point3(edge.normal.x, 0, edge.normal.y)
+
+      if min ~= max then
+         visitor_fn(min, max, normal)
+      end
+   end
 end
 
 return build_util

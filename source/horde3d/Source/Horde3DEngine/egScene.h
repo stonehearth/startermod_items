@@ -30,7 +30,6 @@ class CameraNode;
 class SceneGraphResource;
 
 
-const int RootNode = 1;
 const int QueryCacheSize = 32;
 
 class InstanceKey {
@@ -93,7 +92,8 @@ struct SceneNodeTypes
       VoxelMesh,
       HudElement,
       InstanceNode,
-      ProjectorNode
+      ProjectorNode,
+      VoxelJointNode
 	};
 };
 
@@ -160,6 +160,7 @@ public:
 	virtual ~SceneNode();
 
    void getTransformFast(Vec3f &trans, Vec3f &rot, Vec3f &scale) const;
+   void getAbsTransform(Vec3f &trans, Vec3f &rot, Vec3f &scale);
 	void getTransform( Vec3f &trans, Vec3f &rot, Vec3f &scale );	// Not virtual for performance
 	void setTransform( Vec3f trans, Vec3f rot, Vec3f scale );	// Not virtual for performance
 	void setTransform( const Matrix4f &mat );
@@ -201,8 +202,8 @@ public:
 	SceneNode *getParent() const { return _parent; }
 	std::string const& getName() const { return _name; }
 	std::vector< SceneNode * > &getChildren() { return _children; }
-	Matrix4f &getRelTrans() { return _relTrans; }
-	Matrix4f &getAbsTrans() { return _absTrans; }
+	Matrix4f const& getRelTrans() const { return _relTrans; }
+	Matrix4f const& getAbsTrans() const { return _absTrans; }
 	const BoundingBox &getBBox() const { return _bBox; }
    void updateBBox(const BoundingBox& bbox);
 
@@ -254,7 +255,7 @@ protected:
 
 private:
 
-   friend class SceneManager;
+   friend class Scene;
 	friend class SpatialGraph;
    friend class GridSpatialGraph;
 	friend class Renderer;
@@ -282,7 +283,7 @@ public:
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 
 	friend class Renderer;
-	friend class SceneManager;
+	friend class Scene;
 
 protected:
 	GroupNode( const GroupNodeTpl &groupTpl );
@@ -325,7 +326,7 @@ typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRender
 class SpatialGraph
 {
 public:
-	SpatialGraph();
+	SpatialGraph(SceneId sceneId);
 	
 	void addNode(SceneNode const& sceneNode);
 	void removeNode(SceneNode const& sceneNode);
@@ -335,6 +336,7 @@ public:
       std::vector<SceneNode const*>& lightQueue);
 
 protected:
+   SceneId _sceneId;
 	std::unordered_map<NodeHandle, SceneNode const*>      _nodes;  // Renderable nodes and lights
 };
 
@@ -348,7 +350,7 @@ struct GridElement
 class GridSpatialGraph
 {
 public:
-   GridSpatialGraph();
+   GridSpatialGraph(SceneId sceneId);
 
    void addNode(SceneNode const& sceneNode);
 	void removeNode(SceneNode const& sceneNode);
@@ -371,6 +373,8 @@ protected:
 
    boost::container::flat_set<uint32> newGrids;
    std::vector<uint32> toRemove;
+private:
+   SceneId _sceneId;
 };
 
 
@@ -380,7 +384,7 @@ protected:
 
 typedef SceneNodeTpl *(*NodeTypeParsingFunc)( std::map< std::string, std::string > &attribs );
 typedef SceneNode *(*NodeTypeFactoryFunc)( const SceneNodeTpl &tpl );
-typedef void (*NodeTypeRenderFunc)( std::string const& shaderContext, std::string const& theClass, bool debugView,
+typedef void (*NodeTypeRenderFunc)(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
                                     const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                     int occSet, int lodLevel );
 
@@ -411,14 +415,44 @@ struct SpatialQueryResult
 };
 
 // =================================================================================================
+class SceneManager {
+public:
+   SceneManager();
+   void reset();
+   ~SceneManager();
 
-class SceneManager
+	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
+	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
+   bool sceneExists(SceneId sceneId) const;
+   Scene& sceneForNode(NodeHandle handle);
+   Scene& sceneForId(SceneId handle);
+   SceneId sceneIdFor(NodeHandle handle) const;
+   SceneId addScene(const char* name);
+   void clear();
+   std::vector<Scene*> const& getScenes() const;
+
+	SceneNode *resolveNodeHandle(NodeHandle handle);
+	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
+	NodeHandle addNode( SceneNode *node, SceneNode &parent );
+	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
+	void removeNode( SceneNode &node );
+	bool relocateNode( SceneNode &node, SceneNode &parent );
+   void clearQueryCaches();
+
+private:
+   std::vector<Scene*> _scenes;
+	std::map< int, NodeRegEntry >  _registry;  // Registry of node types
+};
+
+
+class Scene
 {
 public:
-	SceneManager();
-	~SceneManager();
+	Scene(SceneId sceneId);
+	~Scene();
 
-        void reset();
+   void reset();
+   SceneId getId() const;
 
 	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
 	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
@@ -444,7 +478,7 @@ public:
 
 	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
 
-	SceneNode &getRootNode() { return *_nodes[RootNode]; }
+	SceneNode &getRootNode() { return *_nodes[_rootNodeId]; }
 	std::vector<SceneNode const*> &getLightQueue();
 	RenderableQueue& getRenderableQueue(int itemType);
    InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
@@ -457,20 +491,22 @@ public:
    void registerNodeTracker(SceneNode const* tracker, std::function<void(SceneNode const* updatedNode)>);
    void clearNodeTracker(SceneNode const* tracker);
 
+   void shutdown();
+   void initialize();
 protected:
+   NodeHandle nextNodeId();
 	void _findNodes( SceneNode &startNode, std::string const& name, int type );
    int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );
-        void shutdown();
-        void initialize();
 	void castRayInternal( SceneNode &node, int userFlags );
    void fastCastRayInternal(int userFlags);
    void updateNodeTrackers(SceneNode const* n);
 
 protected:
-        uint32                         _nextNodeHandle;
-   boost::container::flat_map<NodeHandle, SceneNode *>      _nodes;  // _nodes[0] is root node
+   SceneId                        _sceneId;
+   NodeHandle                     _rootNodeId;
+   boost::container::flat_map<NodeHandle, SceneNode *>      _nodes;
 	std::vector< SceneNode * >     _findResults;
 	std::vector< CastRayResult >   _castRayResults;
 	GridSpatialGraph*              _spatialGraph;

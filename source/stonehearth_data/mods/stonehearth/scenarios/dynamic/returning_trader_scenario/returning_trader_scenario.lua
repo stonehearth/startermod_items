@@ -50,7 +50,8 @@ function ReturningTrader:initialize()
 
    --Make a dummy entity to hold the lease on desired items
    --TODO: replace with the actual caravan entity once they move in the world
-   self._sv.trader_entity = radiant.entities.create_entity()   
+   self._sv.trader_entity = radiant.entities.create_entity()
+   radiant.entities.set_player_id(self._sv.trader_entity, 'trader')
    self._sv.leased_items = {}
 
    self:_load_data()
@@ -62,15 +63,13 @@ function ReturningTrader:restore()
    --This is boilerplate across all scenarios. Way to factor it out?
    --If we made an expire timer then we're waiting for the player to acknowledge the traveller
    --Start a timer that will expire at that time
-   if self._sv.timer_expiration then
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         local duration = self._sv.timer_expiration - stonehearth.calendar:get_elapsed_time()
-         self:_create_timer(duration)
-         return radiant.events.UNLISTEN
-      end)
+   if self._sv.timer then
+      self._sv.timer:bind(function()
+            self:_timer_callback()
+         end)
    end
-   if self._sv._waiting_for_return and not self._hourly_timer then
-      self._hourly_timer = stonehearth.calendar:set_interval('1h', function()
+   if self._sv.hourly_timer then
+      self._sv.hourly_timer:bind(function()
             self:_on_hourly()
          end)
    end
@@ -203,19 +202,22 @@ end
 
 --Creates the timers used in this function.
 function ReturningTrader:_create_timer(duration)
-   self._timer = stonehearth.calendar:set_timer(duration, function() 
-      --We're the timer to cancel the some bulletin
-      if self._sv._bulletin then
-         self:_cancel_bulletin(self._sv._bulletin)
-      end
-      if self._sv._waiting_for_return then
-         --We're the timer to bring back the caravan. 
-         --self:_stop_timer()
-         self._sv._waiting_for_return = false
-         self:_make_return_trip()
-      end
+   self._sv.timer = stonehearth.calendar:set_timer(duration, function() 
+      self:_timer_callback()
    end)
-   self._sv.timer_expiration = self._timer:get_expire_time()
+end
+
+function ReturningTrader:_timer_callback()
+   --We're the timer to cancel the some bulletin
+   if self._sv._bulletin then
+      self:_cancel_bulletin(self._sv._bulletin)
+   end
+   if self._sv._waiting_for_return then
+      --We're the timer to bring back the caravan. 
+      --self:_stop_timer()
+      self._sv._waiting_for_return = false
+      self:_make_return_trip()
+   end
 end
 
 function ReturningTrader:_cancel_bulletin(bulletin)
@@ -225,16 +227,15 @@ function ReturningTrader:_cancel_bulletin(bulletin)
 end
 
 function ReturningTrader:_stop_timer(timer)
-   self._timer = nil
-   self._sv.timer_expiration = nil
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
+   end
 end
 
 --- When the user accepts the trader's challenge
 function ReturningTrader:_on_accepted()
    self._sv._bulletin = nil
-   if self._timer then
-      self._timer:destroy()
-   end
    self:_stop_timer()
 
    --make a timer to express how long to wait before the caravan returns
@@ -255,8 +256,8 @@ function ReturningTrader:_on_accepted()
       })
    --register a callback every hour so we can
    self._sv._waiting_for_return = true
-   if not self._hourly_timer then
-      self._hourly_timer = stonehearth.calendar:set_interval('1h', function()
+   if not self._sv.hourly_timer then
+      self._sv.hourly_timer = stonehearth.calendar:set_interval('1h', function()
             self:_on_hourly()
          end)
    end
@@ -271,8 +272,10 @@ function ReturningTrader:_on_hourly()
          message = message
       })
    else
-      self._hourly_timer:destroy()
-      self._hourly_timer = nil
+      if self._sv.hourly_timer then
+         self._sv.hourly_timer:destroy()
+         self._sv.hourly_timer = nil
+      end
    end
 end
 
@@ -280,8 +283,9 @@ function ReturningTrader:_on_declined()
    self._sv._approach_bulletin = nil
    self._sv._success_bulletin = nil
    self._sv._failure_bulletin = nil
-   if self._timer then
-      self._timer:destroy()
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
    end
    self:_stop_timer()
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
@@ -371,9 +375,6 @@ end
 
 function ReturningTrader:_on_success_accepted()
    self:_accept_trade()
-   if self._timer then
-      self._timer:destroy()
-   end
    self:_stop_timer()
 
    --If the new thing was a crop, make an informational bulletin

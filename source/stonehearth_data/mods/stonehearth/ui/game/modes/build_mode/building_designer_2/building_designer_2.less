@@ -3,45 +3,160 @@
 
    #editor {
 
-      .tools {
+      #toolPalettePicker {
+         width: 95px;
+         height: 307px;
+         background-image: url(images/palette_banner.png);
+         background-repeat: no-repeat;
+         text-align: center;
+         padding-top: 16px;
 
-         #drawFloorTool {
-            background-image: url(images/add_floor_tool.png);
+         img {
+            .button;
          }
 
-         #drawWallTool {
-            background-image: url(images/add_wall_tool.png);
+         #toolPaletteBuild {
+            content:  url(images/palette_build.png);
          }
 
-         #growWallsTool {
-            background-image: url(images/grow_walls_tool.png);
+         #toolPaletteDecorate {
+            content:  url(images/palette_decorate.png);
          }
 
-         #growRoofTool {
-            background-image: url(images/grow_roof_tool.png);
+         #toolPaletteVoxels {
+            content:  url(images/palette_voxels.png);
          }
 
-         #drawDoodadTool {
-            background-image: url(images/add_doodad_tool.png);
-         }
-
-         #placeItemTool {
-            background-image: url(images/place_item_tool.png);
-         }
-
-         #drawSlabTool {
-            background-image: url(images/add_slab_tool.png);
-         }
-
-         #eraseStructureTool {
-            background-image: url(images/erase_structure_tool.png);
+         #toolPaletteReady {
+            content:  url(images/palette_ready.png);
          }
 
          #undoTool {
-            background-image: url(images/undo_tool.png);  
+            content:  url(images/undo_tool.png);  
          }
       }
 
+      #toolPalette {
+         position: absolute;
+         top: 60px;
+         left: 80px;
+         width: 420px;
+         height: 310px;
+
+         .palette {
+            //.debug;
+            width: 100%;
+            height: 100%;
+         }
+
+         #buildPalette {
+            #buildPaletteBackground {
+               content: url(images/palettes/none.png);
+            }
+
+            .selectionDisplay {
+               position: absolute;
+               top: 0px;
+               left: 0px;
+               width: 420px;
+               height: 310px;
+               pointer-events: none;
+            }
+         }
+      }
+
+      #voxelsPalette {
+         position: relative;
+
+         img {
+            .button;
+         }
+
+         #buttons {
+            position: absolute;
+            top: 96px;
+            left: 20px;
+            #voxelAdd {
+               content: url(images/voxel_add.png);  
+            }
+
+            #voxelPaint {
+               content: url(images/voxel_paint.png);  
+            }
+
+            #voxelRemove {
+               content: url(images/voxel_remove.png);  
+            }
+         }
+      }
+
+
+      area {
+         .control;
+      }
+      
+      .tools {
+         position: absolute;
+         top: 0px;
+         left: 530px;
+      }
+
+      #drawFloorTool {
+         background-image: url(images/add_floor_tool.png);
+      }
+
+      #drawWallTool {
+         background-image: url(images/add_wall_tool.png);
+      }
+
+      #growWallsTool {
+         background-image: url(images/grow_walls_tool.png);
+      }
+
+      #growRoofTool {
+         background-image: url(images/grow_roof_tool.png);
+      }
+
+      #drawDoodadTool {
+         background-image: url(images/add_doodad_tool.png);
+      }
+
+      #placeItemTool {
+         background-image: url(images/place_item_tool.png);
+      }
+
+      #drawSlabTool {
+         background-image: url(images/add_slab_tool.png);
+      }
+
+      #eraseStructureTool {
+         background-image: url(images/erase_structure_tool.png);
+      }
+
+      #undoTool {
+         background-image: url(images/undo_tool.png);  
+      }
+
+      #toolOptions {
+         position: absolute;
+         top: 400px;
+         left: 10px;
+         right: 10px;
+         bottom: 10px;
+
+         h1 {
+            font-size: 26px;
+         }
+
+         #typeSelector {
+
+         }
+      }
+
+      #tabs {
+         position: absolute;
+         top: 400px;
+      }
       #floorMaterialTab {
          //display: block;
       }

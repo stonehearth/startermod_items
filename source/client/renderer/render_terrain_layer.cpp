@@ -47,7 +47,7 @@ void RenderTerrainLayer::AddGeometryToMesh(csg::Mesh& mesh, csg::PlaneInfo3 pi)
    for (auto& entry : _geometry[pi.which]) {
       csg::Region2 &r = entry.second;
       pi.reduced_value = entry.first;
-      r.OptimizeByMerge();
+      r.OptimizeByMerge("meshing terrain layer");
       mesh.AddRegion(r, pi);
    }
 }
@@ -73,7 +73,7 @@ void RenderTerrainLayer::EndUpdate()
    if (mesh.IsEmpty()) {
       _node.reset();
    } else {
-      _node = RenderNode::CreateCsgMeshNode(_terrain.GetGroupNode(), mesh)
+      _node = RenderNode::CreateCsgModelNode(_terrain.GetGroupNode(), mesh)
                               ->SetMaterial("materials/terrain.material.json")
                               ->SetUserFlags(UserFlags::Terrain);
    }

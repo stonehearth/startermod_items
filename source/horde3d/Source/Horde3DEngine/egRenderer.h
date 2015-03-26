@@ -194,17 +194,17 @@ public:
 	                   MaterialResource *matRes, int flags );
 	void clearOverlays();
 	
-	static void drawMeshes( std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawMeshes(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawVoxelMeshes( std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawVoxelMeshes_Instances( std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawVoxelMeshes_Instances(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawParticles( std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawParticles(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-   static void drawHudElements(std::string const& shaderContext, std::string const& theClass, bool debugView,
+   static void drawHudElements(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-   static void drawInstanceNode(std::string const& shaderContext, std::string const& theClass, bool debugView,
+   static void drawInstanceNode(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 
    void render( CameraNode *camNode, PipelineResource *pRes );
@@ -239,10 +239,10 @@ protected:
 	
    void commitLightUniforms(LightNode const* light);
    void setupShadowMap(LightNode const* light, bool noShadows);
-   Matrix4f calcCropMatrix( const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
+   Matrix4f calcCropMatrix(SceneId sceneId, const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(LightNode const* light, BoundingBox const& worldBounds, Frustum const& frustSlice, Matrix4f const& lightViewMat) const;
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV) const;
-   void computeTightCameraBounds(float* minDist, float* maxDist);
+   void computeTightCameraBounds(SceneId sceneId, float* minDist, float* maxDist);
    Frustum computeDirectionalLightFrustum(LightNode const* light, float nearPlaneDist, float farPlaneDist) const;
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
    void updateShadowMap(LightNode const* light, Frustum const* lightFrus, float minDist, float maxDist, int cubeFace=0);
@@ -253,17 +253,17 @@ protected:
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, std::string const& shaderContext );
 	void drawQuad();
-   void drawLodGeometry( std::string const& shaderContext, std::string const& theClass,
+   void drawLodGeometry(SceneId sceneId, std::string const& shaderContext, std::string const& theClass,
                          RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
-   void drawGeometry( std::string const& shaderContext, std::string const& theClass,
+   void drawGeometry(SceneId sceneId, std::string const& shaderContext, std::string const& theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
-   void drawProjections(std::string const& shaderContext, uint32 userFlags );
-   void prioritizeLights(std::vector<LightNode*> *lights);
-	void doForwardLightPass( std::string const& shaderContext, std::string const& theClass,
+   void drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags );
+   void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights);
+	void doForwardLightPass(SceneId sceneId, std::string const& shaderContext, std::string const& theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
-	void doDeferredLightPass(bool noShadows, MaterialResource* deferredMaterial);
+	void doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource* deferredMaterial);
 	
-	void drawRenderables( std::string const& shaderContext, std::string const& theClass, bool debugView,
+	void drawRenderables(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static uint32 acquireInstanceAttributeBuffer();
    static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
@@ -320,6 +320,8 @@ protected:
 
    static float*                      _vbInstanceVoxelBuf;
    static std::unordered_map<RenderableQueue const*, uint32> _instanceDataCache;
+   static Matrix4f _boneMats[64];
+
 
    // Feature-level compatibility of the card, determined by GPU specifics.
    GpuCompatibility                    gpuCompatibility_;

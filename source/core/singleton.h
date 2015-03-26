@@ -29,7 +29,7 @@ public:
    }
 
    static void Destroy() {
-      std::lock_guard<boost::detail::spinlock> lock(_lock);
+      tbb::spin_mutex::scoped_lock lock(_lock);
 
       ASSERT(!destroyed_);
       if (destroyed_) {

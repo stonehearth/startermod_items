@@ -59,7 +59,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
 
    totalObjectCount_++;
    node_ = h3dAddGroupNode(parent, node_name_.c_str());
-   offsetNode_ = h3dAddGroupNode(node_, offsetNodeName.c_str());
+   offsetNode_ = h3dAddVoxelModelNode(node_, offsetNodeName.c_str());
 
    // xxx: convert to something more dm::Trace like...
    selection_guard_ = Renderer::GetInstance().SetSelectionForNode(node_, entity);
@@ -126,18 +126,20 @@ void RenderEntity::Destroy()
    destroyed_ = true;
    lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
 
-   // xxx: share this with render_lua_component!!
-   for (const auto& entry : lua_invariants_) {
-      luabind::object obj = entry.second;
-      if (obj) {
-         try {
-            luabind::object fn = obj["destroy"];
-            if (fn) {
-               fn(obj);
+   if (!script->IsShutDown()) {
+      // xxx: share this with render_lua_component!!
+      for (const auto& entry : lua_invariants_) {
+         luabind::object obj = entry.second;
+         if (obj) {
+            try {
+               luabind::object fn = obj["destroy"];
+               if (fn) {
+                  fn(obj);
+               }
+            } catch (std::exception const& e) {
+               E_LOG(1) << "error destroying component renderer: " << e.what();
+               script->ReportCStackThreadException(obj.interpreter(), e);
             }
-         } catch (std::exception const& e) {
-            E_LOG(1) << "error destroying component renderer: " << e.what();
-            script->ReportCStackThreadException(obj.interpreter(), e);
          }
       }
    }

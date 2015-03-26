@@ -12,7 +12,7 @@ IntervalService = class()
 
 function IntervalService:initialize()
    self._sv = self.__saved_variables:get_data()
-   self._spawn_timers = {}
+   self._sv.spawn_timers = {}
 
    if not self._sv._initialized then
       --Do this on first load
@@ -68,39 +68,44 @@ end
 -- @param scenario_name - the name of the scenario to run
 -- @param next_interval - if the scenario will run in a loop, this is how long between the next run and the subsequent run
 function IntervalService:_start_spawn_timer(curr_duration, scenario_name, next_interval)
-   self._spawn_timers[scenario_name] = stonehearth.calendar:set_timer(curr_duration, function()
-      self._sv._data.scenarios[scenario_name].next_spawn_time = nil
-      if self._spawn_timers[scenario_name] then
-         self._spawn_timers[scenario_name]:destroy()
-         self._spawn_timers[scenario_name] = nil
-      end
-      self:_spawn(scenario_name, next_interval)
+   self._sv.spawn_timers[scenario_name] = stonehearth.calendar:set_timer(curr_duration, function()
+      self:_spawn_callback(scenario_name, next_interval)
    end)
-   return self._spawn_timers[scenario_name]:get_expire_time()
+   return self._sv.spawn_timers[scenario_name]:get_expire_time()
+end
+
+function IntervalService:_spawn_callback(scenario_name, next_interval)
+   self._sv._data.scenarios[scenario_name].next_spawn_time = nil
+   if self._sv.spawn_timers[scenario_name] then
+      self._sv.spawn_timers[scenario_name]:destroy()
+      self._sv.spawn_timers[scenario_name] = nil
+   end
+   self:_spawn(scenario_name, next_interval)
+   self.__saved_variables:mark_changed()
 end
 
 -- Restart all the spawn timers based on their saved durations from the last run
 function IntervalService:_restore_spawn_timers()
    for scenario_name, scenario_data in pairs(self._sv._data.scenarios) do
-      local duration = scenario_data.next_spawn_time and stonehearth.calendar:get_seconds_until(scenario_data.next_spawn_time)
-      if not duration then
-         duration = scenario_data.occurance_interval
-      end 
-      scenario_data.next_spawn_time = self:_start_spawn_timer(duration, scenario_name, scenario_data.occurance_interval)
+      if self._sv.spawn_timers[scenario_name] then
+         self._sv.spawn_timers[scenario_name]:bind(function()
+               self:_spawn(scenario_name, scenario_data.occurance_interval)
+            end)
+      end
    end
-   self.__saved_variables:mark_changed()
 end
 
 --Stop all in-progress spawn timers
 --TODO: test this function works
 function IntervalService:_stop_all_spawn_timers()
-   for scenario_name, spawn_timer in pairs(self._spawn_timers) do
+   for scenario_name, spawn_timer in pairs(self._sv.spawn_timers) do
       if spawn_timer then
          spawn_timer:destroy()
          spawn_timer = nil
       end
       self._sv._data.scenarios[scenario_name].next_spawn_time = nil
    end
+   self.__saved_variables:mark_changed()
 end
 
 --The timers run regardless of whether the scenario is enabled. 

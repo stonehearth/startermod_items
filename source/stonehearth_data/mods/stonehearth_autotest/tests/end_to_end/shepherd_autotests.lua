@@ -28,6 +28,38 @@ end
 --]]
 
 ---[[
+function shepherd_autotests.demote(autotest)
+   local shepherd = autotest.env:create_person(2, 2, { job = 'shepherd' })
+   autotest.env:create_entity(-3, -6, 'stonehearth:sheep')
+   local tree = autotest.env:create_entity(1, 1, 'stonehearth:small_oak_tree')
+   autotest.util:succeed_when_destroyed(tree)
+
+   autotest:sleep(1000)
+
+   --Set the harvest region
+   autotest.ui:click_dom_element('#startMenu #harvest_menu')
+   autotest.ui:click_dom_element('#startMenu #harvest')
+   autotest.ui:set_next_designation_region(-4, -4, 12, 12) 
+
+   autotest:sleep(1000)
+
+   --Make a pasture
+   autotest.ui:click_dom_element('#startMenu #create_pasture')
+   autotest.ui:set_next_designation_region(4, 8, 10, 10)
+
+   autotest:sleep(3000)
+
+   --Demote the shepherd
+   autotest.ui:push_unitframe_command_button(shepherd, 'promote_to_job')
+   autotest.ui:click_dom_element('#stonehearth\\:jobs\\:worker')
+   autotest.ui:click_dom_element('#approveStamper')
+   
+   autotest:sleep(100*1000)
+   autotest:fail('failed to demote shepherd')
+end
+--]]
+
+---[[
 function shepherd_autotests.harvest_wool(autotest)
    --put down one shepherd and one sheep
    local shepherd = autotest.env:create_person(2, 2, { job = 'shepherd' })
@@ -49,6 +81,7 @@ function shepherd_autotests.harvest_wool(autotest)
 end
 --]]
 
+---[[
 function shepherd_autotests.harvest_meat(autotest)
    local shepherd = autotest.env:create_person(2, 2, { job = 'shepherd' })
    local sheep = autotest.env:create_entity(0, 0, 'stonehearth:sheep')
@@ -76,5 +109,6 @@ function shepherd_autotests.harvest_meat(autotest)
    autotest:fail('failed to harvest meat')
 
 end
+--]]
 
 return shepherd_autotests

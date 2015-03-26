@@ -55,30 +55,37 @@ FilterResultCachePtr FilterResultCache::ClearCacheEntry(dm::ObjectId id)
  * moved since the last call.
  *
  */
-bool FilterResultCache::ConsiderEntity(om::EntityPtr entity)
+bool FilterResultCache::ConsiderEntity(om::EntityPtr& entity)
 {
    if (!entity) {
       return false;
    }
+   
+   om::MobPtr mob = entity->GetComponent<om::Mob>();
+
+   if (!mob) {
+      return false;
+   }
+
    dm::ObjectId id = entity->GetObjectId();
+   csg::Point3f& loc = mob->GetLocation();
    auto i = _results.find(id);
    if (i != _results.end()) {
-      bool result = i->second.value;
-      BFS_LOG(9) << "returning cached result (" << result << ") for " << *entity;
-      return result;
+      if (loc == i->second.location) {
+         bool result = i->second.value;
+         BFS_LOG(9) << "filter " << this << " returning cached result (" << result << ") for " << *entity;
+         return result;
+      } else {
+         BFS_LOG(9) << "filter " << this << " updating cached result at location (" << loc << ") for " << *entity;
+         bool result = _filterFn(entity);
+         i->second.location = loc;
+         i->second.value = result;
+         return result;
+      }
    }
    
    bool result = _filterFn(entity);
-
-   dm::TracePtr trace;
-   om::MobPtr mob = entity->GetComponent<om::Mob>();
-   if (mob) {
-      trace = mob->TraceTransform("filter result cache", dm::OBJECT_MODEL_TRACES)
-                                    ->OnModified([this, id]() {
-                                       ClearCacheEntry(id);
-                                    });
-   }
-   _results.insert(std::make_pair(id, Entry(result, trace)));
-   BFS_LOG(9) << "cache miss!  adding new cache result result (" << result << ") for " << *entity;   
+   _results.insert(std::make_pair(id, Entry(result, loc)));
+   BFS_LOG(9) << "filter " << this << " cache miss!  adding new cache result result (" << result << ") for " << *entity;   
    return result;
 }

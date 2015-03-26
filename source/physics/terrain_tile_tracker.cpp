@@ -60,7 +60,10 @@ bool TerrainTileTracker::Intersects(csg::CollisionBox const& worldBounds) const
    if (region) {
       bool collision = region->Get().Intersects(csg::ToInt(worldBounds));
 
-      LOG(physics.navgrid, 8) << "checking collision of tile bounds " << region->Get().GetBounds() << " against " << worldBounds << "(collide? " << std::boolalpha << collision << ")";
+      LOG(physics.navgrid, 8) << "terrain tile @ " << region->Get().GetBounds().min << " intersected /w " << worldBounds << "("
+                              << "collide? " << std::boolalpha << collision
+                              << "  intersection bounds:" << region->Get().Intersected(csg::ToInt(worldBounds)).GetBounds()
+                              << ")";
       return collision;
    }
    return false;

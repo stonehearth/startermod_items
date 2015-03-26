@@ -80,13 +80,21 @@ end
 
 --If an entity from our population was killed, lower safety score
 function SafetyScoreObserver:_on_entity_killed(e)
-   if e.player_id and e.player_id == radiant.entities.get_player_id(self._entity) and 
-      e.player_id == radiant.entities.get_player_id(self._entity) then
+   -- Check to see if what was killed was something we should write about....
+   -- Not TODO: psychopathy?
+   if not e.sentient then
+      return
+   end
 
+   if e.player_id and e.player_id == radiant.entities.get_player_id(self._entity) then
       --Pass in name of the dead friend into the journal entry
       local personality_component = self._entity:get_component('stonehearth:personality')
+      local first_name = e.name
+
       local name_break = string.find(e.name, ' ')
-      local first_name = string.sub(e.name, 1, name_break-1)
+      if name_break then
+         first_name = string.sub(e.name, 1, name_break-1)
+      end
       personality_component:add_substitution('dead_friend', first_name)
 
       local journal_data = {entity = self._entity, description = 'villager_death', tags = {'safety', 'combat', 'villager_death'}}

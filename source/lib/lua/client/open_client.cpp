@@ -95,7 +95,7 @@ RenderNodePtr Client_CreateVoxelNode(lua_State* L,
    csg::Mesh mesh;
    csg::RegionToMesh(csg::ToInt(model), mesh, -origin, false);
 
-   return RenderNode::CreateCsgMeshNode(parent, mesh)
+   return RenderNode::CreateCsgModelNode(parent, mesh)
                            ->SetMaterial(material_path);
 }
 
@@ -132,7 +132,7 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
                                           .PaintOnce();
             csg::RegionToMesh(model, mesh, -origin, true);
          };
-         node = RenderNode::CreateSharedCsgMeshNode(parent, key, create_mesh);
+         node = RenderNode::CreateSharedCsgModelNode(parent, key, create_mesh);
       }
    }
    return node;
@@ -170,9 +170,10 @@ RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L,
                                   H3DNode parent,
                                   csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
-                                  csg::Color4 const& face_color)
+                                  csg::Color4 const& face_color,
+                                  std::string const& material)
 {
-   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, region, edge_color, face_color);
+   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, region, edge_color, face_color, material);
 }
 
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
@@ -188,7 +189,7 @@ RenderNodePtr Client_CreateMeshNode(lua_State* L,
                                     H3DNode parent,
                                     csg::Mesh const& m)
 {
-   return RenderNode::CreateCsgMeshNode(parent, m);
+   return RenderNode::CreateCsgModelNode(parent, m);
 }
 
 RenderNodePtr Client_CreateTextNode(lua_State* L, 

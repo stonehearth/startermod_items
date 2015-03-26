@@ -116,6 +116,22 @@ DLLEXP void h3dReset()
 	Modules::reset();
 }
 
+DLLEXP NodeHandle h3dGetRootNode(SceneId sceneId)
+{
+   return Modules::sceneMan().sceneForId(sceneId).getRootNode().getHandle();
+}
+
+DLLEXP SceneId h3dGetSceneForNode(NodeHandle node)
+{
+   return Modules::sceneMan().sceneForNode(node).getId();
+}
+
+DLLEXP SceneId h3dAddScene(const char* name)
+{
+   return Modules::sceneMan().addScene(name);
+}
+
+
 DLLEXP void h3dRender( NodeHandle cameraNode, ResHandle pipelineRes )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cameraNode );
@@ -136,7 +152,7 @@ DLLEXP void h3dFinalizeFrame()
 
 DLLEXP void h3dClear()
 {
-	Modules::sceneMan().removeNode( Modules::sceneMan().getRootNode() );
+   Modules::sceneMan().clear();
 	Modules::resMan().clear();
 }
 
@@ -768,7 +784,7 @@ DLLEXP void h3dGetNodeAABB( NodeHandle node, float *minX, float *minY, float *mi
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
 	APIFUNC_VALIDATE_NODE( sn, "h3dGetNodeAABB", APIFUNC_RET_VOID );
 
-	Modules::sceneMan().updateNodes();
+   Modules::sceneMan().sceneForNode(node).updateNodes();
 	if( minX != 0x0 ) *minX = sn->getBBox().min().x;
 	if( minY != 0x0 ) *minY = sn->getBBox().min().y;
 	if( minZ != 0x0 ) *minZ = sn->getBBox().min().z;
@@ -783,13 +799,13 @@ DLLEXP int h3dFindNodes( NodeHandle startNode, const char *name, int type )
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( startNode );
 	APIFUNC_VALIDATE_NODE( sn, "h3dFindNodes", 0 );
 
-	return Modules::sceneMan().findNodes( *sn, safeStr( name, 0 ), type );
+   return Modules::sceneMan().sceneForNode(startNode).findNodes( *sn, safeStr( name, 0 ), type );
 }
 
 
-DLLEXP NodeHandle h3dGetNodeFindResult( int index )
+DLLEXP NodeHandle h3dGetNodeFindResult(SceneId sceneId, int index )
 {
-	SceneNode *sn = Modules::sceneMan().getFindResult( index );
+	SceneNode *sn = Modules::sceneMan().sceneForId(sceneId).getFindResult( index );
 	
 	return sn != 0x0 ? sn->getHandle() : 0;
 }
@@ -806,15 +822,15 @@ DLLEXP NodeHandle h3dCastRay( NodeHandle node, float ox, float oy, float oz, flo
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
 	APIFUNC_VALIDATE_NODE( sn, "h3dCastRay", 0 );
 
-	Modules::sceneMan().updateNodes();
-	return Modules::sceneMan().castRay( *sn, Vec3f( ox, oy, oz ), Vec3f( dx, dy, dz ), numNearest, userFlags );
+   Modules::sceneMan().sceneForNode(node).updateNodes();
+   return Modules::sceneMan().sceneForNode(node).castRay( *sn, Vec3f( ox, oy, oz ), Vec3f( dx, dy, dz ), numNearest, userFlags );
 }
 
 
-DLLEXP bool h3dGetCastRayResult( int index, NodeHandle *node, float *distance, float *intersection, float *normal )
+DLLEXP bool h3dGetCastRayResult(SceneId sceneId, int index, NodeHandle *node, float *distance, float *intersection, float *normal )
 {
 	CastRayResult crr;
-	if( Modules::sceneMan().getCastRayResult( index, crr ) )
+   if( Modules::sceneMan().sceneForId(sceneId).getCastRayResult( index, crr ) )
 	{
 		if( node ) *node = crr.node->getHandle();
 		if( distance ) *distance = crr.distance;
@@ -856,7 +872,7 @@ DLLEXP NodeHandle h3dAddGroupNode( NodeHandle parent, const char *name )
 
 	//Modules::log().writeInfo( "Adding Group node '%s'", safeStr( name ).c_str() );
 	GroupNodeTpl tpl( safeStr( name, 0 ) );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Group )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Group )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -870,20 +886,18 @@ DLLEXP NodeHandle h3dAddModelNode( NodeHandle parent, const char *name, ResHandl
 
 	//Modules::log().writeInfo( "Adding Model node '%s'", safeStr( name ).c_str() );
 	ModelNodeTpl tpl( safeStr( name, 0 ), (GeometryResource *)geoRes );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Model )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Model )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
-DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name, ResHandle voxelGeometryRes )
+DLLEXP NodeHandle h3dAddVoxelModelNode( NodeHandle parent, const char *name)
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelModelNode", 0 );
-	Resource *geoRes = Modules::resMan().resolveResHandle( voxelGeometryRes  );
-	APIFUNC_VALIDATE_RES_TYPE( geoRes, ResourceTypes::VoxelGeometry, "h3dAddVoxelModelNode", 0 );
 
 	//Modules::log().writeInfo( "Adding Model node '%s'", safeStr( name ).c_str() );
-	VoxelModelNodeTpl tpl( safeStr( name, 0 ), (VoxelGeometryResource *)geoRes );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelModel )->factoryFunc( tpl );
+	VoxelModelNodeTpl tpl( safeStr( name, 0 ));
+	SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::VoxelModel )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -897,7 +911,7 @@ DLLEXP NodeHandle h3dAddInstanceNode( NodeHandle parent, const char *name, ResHa
    APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddInstanceNode", 0 );
 
 	InstanceNodeTpl tpl( safeStr( name, 0 ), (MaterialResource*)matRes, (VoxelGeometryResource*)geoRes, maxInstances );
-   SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::InstanceNode )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::InstanceNode )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -909,7 +923,7 @@ DLLEXP NodeHandle h3dAddProjectorNode( NodeHandle parent, const char *name, ResH
    APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddProjectorNode", 0 );
 
 	ProjectorNodeTpl tpl( safeStr( name, 0 ), (MaterialResource*)matRes);
-   SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::ProjectorNode )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::ProjectorNode )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -929,7 +943,7 @@ HudElementNode* h3dAddHudElementNode( NodeHandle parent, const char *name )
    APIFUNC_VALIDATE_NODE( parentNode, "h3dAddHudElementNode", 0 );
 
    HudElementNodeTpl tpl( safeStr( name, 0 ) );
-   HudElementNode* sn = (HudElementNode*)Modules::sceneMan().findType( SceneNodeTypes::HudElement )->factoryFunc( tpl );
+   HudElementNode* sn = (HudElementNode*)Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::HudElement )->factoryFunc( tpl );
    Modules::sceneMan().addNode( sn, *parentNode );
    return sn;
 }
@@ -981,23 +995,35 @@ DLLEXP NodeHandle h3dAddMeshNode( NodeHandle parent, const char *name, ResHandle
 	//Modules::log().writeInfo( "Adding Mesh node '%s'", safeStr( name ).c_str() );
 	MeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes, (unsigned)batchStart,
 	                 (unsigned)batchCount, (unsigned)vertRStart, (unsigned)vertREnd );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Mesh )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Mesh )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
-DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes  )
+DLLEXP NodeHandle h3dAddVoxelMeshNode( NodeHandle parent, const char *name, ResHandle materialRes, ResHandle voxelGeometryRes   )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelMeshNode", 0 );
 	Resource *matRes = Modules::resMan().resolveResHandle( materialRes );
 	APIFUNC_VALIDATE_RES_TYPE( matRes, ResourceTypes::Material, "h3dAddVoxelMeshNode", 0 );
+	Resource *geoRes = Modules::resMan().resolveResHandle( voxelGeometryRes  );
+	APIFUNC_VALIDATE_RES_TYPE( geoRes, ResourceTypes::VoxelGeometry, "h3dAddVoxelMeshNode", 0 );
 
 	//Modules::log().writeInfo( "Adding VoxelMesh node '%s'", safeStr( name ).c_str() );
-	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::VoxelMesh )->factoryFunc( tpl );
+	VoxelMeshNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes,  (VoxelGeometryResource *)geoRes);
+	SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::VoxelMesh )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
+DLLEXP NodeHandle h3dAddVoxelJointNode( NodeHandle parent, const char *name, int jointIndex )
+{
+	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
+	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddVoxelJointNode", 0 );
+
+	//Modules::log().writeInfo( "Adding Joint node '%s'", safeStr( name ).c_str() );
+	VoxelJointNodeTpl tpl( safeStr( name, 0 ), (unsigned)jointIndex );
+	SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::VoxelJointNode )->factoryFunc( tpl );
+	return Modules::sceneMan().addNode( sn, *parentNode );
+}
 
 DLLEXP NodeHandle h3dAddJointNode( NodeHandle parent, const char *name, int jointIndex )
 {
@@ -1006,7 +1032,7 @@ DLLEXP NodeHandle h3dAddJointNode( NodeHandle parent, const char *name, int join
 
 	//Modules::log().writeInfo( "Adding Joint node '%s'", safeStr( name ).c_str() );
 	JointNodeTpl tpl( safeStr( name, 0 ), (unsigned)jointIndex );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Joint )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Joint )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -1021,7 +1047,7 @@ DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name,
 	LightNodeTpl tpl( safeStr( name, 0 ),
 	                  safeStr( lightingContext, 1 ), safeStr( shadowContext, 2 ) );
    tpl.directional = directional;
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Light )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Light )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -1033,7 +1059,7 @@ DLLEXP NodeHandle h3dAddCameraNode( NodeHandle parent, const char *name)
 	
 	//Modules::log().writeInfo( "Adding Camera node '%s'", safeStr( name ).c_str() );
 	CameraNodeTpl tpl( safeStr( name, 0 ));
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Camera )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Camera )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 
@@ -1056,7 +1082,7 @@ DLLEXP void h3dGetCameraProjMat( NodeHandle cameraNode, float *projMat )
 		return;
 	}
 	
-	Modules::sceneMan().updateNodes();
+   Modules::sceneMan().sceneForNode(cameraNode).updateNodes();
 	memcpy( projMat, ((CameraNode *)sn)->getProjMat().x, 16 * sizeof( float ) );
 }
 
@@ -1070,7 +1096,7 @@ void h3dGetCameraFrustum( NodeHandle cameraNode, Frustum* f )
 		return;
 	}
 
-   Modules::sceneMan().updateNodes();
+   Modules::sceneMan().sceneForNode(cameraNode).updateNodes();
    f->buildViewFrustum(cn->getViewMat(), cn->getProjMat());
 }
 
@@ -1079,7 +1105,7 @@ DLLEXP void h3dWorldToScreenPos(NodeHandle cameraNode, float x, float y, float z
    CameraNode *cn = (CameraNode *)Modules::sceneMan().resolveNodeHandle( cameraNode );
    APIFUNC_VALIDATE_NODE_TYPE( cn, SceneNodeTypes::Camera, "h3dWorldToScreenPos", APIFUNC_RET_VOID );
 
-   Modules::sceneMan().updateNodes();
+   Modules::sceneMan().sceneForNode(cameraNode).updateNodes();
    Vec4f screen = cn->toScreenPos(Vec3f(x, y, z));
    if (sx) {
       *sx = screen.x;
@@ -1108,7 +1134,7 @@ DLLEXP NodeHandle h3dAddEmitterNode( NodeHandle parent, const char *name, ResHan
 	//Modules::log().writeInfo( "Adding Emitter node '%s'", safeStr( name ).c_str() );
 	EmitterNodeTpl tpl( safeStr( name, 0 ), (MaterialResource *)matRes, (ParticleEffectResource *)effRes,
 	                    (unsigned)maxParticleCount, respawnCount );
-	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Emitter )->factoryFunc( tpl );
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType( SceneNodeTypes::Emitter )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }
 

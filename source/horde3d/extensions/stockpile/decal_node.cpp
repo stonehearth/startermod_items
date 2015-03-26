@@ -77,11 +77,11 @@ SceneNode *DecalNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new DecalNode(static_cast<const DecalTpl&>(nodeTpl));
 }
 
-void DecalNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
+void DecalNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DecalNode)) {
+   for (const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_DecalNode)) {
       DecalNode *decal = (DecalNode *)entry.node;
 
       MaterialResource* material = decal->GetMaterial();

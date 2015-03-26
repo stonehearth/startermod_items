@@ -1,10 +1,14 @@
 local Renderer = class()
+local log = radiant.log.create_logger('renderer')
 
 function Renderer:initialize()
    self._sv = self.__saved_variables:get_data()
    self._ui_mode = 'normal'
    self._building_vision_mode = 'normal'
-   
+   self._installing_regions = false
+   self._visible_region_installed = false
+   self._explored_region_installed = false
+
    if self._sv.visible_region_uri then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', self, self._install_regions)
    end
@@ -41,28 +45,32 @@ function Renderer:set_visibility_regions(visible_region_uri, explored_region_uri
    self._sv.visible_region_uri = visible_region_uri
    self._sv.explored_region_uri = explored_region_uri
 
-   self._visible_region_installed = false
-   self._explored_region_installed = false
    self:_install_regions()
 end
 
 function Renderer:_install_regions()
+   log:debug('installing regions')
    -- when starting a new game or loading, the uri's for the visible and explored regions
    -- may arrive slightly ahead of the actual regions themselves.  keep trying to 
    -- register them with the renderer, until it finally succeeds.
    if not self._installing_regions then
       self._installing_regions = true
+
       self._timer = radiant.set_realtime_interval(100, function()
+            log:debug('attempting to install regions')
             self._installing_regions = true
+
             if not self._visible_region_installed then
                self._visible_region_installed = _radiant.renderer.visibility.set_visible_region(self._sv.visible_region_uri)
             end
+
             if not self._explored_region_installed then
                self._explored_region_installed = _radiant.renderer.visibility.set_explored_region(self._sv.explored_region_uri)
             end
 
             -- both registered!  time to die....
             if self._visible_region_installed and self._explored_region_installed then
+               log:debug('suceeded installing regions')
                self._installing_regions = false
                self._timer:destroy()
                self._timer = nil

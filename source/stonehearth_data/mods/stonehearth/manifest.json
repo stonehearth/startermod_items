@@ -1436,7 +1436,6 @@
       "buffs" : "file(components/buffs/buffs_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "fixture_fabricator" : "file(components/fixture_fabricator/fixture_fabricator_component.lua)",
-      "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "fixture" : "file(components/fixture/fixture_component.lua)",
       "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
@@ -1466,7 +1465,7 @@
       "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
    },
    "client_components" : {
-      "building" : "file(components/building/building_client_component.lua)",
+      "building" : "file(components/building/building_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
@@ -1499,6 +1498,7 @@
       "scaffolding_renderer" : "file(renderers/scaffolding/scaffolding_renderer.lua)"
    },
    "ui" :  {
+      "empty" : "http://radiant/stonehearth/ui/root/empty.html",
       "homepage" : "http://radiant/stonehearth/ui/root/index.html",
       "html" : [
          "file(ui/common/modal_overlay/modal_overlay.html)",

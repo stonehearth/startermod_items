@@ -16,6 +16,7 @@
 #include "egPrerequisites.h"
 #include "egScene.h"
 #include "egAnimation.h"
+#include "egVoxelGeometry.h"
 #include "utMath.h"
 
 namespace Horde3D {
@@ -38,6 +39,7 @@ struct VoxelMeshNodeParams
 		VertREndI,
 		LodLevelI,
       NoInstancingI,
+		VoxelGeoResI
 	};
 };
 
@@ -46,9 +48,10 @@ struct VoxelMeshNodeParams
 struct VoxelMeshNodeTpl : public SceneNodeTpl
 {
 	PMaterialResource  matRes;
+	PVoxelGeometryResource  geoRes;
    
-	VoxelMeshNodeTpl( std::string const& name, MaterialResource *materialRes) :
-		SceneNodeTpl( SceneNodeTypes::VoxelMesh, name ), matRes( materialRes )
+	VoxelMeshNodeTpl( std::string const& name, MaterialResource *materialRes, VoxelGeometryResource *geometryRes) :
+		SceneNodeTpl( SceneNodeTypes::VoxelMesh, name ), matRes( materialRes ), geoRes( geometryRes )
 	{
 	}
 };
@@ -76,20 +79,22 @@ public:
 	uint32 getVertRStart(int lodLevel) const;
 	uint32 getVertREnd(int lodLevel) const;
 	VoxelModelNode *getParentModel() const { return _parentModel; }
+	bool updateVoxelGeometry();
+
+	VoxelGeometryResource *getVoxelGeometryResource() const { return _geometryRes; }
 
 protected:
 	VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl );
 	~VoxelMeshNode();
+
+   void setVoxelGeometryRes( VoxelGeometryResource &geoRes );
 
 protected:
 	PMaterialResource   _materialRes;
 	
 	VoxelModelNode      *_parentModel;
 	BoundingBox         _localBBox;
-	bool                _ignoreAnim;
-
-	std::vector< uint32 >  _occQueries;
-	std::vector< uint32 >  _lastVisited;
+	PVoxelGeometryResource        _geometryRes;
 
 private:
 

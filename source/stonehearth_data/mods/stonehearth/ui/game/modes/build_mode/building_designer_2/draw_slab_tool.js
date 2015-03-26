@@ -37,7 +37,7 @@ var DrawSlabTool;
                      self.brush = brush;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('brush', brush);
+                     self.buildingDesigner.saveKey('slabBrush', brush);
 
                      // Re/activate the slab tool with the new material.
                      self.buildingDesigner.reactivateTool(self.buildTool);
@@ -55,7 +55,7 @@ var DrawSlabTool;
       restoreState: function(state) {
          var self = this;
 
-         var selector = state.brush ? '.' + self.materialClass + '[brush="' + state.brush + '"]' :  '.' + self.materialClass;
+         var selector = state.slabBrush ? '.' + self.materialClass + '[brush="' + state.slabBrush + '"]' :  '.' + self.materialClass;
          var selectedMaterial = $($(selector)[0]);
          $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
