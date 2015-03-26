@@ -8,6 +8,26 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
+
+template <typename S, int C>
+std::ostream& operator<<(std::ostream& os, EdgePoint<S, C> const& e)
+{
+   (return os << "[EdgePoint location:" << e.location<< " accumulated_normals:" << e.accumulated_normals << "]");
+}
+
+template <typename S, int C>
+std::ostream& operator<<(std::ostream& os, Edge<S, C> const& e)
+{
+   (return os << "[Edge min:" << e.min << " max:" << e.max << " normal:" << e.normal << "]");
+}
+
+template <typename S, int C>
+std::ostream& operator<<(std::ostream& os, EdgeMap<S, C> const& e)
+{
+   (return os << "[EdgeMap of " << map.GetEdges().size() << " edges]");
+}
+
+
 IMPLEMENT_TRIVIAL_TOSTRING(Edge3f);
 IMPLEMENT_TRIVIAL_TOSTRING(EdgePoint3f);
 IMPLEMENT_TRIVIAL_TOSTRING(EdgeMap3f);
