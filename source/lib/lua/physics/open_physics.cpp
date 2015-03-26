@@ -19,6 +19,11 @@ bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef
    return octTree.GetNavGrid().IsStandable(entity, csg::ToClosestInt(location));
 }
 
+csg::Region3f Physics_ClipRegion(lua_State *L, OctTree &octTree, csg::Region3f const& r, NavGrid::ClippingMode mode)
+{
+   return octTree.GetNavGrid().ClipRegion(r, mode);
+}
+
 bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
    return octTree.GetNavGrid().IsStandable(csg::ToClosestInt(location));
@@ -141,6 +146,11 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
       namespace_("_radiant") [
          namespace_("physics") [
             luabind::class_<OctTree>("Physics")
+               .enum_("constants") [
+                  value("CLIP_SOLID",       NavGrid::ClippingMode::CLIP_SOLID),
+                  value("CLIP_TERRAIN",     NavGrid::ClippingMode::CLIP_TERRAIN)
+               ]
+               .def("clip_region",          &Physics_ClipRegion)
                .def("is_standable",         &Physics_IsStandable)
                .def("is_standable",         &Physics_IsStandablePoint)
                .def("is_blocked",           &Physics_IsBlocked)

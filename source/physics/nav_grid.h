@@ -100,6 +100,13 @@ class NavGrid {
       bool ForEachEntityInBox(csg::CollisionBox const& worldBox, ForEachEntityCb const& cb);
       bool ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEachEntityCb const& cb);
 
+      // Clipping
+      enum ClippingMode {
+         CLIP_SOLID,
+         CLIP_TERRAIN,
+      };
+      csg::Region3f ClipRegion(csg::Region3f const& region, ClippingMode mode);
+
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3f& r);
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);

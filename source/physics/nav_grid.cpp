@@ -1449,4 +1449,26 @@ void NavGrid::ReleaseTrackerVector(std::vector<CollisionTrackerRef>& trackers)
    _trackerVectors.emplace_back(std::move(trackers));
 }
 
+csg::Region3f NavGrid::ClipRegion(csg::Region3f const& region, ClippingMode mode)
+{
+   csg::Region3f clippedRegion = region;
 
+   ForEachTrackerInShape(region, [&clippedRegion, mode](CollisionTrackerPtr tracker) -> bool {
+      bool clip = false;
+      TrackerType type = tracker->GetType();
+      switch (mode) {
+      case CLIP_TERRAIN:
+         clip = (type == TERRAIN);
+         break;
+      case CLIP_SOLID:
+         clip = (type == COLLISION || type == TERRAIN);
+         break;
+      };
+      if (clip) {
+         tracker->ClipRegion(clippedRegion);
+      }
+      return false;     // keep going!
+   });
+
+   return clippedRegion;
+}
