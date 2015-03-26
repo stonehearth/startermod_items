@@ -126,6 +126,12 @@ DLLEXP SceneId h3dGetSceneForNode(NodeHandle node)
    return Modules::sceneMan().sceneForNode(node).getId();
 }
 
+DLLEXP SceneId h3dAddScene(const char* name)
+{
+   return Modules::sceneMan().addScene(name);
+}
+
+
 DLLEXP void h3dRender( NodeHandle cameraNode, ResHandle pipelineRes )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( cameraNode );

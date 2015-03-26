@@ -1017,15 +1017,16 @@ void Renderer::Initialize()
    RenderNode::Initialize();
 
    mainSceneRoot_ = h3dGetRootNode(0);
+   fowSceneRoot_ = h3dGetRootNode(h3dAddScene("fow"));
 
    BuildSkySphere();
    BuildStarfield();
 
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-   /*fowVisibleNode_ = h3dAddInstanceNode(mainSceneRoot_, "fow_visiblenode", 
+   /*fowVisibleNode_ = h3dAddInstanceNode(fowSceneRoot_, "fow_visiblenode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
-   fowExploredNode_ = h3dAddInstanceNode(mainSceneRoot_, "fow_explorednode", 
+   fowExploredNode_ = h3dAddInstanceNode(fowSceneRoot_, "fow_explorednode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
    h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
@@ -1038,7 +1039,7 @@ void Renderer::Initialize()
    camera_ = new Camera(mainSceneRoot_, "Camera");
 
    // Add another camera--this is exclusively for the fog-of-war pipeline.
-   fowCamera_ = new Camera(mainSceneRoot_, "FowCamera");
+   fowCamera_ = new Camera(fowSceneRoot_, "FowCamera");
 
    debugShapes_ = h3dRadiantAddDebugShapes(mainSceneRoot_, "renderer debug shapes");
 

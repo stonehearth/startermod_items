@@ -257,6 +257,7 @@ class Renderer
       uint32            fowRenderTarget_;
 
       H3DNode           mainSceneRoot_;
+      H3DNode           fowSceneRoot_;
       H3DResourceMap    pipelines_;
    	std::string       currentPipeline_;
 

@@ -820,6 +820,8 @@ DLL H3DNode h3dGetRootNode(H3DSceneId sceneId);
 
 DLL H3DSceneId h3dGetSceneForNode(H3DNode node);
 
+DLL H3DSceneId h3dAddScene(const char* name);
+
 /* Function: h3dRender
 		Main rendering function.
 	
