@@ -44,18 +44,31 @@ RenderNodePtr RenderNode::CreateMeshNode(H3DNode parent, GeometryInfo const& geo
    return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
 }
 
-RenderNodePtr RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& geo)
+RenderNodePtr RenderNode::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo)
+{
+   std::string meshName = BUILD_STRING("mesh" << nextId++);
+
+   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
+   H3DNode meshNode = h3dAddVoxelMeshNode(parent, meshName.c_str(), mat.get(), geo.geo.get());
+   if (geo.unique) {
+      h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
+   }
+   return std::make_shared<RenderNode>(meshNode, geo.geo, mat);
+}
+
+
+RenderNodePtr RenderNode::CreateVoxelModelNode(H3DNode parent, GeometryInfo const& geo)
 {
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
 
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
-   H3DNode node = h3dAddVoxelModelNode(parent, modelName.c_str(), geo.geo.get());
-   H3DNode meshNode = h3dAddVoxelMeshNode(node, meshName.c_str(), mat.get());
+   H3DNode modelNode = h3dAddVoxelModelNode(parent, meshName.c_str());
+   H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, modelName.c_str(), mat.get(), geo.geo.get());
    if (geo.unique) {
       h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
    }
-   return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
+   return std::make_shared<RenderNode>(modelNode, meshNode, geo.geo, mat);
 }
 
 RenderNodePtr RenderNode::CreateObjNode(H3DNode parent, std::string const& uri)
@@ -78,6 +91,19 @@ RenderNodePtr RenderNode::CreateObjNode(H3DNode parent, std::string const& uri)
    return CreateMeshNode(parent, geo);
 }
 
+RenderNodePtr RenderNode::CreateCsgModelNode(H3DNode parent, csg::Mesh const& m)
+{
+   GeometryInfo geo;
+
+   geo.vertexIndices[1] = (int)m.vertices.size();
+   geo.indexIndicies[1] = (int)m.indices.size();
+   geo.levelCount = 1;
+   geo.unique = true;
+
+   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+   return CreateVoxelModelNode(parent, geo);
+}
+
 RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
 {
    GeometryInfo geo;
@@ -88,11 +114,11 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
    geo.unique = true;
 
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-   return CreateVoxelNode(parent, geo);
+   return CreateVoxelMeshNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn)
-{   
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool unique)
+{
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
 
@@ -105,10 +131,34 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
          geo.indexIndicies[i + 1] = (int)m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
+      geo.unique = unique;
+
       ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
    }
-   return CreateVoxelNode(parent, geo);
+   return CreateVoxelMeshNode(parent, geo);
+}
+
+RenderNodePtr RenderNode::CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool unique)
+{
+   GeometryInfo geo;
+   if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
+
+      RN_LOG(7) << "creating new geometry for " << key.GetDescription();
+
+      csg::Mesh m;
+      for (int i = 0; i < MAX_LOD_LEVELS; i++) {
+         create_mesh_fn(m, i);
+         geo.vertexIndices[i + 1] = (int)m.vertices.size();
+         geo.indexIndicies[i + 1] = (int)m.indices.size();
+      }
+      geo.levelCount = MAX_LOD_LEVELS;
+      geo.unique = unique;
+
+      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+      Pipeline::GetInstance().SetSharedGeometry(key, geo);
+   }
+   return CreateVoxelModelNode(parent, geo);
 }
 
 RenderNode::RenderNode()
@@ -122,14 +172,24 @@ RenderNode::RenderNode(H3DNode node) :
    ownedNodes.insert(node);
 }
 
-RenderNode::RenderNode(H3DNode node, H3DNode mesh, SharedGeometry geo, SharedMaterial mat) :
-   _node(node),
+RenderNode::RenderNode(H3DNode modelNode, H3DNode mesh, SharedGeometry geo, SharedMaterial mat) :
+   _node(modelNode),
    _meshNode(mesh),
    _geometry(geo),
    _material(mat)
 {
    RN_LOG(9) << "attaching RenderNode to " << _node;
-   ownedNodes.insert(node);
+   ownedNodes.insert(modelNode);
+}
+
+RenderNode::RenderNode(H3DNode mesh, SharedGeometry geo, SharedMaterial mat) :
+   _meshNode(mesh),
+   _node(mesh),
+   _geometry(geo),
+   _material(mat)
+{
+   RN_LOG(9) << "attaching RenderNode to " << _node;
+   ownedNodes.insert(mesh);
 }
 
 RenderNode::~RenderNode()

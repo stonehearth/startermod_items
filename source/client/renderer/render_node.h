@@ -11,7 +11,7 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
-#define MAX_LOD_LEVELS 4
+#define MAX_LOD_LEVELS 2
 
 struct GeometryInfo {
    int vertexIndices[MAX_LOD_LEVELS + 1];
@@ -42,13 +42,16 @@ public:
 
    static RenderNodePtr CreateGroupNode(H3DNode parent, std::string const& name);
    static RenderNodePtr CreateMeshNode(H3DNode parent, GeometryInfo const& geo);
-   static RenderNodePtr CreateVoxelNode(H3DNode parent, GeometryInfo const& geo);
+   static RenderNodePtr CreateVoxelModelNode(H3DNode parent, GeometryInfo const& geo);
+   static RenderNodePtr CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo);
 
    static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m);
-   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb);
+   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool unique=false);
+   static RenderNodePtr CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool unique=false);
+   static RenderNodePtr CreateCsgModelNode(H3DNode parent, csg::Mesh const& m);
 
-   static void Initialize();
+   static void Initialize();  
    static void Shutdown();
 
    ~RenderNode();
@@ -78,7 +81,8 @@ private:
 
 public: // just because we need std::make_shared<>  UG!
    RenderNode(H3DNode node);
-   RenderNode(H3DNode node, H3DNode mesh, SharedGeometry geo, SharedMaterial mat);
+   RenderNode(H3DNode mesh, SharedGeometry geo, SharedMaterial mat);
+   RenderNode(H3DNode modelNode, H3DNode meshNode, SharedGeometry geo, SharedMaterial mat);
 
    void ApplyMaterial();
    void DestroyHordeNode();

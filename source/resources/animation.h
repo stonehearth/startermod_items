@@ -16,7 +16,7 @@ public:
    float GetDuration();
 
    typedef std::function<void(std::string&, const csg::Transform &)> AnimationFn;
-   void MoveNodes(int32 timeOffset, AnimationFn const& fn);
+   void MoveNodes(int32 timeOffset, float scale, AnimationFn const& fn);
    bool HasBone(std::string const& bone);
    bool IsValid() const;
 
@@ -40,7 +40,7 @@ protected:
    };
 
 protected:
-   void MoveNodes(float offset, AnimationFn const& fn);
+   void MoveNodes(float offset, float scale, AnimationFn const& fn);
    void GetFrames(float offset, int &f0, int &f1, float &alpha);
 
 private:

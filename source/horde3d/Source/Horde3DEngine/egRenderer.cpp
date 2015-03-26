@@ -57,6 +57,7 @@ const char *fsDefColor =
 
 float* Renderer::_vbInstanceVoxelBuf;
 std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
+Matrix4f Renderer::_boneMats[64];
 
 Renderer::Renderer()
 {
@@ -219,24 +220,26 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	};
 	_vlModel = gRDI->registerVertexLayout( 7, attribsModel );
 
-	VertexLayoutAttrib attribsVoxelModel[3] = {
+	VertexLayoutAttrib attribsVoxelModel[4] = {
       { "vertPos",     0, 3, 0 }, 
-      { "normal",      0, 3, 12 },
-      { "color",       0, 4, 24 },
+      { "boneIndex",   0, 1, 12 },
+      { "normal",      0, 3, 16 },
+      { "color",       0, 4, 28 },
 	};
-	_vlVoxelModel = gRDI->registerVertexLayout( 3, attribsVoxelModel );
+	_vlVoxelModel = gRDI->registerVertexLayout( 4, attribsVoxelModel );
 
-	VertexLayoutAttrib attribsInstanceVoxelModel[4] = {
+	VertexLayoutAttrib attribsInstanceVoxelModel[5] = {
       { "vertPos",     0, 3, 0 }, 
-      { "normal",      0, 3, 12 },
-      { "color",       0, 4, 24 },
+      { "boneIndex",   0, 1, 12 },
+      { "normal",      0, 3, 16 },
+      { "color",       0, 4, 28 },
       { "transform",   1, 16, 0 }
 	};
 
-   VertexDivisorAttrib divisorsInstanceVoxelModel[4] = {
-      0, 0, 0, 1
+   VertexDivisorAttrib divisorsInstanceVoxelModel[5] = {
+      0, 0, 0, 0, 1
    };
-	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 4, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
+	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 5, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
 
    _vbInstanceVoxelBuf = new float[MaxVoxelInstanceCount * (4 * 4)];
 
@@ -611,7 +614,10 @@ bool Renderer::createShaderComb( const char* filename, const char *vertexShader,
    sc.uni_cubeBatchTransformArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchTransformArray" );
    sc.uni_cubeBatchColorArray = gRDI->getShaderConstLoc( shdObj, "cubeBatchColorArray" );
 	
-	// Overlay-specific uniforms
+   sc.uni_bones = gRDI->getShaderConstLoc(shdObj, "bones");
+   sc.uni_modelScale = gRDI->getShaderConstLoc(shdObj, "modelScale");
+
+   // Overlay-specific uniforms
 	sc.uni_olayColor = gRDI->getShaderConstLoc( shdObj, "olayColor" );
 
 	return true;
@@ -829,6 +835,15 @@ void Renderer::commitGeneralUniforms()
          Matrix4f m = _projectorMat.inverted();
          gRDI->setShaderConst( _curShader->uni_projectorMat, CONST_FLOAT44, m.x);
       }
+
+      if (_curShader->uni_modelScale >= 0)
+      {
+         // We set a default scale, in case a shader is used and the renderer doesn't specify the scale.
+         // This is fairly cheap, I think....
+         float f = 1.0;
+         gRDI->setShaderConst(_curShader->uni_modelScale, CONST_FLOAT, &f);
+      }
+
 		_curShader->lastUpdateStamp = _curShaderUpdateStamp;
 	}
 }
@@ -2503,6 +2518,7 @@ void Renderer::drawMeshes(SceneId sceneId, std::string const& shaderContext, std
 
 
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
+   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
 	// Loop over mesh queue
 	for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::Mesh) )
 	{
@@ -2532,8 +2548,7 @@ void Renderer::drawMeshes(SceneId sceneId, std::string const& shaderContext, std
 			ASSERT( curGeoRes != 0x0 );
 		
 			// Indices
-			gRDI->setIndexBuffer( curGeoRes->getIndexBuf(),
-			                      curGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer(curGeoRes->getIndexBuf(), curGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
 
 			// Vertices
 			uint32 posVBuf = curGeoRes->getPosVBuf();
@@ -2683,26 +2698,27 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
       RENDER_LOG() << "starting";
 
       // Check that mesh is valid
-      if( modelNode->getVoxelGeometryResource() == 0x0 ) {
+      if( meshNode->getVoxelGeometryResource() == 0x0 ) {
          RENDER_LOG() << "geometry not loaded.  ignoring.";
          continue;
       }
 
-      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > modelNode->getVoxelGeometryResource()->_indexCount ) {
+      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > meshNode->getVoxelGeometryResource()->_indexCount ) {
          RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
          continue;
       }
 
+      Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
+
       // Bind geometry
       RENDER_LOG() << "binding geometry...";
-      if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
+      if( curVoxelGeoRes != meshNode->getVoxelGeometryResource() )
       {
-         curVoxelGeoRes = modelNode->getVoxelGeometryResource();
+         curVoxelGeoRes = meshNode->getVoxelGeometryResource();
          ASSERT( curVoxelGeoRes != 0x0 );
 
          // Indices
-         gRDI->setIndexBuffer( curVoxelGeoRes->getIndexBuf(),
-            curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(), IDXFMT_32);
 
          // Vertices
          gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
@@ -2756,8 +2772,9 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
       // World transformation
       if( curShader->uni_worldMat >= 0 )
       {
-         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";;
-         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
+
+         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &modelNode->_absTrans.x[0] );
       }
       if( curShader->uni_worldNormalMat >= 0 )
       {
@@ -2790,6 +2807,23 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
          glPolygonOffset(lodOffsetX, lodOffsetY);
       } else {
          glDisable(GL_POLYGON_OFFSET_FILL);
+      }
+
+      if (curShader->uni_bones >= 0) {
+         int numBones = (int)modelNode->_boneLookup.size();
+
+         if (numBones == 0) {
+            numBones = 1;
+            _boneMats[0].toIdentity();
+         } else {
+            for (int i = 0; i < numBones; i++) {
+               _boneMats[i] = modelNode->_boneLookup[i]->getRelTrans();
+            }
+         }
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
+      }
+      if (curShader->uni_modelScale >= 0) {
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
       }
 
       // Render
@@ -2847,21 +2881,20 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 
       bool useInstancing = instanceKind.second.size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
       Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
+      Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
 
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       vmn = (VoxelMeshNode*)instanceKind.second.front().node;
+      const VoxelModelNode* voxelModel = vmn->getParentModel();
 
 		// Bind geometry
 		// Indices
-		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(),
-			                     curVoxelGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+		gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(), IDXFMT_32);
 
 		// Vertices
       gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
 
-		
-		ShaderCombination *prevShader = Modules::renderer().getCurShader();
-		
+				
 		if( !debugView )
 		{
          if (Modules::renderer()._materialOverride != 0x0) {
@@ -2891,6 +2924,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
 		}
 
+		ShaderCombination *curShader = Modules::renderer().getCurShader();
+
       float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
       float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
       // Shadow offsets will always win against the custom model offsets (which we don't care about
@@ -2908,6 +2943,26 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
       } else {
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
+
+      if (curShader->uni_bones >= 0) {
+         int numBones = (int)voxelModel->_boneLookup.size();
+
+         if (numBones == 0) {
+            numBones = 1;
+            _boneMats[0].toIdentity();
+         } else {
+            for (int i = 0; i < numBones; i++) {
+               _boneMats[i] = voxelModel->_boneLookup.at(i)->getRelTrans();
+            }
+         }
+
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
+      }
+
+      if (curShader->uni_modelScale >= 0) {
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &voxelModel->_modelScale, 1);
+      }
+
 
       RENDER_LOG() << "rendering (use instancing: " << useInstancing << ")";
       if (useInstancing) {
@@ -2946,11 +3001,11 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
-		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		   const VoxelModelNode *modelNode = meshNode->getParentModel();
+         VoxelMeshNode const* meshNode = (VoxelMeshNode*)node.node;
+         const SceneNode *transNode = meshNode->getParentModel();
 		
-         memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
-         RENDER_LOG() << "adding world matrix (" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
+         memcpy(transformBuffer, &transNode->_absTrans.x[0], sizeof(float) * 16);
+         RENDER_LOG() << "adding world matrix (" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ")";
          transformBuffer += 16;
          numQueued++;
 
@@ -2998,18 +3053,18 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
    ShaderCombination* curShader = Modules::renderer().getCurShader();
 
    #define RENDER_LOG() R_LOG(9) << " drawing without instancing (" \
-                                 << " handle:" << modelNode->getParent()->getHandle() \
-                                 << " name:" << modelNode->getParent()->getName() \
+                                 << " handle:" << vmn->getParent()->getHandle() \
+                                 << " name:" << vmn->getParent()->getName() \
                                  << ") "
 
    for (const auto& node : renderableQueue) {
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		const VoxelModelNode *modelNode = meshNode->getParentModel();
+      const SceneNode *transNode = meshNode->getParentModel();
 
       RENDER_LOG() << "setting (mesh handle:" << meshNode->getHandle() << " mesh name:" << meshNode->getName() << ") world matrix to " 
-                   << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&meshNode->_absTrans.c;
+                   << "(" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&transNode->_absTrans.c;
 
-      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &transNode->_absTrans.x[0] );
       gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(lodLevel), vmn->getBatchCount(lodLevel),
          vmn->getVertRStart(lodLevel), vmn->getVertREnd(lodLevel) - vmn->getVertRStart(lodLevel) + 1);
 
@@ -3029,7 +3084,9 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
 	if( debugView ) return;  // Don't render in debug view
 
    bool useInstancing = gRDI->getCaps().hasInstancing;
+
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
+   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
 	
    R_LOG(9) << "drawing instance nodes (useInstancing:" << useInstancing << " lod:" << lodLevel << ")";
 
@@ -3045,7 +3102,7 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
-         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
          if( curMatRes != in->_matRes )
 		   {
@@ -3069,7 +3126,7 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
          if( curMatRes != in->_matRes )
 		   {

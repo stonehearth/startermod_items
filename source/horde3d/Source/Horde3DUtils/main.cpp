@@ -502,6 +502,7 @@ DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometr
    return res;
 }
 
+
 DLLEXP H3DRes h3dutCreateGeometryRes( 
 	const char *name, 
 	int numVertices, int numTriangleIndices,

@@ -15,7 +15,7 @@ end
 
 function Campaign:restore()
    if self._sv.trigger then
-      self._trigger_listener = radiant.events.listen(self._sv.trigger, 'stonehearth:arc_finish', self, self._on_trigger_finish())
+      self._trigger_listener = radiant.events.listen(self._sv.trigger, 'stonehearth:arc_finish', self, self._on_trigger_finish)
    end
    if self._sv.challenge then
       self._challenge_listener = radiant.events.listen(self._sv.challenge, 'stonehearth:arc_finish', self, self._on_challenge_finish)
