@@ -65,7 +65,7 @@ void h3dRemoveResourceChecked(H3DRes res)
  * Check for 0 before calling into horde, since it gets really mad if we don't
  * (spewing the log).
  */
-void h3dRemoveNodeChecked(H3DRes node)
+void h3dRemoveNodeChecked(H3DNode node)
 {
    if (node != 0) {
       h3dRemoveNode(node);

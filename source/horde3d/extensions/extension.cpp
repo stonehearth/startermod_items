@@ -184,7 +184,7 @@ void Extension::release()
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateToastNode", nullptr);
 	
-	ToastNode* sn = (ToastNode*)Modules::sceneMan().findType(SNT_ToastNode)->factoryFunc(ToastTpl(name));
+   ToastNode* sn = (ToastNode*)Modules::sceneMan().sceneForNode(parent).findType(SNT_ToastNode)->factoryFunc(ToastTpl(name));
 	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
 
    sn->SetNode(node);
@@ -198,7 +198,7 @@ std::pair<H3DNode, ::radiant::horde3d::DecalNode*> h3dRadiantCreateDecalNode(H3D
 	
 	Modules::log().writeInfo( "Adding Decal node '%s'", name.c_str() );
 	
-	DecalNode* sn = (DecalNode*)Modules::sceneMan().findType(SNT_DecalNode)->factoryFunc(DecalTpl(name));
+	DecalNode* sn = (DecalNode*)Modules::sceneMan().sceneForNode(parent).findType(SNT_DecalNode)->factoryFunc(DecalTpl(name));
    if (!sn->SetMaterial(material)) {
       return std::make_pair(0, nullptr);
    }
@@ -218,7 +218,7 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* nam)
 	
 	DebugShapesTpl tpl(name);
 
-	SceneNode *sn = Modules::sceneMan().findType(SNT_DebugShapesNode)->factoryFunc(tpl);
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType(SNT_DebugShapesNode)->factoryFunc(tpl);
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
@@ -237,23 +237,28 @@ DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes 
 
    CubemitterNodeTpl tpl(name, cubeRes, matRes);
 
-	SceneNode *sn = Modules::sceneMan().findType(SNT_CubemitterNode)->factoryFunc(tpl);
+	SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType(SNT_CubemitterNode)->factoryFunc(tpl);
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
-DLL void h3dRadiantAdvanceCubemitterTime(float timeDelta) {
-   int numNodes = h3dFindNodes(H3DRootNode, "", SNT_CubemitterNode);
-   while (numNodes > 0) {
-      H3DNode n = h3dGetNodeFindResult(--numNodes);
-      SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
-      APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
-      CubemitterNode * cn = (CubemitterNode *)sn;
-      if (cn->hasFinished())
-      {
-         h3dRemoveNode(n);
-      } else
-      {
-         cn->advanceTime( timeDelta );
+DLL void h3dRadiantAdvanceCubemitterTime(float timeDelta) {   
+   for (auto& scene : Modules::sceneMan().getScenes()) {
+      H3DNode rootNode = scene->getRootNode().getHandle();
+      H3DSceneId rootScene = Modules::sceneMan().sceneIdFor(rootNode);
+
+      int numNodes = h3dFindNodes(rootNode, "", SNT_CubemitterNode);
+      while (numNodes > 0) {
+         H3DNode n = h3dGetNodeFindResult(rootScene, --numNodes);
+         SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
+         APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_CubemitterNode, "h3dAdvanceCubemitterTime", APIFUNC_RET_VOID );
+         CubemitterNode * cn = (CubemitterNode *)sn;
+         if (cn->hasFinished())
+         {
+            h3dRemoveNode(n);
+         } else
+         {
+            cn->advanceTime( timeDelta );
+         }
       }
    }
 }
@@ -343,7 +348,7 @@ DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DR
 
    AnimatedLightNodeTpl tpl(name, lightRes);
 
-	SceneNode *sn = Modules::sceneMan().findType(SNT_AnimatedLightNode)->factoryFunc(tpl);
+   SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType(SNT_AnimatedLightNode)->factoryFunc(tpl);
    H3DNode ln = Modules::sceneMan().addNode(sn, *parentNode);
    AnimatedLightNode *an = (AnimatedLightNode *)Modules::sceneMan().resolveNodeHandle( ln );
    an->init();
@@ -351,18 +356,22 @@ DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DR
 }
 
 DLL void h3dRadiantAdvanceAnimatedLightTime(float timeDelta) {
-   int numNodes = h3dFindNodes(H3DRootNode, "", SNT_AnimatedLightNode);
-   while (numNodes > 0) {
-      H3DNode n = h3dGetNodeFindResult(--numNodes);
-      SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
-      APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_AnimatedLightNode, "h3dRadiantAdvanceAnimatedLightTime", APIFUNC_RET_VOID );
-      AnimatedLightNode * an = (AnimatedLightNode *)sn;
-      if (an->hasFinished())
-      {
-         h3dRemoveNode(n);
-      } else
-      {
-         an->advanceTime( timeDelta );
+   for (auto& scene : Modules::sceneMan().getScenes()) {
+      H3DNode rootNode = scene->getRootNode().getHandle();
+      H3DSceneId rootScene = Modules::sceneMan().sceneIdFor(rootNode);
+      int numNodes = h3dFindNodes(rootNode, "", SNT_AnimatedLightNode);
+      while (numNodes > 0) {
+         H3DNode n = h3dGetNodeFindResult(rootScene, --numNodes);
+         SceneNode *sn = Modules::sceneMan().resolveNodeHandle( n );
+         APIFUNC_VALIDATE_NODE_TYPE( sn, SNT_AnimatedLightNode, "h3dRadiantAdvanceAnimatedLightTime", APIFUNC_RET_VOID );
+         AnimatedLightNode * an = (AnimatedLightNode *)sn;
+         if (an->hasFinished())
+         {
+            h3dRemoveNode(n);
+         } else
+         {
+            an->advanceTime( timeDelta );
+         }
       }
    }
 }

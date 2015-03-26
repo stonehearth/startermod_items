@@ -20,7 +20,10 @@
 namespace Horde3D {
 
 typedef int ResHandle;
-typedef int NodeHandle;
+
+typedef unsigned int NodeHandle;
+typedef unsigned int NodeId;
+typedef unsigned int SceneId;
 
 extern uint32 _nextHandleValue;
 }

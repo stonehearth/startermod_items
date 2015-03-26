@@ -41,7 +41,7 @@ SceneNode *DebugShapesNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new DebugShapesNode(static_cast<const DebugShapesTpl&>(nodeTpl));
 }
 
-void DebugShapesNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
+void DebugShapesNode::renderFunc(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool first = true;
@@ -49,7 +49,7 @@ void DebugShapesNode::renderFunc(std::string const& shaderContext, std::string c
 
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
    // Loop through debug shape queue
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DebugShapesNode)) {
+   for (const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_DebugShapesNode)) {
       DebugShapesNode *debugShapes = (DebugShapesNode *)entry.node;
       if (debugShapes->empty()) {
          continue;

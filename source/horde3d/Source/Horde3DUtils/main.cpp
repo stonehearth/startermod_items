@@ -868,18 +868,21 @@ DLLEXP void h3dutPickRay( H3DNode cameraNode, float nwx, float nwy, float *ox, f
 }
 
 DLLEXP H3DNode h3dutPickNode( H3DNode cameraNode, float nwx, float nwy )
-{	
+{
+   H3DNode rootNode = Modules::sceneMan().sceneForNode(cameraNode).getRootNode().getHandle();
+   H3DSceneId rootScene = Modules::sceneMan().sceneIdFor(rootNode);
+
 	float ox, oy, oz, dx, dy, dz;
 	h3dutPickRay( cameraNode, nwx, nwy, &ox, &oy, &oz, &dx, &dy, &dz );
 	
-	if( h3dCastRay( H3DRootNode, ox, oy, oz, dx, dy, dz, 1, 0 ) == 0 )
+	if( h3dCastRay(rootNode, ox, oy, oz, dx, dy, dz, 1, 0 ) == 0 )
 	{
 		return 0;
 	}
 	else
 	{
 		H3DNode intersectionNode = 0;
-		if( h3dGetCastRayResult( 0, &intersectionNode, 0, 0, 0 ) )
+		if( h3dGetCastRayResult(rootScene, 0, &intersectionNode, 0, 0, 0 ) )
 			return intersectionNode;
 		else
 			return 0;

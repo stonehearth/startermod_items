@@ -50,7 +50,7 @@ private:
 private:
 	SceneNodeTpl	*_rootNode;
 
-	friend class SceneManager;
+	friend class Scene;
 };
 
 typedef SmartResPtr< SceneGraphResource > PSceneGraphResource;

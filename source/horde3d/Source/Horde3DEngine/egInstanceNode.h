@@ -77,7 +77,7 @@ protected:
    float* _instanceBuf;
    uint32 _instanceBufObj;
 
-   friend class SceneManager;
+   friend class Scene;
 	friend class Renderer;
 };
 

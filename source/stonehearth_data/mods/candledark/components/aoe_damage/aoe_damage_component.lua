@@ -33,6 +33,11 @@ function AoeDamageComponent:destroy()
       self._sensor_trace:destroy()
       self._sensor_trace = nil
    end
+
+   if self._aoe_timer then
+      self._aoe_timer:destroy()
+      self._aoe_timer = nil
+   end
 end
 
 -- Deal damage to everyone within my sensor

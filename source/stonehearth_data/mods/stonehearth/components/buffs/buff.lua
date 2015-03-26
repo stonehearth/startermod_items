@@ -117,28 +117,24 @@ end
 
 
 function Buff:_create_duration()
-   local duration
-   if self._sv.expire_time then
-      -- expire_time is set to the game calendar time when the buff should
-      -- expire.  if we're loading, we need to re-register the timer with
-      -- this time rather than the duration
-      duration = self._sv.expire_time - stonehearth.calendar:get_elapsed_time()
-   elseif self._sv.duration then
-      duration = self._sv.duration
+   local destroy_func = function()
+      self:destroy()
    end
-   if duration then
-      self._timer = stonehearth.calendar:set_timer(duration, function()
+
+   if self._sv.timer then
+      self._sv.timer:bind(destroy_func)
+   elseif self._sv.duration then
+      self._sv.timer = stonehearth.calendar:set_timer(self._sv.duration, function()
             self:destroy()
          end)
-      self._sv.expire_time = self._timer:get_expire_time()
       self.__saved_variables:mark_changed()
    end
 end
 
 function Buff:_destroy_duration()
-   if self._timer then
-      self._timer:destroy()
-      self._timer = nil
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
    end   
 end
 

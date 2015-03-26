@@ -52,13 +52,9 @@
 	H3DNode  - handle to scene node (type: int32)
 */
 typedef int H3DRes;
-typedef int H3DNode;
-
-
-/*	Constants: Predefined constants
-	H3DRootNode  - Scene root node handle
-*/
-const H3DNode H3DRootNode = 1;
+typedef unsigned int H3DSceneId;
+typedef unsigned int H3DNodeId;
+typedef unsigned int H3DNode;
 
 
 struct H3DGpuCaps
@@ -820,6 +816,11 @@ DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable
 DLL void h3dRelease();
 DLL void h3dReset();
 
+DLL H3DNode h3dGetRootNode(H3DSceneId sceneId);
+
+DLL H3DSceneId h3dGetSceneForNode(H3DNode node);
+
+DLL H3DSceneId h3dAddScene(const char* name);
 
 /* Function: h3dRender
 		Main rendering function.
@@ -1865,7 +1866,7 @@ DLL int h3dFindNodes( H3DNode startNode, const char *name, int type );
 	Returns:
 		handle to scene node from findNodes query or 0 if result doesn't exist
 */
-DLL H3DNode h3dGetNodeFindResult( int index );
+DLL H3DNode h3dGetNodeFindResult(H3DSceneId sceneId, int index );
 
 /* Function: h3dCastRay
 		Performs a recursive ray collision query.
@@ -1905,7 +1906,7 @@ DLL int h3dCastRay( H3DNode node, float ox, float oy, float oz, float dx, float 
 	Returns:
 		true if index was valid and data could be copied, otherwise false
 */
-DLL bool h3dGetCastRayResult( int index, H3DNode *node, float *distance, float *intersection, float *normal );
+DLL bool h3dGetCastRayResult(H3DSceneId sceneId, int index, H3DNode *node, float *distance, float *intersection, float *normal );
 
 /*	Function: h3dCheckNodeVisibility
 		Checks if a node is visible.
