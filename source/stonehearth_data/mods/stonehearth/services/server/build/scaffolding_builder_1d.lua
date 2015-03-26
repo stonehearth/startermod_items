@@ -33,31 +33,26 @@ function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn
    self._sv.normal = normal
    self._sv.project_rgn = project_rgn
    self._sv.blueprint_rgn = blueprint_rgn
-   self._sv.mode = ScaffoldingBuilder_OneDim.BUILD 
+   self._sv.origin = radiant.entities.get_world_grid_location(entity)
+   self._sv.mode = ScaffoldingBuilder_OneDim.BUILD
+
    self._sv.scaffolding_rgn = _radiant.sim.alloc_region3()   
 end
 
 function ScaffoldingBuilder_OneDim:activate()
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
-         self._sv.manager:_remove_scaffolding_builder(self._sv.id)
+         self:_remove_scaffolding_region()
       end)
-   self:_on_active_changed()
+   self:_update_status()
 end
 
 function ScaffoldingBuilder_OneDim:destroy()
    self:_untrace_blueprint_and_project()
 end
 
-function ScaffoldingBuilder_OneDim:get_scaffolding_region()
-   return self._sv.scaffolding_rgn
-end
-
-function ScaffoldingBuilder_OneDim:get_normal()
-   return self._sv.normal
-end
-
-function ScaffoldingBuilder_OneDim:get_active()
-   return self._sv.active
+-- interfaces for the owner of the builder
+function ScaffoldingBuilder_OneDim:set_clipper(clipbox)
+   self._sv.clipbox = clipbox
 end
 
 function ScaffoldingBuilder_OneDim:set_active(active)
@@ -66,7 +61,7 @@ function ScaffoldingBuilder_OneDim:set_active(active)
    if active ~= self._sv.active then
       self._sv.active = active
       self.__saved_variables:mark_changed()
-      self:_on_active_changed()
+      self:_update_status()
    end
 end
 
@@ -83,16 +78,28 @@ function ScaffoldingBuilder_OneDim:set_mode(mode)
    end
 end
 
-function ScaffoldingBuilder_OneDim:_on_active_changed()
+function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
+   self._sv.manager:_add_region(self._sv.id,
+                                self._sv.origin,
+                                self._sv.scaffolding_rgn,
+                                self._sv.normal)
+end
+
+function ScaffoldingBuilder_OneDim:_remove_scaffolding_region()
+   self._sv.manager:_remove_region(self._sv.id)
+end
+
+function ScaffoldingBuilder_OneDim:_update_status()
    local active = self._sv.active
 
    if active then
       self:_trace_blueprint_and_project()
       self:_update_scaffolding_size()
+      self:_add_scaffolding_region()
    else
       self:_untrace_blueprint_and_project()
+      self:_remove_scaffolding_region()
    end
-   self._sv.manager:_on_active_changed(self._sv.id, active)
 end
 
 function ScaffoldingBuilder_OneDim:_untrace_blueprint_and_project()
@@ -130,39 +137,44 @@ function ScaffoldingBuilder_OneDim:_mark_dirty()
    if not self._gameloop_listener then
       self._gameloop_listener = radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
             self._gameloop_listener = nil
-            self:_update_scaffolding_size()
-         end )
+            if self._sv.active then
+               self:_update_scaffolding_size()
+            end
+         end)
    end
 end
 
 function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
    local teardown = self._sv.mode == ScaffoldingBuilder_OneDim.TEAR_DOWN
    
-   if not teardown then
-      if not self:_get_blueprint_finished() then
-         -- still not done with the blueprint.  cover the whole thing
-         self:_cover_project_region(teardown)
-      else
-         -- wipe it out
-         self._sv.scaffolding_rgn:modify(function(cursor)
-               cursor:clear()
-            end)
-      end
-   else
-      self:_cover_project_region(teardown)
+   if teardown then
+      self:_cover_project_region(true)
+      return
    end
-   self:_update_ladder_region()
+   
+   if not self:_building_is_finished() then
+      -- still not done with the blueprint.  cover the whole thing
+      self:_cover_project_region(false)
+      return
+   end
+   
+   -- wipe it out
+   self._sv.scaffolding_rgn:modify(function(cursor)
+         cursor:clear()
+      end)
 end
 
-function ScaffoldingBuilder_OneDim:_get_blueprint_finished()
+function ScaffoldingBuilder_OneDim:_building_is_finished()
    if not self._sv.entity:is_valid() then
       return
    end
 
    local building = build_util.get_building_for(self._sv.entity)
+
    local all_structures = building:get_component('stonehearth:building')
                                        :get_all_structures()
 
+   -- only check the things that need scaffolding.
    for i, name in pairs(ScaffoldingBuilder_OneDim.SOLID_STRUCTURE_TYPES) do
       for _, entry in pairs(all_structures[name]) do
          local finished = entry.entity:get_component('stonehearth:construction_progress')
@@ -180,6 +192,11 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
    
+   local clipbox = self._sv.clipbox
+   if clipbox then
+      project_rgn   = project_rgn:intersect_cube(clipbox)
+      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   end
    self._sv.scaffolding_rgn:modify(function(cursor)
       -- scaffolding is 1 unit away from the project.  this is a huge
       -- optimization to make sure the scaffolding both reaches the ground
@@ -298,10 +315,6 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
          cursor:subtract_region(project_rgn)
       end
    end)
-end
-
-function ScaffoldingBuilder_OneDim:_update_ladder_region()
-   self._sv.manager:_on_scaffolding_region_changed(self._sv.id)
 end
 
 return ScaffoldingBuilder_OneDim
