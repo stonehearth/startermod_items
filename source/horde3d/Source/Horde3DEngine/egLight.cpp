@@ -53,7 +53,7 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 
 void LightNode::registerForNodeTracking()
 {
-   Modules::sceneMan().registerNodeTracker(this, [this](SceneNode const*n) {
+   Modules::sceneMan().sceneForNode(_handle).registerNodeTracker(this, [this](SceneNode const*n) {
       for (int i = 0; i < 6; i++) {
          if (_dirtyShadows[i]) {
             continue;
@@ -123,7 +123,7 @@ LightNode::~LightNode()
       gRDI->destroyRenderBuffer(_shadowMapBuffer);
       _shadowMapBuffer = 0;
    }
-   Modules::sceneMan().clearNodeTracker(this);
+   Modules::sceneMan().sceneForNode(_handle).clearNodeTracker(this);
 }
 
 
@@ -209,7 +209,7 @@ void LightNode::setParamI( int param, int value )
          if (_shadowMapCount == 0 && value != 0) {
             registerForNodeTracking();
          } else if (value == 0) {
-            Modules::sceneMan().clearNodeTracker(this);
+            Modules::sceneMan().sceneForNode(_handle).clearNodeTracker(this);
          }
 			_shadowMapCount = (uint32)value;
          reallocateShadowBuffer(gRenderer->calculateShadowBufferSize(this));

@@ -90,7 +90,7 @@ void SceneGraphResource::parseNode( XMLNode &xmlNode, SceneNodeTpl *parentTpl )
 		}
 		else
 		{
-			NodeRegEntry *entry = Modules::sceneMan().findType( xmlNode.getName() );
+         NodeRegEntry *entry = Modules::sceneMan().sceneForId(0).findType( xmlNode.getName() );
 			if( entry != 0x0 )
 			{
 				map< string, std::string > attribs;

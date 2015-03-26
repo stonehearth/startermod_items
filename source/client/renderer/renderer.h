@@ -256,6 +256,7 @@ class Renderer
       bool              drawWorld_;
       uint32            fowRenderTarget_;
 
+      H3DNode           mainSceneRoot_;
       H3DResourceMap    pipelines_;
    	std::string       currentPipeline_;
 

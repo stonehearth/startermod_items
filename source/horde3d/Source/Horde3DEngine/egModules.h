@@ -22,7 +22,7 @@ namespace Horde3D {
 class EngineConfig;
 class EngineLog;
 class StatManager;
-class Scene;
+class SceneManager;
 class ResourceManager;
 class RenderDevice;
 class Renderer;
@@ -46,7 +46,7 @@ public:
 	static EngineConfig &config() { return *_engineConfig; }
 	static EngineLog &log() { return *_engineLog; }
 	static StatManager &stats() { return *_statManager; }
-	static Scene &sceneMan() { return *_sceneManager; }
+	static SceneManager &sceneMan() { return *_sceneManager; }
 	static ResourceManager &resMan() { return *_resourceManager; }
 	static Renderer &renderer() { return *_renderer; }
 	static ExtensionManager &extMan() { return *_extensionManager; }
@@ -63,7 +63,7 @@ private:
 	static EngineConfig           *_engineConfig;
 	static EngineLog              *_engineLog;
 	static StatManager            *_statManager;
-	static Scene           *_sceneManager;
+	static SceneManager           *_sceneManager;
 	static ResourceManager        *_resourceManager;
 	static RenderDevice           *_renderDevice;
 	static Renderer               *_renderer;

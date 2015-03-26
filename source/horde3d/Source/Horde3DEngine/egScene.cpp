@@ -70,7 +70,9 @@ SceneNode::~SceneNode()
 
 void SceneNode::getTransform( Vec3f &trans, Vec3f &rot, Vec3f &scale )
 {
-   if( _dirty != SceneNodeDirtyState::Clean ) Modules::sceneMan().updateNodes();
+   if (_dirty != SceneNodeDirtyState::Clean) {
+      Modules::sceneMan().sceneForNode(_handle).updateNodes();
+   }
 	
 	_relTrans.decompose( trans, rot, scale );
 	rot.x = radToDeg( rot.x );
@@ -152,13 +154,17 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 {
 	if( relMat != 0x0 )
 	{
-		if( _dirty != SceneNodeDirtyState::Clean ) Modules::sceneMan().updateNodes();
+		if(_dirty != SceneNodeDirtyState::Clean) {
+         Modules::sceneMan().sceneForNode(_handle).updateNodes();
+      }
 		*relMat = &_relTrans.x[0];
 	}
 	
 	if( absMat != 0x0 )
 	{
-		if( _dirty != SceneNodeDirtyState::Clean ) Modules::sceneMan().updateNodes();
+		if( _dirty != SceneNodeDirtyState::Clean ) {
+         Modules::sceneMan().sceneForNode(_handle).updateNodes();
+      }
 		*absMat = &_absTrans.x[0];
 	}
 }
@@ -388,7 +394,7 @@ void SceneNode::update()
 
 	onFinishedUpdate();
 
-   Modules::sceneMan().updateSpatialNode(*this);
+   Modules::sceneMan().sceneForNode(_handle).updateSpatialNode(*this);
 }
 
 
@@ -447,8 +453,9 @@ struct RendQueueItemCompFunc
 #define GRIDSIZE 150
 #define I_GRIDSIZE (1.0f / GRIDSIZE)
 
-GridSpatialGraph::GridSpatialGraph()
+GridSpatialGraph::GridSpatialGraph(SceneId sceneId)
 {
+   _sceneId = sceneId;
    _renderStamp = 0;
 }
 
@@ -621,7 +628,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
 
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
-   Modules::sceneMan().updateNodes();
+   Modules::sceneMan().sceneForId(_sceneId).updateNodes();
 
    for (auto const& ge : _gridElements) {
 
@@ -774,8 +781,9 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
 // Class SpatialGraph
 // =================================================================================================
 
-SpatialGraph::SpatialGraph()
+SpatialGraph::SpatialGraph(SceneId sceneId)
 {
+   _sceneId = sceneId;
 }
 
 
@@ -815,7 +823,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 
 #define QUERY_LOG() SCENE_LOG(9) << "  query node (" << node->_handle << " " << node->getName() << ") " 
 
-   Modules::sceneMan().updateNodes();
+   Modules::sceneMan().sceneForId(_sceneId).updateNodes();
 
    SCENE_LOG(9) << "running spatial graph query:";
    // Culling
@@ -910,11 +918,133 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 
 
 // *************************************************************************************************
+// Class SceneManager
+// *************************************************************************************************
+
+
+SceneManager::SceneManager() {
+   addScene("default");
+}
+
+SceneManager::~SceneManager() {
+
+}
+
+void SceneManager::reset()
+{
+
+}
+
+void SceneManager::clear()
+{
+   for (auto& s : _scenes) {
+      s->removeNode(s->getRootNode());
+   }
+}
+
+std::vector<Scene*> const& SceneManager::getScenes() const
+{
+   return _scenes;
+}
+
+
+Scene& SceneManager::sceneForNode(NodeHandle handle)
+{
+   SceneId sceneId = sceneIdFor(handle);
+   ASSERT(sceneId < _scenes.size());
+   return *_scenes[sceneId];
+}
+
+Scene& SceneManager::sceneForId(SceneId sceneId)
+{
+   ASSERT(sceneId < _scenes.size());
+   return *_scenes[sceneId];
+}
+
+SceneId SceneManager::sceneIdFor(NodeHandle handle) const
+{
+   return (handle & 0xFC000000) >> 26;
+}
+
+void SceneManager::registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
+	                  NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
+{
+	NodeRegEntry entry;
+	entry.typeString = typeString;
+	entry.parsingFunc = pf;
+	entry.factoryFunc = ff;
+	entry.renderFunc = rf;
+   entry.instanceRenderFunc = irf;
+	_registry[type] = entry;
+
+   for (auto& scene : _scenes) {
+      scene->registerType(type, typeString, pf, ff, rf, irf);
+   }
+}
+
+SceneId SceneManager::addScene(const char* name)
+{
+   SceneId newId = (SceneId)_scenes.size();
+   Scene* sc = new Scene(newId);
+
+   for (auto const& t : _registry) {
+      sc->registerType(t.first, t.second.typeString, t.second.parsingFunc, t.second.factoryFunc, t.second.renderFunc, t.second.instanceRenderFunc);
+   }
+
+   _scenes.push_back(sc);
+
+   return newId;
+}
+
+SceneNode* SceneManager::resolveNodeHandle(NodeHandle handle){
+   return sceneForNode(handle).resolveNodeHandle(handle);
+}
+
+int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion )
+{
+   return sceneForNode(node.getHandle()).checkNodeVisibility(node, cam, checkOcclusion);
+}
+
+NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
+{
+   return sceneForNode(parent.getHandle()).addNode(node, parent);
+}
+
+NodeHandle SceneManager::addNodes( SceneNode &parent, SceneGraphResource &sgRes )
+{
+   return sceneForNode(parent.getHandle()).addNodes(parent, sgRes);
+}
+
+void SceneManager::removeNode( SceneNode &node )
+{
+   sceneForNode(node.getHandle()).removeNode(node);
+}
+
+bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
+{
+   return sceneForNode(node.getHandle()).relocateNode(node, parent);
+}
+
+void SceneManager::clearQueryCaches()
+{
+   for (auto& s : _scenes) {
+      s->clearQueryCache();
+   }
+}
+
+bool SceneManager::sceneExists(SceneId sceneId) const
+{
+   return sceneId < _scenes.size();
+}
+
+
+// *************************************************************************************************
 // Class Scene
 // *************************************************************************************************
 
-Scene::Scene()
+Scene::Scene(SceneId sceneId)
 {
+   _sceneId = sceneId;
    initialize();
 }
 
@@ -928,6 +1058,11 @@ void Scene::reset()
 {
    shutdown();
    initialize();
+}
+
+SceneId Scene::getId() const
+{
+   return _sceneId;
 }
 
 void Scene::shutdown()
@@ -946,13 +1081,19 @@ void Scene::shutdown()
    _nodeTrackers.clear();
 }
 
+NodeHandle Scene::nextNodeId()
+{
+   return (_sceneId << 26) | _nextHandleValue++;
+}
+
 void Scene::initialize()
 {
    SceneNode *rootNode = GroupNode::factoryFunc( GroupNodeTpl( "RootNode" ) );
-   rootNode->_handle = RootNode;
-   _nodes[RootNode] = rootNode;
+	rootNode->_handle = nextNodeId();
+   _rootNodeId = rootNode->_handle;
+   _nodes[_rootNodeId] = rootNode;
 
-   _spatialGraph = new GridSpatialGraph();  
+   _spatialGraph = new GridSpatialGraph(_sceneId);  
    _queryCacheCount = 0;
    _currentQuery = -1;
 
@@ -1131,7 +1272,7 @@ NodeHandle Scene::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 	{
 		// Reference node
 		NodeHandle handle = parseNode( *((ReferenceNodeTpl *)&tpl)->sgRes->getRootNode(), parent );
-		sn = Modules::sceneMan().resolveNodeHandle( handle );
+		sn = resolveNodeHandle( handle );
 		if( sn != 0x0 )
 		{	
 			sn->_name = tpl.name;
@@ -1171,7 +1312,7 @@ NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
 	}
 	
 	node->_parent = &parent;
-	node->_handle = _nextHandleValue++;
+	node->_handle = nextNodeId();
 	_nodes[node->_handle] = node;
 
    _registry[node->_type].nodes[node->getHandle()] = node;
@@ -1204,7 +1345,7 @@ void Scene::removeNodeRec( SceneNode &node )
 	NodeHandle handle = node._handle;
 	
 	// Raise event
-	if( handle != RootNode ) node.onDetach( *node._parent );
+   if( handle != _rootNodeId ) node.onDetach( *node._parent );
 
    _registry[node.getType()].nodes.erase(node.getHandle());
 
@@ -1215,7 +1356,7 @@ void Scene::removeNodeRec( SceneNode &node )
 	}
 	
 	// Delete node
-	if( handle != RootNode )
+   if( handle != _rootNodeId )
 	{
 		_spatialGraph->removeNode(node);
       auto i = _nodes.find(node._handle), end = _nodes.end();
@@ -1262,7 +1403,7 @@ void Scene::removeNode( SceneNode &node )
 
 bool Scene::relocateNode( SceneNode &node, SceneNode &parent )
 {
-	if( node._handle == RootNode ) return false;
+   if( node._handle == _rootNodeId ) return false;
 	
 	if( !node.canAttach( parent ) )
 	{	
@@ -1327,7 +1468,7 @@ int Scene::findNodes( SceneNode &startNode, std::string const& name, int type )
    _findResults.clear();
 
 
-   if (startNode.getHandle() == RootNode) {
+   if (startNode.getHandle() == _rootNodeId) {
       // Since we want all nodes of that type, just consult the registry.
       for (auto& n : _registry[type].nodes) {
          if (name == "" || n.second->_name == name) {
@@ -1462,7 +1603,7 @@ int Scene::castRay( SceneNode &node, const Vec3f &rayOrig, const Vec3f &rayDir, 
 	_rayDirection = rayDir;
 	_rayNum = numNearest;
 
-   if (node.getHandle() == RootNode) {
+   if (node.getHandle() == _rootNodeId) {
       fastCastRayInternal(userFlags);
    } else {
    	castRayInternal( node, userFlags );

@@ -104,7 +104,7 @@ function TerrainHighlightService:_create_renderers()
    -- The authoring root entity doesn't create render entities for its children,
    -- so explicity do it here. They will exist as long as the entities exist.
    for kind, ore_entity in pairs(self._kind_to_entity_map) do
-      local render_entity = _radiant.client.create_render_entity(1, ore_entity)
+      local render_entity = _radiant.client.create_render_entity(H3DRootNode, ore_entity)
       self._renderers[kind] = OreBlockRenderer(render_entity)
    end
 end

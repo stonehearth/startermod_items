@@ -386,5 +386,5 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetGlobalUniform",             &h3dSetGlobalUniformFloat),
       def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag)
    ];
-   globals(L)["H3DRootNode"] = H3DRootNode;
+   globals(L)["H3DRootNode"] = h3dGetRootNode(0);
 };
