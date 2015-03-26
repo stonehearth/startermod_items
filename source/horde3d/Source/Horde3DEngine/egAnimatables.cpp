@@ -352,4 +352,44 @@ void JointNode::onDetach( SceneNode &/*parentNode*/ )
 	if( _parentModel != 0x0 ) _parentModel->markNodeListDirty();
 }
 
+
+
+
+// *************************************************************************************************
+// Class VoxelJointNode
+// *************************************************************************************************
+
+VoxelJointNode::VoxelJointNode( const VoxelJointNodeTpl &jointTpl ) :
+	SceneNode( jointTpl ), _jointIndex( jointTpl.jointIndex )
+{
+}
+
+
+SceneNodeTpl *VoxelJointNode::parsingFunc( map< string, std::string > &attribs )
+{
+	bool result = true;
+	
+	map< string, std::string >::iterator itr;
+	VoxelJointNodeTpl *jointTpl = new VoxelJointNodeTpl( "", 0 );
+
+	itr = attribs.find( "jointIndex" );
+	if( itr != attribs.end() ) jointTpl->jointIndex = atoi( itr->second.c_str() );
+	else result = false;
+
+	if( !result )
+	{
+		delete jointTpl; jointTpl = 0x0;
+	}
+
+	return jointTpl;
+}
+
+
+SceneNode *VoxelJointNode::factoryFunc( const SceneNodeTpl &nodeTpl )
+{
+	if( nodeTpl.type != SceneNodeTypes::VoxelJointNode ) return 0x0;
+	
+	return new VoxelJointNode( *(VoxelJointNodeTpl *)&nodeTpl );
+}
+
 }  // namespace

@@ -34,12 +34,14 @@ using namespace std;
 VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 	SceneNode( meshTpl ),
    _materialRes( meshTpl.matRes ),
+   _geometryRes( meshTpl.geoRes ),
 	_parentModel( 0x0 )
 {
 	_renderable = true;
    _noInstancing = false;
-	if( _materialRes != 0x0 ) {
-      _instanceKey.matResource = _materialRes;
+   _instanceKey.matResource = _materialRes;
+   _instanceKey.geoResource = _geometryRes;
+	if( _materialRes != 0x0 && _geometryRes != 0x0) {
       _instanceKey.updateHash();
 		_sortKey = (float)_materialRes->getHandle();
    }
@@ -49,11 +51,7 @@ VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 VoxelMeshNode::~VoxelMeshNode()
 {
 	_materialRes = 0x0;
-	for( uint32 i = 0; i < _occQueries.size(); ++i )
-	{
-		if( _occQueries[i] != 0 )
-			gRDI->destroyQuery( _occQueries[i] );
-	}
+   _geometryRes = 0x0;
 }
 
 
@@ -122,6 +120,11 @@ void VoxelMeshNode::setParamI( int param, int value )
 	SceneNode::setParamI( param, value );
 }
 
+void VoxelMeshNode::setVoxelGeometryRes( VoxelGeometryResource &geoRes )
+{
+	//updateLocalMeshAABBs();
+}
+
 bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {
    if (_parentModel->useCoarseCollisionBox()) {
@@ -151,46 +154,55 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
       return true;
    }
 
-	VoxelGeometryResource *geoRes = _parentModel->getVoxelGeometryResource();
-	if( geoRes == 0x0 || geoRes->getIndexData() == 0x0 || geoRes->getVertexData() == 0x0 ) return false;
+	if( _geometryRes == 0x0 || _geometryRes->getIndexData() == 0x0 || _geometryRes->getVertexData() == 0x0 ) return false;
 	
 	// Transform ray to local space
-	Matrix4f m = _absTrans.inverted();
-	Vec3f orig = m * rayOrig;
-	Vec3f dir = m * (rayOrig + rayDir) - orig;
 
 	Vec3f nearestIntsPos = Vec3f( Math::MaxFloat, Math::MaxFloat, Math::MaxFloat );
 	bool intersection = false;
 	
 	// Check triangles
-   for( uint32 i = getBatchStart(0); i < getBatchStart(0) + getBatchCount(0); i += 3 )
-	{
-		Vec3f *vert0, *vert1, *vert2;
-		
-		if( geoRes->_16BitIndices )
-		{
-			vert0 = &geoRes->getVertexData()[((uint16 *)geoRes->_indexData)[i + 0]].pos;
-			vert1 = &geoRes->getVertexData()[((uint16 *)geoRes->_indexData)[i + 1]].pos;
-			vert2 = &geoRes->getVertexData()[((uint16 *)geoRes->_indexData)[i + 2]].pos;
-		}
-		else
-		{
-			vert0 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 0]].pos;
-			vert1 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 1]].pos;
-			vert2 = &geoRes->getVertexData()[((uint32 *)geoRes->_indexData)[i + 2]].pos;
-		}
+   int oldBoneNum = -1;
+   Matrix4f closestM;
+   Matrix4f m = _absTrans.inverted();
+	Vec3f orig = m * rayOrig;
+	Vec3f dir = m * (rayOrig + rayDir) - orig;
+   std::unordered_map<int, SceneNode*> const& boneLookup = _parentModel->getBoneLookup();
 
-		if( rayTriangleIntersection( orig, dir, *vert0, *vert1, *vert2, intsPos ) )
+   // Select the maximum LOD level for triangle iteration (since there will be fewer triangles!)
+   int maxLod = _geometryRes->clampLodLevel(2);
+
+   for( uint32 i = getBatchStart(maxLod); i < getBatchStart(maxLod) + getBatchCount(maxLod); i += 3 )
+	{
+      int boneNum = (int)_geometryRes->getVertexData()[_geometryRes->_indexData[i + 0]].boneIndex;
+
+      if (boneNum != oldBoneNum) {
+         oldBoneNum = boneNum;
+         if (boneLookup.size() > boneNum) {
+            m = boneLookup.at(boneNum)->getAbsTrans().inverted();
+         } else {
+            m = _absTrans.inverted();
+         }
+	      orig = m * rayOrig;
+	      dir = m * (rayOrig + rayDir) - orig;
+      }
+
+      Vec3f const& vert0 = _geometryRes->getVertexData()[_geometryRes->_indexData[i + 0]].pos * _parentModel->getModelScale();
+		Vec3f const& vert1 = _geometryRes->getVertexData()[_geometryRes->_indexData[i + 1]].pos * _parentModel->getModelScale();
+		Vec3f const& vert2 = _geometryRes->getVertexData()[_geometryRes->_indexData[i + 2]].pos * _parentModel->getModelScale();
+
+		if( rayTriangleIntersection( orig, dir, vert0, vert1, vert2, intsPos ) )
 		{
 			intersection = true;
 			if( (intsPos - orig).length() < (nearestIntsPos - orig).length() ) {
 				nearestIntsPos = intsPos;
-            intsNorm = (*vert1 - *vert0).cross(*vert2 - *vert1);
+            closestM = m;
+            intsNorm = (vert1 - vert0).cross(vert2 - vert1);
          }
 		}
 	}
 
-	intsPos = _absTrans * nearestIntsPos;
+   intsPos = closestM.inverted() * nearestIntsPos;
 	
 	return intersection;
 }
@@ -203,9 +215,6 @@ void VoxelMeshNode::onAttach( SceneNode &parentNode )
 	while( node->getType() != SceneNodeTypes::VoxelModel ) node = node->getParent();
 	_parentModel = (VoxelModelNode *)node;
 	_parentModel->markNodeListDirty();
-
-   _instanceKey.geoResource = _parentModel->getVoxelGeometryResource();
-   _instanceKey.updateHash();
 }
 
 
@@ -217,28 +226,26 @@ void VoxelMeshNode::onDetach( SceneNode &/*parentNode*/ )
 
 void VoxelMeshNode::onPostUpdate()
 {
-	_bBox = _localBBox;
-	_bBox.transform( _absTrans );
 }
 
 
 uint32 VoxelMeshNode::getBatchStart(int lodLevel) const {
-   return getParentModel()->getVoxelGeometryResource()->getBatchStart(lodLevel);
+   return _geometryRes->getBatchStart(lodLevel);
 }
 
 
 uint32 VoxelMeshNode::getBatchCount(int lodLevel) const { 
-   return getParentModel()->getVoxelGeometryResource()->getBatchCount(lodLevel);
+   return _geometryRes->getBatchCount(lodLevel);
 }
 
 
 uint32 VoxelMeshNode::getVertRStart(int lodLevel) const {
-   return getParentModel()->getVoxelGeometryResource()->getVertRStart(lodLevel);
+   return _geometryRes->getVertRStart(lodLevel);
 }
 
 
 uint32 VoxelMeshNode::getVertREnd(int lodLevel) const {
-   return getParentModel()->getVoxelGeometryResource()->getVertREnd(lodLevel);
+   return _geometryRes->getVertREnd(lodLevel);
 }
 
 

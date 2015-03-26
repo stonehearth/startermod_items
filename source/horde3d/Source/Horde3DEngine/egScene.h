@@ -92,7 +92,8 @@ struct SceneNodeTypes
       VoxelMesh,
       HudElement,
       InstanceNode,
-      ProjectorNode
+      ProjectorNode,
+      VoxelJointNode
 	};
 };
 
@@ -159,6 +160,7 @@ public:
 	virtual ~SceneNode();
 
    void getTransformFast(Vec3f &trans, Vec3f &rot, Vec3f &scale) const;
+   void getAbsTransform(Vec3f &trans, Vec3f &rot, Vec3f &scale);
 	void getTransform( Vec3f &trans, Vec3f &rot, Vec3f &scale );	// Not virtual for performance
 	void setTransform( Vec3f trans, Vec3f rot, Vec3f scale );	// Not virtual for performance
 	void setTransform( const Matrix4f &mat );
@@ -200,8 +202,8 @@ public:
 	SceneNode *getParent() const { return _parent; }
 	std::string const& getName() const { return _name; }
 	std::vector< SceneNode * > &getChildren() { return _children; }
-	Matrix4f &getRelTrans() { return _relTrans; }
-	Matrix4f &getAbsTrans() { return _absTrans; }
+	Matrix4f const& getRelTrans() const { return _relTrans; }
+	Matrix4f const& getAbsTrans() const { return _absTrans; }
 	const BoundingBox &getBBox() const { return _bBox; }
    void updateBBox(const BoundingBox& bbox);
 
