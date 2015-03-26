@@ -730,7 +730,9 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
    if (IsEmpty()) {
       return;
    }
-   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag());)
+#if REGION_PARANOIA_LEVEL >= 2
+   ASSERT(ContainsAtMostOneTag());
+#endif
    Validate();
 
    S areaBefore = GetArea();

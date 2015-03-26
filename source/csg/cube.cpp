@@ -108,11 +108,11 @@ Cube<S, C>::Cube(Point const& min_value, Point const& max_value, int tag) :
    min(min_value),
    max(max_value)
 {
-   DEBUG_ONLY(
-      for (int i = 0; i < C; i++) {
-         ASSERT(min[i] <= max[i]);
-      }
-   )
+#if RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+   for (int i = 0; i < C; i++) {
+      ASSERT(min[i] <= max[i]);
+   }
+#endif
 }
 
 template <typename S, int C>
