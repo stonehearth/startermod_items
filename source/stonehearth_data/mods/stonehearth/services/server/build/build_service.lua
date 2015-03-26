@@ -1199,8 +1199,8 @@ function BuildService:request_ladder_to(owner, climb_to, normal)
    return self._sv.ladder_manager:request_ladder_to(owner, climb_to, normal)
 end
 
-function BuildService:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
-   return self._sv.scaffolding_manager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
+function BuildService:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal, stand_at_base)
+   return self._sv.scaffolding_manager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal, stand_at_base)
 end
 
 function BuildService:instabuild_command(session, response, building)

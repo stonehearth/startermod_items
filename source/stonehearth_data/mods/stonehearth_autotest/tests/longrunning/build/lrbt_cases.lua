@@ -185,7 +185,7 @@ end
 function lrbt_cases.floating_wall(autotest, session)
    return {
       function()
-         lrbt_util.create_wooden_wall(session, Point3(5, 13, 5), Point3(9, 13, 5))
+         lrbt_util.create_wooden_wall(session, Point3(5, 15, 5), Point3(12, 15, 5))
       end,
    }
 end

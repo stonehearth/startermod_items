@@ -106,6 +106,7 @@ class NavGrid {
          CLIP_TERRAIN,
       };
       csg::Region3f ClipRegion(csg::Region3f const& region, ClippingMode mode);
+      csg::Region3f ProjectRegion(csg::Region3f const& region, ClippingMode mode);
 
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3f& r);

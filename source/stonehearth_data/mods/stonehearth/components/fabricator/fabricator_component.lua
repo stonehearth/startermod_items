@@ -105,9 +105,10 @@ function FabricatorComponent:start_project(blueprint)
    end
    local project_rgn = project:get_component('destination'):get_region()
    local blueprint_rgn = blueprint:get_component('destination'):get_region()
-
-   self._sv.scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal)
-   self._fabricator:set_scaffolding(self._sv.scaffolding)
+   local stand_at_base = ci:get_project_adjacent_to_base()
+   local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+   self._fabricator:set_scaffolding(scaffolding)
+   self._sv.scaffolding = scaffolding
 
    -- remember the blueprint and project
    self._sv.project = project

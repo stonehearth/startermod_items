@@ -24,14 +24,15 @@ ScaffoldingBuilder_OneDim.SOLID_STRUCTURE_TYPES = {
 ScaffoldingBuilder_OneDim.BUILD = 'build'
 ScaffoldingBuilder_OneDim.TEAR_DOWN = 'teardown'
 
-function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn, project_rgn, normal)
-   checks('self', 'controller', 'number', 'Entity', 'Region3Boxed', 'Region3Boxed', 'Point3')
+function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+   checks('self', 'controller', 'number', 'Entity', 'Region3Boxed', 'Region3Boxed', 'Point3', 'boolean')
 
    self._sv.id = id
    self._sv.active = false
    self._sv.entity = entity
    self._sv.manager = manager
    self._sv.normal = normal
+   self._sv.stand_at_base = stand_at_base
    self._sv.project_rgn = project_rgn
    self._sv.blueprint_rgn = blueprint_rgn
    self._sv.origin = radiant.entities.get_world_grid_location(entity)
@@ -147,22 +148,21 @@ end
 
 function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
    local teardown = self._sv.mode == ScaffoldingBuilder_OneDim.TEAR_DOWN
-   
+     
+   if self:_building_is_finished() then
+      self._sv.scaffolding_rgn:modify(function(cursor)
+            cursor:clear()
+         end)
+      return
+   end
+
    if teardown then
-      self:_cover_project_region(true)
+      radiant.not_yet_implemented()
       return
    end
-   
-   if not self:_building_is_finished() then
-      -- still not done with the blueprint.  cover the whole thing
-      self:_cover_project_region(false)
-      return
-   end
-   
-   -- wipe it out
-   self._sv.scaffolding_rgn:modify(function(cursor)
-         cursor:clear()
-      end)
+
+   -- still not done with the blueprint.  cover the whole thing
+   self:_cover_project_region()
 end
 
 function ScaffoldingBuilder_OneDim:_building_is_finished()
@@ -188,8 +188,58 @@ function ScaffoldingBuilder_OneDim:_building_is_finished()
    return true
 end
 
+function ScaffoldingBuilder_OneDim:_cover_project_region()
+   local normal = self._sv.normal
+   local clipbox = self._sv.clipbox
+   local stand_at_base = self._sv.stand_at_base
+
+   local project_rgn = self._sv.project_rgn:get()
+   local blueprint_rgn = self._sv.blueprint_rgn:get()
+   if clipbox then
+      project_rgn   = project_rgn:intersect_cube(clipbox)
+      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   end
+
+   -- compute the top of the project.  the `top` is the height
+   -- of the completely finished part of the project
+   local project_top
+   if stand_at_base then
+      project_top = 0
+   elseif not project_rgn:empty() then
+      local project_bounds = project_rgn:get_bounds()
+      project_top = project_bounds.max.y
+      local toprow = Cube3(Point3(-INFINITE, project_top - 1, -INFINITE),
+                           Point3( INFINITE, project_top,      INFINITE))
+      local remaining_blocks = blueprint_rgn:clipped(toprow) - project_rgn:clipped(toprow)
+      if not remaining_blocks:empty() then
+         project_top = project_top - 1
+      end
+   else
+      local blueprint_bounds = blueprint_rgn:get_bounds()
+      project_top = blueprint_bounds.min.y
+   end
+   
+   local clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
+                         Point3( INFINITE, project_top + 1,  INFINITE))
+   local top_row = blueprint_rgn:clipped(clipper)
+                        :get_bounds()
+   -- starting 1 row down and 1 row out, all the way till we find terrain
+   top_row:translate(-Point3.unit_y + normal)
+
+   -- and clip out the terrain
+   local origin = self._sv.origin
+   top_row:translate(origin)
+   local region = _physics:project_region(Region3(top_row), CLIP_SOLID)
+   region:translate(-origin)
+
+   -- finally, copy into the cursor
+   self._sv.scaffolding_rgn:modify(function(cursor)
+         cursor:copy_region(region)
+      end)
+end
+
 -- why is this function so big!?
-function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
+function ScaffoldingBuilder_OneDim:_old_cover_project_region(teardown)
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
    

@@ -24,6 +24,11 @@ csg::Region3f Physics_ClipRegion(lua_State *L, OctTree &octTree, csg::Region3f c
    return octTree.GetNavGrid().ClipRegion(r, mode);
 }
 
+csg::Region3f Physics_ProjectRegion(lua_State *L, OctTree &octTree, csg::Region3f const& r, NavGrid::ClippingMode mode)
+{
+   return octTree.GetNavGrid().ProjectRegion(r, mode);
+}
+
 bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
    return octTree.GetNavGrid().IsStandable(csg::ToClosestInt(location));
@@ -151,6 +156,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                   value("CLIP_TERRAIN",     NavGrid::ClippingMode::CLIP_TERRAIN)
                ]
                .def("clip_region",          &Physics_ClipRegion)
+               .def("project_region",       &Physics_ProjectRegion)
                .def("is_standable",         &Physics_IsStandable)
                .def("is_standable",         &Physics_IsStandablePoint)
                .def("is_blocked",           &Physics_IsBlocked)

@@ -25,8 +25,8 @@ end
 function ScaffoldingManager:activate()
 end
 
-function ScaffoldingManager:request_scaffolding_for(requestor, blueprint_rgn, project_rgn, normal)
-   checks('self', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3')
+function ScaffoldingManager:request_scaffolding_for(requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
+   checks('self', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3', 'boolean')
 
    local size = blueprint_rgn:get():get_bounds():get_size()
    local builder_type
@@ -35,7 +35,7 @@ function ScaffoldingManager:request_scaffolding_for(requestor, blueprint_rgn, pr
    else
       builder_type = 'stonehearth:build:scaffolding_builder_2d'
    end
-   return self:_create_builder(builder_type, requestor, blueprint_rgn, project_rgn, normal)
+   return self:_create_builder(builder_type, requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
 end
 
 function ScaffoldingManager:_get_next_id()
@@ -45,11 +45,11 @@ function ScaffoldingManager:_get_next_id()
    return id
 end
 
-function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_rgn, project_rgn, normal)
-   checks('self', 'string', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3')
+function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
+   checks('self', 'string', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3', 'boolean')
    
    local rid = self:_get_next_id()
-   local builder = radiant.create_controller(builder_type, self, rid, requestor, blueprint_rgn, project_rgn, normal)
+   local builder = radiant.create_controller(builder_type, self, rid, requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
    
    self._sv.builders[rid] = builder
    self.__saved_variables:mark_changed()
@@ -183,7 +183,7 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
       merged:add_region(r)
    end   
    merged:translate(-sblock.origin)
-   
+
    sblock.region:modify(function(cursor)
          cursor:copy_region(merged)
       end)
@@ -205,9 +205,16 @@ function ScaffoldingManager:_compute_ladder_top(sblock)
    local ladder_stencil = Region3(Cube3(Point3(0, -INFINITE, 0) + normal,
                                         Point3(1,  INFINITE, 1) + normal))
    local ladder = sblock.region:get():intersect_region(ladder_stencil)
-   local height = ladder:get_bounds().max.y - 1
+   local ladder_bounds = ladder:get_bounds()
+   local height = ladder_bounds.max.y - 1
    if height == 0 then
-      return
+      -- do we need a ladder?  check the base!
+      local block_under = ladder_bounds.min + normal + normal - Point3.unit_y
+      if radiant.terrain.is_blocked(block_under) then
+         -- yes, we think the ladder should be 0 high and there's actually something
+         -- there to stand on.  bail!
+         return
+      end
    end
 
    local normal = sblock.normal

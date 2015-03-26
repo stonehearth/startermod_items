@@ -492,8 +492,9 @@ function Fabricator:_update_dst_region()
 
       -- project each column down to the base
       local dr = Region3()      
+      local bottom = shape_region:get_bounds().min.y
       for pt in dst_region:each_point() do
-         pt.y = 0
+         pt.y = bottom
          while not shape_region:contains(pt) do
             pt.y = pt.y + 1
          end
@@ -536,7 +537,6 @@ function Fabricator:_update_dst_adjacent()
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
    local adjacent = available:get_adjacent(allow_diagonals)
-
 
    -- if there's a normal, stencil off the adjacent blocks pointing in
    -- in the opposite direction.  this is to stop people from working on walls
