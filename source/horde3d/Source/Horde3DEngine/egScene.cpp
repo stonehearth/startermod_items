@@ -932,7 +932,12 @@ SceneManager::~SceneManager() {
 
 void SceneManager::reset()
 {
-
+   for (auto& s : _scenes) {
+      s->shutdown();
+   }
+   for (auto& s : _scenes) {
+      s->initialize();
+   }
 }
 
 void SceneManager::clear()

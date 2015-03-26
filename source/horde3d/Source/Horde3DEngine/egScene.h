@@ -489,14 +489,14 @@ public:
    void registerNodeTracker(SceneNode const* tracker, std::function<void(SceneNode const* updatedNode)>);
    void clearNodeTracker(SceneNode const* tracker);
 
+   void shutdown();
+   void initialize();
 protected:
    NodeHandle nextNodeId();
 	void _findNodes( SceneNode &startNode, std::string const& name, int type );
    int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );
-        void shutdown();
-        void initialize();
 	void castRayInternal( SceneNode &node, int userFlags );
    void fastCastRayInternal(int userFlags);
    void updateNodeTrackers(SceneNode const* n);
