@@ -148,8 +148,15 @@ void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpu
       // The following vendor/driver combinations break some aspect of the HQ renderer.
 
       // This combo doesn't like const vec3 arrays in GLSL (supported in GLSL since 3.0, and this driver is supposedly 4.2 compliant!)
-      if (strstr(gRDI->getCaps().vendor, "Intel") != nullptr && strstr(gRDI->getCaps().version, "10.18.10.3345") != nullptr) {
-         rendererCaps->HighQualityRendererSupported = false;
+      if (strstr(gRDI->getCaps().vendor, "Intel") != nullptr) {
+         if (strstr(gRDI->getCaps().version, "10.18.10.3345") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.10.3308") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.10.3412") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.10.3496") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.10.3621") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.10.3540") != nullptr) {
+            rendererCaps->HighQualityRendererSupported = false;
+         }
       }
 
       rendererCaps->ShadowsSupported = gpuCompatibility_.canDoShadows;
