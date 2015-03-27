@@ -1,3 +1,5 @@
+local build_util = require 'stonehearth.lib.build_util'
+
 local Point2  = _radiant.csg.Point2
 local Point3  = _radiant.csg.Point3
 local Cube3   = _radiant.csg.Cube3
@@ -57,17 +59,17 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    return builder
 end
 
-function ScaffoldingManager:_add_region(rid, origin, blueprint_region, region, normal)
-   checks('self', 'number', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
+function ScaffoldingManager:_add_region(rid, entity, origin, blueprint_region, region, normal)
+   checks('self', 'number', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
 
    assert(not self._sv.regions[rid])
 
    local rblock = {
       rid    = rid,
+      entity = entity,
       origin = origin,
       region = region,
       normal = normal,
-      owner  = 'player_1',       -- xxx
       blueprint_region = blueprint_region,
    }
    self._sv.regions[rid] = rblock
@@ -144,16 +146,17 @@ function ScaffoldingManager:_find_scaffolding_for(rblock)
    local region = rblock.blueprint_region:get()
 
    -- look "down" for someone who can help us out.
-   local zone = region:translated(origin)
+   local zone = region:translated(origin + rblock.normal)
    zone = _physics:project_region(zone, CLIP_SOLID)
 
    local sblock
-   radiant.terrain.get_entities_in_region(zone, function(e)
+   radiant.terrain.get_entities_in_region(zone, function(entity)
          if not sblock then
-            if e:get_uri() == 'stonehearth:scaffolding' then
-               for s, _ in pairs(self._sv.scaffolding) do
-                  if s.scaffolding == entity then
-                     sblock = entity
+            local fabricator, _, _ = build_util.get_fbp_for(entity)
+            if fabricator then
+               for _, sblk in pairs(self._sv.scaffolding) do
+                  if sblk.fabricator == fabricator then
+                     sblock = sblk
                      break
                   end
                end
@@ -173,7 +176,7 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    checks('self', 'table')
    assert(not rblock.sblock)
 
-   local owner = rblock.owner
+   local owner = radiant.entities.get_player_id(rblock.entity)
    local origin = rblock.origin
    local normal = rblock.normal
 
@@ -193,9 +196,12 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(scaffolding)
 
+   build_util.bind_fabricator_to_blueprint(scaffolding, fabricator, 'stonehearth:fabricator')
+   --[[
    -- wire up the back pointer so we can find the fab entity from the blueprint
    scaffolding:add_component('stonehearth:construction_progress')   
                  :set_fabricator_entity(fabricator, 'stonehearth:fabricator')
+   ]]
 
    -- let's go go go!
    stonehearth.build:set_active(scaffolding, true)
@@ -204,12 +210,13 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local sblock = {
       sid         = sid,
       scaffolding = scaffolding,
-      fabricator  = fabricator,
+      fabricator  = fabricator,      
       origin      = origin,
       region      = region,
       owner       = owner,
       normal      = normal,
-      regions     = { [rblock.rid] = rblock }
+      regions     = { [rblock.rid] = rblock },
+      ladder_builders = { },
    }
    self._sv.scaffolding[sid] = sblock
    rblock.sblock = sblock
@@ -229,23 +236,27 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
          cursor:copy_region(merged)
       end)
 
-   local climb_to = self:_compute_ladder_top(sblock)
-   local old_ladder_builder = sblock.ladder_builder
-   if climb_to then
-      sblock.ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
-                                              climb_to,
-                                              sblock.normal)
+   local new_ladder_builders = {}
+   for rid, rblock in pairs(sblock.regions) do
+      local climb_to = self:_compute_ladder_top(rblock)
+      if climb_to then
+         local ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
+                                                 climb_to,
+                                                 rblock.normal)
+         new_ladder_builders[rblock.rid] = ladder_builder
+      end
    end
-   if old_ladder_builder then
-      old_ladder_builder:destroy()
+   for rid, ladder_builder in pairs(sblock.ladder_builders) do
+      ladder_builder:destroy()
    end
+   sblock.ladder_builders = new_ladder_builders
 end
 
-function ScaffoldingManager:_compute_ladder_top(sblock)
-   local normal = sblock.normal
+function ScaffoldingManager:_compute_ladder_top(rblock)
+   local normal = rblock.normal
    local ladder_stencil = Region3(Cube3(Point3(0, -INFINITE, 0) + normal,
                                         Point3(1,  INFINITE, 1) + normal))
-   local ladder = sblock.region:get():intersect_region(ladder_stencil)
+   local ladder = rblock.region:get():intersect_region(ladder_stencil)
    local ladder_bounds = ladder:get_bounds()
    local height = ladder_bounds.max.y - 1
    if height == 0 then
@@ -258,8 +269,8 @@ function ScaffoldingManager:_compute_ladder_top(sblock)
       end
    end
 
-   local normal = sblock.normal
-   local climb_to = sblock.origin + normal + normal
+   local normal = rblock.normal
+   local climb_to = rblock.origin + normal + normal
    climb_to.y = climb_to.y + height
 
    return climb_to

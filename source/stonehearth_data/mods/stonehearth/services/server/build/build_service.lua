@@ -420,7 +420,7 @@ function BuildService:add_fabricator(blueprint)
    fabricator:add_component('stonehearth:fabricator')
                   :start_project(blueprint)   
 
-   self:_bind_fabricator_to_blueprint(blueprint, fabricator, 'stonehearth:fabricator')
+   build_util.bind_fabricator_to_blueprint(blueprint, fabricator, 'stonehearth:fabricator')
 
    return fabricator
 end
@@ -438,34 +438,6 @@ function BuildService:_bind_building_to_blueprint(building, blueprint)
 
    blueprint:add_component('stonehearth:construction_progress')
                :set_building_entity(building)
-end
-
-function BuildService:_bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
-   local fabricator_component = fabricator:get_component(fabricator_component_name)
-   assert(fabricator_component)
-   
-   local building = build_util.get_building_for(blueprint)
-   local project = fabricator_component:get_project()
-   if project then
-      local cd_component = project:get_component('stonehearth:construction_data')
-      if cd_component then
-         cd_component:set_building_entity(building)
-                     :set_fabricator_entity(fabricator)
-      end
-   end
-   blueprint:get_component('stonehearth:construction_progress')
-               :set_fabricator_entity(fabricator, fabricator_component_name)
-               
-   -- fixtures, for example, don't have construction data.  so check first!
-   local cd_component = blueprint:get_component('stonehearth:construction_data')
-   if cd_component then
-      cd_component:set_fabricator_entity(fabricator)
-   end
-
-   -- track the structure in the building component.  the building component is
-   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
-   building:get_component('stonehearth:building')
-               :add_structure(blueprint)
 end
 
 -- adds a new `blueprint` entity to the specified `building` entity at the optional
@@ -781,7 +753,7 @@ function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    else
       -- hm.  brand new wall.  see if we can find another building near it.  for
       -- now, that means just below (e.g. if we're stacking walls)
-      local box = Cube3(p0 - Point3.unit_y, p1 + normal)
+      local box = _radiant.csg.construct_cube3(p0 - Point3.unit_y, p1 + normal, 0)
       local all_overlapping = radiant.terrain.get_entities_in_cube(box, function(entity)
             return build_util.is_blueprint(entity)
          end)
@@ -999,7 +971,7 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
    fab_component:set_always_show_ghost(always_show_ghost)
    fab_component:start_project(fixture_or_uri, normal, rotation)
 
-   self:_bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
+   build_util.bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
 
    return fab_component
 end

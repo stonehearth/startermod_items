@@ -82,6 +82,7 @@ end
 
 function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
    self._sv.manager:_add_region(self._sv.id,
+                                self._sv.entity,
                                 self._sv.origin,
                                 self._sv.blueprint_rgn,
                                 self._sv.scaffolding_rgn,
