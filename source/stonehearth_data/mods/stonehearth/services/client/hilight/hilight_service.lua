@@ -111,14 +111,14 @@ function HilightService:_create_coordinate_nodes(brick)
    end
 
    local text = string.format('%d,%d,%d', brick.x, brick.y, brick.z)
-   self._text_node = _radiant.client.create_text_node(1, text)
+   self._text_node = _radiant.client.create_text_node(H3DRootNode, text)
    self._text_node:set_position(brick + Point3(0, 2, 0))
 
    local edge_color = Color4(255, 255, 0, 255)
    local face_color = Color4(0, 0, 0, 0)
    local region = Region3()
    region:add_point(Point3.zero)
-   self._box_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color, 'materials/transparent.material.json')
+   self._box_node = _radiant.client.create_region_outline_node(H3DRootNode, region, edge_color, face_color, 'materials/transparent.material.json')
    self._box_node:set_position(brick)
 end
 
