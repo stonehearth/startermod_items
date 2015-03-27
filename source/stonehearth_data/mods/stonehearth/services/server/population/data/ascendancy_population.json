@@ -65,7 +65,10 @@
       "Zedro",
       "Rayne",
       "Rook",
-      "Belltower"
+      "Belltower",
+      "Killian",
+      "Tuesday",
+      "Rell"
    ],
    "given_names" : {
       "male" : [
@@ -109,9 +112,18 @@
          "Andwyn",
          "Jhon",
          "Riley",
-         "Wynd"
+         "Wynd",
+         "Bassion",
+         "Luca",
+         "Asher",
+         "Ezra",
+         "Rowan",
+         "Ike"
       ],
       "female" : [
+         "Nia",
+         "Petra",
+         "Yui",
          "Dara",
          "Alaina",
          "Abi",
@@ -161,7 +173,13 @@
          "Tessa",
          "Lynone",
          "Rose",
-         "Emilia"
+         "Emilia",
+         "Aprii",
+         "Noelie",
+         "June",
+         "Rhea",
+         "Freya",
+         "Runa"
       ]
    }, 
    "town_pieces" : {

@@ -178,7 +178,7 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
 
       if (boneNum != oldBoneNum) {
          oldBoneNum = boneNum;
-         if (boneLookup.size() > boneNum) {
+         if ((int)boneLookup.size() > boneNum) {
             m = boneLookup.at(boneNum)->getAbsTrans().inverted();
          } else {
             m = _absTrans.inverted();
