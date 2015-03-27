@@ -190,6 +190,36 @@ function lrbt_cases.floating_wall(autotest, session)
    }
 end
 
+function lrbt_cases.stacked_walls(autotest, session)
+   local min, max = Point3(5, 10, 5), Point3(12, 10, 5)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+      function()
+         min.y = min.y + STOREY_HEIGHT
+         max.y = max.y + STOREY_HEIGHT
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+   }
+end
+
+function lrbt_cases.stacked_walls_offset(autotest, session)
+   local min, max = Point3(5, 10, 5), Point3(12, 10, 5)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+      function()
+         min.y = min.y + STOREY_HEIGHT
+         max.y = max.y + STOREY_HEIGHT
+         min.x = min.x + 1
+         max.x = max.x - 1
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+   }
+end
+
 function lrbt_cases.two_storeys(autotest, session)
    local bounds = Cube3(Point3(0, 9, 0), Point3(4, 10, 4))
    local floor, second_floor

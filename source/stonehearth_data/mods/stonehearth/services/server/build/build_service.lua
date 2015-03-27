@@ -768,20 +768,35 @@ function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    local c1 = self:_get_blueprint_at_point(p1)
    local either_column = c0 or c1
    local building
+
    if c0 and c1 then
+      -- connecting two existing columns.  
       local b0 = build_util.get_building_for(c0)
       local b1 = build_util.get_building_for(c1)
       assert(b0 == b1) -- merge required
       building = b0
    elseif either_column then
+      -- connecting to just one column.  that's ok too!
       building = build_util.get_building_for(either_column)
    else
+      -- hm.  brand new wall.  see if we can find another building near it.  for
+      -- now, that means just below (e.g. if we're stacking walls)
+      local box = Cube3(p0 - Point3.unit_y, p1 + normal)
+      local all_overlapping = radiant.terrain.get_entities_in_cube(box, function(entity)
+            return build_util.is_blueprint(entity)
+         end)
+      if next(all_overlapping) then
+         -- yay!  merge all this stuff together and go!
+         building = choose_merge_survivor(all_overlapping)
+         self:_merge_blueprints_into(building, all_overlapping)         
+      end
+   end
+   if not building then
+      -- all our efforts have failed!  make a brand new building for this wall.
       building = self:_create_new_building(session, p0)
    end
 
-   assert(building)
-   local wall = self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
-   return wall
+   return self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
 end
 
 -- add walls around all the floor segments for the specified `building` which
