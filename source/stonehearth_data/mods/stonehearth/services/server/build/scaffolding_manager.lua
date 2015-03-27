@@ -57,8 +57,8 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    return builder
 end
 
-function ScaffoldingManager:_add_region(rid, origin, region, normal)
-   checks('self', 'number', 'Point3', 'Region3Boxed', 'Point3')
+function ScaffoldingManager:_add_region(rid, origin, blueprint_region, region, normal)
+   checks('self', 'number', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
 
    assert(not self._sv.regions[rid])
 
@@ -68,6 +68,7 @@ function ScaffoldingManager:_add_region(rid, origin, region, normal)
       region = region,
       normal = normal,
       owner  = 'player_1',       -- xxx
+      blueprint_region = blueprint_region,
    }
    self._sv.regions[rid] = rblock
    self:_trace_region(rblock)
@@ -117,8 +118,13 @@ end
 function ScaffoldingManager:_process_new_regions()
    for rblock, _ in pairs(self._new_regions) do
       assert(not rblock.sblock)
-      
-      rblock.sblock = self:_create_new_scaffolding(rblock)
+
+      if not self:_find_scaffolding_for(rblock) then
+         self:_create_scaffolding_for(rblock)
+      end
+      assert(rblock.sblock)
+      assert(rblock.sblock.regions[rblock])
+
       self._changed_scaffolding[rblock.sblock] = true
    end
    self._new_regions = {}
@@ -131,8 +137,39 @@ function ScaffoldingManager:_process_changed_scaffolding()
    self._changed_scaffolding = {}
 end
 
-function ScaffoldingManager:_create_new_scaffolding(rblock)
+function ScaffoldingManager:_find_scaffolding_for(rblock)
+   local origin = rblock.origin
+   local region = rblock.blueprint_region:get()
+
+   -- look "down" for someone who can help us out.
+   local zone = region:translated(origin)
+   zone = _physics:project_region(zone, CLIP_SOLID)
+
+   local sblock
+   radiant.terrain.get_entities_in_region(zone, function(e)
+         if not sblock then
+            if e:get_uri() == 'stonehearth:scaffolding' then
+               for s, _ in pairs(self._sv.scaffolding) do
+                  if s.scaffolding == entity then
+                     sblock = entity
+                     break
+                  end
+               end
+            end
+         end
+      end)
+
+   if not sblock then
+      return false
+   end
+   rblock.sblock = sblock
+   sblock.regions[rblock] = rblock
+   return true
+end
+
+function ScaffoldingManager:_create_scaffolding_for(rblock)
    checks('self', 'table')
+   assert(not rblock.sblock)
 
    local owner = rblock.owner
    local origin = rblock.origin
@@ -170,9 +207,11 @@ function ScaffoldingManager:_create_new_scaffolding(rblock)
       region      = region,
       owner       = owner,
       normal      = normal,
-      regions     = { [rblock] = true }
+      regions     = { [rblock] = rblock }
    }
    self._sv.scaffolding[sid] = sblock
+   rblock.sblock = sblock
+
    return sblock
 end
 

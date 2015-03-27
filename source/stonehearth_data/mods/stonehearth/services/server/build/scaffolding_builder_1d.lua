@@ -83,6 +83,7 @@ end
 function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
    self._sv.manager:_add_region(self._sv.id,
                                 self._sv.origin,
+                                self._sv.blueprint_rgn,
                                 self._sv.scaffolding_rgn,
                                 self._sv.normal)
 end
@@ -202,9 +203,12 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
 
    -- compute the top of the project.  the `top` is the height
    -- of the completely finished part of the project
+   local blueprint_bounds = blueprint_rgn:get_bounds()
+   local blueprint_top = blueprint_bounds.max.y
+
    local project_top
    if stand_at_base then
-      project_top = 0
+      project_top = blueprint_bounds.min.y
    elseif not project_rgn:empty() then
       local project_bounds = project_rgn:get_bounds()
       project_top = project_bounds.max.y
@@ -214,10 +218,11 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
       if not remaining_blocks:empty() then
          project_top = project_top - 1
       end
+      project_top = math.min(project_top, blueprint_top - 1)
    else
-      local blueprint_bounds = blueprint_rgn:get_bounds()
       project_top = blueprint_bounds.min.y
    end
+   assert(project_top < blueprint_top)
    
    local clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
                          Point3( INFINITE, project_top + 1,  INFINITE))
