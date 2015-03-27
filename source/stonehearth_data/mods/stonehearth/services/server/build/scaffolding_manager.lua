@@ -102,10 +102,11 @@ function ScaffoldingManager:_mark_region_changed(rblock)
       self._marked_changed = true
       radiant.events.listen_once(radiant, 'stonehearth:gameloop', self, self._process_changes)
    end
-   if rblock.sblock then
-      self._changed_scaffolding[rblock.sblock] = true
+   local sblock = rblock.sblock
+   if sblock then
+      self._changed_scaffolding[sblock.sid] = sblock
    else
-      self._new_regions[rblock] = true
+      self._new_regions[rblock.rid] = rblock
    end
 end
 
@@ -116,22 +117,23 @@ function ScaffoldingManager:_process_changes()
 end
 
 function ScaffoldingManager:_process_new_regions()
-   for rblock, _ in pairs(self._new_regions) do
+   for rid, rblock in pairs(self._new_regions) do
       assert(not rblock.sblock)
 
       if not self:_find_scaffolding_for(rblock) then
          self:_create_scaffolding_for(rblock)
       end
-      assert(rblock.sblock)
-      assert(rblock.sblock.regions[rblock])
+      local sblock = rblock.sblock
+      assert(sblock)
+      assert(sblock.regions[rblock.rid] == rblock)
 
-      self._changed_scaffolding[rblock.sblock] = true
+      self._changed_scaffolding[sblock.sid] = sblock
    end
    self._new_regions = {}
 end
 
 function ScaffoldingManager:_process_changed_scaffolding()
-   for sblock, _ in pairs(self._changed_scaffolding) do
+   for sid, sblock in pairs(self._changed_scaffolding) do
       self:_update_scaffolding_region(sblock)
    end
    self._changed_scaffolding = {}
@@ -163,7 +165,7 @@ function ScaffoldingManager:_find_scaffolding_for(rblock)
       return false
    end
    rblock.sblock = sblock
-   sblock.regions[rblock] = rblock
+   sblock.regions[rblock.rid] = rblock
    return true
 end
 
@@ -207,7 +209,7 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
       region      = region,
       owner       = owner,
       normal      = normal,
-      regions     = { [rblock] = rblock }
+      regions     = { [rblock.rid] = rblock }
    }
    self._sv.scaffolding[sid] = sblock
    rblock.sblock = sblock
@@ -217,7 +219,7 @@ end
 
 function ScaffoldingManager:_update_scaffolding_region(sblock)
    local merged = Region3()
-   for rblock, _ in pairs(sblock.regions) do
+   for rid, rblock in pairs(sblock.regions) do
       local r = rblock.region:get():translated(rblock.origin)
       merged:add_region(r)
    end   
