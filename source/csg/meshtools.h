@@ -46,7 +46,6 @@ struct Mesh {
    Mesh& SetColorMap(TagToColorMap const* colorMap);
    Mesh& FlipFaces();
    Mesh& AddVertices(Mesh const& other);
-   void ScaleBy(float scale);
 
    bool IsEmpty() const;
 

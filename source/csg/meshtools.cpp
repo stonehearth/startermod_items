@@ -231,17 +231,6 @@ Mesh& Mesh::SetOffset(csg::Point3f const& offset)
    return *this;
 }
 
-void Mesh::ScaleBy(float scale)
-{
-   for (int i = 0; i < vertices.size(); i++)
-   {
-      vertices[i].location[0] *= scale;
-      vertices[i].location[1] *= scale;
-      vertices[i].location[2] *= scale;
-   }
-}
-
-
 Mesh& Mesh::FlipFaces()
 {
    flip_ = !flip_;
