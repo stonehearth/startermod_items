@@ -233,7 +233,7 @@ Mesh& Mesh::SetOffset(csg::Point3f const& offset)
 
 void Mesh::ScaleBy(float scale)
 {
-   for (int i = 0; i < vertices.size(); i++)
+   for (uint i = 0; i < vertices.size(); i++)
    {
       vertices[i].location[0] *= scale;
       vertices[i].location[1] *= scale;
