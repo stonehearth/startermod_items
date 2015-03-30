@@ -1,7 +1,7 @@
 { 
    "floorPatterns" : [
       {
-         "category" : "Wooden",
+         "category" : "Wood",
          "items" : [
             { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_light/wooden_floor_solid_light.png", "brush":"stonehearth:wooden_floor_solid_light" },
             { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_dark/wooden_floor_solid_dark.png", "brush":"stonehearth:wooden_floor_solid_dark" },
@@ -117,7 +117,7 @@
          ]         
       }            
    ],
-   "doodads": [
+   "doors": [
       {
          "category" : "Doors",
          "items" : [
@@ -125,7 +125,9 @@
             { "name": "Wooden double door", "portrait": "/stonehearth/entities/construction/wooden_double_door/wooden_double_door.png", "brush": "stonehearth:portals:wooden_double_door" },
             { "name": "Reinforced wooden door", "portrait": "/stonehearth/entities/construction/wooden_door_2/wooden_door_2.png", "brush": "stonehearth:portals:wooden_door_2" }
          ]
-      },
+      }
+   ],
+   "windows": [
       {
          "category" : "Windows",
          "items" : [

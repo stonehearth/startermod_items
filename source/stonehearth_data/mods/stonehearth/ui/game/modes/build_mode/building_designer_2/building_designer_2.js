@@ -1,6 +1,19 @@
 App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.extend({
    templateName: 'buildingDesigner',
 
+   imageMapToTool: {
+      floor_deco : 'placeFloorDecoTool',
+      wall_deco : undefined,
+      floor : 'drawFloorTool',
+      grow_floor : undefined,
+      roof : 'growRoofTool',
+      door : 'drawDoorTool',
+      'window' : 'drawWindowTool',
+      grow_walls : 'growWallsTool',
+      wall : 'drawWallTool',
+      road : 'drawRoadTool',
+   },
+
    init: function() {
       var self = this;
       this._super();
@@ -20,9 +33,12 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(DrawFloorTool);
       this.newTool(DrawWallTool);
       this.newTool(GrowWallsTool);
-      this.newTool(DrawDoodadTool);
+      this.newTool(DrawDoorTool);
+      this.newTool(DrawWindowTool);
       this.newTool(GrowRoofTool);
       this.newTool(DrawSlabTool);
+      this.newTool(DrawRoadTool);
+      this.newTool(PlaceFloorDecoTool);
 
       // Make sure we call super after adding all the tools!
       this._super();
