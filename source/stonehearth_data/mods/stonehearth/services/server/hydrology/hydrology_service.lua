@@ -294,8 +294,16 @@ end
 -- entity is an optional hint
 -- returns volume of water that could not be added
 function HydrologyService:add_water(volume, location, entity)
+   if volume <= 0 then
+      return
+   end
+   
    if not entity then
       entity = self:get_water_body(location)
+   end
+
+   if not entity then
+      entity = self:create_water_body(location)
    end
 
    local water_component = entity:add_component('stonehearth:water')

@@ -366,13 +366,9 @@ function WaterComponent:_get_edge_region(region, channel_region)
    -- subtract the interior region
    local edge_region = inflated - region
 
-   -- remove region blocked by terrain
-   local terrain = radiant.terrain.intersect_region(edge_region)
+   -- remove watertight region
+   local terrain = stonehearth.hydrology:get_water_tight_region():intersect_region(edge_region)
    edge_region:subtract_region(terrain)
-
-   -- remove region blocked by watertight entities
-   local collision_region = self:_get_solid_collision_regions(edge_region)
-   edge_region:subtract_region(collision_region)
 
    -- remove channels that we've already processed
    edge_region:subtract_region(channel_region)
@@ -384,21 +380,6 @@ function WaterComponent:_get_edge_region(region, channel_region)
    edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
-end
-
-function WaterComponent:_get_solid_collision_regions(region)
-   local result = Region3()
-   local entities = radiant.terrain.get_entities_in_region(region)
-   for _, entity in pairs(entities) do
-      local rcs_component = entity:get_component('region_collision_shape')
-      if self:_is_watertight(rcs_component) then
-         local location = radiant.entities.get_world_grid_location(entity)
-         local entity_region = rcs_component:get_region():get():translated(location)
-         result:add_region(entity_region)
-      end
-   end
-
-   return result
 end
 
 function WaterComponent:_add_height(volume)
@@ -480,7 +461,7 @@ function WaterComponent:_raise_layer()
    local raised_layer = current_layer:translated(entity_location + Point3.unit_y)
 
    -- subtract any new terrain obstructions
-   local intersection = radiant.terrain.intersect_region(raised_layer)
+   local intersection = stonehearth.hydrology:get_water_tight_region():intersect_region(raised_layer)
    raised_layer:subtract_region(intersection)
    raised_layer:optimize_by_merge('water:_raise_layer() (raised layer)')
 
@@ -611,21 +592,9 @@ function WaterComponent:_get_layer(elevation)
    return layer
 end
 
--- TODO: could optimize by getting the watertight region and testing to see if point is in that set
 function WaterComponent:_is_blocked(point)
-   if radiant.terrain.is_terrain(point) then
-      return true
-   end
-
-   local entities = radiant.terrain.get_entities_at_point(point)
-   for _, entity in pairs(entities) do
-      local rcs_component = entity:get_component('region_collision_shape')
-      if self:_is_watertight(rcs_component) then
-         return true
-      end
-   end
-
-   return false
+   local result = stonehearth.hydrology:get_water_tight_region():contains_point(point)
+   return result
 end
 
 function WaterComponent:_is_watertight(region_collision_shape)
