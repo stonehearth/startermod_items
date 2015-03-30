@@ -6,9 +6,11 @@
 #include <EASTL/vector.h>
 #include "cube.h"
 
+#if RADIANT_OPT_LEVEL > RADIANT_OPT_LEVEL_DEV
 // eastl vectors behave just like std::vector, but they don't allocate until
 // used.  this is a big win!
 #define EASTL_REGIONS
+#endif
 
 //
 // (note: used only in the non-EASTL_REGIONS case.)

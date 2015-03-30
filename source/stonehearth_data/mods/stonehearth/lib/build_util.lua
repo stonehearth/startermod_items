@@ -590,4 +590,43 @@ function build_util.grow_walls_around(floor, visitor_fn)
    end
 end
 
+
+function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
+   local fabricator_component = fabricator:get_component(fabricator_component_name)
+   assert(fabricator_component)
+   
+   -- get the building for this blueprint.  everyone must have a building by now, except
+   -- scaffolding.  scaffolding parts are managed by the scaffolding_manager.
+   local building = build_util.get_building_for(blueprint)
+   if not building then
+      assert(blueprint:get_uri() == 'stonehearth:scaffolding')
+   end
+   
+   local project = fabricator_component:get_project()
+   if project then
+      local cd_component = project:get_component('stonehearth:construction_data')
+      if cd_component then
+         if building then
+            cd_component:set_building_entity(building)
+         end
+         cd_component:set_fabricator_entity(fabricator)
+      end
+   end
+   blueprint:get_component('stonehearth:construction_progress')
+               :set_fabricator_entity(fabricator, fabricator_component_name)
+               
+   -- fixtures, for example, don't have construction data.  so check first!
+   local cd_component = blueprint:get_component('stonehearth:construction_data')
+   if cd_component then
+      cd_component:set_fabricator_entity(fabricator)
+   end
+
+   -- track the structure in the building component.  the building component is
+   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
+   if building then
+      building:get_component('stonehearth:building')
+                  :add_structure(blueprint)
+   end
+end
+
 return build_util

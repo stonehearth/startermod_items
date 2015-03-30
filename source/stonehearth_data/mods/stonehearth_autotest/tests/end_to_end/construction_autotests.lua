@@ -25,16 +25,15 @@ function construction_tests.simple_build(autotest)
          if e.entity:get_uri() == 'stonehearth:scaffolding' then
             local scaffolding = e.entity
             radiant.events.listen(scaffolding, 'stonehearth:construction:finished_changed', function ()
-                  if construction_complete then
-                     local finished = scaffolding:get_component('stonehearth:construction_progress'):get_finished()
-                     local rgn = scaffolding:get_component('destination'):get_region()
-                     if finished and rgn:get():get_area() == 0 then
-                        autotest:success()
-                        return radiant.events.UNLISTEN
-                     end
+               if construction_complete then
+                  local finished = scaffolding:get_component('stonehearth:construction_progress'):get_finished()
+                  local rgn = scaffolding:get_component('destination'):get_region()
+                  if finished and rgn:get():get_area() == 0 then
+                     autotest:success()
+                     return radiant.events.UNLISTEN
                   end
+               end
             end)
-            return radiant.events.UNLISTEN
          end
    end)
 
@@ -44,8 +43,8 @@ function construction_tests.simple_build(autotest)
    autotest.ui:click_dom_element('#startMenu #custom_building')
    autotest.ui:click_dom_element('#drawWallTool')
 
-   autotest.ui:click_terrain(2, -2)
    autotest.ui:click_terrain(-4, -2)
+   autotest.ui:click_terrain( 2, -2)
 
    autotest.ui:click_dom_element('#showOverview')
    autotest.ui:click_dom_element('#startBuilding')

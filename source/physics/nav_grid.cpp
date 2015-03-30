@@ -1449,4 +1449,57 @@ void NavGrid::ReleaseTrackerVector(std::vector<CollisionTrackerRef>& trackers)
    _trackerVectors.emplace_back(std::move(trackers));
 }
 
+csg::Region3f NavGrid::ClipRegion(csg::Region3f const& region, ClippingMode mode)
+{
+   csg::Region3f clippedRegion = region & csg::ToFloat(bounds_);
 
+   ForEachTrackerInShape(region, [&clippedRegion, mode](CollisionTrackerPtr tracker) -> bool {
+      bool clip = false;
+      TrackerType type = tracker->GetType();
+      switch (mode) {
+      case CLIP_TERRAIN:
+         clip = (type == TERRAIN);
+         break;
+      case CLIP_SOLID:
+         clip = (type == COLLISION || type == TERRAIN);
+         break;
+      };
+      if (clip) {
+         tracker->ClipRegion(clippedRegion);
+      }
+      return false;     // keep going!
+   });
+
+   return clippedRegion;
+}
+
+csg::Region3f NavGrid::ProjectRegion(csg::Region3f const& region, ClippingMode mode)
+{
+   csg::Region3 projected;
+
+   // This is the slow, crappy version =(
+   for (csg::Cube3f c : csg::EachCube(region)) {
+      csg::Cube3 cube = csg::ToInt(c);
+      csg::Point3 pt;
+      for (pt.z = cube.min.z; pt.z < cube.max.z; pt.z++) {
+         for (pt.x = cube.min.x; pt.x < cube.max.x; pt.x++) {
+            pt.y = cube.min.y;
+            while (bounds_.Contains(pt)) {
+               bool blocked;
+               if (mode == CLIP_SOLID) {
+                  blocked = IsBlocked(pt);
+               } else {
+                  blocked = IsTerrain(pt);
+               }
+               if (blocked) {
+                  break;
+               }
+               --pt.y;
+            }
+            ++pt.y;
+            projected.Add(csg::Cube3(pt, csg::Point3(pt.x + 1, cube.max.y, pt.z + 1), cube.GetTag()));
+         }
+      }
+   }
+   return csg::ToFloat(projected);
+}

@@ -109,9 +109,9 @@ void NavGridTileData::UpdateTileDataForTrackers()
             for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
                   int offset = Offset(x, y, z);
-                  DEBUG_ONLY(
-                     NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << DstType;
-                  )
+#if RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+                  NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << DstType;
+#endif
                   bits.set(offset);
                }
             }
@@ -168,10 +168,10 @@ void NavGridTileData::UpdateMovementSpeedBonus()
  */
 inline int NavGridTileData::Offset(int x, int y, int z)
 {
-   DEBUG_ONLY(
-      ASSERT(x >= 0 && y >= 0 && z >= 0);
-      ASSERT(x < TILE_SIZE && y < TILE_SIZE && z < TILE_SIZE);
-      )
+#if RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+   ASSERT(x >= 0 && y >= 0 && z >= 0);
+   ASSERT(x < TILE_SIZE && y < TILE_SIZE && z < TILE_SIZE);
+#endif
    return TILE_SIZE * (y + (TILE_SIZE * x)) + z;
 }
 

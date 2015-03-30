@@ -111,11 +111,11 @@ public:
    }
 
    EdgeMap& AddEdge(Point<S, C> const& min, Point<S, C> const& max, Point<S, C> const& normal) {
-      DEBUG_ONLY(
-         for (Edge<S, C> const& e : edges) {
-            ASSERT(e.min->location != min || e.max->location != max || e.normal != normal);
-         }
-      )
+#if RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+      for (Edge<S, C> const& e : edges) {
+         ASSERT(e.min->location != min || e.max->location != max || e.normal != normal);
+      }
+#endif
       edges.emplace_back(Edge<S, C>(AddPoint(min, normal),
                                     AddPoint(max, normal),
                                     normal));
