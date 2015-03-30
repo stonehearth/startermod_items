@@ -96,11 +96,18 @@ end
 function Landscaper:place_flora(tile_map, feature_map, tile_offset_x, tile_offset_y)
    local place_item = function(uri, x, y)
       local entity = radiant.entities.create_entity(uri)
+      self:_set_random_facing(entity)
+
       -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
       -- swtich from tile coordinates to world coordinates
-      radiant.terrain.place_entity(entity, Point3(x-1+tile_offset_x, 1, y-1+tile_offset_y))
+      local world_x = x-1+tile_offset_x
+      local world_z = y-1+tile_offset_y
+      local location = radiant.terrain.get_point_on_terrain(Point3(world_x, 1, world_z))
 
-      self:_set_random_facing(entity)
+      if radiant.terrain.is_standable(entity, location) then
+         radiant.terrain.place_entity(entity, location)
+      end
+
       return entity
    end
 
