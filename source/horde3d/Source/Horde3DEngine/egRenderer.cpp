@@ -148,14 +148,19 @@ void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpu
 
       // The following vendor/driver combinations break some aspect of the HQ renderer.
 
-      // This combo doesn't like const vec3 arrays in GLSL (supported in GLSL since 3.0, and this driver is supposedly 4.2 compliant!)
+      // These combos don't like const vec3 arrays in GLSL (supported in GLSL since 3.0!)
       if (strstr(gRDI->getCaps().vendor, "Intel") != nullptr) {
-         if (strstr(gRDI->getCaps().version, "10.18.10.3345") != nullptr ||
+         if (gRDI->getCaps().glVersion < 4.1) {
+            // If we're seeing an early OGL driver, don't even bother.
+            rendererCaps->HighQualityRendererSupported = false;
+         } else if (strstr(gRDI->getCaps().version, "10.18.10.3345") != nullptr ||
              strstr(gRDI->getCaps().version, "10.18.10.3308") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.10.3355") != nullptr ||
              strstr(gRDI->getCaps().version, "10.18.10.3412") != nullptr ||
              strstr(gRDI->getCaps().version, "10.18.10.3496") != nullptr ||
              strstr(gRDI->getCaps().version, "10.18.10.3621") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3540") != nullptr) {
+             strstr(gRDI->getCaps().version, "10.18.10.3540") != nullptr ||
+             strstr(gRDI->getCaps().version, "10.18.14.4156") != nullptr) {
             rendererCaps->HighQualityRendererSupported = false;
          }
       }
