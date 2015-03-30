@@ -197,11 +197,6 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
                               :start_project(scaffolding)
 
    build_util.bind_fabricator_to_blueprint(scaffolding, fabricator, 'stonehearth:fabricator')
-   --[[
-   -- wire up the back pointer so we can find the fab entity from the blueprint
-   scaffolding:add_component('stonehearth:construction_progress')   
-                 :set_fabricator_entity(fabricator, 'stonehearth:fabricator')
-   ]]
 
    -- let's go go go!
    stonehearth.build:set_active(scaffolding, true)
