@@ -264,21 +264,30 @@ function WaterComponent:update_channel_types()
 
       if channel.channel_type == 'pressure' then
          if target_water_level < channel_height then
-            channel_manager:link_waterfall_channel(channel.from_entity, channel.from_location)
+            -- pressure channel is now a waterfall channel
+            channel_manager:link_waterfall_channel(channel.from_entity, channel.from_location, channel.subtype)
          end
       elseif channel.channel_type == 'waterfall' then
-         -- TODO: this could also convert to a vertical pressure channel -- CHECKCHECK
-         -- CHECKCHECK perform merge on target_water_level
          if channel.subtype == 'vertical' then
+            -- TODO: support case when to_entity is higher than from_entity
             local source_water_level = self:get_water_level()
             -- recall that vertical waterfall channels have their from_location inside the water body
             if source_water_level <= channel_height then
+               -- waterfall dried up and should be removed
                local location = radiant.entities.get_world_grid_location(self._entity)
                self:_remove_from_region(channel.from_location - location)
                channel_manager:remove_channel(channel)
             end
+
+            if target_water_level >= channel_height then
+               -- convert to vertical pressure channel
+               -- TODO: this violates pressure channel invariants
+               channel_manager:link_pressure_channel(channel.from_entity, channel.from_location,
+                                                     channel.to_entity, channel.from_location - Point3.unit_y, 'vertical')
+            end
          else
             if target_water_level > channel_height then
+               -- waterfall is now a pressure channel
                local target_adjacent_point = stonehearth.hydrology:_get_best_channel_adjacent_point(channel.from_entity, channel.from_location)
                channel_manager:link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
             end
@@ -367,8 +376,8 @@ function WaterComponent:_get_edge_region(region, channel_region)
    local edge_region = inflated - region
 
    -- remove watertight region
-   local terrain = stonehearth.hydrology:get_water_tight_region():intersect_region(edge_region)
-   edge_region:subtract_region(terrain)
+   local watertight_region = stonehearth.hydrology:get_water_tight_region():intersect_region(edge_region)
+   edge_region:subtract_region(watertight_region)
 
    -- remove channels that we've already processed
    edge_region:subtract_region(channel_region)
@@ -460,9 +469,13 @@ function WaterComponent:_raise_layer()
    -- convert to world space and raise one level
    local raised_layer = current_layer:translated(entity_location + Point3.unit_y)
 
-   -- subtract any new terrain obstructions
+   -- subtract any new obstructions
    local intersection = stonehearth.hydrology:get_water_tight_region():intersect_region(raised_layer)
    raised_layer:subtract_region(intersection)
+
+   -- make sure we don't overlap any other water bodies
+   self:_subtract_all_water_regions(raised_layer)
+
    raised_layer:optimize_by_merge('water:_raise_layer() (raised layer)')
 
    -- back to local space
@@ -524,7 +537,7 @@ function WaterComponent:_lower_layer()
 
    if not residual_top_layer:empty() then
       -- we do this to avoid having to create vertical channels to remove each unsupported block
-      residual_top_layer = self:_remove_unsupported_region(residual_top_layer)
+      self:_subtract_unsupported_region(residual_top_layer)
    end
 
    if not residual_top_layer:empty() then
@@ -556,7 +569,7 @@ function WaterComponent:_lower_layer()
    return true
 end
 
-function WaterComponent:_remove_unsupported_region(layer)
+function WaterComponent:_subtract_unsupported_region(layer)
    local location = radiant.entities.get_world_grid_location(self._entity)
    local water_tight_region = stonehearth.hydrology:get_water_tight_region()
 
@@ -566,8 +579,18 @@ function WaterComponent:_remove_unsupported_region(layer)
 
    -- project one unit up and back to local coordinates
    supported_region:translate(Point3.unit_y - location)
-   local result = layer:intersect_region(supported_region)
-   return result
+   layer = layer:intersect_region(supported_region)
+end
+
+function WaterComponent:_subtract_all_water_regions(region)
+   local water_bodies = stonehearth.hydrology:get_water_bodies()
+
+   for id, entity in pairs(water_bodies) do
+      local location = radiant.entities.get_world_grid_location(entity)
+      local water_component = entity:add_component('stonehearth:water')
+      local water_region = water_component:get_region():get():translated(location)
+      region:subtract_region(water_region)
+   end
 end
 
 function WaterComponent:_recalculate_current_layer()

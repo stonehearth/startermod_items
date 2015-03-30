@@ -50,6 +50,10 @@ function HydrologyService:get_channel_manager()
    return self._sv._channel_manager
 end
 
+function HydrologyService:get_water_bodies()
+   return self._sv._water_bodies
+end
+
 function HydrologyService:get_water_tight_region()
    return self._water_tight_region
 end
@@ -297,7 +301,7 @@ function HydrologyService:add_water(volume, location, entity)
    if volume <= 0 then
       return
    end
-   
+
    if not entity then
       entity = self:get_water_body(location)
    end
@@ -430,11 +434,13 @@ function HydrologyService:_merge_regions(master, mergee, allow_uneven_top_layers
    local uneven_merge = allow_uneven_top_layers and master_layer_elevation ~= mergee_layer_elevation
    local translation = mergee_location - master_location   -- translate between local coordinate systems
 
+   -- TODO: refactor
    if uneven_merge then
       if mergee_layer_elevation > master_layer_elevation then
          -- adopt the water level of the mergee
-         local new_height = mergee_component:get_water_level() - master_location
+         local new_height = mergee_component:get_water_level() - master_location.y
          master_component._sv.height = new_height
+         master_component._sv._current_layer_index = mergee_layer_elevation - master_location.y
 
          -- replace the working layer with the one from the mergee
          master_component._sv._current_layer:modify(function(cursor)
@@ -453,6 +459,7 @@ function HydrologyService:_merge_regions(master, mergee, allow_uneven_top_layers
       local new_water_level = self:_calculate_merged_water_level(master, mergee)
       local new_height = new_water_level - master_location.y
       master_component._sv.height = new_height
+      master_component._sv._current_layer_index = master_layer_elevation - master_location.y
 
       -- merge the working layers
       master_component._sv._current_layer:modify(function(cursor)

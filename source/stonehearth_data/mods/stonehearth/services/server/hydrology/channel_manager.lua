@@ -213,10 +213,14 @@ function ChannelManager:link_waterfall_channel(from_entity, from_location, subty
 
    if not channel then
       local to_entity, to_location = self:_get_waterfall_target(from_location)
-      local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
-      channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
-      -- TODO: formalize this
-      channel.subtype = subtype
+
+      if to_entity == from_entity then
+         log:error('unimplemented: from_entity == to_entity for waterfall channel')
+      else
+         local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
+         channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
+         channel.subtype = subtype
+      end
    end
    return channel
 end
@@ -297,6 +301,10 @@ function ChannelManager:merge_channels(master, mergee)
 
       if channel.from_entity == channel.to_entity then
          -- channel now goes to itself, so destroy it
+         if channel.channel_type == 'waterfall' then
+            -- e.g. a vertical column of terrain is removed and the bottom block previously merged (or was filled that way)
+            log:error('unimplemented: waterfall channel falls to itself')
+         end
          self:remove_channel(channel)
       end
    end)
@@ -308,6 +316,9 @@ function ChannelManager:reparent_channels(channels, new_parent)
    for _, channel in pairs(channels) do
       if channel.to_entity == new_parent then
          -- channel would go to itself, so just remove it
+         if channel.channel_type == 'waterfall' then
+            log:error('unimplemented: waterfall channel falls to itself')
+         end
          self:remove_channel(channel)
       else
          local old_parent = channel.from_entity
