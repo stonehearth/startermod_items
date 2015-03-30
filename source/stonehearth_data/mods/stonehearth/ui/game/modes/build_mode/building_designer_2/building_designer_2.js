@@ -25,8 +25,8 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(new DrawDoorTool);
       this.newTool(new DrawWindowTool);
       this.newTool(new GrowRoofTool);
-      this.newTool(new DrawSlabTool);
       this.newTool(new DrawRoadTool);
+      // this.newTool(new DrawSlabTool);
 
       // Make sure we call super after adding all the tools!
       this._super();

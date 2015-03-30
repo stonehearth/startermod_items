@@ -3,6 +3,34 @@
 
    #editor {
 
+      #materialToolbar {
+         .active {
+            border-color: #000;
+            background-color: #ffc000;
+         }
+
+         .button {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            background-position: center;
+            background-repeat: no-repeat;
+            text-align: center;
+         }
+
+         .button.selected {
+            border: 1px solid orange;
+         }
+
+         .stone {
+            content: url(/stonehearth/entities/resources/stone/stone.png);
+         }
+
+         .wood {
+            content: url(/stonehearth/entities/resources/wood/log.png);
+         }
+      }
+
       #toolPalettePicker {
          width: 95px;
          height: 307px;
@@ -105,38 +133,6 @@
          position: absolute;
          top: 0px;
          left: 530px;
-      }
-
-      #drawFloorTool {
-         background-image: url(images/add_floor_tool.png);
-      }
-
-      #drawWallTool {
-         background-image: url(images/add_wall_tool.png);
-      }
-
-      #growWallsTool {
-         background-image: url(images/grow_walls_tool.png);
-      }
-
-      #growRoofTool {
-         background-image: url(images/grow_roof_tool.png);
-      }
-
-      #drawDoodadTool {
-         background-image: url(images/add_doodad_tool.png);
-      }
-
-      #placeItemTool {
-         background-image: url(images/place_item_tool.png);
-      }
-
-      #drawSlabTool {
-         background-image: url(images/add_slab_tool.png);
-      }
-
-      #eraseStructureTool {
-         background-image: url(images/erase_structure_tool.png);
       }
 
       #toolOptions {

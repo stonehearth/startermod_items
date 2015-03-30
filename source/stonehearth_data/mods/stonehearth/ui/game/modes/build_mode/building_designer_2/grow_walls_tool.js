@@ -6,9 +6,6 @@ var GrowWallsTool;
       toolId: 'growWallsTool',
       wallMaterialClass: 'growWallMaterial',
       columnMaterialClass: 'growColumnMaterial',
-      materialTabId: 'growWallMaterialTab',
-      columnBrush: null,
-      wallBrush: null,
 
       inDom: function(buildingDesigner) {
          var self = this;
@@ -19,7 +16,9 @@ var GrowWallsTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.growWalls(self.columnBrush, self.wallBrush);
+               var wall = self._wallMaterial.getSelectedBrush();
+               var column = self._columnMaterial.getSelectedBrush();
+               return App.stonehearthClient.growWalls(column, wall);
             });
       },
 
@@ -40,49 +39,33 @@ var GrowWallsTool;
             .done(function(json) {
                self.buildingParts = json;
 
-               var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Wall', self.wallMaterialClass, self.buildingParts.wallPatterns, 
-                  function(brush) {
-                     self.wallBrush = brush;
+               var click = function() {
+                  // Re/activate the floor tool with the new material.
+                  self.buildingDesigner.activateTool(self.buildTool);      
+               };
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('wallBrush', brush);
+               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+               root.append(tab);
 
-                     self._onMaterialChange('wall', self.wallBrush);
-                  }
-               );
-               MaterialHelper.addMaterialPalette(tab, 'Column', self.columnMaterialClass, self.buildingParts.columnPatterns, 
-                  function(brush, material) {
-                     self.columnBrush = brush;
+               self._wallMaterial = new MaterialHelper(tab,
+                                                       self.buildingDesigner,
+                                                       'Wall',
+                                                       self.wallMaterialClass,
+                                                       self.buildingParts.wallPatterns,
+                                                       click);
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('columnBrush', brush);
-
-                     self._onMaterialChange('column', self.columnBrush);
-                  }
-               );
+               self._columnMaterial = new MaterialHelper(tab,
+                                                       self.buildingDesigner,
+                                                       'Column',
+                                                       self.columnMaterialClass,
+                                                       self.buildingParts.columnPatterns,
+                                                       click);
          });
       },
 
-      addButtonMarkup: function(root) {
-         root.append(
-            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Grow walls'})
-         );
-      },
-
       restoreState: function(state) {
-         var self = this;
-         var selector = state.wallBrush ? '.' + self.wallMaterialClass + '[brush="' + state.wallBrush + '"]' :  '.' + self.wallMaterialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.wallMaterialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.wallBrush = selectedMaterial.attr('brush');
-
-         var selector = state.columnBrush ? '.' + self.columnMaterialClass + '[brush="' + state.columnBrush + '"]' :  '.' + self.columnMaterialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.columnMaterialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.columnBrush = selectedMaterial.attr('brush');
+         this._wallMaterial.restoreState(state);
+         this._columnMaterial.restoreState(state);
       }
    });
 })();

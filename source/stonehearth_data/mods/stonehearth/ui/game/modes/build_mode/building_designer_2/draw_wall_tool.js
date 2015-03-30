@@ -6,9 +6,6 @@ var DrawWallTool;
       toolId: 'drawWallTool',
       wallMaterialClass: 'wallMaterial',
       columnMaterialClass: 'columnMaterial',
-      materialTabId: 'wallMaterialTab',
-      columnBrush: null,
-      wallBrush: null,
 
       handlesType: function(type) {
          return type == 'wall' || type == 'column';
@@ -24,19 +21,10 @@ var DrawWallTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.buildWall(self.columnBrush, self.wallBrush);
+               var wall = self._wallMaterial.getSelectedBrush();
+               var column = self._columnMaterial.getSelectedBrush();
+               return App.stonehearthClient.buildWall(column, wall);
             });
-      },
-
-      _onMaterialChange: function(type, brush) {
-         var blueprint = this.buildingDesigner.getBlueprint();
-         var constructionData = this.buildingDesigner.getConstructionData();
-
-         if (blueprint && constructionData && constructionData.type == type) {
-            App.stonehearthClient.replaceStructure(blueprint, brush);
-         }
-         // Re/activate the tool with the new material.
-         this.buildingDesigner.reactivateTool(this.buildTool);
       },
 
       addTabMarkup: function(root) {
@@ -45,34 +33,28 @@ var DrawWallTool;
             .done(function(json) {
                self.buildingParts = json;
 
-               var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Wall', self.wallMaterialClass, self.buildingParts.wallPatterns, 
-                  function(brush) {
-                     self.wallBrush = brush;
+               var click = function() {
+                  // Re/activate the floor tool with the new material.
+                  self.buildingDesigner.activateTool(self.buildTool);      
+               };
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('wallBrush', brush);
+               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+               root.append(tab);
 
-                     self._onMaterialChange('wall', self.wallBrush);
-                  }
-               );
-               MaterialHelper.addMaterialPalette(tab, 'Column', self.columnMaterialClass, self.buildingParts.columnPatterns, 
-                  function(brush) {
-                     self.columnBrush = brush;
+               self._wallMaterial = new MaterialHelper(tab,
+                                                       self.buildingDesigner,
+                                                       'Wall',
+                                                       self.wallMaterialClass,
+                                                       self.buildingParts.wallPatterns,
+                                                       click);
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('columnBrush', brush);
-
-                     self._onMaterialChange('column', self.columnBrush);
-                  }
-               );
+               self._columnMaterial = new MaterialHelper(tab,
+                                                       self.buildingDesigner,
+                                                       'Column',
+                                                       self.columnMaterialClass,
+                                                       self.buildingParts.columnPatterns,
+                                                       click);
          });
-      },
-
-      addButtonMarkup: function(root) {
-         root.append(
-            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Draw wall'})
-         );
       },
 
       activateOnBuilding: function() {
@@ -89,19 +71,8 @@ var DrawWallTool;
       },
 
       restoreState: function(state) {
-         var self = this;
-
-         var selector = state.wallBrush ? '.' + self.wallMaterialClass + '[brush="' + state.wallBrush + '"]' :  '.' + self.wallMaterialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.wallMaterialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.wallBrush = selectedMaterial.attr('brush');
-
-         var selector = state.columnBrush ? '.' + self.columnMaterialClass + '[brush="' + state.columnBrush + '"]' :  '.' + self.columnMaterialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.columnMaterialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.columnBrush = selectedMaterial.attr('brush');
+         this._wallMaterial.restoreState(state);
+         this._columnMaterial.restoreState(state);
       }
    });
 })();

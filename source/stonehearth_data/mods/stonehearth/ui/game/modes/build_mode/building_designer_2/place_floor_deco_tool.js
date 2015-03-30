@@ -46,7 +46,8 @@ var PlaceFloorDecoTool;
          }
 
          // build the palette
-         var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
+         var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+         root.append(tab);
          var items = tab.append($('<div>').attr('id', 'items'));
 
          this._palette = items.stonehearthItemPalette({

@@ -5,8 +5,6 @@ var DrawDoorTool;
 
       toolId: 'drawDoorTool',
       materialClass: 'doorMaterials',
-      materialTabId: 'doorMaterialTab',
-      brush: null,
 
       inDom: function(buildingDesigner) {
          var self = this;
@@ -17,7 +15,8 @@ var DrawDoorTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.addDoodad(self.brush);
+               var brush = self._materialHelper.getSelectedBrush();
+               return App.stonehearthClient.addDoodad(brush);
             });
       },
 
@@ -27,35 +26,25 @@ var DrawDoorTool;
             .done(function(json) {
                self.buildingParts = json;
 
-               var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, '', self.materialClass, self.buildingParts.doors, 
-                  function(brush) {
-                     self.brush = brush;
+               var click = function(brush) {
+                  // Re/activate the floor tool with the new material.
+                  self.buildingDesigner.activateTool(self.buildTool);
+               };
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('doorBrush', brush);
+               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+               root.append(tab);
 
-                     // Re/activate the door tool with the new material.
-                     self.buildingDesigner.activateTool(self.buildTool);
-                  }
-               );
+               self._materialHelper = new MaterialHelper(tab,
+                                                         self.buildingDesigner,
+                                                         'Doors',
+                                                         self.materialClass,
+                                                         self.buildingParts.doors,
+                                                         click);
          });
       },
 
-      addButtonMarkup: function(root) {
-         root.append(
-            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Place Doors'})
-         );
-      },
-
       restoreState: function(state) {
-         var self = this;
-
-         var selector = state.doorBrush ? '.' + self.materialClass + '[brush="' + state.doorBrush + '"]' :  '.' + self.materialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.materialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.brush = selectedMaterial.attr('brush');
+         this._materialHelper.restoreState(state);
       }
    });
 })();

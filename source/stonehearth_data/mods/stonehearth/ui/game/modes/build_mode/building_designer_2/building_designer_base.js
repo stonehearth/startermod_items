@@ -52,10 +52,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       this.$('#overview').hide();
 
       // activate the first tool
-      var toolButtons = this.$('.toolButton');
-      if (toolButtons[0]) {
-         //toolButtons[0].click();
-      }
    },
 
    saveKey: function(key, value) {
@@ -93,7 +89,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
       $.each(this.tools, function(_, tool) {
          tool.addTabMarkup(self.$('#toolOptions'));
-         tool.addButtonMarkup(self.$('#tools'));
          tool.inDom(self);
       });
 
@@ -250,10 +245,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
          //self._updateImageMap(palette, toolId);
 
-         var tool = self.tools[toolId];
-
-         var tabId = '#' + tool.materialTabId;
-         var tab = self.$(tabId);
+         var tab = self.$('#' + toolId);
 
          // show the correct tab page
          self.$('.tabPage').hide();
@@ -350,9 +342,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       // restore the state of the dialog from the last time it was invoked and 
       radiant.call('stonehearth:load_browser_object', 'stonehearth:building_designer')
          .done(function(o) {
-
             self._state = o.value || {};
-
             $.each(self.tools, function(_, tool) {
                tool.restoreState(self._state);
             });
@@ -440,7 +430,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          $.each(self.tools, function(_, tool) {
             if (tool.handlesType && tool.handlesType(type)) {
                self.$('.tabPage').hide();
-               self.$('#' + tool.materialTabId).show();
+               self.$('#' + tool.toolId).show();
                self.showEditor();
             }
          });

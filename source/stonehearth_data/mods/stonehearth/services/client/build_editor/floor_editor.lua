@@ -95,9 +95,6 @@ function FloorEditor:_add_floor(response, selector, box, floor_uri)
    _radiant.call_obj(self._build_service, 'add_floor_command', floor_uri, box)
       :done(function(r)
             log:detail('server call to create floor finished')
-            if r.new_selection then
-               stonehearth.selection:select_entity(r.new_selection)
-            end
             response:resolve(r)
          end)
       :fail(function(r)
