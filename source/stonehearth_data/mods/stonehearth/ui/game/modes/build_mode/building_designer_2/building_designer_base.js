@@ -94,7 +94,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       self._state = {};
 
       $.each(this.tools, function(_, tool) {
-         tool.addTabMarkup(self.$('#tabs'));
+         tool.addTabMarkup(self.$('#toolOptions'));
          tool.addButtonMarkup(self.$('#tools'));
          tool.inDom(self);
       });
@@ -235,20 +235,22 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       var self = this;
 
       // tab buttons and pages
-      this.$('.toolButton').click(function() {
-         var tool = $(this);
-         var tabId = tool.attr('tab');
-         var tab = self.$('#' + tabId);
-
-         if (!tabId) {
+      this.$(".palette area").click(function() {
+         var areaTool = $(this).attr('tool');
+         var toolId = self.imageMapToTool[areaTool]
+         if (!toolId) {
             return;
          }
+
+         var tool = self.tools[toolId];
+
+         var tabId = '#' + tool.materialTabId;
+         var tab = self.$(tabId);
 
          // show the correct tab page
          self.$('.tabPage').hide();
          tab.show();
          
-         var toolId = tool.attr('id');
          if (self.actions[toolId]) {
             self.activateTool(self.actions[toolId]);
          }
