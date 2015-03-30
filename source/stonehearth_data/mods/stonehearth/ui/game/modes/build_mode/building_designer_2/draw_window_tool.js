@@ -1,11 +1,11 @@
-var DrawDoodadTool;
+var DrawWindowTool;
 
 (function () {
-   DrawDoodadTool = SimpleClass.extend({
+   DrawWindowTool = SimpleClass.extend({
 
-      toolId: 'drawDoodadTool',
-      materialClass: 'doodadMaterials',
-      materialTabId: 'doodadMaterialTab',
+      toolId: 'drawWindowTool',
+      materialClass: 'windowMaterials',
+      materialTabId: 'windowMaterialTab',
       brush: null,
 
       inDom: function(buildingDesigner) {
@@ -28,14 +28,14 @@ var DrawDoodadTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, '', self.materialClass, self.buildingParts.doodads, 
+               MaterialHelper.addMaterialPalette(tab, '', self.materialClass, self.buildingParts.windows, 
                   function(brush) {
                      self.brush = brush;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('doodadBrush', brush);
+                     self.buildingDesigner.saveKey('windowBrush', brush);
 
-                     // Re/activate the doodad tool with the new material.
+                     // Re/activate the window tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
                   }
                );
@@ -44,14 +44,14 @@ var DrawDoodadTool;
 
       addButtonMarkup: function(root) {
          root.append(
-            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Place doors & windows'})
+            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Place Windows'})
          );
       },
 
       restoreState: function(state) {
          var self = this;
 
-         var selector = state.doodadBrush ? '.' + self.materialClass + '[brush="' + state.doodadBrush + '"]' :  '.' + self.materialClass;
+         var selector = state.windowBrush ? '.' + self.materialClass + '[brush="' + state.windowBrush + '"]' :  '.' + self.materialClass;
          var selectedMaterial = $($(selector)[0]);
          $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');

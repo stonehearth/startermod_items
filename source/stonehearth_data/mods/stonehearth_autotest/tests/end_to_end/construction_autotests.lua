@@ -41,7 +41,7 @@ function construction_tests.simple_build(autotest)
    
    autotest.ui:click_dom_element('#startMenu #build_menu')
    autotest.ui:click_dom_element('#startMenu #custom_building')
-   autotest.ui:click_dom_element('#drawWallTool')
+   autotest.ui:click_dom_element('#buildPalette area[tool=drawWallTool]')
 
    autotest.ui:click_terrain(-4, -2)
    autotest.ui:click_terrain( 2, -2)

@@ -613,7 +613,7 @@ var StonehearthClient;
       },
 
       callTool: function(toolStruct) {
-         return this._callTool(toolStruct.toolId, toolStruct.invokeTool(), toolStruct.precall);
+         return this._callTool(toolStruct.toolId, toolFn, toolStruct.precall);
       },
 
       buildSlab: function(slabBrush, precall) {

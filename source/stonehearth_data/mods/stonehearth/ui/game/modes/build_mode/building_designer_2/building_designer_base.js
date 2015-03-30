@@ -18,6 +18,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    // building for the selected parts.  it's used to populate the building view
    blueprint_components: {
       'unit_info': {},
+      'stonehearth:floor' : {},
       'stonehearth:construction_data' : {},
       'stonehearth:construction_progress' : {
          'building_entity' : {
@@ -62,8 +63,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       radiant.call('stonehearth:save_browser_object', 'stonehearth:building_designer', this._state);
    },
 
-   newTool: function(ctor) {
-      var t = new ctor();
+   newTool: function(t) {
       this.tools[t.toolId] = t;
    },
 
@@ -73,11 +73,10 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
       // undo/redoo tool
       this.$('#undoTool').click(function() {
-         if (self.get('building')) {
-            App.stonehearthClient.undo();
-         }
+         App.stonehearthClient.undo();
       });
 
+      // move this to the floor eraser tab or something...
       var doEraseStructure = function() {
          App.stonehearthClient.eraseStructure(
             self.activateElement('#eraseStructureTool'))
@@ -86,7 +85,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
                doEraseStructure();
             });
       };
-
       this.$('#eraseStructureTool').click(function() {
          doEraseStructure();
       });
@@ -94,7 +92,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       self._state = {};
 
       $.each(this.tools, function(_, tool) {
-         tool.addTabMarkup(self.$('#tabs'));
+         tool.addTabMarkup(self.$('#toolOptions'));
          tool.addButtonMarkup(self.$('#tools'));
          tool.inDom(self);
       });
@@ -176,39 +174,42 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    _doToolCall: function(tool) {
       var self = this;
 
+      var toolFn = tool.invokeTool();
+      if (!toolFn) {
+         return;
+      }
+
       this._pushTool(tool);
       var stackDepth = this._lastTool()[0];
 
-      App.stonehearthClient.callTool(tool)
+      var popTool = function() {
+         self._removeTool(stackDepth);
+         if (self._lastTool()[1] == null) {
+            self.$('.toolButton').removeClass('active');
+         }
+      }
+
+      App.stonehearthClient._callTool(tool.toolId, toolFn, tool.precall)
          .done(function(response) {
             if (tool.repeat) {
                self.reactivateTool(tool);
                self._removeTool(stackDepth);
             } else {
-               self._removeTool(stackDepth);
-               if (self._lastTool()[1] == null) {
-                  self.$('.toolButton').removeClass('active');
-               }
+               popTool();
             }
          })
-         .fail(function() {
-            self._removeTool(stackDepth);
-            if (self._lastTool()[1] == null) {
-               self.$('.toolButton').removeClass('active');
-            }
-         });
+         .fail(popTool);
    },
 
    activateTool: function(tool) {
       var self = this;
       this.tools[tool.toolId].restoreState(this._state);
 
+
       var activeTool = this._lastTool()[1];
 
       // activate the tool
-      this.$('.toolButton').removeClass('active');
-      this.$('#' + tool.toolId).addClass('active');
-
+      self._updateImageMap('buildPalette', tool.toolId);
       this._doToolCall(tool);
    },
 
@@ -231,24 +232,33 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       }
    },
 
+   _updateImageMap: function(palette, toolId) {
+      this.$('#' + palette + ' .selectionDisplay').css({
+            'background-image' : 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)'
+         });
+   },
+
    _addEventHandlers: function() {
       var self = this;
 
       // tab buttons and pages
-      this.$('.toolButton').click(function() {
-         var tool = $(this);
-         var tabId = tool.attr('tab');
-         var tab = self.$('#' + tabId);
+      this.$(".palette area").click(function() {
+         // update the image map
+         var el = $(this);
+         var toolId = el.attr('tool');
+         var palette = el.attr('palette');
 
-         if (!tabId) {
-            return;
-         }
+         //self._updateImageMap(palette, toolId);
+
+         var tool = self.tools[toolId];
+
+         var tabId = '#' + tool.materialTabId;
+         var tab = self.$(tabId);
 
          // show the correct tab page
          self.$('.tabPage').hide();
          tab.show();
          
-         var toolId = tool.attr('id');
          if (self.actions[toolId]) {
             self.activateTool(self.actions[toolId]);
          }
@@ -418,9 +428,15 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       }
 
       if (blueprint_entity) {
-         var constructionData = this.get('blueprint.stonehearth:construction_data')
-         var type = constructionData.type;
+         var type = this.get('blueprint.stonehearth:construction_data.type')
 
+         // i sorely regret putting type in both construction data and the floor =()
+         if (type == "floor") {
+            var category = this.get('blueprint.stonehearth:floor.category');
+            if (category) {
+               type = category;
+            }
+         }
          $.each(self.tools, function(_, tool) {
             if (tool.handlesType && tool.handlesType(type)) {
                self.$('.tabPage').hide();
