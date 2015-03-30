@@ -336,3 +336,5 @@ DLL int h3dutCreateRenderTarget( int width, int height, H3DFormats::List format,
                                     bool depth, int numColBufs, int samples, int numMips);
 
 bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixels, int width, int height);
+
+void h3dutCreatePngImageFromTexture(H3DRes tex, std::vector<unsigned char>& result);
