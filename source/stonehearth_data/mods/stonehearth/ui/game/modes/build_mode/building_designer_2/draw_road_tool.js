@@ -11,7 +11,7 @@ var DrawRoadTool;
       curbBrush: null,
 
       handlesType: function(type) {
-         return type == 'road';
+         return type == 'road' || type == 'curb';
       },
 
       inDom: function(buildingDesigner) {

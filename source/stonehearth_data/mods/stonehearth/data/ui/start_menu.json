@@ -98,14 +98,6 @@
             "sticky" : true,
             "hotkey" : "p"
          },
-         "build_road" : {
-            "name" : "Build Roads",
-            "description" : "Add roads to your town",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/roads.png",
-            "sticky" : true,
-            "hotkey" : ""
-         },
          "build_ladder" : {
             "name" : "Construct a Ladder",
             "description" : "Build a ladder to access hard to reach places",

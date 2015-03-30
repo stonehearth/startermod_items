@@ -6,6 +6,10 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          console.log('Clicked item: ' + item);
       },
 
+      filter: function(item) {
+         return true;
+      },
+
       cssClass: ''
    },
 
@@ -13,7 +17,6 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       var self = this;
 
       this.palette = $('<div>').addClass('itemPalette');
-
 
       this.palette.on( 'click', '.item', function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
@@ -44,16 +47,18 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       });
 
       radiant.each(arr, function(i, item) {
-         var categoryElement = self._findCategory(item);
-         var itemElement = self._findElementForItem(item)
-         
-         if (!itemElement) {
-            itemElement = self._addItemElement(item);
-            categoryElement.append(itemElement);
-         }
-         self._updateItemElement(itemElement, item);
+         if (self.options.filter(item)) {
+            var categoryElement = self._findCategory(item);
+            var itemElement = self._findElementForItem(item)
+            
+            if (!itemElement) {
+               itemElement = self._addItemElement(item);
+               categoryElement.append(itemElement);
+            }
+            self._updateItemElement(itemElement, item);
 
-         itemElement.attr('updated', 1)
+            itemElement.attr('updated', 1)
+         }
       })
 
       // anything that is not marked as updated needs to be removed

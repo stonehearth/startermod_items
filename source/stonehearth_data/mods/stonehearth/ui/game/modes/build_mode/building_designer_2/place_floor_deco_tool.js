@@ -3,10 +3,17 @@ var PlaceFloorDecoTool;
 (function () {
    PlaceFloorDecoTool = SimpleClass.extend({
 
-      toolId: 'placeFloorDecoTool',
-      materialClass: 'floorDecoMaterials',
+      toolId:   undefined,
+      category: undefined,
       materialTabId: 'floorDecoMaterialTab',
       brush: null,
+
+      init: function(o) {
+         this.toolId = o.toolId;
+         this.category = o.category;
+         this.saveKey = this.toolId + 'Brush';
+         this.materialTabId = this.toolId + 'MaterialTab';
+      },
 
       inDom: function(buildingDesigner) {
          var self = this;
@@ -17,12 +24,16 @@ var PlaceFloorDecoTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
+               if (!self.brush) {
+                  return undefined;
+               }
+
                return function() {
                   var tip = App.stonehearthClient.showTip('stonehearth:item_placement_title', 'stonehearth:item_placement_description', { i18n: true });
                   return radiant.call('stonehearth:choose_place_item_location', self.brush)
                      .done(function(response) {
                         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} )
-                        self.hideTip();
+                        App.stonehearthClient.hideTip();
                      })
                };
             });
@@ -40,14 +51,18 @@ var PlaceFloorDecoTool;
 
          this._palette = items.stonehearthItemPalette({
             click: function(item) {
-               self.brush = item.attr('uri');
+               var brush = item.attr('uri');
 
                // Remember what we've selected.
-               self.buildingDesigner.saveKey('floorDecoBrush', self.brush);
+               self.buildingDesigner.saveKey(self.saveKey, brush);
 
-               // Re/activate the floorDeco tool with the new material.
+               // Re/activate the tool with the new material.
                self.buildingDesigner.activateTool(self.buildTool);
-            }
+            },
+
+            filter: function(item) {
+               return item.category == self.category;
+            },
          });
 
          radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:placeable_item_inventory_tracker')
@@ -73,11 +88,12 @@ var PlaceFloorDecoTool;
       restoreState: function(state) {
          var self = this;
 
-         var selector = state.floorDecoBrush ? '.' + self.materialClass + '[brush="' + state.floorDecoBrush + '"]' :  '.' + self.materialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.materialClass).removeClass('selected');
+         var selector = state[self.saveKey] ? '.item[uri="' + state[self.saveKey] + '"]' :  '.item';
+         var selectedMaterial = $(self._palette.find(selector)[0]);
+
+         self._palette.find('.item').removeClass('selected');
          selectedMaterial.addClass('selected');
-         self.brush = selectedMaterial.attr('brush');
+         self.brush = selectedMaterial.attr('uri');
       }
    });
 })();
