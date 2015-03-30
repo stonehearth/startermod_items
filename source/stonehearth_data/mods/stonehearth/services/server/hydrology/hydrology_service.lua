@@ -97,12 +97,16 @@ function HydrologyService:_on_terrain_changed(delta_region)
          -- of the water body has a ceiling.
          local modified_container_region = self:_get_affected_container_region(delta_region, entity)
          for point in modified_container_region:each_point() do
+            -- was terrain removed? (vs added)
             if not self._water_tight_region:contains_point(point) then
-               -- TODO: no need to create channel if top layer height is 0
                local target_adjacent_point = self:_get_best_channel_adjacent_point(entity, point)
                local channel
 
+               -- TODO: no need to create channels when the target_adjacent_point == water_level
+               -- we do it anyway to keep the code simpler and unused water bodies get deleted at
+               -- the end of the tick
                if point.y == target_adjacent_point.y then
+                  -- decide between pressure and waterfall channel
                   if self._water_tight_region:contains_point(point - Point3.unit_y) then
                      -- must check to see if the water body already exists
                      -- this happens when a block was a container for multiple water bodies
@@ -275,12 +279,15 @@ function HydrologyService:get_water_body(location)
    return nil
 end
 
-function HydrologyService:remove_water_body(entity)
+function HydrologyService:destroy_water_body(entity)
    log:debug('Removing water body %s', entity)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = nil
    self._sv._channel_manager:deallocate_channels(entity)
+   self._sv._channel_manager:remove_channels_to_entity(entity)
+   radiant.entities.destroy_entity(entity)
+
    self.__saved_variables:mark_changed()
 end
 
@@ -355,7 +362,6 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    return false
 end
 
--- CHECKCHECK -- handle case when merging with wetted layers to keep 0 layer height
 -- You better know what you're doing if allow_uneven_top_layers is true!
 function HydrologyService:merge_water_bodies(entity1, entity2, allow_uneven_top_layers)
    if allow_uneven_top_layers == nil then
@@ -400,8 +406,7 @@ function HydrologyService:_merge_water_bodies_impl(master, mergee, allow_uneven_
    self:_merge_water_queue(master, mergee)
    self._sv._channel_manager:merge_channels(master, mergee)
 
-   self:remove_water_body(mergee)
-   radiant.entities.destroy_entity(mergee)
+   self:destroy_water_body(mergee)
 
    self.__saved_variables:mark_changed()
 end
@@ -470,6 +475,14 @@ function HydrologyService:_calculate_merged_water_level(master, mergee)
    assert(master_layer_height <= 1)
    assert(mergee_layer_height <= 1)
 
+   -- TODO: take the residual and add it to the water queue
+   -- don't call add_water on the merge to avoid recursive merge logic
+   if master_layer_height == 0 or mergee_layer_height == 0 then
+      -- yes, assert this again in case the first one is removed
+      assert(master_layer_elevation == mergee_layer_elevation)
+      return master_layer_elevation
+   end
+
    -- calculate the merged layer height
    local master_layer_area = master_component._sv._current_layer:get():get_area()
    local mergee_layer_area = mergee_component._sv._current_layer:get():get_area()
@@ -530,9 +543,32 @@ function HydrologyService:_on_tick()
 
    self._water_queue = nil
 
+   -- some water bodies are created, but water is never added to them, so get rid of them here
+   -- also destroys water bodies that become empty through other processes
+   self:_destroy_unused_water_bodies()
+
    log:spam('End tick')
 
    self.__saved_variables:mark_changed()
+end
+
+function HydrologyService:_destroy_unused_water_bodies()
+   local target_water_bodies = {}
+
+   -- create a map of water bodies that are targets of channels
+   self._sv._channel_manager:each_channel(function(channel)
+         target_water_bodies[channel.to_entity:get_id()] = true
+      end)
+
+   for id, entity in pairs(self._sv._water_bodies) do
+      -- remove the water body if the region is empty and it is not a channel target
+      if not target_water_bodies[id] then
+         local water_component = entity:add_component('stonehearth:water')
+         if water_component:get_region():get():empty() then
+            self:destroy_water_body(entity)
+         end
+      end
+   end
 end
 
 function HydrologyService:_check_for_channel_merge()
