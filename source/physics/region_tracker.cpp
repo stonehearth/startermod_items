@@ -108,6 +108,15 @@ bool RegionTracker<BoxedRegion>::Intersects(csg::CollisionBox const& worldBounds
    return false;
 }
 
+template <typename BoxedRegion>
+void RegionTracker<BoxedRegion>::ClipRegion(csg::CollisionShape& r) const
+{
+   BoxedRegionPtr region = GetRegion();
+   if (region) {
+      r -= csg::ToFloat(_region);
+   }   
+};
+
 #define MAKE_REGION_TRACKER(Cls) \
    template Cls::RegionTracker(NavGrid& ng, TrackerType type,  om::EntityPtr entityPtr); \
    template Cls::~RegionTracker(); \

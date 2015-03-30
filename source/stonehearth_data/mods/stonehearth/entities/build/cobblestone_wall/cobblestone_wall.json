@@ -9,7 +9,6 @@
       "stonehearth:construction_data" : {
          "type": "wall",
          "brush": "file(cobblestone_wall.qb)",
-         "needs_scaffolding" : true,
          "allow_diagonal_adjacency" : true,
          "max_workers": 3, 
          "material": "stone resource"

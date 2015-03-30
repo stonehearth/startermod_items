@@ -97,9 +97,9 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
-   DEBUG_ONLY(
-      ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
-   );
+#if RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+#endif
 
    RefreshTileData();
    return data_->IsMarked<COLLISION>(pt);
@@ -133,9 +133,9 @@ bool NavGridTile::CanPassThrough(om::EntityPtr const& entity, csg::Point3 const&
  */
 bool NavGridTile::IsSupport(csg::Point3 const& pt)
 {
-   DEBUG_ONLY(
-      ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
-   );
+#if RADIANT_OPT_LEVEL == RADIANT_OPT_LEVEL_DEV
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+#endif
 
    RefreshTileData();
    return data_->IsMarked<COLLISION>(pt) || data_->IsMarked<LADDER>(pt);
