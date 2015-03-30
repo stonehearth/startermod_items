@@ -10,7 +10,7 @@
    "create_camp_info" : {
       "player_id" : "goblins",
 
-      "radius" : 18,
+      "radius" : 10,
       
       "spawn_range" : {
          "min" : 160,
@@ -18,10 +18,10 @@
       },
       
       "pieces" : {
-         "goblin_tent_1" : {
-            "info" : "file(create_scout_camp/goblin_tent.json)",
-            "position" : { "x": -12, "y": 12 },
-            "rotation" : -90
+         "wolf_cage" : {
+            "info" : "file(create_scout_camp/wolf_cage.json)",
+            "position" : {"x": 5, "y" : 5},
+            "rotation" : 0
          }
       }
    }
