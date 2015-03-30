@@ -1,0 +1,11 @@
+{
+   "type" : "arc",
+   "rarity" : "common",
+
+   "encounters" : {
+      "wait to start" : "file(encounters/wait_to_start.json)",
+      "inital_warning" : "file(encounters/initial_warning.json)", 
+      "create_camps" : "file(encounters/create_camps.json)",
+      "create_scout_camp" : "file(encounters/create_scout_camp.json)"
+   }
+}
