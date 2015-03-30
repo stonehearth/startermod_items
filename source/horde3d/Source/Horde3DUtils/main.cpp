@@ -53,7 +53,6 @@ using namespace std;
 
 #define R_LOG(level)    LOG(horde.renderer, level)
 
-static bool h3dutCreatePNGImage(std::vector<unsigned char>& result, const unsigned char *pixels, int width, int height);
 static bool h3dutWritePNGImage(FILE *fp, const unsigned char *pixels, int width, int height);
 
 namespace Horde3DUtils {
@@ -662,34 +661,6 @@ DLLEXP H3DRes h3dutCreateGeometryRes(
 }
 
 
-void h3dutCreatePngImageFromTexture(H3DRes tex, std::vector<unsigned char>& result)
-{
-   int width;
-   int height;
-
-   h3dGetRenderTextureData(tex, &width, &height, nullptr, nullptr, 0);
-
-   float *pixelsF = new float[width * height * 4];
-
-   h3dGetRenderTextureData(tex, nullptr, nullptr, nullptr, pixelsF, width * height * 16);
-
-   // Convert to BGR8
-   unsigned char *pixels = new unsigned char[width * height * 3];
-   for( int y = 0; y < height; ++y )
-   {
-      for( int x = 0; x < width; ++x )
-      {
-         pixels[(y * width + x) * 3 + 0] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 3 + 1] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 3 + 2] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
-      }
-   }
-   delete[] pixelsF;
-   h3dutCreatePNGImage(result, pixels, width, height);
-   delete[] pixels;
-}
-
-
 static void PngWriteCallback(png_structp  png_ptr, png_bytep data, png_size_t length) {
    std::vector<unsigned char> *p = (std::vector<unsigned char>*)png_get_io_ptr(png_ptr);
    p->insert(p->end(), data, data + length);
@@ -724,6 +695,35 @@ bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixe
    png_destroy_write_struct(&p, &info_ptr);
    return true;
 }
+
+
+void h3dutCreatePngImageFromTexture(H3DRes tex, std::vector<unsigned char>& result)
+{
+   int width;
+   int height;
+
+   h3dGetRenderTextureData(tex, &width, &height, nullptr, nullptr, 0);
+
+   float *pixelsF = new float[width * height * 4];
+
+   h3dGetRenderTextureData(tex, nullptr, nullptr, nullptr, pixelsF, width * height * 16);
+
+   // Convert to BGR8
+   unsigned char *pixels = new unsigned char[width * height * 3];
+   for( int y = 0; y < height; ++y )
+   {
+      for( int x = 0; x < width; ++x )
+      {
+         pixels[(y * width + x) * 3 + 0] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 3 + 1] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 3 + 2] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
+      }
+   }
+   delete[] pixelsF;
+   h3dutCreatePNGImage(result, pixels, width, height);
+   delete[] pixels;
+}
+
 
 bool h3dutWritePNGImage(FILE *fp, const unsigned char *pixels, int width, int height)
 {
