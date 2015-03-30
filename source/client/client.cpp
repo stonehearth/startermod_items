@@ -3,6 +3,7 @@
 #include "build_number.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
 #include "core/object_counter.h"
 #include "core/config.h"
 #include "radiant_file.h"
@@ -496,6 +497,19 @@ void Client::OneTimeIninitializtion()
          CLIENT_LOG(5) << " selecting " << *entity;
          SelectEntity(entity);
       }
+   });
+
+   core_reactor_->AddRoute("radiant:client:get_portrait", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:client:get_portrait");
+
+      Renderer::GetInstance().RequestPortrait([this, result](std::vector<unsigned char>& bytes) {
+         json::Node res;
+         res.set("bytes", libbase64::encode<std::string, char, unsigned char, false>(bytes.data(), bytes.size()));
+         result->Resolve(res);
+      });
+
+
+      return result;
    });
 
    core_reactor_->AddRoute("radiant:client:save_game", [this](rpc::Function const& f) {
