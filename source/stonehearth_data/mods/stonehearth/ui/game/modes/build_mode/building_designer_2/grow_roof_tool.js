@@ -5,9 +5,6 @@ var GrowRoofTool;
 
       toolId: 'growRoofTool',
       materialClass: 'roofMaterial',
-      materialTabId: 'roofMaterialTab',
-      material: null,
-      brush: null,
       options: {},
 
       handlesType: function(type) {
@@ -23,24 +20,10 @@ var GrowRoofTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.growRoof(self.brush);
+               var brush = self._materialHelper.getSelectedBrush();
+               return App.stonehearthClient.growRoof(brush);
             });
       },
-
-      // xxx: this helper function is copied verbatim from the grow_walls tool, which is copied
-      // verbatim from the draw walls tool.  Maybe we should factor it up to a common place 
-      // somewhere?
-      _onMaterialChange: function(type, brush) {
-         var blueprint = this.buildingDesigner.getBlueprint();
-         var constructionData = this.buildingDesigner.getConstructionData();
-
-         if (blueprint && constructionData && constructionData.type == type) {
-            App.stonehearthClient.replaceStructure(blueprint, brush);
-         }
-         // Re/activate the tool with the new material.
-         this.buildingDesigner.reactivateTool(this.buildTool);
-      },
-
 
       addTabMarkup: function(root) {
          var self = this;
@@ -48,18 +31,20 @@ var GrowRoofTool;
             .done(function(json) {
                self.buildingParts = json;
 
-               var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Roof', self.materialClass, self.buildingParts.roofPatterns, 
-                  function(brush) {
-                     self.brush = brush;
+               var click = function(brush) {
+                  // Re/activate the floor tool with the new material.
+                  self.buildingDesigner.activateTool(self.buildTool);
+               };
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('roofBrush', brush);
-                     self.buildingDesigner.reactivateTool(self.buildTool);
+               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+               root.append(tab);
 
-                     self._onMaterialChange('roof', self.brush);
-                  }
-               );
+               self._materialHelper = new MaterialHelper(tab,
+                                                         self.buildingDesigner,
+                                                         'Roof',
+                                                         self.materialClass,
+                                                         self.buildingParts.roofPatterns,
+                                                         click);
 
                $.get('/stonehearth/ui/game/modes/build_mode/building_designer_2/roof_shape_template.html')
                   .done(function(html) {
@@ -113,20 +98,10 @@ var GrowRoofTool;
             });
       },
 
-      addButtonMarkup: function(root) {
-         root.append(
-            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Grow roof on walls'})
-         );
-      },
-
       restoreState: function(state) {
          var self = this;
 
-         var selector = state.roofBrush ? '.' + self.materialClass + '[brush="' + state.roofBrush + '"]' :  '.' + self.materialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.materialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.brush = selectedMaterial.attr('brush');
+         this._materialHelper.restoreState(state);
 
          this.options = state.growRoofOptions || {
             nine_grid_gradiant: ['left', 'right'],

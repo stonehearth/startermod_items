@@ -28,6 +28,14 @@ function ChannelManager:deallocate_channels(from_entity)
    self.__saved_variables:mark_changed()
 end
 
+function ChannelManager:remove_channels_to_entity(to_entity)
+   self:each_channel(function(channel)
+         if channel.to_entity == to_entity then
+            self:remove_channel(channel)
+         end
+      end)
+end
+
 function ChannelManager:get_channel(from_entity, from_location)
    local channels = self:get_channels(from_entity)
    local key = self:_point_to_key(from_location)
@@ -205,10 +213,14 @@ function ChannelManager:link_waterfall_channel(from_entity, from_location, subty
 
    if not channel then
       local to_entity, to_location = self:_get_waterfall_target(from_location)
-      local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
-      channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
-      -- TODO: formalize this
-      channel.subtype = subtype
+
+      if to_entity == from_entity then
+         log:error('unimplemented: from_entity == to_entity for waterfall channel')
+      else
+         local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
+         channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
+         channel.subtype = subtype
+      end
    end
    return channel
 end
@@ -216,12 +228,12 @@ end
 -- Confusing, but the source_adjacent_point is inside the target and the target_adjacent_point
 -- is inside the source. This is because the from_location of the channel is defined to be outside
 -- the region of the source water body.
-function ChannelManager:link_pressure_channel(source_entity, source_adjacent_point, target_entity, target_adjacent_point)
+function ChannelManager:link_pressure_channel(source_entity, source_adjacent_point, target_entity, target_adjacent_point, subtype)
    local forward_channel = self:_link_pressure_channel_unidirectional(source_entity, source_adjacent_point,
-                                                                      target_entity, source_adjacent_point)
+                                                                      target_entity, source_adjacent_point, subtype)
 
    local reverse_channel = self:_link_pressure_channel_unidirectional(target_entity, target_adjacent_point,
-                                                                      source_entity, target_adjacent_point)
+                                                                      source_entity, target_adjacent_point, subtype)
 
    forward_channel.paired_channel = reverse_channel
    reverse_channel.paired_channel = forward_channel
@@ -229,12 +241,13 @@ function ChannelManager:link_pressure_channel(source_entity, source_adjacent_poi
    return forward_channel
 end
 
-function ChannelManager:_link_pressure_channel_unidirectional(from_entity, from_location, to_entity, to_location)
+function ChannelManager:_link_pressure_channel_unidirectional(from_entity, from_location, to_entity, to_location, subtype)
    -- note that the to_location is the same as the from_location
    local channel = self:get_channel(from_entity, from_location)
 
    if channel then
       if channel.channel_type == 'pressure' then
+         assert(channel.subtype == subtype)
          -- first two asserts are redundant from the get_channel call, but being paranoid
          assert(channel.from_entity == from_entity)
          assert(channel.from_location == from_location)
@@ -247,7 +260,7 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, from_
    end
 
    if not channel then
-      channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'pressure', nil)
+      channel = self:add_channel(from_entity, from_location, to_entity, to_location, 'pressure', subtype)
    end
    return channel
 end
@@ -288,6 +301,10 @@ function ChannelManager:merge_channels(master, mergee)
 
       if channel.from_entity == channel.to_entity then
          -- channel now goes to itself, so destroy it
+         if channel.channel_type == 'waterfall' then
+            -- e.g. a vertical column of terrain is removed and the bottom block previously merged (or was filled that way)
+            log:error('unimplemented: waterfall channel falls to itself')
+         end
          self:remove_channel(channel)
       end
    end)
@@ -299,6 +316,9 @@ function ChannelManager:reparent_channels(channels, new_parent)
    for _, channel in pairs(channels) do
       if channel.to_entity == new_parent then
          -- channel would go to itself, so just remove it
+         if channel.channel_type == 'waterfall' then
+            log:error('unimplemented: waterfall channel falls to itself')
+         end
          self:remove_channel(channel)
       else
          local old_parent = channel.from_entity

@@ -48,6 +48,7 @@ function WaterfallComponent:set_height(height)
       return
    end
 
+   assert(height >= 0)
    self._sv.height = height
    self._sv.region:modify(function(cursor)
          cursor:clear()

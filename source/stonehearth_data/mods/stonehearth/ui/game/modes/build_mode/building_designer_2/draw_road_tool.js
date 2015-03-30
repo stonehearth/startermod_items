@@ -6,9 +6,6 @@ var DrawRoadTool;
       toolId: 'drawRoadTool',
       roadMaterialClass: 'roadMaterial',
       curbMaterialClass: 'curbMaterial',
-      materialTabId: 'roadMaterialTab',
-      roadBrush: null,
-      curbBrush: null,
 
       handlesType: function(type) {
          return type == 'road' || type == 'curb';
@@ -23,7 +20,9 @@ var DrawRoadTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.buildRoad(self.roadBrush, self.curbBrush == 'none' ? null : self.curbBrush);
+               var curb = self._curbMaterial.getSelectedBrush();
+               var road = self._roadMaterial.getSelectedBrush();
+               return App.stonehearthClient.buildRoad(road, curb == 'none' ? null : curb);
             });
       },
 
@@ -33,29 +32,28 @@ var DrawRoadTool;
             .done(function(json) {
                self.buildingParts = json;
 
-               var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Road', self.roadMaterialClass, self.buildingParts.roadPatterns, 
-                  function(brush) {
-                     self.roadBrush = brush;
+               var click = function() {
+                  // Re/activate the floor tool with the new material.
+                  self.buildingDesigner.activateTool(self.buildTool);      
+               };
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('roadBrush', brush);
+               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+               root.append(tab);
 
-                     // Re/activate the road tool with the new material.
-                     self.buildingDesigner.activateTool(self.buildTool);
-                  }
-               );
-               MaterialHelper.addMaterialPalette(tab, 'Curb', self.curbMaterialClass, self.buildingParts.curbPatterns, 
-                  function(brush) {
-                     self.curbBrush = brush;
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('curbBrush', brush);
+               self._roadMaterial = new MaterialHelper(tab,
+                                                       self.buildingDesigner,
+                                                       'Road',
+                                                       self.roadMaterialClass,
+                                                       self.buildingParts.roadPatterns,
+                                                       click);
 
-                     // Re/activate the road tool with the new material.
-                     self.buildingDesigner.activateTool(self.buildTool);
-                  }
-               );
+               self._curbMaterial = new MaterialHelper(tab,
+                                                       self.buildingDesigner,
+                                                       'Curb',
+                                                       self.curbMaterialClass,
+                                                       self.buildingParts.curbPatterns,
+                                                       click);
          });
       },
 
@@ -66,19 +64,8 @@ var DrawRoadTool;
       },
 
       restoreState: function(state) {
-         var self = this;
-
-         var selector = state.roadBrush ? '.' + self.roadMaterialClass + '[brush="' + state.roadBrush + '"]' :  '.' + self.roadMaterialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.roadMaterialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.roadBrush = selectedMaterial.attr('brush');
-
-         var selector = state.curbBrush ? '.' + self.curbMaterialClass + '[brush="' + state.curbBrush + '"]' :  '.' + self.curbMaterialClass;
-         var selectedMaterial = $($(selector)[0]);
-         $('.' + self.curbMaterialClass).removeClass('selected');
-         selectedMaterial.addClass('selected');
-         self.curbBrush = selectedMaterial.attr('brush');
+         this._curbMaterial.restoreState(state);
+         this._roadMaterial.restoreState(state);
       }
    });
 })();
