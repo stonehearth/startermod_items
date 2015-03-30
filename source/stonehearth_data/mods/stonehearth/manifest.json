@@ -62,6 +62,7 @@
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance_population.json)",
       "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
       "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
+      "kingdoms:undead" : "file(services/server/population/data/undead_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -204,6 +205,9 @@
       "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
       "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
+
+      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
+      "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/skeleton_female.json)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
