@@ -158,6 +158,9 @@ class Renderer
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
+      typedef std::function<void(std::vector<unsigned char>&)> PortraitRequestCb;
+      void RequestPortrait(PortraitRequestCb const& fn);
+
       core::Guard OnScreenResize(std::function<void(csg::Rect2)> const& fn);
       core::Guard OnServerTick(std::function<void(int)> const& fn);
       core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn);
@@ -199,6 +202,7 @@ class Renderer
       typedef std::function<void(csg::Point3f const& pt, csg::Point3f const& normal, H3DNode node)> RayCastHitCb;
 
    private:
+      void RenderPortraitRT();
       void RenderFogOfWarRT();
       void RenderLoadingMeter();
       H3DRes BuildSphereGeometry();
@@ -256,6 +260,7 @@ class Renderer
       bool              drawWorld_;
       uint32            fowRenderTarget_;
 
+      H3DNode           portraitSceneRoot_;
       H3DNode           mainSceneRoot_;
       H3DNode           fowSceneRoot_;
       H3DResourceMap    pipelines_;
@@ -264,10 +269,12 @@ class Renderer
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;
       H3DRes            screenshotTexRes_;
+      H3DRes            portraitTexRes_;
+      std::vector<unsigned char> portraitBytes_;
 
       UiBuffer          uiBuffer_;
 
-      Camera            *camera_, *fowCamera_;
+      Camera            *camera_, *fowCamera_, *portraitCamera_;
       FW::FileWatcher   fileWatcher_;
 
       std::string       worldPipeline_;
@@ -282,6 +289,10 @@ class Renderer
       RenderEntityMap   entities_[NUM_STORES]; // by store id
       SelectionLookup   selectionLookup_;
       InputEventCb      input_cb_;
+
+      bool portrait_requested_;
+      bool portrait_generated_;
+      PortraitRequestCb portrait_cb_;
 
       Input             input_;  // Mouse coordinates in the GL window-space.
       bool              initialized_;
