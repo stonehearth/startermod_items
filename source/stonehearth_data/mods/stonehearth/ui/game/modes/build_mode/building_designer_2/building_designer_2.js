@@ -17,12 +17,16 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       // the base designer view would need to interrogate all child views to figure out which
       // is a tool and which is not.  Not hard, but kind of ugly.  At this point, I think it's more
       // 'cute' factoring than real design advantage, and so is left as an exercise to the bored.
-      this.newTool(DrawFloorTool);
-      this.newTool(DrawWallTool);
-      this.newTool(GrowWallsTool);
-      this.newTool(DrawDoodadTool);
-      this.newTool(GrowRoofTool);
-      this.newTool(DrawSlabTool);
+      this.newTool(new PlaceFloorDecoTool({ category: 'decoration', toolId: 'placeDecorationTool'}));
+      this.newTool(new PlaceFloorDecoTool({ category: 'furniture',  toolId: 'placeFurnitureTool'}));
+      this.newTool(new DrawFloorTool);
+      this.newTool(new DrawWallTool);
+      this.newTool(new GrowWallsTool);
+      this.newTool(new DrawDoorTool);
+      this.newTool(new DrawWindowTool);
+      this.newTool(new GrowRoofTool);
+      this.newTool(new DrawRoadTool);
+      // this.newTool(new DrawSlabTool);
 
       // Make sure we call super after adding all the tools!
       this._super();
@@ -39,18 +43,6 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
          self.$('.palette').hide();
          self.$('#' + palette).show();
       });
-
-      // image map click handler
-      this.$('#buildPaletteMap area').click(function() {
-         var el = $(this);
-         var tool = el.attr('tool');
-         var palette = el.attr('palette');
-
-         self.$('#' + palette + ' .selectionDisplay').css({
-               'background-image' : 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + tool + '.png)'
-            });
-      });
-
       this.$('#toolPaletteBuild').click();
    }
 });

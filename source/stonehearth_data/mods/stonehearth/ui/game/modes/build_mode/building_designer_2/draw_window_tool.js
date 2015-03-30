@@ -1,14 +1,10 @@
-var DrawFloorTool;
+var DrawWindowTool;
 
 (function () {
-   DrawFloorTool = SimpleClass.extend({
+   DrawWindowTool = SimpleClass.extend({
 
-      toolId: 'drawFloorTool',
-      materialClass: 'floorMaterial',
-
-      handlesType: function(type) {
-         return type == 'floor';
-      },
+      toolId: 'drawWindowTool',
+      materialClass: 'windowMaterials',
 
       inDom: function(buildingDesigner) {
          var self = this;
@@ -20,7 +16,7 @@ var DrawFloorTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                var brush = self._materialHelper.getSelectedBrush();
-               return App.stonehearthClient.buildFloor(brush);
+               return App.stonehearthClient.addDoodad(brush);
             });
       },
 
@@ -40,9 +36,9 @@ var DrawFloorTool;
 
                self._materialHelper = new MaterialHelper(tab,
                                                          self.buildingDesigner,
-                                                         'Floor',
+                                                         'Windows',
                                                          self.materialClass,
-                                                         self.buildingParts.floorPatterns,
+                                                         self.buildingParts.windows,
                                                          click);
          });
       },

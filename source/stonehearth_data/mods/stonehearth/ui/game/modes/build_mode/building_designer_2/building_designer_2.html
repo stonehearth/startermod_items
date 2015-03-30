@@ -19,6 +19,7 @@
       <div id="toolPalettePicker">
          <img id="toolPaletteBuild" palette="buildPalette" title="Building tools" />
          <img id="toolPaletteVoxels" palette="voxelsPalette" title="Voxel tools"/>
+         <img id="toolSelect" palette="selectPalette" title="Selection"/>
          <img id="undoTool" title="Undo" />
       </div>
       <div id="toolPalette">
@@ -29,17 +30,17 @@
             <!-- the build palette image map. -->
             <map name="buildPaletteMap" id="buildPaletteMap">
                <area shape="rect" coords="418,308,420,310" alt="Image Map" style="outline:none;" title="Image Map" />
-               <area palette="buildPalette" tool="floor_deco" shape="poly" coords="86,214,88,248,104,253,104,275,74,281,45,272,45,214,74,207" style="outline:none;" target="_self"     />
-               <area palette="buildPalette" tool="wall_deco" shape="poly" coords="232,116,230,123,277,134,275,142,262,139,263,181,247,167,235,179,235,132,228,128,218,135,211,132,211,115,225,112" style="outline:none;" target="_self"     />
+               <area palette="buildPalette" tool="placeFurnitureTool" shape="poly" coords="86,214,88,248,104,253,104,275,74,281,45,272,45,214,74,207" style="outline:none;" target="_self"     />
+               <area palette="buildPalette" tool="placeDecorationTool" shape="poly" coords="232,116,230,123,277,134,275,142,262,139,263,181,247,167,235,179,235,132,228,128,218,135,211,132,211,115,225,112" style="outline:none;" target="_self"     />
 
-               <area palette="buildPalette" tool="floor" shape="poly" coords="65,232,158,260,269,241,270,267,158,284,65,255" style="outline:none;" />
-               <area palette="buildPalette" tool="grow_floor" shape="poly" coords="66,155,157,182,270,164,270,187,158,206,66,177" style="outline:none;" />
-               <area palette="buildPalette" tool="roof" shape="poly" coords="63,143,160,171,223,88,281,149,299,134,222,52,124,22,48,127" style="outline:none;" />
-               <area palette="buildPalette" tool="door" shape="poly" coords="195,211,228,206,228,248,196,253" style="outline:none;" />
-               <area palette="buildPalette" tool="window" shape="poly" coords="120,205,98,198,100,225,121,233" style="outline:none;" />
-               <area palette="buildPalette" tool="grow_walls" shape="poly" coords="68,143,69,233,159,259,265,241,264,145,221,97,158,172" style="outline:none;" />
-               <area palette="buildPalette" tool="wall" shape="poly" coords="265,234,332,255,365,249,364,109,270,80,251,85,297,132,282,149,267,146" style="outline:none;" target="_self"  />
-               <area palette="buildPalette" tool="road" shape="poly" coords="195,276,230,271,288,290,252,298" style="outline:none;" />
+               <area palette="buildPalette" tool="drawFloorTool" shape="poly" coords="65,232,158,260,269,241,270,267,158,284,65,255" style="outline:none;" />
+               <area palette="buildPalette" tool="growFloorTool" shape="poly" coords="66,155,157,182,270,164,270,187,158,206,66,177" style="outline:none;" />
+               <area palette="buildPalette" tool="growRoofTool" shape="poly" coords="63,143,160,171,223,88,281,149,299,134,222,52,124,22,48,127" style="outline:none;" />
+               <area palette="buildPalette" tool="drawDoorTool" shape="poly" coords="195,211,228,206,228,248,196,253" style="outline:none;" />
+               <area palette="buildPalette" tool="drawWindowTool" shape="poly" coords="120,205,98,198,100,225,121,233" style="outline:none;" />
+               <area palette="buildPalette" tool="growWallsTool" shape="poly" coords="68,143,69,233,159,259,265,241,264,145,221,97,158,172" style="outline:none;" />
+               <area palette="buildPalette" tool="drawWallTool" shape="poly" coords="265,234,332,255,365,249,364,109,270,80,251,85,297,132,282,149,267,146" style="outline:none;" target="_self"  />
+               <area palette="buildPalette" tool="drawRoadTool" shape="poly" coords="195,276,230,271,288,290,252,298" style="outline:none;" />
             </map>
          </div>
 
@@ -51,49 +52,13 @@
             </div>
          </div>
 
+         <div class="palette" id="selectPalette">
+         </div>
       </div>
 
       <!-- slam the per-tool material and option uis here -->
       <div id="toolOptions"> 
-         <h1>Draw Floor</h1>
-
-         <div id="typeSelector" class="downSection">
-            wood    stone
-         </div>
-
-         <h2>Wood</h2>
-         <div id="materialSelector" class="downSection">
-            mat1 mat2 mat3 mat4
-         </div>
       </div>
-
-      <div class="tools">
-         <h2>Tools</h2>
-         <div id="tools">
-            <!-- List of tools is dynamically placed here -->
-         </div>
-         <div id="placeItemTool" class="toolButton" tab="itemMaterialTab" title="Place furniture and decoration"></div>
-         <div id="eraseStructureTool" class="toolButton" tab="none" title="Erase"></div>
-      </div>
-
-      <!-- delete this whole thing -->
-      <div id="tabs">
-
-         <div class="tabPage" id="defaultTab" style="display: block">
-
-         </div>
-
-         <div class="tabPage" id="itemMaterialTab">        
-            <h2>Furniture & Decorations</h2>
-
-            <div class="downSection" id="itemMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-               {{ view stonehearthPlaceItemPalette }}
-            </div>
-            
-         </div>
-      </div>
-      <!-- end of delete stuff -->
 
       <div id="bottomButtons">
          <button class="gold" id="showOverview">{{i18n stonehearth:finished_editing}}</button>
