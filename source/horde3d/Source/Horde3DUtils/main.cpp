@@ -53,7 +53,8 @@ using namespace std;
 
 #define R_LOG(level)    LOG(horde.renderer, level)
 
-static bool h3dutCreatePNGImage(FILE *fp, const unsigned char *pixels, int width, int height);
+static bool h3dutCreatePNGImage(std::vector<unsigned char>& result, const unsigned char *pixels, int width, int height);
+static bool h3dutWritePNGImage(FILE *fp, const unsigned char *pixels, int width, int height);
 
 namespace Horde3DUtils {
 
@@ -660,7 +661,42 @@ DLLEXP H3DRes h3dutCreateGeometryRes(
 	return res;
 }
 
-bool h3dutCreatePNGImage(FILE *fp, const unsigned char *pixels, int width, int height)
+
+static void PngWriteCallback(png_structp  png_ptr, png_bytep data, png_size_t length) {
+   std::vector<unsigned char> *p = (std::vector<unsigned char>*)png_get_io_ptr(png_ptr);
+   p->insert(p->end(), data, data + length);
+}
+bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixels, int width, int height)
+{
+   // Here's some code I found on the internet!
+   png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+   ASSERT(p);
+   //TPngDestructor destroyPng(p);
+   png_infop info_ptr = png_create_info_struct(p);
+   ASSERT(info_ptr);
+   ASSERT(0 == setjmp(png_jmpbuf(p)));
+
+   png_set_IHDR(p, info_ptr, width, height, 8,
+         PNG_COLOR_TYPE_RGB,
+         PNG_INTERLACE_NONE,
+         PNG_COMPRESSION_TYPE_BASE,
+         PNG_FILTER_TYPE_BASE);
+   png_set_bgr(p);
+   //png_set_compression_level(p, 1);
+   std::vector<unsigned char*> rows(height);
+   for (size_t y = 0; y < height; ++y) {
+      rows[y] = pixels + y * width * 3;
+   }
+   png_set_rows(p, info_ptr, &rows[0]);
+   png_set_write_fn(p, &result, PngWriteCallback, NULL);
+   png_write_png(p, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+   /* Clean up after the write, and free any memory allocated */
+   png_destroy_write_struct(&p, &info_ptr);
+   return true;
+}
+
+bool h3dutWritePNGImage(FILE *fp, const unsigned char *pixels, int width, int height)
 {
    png_structp png_ptr;
    png_infop info_ptr;
@@ -939,7 +975,7 @@ DLLEXP bool h3dutScreenshot(const char *fname, H3DRes renderTexRes)
          bytesWritten = fwrite(image, 1, imageSize, f);
          h3dutFreeMem(&image);
       } else if (boost::algorithm::ends_with(filename, ".png")) {
-         h3dutCreatePNGImage(f, pixels, width, height);
+         h3dutWritePNGImage(f, pixels, width, height);
       }
       fclose(f);
    }
