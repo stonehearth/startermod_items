@@ -36,9 +36,15 @@ end
 
 function TerrainService:_register_events()
    -- fires about once per second at game speed 1
-   stonehearth.calendar:set_interval(110, function()
-         self:_on_tick()
-      end)
+   if self._sv.tick_timer then
+      self._sv.tick_timer:bind(function()
+            self:_on_tick()
+         end)
+   else
+      self._sv.tick_timer = stonehearth.calendar:set_interval(110, function()
+            self:_on_tick()
+         end)
+   end
 end
 
 function TerrainService:_on_tick()

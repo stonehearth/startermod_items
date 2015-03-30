@@ -21,11 +21,15 @@ function SleepinessObserver:initialize(entity)
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv.should_be_sleeping = false
+      self._sv.hourly_listener = stonehearth.calendar:set_interval('1h', function()
+            self:_on_hourly()
+         end)
+   else
+      self._sv.hourly_listener:bind(function()
+            self:_on_hourly()
+         end)
    end
 
-   self._hourly_listener = stonehearth.calendar:set_interval('1h', function()
-         self:_on_hourly()
-      end)
    self._sleepiness_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
 
    --Should we be sleeping? If so, let's do that
@@ -37,8 +41,8 @@ function SleepinessObserver:initialize(entity)
 end
 
 function SleepinessObserver:destroy()
-   self._hourly_listener:destroy()
-   self._hourly_listener = nil
+   self._sv.hourly_listener:destroy()
+   self._sv.hourly_listener = nil
 
    self._sleepiness_listener:destroy()
    self._sleepiness_listener = nil

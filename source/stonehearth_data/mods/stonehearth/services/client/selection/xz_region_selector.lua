@@ -666,7 +666,7 @@ function XZRegionSelector:_update_selected_cube(box)
       -- recreate the render node for the designation
       local size = box:get_size()
       local region = Region2(Rect2(Point2.zero, Point2(size.x, size.z)))
-      self._render_node = self._create_node_fn(1, region, self._box_color, self._line_color)
+      self._render_node = self._create_node_fn(H3DRootNode, region, self._box_color, self._line_color)
                                     :set_position(box.min)
    end
 

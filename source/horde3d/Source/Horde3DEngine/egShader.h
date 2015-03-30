@@ -105,6 +105,7 @@ struct ShaderCombination
 	int                 uni_parPosArray, uni_parSizeAndRotArray, uni_parColorArray;
    int                 uni_cubeBatchTransformArray, uni_cubeBatchColorArray;
 	int                 uni_olayColor;
+   int                 uni_bones, uni_modelScale;
 
 	std::vector< int >  customSamplers;
 	std::vector< int >  customUniforms;

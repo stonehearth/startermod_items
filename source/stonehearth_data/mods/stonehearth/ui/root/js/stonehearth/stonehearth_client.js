@@ -574,7 +574,7 @@ var StonehearthClient;
             return radiant.call_obj(self._build_editor, 'place_template', template)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  self.drawTemplate(precall, template);
+                  //self.drawTemplate(precall, template);
                })
                .fail(function(response) {
                   self.hideTip(tip);

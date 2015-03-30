@@ -31,15 +31,15 @@ struct VoxelModelNodeParams
 {
 	enum List
 	{
-		VoxelGeoResI = 200,
-		SWSkinningI,
+		SWSkinningI = 200,
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
-      UseCoarseCollisionBoxI
+      UseCoarseCollisionBoxI,
+      ModelScaleF,
 	};
 };
 
@@ -47,26 +47,14 @@ struct VoxelModelNodeParams
 
 struct VoxelModelNodeTpl : public SceneNodeTpl
 {
-	PVoxelGeometryResource  geoRes;
 	float              lodDist1, lodDist2, lodDist3, lodDist4;
-	bool               softwareSkinning;
 
-	VoxelModelNodeTpl( std::string const& name, VoxelGeometryResource *geoRes ) :
-		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), geoRes( geoRes ),
+	VoxelModelNodeTpl( std::string const& name) :
+		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), 
 			lodDist1(400), lodDist2( Math::MaxFloat ),
-			lodDist3( 700 ), lodDist4( Math::MaxFloat ),
-			softwareSkinning( false )
+			lodDist3( 700 ), lodDist4( Math::MaxFloat )
 	{
 	}
-};
-
-// =================================================================================================
-
-struct VoxelMorpher	// Morph modifier
-{
-	std::string  name;
-	uint32       index;  // Index of morph target in Geometry resource
-	float        weight;
 };
 
 // =================================================================================================
@@ -80,25 +68,13 @@ public:
 	~VoxelModelNode();
 
 	void recreateNodeList();
-	void setupAnimStage( int stage, AnimationResource *anim, int layer,
-	                     std::string const& startNode, bool additive );
-	void setAnimParams( int stage, float time, float weight );
-	bool setMorphParam( std::string const& targetName, float weight );
 
 	int getParamI( int param );
 	void setParamI( int param, int value );
 	float getParamF( int param, int compIdx );
 	void setParamF( int param, int compIdx, float value );
 
-	bool updateVoxelGeometry();
-
-	VoxelGeometryResource *getVoxelGeometryResource() const { return _geometryRes; }
-	bool jointExists( uint32 jointIndex ) { return jointIndex < _skinMatRows.size() / 3; }
-	void setSkinningMat( uint32 index, const Matrix4f &mat )
-		{ _skinMatRows[index * 3 + 0] = mat.getRow( 0 );
-		  _skinMatRows[index * 3 + 1] = mat.getRow( 1 );
-		  _skinMatRows[index * 3 + 2] = mat.getRow( 2 ); }
-	void markNodeListDirty() { _nodeListDirty = true; }
+	void markNodeListDirty();
 
    bool getPolygonOffset(float &x, float &y) {
       if (_polygon_offset_used) {
@@ -111,28 +87,29 @@ public:
       return _useCoarseCollisionBox;
    }
 
+   std::unordered_map<int, SceneNode*> const& getBoneLookup() const;
+
+   float getModelScale() const { return _modelScale; }
+
+
 protected:
 	VoxelModelNode( const VoxelModelNodeTpl &modelTpl );
 
 	void recreateNodeListRec( SceneNode *node, bool firstCall );
 	void updateLocalMeshAABBs();
-	void setVoxelGeometryRes( VoxelGeometryResource &geoRes );
 
 	void onPostUpdate();
 	void onFinishedUpdate();
 
 protected:
-	PVoxelGeometryResource        _geometryRes;
-	PVoxelGeometryResource        _baseVoxelGeoRes;	// NULL if model does not have a private geometry copy
 	float                         _lodDist1, _lodDist2, _lodDist3, _lodDist4;
+   float                         _modelScale;
 	
-	std::vector< VoxelMeshNode * >     _meshList;  // List of the model's meshes
-	std::vector< Vec4f >          _skinMatRows;
+	VoxelMeshNode*                _meshNode;
+   std::unordered_map<int, SceneNode*> _boneLookup;
+   std::unordered_map<int, BoundingBox> _boneBounds;
 
-	std::vector< VoxelMorpher >   _morphers;
-	bool                          _softwareSkinning, _skinningDirty;
 	bool                          _nodeListDirty;  // An animatable node has been attached to model
-	bool                          _morpherUsed, _morpherDirty;
    float                         _polygon_offset[2];
    bool                          _polygon_offset_used;
    bool                          _useCoarseCollisionBox;

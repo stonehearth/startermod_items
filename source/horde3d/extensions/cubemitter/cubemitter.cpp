@@ -409,7 +409,7 @@ bool CubemitterNode::hasFinished()
 	return true;
 }
 
-void CubemitterNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
+void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
@@ -418,7 +418,7 @@ void CubemitterNode::renderFunc(std::string const& shaderContext, std::string co
 	MaterialResource *curMatRes = 0x0;
 
 	// Loop through and find all Cubemitters.
-	for( const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_CubemitterNode) )
+	for( const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_CubemitterNode) )
 	{
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
 

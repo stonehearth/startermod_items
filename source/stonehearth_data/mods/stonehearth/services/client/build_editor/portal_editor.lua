@@ -61,7 +61,7 @@ function PortalEditor:go()
       self._cursor_uri = 'stonehearth:cursors:arrow'
    end
 
-   self._fixture_blueprint_render_entity = _radiant.client.create_render_entity(1, self._fixture_blueprint)
+   self._fixture_blueprint_render_entity = _radiant.client.create_render_entity(H3DRootNode, self._fixture_blueprint)
    self._fixture_blueprint_render_entity:set_parent_override(false)
 
    self._fixture_blueprint_visibility_handle = self._fixture_blueprint_render_entity:get_visibility_override_handle()

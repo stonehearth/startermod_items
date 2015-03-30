@@ -174,7 +174,7 @@ private:
 
 
 protected:
-	friend class SceneManager;
+	friend class Scene;
 	friend class SceneNode;
 	friend class Renderer;
 };

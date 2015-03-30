@@ -113,7 +113,7 @@ private:
 	int                 _occSet;
 	bool                _orthographic;  // Perspective or orthographic frustum?
 
-	friend class SceneManager;
+	friend class Scene;
 	friend class Renderer;
 };
 
