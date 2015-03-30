@@ -78,7 +78,7 @@
             "name" : "Build from a Template",
             "description" : "Choose to construct a building from a pre-designed template",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
+            "icon" : "/stonehearth/ui/game/start_menu/images/building_template.png",
             "sticky" : true,
             "hotkey" : "b"
          },
