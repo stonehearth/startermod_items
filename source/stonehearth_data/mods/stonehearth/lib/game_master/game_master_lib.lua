@@ -57,7 +57,7 @@ function game_master_lib.create_context(node_name, node, parent_node)
 end
 
 function game_master_lib.create_citizen(population, info, origin)
-   local citizen = population:create_new_citizen()
+   local citizen = population:create_new_citizen(info.role)
 
    -- info.job: promote the citizen to the proper job
    if info.job then

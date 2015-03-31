@@ -1,12 +1,16 @@
 {
    "kingdom_name" : "The Undead (Stephanie, heeeeeelp!)",
    "kingdom_id" : "undead",
-   "male_entities" : [
-      "stonehearth:monsters:undead:skeleton"
-   ],
-   "female_entities" : [
-      "stonehearth:monsters:undead:skeleton_female"
-   ],
+   "roles" : {
+      "skeleton" : {
+         "male" : [
+            "stonehearth:monsters:undead:skeleton"
+         ],
+         "female" : [
+            "stonehearth:monsters:undead:skeleton_female"
+         ]
+      }
+   },
    "surnames" : [
       "the Dead",
       "the Decaying",
