@@ -162,11 +162,13 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          local entity = radiant.entities.create_entity(info.uri, { owner = player_id })
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
-
          if rot then
             radiant.entities.turn_to(entity, rot)
          end
          self:_add_entity_to_visible_rgn(entity, visible_rgn)
+
+         --TODO: add this entity to the ctx
+         ctx[name] = entity
       end
    end
 
@@ -175,6 +177,9 @@ function CreateCamp:_add_piece(piece, visible_rgn)
       for name, info in pairs(piece.info.citizens) do
          local citizen = game_master_lib.create_citizen(self._population, info, origin)
          self:_add_entity_to_visible_rgn(citizen, visible_rgn)
+
+         --TODO: add this entity to the ctx
+         ctx[name] = citizen
       end
    end
 

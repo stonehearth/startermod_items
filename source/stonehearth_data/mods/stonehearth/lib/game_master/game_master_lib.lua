@@ -98,6 +98,9 @@ function game_master_lib.create_citizen(population, info, origin)
                   :set_attack_leash(origin, info.combat_leash_range)
    end
 
+   --if info.attributes, then add these attributes to the entity
+   --this should allow us to tweak the attributes of specific entities
+
    -- finally, put the new citizen in the world and return it
    radiant.terrain.place_entity(citizen, origin)
 

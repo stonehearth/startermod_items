@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "destroy_entity",
+
+   "in_edge"  : "wakeup_wolves",
+   "out_edge" : "create_wolf_riders",
+
+   "destroy_entity_info" :  {
+      "target_entities" : ["wolf_cage", "rider_1", "rider_2"], 
+      "effect" : "/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json"
+   }
+}

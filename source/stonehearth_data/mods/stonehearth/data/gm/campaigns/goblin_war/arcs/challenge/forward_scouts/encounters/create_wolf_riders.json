@@ -1,0 +1,53 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "city_raid",
+   "rarity" : "common",
+
+   "in_edge"  : "create_wolf_riders",
+
+   "city_raid_info" : {
+      "missions" : {
+         "raid_stockpiles" : {
+            "require_free_stockpile_space" : false,
+            "role" : "raid_stockpiles",
+            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+            "times" : 20,
+
+            "sighted_bulletin" : {
+               "title" : "Mounted goblins approach!",
+               "message" : "Need your stuff!"
+            },
+
+            "members" : {
+               "maurauder_a" : {
+                  "location" : { "x": 1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                  }
+               },
+               "maurauder_b" : {
+                  "location" : { "x": -1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                  }
+               },
+               "maurauder_c" : {
+                  "location" : { "x": 0, "z": 1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                  }
+               }
+            }
+         }
+      }
+   }
+}
