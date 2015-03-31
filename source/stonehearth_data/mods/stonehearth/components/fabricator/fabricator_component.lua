@@ -96,13 +96,6 @@ function FabricatorComponent:start_project(blueprint)
    -- add scaffolding!
    local ci = blueprint:get_component('stonehearth:construction_data')
    local normal = ci:get_normal()
-   if not normal then
-      -- this is bogus, but will get us by for now.
-      local column = blueprint:get_component('stonehearth:column')
-      if column then
-         normal = Point3(0, 0, -1)
-      end
-   end
    local project_rgn = project:get_component('destination'):get_region()
    local blueprint_rgn = blueprint:get_component('destination'):get_region()
    local stand_at_base = ci:get_project_adjacent_to_base()

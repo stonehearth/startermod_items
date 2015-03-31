@@ -25,13 +25,13 @@ ScaffoldingBuilder_OneDim.BUILD = 'build'
 ScaffoldingBuilder_OneDim.TEAR_DOWN = 'teardown'
 
 function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn, project_rgn, normal, stand_at_base)
-   checks('self', 'controller', 'number', 'Entity', 'Region3Boxed', 'Region3Boxed', 'Point3', 'boolean')
+   checks('self', 'controller', 'number', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3', 'boolean')
 
    self._sv.id = id
    self._sv.active = false
    self._sv.entity = entity
+   self._sv.preferred_normal = normal
    self._sv.manager = manager
-   self._sv.normal = normal
    self._sv.stand_at_base = stand_at_base
    self._sv.project_rgn = project_rgn
    self._sv.blueprint_rgn = blueprint_rgn
@@ -42,6 +42,10 @@ function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn
 end
 
 function ScaffoldingBuilder_OneDim:activate()
+   self._log = radiant.log.create_logger('build.s1d')
+                              :set_entity(self._sv.entity)
+                              :set_prefix('s1d')
+
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
       end)
@@ -97,6 +101,7 @@ function ScaffoldingBuilder_OneDim:_update_status()
    local active = self._sv.active
 
    if active then
+      self:_choose_normal()
       self:_trace_blueprint_and_project()
       self:_update_scaffolding_size()
       self:_add_scaffolding_region()
@@ -244,6 +249,61 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
       end)
 end
 
+function ScaffoldingBuilder_OneDim:_choose_normal()
+   -- if we have a preferred normal, use that and its opposite.
+   -- otherwise, consider all 4 normals
+   self._log:detail('choosing normal for %s.', self._sv.entity)
+
+   local normals
+   local preferred_normal = self._sv.preferred_normal
+   if preferred_normal then
+      normals = { preferred_normal, preferred_normal:scaled(-1) }
+   else
+      normals = { Point3(0, 0, 1), Point3(0, 0, -1), Point3(1, 0, 0), Point3(-1, 0, 0)}
+   end
+
+   -- run through the list, looking for the perfect normal
+   local origin = self._sv.origin
+   local clipbox = self._sv.clipbox
+
+   local blueprint_rgn = self._sv.blueprint_rgn:get()
+   if clipbox then
+      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   end
+
+   for _, normal in pairs(normals) do
+      local good = true
+      local world_region = blueprint_rgn:translated(self._sv.origin + normal)
+      local unblocked_region = _physics:clip_region(world_region, CLIP_SOLID)
+
+      -- if anything blocks the proposed box, don't bother.
+      if unblocked_region:get_bounds().min.y ~= world_region:get_bounds().min.y then
+         self._log:detail('normal %s is blocked by world.  rejecting.', normal)
+         good = false
+      end
+      if good then
+         -- if there are any blueprint fabricators in the way, there *will* be something
+         -- blocking this direction in the future, so stay away from it
+         local obstructing = radiant.terrain.get_entities_in_region(unblocked_region);
+         for id, entity in pairs(obstructing) do
+            if build_util.is_fabricator(entity) then
+               self._log:detail('normal %s intersects fabricator %s.  rejecting', normal, entity)
+               good = false
+               break
+            end
+         end
+      end
+      if good then
+         self._log:detail('normal %s is all good!  using it.', normal)
+         self._sv.normal = normal
+         return
+      end
+   end
+   -- gotta pick one!
+   self._log:detail('choosing normal %s of last resort', normals[1])
+   self._sv.normal = normals[1]
+end
+
 -- why is this function so big!?
 function ScaffoldingBuilder_OneDim:_old_cover_project_region(teardown)
    local project_rgn = self._sv.project_rgn:get()
@@ -360,7 +420,7 @@ function ScaffoldingBuilder_OneDim:_old_cover_project_region(teardown)
             if base < h then
                local column = Cube3(Point3(x, base, z), 
                                     Point3(x + 1, h, z + 1))
-               column:translate(self._sv.normal)
+               column:translate(normal)
                region:add_unique_cube(column)
             end
          end
