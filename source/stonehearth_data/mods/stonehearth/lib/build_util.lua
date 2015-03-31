@@ -20,7 +20,6 @@ local SAVED_COMPONENTS = {
    ['stonehearth:fixture_fabricator'] = true,      -- for placed item locations
    ['stonehearth:construction_data'] = true,       -- for nine grid info
    ['stonehearth:construction_progress'] = true,   -- for dependencies
-   ['stonehearth:no_construction_zone'] = true,    -- for footprint
 }
 
 function build_util.rotated_degrees(value, degrees)
@@ -166,8 +165,7 @@ end
 local function save_all_structures_to_template(entity)
    -- compute the save order by walking the dependencies.  
    if not build_util.is_blueprint(entity) and
-      not build_util.is_building(entity) and
-      not build_util.is_footprint(entity) then
+      not build_util.is_building(entity) then
       return nil
    end
 
@@ -212,10 +210,6 @@ end
 function build_util.is_fabricator(entity)
    return entity:get_component('stonehearth:fabricator') ~= nil or
           entity:get_component('stonehearth:fixture_fabricator') ~= nil
-end
-
-function build_util.is_footprint(entity)
-   return entity:get_component('stonehearth:no_construction_zone') ~= nil
 end
 
 function build_util.has_walls(building)

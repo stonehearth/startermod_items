@@ -1439,7 +1439,6 @@
       "fixture_fabricator" : "file(components/fixture_fabricator/fixture_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "fixture" : "file(components/fixture/fixture_component.lua)",
-      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "construction_project" : "file(components/construction_project/construction_project_component.lua)",
@@ -1477,8 +1476,7 @@
       "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
       "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
       "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)",
-      "ladder" : "file(components/ladder/ladder_component.lua)",
-      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_client_component.lua)"
+      "ladder" : "file(components/ladder/ladder_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
@@ -1491,7 +1489,6 @@
       "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
       "water" : "file(renderers/water/water_renderer.lua)",
       "waterfall" : "file(renderers/waterfall/waterfall_renderer.lua)",
-      "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)",
       "ladder" : "file(renderers/ladder/ladder_renderer.lua)"
    },

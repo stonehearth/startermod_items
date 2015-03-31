@@ -128,11 +128,6 @@ function SelectionService.designation_can_contain(entity)
       return false
    end
 
-   local ncz = entity:get_component('stonehearth:no_construction_zone')
-   if ncz then
-      return false
-   end
-   
    -- designations cannot contain other designation, either
    if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
       return false
@@ -157,12 +152,6 @@ function SelectionService.floor_can_contain(entity)
 
    if entity:get_component('terrain') then
       return false
-   end
-
-   -- explicitly allow no_construction_zones
-   local ncz = entity:get_component('stonehearth:no_construction_zone')
-   if ncz then
-      return true
    end
    
    return true
