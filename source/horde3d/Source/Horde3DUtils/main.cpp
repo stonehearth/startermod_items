@@ -684,7 +684,7 @@ bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixe
    png_set_bgr(p);
    //png_set_compression_level(p, 1);
    std::vector<unsigned char*> rows(height);
-   for (size_t y = 0; y < height; ++y) {
+   for (int y = 0; y < height; ++y) {
       rows[y] = pixels + y * width * 3;
    }
    png_set_rows(p, info_ptr, &rows[0]);
