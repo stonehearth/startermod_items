@@ -173,6 +173,7 @@ class Renderer
       void UpdateUITexture(csg::Point2 const& size, csg::Region2 const& rgn, const uint32* buff);
 
       Camera* GetCamera() { return camera_; }
+      Camera* GetPortraitCamera() { return portraitCamera_; }
 
       H3DRes GetPipeline(std::string const& name);
       H3DRes GetScreenshotTexture() const;
