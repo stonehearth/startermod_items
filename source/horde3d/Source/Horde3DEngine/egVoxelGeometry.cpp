@@ -57,11 +57,11 @@ Resource *VoxelGeometryResource::clone()
 	*res = *this;
 
 	// Make a deep copy of the data
-	res->_indexData = new char[_indexCount * (_16BitIndices ? 2 : 4)];
+	res->_indexData = new uint32[_indexCount];
 	res->_vertexData = new VoxelVertexData[_vertCount];
-	memcpy( res->_indexData, _indexData, _indexCount * (_16BitIndices ? 2 : 4) );
+	memcpy( res->_indexData, _indexData, _indexCount * sizeof(uint32) );
 	memcpy( res->_vertexData, _vertexData, _vertCount * sizeof( VoxelVertexData ) );
-	res->_indexBuf = gRDI->createIndexBuffer( _indexCount * (_16BitIndices ? 2 : 4), _indexData );
+	res->_indexBuf = gRDI->createIndexBuffer( _indexCount * sizeof(uint32), _indexData );
 	res->_vertexBuf = gRDI->createVertexBuffer( _vertCount * sizeof( Vec3f ), STATIC, _vertexData );
 	
 	return res;
@@ -76,7 +76,6 @@ void VoxelGeometryResource::initDefault()
 	_vertCount = 0;
 	_indexData = 0x0;
 	_vertexData = 0x0;
-	_16BitIndices = false;
 	_indexBuf = defIndexBuffer;
 	_vertexBuf = defVertexBuffer;
    _numLodLevels = 1;
@@ -127,122 +126,22 @@ bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffset
 
 	_indexCount = indexOffsets[numLodLevels];
 
-   _16BitIndices = false;
-	//_16BitIndices = icount <= 65535;
+	_indexData = new uint32[_indexCount];
 
-	_indexData = new char[_indexCount * (_16BitIndices ? 2 : 4)];
-
-   if (_16BitIndices) {
-      uint16* i16 = (uint16*)_indexData;
-      for (uint32 i = 0; i < _indexCount; i++) {
-         *i16++ = (uint16)indicies[i];
-      }
-   } else {
-      ::memcpy(_indexData, indicies, _indexCount * sizeof uint32);
-   }
-
-	// Load morph targets
-#if 0
-	uint32 numTargets;
-	memcpy( &numTargets, pData, sizeof( uint32 ) ); pData += sizeof( uint32 );
-
-	_morphTargets.resize( numTargets );
-	for( uint32 i = 0; i < numTargets; ++i )
-	{
-		MorphTarget &mt = _morphTargets[i];
-		char name[256];
-		
-		memcpy( name, pData, 256 ); pData += 256;
-		mt.name = name;
-		
-		// Read vertex indices
-		uint32 morphStreamSize;
-		memcpy( &morphStreamSize, pData, sizeof( uint32 ) ); pData += sizeof( uint32 );
-		mt.diffs.resize( morphStreamSize );
-		for( uint32 j = 0; j < morphStreamSize; ++j )
-		{
-			memcpy( &mt.diffs[j].vertIndex, pData, sizeof( uint32 ) ); pData += sizeof( uint32 );
-		}
-		
-		// Loop over streams
-		memcpy( &count, pData, sizeof( uint32 ) ); pData += sizeof( uint32 );
-		for( uint32 j = 0; j < count; ++j )
-		{
-			uint32 streamID, streamElemSize;
-			memcpy( &streamID, pData, sizeof( uint32 ) ); pData += sizeof( uint32 );
-			memcpy( &streamElemSize, pData, sizeof( uint32 ) ); pData += sizeof( uint32 );
-
-			switch( streamID )
-			{
-			case 0:		// Position
-				if( streamElemSize != 12 ) return raiseError( "Invalid position morph stream" );
-				for( uint32 k = 0; k < morphStreamSize; ++k )
-				{
-					memcpy( &mt.diffs[k].posDiff.x, pData, sizeof( float ) ); pData += sizeof( float );
-					memcpy( &mt.diffs[k].posDiff.y, pData, sizeof( float ) ); pData += sizeof( float );
-					memcpy( &mt.diffs[k].posDiff.z, pData, sizeof( float ) ); pData += sizeof( float );
-				}
-				break;
-			case 1:		// Normal
-				if( streamElemSize != 12 ) return raiseError( "Invalid normal morph stream" );
-				for( uint32 k = 0; k < morphStreamSize; ++k )
-				{
-					memcpy( &mt.diffs[k].normDiff.x, pData, sizeof( float ) ); pData += sizeof( float );
-					memcpy( &mt.diffs[k].normDiff.y, pData, sizeof( float ) ); pData += sizeof( float );
-					memcpy( &mt.diffs[k].normDiff.z, pData, sizeof( float ) ); pData += sizeof( float );
-				}
-				break;
-			case 2:		// Tangent
-				if( streamElemSize != 12 ) return raiseError( "Invalid tangent morph stream" );
-				for( uint32 k = 0; k < morphStreamSize; ++k )
-				{
-					memcpy( &mt.diffs[k].tanDiff.x, pData, sizeof( float ) ); pData += sizeof( float );
-					memcpy( &mt.diffs[k].tanDiff.y, pData, sizeof( float ) ); pData += sizeof( float );
-					memcpy( &mt.diffs[k].tanDiff.z, pData, sizeof( float ) ); pData += sizeof( float );
-				}
-				break;
-			case 3:		// Bitangent
-				if( streamElemSize != 12 ) return raiseError( "Invalid bitangent morph stream" );
-				
-				// Skip data (TODO: remove from format)
-				pData += morphStreamSize * sizeof( float ) * 3;
-				break;
-			default:
-				pData += streamElemSize * morphStreamSize;
-				Modules::log().writeWarning( "VoxelGeometry resource '%s': Ignoring unsupported vertex morph stream", _name.c_str() );
-				continue;
-			}
-		}
-	}
-
-	// Find min/max morph target vertex indices
-	_minMorphIndex = (unsigned)_vertCount;
-	_maxMorphIndex = 0;
-	for( uint32 i = 0; i < _morphTargets.size(); ++i )
-	{
-		for( uint32 j = 0; j < _morphTargets[i].diffs.size(); ++j )
-		{
-			_minMorphIndex = std::min( _minMorphIndex, _morphTargets[i].diffs[j].vertIndex );
-			_maxMorphIndex = std::max( _maxMorphIndex, _morphTargets[i].diffs[j].vertIndex );
-		}
-	}
-	if( _minMorphIndex > _maxMorphIndex )
-	{
-		_minMorphIndex = 0; _maxMorphIndex = 0;
-	}
-#endif
+   ::memcpy(_indexData, indicies, _indexCount * sizeof uint32);
 
 	// Upload data
 	if( _vertCount > 0 && _indexCount > 0 )
 	{
 		// Upload indices
-		_indexBuf = gRDI->createIndexBuffer( _indexCount * (_16BitIndices ? 2 : 4), _indexData );
+		_indexBuf = gRDI->createIndexBuffer( _indexCount * sizeof uint32, _indexData );
 		
 		// Upload vertices
 		_vertexBuf = gRDI->createVertexBuffer(_vertCount * sizeof VoxelVertexData, STATIC, _vertexData );
 	}
    return true;
 }
+
 
 bool VoxelGeometryResource::load( const char *data, int size )
 {
@@ -272,8 +171,6 @@ int VoxelGeometryResource::getElemParamI( int elem, int elemIdx, int param )
 		{
 		case VoxelGeometryResData::VoxelGeoIndexCountI:
 			return (int)_indexCount;
-		case VoxelGeometryResData::VoxelGeoIndices16I:
-			return _16BitIndices ? 1 : 0;
 		case VoxelGeometryResData::VoxelGeoVertexCountI:
 			return (int)_vertCount;
 		}
@@ -317,11 +214,11 @@ void VoxelGeometryResource::unmapStream(int bytesMapped)
 		{
 		case VoxelGeometryResData::VoxelGeoIndexStream:
 			if( _indexData != 0x0 )
-				gRDI->updateBufferData( _indexBuf, 0, _indexCount * (_16BitIndices ? 2 : 4), _indexData );
+				gRDI->updateBufferData( _indexBuf, 0, _indexCount * sizeof(uint32), _indexData );
 			break;
 		case VoxelGeometryResData::VoxelGeoVertexStream:
 			if( _vertexData != 0x0 )
-				gRDI->updateBufferData( _vertexBuf, 0, _vertCount * sizeof( Vec3f ), _vertexData );
+				gRDI->updateBufferData( _vertexBuf, 0, _vertCount * sizeof( VoxelVertexData ), _vertexData );
 			break;
 		}
 
@@ -335,7 +232,7 @@ void VoxelGeometryResource::updateDynamicVertData()
 	// Upload dynamic stream data
 	if( _vertexData != 0x0 )
 	{
-		gRDI->updateBufferData( _vertexBuf, 0, _vertCount * sizeof( Vec3f ), _vertexData );
+		gRDI->updateBufferData( _vertexBuf, 0, _vertCount * sizeof( VoxelVertexData ), _vertexData );
 	}
 }
 

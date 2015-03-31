@@ -70,7 +70,6 @@ function ConstructionDataComponent:_clone_writeable_options(into, from)
    into.nine_grid_slope = from.nine_grid_slope
    into.nine_grid_gradiant = from.nine_grid_gradiant
    into.nine_grid_max_height = from.nine_grid_max_height
-   into.needs_scaffolding = from.needs_scaffolding
    into.project_adjacent_to_base = from.project_adjacent_to_base
 end
 
@@ -127,16 +126,6 @@ end
 
 function ConstructionDataComponent:get_brush()
    return self._sv.brush
-end
-
-function ConstructionDataComponent:needs_scaffolding()
-   return self._sv.needs_scaffolding
-end
-
-function ConstructionDataComponent:set_needs_scaffolding(enabled)
-   self._sv.needs_scaffolding = enabled
-   self.__saved_variables:mark_changed()
-   return self
 end
 
 function ConstructionDataComponent:get_savestate()
@@ -226,7 +215,6 @@ function ConstructionDataComponent:save_to_template()
    local result = {
       normal = self._sv.normal,
       nine_grid_region = self._sv.nine_grid_region2,
-      needs_scaffolding = self._sv.needs_scaffolding,
       project_adjacent_to_base = self._sv.project_adjacent_to_base,
       nine_grid_region = self._sv.nine_grid_region,
       nine_grid_slope = self._sv.nine_grid_slope,
@@ -244,7 +232,6 @@ function ConstructionDataComponent:load_from_template(data, options, entity_map)
       self._sv.nine_grid_region = Region2()
       self._sv.nine_grid_region:load(data.nine_grid_region)
    end
-   self._sv.needs_scaffolding = data.needs_scaffolding
    self._sv.project_adjacent_to_base = data.project_adjacent_to_base
    if options.mode == 'preview' then
       self._sv.paint_through_blueprint = false

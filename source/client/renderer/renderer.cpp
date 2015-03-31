@@ -610,7 +610,7 @@ void Renderer::BuildSkySphere()
 
    skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.json", 0);
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
-   H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
+   H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 }
@@ -668,7 +668,7 @@ void Renderer::BuildStarfield()
 
    H3DRes geoRes = h3dutCreateGeometryRes("starfield", NumStars * 4, NumStars * 6, (float*)verts, indices, nullptr, nullptr, nullptr, texCoords, texCoords2);
    
-   H3DNode modelNode = h3dAddModelNode(H3DRootNode, "starfield_model", geoRes);
+   H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
    h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 }
@@ -1009,21 +1009,25 @@ Renderer::~Renderer()
 
 void Renderer::SetRootEntity(om::EntityPtr rootObject)
 {
-   rootRenderObject_ = CreateRenderEntity(H3DRootNode, rootObject);
+   rootRenderObject_ = CreateRenderEntity(mainSceneRoot_, rootObject);
 }
 
 void Renderer::Initialize()
 {
    RenderNode::Initialize();
 
+   mainSceneRoot_ = h3dGetRootNode(0);
+   fowSceneRoot_ = h3dGetRootNode(h3dAddScene("fow"));
+   portraitSceneRoot_ = h3dGetRootNode(h3dAddScene("portrait"));
+
    BuildSkySphere();
    BuildStarfield();
 
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
-   /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
+   /*fowVisibleNode_ = h3dAddInstanceNode(fowSceneRoot_, "fow_visiblenode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
-   fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
+   fowExploredNode_ = h3dAddInstanceNode(fowSceneRoot_, "fow_explorednode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
    h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
@@ -1033,17 +1037,24 @@ void Renderer::Initialize()
    UpdateFoW(fowExploredNode_, r);
 
    // Add camera   
-   camera_ = new Camera(H3DRootNode, "Camera");
+   camera_ = new Camera(mainSceneRoot_, "Camera");
 
    // Add another camera--this is exclusively for the fog-of-war pipeline.
-   fowCamera_ = new Camera(H3DRootNode, "FowCamera");
+   fowCamera_ = new Camera(fowSceneRoot_, "FowCamera");
 
-   debugShapes_ = h3dRadiantAddDebugShapes(H3DRootNode, "renderer debug shapes");
+   portraitTexRes_ = h3dCreateTexture("portraitTexture", 512, 512, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
+   portraitCamera_ = new Camera(portraitSceneRoot_, "PortraitCamera");
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::OutTexResI, portraitTexRes_);
+
+   debugShapes_ = h3dRadiantAddDebugShapes(mainSceneRoot_, "renderer debug shapes");
 
    // We now have a camera, so update our viewport, and inform all interested parties of
    // the update.
    ResizeViewport();
    CallWindowResizeListeners();
+
+   portrait_requested_ = false;
+   portrait_generated_ = false;
 
    last_render_time_ = 0;
    last_render_time_wallclock_ = platform::get_current_time_in_ms();
@@ -1182,6 +1193,32 @@ float Renderer::GetLastRenderAlpha() const
    return last_render_alpha_;
 }
 
+void Renderer::RequestPortrait(PortraitRequestCb const& fn)
+{
+   portrait_requested_ = true;
+   portrait_generated_ = false;
+   portrait_cb_ = fn;
+}
+
+void Renderer::RenderPortraitRT()
+{
+   // Render and return the image from the portrait scene.  We do this in two stages to give the renderer the chance
+   // to actually get some work done before blocking on the texture read.
+   if (portrait_requested_) {
+      portrait_requested_ = false;
+      portrait_generated_ = true;
+      h3dRender(portraitCamera_->GetNode(), GetPipeline(currentPipeline_));
+
+   } else if (portrait_generated_) {
+      portrait_generated_ = false;
+      h3dutCreatePngImageFromTexture(portraitTexRes_, portraitBytes_);
+
+      portrait_cb_(portraitBytes_);
+
+      portraitBytes_.clear();
+   }
+}
+
 void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
 {
    ASSERT(now >= last_render_time_);
@@ -1251,6 +1288,8 @@ void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
    perfmon::SwitchToCounter("render load res");
    fileWatcher_.update();
    LoadResources();
+
+   RenderPortraitRT();
 
    if (camera_) {
       float skysphereDistance = config_.draw_distance.value * 0.4f;
@@ -1366,15 +1405,16 @@ void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction
 
    // Cast the ray from the root node to make sure we hit everything, including client-side created
    // entities which are not children of the game root entity.
-   int num_results = h3dCastRay(1, (float)origin.x, (float)origin.y, (float)origin.z,
+   int num_results = h3dCastRay(mainSceneRoot_, (float)origin.x, (float)origin.y, (float)origin.z,
                                 (float)direction.x, (float)direction.y, (float)direction.z, 10, userFlags);
+   H3DSceneId scene = h3dGetSceneForNode(mainSceneRoot_);
    
    // Pull out the intersection node and intersection point
    for (int i = 0; i < num_results; i++) {
       H3DNode node;
       float intersection[3], normal[3];
 
-      if (h3dGetCastRayResult(i, &node, 0, intersection, normal)) {
+      if (h3dGetCastRayResult(scene, i, &node, 0, intersection, normal)) {
          cb(csg::Point3f(intersection[0], intersection[1], intersection[2]),
             csg::Point3f(normal[0], normal[1], normal[2]).Normalized(),
             node);

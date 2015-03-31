@@ -51,7 +51,7 @@ private:
    std::vector<Polygon> polygons_;
    
 
-	friend class SceneManager;
+	friend class Scene;
 	friend class Renderer;
 };
 

@@ -8,6 +8,9 @@ local WOODEN_COLUMN = 'stonehearth:wooden_column'
 local WOODEN_WALL = 'stonehearth:wooden_wall'
 local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
 local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
+
+local BRICK_SLAB = 'stonehearth:brick_slab_1'
+
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 local lrbt_cases = {}
@@ -179,6 +182,43 @@ function lrbt_cases.peaked_roof(autotest, session)
    }
 end
 
+function lrbt_cases.floating_wall(autotest, session)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(5, 15, 5), Point3(12, 15, 5))
+      end,
+   }
+end
+
+function lrbt_cases.stacked_walls(autotest, session)
+   local min, max = Point3(5, 10, 5), Point3(12, 10, 5)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+      function()
+         min.y = min.y + STOREY_HEIGHT
+         max.y = max.y + STOREY_HEIGHT
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+   }
+end
+
+function lrbt_cases.stacked_walls_offset(autotest, session)
+   local min, max = Point3(5, 10, 5), Point3(12, 10, 5)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+      function()
+         min.y = min.y + STOREY_HEIGHT
+         max.y = max.y + STOREY_HEIGHT
+         min.x = min.x + 1
+         max.x = max.x - 1
+         lrbt_util.create_wooden_wall(session, min, max)
+      end,
+   }
+end
 
 function lrbt_cases.two_storeys(autotest, session)
    local bounds = Cube3(Point3(0, 9, 0), Point3(4, 10, 4))
@@ -205,5 +245,26 @@ function lrbt_cases.two_storeys(autotest, session)
    }
 end
 
+function lrbt_cases.giant_slab(autotest, session)
+   local slab
+   local cube = Cube3(Point3(0, 9, 0), Point3(4, 15, 4))
+   return {
+      function()
+         slab = stonehearth.build:add_floor(session, BRICK_SLAB, cube)
+      end
+   }
+end
+
+
+function lrbt_cases.obstructed_walls(autotest, session)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(0, 10, 0), Point3(4, 10, 0))
+      end,
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(0, 10, 1), Point3(4, 10, 1))
+      end,
+   }
+end
 
 return lrbt_cases

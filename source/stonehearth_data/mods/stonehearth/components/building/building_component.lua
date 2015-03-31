@@ -65,7 +65,6 @@ function Building:destroy()
       self._ec_trace:destroy()
       self._ec_trace = nil
    end
-   radiant.entities.destroy_entity(self._sv.envelope_entity)
 end
 
 function Building:_restore_structure_traces()
@@ -133,18 +132,7 @@ function Building:calculate_floor_region()
 end
 
 function Building:add_structure(entity)
-   -- Lazily build envelope entity, because it might actually have been created when we loaded
-   -- this building from a template.
-   if not self._sv.envelope_entity then
-      self._sv.envelope_entity = radiant.entities.create_entity('', { owner = self._entity })
-      self._sv.envelope_entity:set_debug_text(string.format('envelope for %s', tostring(self._entity)))
-      self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
-                                 :set_building_entity(self._entity)
-      radiant.entities.add_child(self._entity, self._sv.envelope_entity)
-   end
-
    local id = entity:get_id()
-
    self._log:detail('adding structure %s to building', entity)
 
    for _, structure_type in pairs(STRUCTURE_TYPES) do
@@ -157,8 +145,6 @@ function Building:add_structure(entity)
             structure = structure,
          }
          self:_trace_entity(entity)
-         self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
-                                       :add_structure(entity)         
          structure:layout()
          break
       end
@@ -215,14 +201,20 @@ function Building:_trace_entity_container()
 end
 
 function Building:get_building_footprint()
-   return self._sv.envelope_entity:get_component('region_collision_shape')
-                                       :get_region()
+   local region = Region3()
+   for _, kind in ipairs(STRUCTURE_TYPES) do
+      for id, entry in pairs(self._sv.structures[kind]) do
+         local rcs = entry.entity:get_component('region_collision_shape')
+         if rcs then
+            region:add_region(rcs:get_region():get())
+         end
+      end
+   end
+   return region
 end
 
 function Building:set_active(enabled)
    if enabled then
-      self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
-                                 :clear_traces()
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
    end
@@ -266,11 +258,6 @@ function Building:_untrace_entity(id)
    if listener then
       listener:destroy()
       self._cp_listeners[id] = nil
-   end
-
-   if self._sv.envelope_entity:is_valid() then
-      self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
-                                 :remove_structure(id)
    end
 end
 
@@ -596,8 +583,7 @@ function Building:save_to_template()
    end
    
    return {
-      structures = structures,
-      envelope_entity = build_util.pack_entity(self._sv.envelope_entity),
+      structures = structures
    }
 end
 
@@ -616,9 +602,6 @@ function Building:load_from_template(template, options, entity_map)
          }
       end
    end
-   self._sv.envelope_entity = build_util.unpack_entity(template.envelope_entity, entity_map)
-   self._sv.envelope_entity:set_debug_text(string.format('envelope for %s', tostring(self._entity)))
-
    self.__saved_variables:mark_changed()
 end
 
@@ -627,9 +610,6 @@ function Building:finish_restoring_template()
       return
    end
    self:_restore_structure_traces()
-
-   self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
-                              :finish_restoring_template()
 
    for _, structures in pairs(self._sv.structures) do
       for _, entry in pairs(structures) do

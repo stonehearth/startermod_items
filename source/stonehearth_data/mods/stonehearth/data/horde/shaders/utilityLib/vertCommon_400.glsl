@@ -12,6 +12,12 @@
 uniform mat4 viewMat;
 uniform mat4 worldMat;
 uniform mat3 worldNormalMat;
+uniform float modelScale;
+
+#ifdef DRAW_SKINNED
+in float boneIndex;
+uniform mat4 bones[48];
+#endif
 
 #ifdef DRAW_WITH_INSTANCING
 in mat4 transform;
@@ -21,10 +27,16 @@ vec4 calcWorldPos( const vec4 pos )
 {
 
 #ifdef DRAW_WITH_INSTANCING
-  return transform * pos;
+  mat4 tr = transform;
 #else 
-  return worldMat * pos;
+  mat4 tr = worldMat;
 #endif
+
+#ifdef DRAW_SKINNED
+  tr = tr * bones[int(boneIndex)];
+#endif
+
+  return tr * vec4(pos.xyz * modelScale, 1.0);
 }
 
 vec4 calcViewPos( const vec4 pos )
@@ -35,15 +47,21 @@ vec4 calcViewPos( const vec4 pos )
 vec3 calcWorldVec( const vec3 vec )
 {
 #ifdef DRAW_WITH_INSTANCING
-  return (transform * vec4(vec, 0)).xyz;
+  mat4 tr = transform;
 #else
-  return (worldMat * vec4(vec, 0)).xyz;
+  mat4 tr = worldMat;
 #endif
+
+#ifdef DRAW_SKINNED
+  tr = tr * bones[int(boneIndex)];
+#endif
+
+  return (tr * vec4(vec, 0)).xyz;
 }
 
 float getWorldScale()
 {
-  return length(calcWorldVec(normalize(vec3(1.0, 0.0, 0.0))));
+  return modelScale;
 }
 
 mat3 calcTanToWorldMat( const vec3 tangent, const vec3 bitangent, const vec3 normal )

@@ -52,13 +52,9 @@
 	H3DNode  - handle to scene node (type: int32)
 */
 typedef int H3DRes;
-typedef int H3DNode;
-
-
-/*	Constants: Predefined constants
-	H3DRootNode  - Scene root node handle
-*/
-const H3DNode H3DRootNode = 1;
+typedef unsigned int H3DSceneId;
+typedef unsigned int H3DNodeId;
+typedef unsigned int H3DNode;
 
 
 struct H3DGpuCaps
@@ -531,6 +527,7 @@ struct H3DVoxelMeshNodeParams
 		VertREndI,
 		LodLevelI,
       NoInstancingI,
+		GeoResI,
 	};
 };
 
@@ -553,15 +550,15 @@ struct H3DModel
 	*/
 	enum List
 	{
-		GeoResI = 200,
-		SWSkinningI,
+		SWSkinningI = 200,
 		LodDist1F,
 		LodDist2F,
 		LodDist3F,
 		LodDist4F,
       PolygonOffsetEnabledI,
       PolygonOffsetF,
-      UseCoarseCollisionBoxI
+      UseCoarseCollisionBoxI,
+      ModelScaleF,
 	};
 };
 
@@ -820,6 +817,11 @@ DLL bool h3dInit(int glMajor, int glMinor, bool msaaWindowSupported, bool enable
 DLL void h3dRelease();
 DLL void h3dReset();
 
+DLL H3DNode h3dGetRootNode(H3DSceneId sceneId);
+
+DLL H3DSceneId h3dGetSceneForNode(H3DNode node);
+
+DLL H3DSceneId h3dAddScene(const char* name);
 
 /* Function: h3dRender
 		Main rendering function.
@@ -1865,7 +1867,7 @@ DLL int h3dFindNodes( H3DNode startNode, const char *name, int type );
 	Returns:
 		handle to scene node from findNodes query or 0 if result doesn't exist
 */
-DLL H3DNode h3dGetNodeFindResult( int index );
+DLL H3DNode h3dGetNodeFindResult(H3DSceneId sceneId, int index );
 
 /* Function: h3dCastRay
 		Performs a recursive ray collision query.
@@ -1905,7 +1907,7 @@ DLL int h3dCastRay( H3DNode node, float ox, float oy, float oz, float dx, float 
 	Returns:
 		true if index was valid and data could be copied, otherwise false
 */
-DLL bool h3dGetCastRayResult( int index, H3DNode *node, float *distance, float *intersection, float *normal );
+DLL bool h3dGetCastRayResult(H3DSceneId sceneId, int index, H3DNode *node, float *distance, float *intersection, float *normal );
 
 /*	Function: h3dCheckNodeVisibility
 		Checks if a node is visible.
@@ -1961,7 +1963,7 @@ DLL H3DNode h3dAddGroupNode( H3DNode parent, const char *name );
 		handle to the created node or 0 in case of failure
 */
 DLL H3DNode h3dAddModelNode( H3DNode parent, const char *name, H3DRes geometryRes );
-DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name, H3DRes voxelGeometryRes );
+DLL H3DNode h3dAddVoxelModelNode( H3DNode parent, const char *name );
 DLL H3DNode h3dAddInstanceNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes geometryRes, int maxInstances );
 DLL void* h3dMapNodeParamV( H3DNode node, int param);
 DLL void h3dUnmapNodeParamV( H3DNode node, int param, int mappedLength);
@@ -2077,8 +2079,9 @@ DLL bool h3dSetModelMorpher( H3DNode modelNode, const char *target, float weight
 */
 DLL H3DNode h3dAddMeshNode( H3DNode parent, const char *name, H3DRes materialRes, 
                             int batchStart, int batchCount, int vertRStart, int vertREnd );
-DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes );
+DLL H3DNode h3dAddVoxelMeshNode( H3DNode parent, const char *name, H3DRes materialRes, H3DRes voxelGeometryRes );
 
+DLL H3DNode h3dAddVoxelJointNode( H3DNode parent, const char *name, int jointIndex );
 
 /* Group: Joint-specific scene graph functions */
 /* Function: h3dAddJointNode

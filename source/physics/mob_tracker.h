@@ -22,6 +22,7 @@ public:
    void Initialize() override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
    bool Intersects(csg::CollisionBox const& worldBounds) const override;
+   void ClipRegion(csg::CollisionShape& region) const override { };
 
    csg::CollisionShape const& GetWorldShape() const { return worldShape_; }
 protected:

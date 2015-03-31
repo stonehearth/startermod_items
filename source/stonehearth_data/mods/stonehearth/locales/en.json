@@ -406,6 +406,7 @@
    "building_designer_undo" : "undo",
    "building_designer_template_name" : "Template Name",
    "building_designer_template_name_prompt" : "Enter a name for this template",
+   "building_templates" : "Building Templates",
 
    "0_score" : "Wretched",
    "1_score" : "Miserable",

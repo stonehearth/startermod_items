@@ -134,7 +134,7 @@ function StructureEraser:_start_erase_floor_tool()
       :set_find_support_filter(stonehearth.selection.make_delete_floor_xz_region_support_filter())
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
-            local n = _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.json', Point3(0.5, 0, 0.5))
+            local n = _radiant.client.create_voxel_node(H3DRootNode, Region3(box), 'materials/blueprint.material.json', Point3(0.5, 0, 0.5))
             n:set_polygon_offset(-5, -5)
             return n
          end)

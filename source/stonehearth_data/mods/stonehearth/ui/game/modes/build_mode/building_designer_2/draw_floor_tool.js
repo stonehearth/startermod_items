@@ -5,8 +5,6 @@ var DrawFloorTool;
 
       toolId: 'drawFloorTool',
       materialClass: 'floorMaterial',
-      materialTabId: 'floorMaterialTab',
-      brush: null,
 
       handlesType: function(type) {
          return type == 'floor';
@@ -21,7 +19,8 @@ var DrawFloorTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.buildFloor(self.brush);
+               var brush = self._materialHelper.getSelectedBrush();
+               return App.stonehearthClient.buildFloor(brush);
             });
       },
 
@@ -31,35 +30,25 @@ var DrawFloorTool;
             .done(function(json) {
                self.buildingParts = json;
 
-               var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Floor', self.materialClass, self.buildingParts.floorPatterns, 
-                  function(brush) {
-                     self.brush = brush;
+               var click = function(brush) {
+                  // Re/activate the floor tool with the new material.
+                  self.buildingDesigner.activateTool(self.buildTool);
+               };
 
-                     // Remember what we've selected.
-                     self.buildingDesigner.saveKey('floorBrush', brush);
+               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+               root.append(tab);
 
-                     // Re/activate the floor tool with the new material.
-                     self.buildingDesigner.activateTool(self.buildTool);
-                  }
-               );
+               self._materialHelper = new MaterialHelper(tab,
+                                                         self.buildingDesigner,
+                                                         'Floor',
+                                                         self.materialClass,
+                                                         self.buildingParts.floorPatterns,
+                                                         click);
          });
       },
 
-      addButtonMarkup: function(root) {
-         root.append(
-            $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Draw floor'})
-         );
-      },
-
       restoreState: function(state) {
-         var self = this;
-
-         var selector = state.floorBrush ? '[brush="' + state.floorBrush + '"]' :  '.' + self.materialClass;
-         var selectedMaterial = $($(selector)[0]);
-         
-         selectedMaterial.addClass('selected');
-         self.brush = selectedMaterial.attr('brush');
+         this._materialHelper.restoreState(state);
       }
    });
 })();

@@ -151,11 +151,11 @@ SceneNode *ToastNode::factoryFunc(const SceneNodeTpl &nodeTpl)
    return new ToastNode(static_cast<const ToastTpl&>(nodeTpl));
 }
 
-void ToastNode::renderFunc(std::string const& shaderContext, std::string const& theClass, bool debugView,
+void ToastNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_ToastNode)) {
+   for (const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_ToastNode)) {
       ToastNode *toast = (ToastNode *)entry.node;
 
       if (!fontMaterial_) {

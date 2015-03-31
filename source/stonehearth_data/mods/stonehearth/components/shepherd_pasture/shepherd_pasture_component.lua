@@ -7,9 +7,6 @@ function ShepherdPastureComponent:initialize(entity, json)
 
    self.default_type = json.default_type
 
-   --On init or load, the timer is always nil
-   self._reproduction_timer = nil
-
    if not self._sv.initialized then
       self._sv.initialized = true
       self._sv.pasture_data = json.pasture_data
@@ -21,23 +18,25 @@ function ShepherdPastureComponent:initialize(entity, json)
       --If we're loading, we can just create the tasks
       
       --also, if there is an outstanding reproduction timer, we should create that
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
          self:_create_animal_collection_tasks()
          self:_create_animal_listeners()
-         self:_create_load_timer()
-         self:_create_stray_timer()
-         return radiant.events.UNLISTEN
+         self:_load_timers()
       end)
    end
 end
 
--- Resumes the reproduction timer if it was going while we saved
-function ShepherdPastureComponent:_create_load_timer()
-   if self._sv._expiration_time then
-      local duration = self._sv._expiration_time - stonehearth.calendar:get_elapsed_time()
-      self._reproduction_timer = stonehearth.calendar:set_timer(duration, function() 
+-- Resumes timers if they were going while we saved
+function ShepherdPastureComponent:_load_timers()
+   if self._sv.reproduction_timer then
+      self._sv.reproduction_timer:bind(function() 
          self:_reproduce_animal()
       end)
+   end
+   if self._sv.stray_interval_timer then
+      self._sv.stray_interval_timer:bind(function()
+            self:_collect_strays()
+         end)
    end
 end
 
@@ -46,12 +45,17 @@ end
 function ShepherdPastureComponent:destroy()
    self:_destroy_animal_collection_tasks()
 
-   if self._stray_interval_timer then
-      self._stray_interval_timer:destroy()
-      self._stray_interval_timer = nil
+   if self._sv.stray_interval_timer then
+      self._sv.stray_interval_timer:destroy()
+      self._sv.stray_interval_timer = nil
    end
 
-   self:_release_existing_animals()
+   if self._sv.reproduction_timer then
+      self._sv.reproduction_timer:destroy()
+      self._sv.reproduction_timer = nil
+   end
+
+  self:_release_existing_animals()
 end
 
 
@@ -88,6 +92,7 @@ function ShepherdPastureComponent:set_pasture_type(new_animal_type)
    self._sv.pasture_type = new_animal_type
    self:_create_animal_collection_tasks()
    self:_create_stray_timer()
+   self.__saved_variables:mark_changed()
 end
 
 function ShepherdPastureComponent:get_pasture_type()
@@ -120,6 +125,7 @@ function ShepherdPastureComponent:add_animal(animal)
    self:_listen_for_renewables(animal)
    self:_create_harvest_task(animal)
 
+   self.__saved_variables:mark_changed()
    radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
 end
 
@@ -138,6 +144,7 @@ end
 function ShepherdPastureComponent:_listen_for_renewables(animal)
    local event = radiant.events.listen(animal, 'stonehearth:on_renewable_resource_renewed', self, self._on_animal_renewable_renewed)
    self._sv.tracked_critters[animal:get_id()].renew_event = event
+   self.__saved_variables:mark_changed()
 end
 
 --When a renewable has come back, send the shepherds to go farm it
@@ -178,6 +185,7 @@ function ShepherdPastureComponent:_release_existing_animals()
       end       
    end
    self._sv.tracked_critters = {}
+   self.__saved_variables:mark_changed()
 end
 
 --Removes the animal from the pasture, but only once
@@ -196,6 +204,7 @@ function ShepherdPastureComponent:remove_animal(animal_id)
       assert(self._sv.num_critters >= 0)
       self:_calculate_reproduction_timer()
 
+      self.__saved_variables:mark_changed()
       radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
    end
 end
@@ -223,9 +232,12 @@ function ShepherdPastureComponent:_destroy_animal_collection_tasks()
    end
 end
 
---Given the interval, find the strays
+--Given the interval, find the strays.
 function ShepherdPastureComponent:_create_stray_timer()
-   self._stray_interval_timer = stonehearth.calendar:set_interval(self._sv.check_for_strays_interval, function()
+   if self._sv.stray_interval_timer then
+      return
+   end
+   self._sv.stray_interval_timer = stonehearth.calendar:set_interval(self._sv.check_for_strays_interval, function()
       self:_collect_strays()
    end)
 end
@@ -286,12 +298,12 @@ function ShepherdPastureComponent:_calculate_reproduction_timer()
 
    --If we already have a reproduction timer, then don't start a new one
    --if we don't have an interval, don't start the timer
-   if not self._reproduction_timer and self._sv.reproduction_time_interval then 
-      self._reproduction_timer = stonehearth.calendar:set_timer(self._sv.reproduction_time_interval, function()
+   if not self._sv.reproduction_timer and self._sv.reproduction_time_interval then 
+      self._sv.reproduction_timer = stonehearth.calendar:set_timer(self._sv.reproduction_time_interval, function()
          self:_reproduce_animal()
       end)
-      self._sv._expiration_time = self._reproduction_timer:get_expire_time()
    end
+   self.__saved_variables:mark_changed()
 end
 
 -- If there's less than 2 critters, no reproduction, stop conversations about widowed pregnant sheep right here
@@ -317,11 +329,13 @@ function ShepherdPastureComponent:_reproduce_animal()
    radiant.effects.run_effect(animal, '/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json')
 
    --Nuke the timer, we're done with it
-   self._reproduction_timer = nil
-   self._sv._expiration_time = nil
-
+   if self._sv.reproduction_timer then
+      self._sv.reproduction_timer:destroy()
+      self._sv.reproduction_timer = nil
+   end
    --start the timer again
    self:_calculate_reproduction_timer()
+   self.__saved_variables:mark_changed()
 end
 
 return ShepherdPastureComponent

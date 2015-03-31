@@ -32,7 +32,6 @@ struct VoxelGeometryResData
 		VoxelGeometryElem = 2000,
 		VoxelGeoIndexCountI,
 		VoxelGeoVertexCountI,
-		VoxelGeoIndices16I,
 		VoxelGeoIndexStream,
 		VoxelGeoVertexStream,
 	};
@@ -43,6 +42,7 @@ struct VoxelGeometryResData
 struct VoxelVertexData
 {
    Vec3f  pos;
+   float boneIndex;
 	Vec3f  normal;
 	Vec4f  color;
 };
@@ -74,7 +74,7 @@ public:
 	void updateDynamicVertData();
 
 	uint32 getVertCount() const { return _vertCount; }
-	char *getIndexData() const { return _indexData; }
+	uint32* getIndexData() const { return _indexData; }
 	VoxelVertexData *getVertexData() const { return _vertexData; }
 	uint32 getVertexBuf() const { return _vertexBuf; }
 	uint32 getIndexBuf() const { return _indexBuf; }
@@ -94,10 +94,9 @@ private:
 	int                         _mappedWriteStream;
 	uint32                      _indexBuf, _vertexBuf;
 	uint32                      _indexCount, _vertCount;
-	bool                        _16BitIndices;
-	char                        *_indexData;
+	uint32                      *_indexData;
 	VoxelVertexData             *_vertexData;
-
+   
    int                         _vertexOffsets[5], _indexOffsets[5];
    int                         _numLodLevels;
 

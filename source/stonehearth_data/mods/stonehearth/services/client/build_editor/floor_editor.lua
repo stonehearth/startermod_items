@@ -56,7 +56,7 @@ function FloorEditor:go(response, floor_uri, options)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)
-            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.json', Point3.zero)
+            local node =  _radiant.client.create_voxel_node(H3DRootNode, model, 'materials/blueprint.material.json', Point3.zero)
             node:set_position(MODEL_OFFSET)
             node:set_polygon_offset(-5, -5)
 
@@ -95,9 +95,6 @@ function FloorEditor:_add_floor(response, selector, box, floor_uri)
    _radiant.call_obj(self._build_service, 'add_floor_command', floor_uri, box)
       :done(function(r)
             log:detail('server call to create floor finished')
-            if r.new_selection then
-               stonehearth.selection:select_entity(r.new_selection)
-            end
             response:resolve(r)
          end)
       :fail(function(r)

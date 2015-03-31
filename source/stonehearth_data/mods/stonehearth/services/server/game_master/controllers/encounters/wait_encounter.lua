@@ -6,9 +6,7 @@ function WaitEncounter:activate()
    if self._sv.timer then
 
       self._sv.timer:bind(function()
-         local ctx = self._sv.ctx
-         self._sv.timer = nil
-         ctx.arc:trigger_next_encounter(ctx)
+         self:_timer_callback()
       end)
    end
 end
@@ -25,10 +23,17 @@ function WaitEncounter:start(ctx, info)
    self._log:info('setting wait timer for %s', tostring(timeout))
    self._sv.ctx = ctx
    self._sv.timer = stonehearth.calendar:set_timer(timeout, function()
-         self._sv.timer = nil
-         self.__saved_variables:mark_changed()
-         ctx.arc:trigger_next_encounter(ctx)
+         self:_timer_callback()
       end)
+end
+
+function WaitEncounter:_timer_callback()
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
+   end
+   self.__saved_variables:mark_changed()
+   self._sv.ctx.arc:trigger_next_encounter(self._sv.ctx)
 end
 
 function WaitEncounter:stop()

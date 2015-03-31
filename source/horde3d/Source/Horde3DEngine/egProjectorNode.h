@@ -66,7 +66,7 @@ private:
 
    PMaterialResource _matRes;
 	
-   friend class SceneManager;
+   friend class Scene;
 	friend class Renderer;
 };
 

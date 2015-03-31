@@ -68,3 +68,12 @@ bool TerrainTileTracker::Intersects(csg::CollisionBox const& worldBounds) const
    }
    return false;
 }
+
+void TerrainTileTracker::ClipRegion(csg::CollisionShape& clipped) const
+{
+   om::Region3BoxedPtr region = region_.lock();
+   if (region) {
+      clipped -= csg::ToFloat(region->Get());
+   }
+}
+

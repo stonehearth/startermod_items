@@ -72,13 +72,16 @@ function PopulationFaction:create_town_name()
    return composite_name
 end
 
-function PopulationFaction:create_new_citizen()
+function PopulationFaction:create_new_citizen(role)
    local gender
+   checks("self", "?string")
 
-   -- xxx, replace this with a coin flip using rng
-   if not self._always_one_girl_hack then
+   if not role then
+      role = "default"
+   end
+
+   if radiant.empty(self._sv.citizens) then
       gender = 'female'
-      self._always_one_girl_hack = true
    else 
       if rng:get_int(1, 2) == 1 then
          gender = 'male'
@@ -87,8 +90,15 @@ function PopulationFaction:create_new_citizen()
       end
    end
 
-   
-   local entities = self._data[gender .. '_entities']
+   local roles = self._data.roles[role]
+   if not roles then
+      error(string.format('unknown role %s in population', role))
+   end
+   local entities = roles[gender]
+   if not entities then
+      error(string.format('role %s in population has no gender table for %s', role, gender))
+   end
+
    local kind = entities[rng:get_int(1, #entities)]
    local citizen = radiant.entities.create_entity(kind, { owner = self._sv.player_id })
    

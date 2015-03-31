@@ -420,7 +420,7 @@ function BuildService:add_fabricator(blueprint)
    fabricator:add_component('stonehearth:fabricator')
                   :start_project(blueprint)   
 
-   self:_bind_fabricator_to_blueprint(blueprint, fabricator, 'stonehearth:fabricator')
+   build_util.bind_fabricator_to_blueprint(blueprint, fabricator, 'stonehearth:fabricator')
 
    return fabricator
 end
@@ -438,34 +438,6 @@ function BuildService:_bind_building_to_blueprint(building, blueprint)
 
    blueprint:add_component('stonehearth:construction_progress')
                :set_building_entity(building)
-end
-
-function BuildService:_bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
-   local fabricator_component = fabricator:get_component(fabricator_component_name)
-   assert(fabricator_component)
-   
-   local building = build_util.get_building_for(blueprint)
-   local project = fabricator_component:get_project()
-   if project then
-      local cd_component = project:get_component('stonehearth:construction_data')
-      if cd_component then
-         cd_component:set_building_entity(building)
-                     :set_fabricator_entity(fabricator)
-      end
-   end
-   blueprint:get_component('stonehearth:construction_progress')
-               :set_fabricator_entity(fabricator, fabricator_component_name)
-               
-   -- fixtures, for example, don't have construction data.  so check first!
-   local cd_component = blueprint:get_component('stonehearth:construction_data')
-   if cd_component then
-      cd_component:set_fabricator_entity(fabricator)
-   end
-
-   -- track the structure in the building component.  the building component is
-   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
-   building:get_component('stonehearth:building')
-               :add_structure(blueprint)
 end
 
 -- adds a new `blueprint` entity to the specified `building` entity at the optional
@@ -768,20 +740,35 @@ function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    local c1 = self:_get_blueprint_at_point(p1)
    local either_column = c0 or c1
    local building
+
    if c0 and c1 then
+      -- connecting two existing columns.  
       local b0 = build_util.get_building_for(c0)
       local b1 = build_util.get_building_for(c1)
       assert(b0 == b1) -- merge required
       building = b0
    elseif either_column then
+      -- connecting to just one column.  that's ok too!
       building = build_util.get_building_for(either_column)
    else
+      -- hm.  brand new wall.  see if we can find another building near it.  for
+      -- now, that means just below (e.g. if we're stacking walls)
+      local box = _radiant.csg.construct_cube3(p0 - Point3.unit_y, p1 + normal, 0)
+      local all_overlapping = radiant.terrain.get_entities_in_cube(box, function(entity)
+            return build_util.is_blueprint(entity)
+         end)
+      if next(all_overlapping) then
+         -- yay!  merge all this stuff together and go!
+         building = choose_merge_survivor(all_overlapping)
+         self:_merge_blueprints_into(building, all_overlapping)         
+      end
+   end
+   if not building then
+      -- all our efforts have failed!  make a brand new building for this wall.
       building = self:_create_new_building(session, p0)
    end
 
-   assert(building)
-   local wall = self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
-   return wall
+   return self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
 end
 
 -- add walls around all the floor segments for the specified `building` which
@@ -984,7 +971,7 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
    fab_component:set_always_show_ghost(always_show_ghost)
    fab_component:start_project(fixture_or_uri, normal, rotation)
 
-   self:_bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
+   build_util.bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
 
    return fab_component
 end
@@ -1199,8 +1186,8 @@ function BuildService:request_ladder_to(owner, climb_to, normal)
    return self._sv.ladder_manager:request_ladder_to(owner, climb_to, normal)
 end
 
-function BuildService:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
-   return self._sv.scaffolding_manager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal)
+function BuildService:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal, stand_at_base)
+   return self._sv.scaffolding_manager:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal, stand_at_base)
 end
 
 function BuildService:instabuild_command(session, response, building)

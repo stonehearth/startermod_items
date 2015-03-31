@@ -21,7 +21,7 @@ void client::CreateRegionDebugShape(om::EntityRef entityRef,
    std::string name = "debug region " + stdutil::ToString(count++);
 
    // add under the root node since we're providing world coordinates
-   H3DNode s = h3dRadiantAddDebugShapes(1, name.c_str());
+   H3DNode s = h3dRadiantAddDebugShapes(h3dGetRootNode(0), name.c_str());
    shape = H3DNodeUnique(s);
 
    trace->OnChanged([s, color, entityRef](BoxedRegion::Value const& localRegion) {

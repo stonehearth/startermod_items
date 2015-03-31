@@ -90,6 +90,7 @@ function GeneratorEncounter:_start_timer()
 
    if self._sv.timer then
       self._sv.timer:destroy()
+      self._sv.timer = nil
    end
 
    self._sv.timer = stonehearth.calendar:set_timer(delay, function()

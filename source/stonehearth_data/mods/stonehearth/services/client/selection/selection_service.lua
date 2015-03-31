@@ -128,11 +128,6 @@ function SelectionService.designation_can_contain(entity)
       return false
    end
 
-   local ncz = entity:get_component('stonehearth:no_construction_zone')
-   if ncz then
-      return false
-   end
-   
    -- designations cannot contain other designation, either
    if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
       return false
@@ -157,12 +152,6 @@ function SelectionService.floor_can_contain(entity)
 
    if entity:get_component('terrain') then
       return false
-   end
-
-   -- explicitly allow no_construction_zones
-   local ncz = entity:get_component('stonehearth:no_construction_zone')
-   if ncz then
-      return true
    end
    
    return true
@@ -335,7 +324,7 @@ function SelectionService:query_pathfinder_command(session, response)
       region:add_cube(Cube3(Point3(-20, -1, -1), Point3(20, 1, 1), color))
       region:add_cube(Cube3(Point3(-1, -1, -20), Point3(1, 1, 20), color))
 
-      local node = _radiant.client.create_voxel_node(1, region, 'materials/voxel.material.json', Point3.zero)
+      local node = _radiant.client.create_voxel_node(H3DRootNode, region, 'materials/voxel.material.json', Point3.zero)
                                        :set_position(pt)
                                        :set_scale(Point3(0.1, 0.1, 0.1))
 

@@ -20,7 +20,6 @@ local SAVED_COMPONENTS = {
    ['stonehearth:fixture_fabricator'] = true,      -- for placed item locations
    ['stonehearth:construction_data'] = true,       -- for nine grid info
    ['stonehearth:construction_progress'] = true,   -- for dependencies
-   ['stonehearth:no_construction_zone'] = true,    -- for footprint
 }
 
 function build_util.rotated_degrees(value, degrees)
@@ -166,8 +165,7 @@ end
 local function save_all_structures_to_template(entity)
    -- compute the save order by walking the dependencies.  
    if not build_util.is_blueprint(entity) and
-      not build_util.is_building(entity) and
-      not build_util.is_footprint(entity) then
+      not build_util.is_building(entity) then
       return nil
    end
 
@@ -212,10 +210,6 @@ end
 function build_util.is_fabricator(entity)
    return entity:get_component('stonehearth:fabricator') ~= nil or
           entity:get_component('stonehearth:fixture_fabricator') ~= nil
-end
-
-function build_util.is_footprint(entity)
-   return entity:get_component('stonehearth:no_construction_zone') ~= nil
 end
 
 function build_util.has_walls(building)
@@ -587,6 +581,45 @@ function build_util.grow_walls_around(floor, visitor_fn)
       if min ~= max then
          visitor_fn(min, max, normal)
       end
+   end
+end
+
+
+function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
+   local fabricator_component = fabricator:get_component(fabricator_component_name)
+   assert(fabricator_component)
+   
+   -- get the building for this blueprint.  everyone must have a building by now, except
+   -- scaffolding.  scaffolding parts are managed by the scaffolding_manager.
+   local building = build_util.get_building_for(blueprint)
+   if not building then
+      assert(blueprint:get_uri() == 'stonehearth:scaffolding')
+   end
+   
+   local project = fabricator_component:get_project()
+   if project then
+      local cd_component = project:get_component('stonehearth:construction_data')
+      if cd_component then
+         if building then
+            cd_component:set_building_entity(building)
+         end
+         cd_component:set_fabricator_entity(fabricator)
+      end
+   end
+   blueprint:get_component('stonehearth:construction_progress')
+               :set_fabricator_entity(fabricator, fabricator_component_name)
+               
+   -- fixtures, for example, don't have construction data.  so check first!
+   local cd_component = blueprint:get_component('stonehearth:construction_data')
+   if cd_component then
+      cd_component:set_fabricator_entity(fabricator)
+   end
+
+   -- track the structure in the building component.  the building component is
+   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
+   if building then
+      building:get_component('stonehearth:building')
+                  :add_structure(blueprint)
    end
 end
 

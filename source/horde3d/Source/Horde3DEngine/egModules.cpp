@@ -148,6 +148,8 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
       InstanceNode::parsingFunc, InstanceNode::factoryFunc, Renderer::drawInstanceNode, 0x0 );
    sceneMan().registerType( SceneNodeTypes::ProjectorNode, "ProjectorNode",
       ProjectorNode::parsingFunc, ProjectorNode::factoryFunc, 0x0, 0x0 );
+   sceneMan().registerType( SceneNodeTypes::VoxelJointNode, "VoxelJointNode",
+      VoxelJointNode::parsingFunc, VoxelJointNode::factoryFunc, 0x0, 0x0 );
 	
 	// Install extensions
 	installExtensions();

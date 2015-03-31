@@ -90,6 +90,10 @@ function Fabricator:destroy()
    end
 end
 
+function Fabricator:set_scaffolding(scaffolding)
+   self._scaffolding = scaffolding
+end
+
 function Fabricator:set_active(active)
    self._active = active
    if self._active then
@@ -331,8 +335,6 @@ function Fabricator:remove_block(location)
 end
 
 function Fabricator:_start_project()
-   local run_teardown_task, run_fabricate_task
-
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
@@ -342,26 +344,24 @@ function Fabricator:_start_project()
       return
    end
 
-   if self._active and self._can_start then
-      if self._should_teardown then
-         run_teardown_task = true
-      else
-         run_fabricate_task = true
-      end
-   end
-   
+   local active = self._active and self._can_start
+
+
    -- Now apply the deltas.  Create tasks that need creating and destroy
    -- ones that need destroying.
-   if run_teardown_task then
-      self:_start_teardown_task()
+   if active then
+      if self._should_teardown then
+         self:_start_teardown_task()
+      else
+         self:_start_fabricate_task()
+      end
    else
       self:_destroy_teardown_task()
-   end
-   
-   if run_fabricate_task then
-      self:_start_fabricate_task()
-   else
       self:_destroy_fabricate_task()
+   end
+
+   if self._scaffolding then
+      self._scaffolding:set_active(active)
    end
 end
 
@@ -492,8 +492,9 @@ function Fabricator:_update_dst_region()
 
       -- project each column down to the base
       local dr = Region3()      
+      local bottom = shape_region:get_bounds().min.y
       for pt in dst_region:each_point() do
-         pt.y = 0
+         pt.y = bottom
          while not shape_region:contains(pt) do
             pt.y = pt.y + 1
          end
@@ -510,9 +511,18 @@ function Fabricator:_update_dst_region()
    -- Any region that needs mining should be removed from our destination region.
    for zone, mining_dst in pairs(self._mining_zones) do
       local mining_region = mining_dst:get_region():get()
-      local fab_mining_region = mining_region:translated(-radiant.entities.get_world_location(radiant.entities.get_parent(self._entity)) + radiant.entities.get_world_location(zone))
+      if not mining_region:empty() then
+         local parent = radiant.entities.get_parent(self._entity)
+         local parent_pos = radiant.entities.get_world_location(parent)
+         local zone_pos = radiant.entities.get_world_location(zone)
+         if parent_pos == nil then
+            parent_pos = Point3(0, 0, 0)
+         end
+         local offset = zone_pos - parent_pos
+         local fab_mining_region = mining_region:translated(offset)
 
-      dst_region:subtract_region(fab_mining_region)
+         dst_region:subtract_region(fab_mining_region)
+      end
    end
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
@@ -527,15 +537,6 @@ function Fabricator:_update_dst_adjacent()
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
    local adjacent = available:get_adjacent(allow_diagonals)
-
-
-   -- if there's a normal, stencil off the adjacent blocks pointing in
-   -- in the opposite direction.  this is to stop people from working on walls
-   -- from the inside of the building (lest they be trapped!)
-   local normal = self._blueprint_construction_data:get_normal()
-   if normal then
-      adjacent:subtract_region(dst_rgn:translated(-normal))
-   end
 
    if self._blueprint_construction_data:get_allow_crouching_construction() then
       adjacent:add_region(adjacent:translated(Point3(0, 1, 0)))

@@ -1,5 +1,8 @@
 {
     "goblins": {
       "kingdom" : "stonehearth:kingdoms:goblin"
-    }
+    },
+    "undead": {
+      "kingdom" : "stonehearth:kingdoms:undead"
+    }    
 }

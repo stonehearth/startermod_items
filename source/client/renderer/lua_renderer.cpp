@@ -21,6 +21,11 @@ void H3DNodeUnique_Destroy(H3DNodeUnique &node)
    node.reset(0);
 }
 
+H3DNode Renderer_GetRootNode(lua_State*L, H3DSceneId sceneId)
+{
+   return h3dGetRootNode(sceneId);
+}
+
 static object GetNodeParam(lua_State* L, H3DNode node, int param)
 {
    switch (param) {
@@ -224,6 +229,16 @@ static int Renderer_GetTriCount()
    return (int)h3dGetStat(H3DStats::TriCount, false);
 }
 
+static void PortraitCamera_SetPosition(const csg::Point3f& newPosition)
+{
+   Renderer::GetInstance().GetPortraitCamera()->SetPosition(newPosition);
+}
+
+static void PortraitCamera_LookAt(const csg::Point3f& target)
+{
+   Renderer::GetInstance().GetPortraitCamera()->LookAt(target);
+}
+
 std::ostream& operator<<(std::ostream& os, RaycastResult const& r)
 {
    os << "[RaycastResult of " << r.GetNumResults() << " results]";
@@ -251,6 +266,7 @@ void LuaRenderer::RegisterType(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("renderer") [
+            def("get_root_node", &Renderer_GetRootNode),
             def("render_terrain_is_available", &Terrain_RenderTerrainIsAvailable),
             def("mark_dirty", &Terrain_MarkDirty),
             def("mark_dirty_index", &Terrain_MarkDirtyIndex),
@@ -302,6 +318,12 @@ void LuaRenderer::RegisterType(lua_State* L)
             ],
             namespace_("perf") [
                def("get_tri_count", &Renderer_GetTriCount)
+            ],
+            namespace_("portrait") [
+               namespace_("camera") [
+                  def("set_position", &PortraitCamera_SetPosition),
+                  def("look_at",      &PortraitCamera_LookAt)
+               ]
             ]
          ]
       ],
@@ -386,5 +408,5 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetGlobalUniform",             &h3dSetGlobalUniformFloat),
       def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag)
    ];
-   globals(L)["H3DRootNode"] = H3DRootNode;
+   globals(L)["H3DRootNode"] = h3dGetRootNode(0);
 };

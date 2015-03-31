@@ -1,14 +1,19 @@
 {
    "kingdom_name" : "Northern Alliance",
    "kingdom_id" : "northern_alliance",
-   "male_entities" : [
-      "stonehearth:male_1",
-      "stonehearth:male_2"
-   ],
-   "female_entities" : [
-      "stonehearth:female_1",
-      "stonehearth:female_2"
-   ],
+
+   "roles" : {
+      "default" : {
+         "male" : [
+            "stonehearth:male_1",
+            "stonehearth:male_2"
+         ],
+         "female" : [
+            "stonehearth:female_1",
+            "stonehearth:female_2"
+         ]
+      }
+   },   
    "surnames" : [
       "Finn",
       "Odilep",

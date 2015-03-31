@@ -18,7 +18,7 @@ end
 
 function LadderEditor:go(session, response)
    self._cursor = radiant.entities.create_entity(self._ladder_uri)
-   self._cursor_render_entity = _radiant.client.create_render_entity(1, self._cursor)
+   self._cursor_render_entity = _radiant.client.create_render_entity(H3DRootNode, self._cursor)
    self._cursor_mob = self._cursor:add_component('mob')
    self._cursor_vpr = self._cursor:add_component('vertical_pathing_region')
    self._cursor_vpr:set_region(_radiant.client.alloc_region3())
