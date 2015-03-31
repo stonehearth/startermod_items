@@ -7,16 +7,18 @@
          "z" : -24
       },
 
-      "citizens" : {
+      "members" : {
          "workers" : {
             "job" : "stonehearth:jobs:worker",
+            "role" : "default",
             "count" : 4
          },
          "citizenfootmen" : {
             "job" : "stonehearth:jobs:footman",
-            "count" : 3,
+            "role" : "default",
+            "count" : 4,
             "equipment" : {
-               "shield": ["stonehearth:armor:wooden_shield"]
+               "weapon" : ["stonehearth:weapons:giant_bone_axe", "stonehearth:weapons:two_handed_sword"]               
             }
          }         
       }
@@ -29,20 +31,22 @@
          "z" : 24
       },
 
-      "citizens" : {
+      "members" : {
          "raiders" : {
             "job" : "stonehearth:jobs:footman",
+            "role" : "default",
             "count" : 5,
             "equipment" : {
                "outfit" : "stonehearth:monsters:goblins:outfits:footman",
                "weapon" : ["stonehearth:weapons:jagged_cleaver"]
             }
          },
-         "_boss" : {
+         "boss" : {
             "job" : "stonehearth:jobs:footman",
+            "role" : "default",
             "equipment" : {
                "outfit" : "stonehearth:monsters:goblins:outfits:miniboss",
-               "weapon" : ["stonehearth:weapons:giant_bone_mace", "stonehearth:weapons:giant_bone_axe"]
+               "weapon" : ["stonehearth:weapons:giant_bone_axe", "stonehearth:weapons:two_handed_sword"]
             }         
          }
       }

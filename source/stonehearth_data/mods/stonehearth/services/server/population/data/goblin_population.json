@@ -1,12 +1,18 @@
 {
    "kingdom_name" : "The Golden Conquering Arm",
    "kingdom_id" : "goldarm",
-   "male_entities" : [
-      "stonehearth:monsters:goblins:goblin"
-   ],
-   "female_entities" : [
-      "stonehearth:monsters:goblins:goblin"
-   ],
+
+   "roles" : {
+      "default" : {
+         "male" : [
+            "stonehearth:monsters:goblins:goblin"
+         ],
+         "female" : [
+            "stonehearth:monsters:goblins:goblin"
+         ]
+      }
+   },
+   
    "surnames" : [
       "the Magnificent",
       "the Puce",

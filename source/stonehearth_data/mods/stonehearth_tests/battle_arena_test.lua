@@ -29,7 +29,7 @@ function BattleArenaTest:load_team(team)
    local citizen_count = 0
    local population = stonehearth.population:get_population(team.player_id)
    
-   for key, citizen_spec in pairs(team.citizens) do
+   for key, citizen_spec in pairs(team.members) do
       if not key:starts_with('_')  then
          local count = citizen_spec.count or 1
          for i = 1,count do

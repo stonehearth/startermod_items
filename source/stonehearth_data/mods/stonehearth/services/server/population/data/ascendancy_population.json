@@ -1,18 +1,23 @@
 {
    "kingdom_name" : "Ascendancy",
    "kingdom_id" : "ascendency",
-   "male_entities" : [
-      "stonehearth:male_1",
-      "stonehearth:male_1",
-      "stonehearth:male_2",
-      "stonehearth:male_3"
-   ],
-   "female_entities" : [
-      "stonehearth:female_1",
-      "stonehearth:female_1",
-      "stonehearth:female_2",
-      "stonehearth:female_3"
-   ],
+   "roles" : {
+      "default" : {
+         "male" : [
+            "stonehearth:male_1",
+            "stonehearth:male_1",
+            "stonehearth:male_2",
+            "stonehearth:male_3"
+         ],
+         "female" : [
+            "stonehearth:female_1",
+            "stonehearth:female_1",
+            "stonehearth:female_2",
+            "stonehearth:female_3"
+         ]
+      }
+   },
+
    "surnames" : [
       "Burlyhands",
       "Farstrider",
