@@ -174,9 +174,12 @@ function MiningZoneComponent:_destroy_region_trace()
 end
 
 function MiningZoneComponent:_on_region_changed()
-   -- cache the region bounds
-   self._sv.region:modify(function(cursor)
-         cursor:optimize_by_merge('mining zone region changed')
+   -- cache the region bounds.  force optimize before caching to make
+   -- sure we absolutely have the minimal region.  not having the smallest
+   -- region possible will have cascading performance problems down the
+   -- line.
+   self._sv.region:modify(function(cursor)      
+         cursor:force_optimize_by_merge('mining zone region changed')
       end)
    self.__saved_variables:mark_changed()
 

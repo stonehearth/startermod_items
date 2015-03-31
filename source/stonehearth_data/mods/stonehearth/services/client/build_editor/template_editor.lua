@@ -35,7 +35,6 @@ function TemplateEditor:_restore_template(template_name)
       -- points that must be solid below the surface (to support the building)
       local bc = self._building:get_component('stonehearth:building')
       local footprint = bc:get_building_footprint()
-                              :get()
 
       self._surface_region = Region3(footprint)
       self._surface_region:subtract_cube(UNDERGROUND)
@@ -91,10 +90,6 @@ function TemplateEditor:go(response, template_name)
             local overlapping = radiant.terrain.get_entities_in_region(surface_region)
             for _, overlap in pairs(overlapping) do
                if radiant.entities.is_solid_entity(overlap) then
-                  return stonehearth.selection.FILTER_IGNORE
-               end
-               if overlap:get_component('stonehearth:no_construction_zone') then
-                  -- don't overlap the footprint of any other building.
                   return stonehearth.selection.FILTER_IGNORE
                end
                if radiant.entities.get_entity_data(overlap, 'stonehearth:designation') then

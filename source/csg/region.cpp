@@ -468,6 +468,14 @@ std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTag() const
 }
 
 template <class S, int C>
+void Region<S, C>::ForceOptimizeByMerge(const char* reason)
+{
+   CHURN_LOG(5)  << "maxing out churn to force optimize (" << reason << ")";
+   _churn = INT_MAX;
+   OptimizeByMerge(reason);
+}
+
+template <class S, int C>
 void Region<S, C>::OptimizeByMerge(const char* reason)
 {
    size_t count = cubes_.size();
@@ -1077,6 +1085,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
    template void Cls::OptimizeByMerge(const char*); \
    template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
+   template void Cls::ForceOptimizeByMerge(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \

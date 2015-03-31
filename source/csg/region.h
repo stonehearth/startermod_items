@@ -140,6 +140,7 @@ public:
 
    void OptimizeByOctTree(const char* reason, S minCubeSize);
    void OptimizeByMerge(const char* reason);
+   void ForceOptimizeByMerge(const char* reason);
 
 public:
 #if defined(REGION_COUNT_OPTIMIZE_COMBINES)

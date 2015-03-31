@@ -40,10 +40,6 @@ function GrowWallsEditor:go(response, columns_uri, walls_uri)
       :set_cursor('stonehearth:cursors:grow_walls')
       :set_filter_fn(function(result)
             local entity = result.entity
-            if build_util.is_footprint(entity) then
-               -- ignore the building footprint entity, of course.
-               return stonehearth.selection.FILTER_IGNORE
-            end
             if radiant.entities.is_temporary_entity(entity) then
                -- one of our client-side preview entities.  bail.
                return stonehearth.selection.FILTER_IGNORE
