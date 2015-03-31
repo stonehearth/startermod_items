@@ -538,14 +538,6 @@ function Fabricator:_update_dst_adjacent()
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
    local adjacent = available:get_adjacent(allow_diagonals)
 
-   -- if there's a normal, stencil off the adjacent blocks pointing in
-   -- in the opposite direction.  this is to stop people from working on walls
-   -- from the inside of the building (lest they be trapped!)
-   local normal = self._blueprint_construction_data:get_normal()
-   if normal then
-      adjacent:subtract_region(dst_rgn:translated(-normal))
-   end
-
    if self._blueprint_construction_data:get_allow_crouching_construction() then
       adjacent:add_region(adjacent:translated(Point3(0, 1, 0)))
    end

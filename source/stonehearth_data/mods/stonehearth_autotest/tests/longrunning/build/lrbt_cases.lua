@@ -256,4 +256,15 @@ function lrbt_cases.giant_slab(autotest, session)
 end
 
 
+function lrbt_cases.obstructed_walls(autotest, session)
+   return {
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(0, 10, 0), Point3(4, 10, 0))
+      end,
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(0, 10, 1), Point3(4, 10, 1))
+      end,
+   }
+end
+
 return lrbt_cases
