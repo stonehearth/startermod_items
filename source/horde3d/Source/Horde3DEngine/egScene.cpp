@@ -544,6 +544,10 @@ inline void GridSpatialGraph::unhashGridHash(uint32 hash, int* x, int* y) const
 
 void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
 {
+   if(!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
+      return;
+   }
+
    radiant::perfmon::TimelineCounterGuard un("gsg:updateNode");
    NodeHandle nh = sceneNode.getHandle();
    BoundingBox const& sceneBox = sceneNode.getBBox();
