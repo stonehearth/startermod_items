@@ -1042,9 +1042,16 @@ void Renderer::Initialize()
    // Add another camera--this is exclusively for the fog-of-war pipeline.
    fowCamera_ = new Camera(fowSceneRoot_, "FowCamera");
 
-   portraitTexRes_ = h3dCreateTexture("portraitTexture", 512, 512, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
    portraitCamera_ = new Camera(portraitSceneRoot_, "PortraitCamera");
+   portraitTexRes_ = h3dCreateTexture("portraitTexture", 512, 512, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportXI, 0);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportYI, 0);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportWidthI, 512);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportHeightI, 512);
    h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::OutTexResI, portraitTexRes_);
+   h3dSetupCameraView(portraitCamera_->GetNode(), 45.0f, 1.0, 2.0f, 500.0f);
+
+   h3dGetNodeTransform(portraitCamera_->GetNode(), nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 
    debugShapes_ = h3dRadiantAddDebugShapes(mainSceneRoot_, "renderer debug shapes");
 
@@ -1207,6 +1214,9 @@ void Renderer::RenderPortraitRT()
    if (portrait_requested_) {
       portrait_requested_ = false;
       portrait_generated_ = true;
+
+      // Turn off the UI to render the portrait.
+      SetStageEnable(GetPipeline(currentPipeline_), "Overlays", false);
       h3dRender(portraitCamera_->GetNode(), GetPipeline(currentPipeline_));
 
    } else if (portrait_generated_) {

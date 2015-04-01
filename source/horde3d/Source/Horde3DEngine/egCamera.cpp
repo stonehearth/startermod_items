@@ -158,9 +158,11 @@ void CameraNode::setParamI( int param, int value )
 		return;
 	case CameraNodeParams::ViewportWidthI:
 		_vpWidth = value;
+   	markDirty(SceneNodeDirtyKind::Ancestors);
 		return;
 	case CameraNodeParams::ViewportHeightI:
 		_vpHeight = value;
+   	markDirty(SceneNodeDirtyKind::Ancestors);
 		return;
 	case CameraNodeParams::OrthoI:
 		_orthographic = (value == 1);

@@ -3325,6 +3325,11 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
    _curPipeline = pRes;
 	if( _curCamera == 0x0 ) return;
 
+   // Make sure all the nodes have been transformed appropriately (in particular, the camera may have been
+   // moved, and since we touch it directly for rendering, lets make sure its transforms are updated before
+   // using it.
+   Modules::sceneMan().sceneForNode(camNode->getHandle()).updateNodes();
+
    const SceneId sceneId = Modules::sceneMan().sceneIdFor(camNode->getHandle());
    gRDI->_frameDebugInfo.setViewerFrustum_(camNode->getFrustum());
    gRDI->_frameDebugInfo.addShadowCascadeFrustum_(camNode->getFrustum());

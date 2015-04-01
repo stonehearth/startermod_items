@@ -12,7 +12,7 @@ end
 
 function PortraitRendererService:_add_entity(entity_data, position, rotation)
    local ent = radiant.entities.create_entity(entity_data.uri)
-   ent:add_component('render_info')--:set_material('materials/ghost_item.json')
+   ent:add_component('render_info')
    local render_ent = _radiant.client.create_render_entity(_radiant.renderer.get_root_node(2), ent)
 
    table.insert(self._entities, {
@@ -131,7 +131,15 @@ function PortraitRendererService:set_scene(scene_json)
 end
 
 function PortraitRendererService:clear_scene()
+   for _, light in pairs(self._lights) do
+      h3dRemoveNode(light.node)
+   end
+   self._lights = {}
 
+   for _, entity_data in pairs(self._entities) do
+      radiant.entities.destroy_entity(entity_data.entity)
+   end
+   self._entities = {}
 end
 
 function PortraitRendererService:render_scene(scene_json, callback)
