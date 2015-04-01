@@ -63,9 +63,9 @@ public:
    Cube GetBounds() const;
    Point GetCentroid() const;
 
-   int GetRectCount() const { return cubes_.size(); }
+   int GetRectCount() const { return (int)cubes_.size(); }
    Cube GetRect(int i) const { return cubes_[i]; }
-   int GetCubeCount() const { return cubes_.size(); }
+   int GetCubeCount() const { return (int)cubes_.size(); }
    Cube const& operator[](int i) const { return cubes_[i]; }
 
    void Translate(Point const& pt);

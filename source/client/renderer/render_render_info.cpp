@@ -15,6 +15,7 @@
 #include "lib/voxel/qubicle_file.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "pipeline.h"
+#include "geometry_info.h"
 #include "csg/region_tools.h"
 #include "Horde3D.h"
 
@@ -26,6 +27,7 @@ using namespace ::radiant::client;
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
    render_info_(render_info),
+   _voxelMeshNode(0),
    scale_(1.0),
    dirty_(-1)
 {
@@ -63,6 +65,7 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
 
 RenderRenderInfo::~RenderRenderInfo()
 {
+   DestroyVoxelMeshNode();
 }
 
 
@@ -169,14 +172,9 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
    }
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
-   if (render_node_) {
-      render_node_->SetMaterial(mat);
+   if (_voxelMeshNode != 0) {
+      h3dSetNodeParamI(_voxelMeshNode, H3DVoxelMeshNodeParams::MatResI, mat);
    }
-   /*if (mat != 0) {
-      for (auto& entry : nodes_) {
-         entry.second.node->SetMaterial(mat);
-      }
-   }*/
 }
 
 void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
@@ -200,8 +198,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 
       FlatModelMap flattened;
       FlattenModelMap(all_models, flattened);
-      RemoveObsoleteNodes(flattened);
-      RebuildModel(render_info);
+      RebuildModel(render_info, flattened);
    }
 }
 
@@ -219,14 +216,6 @@ void RenderRenderInfo::FlattenModelMap(ModelMap& m, FlatModelMap& flattened)
 }
 
 
-void RenderRenderInfo::RemoveObsoleteNodes(FlatModelMap const& m)
-{
-   nodes_.clear();
-   for (auto& i : m) {
-      nodes_[i.first] = i.second;
-   }
-}
-
 std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
 {
    // Qubicle requires that ever matrix in the file have a unique name.  While authoring,
@@ -241,45 +230,37 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
-void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
+void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap const& nodes)
 {
    ASSERT(render_info);
 
-   render_node_.reset();
+   DestroyVoxelMeshNode();
 
    //RI_LOG(7) << "adding model node for bone " << bone;
-
-   bool useSkeletonOrigin = !render_info->GetAnimationTable().empty();
-   
    ResourceCacheKey key;
 
+   bool useSkeletonOrigin = !render_info->GetAnimationTable().empty();
+   key.AddElement("useSkeletonOrigin", useSkeletonOrigin); 
+
    Skeleton& skeleton = entity_.GetSkeleton();
-   for (auto& node : nodes_) {
-      for (voxel::QubicleMatrix const* matrix : node.second) {
+   for (auto const& node : nodes) {
+      std::string const& boneName = node.first;
+      MatrixVector const& matrices = node.second;
+
+      for (voxel::QubicleMatrix const* matrix : matrices) {
          // this assumes matrices are loaded exactly once at a stable address.
          key.AddElement("matrix", matrix);
       }
       // This 'primes' the skeleton, making sure every single bone node is allocated before mesh
       // generation begins.  This is done to ensure identical mapping when the geometry is created.
-      skeleton.GetBoneNumber(node.first);
+      skeleton.GetBoneNumber(boneName);
    }
 
-   auto generate_matrix = [this, useSkeletonOrigin, &skeleton](csg::Mesh &mesh, int lodLevel) {
-      for (auto& node : nodes_) {
-         csg::Point3f origin = csg::Point3f::zero;
+   auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::Mesh &mesh, int lodLevel) {
+      for (auto const& node : nodes) {
+         std::string const& boneName = node.first;
+         MatrixVector const& matrices = node.second;
 
-         if (useSkeletonOrigin) {
-            auto i = bones_offsets_.find(node.first);
-            if (i != bones_offsets_.end()) {
-               origin = i->second;
-
-               // The file format for animation is right-handed, z-up, with the model looking
-               // down the -y axis.  We need y-up, looking down -z.  Since we don't care about
-               // rotation and we need to preserve x, just flip em around.
-               origin = csg::Point3f(origin.x, origin.z, origin.y);
-            }
-         }
-         MatrixVector& matrices = node.second;
          if (!matrices.empty()) {
             csg::Region3 all_models;
 
@@ -302,6 +283,12 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
                }
                all_models += model;   
             }
+
+            csg::Point3f origin = csg::Point3f::zero;
+            if (useSkeletonOrigin) {
+               origin = GetBoneOffset(boneName);
+            }
+
             // Qubicle orders voxels in the file as if we were looking at the model from the
             // front.  The matrix loader will reverse them when covering to a region, but this
             // means the origin contained in the skeleton file is now reading from the wrong
@@ -311,16 +298,19 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info)
             meshOrigin.x = (float)pos.x * 2 + size.x - origin.x;
 
             RI_LOG(7) << "offsetting mesh " << all_models.GetBounds() << " origin:" << origin << " meshOrigin:" << meshOrigin << " matrixSize:" << size << " pos:" << pos;
-            csg::RegionToMesh(all_models, mesh, -meshOrigin, true, skeleton.GetBoneNumber(node.first));
+            csg::RegionToMesh(all_models, mesh, -meshOrigin, true, skeleton.GetBoneNumber(boneName));
          }
       }
    };
-   render_node_ = RenderNode::CreateSharedCsgMeshNode(entity_.GetNode(), key, generate_matrix, skeleton.GetNumBones() > 1);
-   //h3dSetNodeParamI(render_node_->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
-   //h3dSetNodeParamF(render_node_->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
-   //h3dSetNodeTransform(render_node_->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
-   h3dSetNodeParamF(entity_.GetNode(), H3DModel::ModelScaleF, 0, scale_);
+   bool noInstancing = skeleton.GetNumBones() > 1;
+
+   Pipeline& pipeline = Pipeline::GetInstance();
+   H3DNode voxelModelNode = entity_.GetNode();
+   GeometryInfo geo;
+
+   pipeline.CreateSharedGeometryFromGenerator(geo, key, generate_matrix, noInstancing);
+   _voxelMeshNode = pipeline.CreateVoxelMeshNode(voxelModelNode, geo);
+   h3dSetNodeParamF(voxelModelNode, H3DModel::ModelScaleF, 0, scale_);
 }
 
 void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)
@@ -377,4 +367,29 @@ std::string RenderRenderInfo::GetModelVariant(om::RenderInfoPtr render_info) con
       variant = render_info->GetModelVariant();
    }
    return variant;
+}
+
+csg::Point3f RenderRenderInfo::GetBoneOffset(std::string const& boneName)
+{
+   csg::Point3f offset = csg::Point3f::zero;
+
+   auto i = bones_offsets_.find(boneName);
+   if (i != bones_offsets_.end()) {
+      offset = i->second;
+
+      // The file format for animation is right-handed, z-up, with the model looking
+      // down the -y axis.  We need y-up, looking down -z.  Since we don't care about
+      // rotation and we need to preserve x, just flip em around.
+      offset = csg::Point3f(offset.x, offset.z, offset.y);
+   }
+
+   return offset;
+}
+
+void RenderRenderInfo::DestroyVoxelMeshNode()
+{
+   if (_voxelMeshNode) {
+      h3dRemoveNode(_voxelMeshNode);
+      _voxelMeshNode = 0;
+   }
 }
