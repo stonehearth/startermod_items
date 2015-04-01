@@ -25,7 +25,11 @@
                   "equipment" : {
                      "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
                      "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
-                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 30
                   }
                },
                "maurauder_b" : {
@@ -34,7 +38,11 @@
                   "equipment" : {
                      "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
                      "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
-                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 30
                   }
                },
                "maurauder_c" : {
@@ -43,7 +51,11 @@
                   "equipment" : {
                      "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
                      "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
-                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 30
                   }
                }
             }

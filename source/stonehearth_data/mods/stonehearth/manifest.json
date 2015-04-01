@@ -681,6 +681,7 @@
       "observers:health_score" : "file(ai/observers/health_observer.lua)", 
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
       "observers:kill_at_zero_health" : "file(ai/observers/kill_at_zero_health_observer.lua)", 
+      "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)", 
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -913,7 +914,8 @@
 
       "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)",
       "abilities:thief_abilities" : "file(entities/abilities/thief_abilities.json)",
-      "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)"
+      "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)",
+      "abilities:wolf_rider_abilities" : "file(entities/abilities/wolf_rider_abilities.json)" 
    },
    "functions" : {
       "save_browser_object": {
