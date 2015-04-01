@@ -145,8 +145,10 @@ function PortraitRendererService:render_scene(scene_json, callback)
    local render_trace
    render_trace = _radiant.client.trace_render_frame()
                                     :on_frame_finished('portrait render wait', function(now, interpolate)
+                                             -- We need to wait a few frames to make sure the model is spawned
+                                             -- and ready to draw.
                                              render_count = render_count + 1
-                                             if render_count > 10 then
+                                             if render_count > 5 then
                                                 render_trace:destroy()
                                                 _radiant.call('radiant:client:get_portrait'):done(function(resp)
                                                       callback(resp)
