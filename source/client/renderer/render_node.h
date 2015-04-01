@@ -17,10 +17,10 @@ struct GeometryInfo {
    int vertexIndices[MAX_LOD_LEVELS + 1];
    int indexIndicies[MAX_LOD_LEVELS + 1];
    int levelCount;
-   bool unique;
+   bool noInstancing;
    SharedGeometry geo;
 
-   GeometryInfo() : levelCount(0), geo(0), unique(false) {
+   GeometryInfo() : levelCount(0), geo(0), noInstancing(false) {
       memset(vertexIndices, 0, sizeof vertexIndices);
       memset(indexIndicies, 0, sizeof indexIndicies);
    }
@@ -47,8 +47,8 @@ public:
 
    static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m);
-   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool unique=false);
-   static RenderNodePtr CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool unique=false);
+   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool noInstancing=false);
+   static RenderNodePtr CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb, bool noInstancing=false);
    static RenderNodePtr CreateCsgModelNode(H3DNode parent, csg::Mesh const& m);
 
    static void Initialize();  

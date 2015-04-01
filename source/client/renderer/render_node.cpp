@@ -50,7 +50,7 @@ RenderNodePtr RenderNode::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const
 
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
    H3DNode meshNode = h3dAddVoxelMeshNode(parent, meshName.c_str(), mat.get(), geo.geo.get());
-   if (geo.unique) {
+   if (geo.noInstancing) {
       h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
    }
    return std::make_shared<RenderNode>(meshNode, geo.geo, mat);
@@ -65,7 +65,7 @@ RenderNodePtr RenderNode::CreateVoxelModelNode(H3DNode parent, GeometryInfo cons
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
    H3DNode modelNode = h3dAddVoxelModelNode(parent, meshName.c_str());
    H3DNode meshNode = h3dAddVoxelMeshNode(modelNode, modelName.c_str(), mat.get(), geo.geo.get());
-   if (geo.unique) {
+   if (geo.noInstancing) {
       h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
    }
    return std::make_shared<RenderNode>(modelNode, meshNode, geo.geo, mat);
@@ -98,7 +98,7 @@ RenderNodePtr RenderNode::CreateCsgModelNode(H3DNode parent, csg::Mesh const& m)
    geo.vertexIndices[1] = (int)m.vertices.size();
    geo.indexIndicies[1] = (int)m.indices.size();
    geo.levelCount = 1;
-   geo.unique = true;
+   geo.noInstancing = true;
 
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
    return CreateVoxelModelNode(parent, geo);
@@ -111,13 +111,13 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
    geo.vertexIndices[1] = (int)m.vertices.size();
    geo.indexIndicies[1] = (int)m.indices.size();
    geo.levelCount = 1;
-   geo.unique = true;
+   geo.noInstancing = true;
 
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
    return CreateVoxelMeshNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool unique)
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
 {
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
@@ -131,7 +131,7 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
          geo.indexIndicies[i + 1] = (int)m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
-      geo.unique = unique;
+      geo.noInstancing = noInstancing;
 
       ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
@@ -139,7 +139,7 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
    return CreateVoxelMeshNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool unique)
+RenderNodePtr RenderNode::CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
 {
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
@@ -153,7 +153,7 @@ RenderNodePtr RenderNode::CreateSharedCsgModelNode(H3DNode parent, ResourceCache
          geo.indexIndicies[i + 1] = (int)m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
-      geo.unique = unique;
+      geo.noInstancing = noInstancing;
 
       ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
       Pipeline::GetInstance().SetSharedGeometry(key, geo);
