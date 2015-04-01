@@ -6,17 +6,10 @@
 #include "render_node.h"
 #include "Horde3DUtils.h"
 #include "pipeline.h"
+#include "geometry_info.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
-
-template <typename X, typename Y>
-struct PairHash {
-public:
-   size_t operator()(std::pair<X, Y> const& x) const {
-      return std::hash<X>()(x.first) ^ std::hash<Y>()(x.second);
-   }
-};
 
 #define RN_LOG(level)   LOG(renderer.render_node, level)
 
@@ -34,6 +27,8 @@ RenderNodePtr RenderNode::CreateMeshNode(H3DNode parent, GeometryInfo const& geo
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
 
+   ASSERT(geo.type == GeometryInfo::HORDE_GEOMETRY);
+
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
    H3DNode node = h3dAddModelNode(parent, modelName.c_str(), geo.geo.get());
 
@@ -44,23 +39,12 @@ RenderNodePtr RenderNode::CreateMeshNode(H3DNode parent, GeometryInfo const& geo
    return std::make_shared<RenderNode>(node, meshNode, geo.geo, mat);
 }
 
-RenderNodePtr RenderNode::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo)
-{
-   std::string meshName = BUILD_STRING("mesh" << nextId++);
-
-   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
-   H3DNode meshNode = h3dAddVoxelMeshNode(parent, meshName.c_str(), mat.get(), geo.geo.get());
-   if (geo.noInstancing) {
-      h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
-   }
-   return std::make_shared<RenderNode>(meshNode, geo.geo, mat);
-}
-
-
 RenderNodePtr RenderNode::CreateVoxelModelNode(H3DNode parent, GeometryInfo const& geo)
 {
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
+
+   ASSERT(geo.type == GeometryInfo::VOXEL_GEOMETRY);
 
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
    H3DNode modelNode = h3dAddVoxelModelNode(parent, meshName.c_str());
@@ -71,102 +55,15 @@ RenderNodePtr RenderNode::CreateVoxelModelNode(H3DNode parent, GeometryInfo cons
    return std::make_shared<RenderNode>(modelNode, meshNode, geo.geo, mat);
 }
 
-RenderNodePtr RenderNode::CreateObjNode(H3DNode parent, std::string const& uri)
-{
-   res::ResourceManager2 &r = res::ResourceManager2::GetInstance();
-   std::string const& path = r.ConvertToCanonicalPath(uri, ".obj");
-
-   ResourceCacheKey key;
-   key.AddElement("obj filename", path);
-
-   GeometryInfo geo;
-   if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
-      std::shared_ptr<std::istream> is = r.OpenResource(path);
-      if (!is) {
-         return nullptr;
-      }
-      ConvertObjFileToGeometry(*is, geo);
-      Pipeline::GetInstance().SetSharedGeometry(key, geo);
-   }
-   return CreateMeshNode(parent, geo);
-}
-
-RenderNodePtr RenderNode::CreateCsgModelNode(H3DNode parent, csg::Mesh const& m)
-{
-   GeometryInfo geo;
-
-   geo.vertexIndices[1] = (int)m.vertices.size();
-   geo.indexIndicies[1] = (int)m.indices.size();
-   geo.levelCount = 1;
-   geo.noInstancing = true;
-
-   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-   return CreateVoxelModelNode(parent, geo);
-}
-
-RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
-{
-   GeometryInfo geo;
-
-   geo.vertexIndices[1] = (int)m.vertices.size();
-   geo.indexIndicies[1] = (int)m.indices.size();
-   geo.levelCount = 1;
-   geo.noInstancing = true;
-
-   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-   return CreateVoxelMeshNode(parent, geo);
-}
-
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
-{
-   GeometryInfo geo;
-   if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
-
-      RN_LOG(7) << "creating new geometry for " << key.GetDescription();
-
-      csg::Mesh m;
-      for (int i = 0; i < MAX_LOD_LEVELS; i++) {
-         create_mesh_fn(m, i);
-         geo.vertexIndices[i + 1] = (int)m.vertices.size();
-         geo.indexIndicies[i + 1] = (int)m.indices.size();
-      }
-      geo.levelCount = MAX_LOD_LEVELS;
-      geo.noInstancing = noInstancing;
-
-      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-      Pipeline::GetInstance().SetSharedGeometry(key, geo);
-   }
-   return CreateVoxelMeshNode(parent, geo);
-}
-
-RenderNodePtr RenderNode::CreateSharedCsgModelNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
-{
-   GeometryInfo geo;
-   if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
-
-      RN_LOG(7) << "creating new geometry for " << key.GetDescription();
-
-      csg::Mesh m;
-      for (int i = 0; i < MAX_LOD_LEVELS; i++) {
-         create_mesh_fn(m, i);
-         geo.vertexIndices[i + 1] = (int)m.vertices.size();
-         geo.indexIndicies[i + 1] = (int)m.indices.size();
-      }
-      geo.levelCount = MAX_LOD_LEVELS;
-      geo.noInstancing = noInstancing;
-
-      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-      Pipeline::GetInstance().SetSharedGeometry(key, geo);
-   }
-   return CreateVoxelModelNode(parent, geo);
-}
-
-RenderNode::RenderNode()
+RenderNode::RenderNode() :
+   _node(0),
+   _meshNode(0)
 {
 }
 
 RenderNode::RenderNode(H3DNode node) :
-   _node(node)
+   _node(node),
+   _meshNode(0)
 {
    RN_LOG(9) << "attaching RenderNode to " << _node;
    ownedNodes.insert(node);
@@ -180,16 +77,6 @@ RenderNode::RenderNode(H3DNode modelNode, H3DNode mesh, SharedGeometry geo, Shar
 {
    RN_LOG(9) << "attaching RenderNode to " << _node;
    ownedNodes.insert(modelNode);
-}
-
-RenderNode::RenderNode(H3DNode mesh, SharedGeometry geo, SharedMaterial mat) :
-   _meshNode(mesh),
-   _node(mesh),
-   _geometry(geo),
-   _material(mat)
-{
-   RN_LOG(9) << "attaching RenderNode to " << _node;
-   ownedNodes.insert(mesh);
 }
 
 RenderNode::~RenderNode()
@@ -364,104 +251,4 @@ void RenderNode::ApplyMaterial()
       }
       h3dSetNodeParamI(_meshNode, H3DVoxelMeshNodeParams::MatResI, mat);
    }
-}
-
-void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
-{
-   std::string geoName = BUILD_STRING("geo" << nextId++);
-
-   geo.geo = h3dutCreateVoxelGeometryRes(geoName.c_str(),
-                                         vertices,
-                                         geo.vertexIndices,
-                                         indices,
-                                         geo.indexIndicies,
-                                         geo.levelCount);
-}
-
-void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &geo)
-{
-   struct Point { float x, y, z; };
-   Point pt;
-   std::vector<Point> obj_verts;
-   std::vector<Point> obj_norms;
-   std::unordered_map<std::pair<int, int>, int, PairHash<int, int>> vertex_map;
-   std::vector<float> vertices;
-   std::vector<unsigned int> indices;
-   std::vector<short> normalData;
-
-   std::string line;
-
-   auto packNormal = [](float coord) -> short {
-      return static_cast<short>(coord * 32767);
-   };
-
-   auto addIndex = [&](int vi, int ni) {
-      --vi; --ni;    // covert 1 based indices to 0 based.
-
-      std::pair<int, int> key(vi, ni);
-      auto i = vertex_map.find(key);
-      if (i != vertex_map.end()) {
-         indices.push_back(i->second);
-      } else {
-         // create a new point
-         Point const& v = obj_verts[vi];
-         Point const& n = obj_norms[ni];
-
-         vertices.push_back(v.x);
-         vertices.push_back(v.y);
-         vertices.push_back(v.z);
-
-         normalData.push_back(packNormal(n.x));
-         normalData.push_back(packNormal(n.y));
-         normalData.push_back(packNormal(n.z));
-
-         int index = (int)vertex_map.size();
-         vertex_map[key] = index;
-         indices.push_back(index);
-      }
-   };
-   while (stream.good()) {
-      std::vector<std::string> tokens;
-
-      std::getline(stream, line);
-
-      if (line.size() > 1) {
-         char t0 = line[0], t1 = line[1];
-         if (t0 == 'v') {
-            if (sscanf(line.c_str(), "%*s %f %f %f", &pt.x, &pt.y, &pt.z) == 3) {
-               if (t1 == 'n') {
-                  obj_norms.push_back(pt);
-               } else if (::isspace(t1)) {
-                  obj_verts.push_back(pt);
-               }
-            }
-         } else if (t0 == 'f') {
-            int v[4], n[4]; 
-            // textured triangle.  ignore the texture.
-            if (sscanf(line.c_str(), "%*s %d/%*d/%d %d/%*d/%d %d/%*d/%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2]) == 6) {
-               addIndex(v[0], n[0]);
-               addIndex(v[1], n[1]);
-               addIndex(v[2], n[2]);
-            }
-            // textured quad.  ignore the texture.  convert to two triangles
-            int c;
-            if ((c = sscanf(line.c_str(), "%*s %d/%*d/%d %d/%*d/%d %d/%*d/%d %d/%*d/%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3])) == 8) {
-               addIndex(v[0], n[0]);
-               addIndex(v[1], n[1]);
-               addIndex(v[2], n[2]);
-
-               addIndex(v[0], n[0]);
-               addIndex(v[2], n[2]);
-               addIndex(v[3], n[3]);
-            }
-         }
-      }
-   }
-   
-   std::string geoName = BUILD_STRING("geo" << nextId++);
-   geo.vertexIndices[1] = (int)vertices.size() / 3;
-   geo.indexIndicies[1] = (int)indices.size();
-   geo.levelCount = 1;
-   geo.geo = h3dutCreateGeometryRes(geoName.c_str(), (int)vertices.size() / 3, (int)indices.size(), vertices.data(),
-                                    indices.data(), normalData.data(), nullptr, nullptr, nullptr, nullptr);
 }

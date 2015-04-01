@@ -38,7 +38,11 @@ private:
       MatrixVector layers[om::ModelLayer::NUM_LAYERS];
    };
    typedef std::unordered_map<std::string, ModelMapEntry> ModelMap;
-   typedef std::unordered_map<std::string, MatrixVector> FlatModelMap;
+
+   // The FlatModelMap must be sorted to ensure we iterate over bones in the same
+   // order very time when generating the resource cache key
+   typedef std::map<std::string, MatrixVector> FlatModelMap;
+
    typedef std::unordered_map<std::string, std::shared_ptr<voxel::QubicleFile>> QubicleFileMap;
    typedef std::unordered_map<std::string, csg::Point3f> BoneOffsetMap;
 
@@ -59,6 +63,7 @@ private:
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
    void ReApplyMaterial();
    csg::Point3f GetBoneOffset(std::string const& boneName);
+   void DestroyVoxelMeshNode();
 
 private:
    RenderEntity&           entity_;
@@ -72,7 +77,7 @@ private:
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;
-   RenderNodePtr           render_node_;
+   H3DNode                 _voxelMeshNode;
    BoneOffsetMap           bones_offsets_;
 };
 
