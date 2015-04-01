@@ -72,7 +72,8 @@ Renderer::Renderer() :
    last_render_time_wallclock_(0),
    _loading(false),
    _loadingAmount(0),
-   screenshotTexRes_(0)
+   screenshotTexRes_(0),
+   portraitTexRes_(0)
 {
    OneTimeIninitializtion();
 }
@@ -612,7 +613,7 @@ void Renderer::BuildSkySphere()
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
    H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoDraw, true);
 }
 
 void Renderer::SetStarfieldBrightness(float brightness)
@@ -670,7 +671,7 @@ void Renderer::BuildStarfield()
    
    H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoDraw | H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
 }
 
 void Renderer::ShowPerfHud(bool value) {
@@ -1014,11 +1015,11 @@ void Renderer::SetRootEntity(om::EntityPtr rootObject)
 
 void Renderer::Initialize()
 {
-   RenderNode::Initialize();
-
    mainSceneRoot_ = h3dGetRootNode(0);
    fowSceneRoot_ = h3dGetRootNode(h3dAddScene("fow"));
    portraitSceneRoot_ = h3dGetRootNode(h3dAddScene("portrait"));
+
+   RenderNode::Initialize();
 
    BuildSkySphere();
    BuildStarfield();
@@ -1042,9 +1043,17 @@ void Renderer::Initialize()
    // Add another camera--this is exclusively for the fog-of-war pipeline.
    fowCamera_ = new Camera(fowSceneRoot_, "FowCamera");
 
-   portraitTexRes_ = h3dCreateTexture("portraitTexture", 512, 512, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
    portraitCamera_ = new Camera(portraitSceneRoot_, "PortraitCamera");
+
+   if (portraitTexRes_ == 0) {
+      portraitTexRes_ = h3dCreateTexture("portraitTexture", 512, 512, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
+   }
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportXI, 0);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportYI, 0);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportWidthI, 512);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportHeightI, 512);
    h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::OutTexResI, portraitTexRes_);
+   h3dSetupCameraView(portraitCamera_->GetNode(), 45.0f, 1.0, 2.0f, 500.0f);
 
    debugShapes_ = h3dRadiantAddDebugShapes(mainSceneRoot_, "renderer debug shapes");
 
@@ -1105,6 +1114,8 @@ void Renderer::Shutdown()
    }
    debugShapes_ = 0;
    fowExploredNode_ = 0;
+
+   delete portraitCamera_; portraitCamera_ = nullptr;
    delete camera_;      camera_ = nullptr;
    delete fowCamera_;   fowCamera_ = nullptr;
    h3dReset();
@@ -1207,6 +1218,9 @@ void Renderer::RenderPortraitRT()
    if (portrait_requested_) {
       portrait_requested_ = false;
       portrait_generated_ = true;
+
+      // Turn off the UI to render the portrait.
+      SetStageEnable(GetPipeline(currentPipeline_), "Overlays", false);
       h3dRender(portraitCamera_->GetNode(), GetPipeline(currentPipeline_));
 
    } else if (portrait_generated_) {

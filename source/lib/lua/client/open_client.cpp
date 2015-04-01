@@ -17,6 +17,7 @@
 #include "client/renderer/lua_render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_renderer.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
+#include "client/renderer/geometry_info.h" // xxx: move to renderer::open when we move the renderer!
 #include "core/guard.h"
 #include "core/slot.h"
 #include "core/system.h"
@@ -95,16 +96,29 @@ RenderNodePtr Client_CreateVoxelNode(lua_State* L,
    csg::Mesh mesh;
    csg::RegionToMesh(csg::ToInt(model), mesh, -origin, false);
 
-   return RenderNode::CreateCsgModelNode(parent, mesh)
-                           ->SetMaterial(material_path);
+   return Pipeline::GetInstance().CreateRenderNodeFromMesh(parent, mesh)
+                                       ->SetMaterial(material_path);
 }
 
 
 RenderNodePtr Client_CreateObjRenderNode(lua_State* L, 
                                          RenderNodePtr const& parent,
                                          std::string const& objfile)
-   {
-   return RenderNode::CreateObjNode(parent->GetNode(), objfile);
+{
+   res::ResourceManager2 &r = res::ResourceManager2::GetInstance();
+   std::string const& path = r.ConvertToCanonicalPath(objfile, ".obj");
+
+   std::shared_ptr<std::istream> is = r.OpenResource(path);
+   if (!is) {
+      return nullptr;
+   }
+
+   ResourceCacheKey key;
+   key.AddElement("obj filename", path);
+   GeometryInfo geo;
+
+   Pipeline::GetInstance().CreateSharedGeometryFromOBJ(geo, key, *is);
+   return RenderNode::CreateMeshNode(parent->GetNode(), geo);
 }
 
 RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L, 
@@ -124,15 +138,16 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
          ResourceCacheKey key;
          key.AddElement("origin", origin);
          key.AddElement("matrix", matrix);
+            
+         csg::Region3 model = voxel::QubicleBrush(matrix)
+                                       .SetOffsetMode(voxel::QubicleBrush::Matrix)
+                                       .PaintOnce();
 
-         // xxx: can we create a shared mesh without lod levels?
-         auto create_mesh = [&matrix, &origin](csg::Mesh &mesh, int lodLevel) {
-            csg::Region3 model = voxel::QubicleBrush(matrix)
-                                          .SetOffsetMode(voxel::QubicleBrush::Matrix)
-                                          .PaintOnce();
-            csg::RegionToMesh(model, mesh, -origin, true);
-         };
-         node = RenderNode::CreateSharedCsgModelNode(parent, key, create_mesh);
+         csg::Mesh mesh;
+         csg::RegionToMesh(model, mesh, -origin, true);
+         GeometryInfo geo;
+         Pipeline::GetInstance().CreateSharedGeometryFromMesh(geo, key, mesh);
+         node = RenderNode::CreateVoxelModelNode(parent, geo);
       }
    }
    return node;
@@ -189,7 +204,7 @@ RenderNodePtr Client_CreateMeshNode(lua_State* L,
                                     H3DNode parent,
                                     csg::Mesh const& m)
 {
-   return RenderNode::CreateCsgModelNode(parent, m);
+   return Pipeline::GetInstance().CreateRenderNodeFromMesh(parent, m);
 }
 
 RenderNodePtr Client_CreateTextNode(lua_State* L, 
