@@ -134,8 +134,7 @@ function PortraitRendererService:clear_scene()
 
 end
 
-
-function PortraitRendererService:render_scene(session, response, scene_json)
+function PortraitRendererService:render_scene(scene_json, callback)
    self:clear_scene()
    self:set_scene(scene_json)
 
@@ -147,10 +146,16 @@ function PortraitRendererService:render_scene(session, response, scene_json)
                                              if render_count > 10 then
                                                 render_trace:destroy()
                                                 _radiant.call('radiant:client:get_portrait'):done(function(resp)
-                                                      response:resolve(resp)
+                                                      callback(resp)
                                                    end)
                                              end
                                        end)
+end
+
+function PortraitRendererService:render_scene_command(session, response, scene_json)
+   self:render_scene(scene_json, function(resp)
+         response:resolve(resp)
+      end)
 end
 
 return PortraitRendererService
