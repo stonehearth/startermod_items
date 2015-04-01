@@ -39,16 +39,6 @@ private:
    };
    typedef std::unordered_map<std::string, ModelMapEntry> ModelMap;
    typedef std::unordered_map<std::string, MatrixVector> FlatModelMap;
-
-   struct NodeMapEntry {
-      NodeMapEntry() : nodeIndex(0) { }
-      NodeMapEntry(MatrixVector const& v, uint32 n) : matrices(v), nodeIndex(n) { }
-
-      MatrixVector         matrices;
-      uint32               nodeIndex;
-   };
-
-   typedef std::unordered_map<std::string, MatrixVector> NodeMap;
    typedef std::unordered_map<std::string, std::shared_ptr<voxel::QubicleFile>> QubicleFileMap;
    typedef std::unordered_map<std::string, csg::Point3f> BoneOffsetMap;
 
@@ -60,15 +50,15 @@ private:
    void CheckScale(om::RenderInfoPtr render_info);
    void CheckVisible(om::RenderInfoPtr render_info);
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
-   void RemoveObsoleteNodes(FlatModelMap const& m);
    std::string GetBoneName(std::string const& matrix_name);
-   void RebuildModel(om::RenderInfoPtr render_info);
+   void RebuildModel(om::RenderInfoPtr render_info, FlatModelMap const& nodes);
    void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float offset);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
    void UpdateNextFrame();
    void Update();
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
    void ReApplyMaterial();
+   csg::Point3f GetBoneOffset(std::string const& boneName);
 
 private:
    RenderEntity&           entity_;
@@ -82,7 +72,6 @@ private:
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;
-   NodeMap                 nodes_;
    RenderNodePtr           render_node_;
    BoneOffsetMap           bones_offsets_;
 };
