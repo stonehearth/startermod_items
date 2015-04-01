@@ -17,6 +17,7 @@ local service_creation_order = {
    'subterranean_view',
    'terrain_highlight',
    'party_editor',
+   'portrait_renderer',
 }
 
 local function create_service(name)

@@ -1,0 +1,45 @@
+{
+   "team1" : {
+      "player_id" : "player_1",
+      "location" : {
+         "x" : 0,
+         "y" : 0,
+         "z" : -24
+      },
+
+      "members" : {
+         "workers" : {
+            "job" : "stonehearth:jobs:worker",
+            "role" : "default",
+            "count" : 4
+         },
+         "citizenfootmen" : {
+            "job" : "stonehearth:jobs:footman",
+            "role" : "default",
+            "count" : 4,
+            "equipment" : {
+               "weapon" : ["stonehearth:weapons:giant_bone_axe", "stonehearth:weapons:two_handed_sword"]               
+            }
+         }         
+      }
+   },
+   "team2" : {
+      "player_id" : "undead",
+      "location" : {
+         "x" : 0,
+         "y" : 0,
+         "z" : 24
+      },
+
+      "members" : {
+         "raiders" : {
+            "job" : "stonehearth:jobs:footman",
+            "role" : "skeleton",
+            "count" : 5,
+            "equipment" : {
+               "weapon" : ["stonehearth:weapons:jagged_cleaver"]
+            }
+         }
+      }
+   }
+}
