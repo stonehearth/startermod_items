@@ -927,7 +927,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 
 
 SceneManager::SceneManager() {
-   addScene("default");
+   reset();
 }
 
 SceneManager::~SceneManager() {
@@ -939,9 +939,10 @@ void SceneManager::reset()
    for (auto& s : _scenes) {
       s->shutdown();
    }
-   for (auto& s : _scenes) {
-      s->initialize();
-   }
+
+   _scenes.clear();
+
+   addScene("default");
 }
 
 void SceneManager::clear()
