@@ -41,6 +41,10 @@
       "cursors:erase_fixture" : "file(data/cursors/erase_fixture.cur)",
       "cursors:mine" : "file(data/cursors/mine.cur)",
 
+      "color_map:trees" : "file(data/materials/color_maps/trees_color_map.json)",
+      "color_map:resources" : "file(data/materials/color_maps/resources_color_map.json)",
+      "color_map:undead" : "file(data/materials/color_maps/undead_color_map.json)",
+
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",
       "mixins:critter" : "file(mixins/critter)",

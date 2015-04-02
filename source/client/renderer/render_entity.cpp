@@ -391,16 +391,15 @@ void RenderEntity::SetMaterialOverride(std::string const& material)
    SetRenderInfoDirtyBits(RenderRenderInfo::MATERIAL_DIRTY);
 }
 
-std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
+std::string RenderEntity::GetMaterialPathFromKind(std::string const& matKind, std::string const& deflt) const
 {
    std::string matPath;
    auto entity = entity_.lock();
 
    if (entity) {
-      auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
+      auto lookupCallback = [&matKind, &matPath, &deflt](JSONNode const& data) {
          json::Node n(data);
-         matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
-            "materials/voxel.material.json");
+         matPath = n.get("entity_data.stonehearth:render_materials." + matKind, deflt);
       };
       try {
          res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);

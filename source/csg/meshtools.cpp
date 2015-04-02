@@ -294,7 +294,7 @@ void csg::RegionToMeshMap(csg::Region3 const& region, MaterialToMeshMap& meshes,
       // Look up the material for every cube in the plane, accumulating into a Region2 for each
       // material.
       for (csg::Rect2 const& r : csg::EachCube(plane)) {
-         csg::Color4 color = csg::Color4::FromInteger(r.GetTag());
+         csg::Color3 color = csg::Color3::FromInteger(r.GetTag());
          auto i = colormap.find(color);
          MaterialName material = (i == colormapEnd) ? defaultMaterial : i->second;
          planesByMaterial[material].AddUnique(r);

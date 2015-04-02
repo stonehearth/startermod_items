@@ -359,10 +359,10 @@ void Pipeline::CreateXZBoxNodeGeometry(csg::Mesh& mesh,
    mesh.AddRegion(boxRegion, pi);
 }
 
-SharedMaterial Pipeline::GetSharedMaterial(std::string const& material)
+SharedMaterial Pipeline::GetSharedMaterial(core::StaticString material)
 {
    // xxx: share these one day?
-   return h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
+   return h3dAddResource(H3DResTypes::Material, material, 0);
 }
 
 bool Pipeline::GetSharedGeometry(ResourceCacheKey const& key, GeometryInfo& geo)
@@ -428,7 +428,7 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
    // into `meshes`, remembering offets into buffers as we go
    csg::MaterialToMeshMap meshes;
    for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
-      create_mesh_fn(meshes, colormap, i);
+      create_mesh_fn(meshes, i);
 
       for (auto const& entry : meshes) {
          csg::MaterialName material = entry.first;

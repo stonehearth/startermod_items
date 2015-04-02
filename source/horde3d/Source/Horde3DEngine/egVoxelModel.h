@@ -106,7 +106,7 @@ protected:
 	float                         _lodDist1, _lodDist2, _lodDist3, _lodDist4;
    float                         _modelScale;
 	
-	VoxelMeshNode*                _meshNode;
+	std::vector<VoxelMeshNode*>   _meshNodes;
    std::vector<SceneNode*>       _boneLookup;
    std::vector<Matrix4f>         _boneRelTransLookup;
    std::unordered_map<int, BoundingBox> _boneBounds;

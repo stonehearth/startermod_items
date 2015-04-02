@@ -5,6 +5,7 @@
 #include "om/om.h"
 #include "dm/dm.h"
 #include "dm/set.h"
+#include "csg/color.h"
 #include "h3d_resource_types.h"
 #include "render_component.h"
 #include "om/components/render_info.ridl.h"
@@ -46,6 +47,8 @@ private:
    typedef std::unordered_map<std::string, std::shared_ptr<voxel::QubicleFile>> QubicleFileMap;
    typedef std::unordered_map<std::string, csg::Point3f> BoneOffsetMap;
 
+   typedef std::unordered_map<csg::MaterialName, std::vector<csg::Color3>, csg::MaterialName::Hash> InverseColorMap;
+
 private:
    void AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr layer);
    void AccumulateModelVariants(ModelMap& m, om::ModelVariantsPtr model_variants, std::string const& current_variant);
@@ -55,6 +58,7 @@ private:
    void CheckVisible(om::RenderInfoPtr render_info);
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
    std::string GetBoneName(std::string const& matrix_name);
+   void RebuildMaterialMap(om::RenderInfoPtr render_info);
    void RebuildModel(om::RenderInfoPtr render_info, FlatModelMap const& nodes);
    void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float offset);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
@@ -64,6 +68,15 @@ private:
    void ReApplyMaterial();
    csg::Point3f GetBoneOffset(std::string const& boneName);
    void DestroyVoxelMeshNode();
+   void ApplyMaterialToVoxelNodes(core::StaticString material);
+   InverseColorMap CreateInverseColorMap(std::string const& colormap);
+
+   struct VoxelNode {
+      H3DNode              node;
+      csg::MaterialName    material;
+
+      VoxelNode(H3DNode n, csg::MaterialName m) : node(n), material(m) { }
+   };
 
 private:
    RenderEntity&           entity_;
@@ -77,8 +90,10 @@ private:
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;
-   std::vector<H3DNode>    _voxelMeshNodes;
+   dm::TracePtr            material_map_trace_;
+   std::vector<VoxelNode>  _voxelMeshNodes;
    BoneOffsetMap           bones_offsets_;
+   csg::ColorToMaterialMap _materialMap;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
