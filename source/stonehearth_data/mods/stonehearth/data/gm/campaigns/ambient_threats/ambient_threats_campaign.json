@@ -1,0 +1,14 @@
+{
+   "type" : "campaign",
+   "rarity" : "common",
+
+   "arcs" : {
+      "trigger" : {
+         "ambient_threats" : "file(arcs/trigger/ambient_threats/ambient_threats_arc.json)"
+      },
+      "challenge" : {
+      },
+      "climax" : {
+      }
+   }
+}

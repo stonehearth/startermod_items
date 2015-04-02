@@ -9,7 +9,7 @@
    "script" : "file(create_camp/create_camp.lua)",
 
    "create_camp_info" : {
-      "player_id" : "goblins",
+      "npc_player_id" : "goblins",
 
       "radius" : 18,
       
