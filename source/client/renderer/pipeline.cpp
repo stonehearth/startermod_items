@@ -398,25 +398,61 @@ H3DNode Pipeline::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo, S
    return meshNode;
 }
 
-
-void Pipeline::CreateSharedGeometryFromGenerator(GeometryInfo& geo, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
+void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
 {
-   if (!GetSharedGeometry(key, geo)) {
+   // The meshes which get generated are determined greatly by the colormap.  For example, we might have
+   // a colormap which remaps every color to red, which of course would generate different meshes than
+   // one with an empty colormap.  Because of this, we can't cache the individual pieces of geometry we
+   // generate during this process.  We have to cache the whole thing!
+   ResourceCacheKey cacheKey(key);
 
-      P_LOG(7) << "creating new geometry for " << key.GetDescription();
-
-      csg::Mesh m;
-      for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
-         create_mesh_fn(m, i);
-         geo.vertexIndices[i + 1] = (int)m.vertices.size();
-         geo.indexIndicies[i + 1] = (int)m.indices.size();
-      }
-      geo.levelCount = GeometryInfo::MAX_LOD_LEVELS;
-      geo.noInstancing = noInstancing;
-
-      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
-      SetSharedGeometry(key, geo);
+   // Genearte a cache key.  csg::ColorToMaterialMap is sorted, so we know we'll generate the
+   // same key every time.
+   for (auto const& entry : colormap) {
+      csg::MaterialName material = entry.second;
+      cacheKey.AddElement("color", entry.first);
+      cacheKey.AddElement("material", entry.second);
    }
+
+   auto i = _materialToGeometryCache.find(cacheKey);
+   if (i != _materialToGeometryCache.end()) {
+      geometryPtr = i->second;
+      return;
+   }
+
+   // Create all the geometry and cache it
+   geometryPtr = std::make_shared<MaterialToGeometryMap>();
+   MaterialToGeometryMap& geometry = *geometryPtr;
+
+   // Accumulate the vertex and index data for all meshes at all LOD levels
+   // into `meshes`, remembering offets into buffers as we go
+   csg::MaterialToMeshMap meshes;
+   for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
+      create_mesh_fn(meshes, colormap, i);
+
+      for (auto const& entry : meshes) {
+         csg::MaterialName material = entry.first;
+         csg::Mesh const& mesh = entry.second;
+
+         GeometryInfo& geo = geometry[material];
+         geo.levelCount = GeometryInfo::MAX_LOD_LEVELS;
+         geo.noInstancing = noInstancing;
+         geo.vertexIndices[i + 1] = (int)mesh.vertices.size();
+         geo.indexIndicies[i + 1] = (int)mesh.indices.size();
+      }
+   }
+
+   // Create the actual vertex and index buffers
+   for (auto& entry : geometry) {
+      csg::MaterialName material = entry.first;
+      GeometryInfo& geo = entry.second;
+
+      csg::Mesh const& mesh = meshes[material];
+      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)mesh.vertices.data(), (uint *)mesh.indices.data(), geo);
+   }
+
+   // Finally, cache it!
+   _materialToGeometryCache[key] = geometryPtr;
 }
 
 void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing)
@@ -437,7 +473,7 @@ void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m)
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
 }
 
-void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing=false)
+void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing)
 {
    if (!GetSharedGeometry(key, geo)) {
       ConvertObjFileToGeometry(is, geo);

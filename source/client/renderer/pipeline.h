@@ -39,8 +39,12 @@ class Pipeline : public core::Singleton<Pipeline> {
 
       H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);
 
-      typedef std::function<void(csg::Mesh &, int lodLevel)> CreateMeshLodLevelFn;
-      void CreateSharedGeometryFromGenerator(GeometryInfo& geo, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing=false);
+      typedef std::function<void(csg::MaterialToMeshMap& meshes, csg::ColorToMaterialMap const& colormap, int lodLevel)> CreateMeshLodLevelFn;
+      typedef std::unordered_map<csg::MaterialName, GeometryInfo, csg::MaterialName::Hash> MaterialToGeometryMap;
+      DECLARE_SHARED_POINTER_TYPES(MaterialToGeometryMap)
+(
+      void CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometry, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing);
+
       void CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing=false);
       void CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing=false);
       void CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m);
@@ -61,11 +65,14 @@ class Pipeline : public core::Singleton<Pipeline> {
       void ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &geo);
 
    private:
-      typedef std::unordered_map<ResourceCacheKey, GeometryInfo, ResourceCacheKey::Hash> GeometryMap;
+      typedef std::unordered_map<ResourceCacheKey, GeometryInfo, ResourceCacheKey::Hash> GeometryCache;
+      typedef std::unordered_map<ResourceCacheKey, MaterialToGeometryMapPtr, ResourceCacheKey::Hash> MaterialToGeometryCache;
 
    private:
-      int             unique_id_;
-      GeometryMap     geometry_cache_;
+      int                     unique_id_;
+      GeometryCache           geometry_cache_;
+      MaterialToGeometryCache _materialToGeometryCache;
+
 };
 
 END_RADIANT_CLIENT_NAMESPACE

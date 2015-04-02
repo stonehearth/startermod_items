@@ -29,12 +29,16 @@ public:
       return (&r)[i];
    }
 
-   bool operator==(const Color4& other) {
-      return r == other.r && g == other.g && b == other.b && a == other.a;
+   bool operator==(const Color4& other) const {
+      return ToInteger() == other.ToInteger();
    }
 
-   bool operator!=(const Color4& other) {
-      return r != other.r || g != other.g || b != other.b || a != other.a;
+   bool operator!=(const Color4& other) const {
+      return ToInteger() != other.ToInteger();
+   }
+
+   bool operator<(const Color4& other) const {
+      return ToInteger() < other.ToInteger();
    }
 
    void operator*=(float s) {
@@ -74,6 +78,7 @@ public:
                (((unsigned int)b) << 16) |
                (((unsigned int)a) << 24);
    }
+
    std::string ToString() const {
       std::stringstream out;
       out << std::hex << std::setfill('0') << std::setw(2) << '#' << r << g << b << a;
@@ -96,6 +101,17 @@ public:
       }
       return Color4(0, 0, 0, 255);
    }
+
+   struct Hash { 
+      inline size_t operator()(Color4 const& c) const {
+         return static_cast<size_t>(c.r * 73856093) ^
+                static_cast<size_t>(c.g * 19349669) ^
+                static_cast<size_t>(c.b * 83492791) ^
+                static_cast<size_t>(c.a * 22121887);
+      }
+   };
+
+
 };
 
 std::ostream& operator<<(std::ostream& out, const Color4 &c);
@@ -115,6 +131,19 @@ public:
       return (&r)[i];
    }
 
+   bool operator==(const Color4& other) const {
+      return ToInteger() == other.ToInteger();
+   }
+
+   bool operator!=(const Color4& other) const {
+      return ToInteger() != other.ToInteger();
+   }
+
+   bool operator<(const Color4& other) const {
+      return ToInteger() < other.ToInteger();
+   }
+
+
    void operator*=(float s) {
       s = std::min(std::max(s, 1.0f), 0.0f);
       for (int i = 0; i < 3; i++) {
@@ -127,21 +156,31 @@ public:
 
    int ToInteger() const {
       return ((unsigned int)r) |
-               (((unsigned int)g) << 8) |
-               (((unsigned int)b) << 16);
+             (((unsigned int)g) << 8) |
+             (((unsigned int)b) << 16);
    }
    std::string ToString() const {
       std::stringstream out;
       out << std::hex << std::setfill('0') << std::setw(2) << '#' << r << g << b;
       return out.str();
    }
+
    static Color3 FromInteger(unsigned int i) {
       return Color3(i & 0xff, (i >> 8) & 0xff, (i >> 16) & 0xff);
    }
+
    static Color3 FromString(std::string const& str) {
       Color4 c = Color4::FromString(str);
       return Color3(c.r, c.g, c.b);
    }
+
+   struct Hash { 
+      inline size_t operator()(Color3 const& c) const {
+         return static_cast<size_t>(c.r * 73856093) ^
+                static_cast<size_t>(c.g * 19349669) ^
+                static_cast<size_t>(c.b * 83492791);
+      }
+   };
 
    static Color3 red;
    static Color3 orange;
