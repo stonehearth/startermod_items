@@ -30,6 +30,19 @@
          }
       },
 
+      "large" : {
+         "world_generator" : "file(large_world.lua)",
+
+         "groups" : {
+           "longrunning" : {
+               "name" : "too long to put into autotest, but necessary nonetheless",
+               "scripts" : [
+                  "file(longrunning/crushinator_autotest.lua)"
+               ]
+            }
+         }
+      },
+
       "tiny" : {
          "world_generator" : "file(tiny_world.lua)",
 
@@ -103,8 +116,7 @@
            "longrunning" : {
                "name" : "too long to put into autotest, but necessary nonetheless",
                "scripts" : [
-                  "file(longrunning/build/lrbt_autotest.lua)",
-                  "file(longrunning/crushinator_autotest.lua)"
+                  "file(longrunning/build/lrbt_autotest.lua)"
                ]
             },
 

@@ -2,7 +2,7 @@ local Point3  = _radiant.csg.Point3
 local Cube3   = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
-local WORLD_SIZE = 64
+local WORLD_SIZE = 256
 
 function create_world(environment)
    local block_types = radiant.terrain.get_block_types()
