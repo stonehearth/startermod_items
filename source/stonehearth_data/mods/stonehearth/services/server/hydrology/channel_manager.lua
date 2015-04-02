@@ -266,6 +266,7 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, from_
 end
 
 function ChannelManager:_get_waterfall_target(from_location)
+   -- TODO: needs to use watertight region
    local to_location = radiant.terrain.get_point_on_terrain(from_location)
    local to_entity = stonehearth.hydrology:get_water_body(to_location)
    if not to_entity then

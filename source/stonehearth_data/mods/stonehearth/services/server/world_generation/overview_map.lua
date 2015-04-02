@@ -53,12 +53,19 @@ function OverviewMap:derive_overview_map(full_elevation_map, full_feature_map, o
          a, b = _overview_map_to_feature_map_coords(i, j)
 
          macro_block_info = {
-            terrain_code = self:_get_terrain_code(a, b, full_elevation_map),
+            terrain_code = self:_get_terrain_code(a, b, full_elevation_map, full_feature_map),
             forest_density = self:_get_forest_density(a, b, full_feature_map),
             wildlife_density = self:_get_wildlife_density(a, b, full_elevation_map),
             vegetation_density = self:_get_vegetation_density(a, b, full_feature_map),
             mineral_density = self:_get_mineral_density(a, b, full_elevation_map)
          }
+
+         -- Hacky fixup so that forest doesn't show on top of water on the overview map
+         -- This occurs because there are 4 feature cells per macroblock
+         if macro_block_info.terrain_code == 'water' then
+            macro_block_info.forest_density = 0
+         end
+
          overview_map:set(i, j, macro_block_info)
       end
    end
@@ -111,7 +118,18 @@ function OverviewMap:_assemble_maps(blueprint)
    return full_feature_map, full_elevation_map
 end
 
-function OverviewMap:_get_terrain_code(i, j, elevation_map)
+function OverviewMap:_get_terrain_code(i, j, elevation_map, feature_map)
+   local water_count = 0
+   feature_map:visit_block(i, j, 2, 2, function(value)
+         if self._landscaper:is_water_feature(value) then
+            water_count = water_count + 1
+         end
+      end)
+
+   if water_count >= 2 then
+      return 'water'
+   end
+
    -- since macroblocks are 2x the feature size, all 4 cells have the same value
    -- if this changes, sort and return the 3rd item (one of the tied medians)
    local elevation = elevation_map:get(i, j)

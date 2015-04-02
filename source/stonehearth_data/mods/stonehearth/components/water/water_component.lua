@@ -15,7 +15,7 @@ function WaterComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
-      self._sv.region = _radiant.sim.alloc_region3()
+      self._sv.region = nil -- for clarity
       self._sv.height = 0
       self._sv._current_layer = _radiant.sim.alloc_region3()
       self._sv._current_layer_index = 0
@@ -34,8 +34,37 @@ end
 function WaterComponent:destroy()
 end
 
+-- external parties should not modify this region
+-- consider making get_region and set_region take non-boxed regions instead
 function WaterComponent:get_region()
    return self._sv.region
+end
+
+function WaterComponent:set_region(boxed_region, height)
+   self._sv.region = boxed_region
+   local region = boxed_region:get()
+   local current_layer_index
+
+   if region:empty() then
+      assert(height == nil or height == 0)
+      height = 0
+      current_layer_index = 0
+   else
+      local bounds = region:get_bounds()
+      current_layer_index = bounds.max.y - 1
+
+      if height == nil then
+         -- use the height of the region
+         height = bounds.max.y
+      end
+   end
+
+   assert(height >= current_layer_index and height <= current_layer_index + 1)
+   self._sv.height = height
+   self._sv._current_layer_index = current_layer_index
+   self:_recalculate_current_layer()
+
+   self.__saved_variables:mark_changed()
 end
 
 function WaterComponent:get_water_level()
@@ -383,9 +412,9 @@ function WaterComponent:_get_edge_region(region, channel_region)
    edge_region:subtract_region(channel_region)
 
    -- remove locations outside the world
-   -- TODO: just make these regions channels to nowhere
    edge_region = edge_region:intersect_cube(world_bounds)
 
+   -- TODO: reconsider this call
    edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
