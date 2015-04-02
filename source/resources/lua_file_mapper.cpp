@@ -23,7 +23,7 @@ core::StaticString LuaFileMapper::MapFileLineToFunction(core::StaticString file,
    auto i = _files.find(file);
    if (i != _files.end()) {
       FileLineInfo& fi = i->second;
-      ASSERT(line >= 0 && line < fi.lineToFunction.size());
+      ASSERT(line >= 0 && line < (int)fi.lineToFunction.size());
       return core::StaticString::FromPreviousStaticStringValue(fi.lineToFunction[line]);
    }
    return file;
@@ -47,7 +47,7 @@ void LuaFileMapper::IndexFile(core::StaticString filename, std::string const& co
          core::StaticString fn = luabind::object_cast<std::string>((*i)[1]);
          int min = luabind::object_cast<int>((*i)[2]);
          int max = luabind::object_cast<int>((*i)[3]);
-         if (fi.lineToFunction.size() <= max) {
+         if ((int)fi.lineToFunction.size() <= max) {
             fi.lineToFunction.resize(max + 1);
          }
          for (int i = min; i <= max; i++) {
