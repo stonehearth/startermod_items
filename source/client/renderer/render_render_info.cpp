@@ -259,7 +259,7 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
       skeleton.GetBoneNumber(boneName);
    }
 
-   auto generate_matrix = [this, useSkeletonOrigin, defaultMaterial, &skeleton, &nodes](csg::MaterialToMeshMap& meshes, csg::ColorToMaterialMap const& colormap, int lodLevel) {
+   auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::MaterialToMeshMap& meshes, csg::ColorToMaterialMap const& colormap, int lodLevel) {
       for (auto const& node : nodes) {
          std::string const& boneName = node.first;
          MatrixVector const& matrices = node.second;
