@@ -76,7 +76,11 @@ void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
 {
    for (auto& child : node->getChildren()) {
       if (child->getType() == SceneNodeTypes::VoxelJointNode) {
-         _boneLookup[((VoxelJointNode*)child)->getJointIndex()] = child;
+         uint32 idx = ((VoxelJointNode*)child)->getJointIndex();
+         if (_boneLookup.size() <= idx) {
+            _boneLookup.resize(idx + 1);
+         }
+         _boneLookup[idx] = child;
       } else if (child->getType() == SceneNodeTypes::VoxelMesh) {
          _meshNode = (VoxelMeshNode *)child;
       }
@@ -122,8 +126,9 @@ void VoxelModelNode::updateLocalMeshAABBs()
 
    for (auto& bounds : _boneBounds) {
       BoundingBox boneBounds = bounds.second;
-      if (_boneLookup.find(bounds.first) != _boneLookup.end()) {
-         boneBounds.transform(_boneLookup[bounds.first]->getRelTrans());
+      uint32 idx = bounds.first;
+      if (_boneLookup.size() > idx) {
+         boneBounds.transform(_boneLookup[idx]->getRelTrans());
       }
       mesh._localBBox.makeUnion(boneBounds);
    }
@@ -213,13 +218,24 @@ void VoxelModelNode::onPostUpdate()
       recreateNodeList();
    }
    updateLocalMeshAABBs();
+
+   if (_boneRelTransLookup.size() < _boneLookup.size()) {
+      _boneRelTransLookup.resize(_boneLookup.size());
+   }
+   for (int i = 0; i < _boneLookup.size(); i++) {
+      _boneRelTransLookup[i] = _boneLookup[i]->getRelTrans();
+   }
 }
 
-std::unordered_map<int, SceneNode*> const& VoxelModelNode::getBoneLookup() const
+std::vector<SceneNode*> const& VoxelModelNode::getBoneLookup() const
 {
    return _boneLookup;
 }
 
+std::vector<Matrix4f> const& VoxelModelNode::getBoneRelTransLookup() const
+{
+   return _boneRelTransLookup;
+}
 
 void VoxelModelNode::markNodeListDirty() 
 { 

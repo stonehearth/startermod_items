@@ -167,7 +167,7 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
    Matrix4f m = _absTrans.inverted();
 	Vec3f orig = m * rayOrig;
 	Vec3f dir = m * (rayOrig + rayDir) - orig;
-   std::unordered_map<int, SceneNode*> const& boneLookup = _parentModel->getBoneLookup();
+   std::vector<SceneNode*> const& boneLookup = _parentModel->getBoneLookup();
 
    // Select the maximum LOD level for triangle iteration (since there will be fewer triangles!)
    int maxLod = _geometryRes->clampLodLevel(2);
@@ -179,7 +179,7 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
       if (boneNum != oldBoneNum) {
          oldBoneNum = boneNum;
          if ((int)boneLookup.size() > boneNum) {
-            m = boneLookup.at(boneNum)->getAbsTrans().inverted();
+            m = boneLookup[boneNum]->getAbsTrans().inverted();
          } else {
             m = _absTrans.inverted();
          }
