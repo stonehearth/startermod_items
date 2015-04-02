@@ -267,4 +267,21 @@ function lrbt_cases.obstructed_walls(autotest, session)
    }
 end
 
+function lrbt_cases.problem_shape_H(autotest, session)
+   local floor
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 9, 0), Point3(8, 10, 4)))
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(3, 9, 0), Point3(5, 10, 10)))   -- crossbar
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 9, 6), Point3(8, 10, 10)))
+      end,
+      function()
+         lrbt_util.grow_wooden_walls(session, floor)
+      end,
+      function()
+         lrbt_util.grow_wooden_roof(session, build_util.get_building_for(floor))
+      end,
+   }
+end
+
 return lrbt_cases
