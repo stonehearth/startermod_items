@@ -208,6 +208,7 @@
 
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/skeleton_female.json)",
+      "monsters:undead:zombie" : "file(entities/monsters/undead/zombie)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
