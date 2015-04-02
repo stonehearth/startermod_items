@@ -29,7 +29,7 @@ class Pipeline : public core::Singleton<Pipeline> {
 
       // dynamic meshes are likely unique (and therefore do not need to share geometry with anyone) and are likely
       // to change (e.g. the terrain).
-      SharedMaterial GetSharedMaterial(std::string const& uri);
+      SharedMaterial GetSharedMaterial(core::StaticString uri);
 
       RenderNodePtr CreateDesignationNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color, int useCoarseCollisionBox=1);
       RenderNodePtr CreateStockpileNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
@@ -39,7 +39,7 @@ class Pipeline : public core::Singleton<Pipeline> {
 
       H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);
 
-      typedef std::function<void(csg::MaterialToMeshMap& meshes, csg::ColorToMaterialMap const& colormap, int lodLevel)> CreateMeshLodLevelFn;
+      typedef std::function<void(csg::MaterialToMeshMap& meshes, int lodLevel)> CreateMeshLodLevelFn;
       typedef std::unordered_map<csg::MaterialName, GeometryInfo, csg::MaterialName::Hash> MaterialToGeometryMap;
       DECLARE_SHARED_POINTER_TYPES(MaterialToGeometryMap)
 

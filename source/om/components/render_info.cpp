@@ -21,9 +21,16 @@ void RenderInfo::ConstructObject()
 void RenderInfo::LoadFromJson(json::Node const& obj)
 {
    scale_ = obj.get<float>("scale", *scale_);
-   material_ = obj.get<std::string>("material", "materials/voxel.material.json");
+   material_ = obj.get<std::string>("material", "");
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
+
+   color_map_ = obj.get<std::string>("color_map", *color_map_);
+   json::Node materialMaps = obj.get<json::Node>("material_maps", json::Node());
+   material_maps_.Clear();
+   for (json::Node const& entry : materialMaps) {
+      material_maps_.Add(entry.as<std::string>());
+   }
 }
 
 void RenderInfo::SerializeToJson(json::Node& node) const
@@ -34,6 +41,13 @@ void RenderInfo::SerializeToJson(json::Node& node) const
    node.set("material", GetMaterial());
    node.set("model_variant", GetModelVariant());
    node.set("animation_table", GetAnimationTable());
+   node.set("colorindex", GetColorMap());
+
+   JSONNode materialMaps(JSON_ARRAY);
+   for (std::string const& map : EachMaterialMap()) {
+      materialMaps.push_back(JSONNode("", map));
+   }
+   node.set("material_maps", materialMaps);
 }
 
 void RenderInfo::AttachEntity(om::EntityRef e)

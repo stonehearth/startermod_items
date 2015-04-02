@@ -71,7 +71,7 @@ private:
 typedef core::StaticString MaterialName;
 
 // The ColorToMaterialMap maps colors to materials which should be used to render them.
-typedef std::map<csg::Color4, MaterialName> ColorToMaterialMap;
+typedef std::map<csg::Color3, MaterialName> ColorToMaterialMap;
 
 // The MaterialToMeshMap maps materials to Meshs.  It's often used as a container in the
 // intermediate step of splitting a single csg::Region into it's different parts by color

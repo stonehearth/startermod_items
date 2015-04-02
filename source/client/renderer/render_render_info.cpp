@@ -57,6 +57,7 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
 
       // if the material changes...
       material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      material_map_trace_ = render_info->TraceMaterialMaps("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
    }
 
    // Manually update immediately on construction.
@@ -155,26 +156,31 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
    // First, check to see if we have manually overridden the material for this entity.
    std::string material = entity_.GetMaterialOverride();
-
-   // If we haven't, see if the entity has a 'default' material path set up.
-   if (material.empty()) {
-      material = entity_.GetMaterialPathFromKind("default");
+   if (!material.empty()) {
+      ApplyMaterialToVoxelNodes(material.c_str());
+      return;
    }
 
-   // Still nothing?  Consult the material on the render_info.
-   if (material.empty() && render_info) {
+   // No override.  Try the material in the render_info
+   if (render_info) {
       material = render_info->GetMaterial();
+      if (!material.empty()) {
+         ApplyMaterialToVoxelNodes(material.c_str());
+         return;
+      }
    }
 
-   // render_info is null--I'm not even sure if that can happen, but just in case,
-   // here's the absolute default.
-   if (material.empty()) {
-      material = "materials/voxel.material.json";
+   // Use the color map version.
+   for (VoxelNode n: _voxelMeshNodes) {
+      n.node->SetMaterial(n.material);
    }
+}
 
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
-   for (H3DNode node : _voxelMeshNodes) {
-      h3dSetNodeParamI(node, H3DVoxelMeshNodeParams::MatResI, mat);
+
+void RenderRenderInfo::ApplyMaterialToVoxelNodes(core::StaticString material)
+{
+   for (VoxelNode n: _voxelMeshNodes) {
+      n.node->SetMaterial(material);
    }
 }
 
@@ -199,6 +205,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 
       FlatModelMap flattened;
       FlattenModelMap(all_models, flattened);
+      RebuildMaterialMap(render_info);
       RebuildModel(render_info, flattened);
    }
 }
@@ -231,13 +238,68 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
+void RenderRenderInfo::RebuildMaterialMap(om::RenderInfoPtr render_info)
+{
+   _materialMap.clear();
+
+   if (render_info) {
+      std::string colormap = render_info->GetColorMap();
+      if (colormap.empty()) {
+         return;
+      }
+      InverseColorMap icm = CreateInverseColorMap(colormap);
+      auto icmEnd = icm.end();
+
+      for (std::string const& materialMap : render_info->EachMaterialMap()) {
+         try {
+            res::ResourceManager2::GetInstance().LookupJson(materialMap, [this, &icm, icmEnd](JSONNode const& data) {
+               for (json::Node const& node : json::Node(data)) {
+                  std::string material = node.get<std::string>("render_material", "");
+                  if (!material.empty()) {
+                     csg::MaterialName materialName(material);
+
+                     // node.name() is the name of the material.  we can find all the colors mapped
+                     // to this material by looking them up in the inverse color map
+                     auto i = icm.find(node.name());
+                     if (i != icmEnd) {
+                        for (csg::Color3 const& color : i->second) {
+                           _materialMap.emplace(color, materialName);
+                        }
+                     }
+                  }
+               }
+            });
+         } catch (res::Exception const& e) {
+            RI_LOG(1) << "failed to process material map " << materialMap << " (" << e.what() << ")";
+         }
+      }
+   }
+}
+
+RenderRenderInfo::InverseColorMap RenderRenderInfo::CreateInverseColorMap(std::string const& colormap)
+{
+   InverseColorMap icm;
+
+   try {
+      res::ResourceManager2::GetInstance().LookupJson(colormap, [&icm](JSONNode const& cm) mutable {
+         for (json::Node const& i : json::Node(cm)) {
+            // i.name() is the color (e.g. #ff0000).
+            // *i is the material map entry (e.g. 'stonehearth:materials:wood_1')
+            csg::Color3 color = csg::Color3::FromString(i.name());
+            icm[i.as<csg::MaterialName>()].emplace_back(color);
+         }
+      });
+   } catch (res::Exception const& e) {
+      RI_LOG(1) << "failed to process colormap " << colormap << " (" << e.what() << ")";
+   }
+   return icm;
+}
+
 void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap const& nodes)
 {
    ASSERT(render_info);
 
    DestroyVoxelMeshNode();
-
-   csg::ColorToMaterialMap colormap;
 
    //RI_LOG(7) << "adding model node for bone " << bone;
    ResourceCacheKey key;
@@ -259,7 +321,7 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
       skeleton.GetBoneNumber(boneName);
    }
 
-   auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::MaterialToMeshMap& meshes, csg::ColorToMaterialMap const& colormap, int lodLevel) {
+   auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::MaterialToMeshMap& meshes, int lodLevel) {
       for (auto const& node : nodes) {
          std::string const& boneName = node.first;
          MatrixVector const& matrices = node.second;
@@ -304,23 +366,23 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
 
          RI_LOG(7) << "offsetting mesh " << all_models.GetBounds() << " origin:" << origin << " meshOrigin:" << meshOrigin << " matrixSize:" << size << " pos:" << pos;
 
-         csg::RegionToMeshMap(all_models, meshes, -meshOrigin, colormap, defaultMaterial, skeleton.GetBoneNumber(boneName));
+         csg::RegionToMeshMap(all_models, meshes, -meshOrigin, _materialMap, defaultMaterial, skeleton.GetBoneNumber(boneName));
       }
    };
    bool noInstancing = skeleton.GetNumBones() > 1;
 
    Pipeline::MaterialToGeometryMapPtr geometry;
    Pipeline& pipeline = Pipeline::GetInstance();
-   pipeline.CreateSharedGeometryFromGenerator(geometry, key, colormap, generate_matrix, noInstancing);
+   pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing);
 
-   H3DNode voxelModelNode = entity_.GetNode();
+   H3DNode parent = entity_.GetNode();
    for (auto const& entry : *geometry) {
       csg::MaterialName material = entry.first;
       GeometryInfo const& geo = entry.second;
 
-      H3DNode meshNode = pipeline.CreateVoxelMeshNode(voxelModelNode, geo);
-      h3dSetNodeParamF(voxelModelNode, H3DModel::ModelScaleF, 0, scale_);
-      _voxelMeshNodes.push_back(meshNode);
+      RenderNodePtr node = RenderNode::CreateVoxelModelNode(parent, geo)
+                              ->SetScale(csg::Point3f(scale_, scale_, scale_));
+      _voxelMeshNodes.emplace_back(node, material);
    }
 }
 
@@ -399,8 +461,5 @@ csg::Point3f RenderRenderInfo::GetBoneOffset(std::string const& boneName)
 
 void RenderRenderInfo::DestroyVoxelMeshNode()
 {
-   for (H3DNode node : _voxelMeshNodes) {
-      h3dRemoveNode(node);
-   }
    _voxelMeshNodes.clear();  
 }
