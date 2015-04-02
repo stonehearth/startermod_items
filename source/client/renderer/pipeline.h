@@ -42,7 +42,7 @@ class Pipeline : public core::Singleton<Pipeline> {
       typedef std::function<void(csg::MaterialToMeshMap& meshes, csg::ColorToMaterialMap const& colormap, int lodLevel)> CreateMeshLodLevelFn;
       typedef std::unordered_map<csg::MaterialName, GeometryInfo, csg::MaterialName::Hash> MaterialToGeometryMap;
       DECLARE_SHARED_POINTER_TYPES(MaterialToGeometryMap)
-(
+
       void CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometry, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing);
 
       void CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing=false);

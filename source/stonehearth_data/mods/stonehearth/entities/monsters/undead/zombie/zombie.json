@@ -8,20 +8,27 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(skeleton.qb)",
+               "file(zombie.qb)",
                {
                   "type": "one_of",
                   "items": [
-                     "file(skeleton_head_1.qb)", 
-                     "file(skeleton_head_2.qb)"
+                     "file(head_1.qb)", 
+                     "file(head_2.qb)"
                   ]
-               }
+               },
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(body_variation_1.qb)", 
+                     "file(body_variation_2.qb)"
+                  ]
+               }               
             ]
          }
       }, 
 
       "unit_info" : {
-         "name": "A Skeleton",
+         "name": "A Zombie",
          "description": "It yearns for flesh"
       },
 

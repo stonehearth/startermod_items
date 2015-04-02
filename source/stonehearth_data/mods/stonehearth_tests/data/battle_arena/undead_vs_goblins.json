@@ -1,0 +1,70 @@
+{
+   "team1" : {
+      "player_id" : "undead",
+      "location" : {
+         "x" : 0,
+         "y" : 0,
+         "z" : -24
+      },
+
+      "citizens" : {
+         "footmen" : {
+            "job" : "stonehearth:jobs:footman",
+            "count" : 8,
+            "equipment" : {
+               "weapon" : ["stonehearth:weapons:two_handed_sword"]
+            }
+         }         
+      }
+   },
+   "team2" : {
+      "player_id" : "goblins",
+      "location" : {
+         "x" : 0,
+         "y" : 0,
+         "z" : 24
+      },
+
+      "citizens" : {
+         "raiders" : {
+            "job" : "stonehearth:jobs:footman",
+            "count" : 3,
+            "equipment" : {
+               "outfit" : "stonehearth:monsters:goblins:outfits:footman",
+               "weapon" : ["stonehearth:weapons:jagged_cleaver"]
+            }
+         },
+         "thief" : {
+            "job" : "stonehearth:jobs:footman",
+            "count" : 1,
+            "equipment" : {
+               "outfit" : "stonehearth:monsters:goblins:outfits:thief",
+               "weapon" : ["stonehearth:weapons:dagger"]
+            }
+         },
+         "_raiders" : {
+            "job" : "stonehearth:jobs:footman",
+            "count" : 1,
+            "equipment" : {
+               "outfit" : "stonehearth:monsters:goblins:outfits:footman",
+               "weapon" : ["stonehearth:weapons:iron_mace"]
+            }
+         },
+         "_maurauders" : {
+            "job" : "stonehearth:jobs:footman",
+            "count" : 1,
+            "equipment" : {
+               "outfit" : "stonehearth:monsters:goblins:outfits:maurauder",
+               "weapon" : ["stonehearth:weapons:iron_mace"]
+            }
+         },
+         "boss" : {
+            "job" : "stonehearth:jobs:footman",
+            "equipment" : {
+               "outfit" : "stonehearth:monsters:goblins:outfits:miniboss",
+               "weapon" : ["stonehearth:weapons:giant_bone_mace", "stonehearth:weapons:giant_bone_axe"]
+            }         
+         }
+      }
+   }
+}

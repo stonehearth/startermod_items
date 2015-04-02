@@ -9,6 +9,14 @@
          "female" : [
             "stonehearth:monsters:undead:skeleton_female"
          ]
+      },
+      "zombie" : {
+         "male" : [
+            "stonehearth:monsters:undead:zombie"
+         ],
+         "female" : [
+            "stonehearth:monsters:undead:zombie"
+         ]
       }
    },
    "surnames" : [

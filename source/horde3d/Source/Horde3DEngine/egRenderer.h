@@ -320,7 +320,7 @@ protected:
 
    static float*                      _vbInstanceVoxelBuf;
    static std::unordered_map<RenderableQueue const*, uint32> _instanceDataCache;
-   static Matrix4f _boneMats[64];
+   static Matrix4f                    _defaultBoneMat;
 
 
    // Feature-level compatibility of the card, determined by GPU specifics.
