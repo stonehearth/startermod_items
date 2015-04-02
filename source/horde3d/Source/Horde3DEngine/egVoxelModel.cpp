@@ -222,7 +222,7 @@ void VoxelModelNode::onPostUpdate()
    if (_boneRelTransLookup.size() < _boneLookup.size()) {
       _boneRelTransLookup.resize(_boneLookup.size());
    }
-   for (int i = 0; i < _boneLookup.size(); i++) {
+   for (int i = 0; i < (int)_boneLookup.size(); i++) {
       _boneRelTransLookup[i] = _boneLookup[i]->getRelTrans();
    }
 }

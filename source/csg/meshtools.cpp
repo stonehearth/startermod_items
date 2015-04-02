@@ -9,6 +9,8 @@ using namespace ::radiant::csg;
 
 #define MT_LOG(level)      LOG(csg.meshtools, level)
 
+typedef std::unordered_map<MaterialName, csg::Region2, MaterialName::Hash> MaterialToPlaneMap;
+
 Vertex::Vertex(Point3f const& p, float bIndex, Point3f const& n, Point4f const& c)
 {
    SetLocation(p);
@@ -272,6 +274,40 @@ void csg::RegionToMesh(csg::Region3 const& region, Mesh &mesh, csg::Point3f cons
          optPlane.ForceOptimizeByMerge("converting region to mesh plane");
          mesh.AddRegion(optPlane, pi, boneIndex);
       } else {
+         mesh.AddRegion(plane, pi, boneIndex);
+      }
+   });
+}
+
+//
+// -- csg::RegionToMeshMap
+//
+// Convert `region` to a series of meshes, separated by material name.
+//
+void csg::RegionToMeshMap(csg::Region3 const& region, MaterialToMeshMap& meshes, csg::Point3f const& offset, ColorToMaterialMap const& colormap, MaterialName defaultMaterial, uint32 boneIndex)
+{
+   auto colormapEnd = colormap.end();
+
+   csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      MaterialToPlaneMap planesByMaterial;
+
+      // Look up the material for every cube in the plane, accumulating into a Region2 for each
+      // material.
+      for (csg::Rect2 const& r : csg::EachCube(plane)) {
+         csg::Color4 color = csg::Color4::FromInteger(r.GetTag());
+         auto i = colormap.find(color);
+         MaterialName material = (i == colormapEnd) ? defaultMaterial : i->second;
+         planesByMaterial[material].AddUnique(r);
+      }
+
+      // Optimize the accumulated planes and throw them into the proper mesh, by material
+      for (auto& entry : planesByMaterial) {
+         MaterialName name = entry.first;
+         csg::Region2& plane = entry.second;
+         plane.ForceOptimizeByMerge("meshing by material");
+
+         csg::Mesh& mesh = meshes[name];
+         mesh.SetOffset(offset);
          mesh.AddRegion(plane, pi, boneIndex);
       }
    });
