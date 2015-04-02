@@ -31,7 +31,8 @@
       "base_exp_per_harvest" : 4, 
       "stonehearth:pumpking_crop" : 10, 
       "stonhearth:corn_crop" : 30, 
-      "stonehearth:crops:tester_crop" : 120
+      "stonehearth:crops:tester_crop" : 120,
+      "stonehearth:crops:tester_crop_2" : 120
    },
 
    "max_level" : 6, 

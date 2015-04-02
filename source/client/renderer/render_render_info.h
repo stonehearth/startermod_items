@@ -77,7 +77,7 @@ private:
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;
-   H3DNode                 _voxelMeshNode;
+   std::vector<H3DNode>    _voxelMeshNodes;
    BoneOffsetMap           bones_offsets_;
 };
 

@@ -613,7 +613,7 @@ void Renderer::BuildSkySphere()
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
    H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoDraw, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 }
 
 void Renderer::SetStarfieldBrightness(float brightness)
@@ -671,7 +671,7 @@ void Renderer::BuildStarfield()
    
    H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoDraw | H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCull | H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
 }
 
 void Renderer::ShowPerfHud(bool value) {

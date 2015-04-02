@@ -278,7 +278,9 @@
       "crops:turnip_crop" : "file(entities/crops/turnip_crop)",
       "crops:pumpkin_crop" : "file(entities/crops/pumpkin_crop)",
       "crops:tester_crop" : "file(entities/crops/tester_crop)",
+      "crops:tester_crop_2" : "file(entities/crops/tester_crop_2)",
       "crops:silkweed_crop" : "file(entities/crops/silkweed_crop)", 
+      "crops:tester_silkweed_crop" : "file(entities/crops/tester_silkweed_crop)", 
 
       "plants:brightbell" : "file(entities/plants/brightbell_plant)",
       "plants:frostsnap" : "file(entities/plants/frostsnap_plant)",
