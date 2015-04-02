@@ -215,9 +215,8 @@ void VoxelModelNode::onPostUpdate()
    }
    updateLocalMeshAABBs();
 
-   if (_boneRelTransLookup.size() < _boneLookup.size()) {
-      _boneRelTransLookup.resize(_boneLookup.size());
-   }
+   _boneRelTransLookup.resize(_boneLookup.size());
+
    for (int i = 0; i < (int)_boneLookup.size(); i++) {
       _boneRelTransLookup[i] = _boneLookup[i]->getRelTrans();
    }

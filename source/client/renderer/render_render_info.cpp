@@ -314,13 +314,15 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
       std::string const& boneName = node.first;
       MatrixVector const& matrices = node.second;
 
+      // This 'primes' the skeleton, making sure every single bone node is allocated before mesh
+      // generation begins.  This is done to ensure identical mapping when the geometry is created.
+      int boneNum = skeleton.GetBoneNumber(boneName);
+
       for (voxel::QubicleMatrix const* matrix : matrices) {
          // this assumes matrices are loaded exactly once at a stable address.
          key.AddElement("matrix", matrix);
+         key.AddElement("matrix", boneNum);
       }
-      // This 'primes' the skeleton, making sure every single bone node is allocated before mesh
-      // generation begins.  This is done to ensure identical mapping when the geometry is created.
-      skeleton.GetBoneNumber(boneName);
    }
 
    auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::MaterialToMeshMap& meshes, int lodLevel) {
