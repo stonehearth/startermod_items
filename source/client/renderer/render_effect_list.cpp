@@ -56,11 +56,10 @@ int GetStartTime(const JSONNode& node)
 
 static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
 {
-   csg::Matrix4 m(t.orientation);
-   
-   m[12] = (float)t.position.x * scale;
-   m[13] = (float)t.position.y * scale;
-   m[14] = (float)t.position.z * scale;
+   csg::Matrix4 m(t.orientation);   
+   m[12] = (float)t.position.x;
+   m[13] = (float)t.position.y;
+   m[14] = (float)t.position.z;
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
@@ -288,7 +287,7 @@ void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finish
       }
    }
 
-   animation_->MoveNodes(offset, [&](std::string const& bone, const csg::Transform &transform) {
+   animation_->MoveNodes(offset, entity_.GetSkeleton().GetScale(), [&](std::string const& bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
          float scale = entity_.GetSkeleton().GetScale();
@@ -434,39 +433,6 @@ void LightEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 // ActivityOverlayEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H3DNode node)
-{
-   float sMinY = 999999, sMaxY = -999999;
-   float sMinX = 999999, sMaxX = -999999;
-   *minY = sMinY;
-   *maxY = sMaxY;
-   *minX = sMinX;
-   *maxX = sMaxX;
-
-   int i = 0;
-   H3DNode n = 0;
-   while ((n = h3dGetNodeChild(node, i)) != 0) {
-      if (h3dGetNodeType(n) == Horde3D::SceneNodeTypes::VoxelModel) {
-         h3dGetNodeAABB(n, &sMinX, &sMinY, nullptr, &sMaxX, &sMaxY, nullptr);
-      } else if (h3dGetNodeType(n) == Horde3D::SceneNodeTypes::Group) {
-         getBoundsForGroupNode(&sMinX, &sMaxX, &sMinY, &sMaxY, n);
-      }
-      if (*minY > sMinY) {
-         *minY = sMinY;
-      }
-      if (*maxY < sMaxY) {
-         *maxY = sMaxY;
-      }
-      if (*minX > sMinX) {
-         *minX = sMinX;
-      }
-      if (*maxX < sMaxX) {
-         *maxX = sMaxX;
-      }
-      i++;
-   }
-}
-
 ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    RenderEffectTrack(e, effect->GetEffectId(), "activity overlay"),
    _positioned(false)
@@ -488,8 +454,8 @@ ActivityOverlayEffectTrack::~ActivityOverlayEffectTrack()
 
 bool ActivityOverlayEffectTrack::PositionOverlayNode()
 {
-   float minX, maxX, minY, maxY;
-   getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, entity_.GetNode());
+   float minX = 999999, maxX = -999999, minY = 999999, maxY = -999999;
+   h3dGetNodeAABB(entity_.GetNode(), &minX, &minY, nullptr, &maxX, &maxY, nullptr);
    if (minX > maxX || minY > maxY) {
       EL_LOG(8) << "could not compute bounds of render entity node";
       return false;

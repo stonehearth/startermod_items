@@ -23,7 +23,7 @@ local function do_build(autotest, cb)
    lrbt_util.mark_buildings_active(autotest, buildings)
    lrbt_util.succeed_when_buildings_finished(autotest, buildings, scaffolding)
       
-   autotest:sleep(60000)
+   autotest:sleep(6000000)
    autotest:fail('failed to build structures')
 end
 
@@ -40,7 +40,7 @@ local function do_template(autotest, cb)
    lrbt_util.mark_buildings_active(autotest, buildings)
    lrbt_util.succeed_when_buildings_finished(autotest, buildings, scaffolding)
       
-   autotest:sleep(60000)
+   autotest:sleep(6000000)
    autotest:fail('failed to build structures')
 end
 
@@ -61,7 +61,7 @@ local function do_teardown(autotest, cb)
    lrbt_util.mark_buildings_active(autotest, buildings)
    lrbt_util.succeed_when_buildings_destroyed(autotest, buildings)
 
-   autotest:sleep(60000)
+   autotest:sleep(6000000)
    autotest:fail('failed to teardown structures')
 end
 

@@ -33,9 +33,16 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       // is clicked.
       $(top).on('stonehearth_building_templates', function() {
          self._showBuildingTemplatesView();
-         //self._showBuildingDesignerView();
       });
 
+      // show the custom building editor
+      $(top).on('stonehearth_building_designer', function() {
+         self._showBuildingTemplatesView();
+         self._showBuildingDesignerView('editor');
+      });
+
+      // XXX, I think these are totally unused and shoul be deleted. -- Tom
+      /*
       // show the building editor
       $(top).on('stonehearth_building_editor', function() {
          self._showBuildingDesignerView('editor');
@@ -45,11 +52,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       $(top).on('stonehearth_building_overview', function() {
          self._showBuildingDesignerView('overview');
       });
-
-      // show the road ui
-      $(top).on('stonehearth_build_road', function() {
-         self._showBuildRoadsView();
-      });
+      */
 
       // show the mining ui
       $(top).on('stonehearth_mining', function() {
@@ -69,7 +72,6 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._placeItemView = self.addView(App.StonehearthPlaceItemView);
       this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
-      this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
       this._miningView = self.addView(App.StonehearthMiningView);
 
       this.hideAllViews();
@@ -96,12 +98,6 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._placeItemView.show();
    },
 
-   _showBuildRoadsView: function() {
-      App.setGameMode('build');
-      this.hideAllViews();
-      this._buildRoadsView.show();
-   },
-
    _showMiningView: function() {
       App.setGameMode('build');
       this.hideAllViews();
@@ -121,13 +117,6 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._buildingDesignerView.show();
    },
 
-   _isRoad: function(entity) {
-      return entity['stonehearth:fabricator'] && 
-            entity['stonehearth:fabricator'].blueprint['stonehearth:floor'] &&
-            (entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == this.constants.ROAD ||
-             entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == this.constants.CURB);
-   },
-
    _onStateChanged: function() {
       var self = this;
 
@@ -144,16 +133,9 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-                     if (self._isRoad(entity)) {
-                        // Unless it's a road!  Then, show the road UI.
-                        self._buildRoadsView.set('uri', entity.__self);
-                        self.hideAllViews();
-                        self._buildRoadsView.show();
-                     } else {
-                        self.hideAllViews();
-                        self._buildingDesignerView.set('uri', entity.__self);
-                        self._buildingDesignerView.show();
-                     }
+                     self.hideAllViews();
+                     self._buildingDesignerView.set('uri', entity.__self);
+                     self._buildingDesignerView.show();
                   } else {
                      self._buildingDesignerView.hide();
                   }
@@ -163,7 +145,6 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                });         
          } else {
             self._buildingDesignerView.set('uri', null);
-            self._buildRoadsView.set('uri', null);
          }
       } else {
          self.hideAllViews();

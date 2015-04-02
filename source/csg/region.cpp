@@ -164,7 +164,7 @@ void Region<S, C>::AddUnique(Cube const& cube)
       // a tail-end recursive way to avoid duplicating code, but
       // I believe it would be ultimately much more confusing to 
       // read.
-      uint c = cubes_.size();
+      uint c = (uint)cubes_.size();
       while (c > 1) {
          if (!cubes_[c-2].CombineWith(cubes_[c-1])) {
             break;
@@ -207,7 +207,7 @@ void Region<S, C>::Subtract(Cube const& cube)
    CubeVector added;
 
    unsigned int i = 0;
-   unsigned int size = cubes_.size();
+   unsigned int size = (int)cubes_.size();
 
    Validate();
 
@@ -233,7 +233,7 @@ void Region<S, C>::Subtract(Cube const& cube)
    cubes_.insert(cubes_.end(), added.begin(), added.end());
    size_t addCount = added.size();
    if (addCount) {
-      _churn += added.size();
+      _churn += (int)added.size();
       CHURN_LOG(7) << "added " << added.size() << " cubes in subtract";
    }
 
@@ -328,7 +328,7 @@ template <class S, int C>
 Region<S, C> const& Region<S, C>::operator&=(Cube const& cube)
 {
    unsigned int i = 0;
-   unsigned int size = cubes_.size();
+   unsigned int size = (unsigned int)cubes_.size();
 
    Validate();
 
@@ -468,6 +468,14 @@ std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTag() const
 }
 
 template <class S, int C>
+void Region<S, C>::ForceOptimizeByMerge(const char* reason)
+{
+   CHURN_LOG(5)  << "maxing out churn to force optimize (" << reason << ")";
+   _churn = INT_MAX;
+   OptimizeByMerge(reason);
+}
+
+template <class S, int C>
 void Region<S, C>::OptimizeByMerge(const char* reason)
 {
    size_t count = cubes_.size();
@@ -563,7 +571,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
    if (__optimizeStrategy == WorkForward) {
       //   merged:      everything below this is fully merged.
       //   count:       number of valid cubes.  
-      uint merged = 1, c = cubes_.size();
+      uint merged = 1, c = (uint)cubes_.size();
       uint start = c;
 
       while (merged < c) {
@@ -603,7 +611,7 @@ void Region<S, C>::OptimizeOneTagByMerge()
    S areaBefore = GetArea();
 
    unsigned int i, j, k;
-   unsigned int size = cubes_.size();
+   unsigned int size = (unsigned int)cubes_.size();
    bool merged;
 
    i = 0;
@@ -730,7 +738,9 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
    if (IsEmpty()) {
       return;
    }
-   DEBUG_ONLY(ASSERT(ContainsAtMostOneTag());)
+#if REGION_PARANOIA_LEVEL >= 2
+   ASSERT(ContainsAtMostOneTag());
+#endif
    Validate();
 
    S areaBefore = GetArea();
@@ -854,7 +864,7 @@ Cube<S, C> Region<S, C>::GetBounds() const
    }
 
    Cube bounds = cubes_[0];
-   int i, c = cubes_.size();
+   int i, c = (int)cubes_.size();
    for (i = 1; i < c; i++) {
       bounds.Grow(cubes_[i].GetMin());
       bounds.Grow(cubes_[i].GetMax());
@@ -979,7 +989,7 @@ Region<int, C> csg::ToInt(Region<double, C> const& region) {
    Region<int, C> result;
    
    Region<double, C>::CubeVector const& cubes = region.GetContents();
-   uint i = 0, c = cubes.size();
+   uint i = 0, c = (uint)cubes.size();
 
    while (i < c) {
       Cube<int, C> icube;
@@ -1075,6 +1085,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
    template void Cls::OptimizeByMerge(const char*); \
    template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
+   template void Cls::ForceOptimizeByMerge(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \

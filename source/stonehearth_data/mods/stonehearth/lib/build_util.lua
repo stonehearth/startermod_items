@@ -2,6 +2,9 @@ local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
+local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 local Quaternion = _radiant.csg.Quaternion
 
 local build_util = {}
@@ -17,7 +20,6 @@ local SAVED_COMPONENTS = {
    ['stonehearth:fixture_fabricator'] = true,      -- for placed item locations
    ['stonehearth:construction_data'] = true,       -- for nine grid info
    ['stonehearth:construction_progress'] = true,   -- for dependencies
-   ['stonehearth:no_construction_zone'] = true,    -- for footprint
 }
 
 function build_util.rotated_degrees(value, degrees)
@@ -163,8 +165,7 @@ end
 local function save_all_structures_to_template(entity)
    -- compute the save order by walking the dependencies.  
    if not build_util.is_blueprint(entity) and
-      not build_util.is_building(entity) and
-      not build_util.is_footprint(entity) then
+      not build_util.is_building(entity) then
       return nil
    end
 
@@ -189,8 +190,17 @@ end
 --
 --    @param entity - the entity to be tested for blueprintedness
 --
-function build_util.is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil and not build_util.is_building(entity)
+function build_util.is_blueprint(entity, opt_component)
+   if entity:get_component('stonehearth:construction_progress') == nil then
+      return false
+   end
+   if build_util.is_building(entity) then
+      return false
+   end
+   if opt_component ~= nil and entity:get_component(opt_component) == nil then
+      return false
+   end
+   return true
 end
 
 function build_util.is_building(entity)
@@ -200,10 +210,6 @@ end
 function build_util.is_fabricator(entity)
    return entity:get_component('stonehearth:fabricator') ~= nil or
           entity:get_component('stonehearth:fixture_fabricator') ~= nil
-end
-
-function build_util.is_footprint(entity)
-   return entity:get_component('stonehearth:no_construction_zone') ~= nil
 end
 
 function build_util.has_walls(building)
@@ -281,6 +287,22 @@ end
 function build_util.get_blueprint_for(entity)
    local fabricator, blueprint, project = build_util.get_fbp_for(entity)
    return blueprint
+end
+
+function build_util.can_start_building(blueprint)
+   local building = build_util.get_building_for(blueprint)
+   if not building then
+      assert(blueprint:get_uri() == 'stonehearth:scaffolding') -- special case...
+      return true
+   end
+   return building:get_component('stonehearth:building')
+                      :can_start_building(blueprint)
+end
+
+function build_util.blueprint_is_finished(blueprint)
+   assert(build_util.is_blueprint(blueprint))
+   return blueprint:get_component('stonehearth:construction_progress')
+                        :get_finished()
 end
 
 
@@ -461,33 +483,144 @@ function build_util.unpack_entity(id, entity_map)
    return entity
 end
 
-function build_util.unpack_entity(id, entity_map)
+-- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
+-- 1-unit removed from where the floor is for each edge, so we add in the
+-- accumualted normal for both the min and the max, with one small wrinkle:
+-- the edges returned by :each_edge() live in the coordinate space of the
+-- grid tile *lines* not the grid tile.  a consequence of this is that points
+-- whose normals point in the positive direction end up getting pushed out
+-- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
+-- accumulated normal in grid-tile space (as opposed to grid-line space) to
+-- prove this to yourself if you don't believe me.
+--
+local function edge_point_to_point(edge_point)
+   local point = Point3(edge_point.location.x, 0, edge_point.location.y)
+   if edge_point.accumulated_normals.x <= 0 then
+      point.x = point.x + edge_point.accumulated_normals.x
+   end
+   if edge_point.accumulated_normals.y <= 0 then
+      point.z = point.z + edge_point.accumulated_normals.y
+   end
+   return point
 end
 
-function build_util.grow_walls_visitor(around_entity, visitor_cb)
-   -- only grow walls around floor.   
-   local building = build_util.get_building_for(around_entity)
+-- just like edge_point_to_point, but don't move the points out in the
+-- xz plane.  instead, move the up 1 in the y direction
+--
+local function edge_point_to_point_inset(edge_point)
+   local point = Point3(edge_point.location.x, 1, edge_point.location.y)
+   if edge_point.accumulated_normals.x > 0 then
+      point.x = point.x - edge_point.accumulated_normals.x
+   end
+   if edge_point.accumulated_normals.y > 0 then
+      point.z = point.z - edge_point.accumulated_normals.y
+   end
+   return point
+end
 
-   -- accumulate all the floor tiles in the building into a single, opaque region
-   local floor_region = building:get_component('stonehearth:building')
-                                    :calculate_floor_region()
+function build_util.get_footprint_region2(blueprint)
+   local region = blueprint:get_component('destination')
+                                    :get_region()
+                                       :get()
 
+   -- calculate the local footprint of the floor.
+   local footprint = Region2()
+   for cube in region:each_cube() do
+      local rect = Rect2(Point2(cube.min.x, cube.min.z),
+                         Point2(cube.max.x, cube.max.z))
+      footprint:add_cube(rect)
+   end
+   return footprint
+end
 
-   local origin = radiant.entities.get_world_grid_location(building)
+function build_util.get_footprint_region3(blueprint)
+   local region = blueprint:get_component('destination')
+                                    :get_region()
+                                       :get()
 
+   local base = region:get_bounds().min.y - 1
+
+   -- calculate the local footprint of the floor.
+   local footprint = Region3()
+   for cube in region:each_cube() do
+      local rect = Cube3(Point3(cube.min.x, base,     cube.min.z),
+                         Point3(cube.max.x, base + 1, cube.max.z))
+      footprint:add_cube(rect)
+   end
+   return footprint
+end
+
+function build_util.grow_walls_around(floor, visitor_fn)
+   local footprint = build_util.get_footprint_region2(floor)
+
+   -- figure out where the columns and walls should go in world space
+   local building = build_util.get_building_for(floor)
+   local floor_origin = radiant.entities.get_world_grid_location(floor)
+   local building_origin = radiant.entities.get_world_grid_location(building)
+
+   -- if the floor is below the origin of the building, make sure the walls and
+   -- columns are not!   
+   local height = floor_origin.y - building_origin.y
+   if height < 0 then
+      floor_origin.y = floor_origin.y - height
+   end
+
+   -- if the floor is on the 2nd storey or higher, we grow walls in an 'inset'
+   -- pattern.  instead of drawing the walls around the floor, we draw them on
+   -- top of it.
+   local ep2p = height > 0 and edge_point_to_point_inset or edge_point_to_point
+   
    -- convert each 2d edge to 3d min and max coordinates and add a wall span
    -- for each one.
-   local edges = floor_region:get_edge_list()
+   local edges = footprint:get_edge_list()
    for edge in edges:each_edge() do
-      local min = self:_edge_point_to_point(edge.min) + origin
-      local max = self:_edge_point_to_point(edge.max) + origin
+      local min = ep2p(edge.min) + floor_origin
+      local max = ep2p(edge.max) + floor_origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
 
       if min ~= max then
-         self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
+         visitor_fn(min, max, normal)
       end
    end
 end
 
+
+function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
+   local fabricator_component = fabricator:get_component(fabricator_component_name)
+   assert(fabricator_component)
+   
+   -- get the building for this blueprint.  everyone must have a building by now, except
+   -- scaffolding.  scaffolding parts are managed by the scaffolding_manager.
+   local building = build_util.get_building_for(blueprint)
+   if not building then
+      assert(blueprint:get_uri() == 'stonehearth:scaffolding')
+   end
+   
+   local project = fabricator_component:get_project()
+   if project then
+      local cd_component = project:get_component('stonehearth:construction_data')
+      if cd_component then
+         if building then
+            cd_component:set_building_entity(building)
+         end
+         cd_component:set_fabricator_entity(fabricator)
+      end
+   end
+   blueprint:get_component('stonehearth:construction_progress')
+               :set_fabricator_entity(fabricator, fabricator_component_name)
+               
+   -- fixtures, for example, don't have construction data.  so check first!
+   local cd_component = blueprint:get_component('stonehearth:construction_data')
+   if cd_component then
+      cd_component:set_fabricator_entity(fabricator)
+   end
+
+   -- track the structure in the building component.  the building component is
+   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
+   if building then
+      building:get_component('stonehearth:building')
+                  :add_structure(blueprint)
+   end
+end
 
 return build_util

@@ -20,10 +20,9 @@ function ScoreService:initialize()
       self._sv.player_scores = {}
 
       -- Set up the net worth timer
-      self._net_worth_timer = stonehearth.calendar:set_interval(stonehearth.constants.score.NET_WORTH_INTERVAL, function()
+      self._sv.net_worth_timer = stonehearth.calendar:set_interval(stonehearth.constants.score.NET_WORTH_INTERVAL, function()
          self:_calculate_net_worth()
       end)
-      self._sv.expire_time = self._net_worth_timer:get_expire_time()
    else
       -- create a new datastore for each player, so they can be remoted individually
       for player_id, saved_state in pairs(self._sv.player_scores) do 
@@ -32,11 +31,9 @@ function ScoreService:initialize()
          score_data:initialize()
          self._sv.player_scores[player_id] = score_data
       end
-      
-      --restart the timer on load
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-            self:_create_worth_timer()
-            return radiant.events.UNLISTEN
+
+      self._sv.net_worth_timer:bind(function()
+            self:_calculate_net_worth()
          end)
    end
 
@@ -79,30 +76,8 @@ function ScoreService:get_score_for_entity(entity)
 end
 
 
---- Save and load the net worth timer accurately.
-function ScoreService:_create_worth_timer()
-   if self._sv.expire_time then
-      --We're still waiting to calculate score, so continue to calculate at the remainder interval
-      local duration = self._sv.expire_time - stonehearth.calendar:get_elapsed_time()
-      self._timer = stonehearth.calendar:set_timer(duration, function()
-            self:_calculate_net_worth()
-            if self._sv.expire_time then
-               --We're going to grow more so set up the recurring growth timer
-               self._net_worth_timer = stonehearth.calendar:set_interval(stonehearth.constants.score.NET_WORTH_INTERVAL, function()
-                                    self:_calculate_net_worth()
-                                    end)
-               self._sv.expire_time = self._net_worth_timer:get_expire_time()
-            end
-         end)
-   end
-end
-
 --- Calculate the net worth by iterating through entities and summing their values
 function ScoreService:_calculate_net_worth()
-   if self._net_worth_timer then
-      self._sv.expire_time = self._net_worth_timer:get_expire_time()
-   end
-
    --Iterate though all the players we know about and add their scores
    for player, score_data in pairs(self._sv.player_scores) do
       local aggregate_score_data = self:_get_aggregate_score_for_player(player)

@@ -40,12 +40,13 @@ end
 function lrbt_util.fund_construction(autotest, buildings)
    local x, y = 18, 20
    
+   lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:wood:oak_log')
    for _, building in pairs(buildings) do
       local cost = build_util.get_cost(building)
       for material, _ in pairs(cost.resources) do
-         if material:find('wood') then
+         if material:find('stone') then
             x = x - 2
-            lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:wood:oak_log')
+            lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:stone:hunk_of_stone')
          end
       end
       local stockpile_x = x
@@ -103,8 +104,16 @@ function lrbt_util.create_wooden_wall(session, p0, p1)
    return stonehearth.build:add_wall(session, WOODEN_COLUMN, WOODEN_WALL, p0, p1, normal)
 end
 
-function lrbt_util.grow_wooden_walls(session, building)
-   return stonehearth.build:grow_walls(building, WOODEN_COLUMN, WOODEN_WALL)
+function lrbt_util.grow_wooden_walls(session, entity)
+   local _, floor
+   if build_util.is_building(entity) then
+      local floors = entity:get_component('stonehearth:building')
+                              :get_floors()
+      _, floor = next(floors)
+   else
+      floor = entity
+   end
+   return stonehearth.build:grow_walls(floor, WOODEN_COLUMN, WOODEN_WALL)
 end
 
 function lrbt_util.grow_wooden_roof(session, building)

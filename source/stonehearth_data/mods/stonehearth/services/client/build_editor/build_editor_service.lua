@@ -145,7 +145,8 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
    local building
    stonehearth.selection:select_entity_tool()
       :set_cursor('stonehearth:cursors:grow_roof')
-      :set_filter_fn(function(entity)
+      :set_filter_fn(function(result)
+            local entity = result.entity
             building = build_util.get_building_for(entity)
             return building ~= nil and not has_roof_fn(building) and build_util.has_walls(building)
          end)

@@ -46,9 +46,11 @@ function TrappingGroundsComponent:initialize(entity, json)
 end
 
 function TrappingGroundsComponent:_restore()
-   if self._sv.next_spawn_time then
-      local duration = stonehearth.calendar:get_seconds_until(self._sv.next_spawn_time)
-      self:_start_spawn_timer(duration)
+   if self._sv.spawn_timer then
+      self._sv.spawn_timer:bind(function()
+            self:_stop_spawn_timer()
+            self:_try_spawn()
+         end)
    end
 
    self:start_tasks()
@@ -91,9 +93,11 @@ function TrappingGroundsComponent:start_tasks()
          end
       )
    else
-      if self._sv.next_check_trap_time then
-         local duration = stonehearth.calendar:get_seconds_until(self._sv.next_check_trap_time)
-         self:_start_check_trap_timer(duration)
+      if self._sv.check_trap_timer then
+         self._sv.check_trap_timer:bind(function()
+               self:_stop_check_trap_timer()
+               self:_create_check_trap_task()
+            end)
 
          -- timer is active, keep setting traps until we have max_traps (or have no space)
          if self._sv.num_traps < self.max_traps then
@@ -346,48 +350,44 @@ end
 function TrappingGroundsComponent:_start_check_trap_timer(duration)
    self:_stop_check_trap_timer()
 
-   self._check_trap_timer = stonehearth.calendar:set_timer(duration,
+   self._sv.check_trap_timer = stonehearth.calendar:set_timer(duration,
       function()
          self:_stop_check_trap_timer()
          self:_create_check_trap_task()
       end
    )
 
-   self._sv.next_check_trap_time = self._check_trap_timer:get_expire_time()
    self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_stop_check_trap_timer()
-   if self._check_trap_timer then
-      self._check_trap_timer:destroy()
-      self._check_trap_timer = nil
+   if self._sv.check_trap_timer then
+      self._sv.check_trap_timer:destroy()
+      self._sv.check_trap_timer = nil
    end
 
-   self._sv.next_check_trap_time = nil
    self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_start_spawn_timer(duration)
    self:_stop_spawn_timer()
 
-   self._spawn_timer = stonehearth.calendar:set_timer(duration,
+   self._sv.spawn_timer = stonehearth.calendar:set_timer(duration,
       function ()
          self:_stop_spawn_timer()
          self:_try_spawn()
       end
    )
 
-   self._sv.next_spawn_time = self._spawn_timer:get_expire_time()
    self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_stop_spawn_timer()
-   if self._spawn_timer then
-      self._spawn_timer:destroy()
-      self._spawn_timer = nil
+   if self._sv.spawn_timer then
+      self._sv.spawn_timer:destroy()
+      self._sv.spawn_timer = nil
    end
 
-   self._sv.next_spawn_time = nil
    self.__saved_variables:mark_changed()
 end
 

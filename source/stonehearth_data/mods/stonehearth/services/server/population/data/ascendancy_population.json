@@ -1,18 +1,23 @@
 {
    "kingdom_name" : "Ascendancy",
    "kingdom_id" : "ascendency",
-   "male_entities" : [
-      "stonehearth:male_1",
-      "stonehearth:male_1",
-      "stonehearth:male_2",
-      "stonehearth:male_3"
-   ],
-   "female_entities" : [
-      "stonehearth:female_1",
-      "stonehearth:female_1",
-      "stonehearth:female_2",
-      "stonehearth:female_3"
-   ],
+   "roles" : {
+      "default" : {
+         "male" : [
+            "stonehearth:male_1",
+            "stonehearth:male_1",
+            "stonehearth:male_2",
+            "stonehearth:male_3"
+         ],
+         "female" : [
+            "stonehearth:female_1",
+            "stonehearth:female_1",
+            "stonehearth:female_2",
+            "stonehearth:female_3"
+         ]
+      }
+   },
+
    "surnames" : [
       "Burlyhands",
       "Farstrider",
@@ -62,7 +67,13 @@
       "Lebam",
       "Mavel",
       "Pounder",
-      "Zedro"
+      "Zedro",
+      "Rayne",
+      "Rook",
+      "Belltower",
+      "Killian",
+      "Tuesday",
+      "Rell"
    ],
    "given_names" : {
       "male" : [
@@ -95,9 +106,29 @@
          "Irving",
          "Lee",
          "Locan",
-         "Chopper"
+         "Chopper",
+         "Monty",
+         "Jebediah",
+         "Sips",
+         "Trevlon",
+         "Alex",
+         "Ragnar",
+         "Trevion",
+         "Andwyn",
+         "Jhon",
+         "Riley",
+         "Wynd",
+         "Bassion",
+         "Luca",
+         "Asher",
+         "Ezra",
+         "Rowan",
+         "Ike"
       ],
       "female" : [
+         "Nia",
+         "Petra",
+         "Yui",
          "Dara",
          "Alaina",
          "Abi",
@@ -129,7 +160,31 @@
          "Jess",
          "Marianne", 
          "Trilla",
-         "Olive"
+         "Olive",
+         "Emmy",
+         "Luna",
+         "Poni",
+         "Ella",
+         "Kami",
+         "Alex",
+         "Silene",
+         "Lily",
+         "Amelia",
+         "Kali",
+         "Maggie",
+         "Iris",
+         "Tippy",
+         "Lizzy",
+         "Tessa",
+         "Lynone",
+         "Rose",
+         "Emilia",
+         "Aprii",
+         "Noelie",
+         "June",
+         "Rhea",
+         "Freya",
+         "Runa"
       ]
    }, 
    "town_pieces" : {

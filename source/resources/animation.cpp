@@ -106,7 +106,7 @@ float Animation::GetDuration()
    //return ((float)header->numFrames) / header->framesPerSecond;
 }
 
-void Animation::MoveNodes(int32 timeOffset, AnimationFn const& fn)
+void Animation::MoveNodes(int32 timeOffset, float scale, AnimationFn const& fn)
 {
    perfmon::TimelineCounterGuard tcg("ani move nodes");
    float duration = GetDuration();
@@ -115,10 +115,10 @@ void Animation::MoveNodes(int32 timeOffset, AnimationFn const& fn)
 
    ANI_LOG(9) << "Rendering animation at time offset " << timeOffset;
 
-   MoveNodes(position / duration, fn);  
+   MoveNodes(position / duration, scale, fn);  
 }
 
-void Animation::MoveNodes(float offset, AnimationFn const& fn)
+void Animation::MoveNodes(float offset, float scale, AnimationFn const& fn)
 {
    BinaryHeader *header = (BinaryHeader *)_base;
    float alpha;
@@ -137,10 +137,9 @@ void Animation::MoveNodes(float offset, AnimationFn const& fn)
    while (*boneptr) {
       std::string bone(boneptr);
       boneptr += bone.size() + 1;
-
-      csg::Transform b0(csg::Point3f(first[0], first[1], first[2]),
+      csg::Transform b0(csg::Point3f(first[0] * scale, first[1] * scale, first[2] * scale),
                         csg::Quaternion(first[3], first[4], first[5], first[6]));
-      csg::Transform b1(csg::Point3f(next[0], next[1], next[2]),
+      csg::Transform b1(csg::Point3f(next[0] * scale, next[1] * scale, next[2] * scale),
                         csg::Quaternion(next[3], next[4], next[5], next[6]));
 
       ANI_LOG(11) << " " << f << " " << bone << " " << "b0: " << b0.position;

@@ -10,12 +10,16 @@ function WaterTest:__init()
    self[MicroWorld]:__init(128)
    self:create_world()
 
+   local session = self:get_session()
+
    self:_create_lake()
    --self:_create_enclosed_wall()
    --self:_create_depression()
-   self:_water_test()
 
-   local session = self:get_session()
+   -- wait for watertight region to update before starting
+   stonehearth.calendar:set_timer(10, function()
+         self:_water_test()
+      end)
 end
 
 function WaterTest:_create_lake()
@@ -42,11 +46,6 @@ function WaterTest:_create_lake()
 
    radiant.terrain.subtract_cube(inset)
    radiant.terrain.subtract_point(Point3(-5, 14, -1))
-
-   local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
-   self._water_body = stonehearth.hydrology:create_water_body(location)
-
-   stonehearth.hydrology:add_water(64/4 + 64*4, location, self._water_body)
 end
 
 function WaterTest:_create_depression()
@@ -77,9 +76,11 @@ function WaterTest:_create_enclosed_wall()
 end
 
 function WaterTest:_water_test()
-    stonehearth.calendar:set_interval(10, function()
-         local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
-         stonehearth.hydrology:add_water(1, location)
+   local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
+   stonehearth.hydrology:add_water(64/4 + 64*4, location)
+
+   stonehearth.calendar:set_interval(10, function()
+         --stonehearth.hydrology:add_water(1, location)
       end)
 end
 

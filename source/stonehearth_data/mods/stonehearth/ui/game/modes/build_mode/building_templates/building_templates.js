@@ -41,7 +41,7 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
          var row = $(this);
 
          row.addClass('selected');
-      self._selectedTemplate = row.attr('template');
+         self._selectedTemplate = row.attr('template');
          App.stonehearthClient.drawTemplate(null, self._selectedTemplate);
       });
 
@@ -70,10 +70,6 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       self.$().on('mouseleave', '#templatesList .row', function() {        
             self.$('#buildingTemplatesDetailsPopup').hide();
          });
-   
-      self.$('#customBuildingButton').click(function() {
-         $(top).trigger('stonehearth_building_editor');
-      })      
    },
 
 });

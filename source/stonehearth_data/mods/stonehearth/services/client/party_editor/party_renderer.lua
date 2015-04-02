@@ -58,7 +58,7 @@ function PartyRenderer:_create_banner(banner, banner_type)
    if not banner.entity then
       local uri = string.format('stonehearth:%s_order_banner', banner_type)
       banner.entity = radiant.entities.create_entity(uri)
-      banner.render_entity = _radiant.client.create_render_entity(1, banner.entity)
+      banner.render_entity = _radiant.client.create_render_entity(H3DRootNode, banner.entity)
       self:_update_material(banner_type)
    end
    return banner.entity

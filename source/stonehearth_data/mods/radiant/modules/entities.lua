@@ -201,10 +201,7 @@ function entities.is_owned_by_player(entity, player_id)
 end
 
 function entities.is_entity(entity)
-   if type(entity.get_type_name) == 'function' then
-      return entity:get_type_name() == 'class radiant::om::Entity'
-   end
-   return false
+   return radiant.util.is_a(entity, Entity)
 end
 
 function entities.set_player_id(entity, player_id)

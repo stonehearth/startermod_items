@@ -10,6 +10,8 @@ local FabricatorComponent = class()
 
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:initialize(entity, json)
+   
+
    self._log = radiant.log.create_logger('build')
                         :set_prefix('fab component')
                         :set_entity(entity)
@@ -37,6 +39,7 @@ function FabricatorComponent:_restore()
                                  self._entity,
                                  self._sv.blueprint,
                                  self._sv.project)
+   self._fabricator:set_scaffolding(self._sv.scaffolding)
    self._fabricator:set_teardown(self._sv.teardown)
    self._fabricator:set_active(self._sv.active)
    radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)   
@@ -52,13 +55,9 @@ function FabricatorComponent:destroy()
    end
 
    -- destroy all the scaffolding stuff we created.
-   if self._sv.scaffolding_blueprint then
-      radiant.entities.destroy_entity(self._sv.scaffolding_blueprint)
-      self._sv.scaffolding_blueprint = nil
-   end
-   if self._sv.scaffolding_fabricator then
-      radiant.entities.destroy_entity(self._sv.scaffolding_fabricator)
-      self._sv.scaffolding_fabricator = nil
+   if self._sv.scaffolding then
+      self._sv.scaffolding:destroy()
+      self._sv.scaffolding = nil
    end
 end
 
@@ -71,11 +70,6 @@ function FabricatorComponent:set_active(enabled)
    
    self._fabricator:set_active(enabled)
    
-   -- scaffolding entities are child of the fabricator, so start them, too
-   if self._sv.scaffolding_blueprint then
-      stonehearth.build:set_active(self._sv.scaffolding_blueprint, enabled)
-   end
-
    self._sv.active = enabled
    self.__saved_variables:mark_changed()
 end
@@ -99,12 +93,15 @@ function FabricatorComponent:start_project(blueprint)
    -- so the pathfinder can find it's way to regions which need to be constructed
    local project = self._fabricator:get_project()
 
+   -- add scaffolding!
    local ci = blueprint:get_component('stonehearth:construction_data')
-   if ci:needs_scaffolding() then
-      local normal = ci:get_normal()
-      assert(radiant.util.is_a(normal, Point3))
-      self:_add_scaffolding(blueprint, project, normal)
-   end
+   local normal = ci:get_normal()
+   local project_rgn = project:get_component('destination'):get_region()
+   local blueprint_rgn = blueprint:get_component('destination'):get_region()
+   local stand_at_base = ci:get_project_adjacent_to_base()
+   local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+   self._fabricator:set_scaffolding(scaffolding)
+   self._sv.scaffolding = scaffolding
 
    -- remember the blueprint and project
    self._sv.project = project
@@ -123,40 +120,6 @@ end
 
 function FabricatorComponent:get_project()
    return self._sv.project
-end
-
-function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
-   -- create a scaffolding blueprint and point it to the project
-   local transform = project:add_component('mob'):get_transform()
-   
-   -- ask the build service to set all this up!!
-
-   local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding', { owner = self._entity })
-   radiant.entities.set_player_id(scaffolding, project)
-   scaffolding:add_component('stonehearth:construction_data')
-                  :set_normal(normal)
-
-   -- no need to set the transform on the scaffolding, since it's just a blueprint
-   scaffolding:add_component('stonehearth:scaffolding_fabricator')
-                  :support_project(project, blueprint, normal)
-
-   -- create a fabricator entity to build the scaffolding
-   local fabricator = radiant.entities.create_entity('', { owner = self._entity })
-   self._entity:get_component('mob'):get_parent():get_component('entity_container')
-                                                      :add_child(fabricator)
-
-   fabricator:set_debug_text('(Fabricator for ' .. tostring(scaffolding) .. ')')   
-   fabricator:add_component('mob'):set_transform(transform)
-   fabricator:add_component('stonehearth:fabricator')
-                              :start_project(scaffolding)
-                              
-   -- wire up the back pointer so we can find the fab entity from the blueprint
-   scaffolding:add_component('stonehearth:construction_progress')   
-               :set_fabricator_entity(fabricator, 'stonehearth:fabricator')
-
-   self._sv.scaffolding_blueprint = scaffolding
-   self._sv.scaffolding_fabricator = fabricator
-   self.__saved_variables:mark_changed()
 end
 
 -- called just before the blueprint for this fabricator is destroyed.  we need only

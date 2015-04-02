@@ -107,7 +107,7 @@ protected:
 	std::vector< uint32 >  _occQueries;
 	std::vector< uint32 >  _lastVisited;
 
-	friend class SceneManager;
+	friend class Scene;
 	friend class SceneNode;
 	friend class ModelNode;
 	friend class Renderer;
@@ -172,6 +172,36 @@ protected:
 	friend class SceneNode;
 	friend class ModelNode;
 };
+
+
+struct VoxelJointNodeTpl : public SceneNodeTpl
+{
+	uint32  jointIndex;
+
+	VoxelJointNodeTpl( std::string const& name, uint32 jointIndex ) :
+		SceneNodeTpl( SceneNodeTypes::VoxelJointNode, name ), jointIndex( jointIndex )
+	{
+	}
+};
+
+class VoxelJointNode : public SceneNode
+{
+public:
+	static SceneNodeTpl *parsingFunc( std::map< std::string, std::string > &attribs );
+	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
+	
+   uint32 getJointIndex() const { return _jointIndex; }
+
+protected:
+	VoxelJointNode( const VoxelJointNodeTpl &jointTpl );
+
+protected:
+	uint32     _jointIndex;
+
+	friend class SceneNode;
+	friend class ModelNode;
+};
+
 
 }
 #endif // _egAnimatables_H_

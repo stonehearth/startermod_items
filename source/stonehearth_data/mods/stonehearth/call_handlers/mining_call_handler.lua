@@ -111,13 +111,6 @@ function MiningCallHandler:designate_mining_zone(session, response, aligned)
          return false
       end
 
-      -- reject entities under construction
-      -- TODO: make this more general
-      local ncz = entity:get_component('stonehearth:no_construction_zone')
-      if ncz then
-         return false
-      end
-
       -- reject solid entities that are not terrain
       local rcs = entity:get_component('region_collision_shape')
       if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
@@ -133,7 +126,7 @@ function MiningCallHandler:designate_mining_zone(session, response, aligned)
          mode = self:_infer_mode(box)
       end
       local region = self:_get_dig_region(box, mode)
-      local render_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
+      local render_node = _radiant.client.create_region_outline_node(H3DRootNode, region, edge_color, face_color, 'materials/transparent.material.json')
       return render_node
    end
 

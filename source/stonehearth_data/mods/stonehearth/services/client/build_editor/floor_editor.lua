@@ -34,7 +34,7 @@ function FloorEditor:go(response, floor_uri, options)
 
       -- the default xz region selector will grab the blocks adjacent to the one
       -- the cursor is under.  we want to sink into the terrain, so return the
-      -- actual brink we're pointing to instead
+      -- actual brick we're pointing to instead
       selector:select_front_brick(false)
       selector:set_validation_offset(Point3.unit_y)
 
@@ -42,7 +42,6 @@ function FloorEditor:go(response, floor_uri, options)
       -- sure we get points on a plane.  if we're not sinking, though, we want to
       -- pierce the cursor to make sure we hit the actual ground.
       selector:allow_select_cursor(true)
-
       selector:require_unblocked(false)
    else
       -- at least when placing slabs, make sure there's empty space when dragging
@@ -57,7 +56,7 @@ function FloorEditor:go(response, floor_uri, options)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)
-            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.json', Point3.zero)
+            local node =  _radiant.client.create_voxel_node(H3DRootNode, model, 'materials/blueprint.material.json', Point3.zero)
             node:set_position(MODEL_OFFSET)
             node:set_polygon_offset(-5, -5)
 
@@ -96,9 +95,6 @@ function FloorEditor:_add_floor(response, selector, box, floor_uri)
    _radiant.call_obj(self._build_service, 'add_floor_command', floor_uri, box)
       :done(function(r)
             log:detail('server call to create floor finished')
-            if r.new_selection then
-               stonehearth.selection:select_entity(r.new_selection)
-            end
             response:resolve(r)
          end)
       :fail(function(r)

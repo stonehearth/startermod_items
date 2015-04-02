@@ -670,7 +670,6 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
          if (l != nullptr) {
             lua_Debug stack;
             int r = lua_getstack(l, 0, &stack);
-
             if (!r) {
                l = host->L_;
 
@@ -962,11 +961,13 @@ typedef struct {
    int totalBytes;
 } _MemSample;
 
-void ScriptHost::WriteMemoryProfile(std::string const& filename) const
+void ScriptHost::WriteMemoryProfile(std::string const& filename)
 {
    if (!enable_profile_memory_) {
       return;
    }
+
+   FullGC();
 
    std::vector<_MemSample> samples;
    int grand_total = 0;

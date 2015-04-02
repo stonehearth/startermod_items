@@ -1,62 +1,74 @@
-<script type="text/x-handlebars" data-template-name="saveView">
+<script type="text/x-handlebars" data-template-name="save">
    <div id="saveView" class="gui">
       <div class="window">
-         <div class="title">Save Game</div>
+         <div class="title">{{i18n stonehearth:save_view_title}}<div class="closeButton"></div></div>
          <div id="saves">
-            {{view stonehearthSaveList}}
+            {{partial "saveList"}}
          </div>
-         <a href="#" {{action deleteSaveGame target="view"}}><button id="deleteSaveButton">{{i18n stonehearth:save_delete}}</button></a>
-         <a href="#" {{action overwriteSaveGame target="view"}}><button id="overwriteSaveButton">{{i18n stonehearth:save_overwrite}}</button></a>
-         <a href="#" {{action saveGame target="view"}}><button id="createSaveButton">{{i18n stonehearth:save_new}}</button></a>
+         <a href="#" {{action 'deleteSaveGame' target=view}}>
+            <button id="deleteSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_delete}}</button>
+         </a>
+         <a href="#" {{action 'loadGame' target=view}}>
+            <button id="loadSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:load_game}}</button>
+         </a>
+         <a href="#" {{action overwriteSaveGame target="view"}}>
+            <button id="overwriteSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_overwrite}}</button>
+         </a>
+         <a href="#" {{action saveGame target="view"}}>
+            <button id="createSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_new}}</button>
+         </a>
+
+         <div id="autoSaveSetting">
+            {{input type="checkbox" id="autoSaveCheckbox" checked=controller.auto_save}}
+            <label for="autoSaveCheckbox">{{i18n stonehearth:save_autosave}}</label>
+         </div>
+
       </div>
      
    </div>
 </script>
 
-<script type="text/x-handlebars" data-template-name="loadView">
-   <div id="loadView" class="gui">
-      <div class="window">
-         <div class="title">Load Game</div>
-         <div id="saves">
-         {{ view stonehearthSaveList }}
-         </div>
-         <a href="#" {{action 'loadGame' target="view"}}><button id="loadButton">{{i18n stonehearth:load_game}}</button></a>
-      </div>     
-   </div>
-</script>
-
-<script type="text/x-handlebars" data-template-name="saveList">
+<script type="text/x-handlebars" data-template-name='_saveList'>
    <div class="screenshot_container">
       <div id="savelist_screenshot">
-         <img {{bind-attr src=view.currentScreenshot}} />
+         <img {{bind-attr src=view.selectedSave.screenshot}} />
       </div>
    </div>
    <div class="saveList list">
-      {{#each view.saves}}
-         <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key }} >
-            <div class="gameInfo">
-               <div class="name">{{this.gameinfo.town_name}}</div>
-               <div class="gameTime">{{this.gameinfo.game_date}}, {{this.gameinfo.game_time}}</div>
-               <div class="time">Saved {{this.gameinfo.time}}</div>
-               {{#if differentVersions}}
-                  <div class="differentVersionText">{{i18n stonehearth:game_different_version}}</div>
-               {{/if}}
-               {{#if this.gameinfo.jobs}}
-                  <div id="jobs">
-                     <div id="soldiers" class="counter">
-                        <div>{{this.gameinfo.jobs.soldiers}}</div>
-                     </div>                     
-                     <div id="crafters" class="counter">
-                        <div>{{this.gameinfo.jobs.crafters}}</div>
+      {{#each controller.saves}}
+         <a {{action 'selectSave' this target=view}}>
+            <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key }} >
+               <div class="gameInfo">
+                  <div class="name">{{this.gameinfo.name}}{{this.gameinfo.town_name}}</div>
+                  <div class="gameTime">{{this.gameinfo.game_date}}, {{this.gameinfo.game_time}}</div>
+                  <div class="time">Saved {{this.gameinfo.time}}</div>
+                  {{#if differentVersions}}
+                     <div class="differentVersionText">{{i18n stonehearth:game_different_version}}</div>
+                  {{/if}}
+                  {{#if this.gameinfo.jobs}}
+                     <div id="jobs">
+                        <div id="soldiers" class="counter">
+                           <div>{{this.gameinfo.jobs.soldiers}}</div>
+                        </div>                     
+                        <div id="crafters" class="counter">
+                           <div>{{this.gameinfo.jobs.crafters}}</div>
+                        </div>
+                        <div id="workers" class="counter">
+                           <div>{{this.gameinfo.jobs.workers}}</div>
+                        </div>
                      </div>
-                     <div id="workers" class="counter">
-                        <div>{{this.gameinfo.jobs.workers}}</div>
-                     </div>
-                  </div>
-               {{/if}}
+                  {{/if}}
+               </div>
             </div>
-         </div>
+         </a>
       {{/each}}
    </div>
 </script>
 
+<script type="text/x-handlebars" data-template-name="savePopup">
+   <div id="savePopup">
+      <div id="message">
+         {{i18n stonehearth:save_in_progress}}      
+      </div>
+   </div>
+</script>

@@ -41,12 +41,10 @@ function SimpleCaravan:restore()
 
    --If we made an expire timer then we're waiting for the player to acknowledge the traveller
    --Start a timer that will expire at that time
-   if self._sv.timer_expiration then
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         local duration = self._sv.timer_expiration - stonehearth.calendar:get_elapsed_time()
-         self:_create_timer(duration)
-         return radiant.events.UNLISTEN
-      end)
+   if self._sv.timer then
+      self._sv.timer:bind(function()
+            self:_timer_callback()
+         end)
    end
 end
 
@@ -280,36 +278,35 @@ end
 --- Only actually spawn the object after the user clicks OK
 function SimpleCaravan:_on_accepted()
    self:_accept_trade()
-   if self._timer then
-      self._timer:destroy()
-   end
    self:_stop_timer()
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function SimpleCaravan:_on_declined()
    self:_reject_trade()
-   if self._timer then
-      self._timer:destroy()
-   end
    self:_stop_timer()
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function SimpleCaravan:_create_timer(duration)
-   self._timer = stonehearth.calendar:set_timer(duration, function() 
-      if self._sv.caravan_bulletin then
-         local bulletin_id = self._sv.caravan_bulletin:get_id()
-         stonehearth.bulletin_board:remove_bulletin(bulletin_id)
-         self:_stop_timer()
-      end
+   self._sv.timer = stonehearth.calendar:set_timer(duration, function()
+      self:_timer_callback()
    end)
-   self._sv.timer_expiration = self._timer:get_expire_time()
+end
+
+function SimpleCaravan:_timer_callback()
+   if self._sv.caravan_bulletin then
+      local bulletin_id = self._sv.caravan_bulletin:get_id()
+      stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+      self:_stop_timer()
+   end
 end
 
 function SimpleCaravan:_stop_timer()
-   self._timer = nil
-   self._sv.timer_expiration = nil
+   if self._sv.timer then
+      self._sv.timer:destroy()
+      self._sv.timer = nil
+   end
 end
 
 

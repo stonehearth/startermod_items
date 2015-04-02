@@ -48,12 +48,13 @@ function WaterRenderer:_update()
 
    local render_region = Region3()
    for cube in region:each_cube() do
+      -- TODO: only update height if cube reaches top layer
       cube.max.y = math.min(cube.max.y, height)
       cube.min.y = cube.min.y - 0.001 -- cube must have non-zero thickness for the outline node to generate geometry
       render_region:add_cube(cube)
    end
 
-   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color)
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color, 'materials/transparent.material.json')
 end
 
 return WaterRenderer

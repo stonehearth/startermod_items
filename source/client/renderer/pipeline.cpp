@@ -10,6 +10,7 @@
 #include "resources/res_manager.h"
 #include "csg/iterators.h"
 #include "csg/region_tools.h"
+#include "geometry_info.h"
 #include <fstream>
 #include <unordered_set>
 
@@ -65,7 +66,7 @@ void h3dRemoveResourceChecked(H3DRes res)
  * Check for 0 before calling into horde, since it gets really mad if we don't
  * (spewing the log).
  */
-void h3dRemoveNodeChecked(H3DRes node)
+void h3dRemoveNodeChecked(H3DNode node)
 {
    if (node != 0) {
       h3dRemoveNode(node);
@@ -205,13 +206,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    AddDesignationStripes(stripes_mesh, plane);
 
    RenderNodePtr group = RenderNode::CreateGroupNode(parent, "designation group node");
-   RenderNodePtr stripes = RenderNode::CreateCsgMeshNode(group->GetNode(), stripes_mesh)
+   RenderNodePtr stripes = CreateRenderNodeFromMesh(group->GetNode(), stripes_mesh)
       ->SetMaterial("materials/designation/stripes.material.json");
 
    h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    EnablePolygonOffset(stripes->GetNode());
 
-   RenderNodePtr outline = RenderNode::CreateCsgMeshNode(group->GetNode(), outline_mesh)
+   RenderNodePtr outline = CreateRenderNodeFromMesh(group->GetNode(), outline_mesh)
       ->SetMaterial("materials/designation/outline.material.json");
 
    h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
@@ -259,7 +260,8 @@ RenderNodePtr
 Pipeline::CreateRegionOutlineNode(H3DNode parent,
                                   csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
-                                  csg::Color4 const& face_color)
+                                  csg::Color4 const& face_color,
+                                  std::string const& material)
 {
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
    csg::RegionTools3f tools;
@@ -288,8 +290,8 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
          }
       });
 
-      RenderNodePtr face_node = RenderNode::CreateCsgMeshNode(group_node->GetNode(), mesh)
-         ->SetMaterial("materials/transparent.material.json");
+      RenderNodePtr face_node = CreateRenderNodeFromMesh(group_node->GetNode(), mesh)
+         ->SetMaterial(material);
 
       h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
       EnablePolygonOffset(face_node->GetNode());
@@ -318,7 +320,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
 
    RenderNodePtr group = RenderNode::CreateGroupNode(parent, "designation group node");
 
-   RenderNodePtr interior = RenderNode::CreateCsgMeshNode(group->GetNode(), mesh)
+   RenderNodePtr interior = CreateRenderNodeFromMesh(group->GetNode(), mesh)
       ->SetMaterial("materials/transparent.material.json");
 
    h3dSetNodeParamI(interior->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
@@ -377,4 +379,187 @@ void Pipeline::SetSharedGeometry(ResourceCacheKey const& key, GeometryInfo const
 {
    ASSERT(geometry_cache_.find(key) == geometry_cache_.end());
    geometry_cache_[key] = geo;
+}
+
+H3DNode Pipeline::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo)
+{
+   SharedMaterial material = GetSharedMaterial("materials/voxel.material.json");
+   return CreateVoxelMeshNode(parent, geo, material);
+}
+
+H3DNode Pipeline::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo, SharedMaterial material)
+{
+   std::string meshName = BUILD_STRING("mesh" << unique_id_++);
+
+   H3DNode meshNode = h3dAddVoxelMeshNode(parent, meshName.c_str(), material.get(), geo.geo.get());
+   if (geo.noInstancing) {
+      h3dSetNodeParamI(meshNode, H3DVoxelMeshNodeParams::NoInstancingI, true);
+   }
+   return meshNode;
+}
+
+
+void Pipeline::CreateSharedGeometryFromGenerator(GeometryInfo& geo, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
+{
+   if (!GetSharedGeometry(key, geo)) {
+
+      P_LOG(7) << "creating new geometry for " << key.GetDescription();
+
+      csg::Mesh m;
+      for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
+         create_mesh_fn(m, i);
+         geo.vertexIndices[i + 1] = (int)m.vertices.size();
+         geo.indexIndicies[i + 1] = (int)m.indices.size();
+      }
+      geo.levelCount = GeometryInfo::MAX_LOD_LEVELS;
+      geo.noInstancing = noInstancing;
+
+      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+      SetSharedGeometry(key, geo);
+   }
+}
+
+void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing)
+{
+   if (!GetSharedGeometry(key, geo)) {
+      CreateGeometryFromMesh(geo, m);
+      SetSharedGeometry(key, geo);
+   }
+}
+
+void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m)
+{
+   geo.vertexIndices[1] = (int)m.vertices.size();
+   geo.indexIndicies[1] = (int)m.indices.size();
+   geo.levelCount = 1;
+   geo.noInstancing = true;
+
+   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+}
+
+void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing)
+{
+   if (!GetSharedGeometry(key, geo)) {
+      ConvertObjFileToGeometry(is, geo);
+      geo.noInstancing = noInstancing;
+      SetSharedGeometry(key, geo);
+   }
+}
+
+void Pipeline::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
+{
+   std::string geoName = BUILD_STRING("geo" << unique_id_++);
+
+   geo.type = GeometryInfo::VOXEL_GEOMETRY;
+   geo.geo = h3dutCreateVoxelGeometryRes(geoName.c_str(),
+                                         vertices,
+                                         geo.vertexIndices,
+                                         indices,
+                                         geo.indexIndicies,
+                                         geo.levelCount);
+}
+
+template <typename X, typename Y>
+struct PairHash {
+public:
+   size_t operator()(std::pair<X, Y> const& x) const {
+      return std::hash<X>()(x.first) ^ std::hash<Y>()(x.second);
+   }
+};
+
+void Pipeline::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &geo)
+{
+
+   struct Point { float x, y, z; };
+   Point pt;
+   std::vector<Point> obj_verts;
+   std::vector<Point> obj_norms;
+   std::unordered_map<std::pair<int, int>, int, PairHash<int, int>> vertex_map;
+   std::vector<float> vertices;
+   std::vector<unsigned int> indices;
+   std::vector<short> normalData;
+
+   std::string line;
+
+   auto packNormal = [](float coord) -> short {
+      return static_cast<short>(coord * 32767);
+   };
+
+   auto addIndex = [&](int vi, int ni) {
+      --vi; --ni;    // covert 1 based indices to 0 based.
+
+      std::pair<int, int> key(vi, ni);
+      auto i = vertex_map.find(key);
+      if (i != vertex_map.end()) {
+         indices.push_back(i->second);
+      } else {
+         // create a new point
+         Point const& v = obj_verts[vi];
+         Point const& n = obj_norms[ni];
+
+         vertices.push_back(v.x);
+         vertices.push_back(v.y);
+         vertices.push_back(v.z);
+
+         normalData.push_back(packNormal(n.x));
+         normalData.push_back(packNormal(n.y));
+         normalData.push_back(packNormal(n.z));
+
+         int index = (int)vertex_map.size();
+         vertex_map[key] = index;
+         indices.push_back(index);
+      }
+   };
+   while (stream.good()) {
+      std::vector<std::string> tokens;
+
+      std::getline(stream, line);
+
+      if (line.size() > 1) {
+         char t0 = line[0], t1 = line[1];
+         if (t0 == 'v') {
+            if (sscanf(line.c_str(), "%*s %f %f %f", &pt.x, &pt.y, &pt.z) == 3) {
+               if (t1 == 'n') {
+                  obj_norms.push_back(pt);
+               } else if (::isspace(t1)) {
+                  obj_verts.push_back(pt);
+               }
+            }
+         } else if (t0 == 'f') {
+            int v[4], n[4]; 
+            // textured triangle.  ignore the texture.
+            if (sscanf(line.c_str(), "%*s %d/%*d/%d %d/%*d/%d %d/%*d/%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2]) == 6) {
+               addIndex(v[0], n[0]);
+               addIndex(v[1], n[1]);
+               addIndex(v[2], n[2]);
+            }
+            // textured quad.  ignore the texture.  convert to two triangles
+            int c;
+            if ((c = sscanf(line.c_str(), "%*s %d/%*d/%d %d/%*d/%d %d/%*d/%d %d/%*d/%d", &v[0], &n[0], &v[1], &n[1], &v[2], &n[2], &v[3], &n[3])) == 8) {
+               addIndex(v[0], n[0]);
+               addIndex(v[1], n[1]);
+               addIndex(v[2], n[2]);
+
+               addIndex(v[0], n[0]);
+               addIndex(v[2], n[2]);
+               addIndex(v[3], n[3]);
+            }
+         }
+      }
+   }
+   
+   std::string geoName = BUILD_STRING("geo" << unique_id_++);
+   geo.vertexIndices[1] = (int)vertices.size() / 3;
+   geo.indexIndicies[1] = (int)indices.size();
+   geo.levelCount = 1;
+   geo.type = GeometryInfo::HORDE_GEOMETRY;
+   geo.geo = h3dutCreateGeometryRes(geoName.c_str(), (int)vertices.size() / 3, (int)indices.size(), vertices.data(),
+                                    indices.data(), normalData.data(), nullptr, nullptr, nullptr, nullptr);
+}
+
+RenderNodePtr Pipeline::CreateRenderNodeFromMesh(H3DNode parent, csg::Mesh const& m)
+{
+   GeometryInfo geo;
+   Pipeline::GetInstance().CreateGeometryFromMesh(geo, m);
+   return RenderNode::CreateVoxelModelNode(parent, geo);
 }

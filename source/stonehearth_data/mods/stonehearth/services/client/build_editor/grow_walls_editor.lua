@@ -1,5 +1,6 @@
 local build_util = require 'lib.build_util'
 local constants = require('constants').construction
+local StructureEditor = require 'services.client.build_editor.structure_editor'
 
 local GrowWallsEditor = class()
 local log = radiant.log.create_logger('build_editor.grow_walls')
@@ -9,37 +10,81 @@ function GrowWallsEditor:__init(build_service)
    log:debug('created')
 
    self._build_service = build_service
+   self._structure_editor = StructureEditor()
    self._log = radiant.log.create_logger('builder')
+
+   self._preview_walls = {}
+   self._preview_columns = {}
+   self._last_target = nil
 end
 
 function GrowWallsEditor:destroy()
    log:debug('destroyed')
+   self:_destroy_preview_entities()
+end
+
+function GrowWallsEditor:_destroy_preview_entities()
+   for _, editor in pairs(self._preview_walls) do
+      editor:destroy()
+   end
+   for _, editor in pairs(self._preview_columns) do
+      editor:destroy()
+   end
+   self._preview_walls = {}
+   self._preview_columns = {}
 end
 
 function GrowWallsEditor:go(response, columns_uri, walls_uri)
-   local building
-
    log:detail('running')
    stonehearth.selection:select_entity_tool()
       :set_cursor('stonehearth:cursors:grow_walls')
-      :set_filter_fn(function(entity)
-            if build_util.is_footprint(entity) then
+      :set_filter_fn(function(result)
+            local entity = result.entity
+            if radiant.entities.is_temporary_entity(entity) then
+               -- one of our client-side preview entities.  bail.
                return stonehearth.selection.FILTER_IGNORE
             end
-            building = build_util.get_building_for(entity)
-            return building ~= nil and not self:is_road(building) and not build_util.has_walls(building)
+            local blueprint = build_util.get_blueprint_for(entity)
+            if not blueprint then
+               -- not a blueprint, bail.
+               return false
+            end
+            local building = build_util.get_building_for(blueprint)
+            if not building then
+               -- no building for this blueprint.  weird!  bail.
+               return false
+            end
+            local floor = blueprint:get_component('stonehearth:floor')
+            if not floor then
+               -- only grow around floor
+               return false
+            end
+            if floor:get().category ~= constants.floor_category.FLOOR then
+               -- never grow around slabs or roads
+               return false
+            end
+            return true
+         end)
+      :progress(function(selector, entity)
+            self:_switch_to_target(entity, columns_uri, walls_uri)
          end)
       :done(function(selector, entity)
             log:detail('box selected')
-            if building then
-               _radiant.call_obj(self._build_service, 'grow_walls_command', building, columns_uri, walls_uri)
+            if entity then
+               _radiant.call_obj(self._build_service, 'grow_walls_command', entity, columns_uri, walls_uri)
+                           :always(function()
+                                 self:destroy()
+                              end)
+            else
+               self:destroy()
             end
             response:resolve('done')
          end)
       :fail(function(selector)
             log:detail('failed to select building')
             response:reject('failed')
-         end)
+            self:destroy()
+         end)      
       :go()
 
    return self
@@ -59,5 +104,57 @@ function GrowWallsEditor:is_road(building)
    return false
 end
 
+function GrowWallsEditor:_switch_to_target(target, columns_uri, walls_uri)
+   if target ~= self._last_target then
+      self._last_target = target
+      self:_destroy_preview_entities()
+      if target then
+         build_util.grow_walls_around(target, function(min, max, normal)               
+               local col_a = self:_create_preview_column(min, columns_uri)
+               local col_b = self:_create_preview_column(max, columns_uri)
+               if col_a and col_b then
+                  if min ~= max then
+                     return self:_create_preview_wall(col_a, col_b, normal, walls_uri)
+                  end
+               end
+            end)
+      end
+   end
+end
 
-return GrowWallsEditor 
+function GrowWallsEditor:_create_preview_column(pt, columns_uri)
+   local key = pt:key_value()
+   local editor = self._preview_columns[key]
+   if not editor  then
+      editor = StructureEditor()
+      self._preview_columns[key] = editor
+
+      local column = editor:create_blueprint(columns_uri, 'stonehearth:column')
+      column:get_component('stonehearth:column')
+               :layout()
+
+      editor:move_to(pt)
+   end
+   return editor:get_proxy_blueprint()
+end
+
+function GrowWallsEditor:_create_preview_wall(column_a, column_b, normal, walls_uri)
+   local editor = StructureEditor()
+   editor:create_blueprint(walls_uri, 'stonehearth:wall')      
+   table.insert(self._preview_walls, editor)
+   
+   local wall = editor:get_proxy_blueprint()
+   wall:add_component('stonehearth:wall')
+            :connect_to(column_a, column_b, normal)
+            :layout()
+
+   wall:add_component('stonehearth:construction_data')
+            :set_normal(normal)
+
+   -- sigh.  i hate that we have to do this...
+   editor:move_to(wall:get_component('mob'):get_grid_location())
+   return wall
+end
+
+return GrowWallsEditor
+

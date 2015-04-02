@@ -158,7 +158,7 @@ private:
    uint32                 _shadowMapQuality, _shadowMapSize;
    bool                   _dirtyShadows[6];
 
-   friend class SceneManager;
+   friend class Scene;
    friend class Renderer;
 };
 

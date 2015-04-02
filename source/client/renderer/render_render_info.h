@@ -38,17 +38,11 @@ private:
       MatrixVector layers[om::ModelLayer::NUM_LAYERS];
    };
    typedef std::unordered_map<std::string, ModelMapEntry> ModelMap;
-   typedef std::unordered_map<std::string, MatrixVector> FlatModelMap;
 
-   struct NodeMapEntry {
-      NodeMapEntry() : node(0) { }
-      NodeMapEntry(MatrixVector const& v, RenderNodePtr n) : matrices(v), node(n) { }
+   // The FlatModelMap must be sorted to ensure we iterate over bones in the same
+   // order very time when generating the resource cache key
+   typedef std::map<std::string, MatrixVector> FlatModelMap;
 
-      MatrixVector         matrices;
-      RenderNodePtr        node;
-   };
-
-   typedef std::unordered_map<std::string, NodeMapEntry> NodeMap;
    typedef std::unordered_map<std::string, std::shared_ptr<voxel::QubicleFile>> QubicleFileMap;
    typedef std::unordered_map<std::string, csg::Point3f> BoneOffsetMap;
 
@@ -60,15 +54,16 @@ private:
    void CheckScale(om::RenderInfoPtr render_info);
    void CheckVisible(om::RenderInfoPtr render_info);
    void FlattenModelMap(ModelMap& m, FlatModelMap& flattened);
-   void RemoveObsoleteNodes(FlatModelMap const& m);
    std::string GetBoneName(std::string const& matrix_name);
+   void RebuildModel(om::RenderInfoPtr render_info, FlatModelMap const& nodes);
    void AddModelNode(om::RenderInfoPtr render_info, std::string const& bone, MatrixVector const& matrices, float offset);
-   void AddMissingNodes(om::RenderInfoPtr render_info, FlatModelMap const& m);
    void RebuildBoneOffsets(om::RenderInfoPtr render_info);
    void UpdateNextFrame();
    void Update();
    std::string GetModelVariant(om::RenderInfoPtr render_info) const;
    void ReApplyMaterial();
+   csg::Point3f GetBoneOffset(std::string const& boneName);
+   void DestroyVoxelMeshNode();
 
 private:
    RenderEntity&           entity_;
@@ -82,7 +77,7 @@ private:
    dm::TracePtr            model_variant_trace_;
    dm::TracePtr            attached_trace_;
    dm::TracePtr            material_trace_;
-   NodeMap                 nodes_;
+   H3DNode                 _voxelMeshNode;
    BoneOffsetMap           bones_offsets_;
 };
 

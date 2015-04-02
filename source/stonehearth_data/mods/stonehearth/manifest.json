@@ -62,6 +62,7 @@
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance_population.json)",
       "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
       "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
+      "kingdoms:undead" : "file(services/server/population/data/undead_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -204,6 +205,9 @@
       "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
       "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
+
+      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
+      "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/skeleton_female.json)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -856,8 +860,8 @@
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
-      "skeletons:humanoid:male" : "file(/data/rigs/humans/skeletons/male.json)",
-      "skeletons:humanoid:female" : "file(/data/rigs/humans/skeletons/female.json)",
+      "skeletons:humanoid:male" : "file(data/rigs/humans/skeletons/male.json)",
+      "skeletons:humanoid:female" : "file(data/rigs/humans/skeletons/female.json)",
 
       "data:npc_index" : "file(data/npc_index.json)",      
       "data:gm_index" : "file(data/gm/gm_index.json)",
@@ -1330,8 +1334,11 @@
       "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
-      "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
-      "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
+      "build:ladder_manager" : "file(services/server/build/ladder_manager.lua)",
+      "build:scaffolding_manager" : "file(services/server/build/scaffolding_manager.lua)",
+      "build:ladder_builder" : "file(services/server/build/ladder_builder.lua)",
+      "build:scaffolding_builder_1d" : "file(services/server/build/scaffolding_builder_1d.lua)",
+      "build:scaffolding_builder_2d" : "file(services/server/build/scaffolding_builder_2d.lua)",
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
@@ -1430,10 +1437,8 @@
       "buffs" : "file(components/buffs/buffs_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_component.lua)",
       "fixture_fabricator" : "file(components/fixture_fabricator/fixture_fabricator_component.lua)",
-      "scaffolding_fabricator" : "file(components/scaffolding_fabricator/scaffolding_fabricator_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "fixture" : "file(components/fixture/fixture_component.lua)",
-      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
       "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "construction_project" : "file(components/construction_project/construction_project_component.lua)",
@@ -1460,7 +1465,7 @@
       "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
    },
    "client_components" : {
-      "building" : "file(components/building/building_client_component.lua)",
+      "building" : "file(components/building/building_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
@@ -1471,8 +1476,7 @@
       "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
       "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
       "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)",
-      "ladder" : "file(components/ladder/ladder_component.lua)",
-      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_client_component.lua)"
+      "ladder" : "file(components/ladder/ladder_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
@@ -1485,7 +1489,6 @@
       "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
       "water" : "file(renderers/water/water_renderer.lua)",
       "waterfall" : "file(renderers/waterfall/waterfall_renderer.lua)",
-      "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)",
       "ladder" : "file(renderers/ladder/ladder_renderer.lua)"
    },
@@ -1524,7 +1527,6 @@
          "file(ui/game/modes/build_mode/building_designer_2/overview.html)",
          "file(ui/game/modes/build_mode/building_designer_2/template_view.html)",
          "file(ui/game/modes/build_mode/building_designer_2/roof_shape_template.html)",
-         "file(ui/game/modes/build_mode/build_roads/build_roads.html)",
          "file(ui/game/modes/build_mode/mine/mine.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/save_view/save_view.html)",
@@ -1605,10 +1607,11 @@
          "file(ui/game/modes/build_mode/building_designer_2/draw_slab_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/draw_wall_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/grow_walls_tool.js)",
-         "file(ui/game/modes/build_mode/building_designer_2/draw_doodad_tool.js)",
+         "file(ui/game/modes/build_mode/building_designer_2/draw_door_tool.js)",
+         "file(ui/game/modes/build_mode/building_designer_2/draw_window_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/grow_roof_tool.js)",
-         "file(ui/game/modes/build_mode/build_roads/build_roads.js)",
-         "file(ui/game/modes/build_mode/build_roads/draw_road_tool.js)",
+         "file(ui/game/modes/build_mode/building_designer_2/place_floor_deco_tool.js)",
+         "file(ui/game/modes/build_mode/building_designer_2/draw_road_tool.js)",
          "file(ui/game/modes/build_mode/mine/mine.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
@@ -1688,7 +1691,6 @@
          "file(ui/game/modes/build_mode/building_templates/building_templates.less)",
          "file(ui/game/modes/build_mode/building_cost/building_cost.less)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.less)",
-         "file(ui/game/modes/build_mode/build_roads/build_roads.less)",
          "file(ui/game/modes/build_mode/mine/mine.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/save_view/save_view.less)",

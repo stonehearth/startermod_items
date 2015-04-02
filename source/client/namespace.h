@@ -16,6 +16,7 @@ class RenderNode;
 class RenderTerrain;
 class RenderTerrainTile;
 class RenderTerrainLayer;
+class GeometryInfo;
 
 DECLARE_SHARED_POINTER_TYPES(RenderNode)
 

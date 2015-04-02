@@ -34,7 +34,7 @@ public:
    void GC(platform::timer &timer);
    void FullGC();
    int GetAllocBytesCount() const;
-   void WriteMemoryProfile(std::string const& filename) const;
+   void WriteMemoryProfile(std::string const& filename);
    void DumpHeap(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;

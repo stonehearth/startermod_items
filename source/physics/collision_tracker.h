@@ -26,6 +26,7 @@ public:
    virtual void Initialize();
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
    virtual bool Intersects(csg::CollisionBox const& worldBounds) const = 0;
+   virtual void ClipRegion(csg::CollisionShape& region) const = 0;
 
    bool Intersects(csg::Point3 const& pt) const;
    bool Intersects(csg::CollisionShape const& region) const;

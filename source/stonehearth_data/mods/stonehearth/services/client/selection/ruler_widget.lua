@@ -177,12 +177,12 @@ function RulerWidget:_recreate_render_node(label)
                             self._line_color)
    
 
-   self._render_node = _radiant.client.create_mesh_node(1, mesh)
+   self._render_node = _radiant.client.create_mesh_node(H3DRootNode, mesh)
    self._render_node:set_can_query(false)
                     :set_material('materials/transparent.material.json')
 
    if label then
-      self._text_node = _radiant.client.create_text_node(1, label)
+      self._text_node = _radiant.client.create_text_node(H3DRootNode, label)
       self._text_node:set_position((self._start + self._finish) / 2)
    end
 end

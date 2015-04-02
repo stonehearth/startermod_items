@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -6,8 +7,6 @@ local log = radiant.log.create_logger('water')
 local WaterComponent = class()
 
 function WaterComponent:__init()
-   -- the volume of water consumed to make a block wet
-   self._wetting_volume = 0.25
 end
 
 function WaterComponent:initialize(entity, json)
@@ -95,7 +94,7 @@ function WaterComponent:_add_water(world_location, volume)
 
          -- grow the region until we run out of volume or edges
          while volume > 0 and not edge_region:empty() do
-            if volume < self._wetting_volume * 0.5 then
+            if volume < constants.hydrology.WETTING_VOLUME * 0.5 then
                -- too little volume to wet a block, so just let it evaporate
                volume = 0
                break
@@ -248,13 +247,55 @@ function WaterComponent:_fill_channel_to_capacity(channel)
    end
 end
 
-function WaterComponent:_validate_channels()
+function WaterComponent:update_channel_types()
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   local channels = {}
+
    self:_each_channel(function(channel)
-         if channel.from_location.y ~= channel.to_location.y then
-            local water_level = self:get_water_level()
-            -- CHECKCHECK
-         end
+         table.insert(channels, channel)
       end)
+
+   -- loop over a separate collection since we're modifying the source
+   for _, channel in pairs(channels) do
+      assert(channel.queued_volume == 0)
+      local target_water_component = channel.to_entity:add_component('stonehearth:water')
+      local target_water_level = target_water_component:get_water_level()
+      local channel_height = channel.from_location.y
+
+      if channel.channel_type == 'pressure' then
+         if target_water_level < channel_height then
+            -- pressure channel is now a waterfall channel
+            channel_manager:link_waterfall_channel(channel.from_entity, channel.from_location, channel.subtype)
+         end
+      elseif channel.channel_type == 'waterfall' then
+         if channel.subtype == 'vertical' then
+            -- TODO: support case when to_entity is higher than from_entity
+            local source_water_level = self:get_water_level()
+            -- recall that vertical waterfall channels have their from_location inside the water body
+            if source_water_level <= channel_height then
+               -- waterfall dried up and should be removed
+               local location = radiant.entities.get_world_grid_location(self._entity)
+               self:_remove_from_region(channel.from_location - location)
+               channel_manager:remove_channel(channel)
+            end
+
+            if target_water_level >= channel_height then
+               -- convert to vertical pressure channel
+               -- TODO: this violates pressure channel invariants
+               channel_manager:link_pressure_channel(channel.from_entity, channel.from_location,
+                                                     channel.to_entity, channel.from_location - Point3.unit_y, 'vertical')
+            end
+         else
+            if target_water_level > channel_height then
+               -- waterfall is now a pressure channel
+               local target_adjacent_point = stonehearth.hydrology:_get_best_channel_adjacent_point(channel.from_entity, channel.from_location)
+               channel_manager:link_pressure_channel(channel.from_entity, channel.from_location, channel.to_entity, target_adjacent_point)
+            end
+         end
+      else
+         assert(false)
+      end
+   end
 end
 
 function WaterComponent:_each_channel(callback_fn)
@@ -306,6 +347,22 @@ function WaterComponent:_add_to_layer(region)
          cursor:add_region(region)
          cursor:optimize_by_merge('water:_add_to_layer() (current layer)')
       end)
+
+   self.__saved_variables:mark_changed()
+end
+
+-- point in local coordinates
+function WaterComponent:_remove_from_region(point)
+   self._sv.region:modify(function(cursor)
+         cursor:subtract_point(point)
+         -- optimize_by_merge doesn't usually help for single subtractions
+      end)
+
+   self._sv._current_layer:modify(function(cursor)
+         cursor:subtract_point(point)
+      end)
+
+   self.__saved_variables:mark_changed()
 end
 
 -- return value and parameters all in world coordinates
@@ -318,13 +375,9 @@ function WaterComponent:_get_edge_region(region, channel_region)
    -- subtract the interior region
    local edge_region = inflated - region
 
-   -- remove region blocked by terrain
-   local terrain = radiant.terrain.intersect_region(edge_region)
-   edge_region:subtract_region(terrain)
-
-   -- remove region blocked by watertight entities
-   local collision_region = self:_get_solid_collision_regions(edge_region)
-   edge_region:subtract_region(collision_region)
+   -- remove watertight region
+   local watertight_region = stonehearth.hydrology:get_water_tight_region():intersect_region(edge_region)
+   edge_region:subtract_region(watertight_region)
 
    -- remove channels that we've already processed
    edge_region:subtract_region(channel_region)
@@ -336,21 +389,6 @@ function WaterComponent:_get_edge_region(region, channel_region)
    edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
-end
-
-function WaterComponent:_get_solid_collision_regions(region)
-   local result = Region3()
-   local entities = radiant.terrain.get_entities_in_region(region)
-   for _, entity in pairs(entities) do
-      local rcs_component = entity:get_component('region_collision_shape')
-      if self:_is_watertight(rcs_component) then
-         local location = radiant.entities.get_world_grid_location(entity)
-         local entity_region = rcs_component:get_region():get():translated(location)
-         result:add_region(entity_region)
-      end
-   end
-
-   return result
 end
 
 function WaterComponent:_add_height(volume)
@@ -413,6 +451,7 @@ function WaterComponent:_remove_height(volume)
    return residual
 end
 
+-- TODO: don't raise into another water body
 function WaterComponent:_raise_layer()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local new_layer_index = self._sv._current_layer_index + 1
@@ -430,9 +469,13 @@ function WaterComponent:_raise_layer()
    -- convert to world space and raise one level
    local raised_layer = current_layer:translated(entity_location + Point3.unit_y)
 
-   -- subtract any new terrain obstructions
-   local intersection = radiant.terrain.intersect_region(raised_layer)
+   -- subtract any new obstructions
+   local intersection = stonehearth.hydrology:get_water_tight_region():intersect_region(raised_layer)
    raised_layer:subtract_region(intersection)
+
+   -- make sure we don't overlap any other water bodies
+   self:_subtract_all_water_regions(raised_layer)
+
    raised_layer:optimize_by_merge('water:_raise_layer() (raised layer)')
 
    -- back to local space
@@ -456,9 +499,13 @@ function WaterComponent:_raise_layer()
 end
 
 function WaterComponent:_lower_layer()
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local new_layer_index = self._sv._current_layer_index - 1
    log:debug('Lowering layer for %s to %d', self._entity, new_layer_index + entity_location.y)
+
+   local old_layer_elevation = self:get_current_layer_elevation()
+   local orphaned_channels = self:_get_channels_at_elevation(old_layer_elevation)
 
    local lowered_layer = self:_get_layer(new_layer_index)
 
@@ -489,6 +536,11 @@ function WaterComponent:_lower_layer()
    local residual_top_layer = top_layer - projected_lower_layer
 
    if not residual_top_layer:empty() then
+      -- we do this to avoid having to create vertical channels to remove each unsupported block
+      self:_subtract_unsupported_region(residual_top_layer)
+   end
+
+   if not residual_top_layer:empty() then
       -- top layer becomes a new water body with a potentially non-contiguous wet region
       -- TODO: probably need to create an entity for each contiguous set
       residual_top_layer:optimize_by_merge('water:_lower_layer (residual top layer)')
@@ -505,16 +557,40 @@ function WaterComponent:_lower_layer()
       child_water_component:_recalculate_current_layer()
 
       -- reparent channels on top layer to child
-      local channel_manager = stonehearth.hydrology:get_channel_manager()
-      local child_channels = self:_get_channels_at_elevation(child_water_component:get_current_layer_elevation())
-      channel_manager:reparent_channels(child_channels, child)
+      channel_manager:reparent_channels(orphaned_channels, child)
 
       log:debug('Top layer from %s becoming new entity %s', self._entity, child)
+   else
+      channel_manager:remove_channels(orphaned_channels)
    end
 
    self.__saved_variables:mark_changed()
 
    return true
+end
+
+function WaterComponent:_subtract_unsupported_region(layer)
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   local water_tight_region = stonehearth.hydrology:get_water_tight_region()
+
+   -- project one unit down and to world coordinates
+   local projected_layer = layer:translated(location - Point3.unit_y)
+   local supported_region = water_tight_region:intersect_region(projected_layer)
+
+   -- project one unit up and back to local coordinates
+   supported_region:translate(Point3.unit_y - location)
+   layer = layer:intersect_region(supported_region)
+end
+
+function WaterComponent:_subtract_all_water_regions(region)
+   local water_bodies = stonehearth.hydrology:get_water_bodies()
+
+   for id, entity in pairs(water_bodies) do
+      local location = radiant.entities.get_world_grid_location(entity)
+      local water_component = entity:add_component('stonehearth:water')
+      local water_region = water_component:get_region():get():translated(location)
+      region:subtract_region(water_region)
+   end
 end
 
 function WaterComponent:_recalculate_current_layer()
@@ -539,21 +615,9 @@ function WaterComponent:_get_layer(elevation)
    return layer
 end
 
--- TODO: could optimize by getting the watertight region and testing to see if point is in that set
 function WaterComponent:_is_blocked(point)
-   if radiant.terrain.is_terrain(point) then
-      return true
-   end
-
-   local entities = radiant.terrain.get_entities_at_point(point)
-   for _, entity in pairs(entities) do
-      local rcs_component = entity:get_component('region_collision_shape')
-      if self:_is_watertight(rcs_component) then
-         return true
-      end
-   end
-
-   return false
+   local result = stonehearth.hydrology:get_water_tight_region():contains_point(point)
+   return result
 end
 
 function WaterComponent:_is_watertight(region_collision_shape)
@@ -563,7 +627,7 @@ function WaterComponent:_is_watertight(region_collision_shape)
 end
 
 function WaterComponent:_subtract_wetting_volume(volume)
-   volume = volume - self._wetting_volume
+   volume = volume - constants.hydrology.WETTING_VOLUME
    volume = math.max(volume, 0)
    return volume
 end

@@ -45,9 +45,10 @@ function RenewableResourceNodeComponent:initialize(entity, json)
 end
 
 function RenewableResourceNodeComponent:_restore()
-   if self._sv.next_renew_time then
-      local duration = stonehearth.calendar:get_seconds_until(self._sv.next_renew_time)
-      self:_start_renew_timer(duration)
+   if self._sv.renew_timer then
+      self._sv.renew_timer:bind(function()
+            self:renew()
+         end)
    end
 end
 
@@ -116,6 +117,8 @@ function RenewableResourceNodeComponent:_reset_model()
 end
 
 function RenewableResourceNodeComponent:renew()
+   self:_stop_renew_timer()
+
    --If we have a renew effect associated, run it. If not, just swap the model.
    if self._renew_effect_name then
       assert(not self._renew_effect)
@@ -151,24 +154,21 @@ end
 function RenewableResourceNodeComponent:_start_renew_timer(duration)
    self:_stop_renew_timer()
 
-   self._renew_timer = stonehearth.calendar:set_timer(duration,
+   self._sv.renew_timer = stonehearth.calendar:set_timer(duration,
       function ()
-         self:_stop_renew_timer()
          self:renew()
       end
    )
 
-   self._sv.next_renew_time = self._renew_timer:get_expire_time()
    self.__saved_variables:mark_changed()
 end
 
 function RenewableResourceNodeComponent:_stop_renew_timer()
-   if self._renew_timer then
-      self._renew_timer:destroy()
-      self._renew_timer = nil
+   if self._sv.renew_timer then
+      self._sv.renew_timer:destroy()
+      self._sv.renew_timer = nil
    end
 
-   self._sv.next_renew_time = nil
    self.__saved_variables:mark_changed()
 end
 

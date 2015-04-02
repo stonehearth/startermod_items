@@ -2,7 +2,6 @@ local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local PerturbationGrid = require 'services.server.world_generation.perturbation_grid'
-local BoulderGenerator = require 'services.server.world_generation.boulder_generator'
 local Point3 = _radiant.csg.Point3
 local log = radiant.log.create_logger('world_generation')
 
@@ -21,7 +20,6 @@ local tree_sizes = { small, medium, large, ancient }
 
 local berry_bush_name = mod_prefix .. 'berry_bush'
 local generic_vegetaion_name = "vegetation"
-local boulder_name = "boulder"
 
 local Landscaper = class()
 
@@ -32,14 +30,6 @@ function Landscaper:__init(terrain_info, rng)
    self._tile_height = self._terrain_info.tile_size
    self._feature_size = self._terrain_info.feature_size
    self._rng = rng
-
-   self._boulder_probabilities = {
-      plains    = 0.02,
-      foothills = 0.02,
-      mountains = 0.02
-   }
-
-   self._boulder_generator = BoulderGenerator(self._terrain_info, self._rng)
 
    self._noise_map_buffer = nil
    self._density_map_buffer = nil
@@ -96,11 +86,18 @@ end
 function Landscaper:place_flora(tile_map, feature_map, tile_offset_x, tile_offset_y)
    local place_item = function(uri, x, y)
       local entity = radiant.entities.create_entity(uri)
+      self:_set_random_facing(entity)
+
       -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
       -- swtich from tile coordinates to world coordinates
-      radiant.terrain.place_entity(entity, Point3(x-1+tile_offset_x, 1, y-1+tile_offset_y))
+      local world_x = x-1+tile_offset_x
+      local world_z = y-1+tile_offset_y
+      local location = radiant.terrain.get_point_on_terrain(Point3(world_x, 1, world_z))
 
-      self:_set_random_facing(entity)
+      if radiant.terrain.is_standable(entity, location) then
+         radiant.terrain.place_entity(entity, location)
+      end
+
       return entity
    end
 
@@ -583,54 +580,6 @@ function Landscaper:is_tree_name(feature_name)
    -- may need to be more robust later
    local index = feature_name:find('_tree', -5)
    return index ~= nil
-end
-
-function Landscaper:mark_boulders(elevation_map, feature_map)
-   local elevation
-
-   -- no boulders on edge of map since they may exceed boundaries
-   for j=2, feature_map.height-1 do
-      for i=2, feature_map.width-1 do
-         elevation = elevation_map:get(i, j)
-
-         if self:_should_place_boulder(elevation) then
-            feature_map:set(i, j, boulder_name)
-         end
-      end
-   end
-end
-
-function Landscaper:place_boulders(region3_boxed, tile_map, feature_map)
-   local boulder_region
-   local exclusion_radius = 8
-   local grid_width, grid_height = self._perturbation_grid:get_dimensions()
-   local feature_name, elevation, i, j, x, y
-
-   -- no boulders on edge of map since they can get cut off
-   region3_boxed:modify(
-      function(region3)
-         for j=2, grid_height-1 do
-            for i=2, grid_width-1 do
-               feature_name = feature_map:get(i, j)
-
-               if feature_name == boulder_name then
-                  x, y = self._perturbation_grid:get_perturbed_coordinates(i, j, exclusion_radius)
-                  elevation = tile_map:get(x, y)
-
-                  boulder_region = self._boulder_generator:_create_boulder(x, y, elevation)
-                  region3:add_region(boulder_region)
-               end
-            end
-         end
-      end
-   )
-end
-
-function Landscaper:_should_place_boulder(elevation)
-   local terrain_type = self._terrain_info:get_terrain_type(elevation)
-   local probability = self._boulder_probabilities[terrain_type]
-
-   return self._rng:get_real(0, 1) < probability
 end
 
 return Landscaper

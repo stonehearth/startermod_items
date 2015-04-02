@@ -75,8 +75,16 @@
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
          "building_templates" : {
-            "name" : "Construct a Building",
-            "description" : "Construct buildings like houses and towers",
+            "name" : "Build from a Template",
+            "description" : "Choose to construct a building from a pre-designed template",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/building_template.png",
+            "sticky" : true,
+            "hotkey" : "b"
+         },
+         "custom_building" : {
+            "name" : "Design a Custom Building",
+            "description" : "Design your own one-of-a-kind building",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
             "sticky" : true,
@@ -89,14 +97,6 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/place_item.png",
             "sticky" : true,
             "hotkey" : "p"
-         },
-         "build_road" : {
-            "name" : "Build Roads",
-            "description" : "Add roads to your town",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/roads.png",
-            "sticky" : true,
-            "hotkey" : ""
          },
          "build_ladder" : {
             "name" : "Construct a Ladder",
@@ -129,6 +129,8 @@
          "create_farm" : {
             "name" : "Farm",
             "description" : "Place a farm on the terrain.",
+            "required_job" : "stonehearth:jobs:farmer",
+            "required_job_text" : "Requires a farmer",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
             "sticky" : true,
@@ -137,6 +139,8 @@
          "create_trapping_grounds" : {
             "name" : "Trapping Ground",
             "description" : "Place traps to capture small critters.",
+            "required_job" : "stonehearth:jobs:trapper",
+            "required_job_text" : "Requires a trapper",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
             "sticky" : true,
@@ -145,6 +149,8 @@
          "create_pasture" : {
             "name" : "Animal Pasture",
             "description" : "The shepherd will bring animals here to graze.",
+            "required_job" : "stonehearth:jobs:shepherd",
+            "required_job_text" : "Requires a shepherd",            
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_pasture.png",
             "sticky" : true
