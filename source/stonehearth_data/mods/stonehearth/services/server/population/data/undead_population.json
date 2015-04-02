@@ -15,7 +15,7 @@
             "stonehearth:monsters:undead:zombie"
          ],
          "female" : [
-            "stonehearth:monsters:undead:zombie"
+            "stonehearth:monsters:undead:zombie_female"
          ]
       }
    },

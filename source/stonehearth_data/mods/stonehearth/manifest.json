@@ -213,6 +213,7 @@
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/skeleton_female.json)",
       "monsters:undead:zombie" : "file(entities/monsters/undead/zombie)",
+      "monsters:undead:zombie_female" : "file(entities/monsters/undead/zombie/zombie_female.json)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -1380,6 +1381,7 @@
       "game_master:node_list" : "file(services/server/game_master/controllers/node_list.lua)",
       "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
+      "game_master:util:choose_location_outside_town" : "file(services/server/game_master/controllers/util/choose_location_outside_town.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
       "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp_encounter.lua)",
       "game_master:encounters:collection_quest" : "file(services/server/game_master/controllers/encounters/collection_quest_encounter.lua)",
@@ -1391,6 +1393,7 @@
       "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
+      "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",

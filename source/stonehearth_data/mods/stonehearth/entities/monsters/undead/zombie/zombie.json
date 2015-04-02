@@ -3,7 +3,7 @@
    "mixins" : "stonehearth:mixins:monster",
    "components": {
       "render_info" : {
-         "animation_table": "file(/data/rigs/monsters/skeleton/skeletons/male.json)",
+         "animation_table": "file(/data/rigs/monsters/undead/skeletons/male.json)",
          "color_map" : "stonehearth:color_map:undead",
          "material_maps" : [
             "/stonehearth/data/materials/material_maps/undead_material_map.json"
@@ -109,7 +109,7 @@
          },
          "speed": {
             "type" : "basic",
-            "value" : 40
+            "value" : 30
          },
          "menace": {
             "type" : "basic",
@@ -130,11 +130,11 @@
       "stonehearth:entity_reach" : 1.0,
       "stonehearth:combat:melee_attacks" : [
          {
-            "name" : "combat_1h_forehand_spin",
-            "active_frame" : 21,
-            "cooldown" : 8000,
-            "priority" : 1
-         }      
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }
       ]
    }
 }
