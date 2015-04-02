@@ -72,10 +72,10 @@ private:
    InverseColorMap CreateInverseColorMap(std::string const& colormap);
 
    struct VoxelNode {
-      RenderNodePtr        node;
+      H3DNode              node;
       csg::MaterialName    material;
 
-      VoxelNode(RenderNodePtr n, csg::MaterialName m) : node(n), material(m) { }
+      VoxelNode(H3DNode n, csg::MaterialName m) : node(n), material(m) { }
    };
 
 private:

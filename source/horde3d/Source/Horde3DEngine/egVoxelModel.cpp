@@ -31,7 +31,6 @@ VoxelModelNode::VoxelModelNode( const VoxelModelNodeTpl &modelTpl ) :
 	_nodeListDirty( false ),  _polygon_offset_used(false),
    _useCoarseCollisionBox(false), _modelScale(1.0)
 {
-   _meshNode = nullptr;
 }
 
 
@@ -82,15 +81,14 @@ void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
          }
          _boneLookup[idx] = child;
       } else if (child->getType() == SceneNodeTypes::VoxelMesh) {
-         _meshNode = (VoxelMeshNode *)child;
+         _meshNodes.emplace_back((VoxelMeshNode *)child);
       }
    }
 
-   if (_meshNode != nullptr) {
-      VoxelMeshNode &mesh = *_meshNode;
+   for (VoxelMeshNode* meshNode : _meshNodes) {
+      VoxelMeshNode &mesh = *meshNode;
 		
-      for( uint32 j = mesh.getVertRStart(0); j <= mesh.getVertREnd(0); ++j )
-	   {
+      for( uint32 j = mesh.getVertRStart(0); j <= mesh.getVertREnd(0); ++j ) {
          VoxelVertexData const& vert = mesh._geometryRes->getVertexData()[j];
 
          const int boneIndex = (int)vert.boneIndex;
@@ -102,7 +100,7 @@ void VoxelModelNode::recreateNodeListRec(SceneNode *node, bool firstCall)
 
 void VoxelModelNode::recreateNodeList()
 {
-   _meshNode = nullptr;
+   _meshNodes.clear();
    _boneLookup.clear();
    _boneBounds.clear();
 	
@@ -116,29 +114,27 @@ void VoxelModelNode::recreateNodeList()
 // over and over to get the AABB of the entire model/mesh.
 void VoxelModelNode::updateLocalMeshAABBs()
 {
-   if (_meshNode == nullptr) {
-      return;
-   }
-
-   VoxelMeshNode &mesh = *_meshNode;
+   for (VoxelMeshNode* meshNode : _meshNodes) {
+      VoxelMeshNode &mesh = *meshNode;
 		
-   mesh._localBBox.clear();
+      mesh._localBBox.clear();
 
-   for (auto& bounds : _boneBounds) {
-      BoundingBox boneBounds = bounds.second;
-      uint32 idx = bounds.first;
-      if (_boneLookup.size() > idx) {
-         boneBounds.transform(_boneLookup[idx]->getRelTrans());
+      for (auto& bounds : _boneBounds) {
+         BoundingBox boneBounds = bounds.second;
+         uint32 idx = bounds.first;
+         if (_boneLookup.size() > idx) {
+            boneBounds.transform(_boneLookup[idx]->getRelTrans());
+         }
+         mesh._localBBox.makeUnion(boneBounds);
       }
-      mesh._localBBox.makeUnion(boneBounds);
+
+	   // Avoid zero box dimensions for planes
+      mesh._localBBox.feather();
+
+      // Update the child mesh.  Because this makes sense.
+      mesh._bBox = mesh._localBBox;
+      mesh._bBox.transform(_absTrans);
    }
-
-	// Avoid zero box dimensions for planes
-   mesh._localBBox.feather();
-
-   // Update the child mesh.  Because this makes sense.
-   mesh._bBox = mesh._localBBox;
-   mesh._bBox.transform(_absTrans);
 }
 
 
@@ -246,10 +242,17 @@ void VoxelModelNode::markNodeListDirty()
 
 void VoxelModelNode::onFinishedUpdate()
 {
-	// Our bounds is just our child's bounds.
-
-   if (_meshNode != nullptr) {
-      _bBox = _meshNode->_bBox;
+	// Our bounds is just the sum of our children's bounds.
+   bool first = true;
+   for (VoxelMeshNode* meshNode : _meshNodes) {
+      if (first) {
+         _bBox = meshNode->_bBox;
+      } else {
+			Vec3f dmin = meshNode->_bBox.min();
+			Vec3f dmax = meshNode->_bBox.max();
+         _bBox.growMin(dmin);
+         _bBox.growMax(dmax);
+      }
    }
 }
 

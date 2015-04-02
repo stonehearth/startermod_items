@@ -172,17 +172,19 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 
    // Use the color map version.
    for (VoxelNode n: _voxelMeshNodes) {
-      n.node->SetMaterial(n.material);
+      H3DRes mat = h3dAddResource(H3DResTypes::Material, n.material, 0);
+      h3dSetNodeParamI(n.node, H3DVoxelMeshNodeParams::MatResI, mat);
    }
 }
-
 
 void RenderRenderInfo::ApplyMaterialToVoxelNodes(core::StaticString material)
 {
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, material, 0);
    for (VoxelNode n: _voxelMeshNodes) {
-      n.node->SetMaterial(material);
+      h3dSetNodeParamI(n.node, H3DVoxelMeshNodeParams::MatResI, mat);
    }
 }
+
 
 void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 {
@@ -380,9 +382,8 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
       csg::MaterialName material = entry.first;
       GeometryInfo const& geo = entry.second;
 
-      RenderNodePtr node = RenderNode::CreateVoxelModelNode(parent, geo)
-                              ->SetScale(csg::Point3f(scale_, scale_, scale_));
-      _voxelMeshNodes.emplace_back(node, material);
+      H3DNode mesh = pipeline.CreateVoxelMeshNode(parent, geo);
+      _voxelMeshNodes.emplace_back(mesh, material);
    }
 }
 
@@ -461,5 +462,8 @@ csg::Point3f RenderRenderInfo::GetBoneOffset(std::string const& boneName)
 
 void RenderRenderInfo::DestroyVoxelMeshNode()
 {
+   for (VoxelNode& node : _voxelMeshNodes) {
+      h3dRemoveNode(node.node);
+   }
    _voxelMeshNodes.clear();  
 }
