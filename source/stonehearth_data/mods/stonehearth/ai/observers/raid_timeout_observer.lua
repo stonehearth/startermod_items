@@ -36,9 +36,13 @@ function RaidTimeoutObserver:_on_added(e)
 end
 
 --When the timer triggers, insert a high priority action that will have them disperse
+--Note: the party seems to be using the stonehearth:urgent task group (make this clearer?)
 function RaidTimeoutObserver:_on_timer_expire()
-   --TODO: insert high priority action that has the raiders stop raiding 
-   --TOOD: write action to walk to edge of explored region and disappear
+   local task = self._entity:add_component('stonehearth:ai')
+            :get_task_group('stonehearth:urgent')
+            :create_task('stonehearth:depart_visible_area')
+            :set_priority(stonehearth.constants.priorities.party.DEPART_WORLD)
+            :start()
    self:_stop_raid_timer()
 end
 

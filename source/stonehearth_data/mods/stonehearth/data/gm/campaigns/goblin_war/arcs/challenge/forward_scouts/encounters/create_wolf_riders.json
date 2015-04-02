@@ -11,7 +11,6 @@
             "require_free_stockpile_space" : false,
             "role" : "raid_stockpiles",
             "offset" : { "x" : 0, "y" : 0, "z" : 0 },
-            "times" : 20,
 
             "sighted_bulletin" : {
                "title" : "Mounted goblins approach!",
