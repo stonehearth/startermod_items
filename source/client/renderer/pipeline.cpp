@@ -437,7 +437,7 @@ void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m)
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
 }
 
-void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing=false)
+void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing)
 {
    if (!GetSharedGeometry(key, geo)) {
       ConvertObjFileToGeometry(is, geo);
