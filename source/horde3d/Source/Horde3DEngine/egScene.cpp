@@ -927,7 +927,7 @@ void SpatialGraph::query(const SpatialQuery& query, RenderableQueues& renderable
 
 
 SceneManager::SceneManager() {
-   addScene("default");
+   reset();
 }
 
 SceneManager::~SceneManager() {
@@ -939,9 +939,10 @@ void SceneManager::reset()
    for (auto& s : _scenes) {
       s->shutdown();
    }
-   for (auto& s : _scenes) {
-      s->initialize();
-   }
+
+   _scenes.clear();
+
+   addScene("default");
 }
 
 void SceneManager::clear()
@@ -1354,14 +1355,18 @@ void Scene::removeNodeRec( SceneNode &node )
 	NodeHandle handle = node._handle;
 	
 	// Raise event
-   if( handle != _rootNodeId ) node.onDetach( *node._parent );
+   if (handle != _rootNodeId) 
+   {
+      node.onDetach(*node._parent);
+   }
 
    _registry[node.getType()].nodes.erase(node.getHandle());
 
 	// Remove children
-	for( uint32 i = 0; i < node._children.size(); ++i )
-	{
-		removeNodeRec( *node._children[i] );
+   while (node._children.size() > 0) 
+   {
+      removeNodeRec(*node._children.back());
+      node._children.erase(node._children.end() - 1);
 	}
 	
 	// Delete node
@@ -1375,6 +1380,7 @@ void Scene::removeNodeRec( SceneNode &node )
          _nodes.erase(i);
       }
 	}
+   updateNodeTrackers(&node);
 }
 
 
@@ -1405,8 +1411,6 @@ void Scene::removeNode( SceneNode &node )
 		node._children.clear();
       node.markDirty(SceneNodeDirtyKind::All);
 	}
-
-   updateNodeTrackers(nodeAddr);
 }
 
 

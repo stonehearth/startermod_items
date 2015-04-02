@@ -12,7 +12,7 @@ end
 
 function PortraitRendererService:_add_entity(entity_data, position, rotation)
    local ent = radiant.entities.create_entity(entity_data.uri)
-   ent:add_component('render_info')--:set_material('materials/ghost_item.json')
+   ent:add_component('render_info')
    local render_ent = _radiant.client.create_render_entity(_radiant.renderer.get_root_node(2), ent)
 
    table.insert(self._entities, {
@@ -29,22 +29,22 @@ function PortraitRendererService:_set_camera_look_at(target)
    _radiant.renderer.portrait.camera.look_at(target)
 end
 
-function PortraitRendererService:_add_light(position, color, radius)
+function PortraitRendererService:_add_light(light)
    local node = h3dAddLightNode(_radiant.renderer.get_root_node(2), "newlight", "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP", true)
-   h3dSetNodeTransform(node,  0, 0, 0, 0, 0, 0, 1, 1, 1)
    h3dSetNodeParamF(node, H3DLight.Radius2F, 0, 10000)
    h3dSetNodeParamF(node, H3DLight.FovF, 0, 360)
    h3dSetNodeParamI(node, H3DLight.ShadowMapCountI, 4)
    h3dSetNodeParamF(node, H3DLight.ShadowSplitLambdaF, 0, 0.95)
    h3dSetNodeParamF(node, H3DLight.ShadowMapBiasF, 0, 0.001)
 
-   h3dSetNodeParamF(node, H3DLight.ColorF3, 0, 1)
-   h3dSetNodeParamF(node, H3DLight.ColorF3, 1, 1)
-   h3dSetNodeParamF(node, H3DLight.ColorF3, 2, 1)
+   h3dSetNodeParamF(node, H3DLight.ColorF3, 0, light.color.x)
+   h3dSetNodeParamF(node, H3DLight.ColorF3, 1, light.color.y)
+   h3dSetNodeParamF(node, H3DLight.ColorF3, 2, light.color.z)
 
-   h3dSetNodeParamF(node, H3DLight.AmbientColorF3, 0, 0.1)
-   h3dSetNodeParamF(node, H3DLight.AmbientColorF3, 1, 0.1)
-   h3dSetNodeParamF(node, H3DLight.AmbientColorF3, 2, 0.1)
+   h3dSetNodeParamF(node, H3DLight.AmbientColorF3, 0, light.ambient_color.x)
+   h3dSetNodeParamF(node, H3DLight.AmbientColorF3, 1, light.ambient_color.y)
+   h3dSetNodeParamF(node, H3DLight.AmbientColorF3, 2, light.ambient_color.z)
+   h3dSetNodeTransform(node, 0, 0, 0, light.direction.x, light.direction.y, light.direction.z, 1, 1, 1)
 
    table.insert(self._lights, {
       node = node
@@ -57,16 +57,13 @@ end
    lights : [
       {
          color:Color3,
-         position:Point3,
-         radius:float
+         ambient_color: Color3
+         direction: Point3
       },
    ],
    entities: [
       {
-         uri: string,
-         position: Point3,
-         rotation: Quat
-         // Probably want an animation/frame here, too.
+         uri: string
       }
    ],
 
@@ -91,8 +88,8 @@ function _parse_scene(scene_json)
    for _, light in pairs(scene_json['lights']) do
       table.insert(lights, {
          color = _to_point3(light['color']),
-         position = _to_point3(light['position']),
-         radius = light['radius'],
+         ambient_color = _to_point3(light['ambient_color']),
+         direction = _to_point3(light['direction']),
       })
    end
    scene['lights'] = lights
@@ -101,8 +98,6 @@ function _parse_scene(scene_json)
    for _, entity in pairs(scene_json['entities']) do
       table.insert(entities, {
          uri = entity['uri'],
-         position = _to_point3(entity['position']),
-         --rotation = entity['rotation']),
       })
    end
    scene['entities'] = entities
@@ -131,11 +126,18 @@ function PortraitRendererService:set_scene(scene_json)
 end
 
 function PortraitRendererService:clear_scene()
+   for _, light in pairs(self._lights) do
+      h3dRemoveNode(light.node)
+   end
+   self._lights = {}
 
+   for _, entity_data in pairs(self._entities) do
+      radiant.entities.destroy_entity(entity_data.entity)
+   end
+   self._entities = {}
 end
 
-
-function PortraitRendererService:render_scene(session, response, scene_json)
+function PortraitRendererService:render_scene(scene_json, callback)
    self:clear_scene()
    self:set_scene(scene_json)
 
@@ -143,14 +145,22 @@ function PortraitRendererService:render_scene(session, response, scene_json)
    local render_trace
    render_trace = _radiant.client.trace_render_frame()
                                     :on_frame_finished('portrait render wait', function(now, interpolate)
+                                             -- We need to wait a few frames to make sure the model is spawned
+                                             -- and ready to draw.
                                              render_count = render_count + 1
-                                             if render_count > 10 then
+                                             if render_count > 5 then
                                                 render_trace:destroy()
                                                 _radiant.call('radiant:client:get_portrait'):done(function(resp)
-                                                      response:resolve(resp)
+                                                      callback(resp)
                                                    end)
                                              end
                                        end)
+end
+
+function PortraitRendererService:render_scene_command(session, response, scene_json)
+   self:render_scene(scene_json, function(resp)
+         response:resolve(resp)
+      end)
 end
 
 return PortraitRendererService
