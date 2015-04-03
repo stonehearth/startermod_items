@@ -229,6 +229,36 @@ function Array2D:visit_block(x, y, block_width, block_height, fn)
    end
 end
 
+-- iterates over the 4 non-diagonal neighbors
+function Array2D:each_neighbor(x, y, include_diagonal, fn)
+   assert(not self:is_boundary(x, y))
+   local width = self.width
+   local offset = self:get_offset(x, y)
+   local neighbors = {}
+
+   local count = 4
+   neighbors[1] = self[offset-1]
+   neighbors[2] = self[offset+1]
+   neighbors[3] = self[offset-width]
+   neighbors[4] = self[offset+width]
+
+   if include_diagonal then
+      count = 8
+      neighbors[5] = self[offset-1-width]
+      neighbors[6] = self[offset+1-width]
+      neighbors[7] = self[offset-1+width]
+      neighbors[8] = self[offset+1+width]
+   end
+
+   -- don't use #neighbors since the values could be nil and we'll skip the callback
+   for i = 1, count do
+      local stop = fn(neighbors[i])
+      if stop then
+         return
+      end
+   end
+end
+
 function Array2D:load(array)
    local size = self.width * self.height
 
