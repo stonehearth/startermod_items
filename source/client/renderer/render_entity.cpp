@@ -79,19 +79,19 @@ void RenderEntity::FinishConstruction()
    auto entity = GetEntity();
    if (entity) {
       components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
-                                       ->OnAdded([this](std::string const& name, std::shared_ptr<dm::Object> obj) {
+                                       ->OnAdded([this](core::StaticString name, std::shared_ptr<dm::Object> obj) {
                                           AddComponent(name, obj);
                                        })
-                                       ->OnRemoved([this](std::string const& name) {
+                                       ->OnRemoved([this](core::StaticString name) {
                                           RemoveComponent(name);
                                        })
                                        ->PushObjectState();
 
       lua_components_trace_ = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
-                                       ->OnAdded([this](std::string const& name, om::DataStorePtr obj) {
+                                       ->OnAdded([this](core::StaticString name, om::DataStorePtr obj) {
                                           AddLuaComponent(name, obj);
                                        })
-                                       ->OnRemoved([this](std::string const& name) {
+                                       ->OnRemoved([this](core::StaticString name) {
                                           RemoveComponent(name);
                                        })
                                        ->PushObjectState();
@@ -273,7 +273,7 @@ void RenderEntity::UpdateInvariantRenderers()
    }
 }
 
-std::shared_ptr<RenderComponent> RenderEntity::GetComponentRenderer(std::string const& name) const
+std::shared_ptr<RenderComponent> RenderEntity::GetComponentRenderer(core::StaticString name) const
 {
    auto i = components_.find(name);
    if (i != components_.end()) {
@@ -282,7 +282,7 @@ std::shared_ptr<RenderComponent> RenderEntity::GetComponentRenderer(std::string 
    return nullptr;
 }
 
-void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Object> value)
+void RenderEntity::AddComponent(core::StaticString name, std::shared_ptr<dm::Object> value)
 {
    ASSERT(value);
 
@@ -338,7 +338,7 @@ void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Obj
    }
 }
 
-void RenderEntity::AddLuaComponent(std::string const& name, om::DataStorePtr obj)
+void RenderEntity::AddLuaComponent(core::StaticString name, om::DataStorePtr obj)
 {
    auto i = components_.find(name);
    if (i != components_.end()) {
@@ -352,7 +352,7 @@ void RenderEntity::AddLuaComponent(std::string const& name, om::DataStorePtr obj
 }
 
 
-void RenderEntity::RemoveComponent(std::string const& name)
+void RenderEntity::RemoveComponent(core::StaticString name)
 {
    components_.erase(name);
 }
@@ -391,16 +391,15 @@ void RenderEntity::SetMaterialOverride(std::string const& material)
    SetRenderInfoDirtyBits(RenderRenderInfo::MATERIAL_DIRTY);
 }
 
-std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
+std::string RenderEntity::GetMaterialPathFromKind(std::string const& matKind, std::string const& deflt) const
 {
    std::string matPath;
    auto entity = entity_.lock();
 
    if (entity) {
-      auto lookupCallback = [&matKind, &matPath](JSONNode const& data) {
+      auto lookupCallback = [&matKind, &matPath, &deflt](JSONNode const& data) {
          json::Node n(data);
-         matPath = n.get("entity_data.stonehearth:render_materials." + matKind,
-            "materials/voxel.material.json");
+         matPath = n.get("entity_data.stonehearth:render_materials." + matKind, deflt);
       };
       try {
          res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), lookupCallback);

@@ -33,7 +33,6 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._fabricator_rcs = self._entity:add_component('region_collision_shape')
    self._blueprint = blueprint
    self._blueprint_dst = blueprint:get_component('destination')
-   self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')   
    self._blueprint_construction_data = blueprint:get_component('stonehearth:construction_data')
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
    self._mining_zones = {}
@@ -112,7 +111,6 @@ end
 function Fabricator:_initialize_existing_project(project)  
    self._project = project
    self._project_dst = self._project:get_component('destination')
-   self._project_ladder = self._project:get_component('vertical_pathing_region')
 
    self._fabricator_dst:get_reserved():modify(function(cursor)
       cursor:clear()
@@ -165,12 +163,6 @@ function Fabricator:_create_new_project()
    local building = build_util.get_building_for(blueprint)
    local state = self._blueprint_construction_data:get_savestate()
    self._project:add_component('stonehearth:construction_data', state)
-
-   -- we'll replicate the ladder into the project as it gets built up.
-   if self._blueprint_ladder then
-      self._project_ladder = self._project:add_component('vertical_pathing_region')
-      self._project_ladder:set_region(_radiant.sim.alloc_region3())
-   end   
 end
 
 function Fabricator:_on_can_start_changed()
@@ -238,18 +230,6 @@ function Fabricator:add_block(material_entity, location)
          cursor:add_point(pt)
       end)
    self:release_block(location)
-   
-   -- ladders are a special case used for scaffolding.  if there's one on the
-   -- blueprint at this location, go ahead and add it to the project as well.
-   if self._blueprint_ladder then
-      local rgn = self._blueprint_ladder:get_region():get()
-      local normal = self._blueprint_ladder:get_normal()
-      if rgn:contains(pt + normal) then
-         self._project_ladder:get_region():modify(function(cursor)
-            cursor:add_point(pt + normal)
-         end)
-      end   
-   end
    return true
 end
 
@@ -322,15 +302,6 @@ function Fabricator:remove_block(location)
    self._project_dst:get_region():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
-   if self._project_ladder then
-      local rgn = self._project_ladder:get_region()
-      local normal = self._blueprint_ladder:get_normal()
-      if rgn:get():contains(pt + normal) then
-         rgn:modify(function(cursor)
-            cursor:subtract_point(pt + normal)
-         end)
-      end   
-   end
    return true
 end
 

@@ -10,8 +10,8 @@ function WaterfallRenderer:initialize(render_entity, datastore)
    self._datastore = datastore
    self._entity = self._render_entity:get_entity()
    self._parent_node = self._render_entity:get_node()
-   self._edge_color = Color4(28, 191, 255, 128)
-   self._face_color = Color4(28, 191, 255, 128)
+   self._edge_color = Color4(28, 191, 255, 192)
+   self._face_color = Color4(28, 191, 255, 192)
 
    self._datastore_trace = self._datastore:trace_data('rendering waterfall')
       :on_changed(function()

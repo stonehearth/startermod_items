@@ -11,6 +11,7 @@ $.widget( "stonehearth.stonehearthMap", {
    },
 
    cellColors: {
+      water:       '#1cbfff',
       plains_1:    '#927e59',
       plains_2:    '#948a48',
       foothills_1: '#888a4a',
@@ -25,6 +26,7 @@ $.widget( "stonehearth.stonehearthMap", {
    },
 
    cellHeights: {
+      water:       0,
       plains_1:    1,
       plains_2:    2,
       foothills_1: 3,

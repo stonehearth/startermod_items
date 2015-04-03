@@ -116,7 +116,7 @@ function HydrologyService:_on_terrain_changed(delta_region)
                      -- this happens when a block was a container for multiple water bodies
                      local target_entity = self:get_water_body(point)
                      if not target_entity then
-                        target_entity = stonehearth.hydrology:create_water_body(point)
+                        target_entity = self:create_water_body(point)
                      end
                      channel = channel_manager:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
                   else
@@ -246,8 +246,43 @@ function HydrologyService:_get_container_region(entity)
 end
 
 function HydrologyService:create_water_body(location)
+   return self:_create_water_body_impl(location)
+end
+
+-- Optimzied path to create a water body that is already filled.
+-- Does not check that region is contained by a watertight boundary.
+-- Know what you are doing before calling this.
+function HydrologyService:create_water_body_with_region(region, height)
+   local bounds = region:get_bounds()
+   local bottom_slice = Cube3(bounds)
+   bottom_slice.max.y = bottom_slice.min.y + 1
+
+   -- location needs to be at the bottom of the region, preferably towards the center
+   local footprint = region:intersect_cube(bottom_slice)
+   local centroid = _radiant.csg.get_region_centroid(footprint):to_closest_int()
+   -- concave shapes may have centroids outside the region
+   local location = footprint:get_closest_point(centroid)
+
+   local boxed_region = _radiant.sim.alloc_region3()
+   boxed_region:modify(function(cursor)
+         cursor:add_region(region)
+         cursor:translate(-location)
+      end)
+
+   return self:_create_water_body_impl(location, boxed_region, height)
+end
+
+function HydrologyService:_create_water_body_impl(location, boxed_region, height)
+   if boxed_region == nil then
+      boxed_region = _radiant.sim.alloc_region3()
+      height = 0
+   end
+
    local entity = radiant.entities.create_entity('stonehearth:terrain:water')
    log:debug('Creating water body %s at %s', entity, location)
+
+   local water_component = entity:add_component('stonehearth:water')
+   water_component:set_region(boxed_region, height)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = entity

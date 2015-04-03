@@ -11,6 +11,7 @@ local OverviewMap = require 'services.server.world_generation.overview_map'
 local ScenarioIndex = require 'services.server.world_generation.scenario_index'
 local OreScenarioSelector = require 'services.server.world_generation.ore_scenario_selector'
 local SurfaceScenarioSelector = require 'services.server.world_generation.surface_scenario_selector'
+local DetachedRegionSet = require 'services.server.world_generation.detached_region_set'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point2 = _radiant.csg.Point2
@@ -98,6 +99,9 @@ function WorldGenerationService:set_blueprint(blueprint)
          full_feature_map = Array2D(full_elevation_map.width, full_elevation_map.height)
 
          -- determine which features will be placed in which cells
+         if radiant.util.get_config('enable_water', false) then
+            landscaper:mark_water_bodies(full_elevation_map, full_feature_map)
+         end
          landscaper:mark_trees(full_elevation_map, full_feature_map)
          landscaper:mark_berry_bushes(full_elevation_map, full_feature_map)
          landscaper:mark_flowers(full_elevation_map, full_feature_map)
@@ -189,7 +193,9 @@ function WorldGenerationService:generate_tiles(i, j, radius)
          local y_max = math.min(j+radius, blueprint.height)
          local num_tiles = (x_max-x_min+1) * (y_max-y_min+1)
          local n = 0
-         local progress = 0
+         local progress = 0.0
+         local metadata
+         local water_regions = DetachedRegionSet()
 
          self:_report_progress(progress)
 
@@ -197,21 +203,21 @@ function WorldGenerationService:generate_tiles(i, j, radius)
             for a=x_min, x_max do
                assert(blueprint:in_bounds(a, b))
 
-               self:_generate_tile_internal(a, b)
+               metadata = self:_generate_tile_internal(a, b)
+               water_regions:add_region(metadata.water_region)
 
                n = n + 1
                progress = n / num_tiles
-               self:_report_progress(progress)
+
+               if progress < 1 then
+                  self:_report_progress(progress)
+               end
             end
          end
-      end
-   )
-end
 
-function WorldGenerationService:generate_tile(i, j)
-   self:_run_async(
-      function()
-         self:_generate_tile_internal(i, j)
+         self:_add_water_bodies(water_regions:get_regions())
+
+         self:_report_progress(1.0)
       end
    )
 end
@@ -223,6 +229,7 @@ function WorldGenerationService:_generate_tile_internal(i, j)
    local micro_map, underground_micro_map
    local elevation_map, underground_elevation_map, feature_map, habitat_map
    local offset_x, offset_y
+   local metadata = {}
 
    tile_info = blueprint:get(i, j)
    assert(not tile_info.generated)
@@ -255,7 +262,17 @@ function WorldGenerationService:_generate_tile_internal(i, j)
    self:_yield()
 
    -- render heightmap to region3
-   self:_render_heightmap_to_region3(tile_map, underground_tile_map, feature_map, offset_x, offset_y)
+   local tile_region = self:_render_heightmap_to_region(tile_map, underground_tile_map)
+   self:_yield()
+
+   -- place lakes and rivers
+   -- do this before adding to terrain so we can get the ring tesselation
+   metadata.water_region = self:_place_water_bodies(tile_region, tile_map, feature_map)
+   -- translate the water_region to world coordinates
+   metadata.water_region:translate(Point3(offset_x, 0, offset_y))
+   self:_yield()
+
+   self:_add_region_to_terrain(tile_region, offset_x, offset_y)
    self:_yield()
 
    -- place flora
@@ -263,24 +280,50 @@ function WorldGenerationService:_generate_tile_internal(i, j)
    self:_yield()
 
    -- place scenarios
+   -- INCONSISTENCY: Ore veins extend across tiles that are already generated, but are truncated across tiles
+   -- that have yet to be generated.
    self:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
    self:_yield()
 
    tile_info.generated = true
+
+   return metadata
 end
 
-function WorldGenerationService:_render_heightmap_to_region3(tile_map, underground_tile_map, feature_map, offset_x, offset_y)
-   local renderer = self._height_map_renderer
-   local region3 = Region3()
+function WorldGenerationService:_render_heightmap_to_region(tile_map, underground_tile_map)
+   local tile_region = Region3()
 
    local seconds = Timer.measure(
       function()
-         renderer:render_height_map_to_region(region3, tile_map, underground_tile_map)
-         renderer:add_region_to_terrain(region3, offset_x, offset_y)
+         self._height_map_renderer:render_height_map_to_region(tile_region, tile_map, underground_tile_map)
       end
    )
 
-   log:info('Height map to region3 time: %.3fs', seconds)
+   log:info('Height map to region time: %.3fs', seconds)
+   return tile_region
+end
+
+function WorldGenerationService:_add_region_to_terrain(tile_region, offset_x, offset_y)
+   local seconds = Timer.measure(
+      function()
+         self._height_map_renderer:add_region_to_terrain(tile_region, offset_x, offset_y)
+      end
+   )
+
+   log:info('Add region to terrain time: %.3fs', seconds)
+end
+
+function WorldGenerationService:_place_water_bodies(tile_region, tile_map, feature_map)
+   local water_region
+   local seconds = Timer.measure(
+      function()
+         -- 0, 0 for the tile offset since we'll translate later
+         water_region = self._landscaper:place_water_bodies(tile_region, tile_map, feature_map, 0, 0)
+      end
+   )
+
+   log:info('Place water bodies time: %.3fs', seconds)
+   return water_region
 end
 
 function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, offset_y)
@@ -308,6 +351,32 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, und
    )
 
    log:info('Static scenario time: %.3fs', seconds)
+end
+
+function WorldGenerationService:_add_water_bodies(regions)
+   local water_height_delta = 1.5
+
+   local seconds = Timer.measure(
+      function()
+         for _, terrain_region in pairs(regions) do
+            terrain_region:force_optimize_by_merge('add water bodies')
+
+            local terrain_bounds = terrain_region:get_bounds()
+
+            -- Water level is 1.5 blocks below terrain.
+            -- Avoid filling to integer height so that we can avoid raise and lower layer spam.
+            local height = terrain_bounds:get_size().y - water_height_delta
+
+            local water_bounds = Cube3(terrain_bounds)
+            water_bounds.max.y = water_bounds.max.y - math.floor(water_height_delta)
+
+            local water_region = terrain_region:intersect_cube(water_bounds)
+            stonehearth.hydrology:create_water_body_with_region(water_region, height)
+         end
+      end
+   )
+
+   log:info('Add water bodies time: %.3fs', seconds)
 end
 
 function WorldGenerationService:_get_tile_seed(x, y)

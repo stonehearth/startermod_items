@@ -91,6 +91,13 @@ JSONNode Node::create_ancestors(std::string const& path, JSONNode& node) const
    return current_node;
 }
 
+template <> core::StaticString json::decode(Node const& node) {
+   if (node.type() == JSON_STRING) {
+      return node.get_internal_node().as_string();
+   }
+   throw InvalidJson(BUILD_STRING("expected string value for node"));
+}
+
 template <> std::string json::decode(Node const& node) {
    if (node.type() == JSON_STRING) {
       return node.get_internal_node().as_string();

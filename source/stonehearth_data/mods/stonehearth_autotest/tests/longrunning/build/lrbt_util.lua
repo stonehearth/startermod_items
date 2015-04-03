@@ -33,6 +33,10 @@ function lrbt_util.create_workers(autotest, x, y)
    create_worker(x, y + 2)
    create_worker(x + 2, y)
    create_worker(x + 2, y + 2)
+   create_worker(x + 4, y)
+   create_worker(x + 4, y + 2)
+   create_worker(x + 6, y)
+   create_worker(x + 6, y + 2)
 
    return workers
 end
@@ -40,22 +44,22 @@ end
 function lrbt_util.fund_construction(autotest, buildings)
    local x, y = 18, 20
    
-   lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:wood:oak_log')
+   lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:wood:oak_log')
    for _, building in pairs(buildings) do
       local cost = build_util.get_cost(building)
       for material, _ in pairs(cost.resources) do
          if material:find('stone') then
-            x = x - 2
-            lrbt_util.create_endless_entity(autotest, x, y, 2, 2, 'stonehearth:resources:stone:hunk_of_stone')
+            x = x - 3
+            lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:stone:hunk_of_stone')
          end
       end
       local stockpile_x = x
       for uri, _ in pairs(cost.items) do
-         x = x - 2
-         lrbt_util.create_endless_entity(autotest, x, y, 2, 2, uri)
+         x = x - 3
+         lrbt_util.create_endless_entity(autotest, x, y, 3, 3, uri)
       end
       local stockpile_w = stockpile_x - x
-      autotest.env:create_stockpile(x, y, { size = { x = stockpile_w, y = 2 }})
+      autotest.env:create_stockpile(x, y, { size = { x = stockpile_w, y = 3 }})
    end
    
    lrbt_util.create_workers(autotest, x - 1, y)

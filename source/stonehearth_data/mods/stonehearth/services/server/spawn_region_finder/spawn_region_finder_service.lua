@@ -6,7 +6,6 @@ local log = radiant.log.create_logger('spawn_svc')
 function SpawnRegionFinderService:initialize()
 end
 
-
 function _compute_and_check_points(point, entities, displacements)
    local results = { point }
    for i = 2,#entities do

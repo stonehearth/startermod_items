@@ -263,6 +263,8 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
 
    bytes_allocated_ = 0;
+
+   throw_on_lua_exceptions_ = core::Config::GetInstance().Get<bool>("lua.throw_on_lua_exceptions", false);
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
@@ -552,6 +554,9 @@ void ScriptHost::ReportLuaStackException(std::string const& error, std::string c
 {
    error_count++;
    ReportStackException("lua", error, traceback);
+   if (throw_on_lua_exceptions_) {
+      throw;
+   }
 }
 
 void ScriptHost::ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const

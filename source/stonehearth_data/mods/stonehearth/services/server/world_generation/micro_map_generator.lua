@@ -236,25 +236,13 @@ function MicroMapGenerator:_postprocess(micro_map)
    self:_add_plains_valleys(micro_map)
 end
 
-function MicroMapGenerator:_get_neighbors(micro_map, x, y)
-   local width = micro_map.width
-   local offset = micro_map:get_offset(x, y)
-   local neighbors = {
-      micro_map[offset-1],
-      micro_map[offset+1],
-      micro_map[offset-width],
-      micro_map[offset+width]
-   }
-   return neighbors
-end
-
 -- makes the terrain more rectangular and zelda-like
 -- removes macro blocks that jut into or out of the landscape contours
 -- jut is actually a noun that means this
 function MicroMapGenerator:_remove_juts(micro_map)
    -- don't iterate along map boundaries
    -- perform 1 pass over the map
-   -- could perform recursive passes on neighbors when a pointy is fixed
+   -- could perform recursive passes on neighbors when a jut is fixed
    for j=2, micro_map.height-1 do
       for i=2, micro_map.width-1 do
          self:_remove_jut(micro_map, i, j)
@@ -267,24 +255,24 @@ function MicroMapGenerator:_remove_jut(micro_map, x, y)
       return
    end
 
-   local neighbors = self:_get_neighbors(micro_map, x, y)
    local offset = micro_map:get_offset(x, y)
    local value = micro_map[offset]
    local high_count = 0
    local low_count = 0
+   local neighbors = {}
    local neighbor, new_value
 
-   for i=1, 4 do
-      neighbor = neighbors[i]
+   micro_map:each_neighbor(x, y, false, function(neighbor)
+         table.insert(neighbors, neighbor)
 
-      if value < neighbor then
-         -- number of neighboring voxels that are higher
-         high_count = high_count + 1
-      elseif value > neighbor then
-         -- number of neighboring voxels that are lower
-         low_count = low_count + 1
-      end
-   end
+         if value < neighbor then
+            -- number of neighboring voxels that are higher
+            high_count = high_count + 1
+         elseif value > neighbor then
+            -- number of neighboring voxels that are lower
+            low_count = low_count + 1
+         end
+      end)
 
    local index = nil
 
@@ -302,7 +290,7 @@ function MicroMapGenerator:_remove_jut(micro_map, x, y)
       return
    end
 
-   -- found a pointy, set it (up or down) to the closet neighboring elevation
+   -- found a jut, set it (up or down) to the closet neighboring elevation
    table.sort(neighbors)
    new_value = neighbors[index]
    micro_map[offset] = new_value

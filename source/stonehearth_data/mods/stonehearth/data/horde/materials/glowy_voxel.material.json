@@ -1,0 +1,19 @@
+{
+   "materials" : {
+      "VOXEL" : {
+         "name" : "materials/voxel.material.json",
+         "inputs" : [
+            {
+               "name" : "glossy",
+               "bind_to_material_input" : "glossy"
+            }
+         ]
+      }
+   },
+   "shaders" : {
+      "BLOOM" : {
+         "state" : "states/voxel/replace.state",
+         "shader" : "shaders/color_only.shader"
+      }
+   }
+}

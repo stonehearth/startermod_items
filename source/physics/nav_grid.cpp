@@ -1488,8 +1488,10 @@ csg::Region3f NavGrid::ProjectRegion(csg::Region3f const& region, ClippingMode m
                bool blocked;
                if (mode == CLIP_SOLID) {
                   blocked = IsBlocked(pt);
-               } else {
+               } else if (mode == CLIP_TERRAIN) {
                   blocked = IsTerrain(pt);
+               } else if (mode == CLIP_STANDABLE) {
+                  blocked = IsStandable(pt);
                }
                if (blocked) {
                   break;

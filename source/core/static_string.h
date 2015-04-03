@@ -2,6 +2,7 @@
 #define _RADIANT_CORE_STATIC_STRING_H
 
 #include <functional>
+#include <unordered_set>
 #include "radiant_macros.h"
 #include "namespace.h"
 
@@ -19,6 +20,7 @@ BEGIN_RADIANT_CORE_NAMESPACE
 class StaticString
 {
 public:
+   StaticString();
    StaticString(std::string const& s);
    StaticString(const char* s);
    operator const char*() const { return _value; }
@@ -29,6 +31,12 @@ public:
       }
    };
 
+   struct ToStaticString {
+      const char* operator()(const char* key);
+   };
+
+   static StaticString Empty;
+   
 private:
    const char*    _value;
 };

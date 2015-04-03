@@ -57,7 +57,6 @@
    },
    "entity_data" : {
       "stonehearth:render_materials" : {
-         "default" : "materials/voxel.material.json",
          "hud" : "materials/ghost_item.json"
       }
    }   
