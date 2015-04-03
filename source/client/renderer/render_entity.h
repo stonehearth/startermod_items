@@ -70,7 +70,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 
       Skeleton& GetSkeleton() { return skeleton_; }
 
-      std::shared_ptr<RenderComponent> GetComponentRenderer(std::string const& name) const;
+      std::shared_ptr<RenderComponent> GetComponentRenderer(core::StaticString name) const;
 
       void AddQueryFlag(int flag);
       void RemoveQueryFlag(int flag);
@@ -98,9 +98,9 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void MoveSceneNode(H3DNode node, const csg::Transform& transform, float scale = 1.0f);
       void UpdateNodeFlags();
       void UpdateInvariantRenderers();
-      void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
-      void AddLuaComponent(std::string const& key, om::DataStorePtr obj);
-      void RemoveComponent(std::string const& key);
+      void AddComponent(core::StaticString key, std::shared_ptr<dm::Object> value);
+      void AddLuaComponent(core::StaticString key, om::DataStorePtr obj);
+      void RemoveComponent(core::StaticString key);
       void ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> const& fn);
       void SetRenderInfoDirtyBits(int bits);
 
@@ -108,8 +108,8 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       static int                          totalObjectCount_;
 
 protected:
-      typedef std::unordered_map<std::string, std::shared_ptr<RenderComponent>> ComponentMap;
-      typedef std::unordered_map<std::string, luabind::object> LuaComponentMap;
+      typedef std::unordered_map<core::StaticString, std::shared_ptr<RenderComponent>, core::StaticString::Hash> ComponentMap;
+      typedef std::unordered_map<core::StaticString, luabind::object, core::StaticString::Hash> LuaComponentMap;
       std::string       node_name_;
       H3DNode           node_;
       H3DNode           offsetNode_;

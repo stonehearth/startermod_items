@@ -24,7 +24,7 @@ using namespace ::radiant::client;
 
 #define RI_LOG(level)      LOG(renderer.render_info, level)
 
-core::StaticString defaultMaterial("materials/voxel.material.json");
+const char* defaultMaterial = "materials/voxel.material.json";
 
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
