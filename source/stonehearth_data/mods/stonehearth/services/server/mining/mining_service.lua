@@ -54,7 +54,7 @@ function MiningService:dig_region(player_id, region)
    end
 
    -- only merge zones in the same xz slice
-   local inflated_region = self:_get_inflated_region(region)
+   local inflated_region = csg_lib.get_non_diagonal_xz_inflated_region(region)
 
    -- using town as a proxy for the eventual player object
    local town = stonehearth.town:get_town(player_id)
@@ -388,13 +388,6 @@ function MiningService:_get_interior_column(point)
    local cube = Cube3(point, point + Point3.one)
    cube.max.y = test_point.y
    return cube
-end
-
-function MiningService:_get_inflated_region(region)
-   -- inflate the x and z dimensions independently, because we don't want diagonal inflation
-   local inflated_region = region:inflated(Point3.unit_x)
-   inflated_region:add_region(region:inflated(Point3.unit_z))
-   return inflated_region
 end
 
 return MiningService

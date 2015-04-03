@@ -170,7 +170,7 @@
          <SwitchTarget target="Bloom" />
          <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
 
-         <DrawGeometry context="BLOOM" forceLodLevel="1" />
+         <DrawGeometry context="BLOOM" forceLodLevel="0"/>
 
          <SwitchTarget target="BloomTemp" />
          <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>

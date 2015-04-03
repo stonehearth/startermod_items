@@ -1,5 +1,7 @@
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 
 local crushinator_tests = {}
 
@@ -76,12 +78,32 @@ function new_farm(autotest, crop_x, crop_y, size_x, size_y, crop_type)
    autotest.ui:click_dom_element('.stonehearthMenu .close')
 end
 
+function new_mine(min_point, max_point)
+   local region = Region3(Cube3(min_point, max_point))
+
+   stonehearth.mining:dig_region('player_1', region)
+end
+
+function new_road(min_point, max_point)
+   local session = {
+      player_id = 'player_1',
+   }
+   local road
+   stonehearth.build:do_command('add_road', nil, function()
+      road = stonehearth.build:add_road(session, 'stonehearth:brick_paved_road', nil, Cube3(Point3(min_point.x, 9, min_point.y), Point3(max_point.x, 10, max_point.y)))
+   end)
+   return road
+end
+
 function crushinator_tests.maul(autotest)
    local CAMERA_POSITION = Point3(100, 100, 100)
    local CAMERA_LOOK_AT = Point3(0, 0, 0)
    autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
 
-   local stockpile = autotest.env:create_stockpile(-5, -20, { size = { x = 20, y = 20 }})
+   local stockpile = autotest.env:create_stockpile(-5, -20, { size = { x = 9, y = 9 }})
+   local stockpile = autotest.env:create_stockpile( 5, -20, { size = { x = 9, y = 9 }})
+   local stockpile = autotest.env:create_stockpile(-5, -10, { size = { x = 9, y = 9 }})
+   local stockpile = autotest.env:create_stockpile( 5, -10, { size = { x = 9, y = 9 }})
 
    local session = {
       player_id = 'player_1',
@@ -90,6 +112,7 @@ function crushinator_tests.maul(autotest)
    stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop_2')
    stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_silkweed_crop')
 
+   new_mine(Point3(-60, -16, 40), Point3(-40, 10, 60))
 
    autotest.env:create_entity_cluster(8, 0, 5, 5, 'stonehearth:resources:fiber:silkweed_bundle')
    autotest.env:create_entity_cluster(8, 8, 7, 7, 'stonehearth:resources:wood:oak_log')
@@ -99,8 +122,16 @@ function crushinator_tests.maul(autotest)
    new_template(autotest, 50, 50, "Tiny Cottage")
    new_template(autotest, 10, 50, "Shared Sleeping Quarters")
    new_template(autotest, 50, 20, "Dining Hall")
-   new_template(autotest, -40, 50, "Cottage for Two")
+
+   local road
+   road = new_road(Point2(0, 33), Point2(70, 35))
+   road = new_road(Point2(70, 5), Point2(73, 35))
+   road = new_road(Point2(39, 5), Point2(73, 8))
+   stonehearth.build:set_active(road:get_component('stonehearth:construction_data'):get_building_entity(), true)
+
    autotest:sleep(15 * 1000)
+   --new_template(autotest, -40, 50, "Cottage for Two")
+
 
    -- 25 workers
    for i = -4, 4, 2 do

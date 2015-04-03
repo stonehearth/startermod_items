@@ -2,7 +2,10 @@ local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local PerturbationGrid = require 'services.server.world_generation.perturbation_grid'
+local Timer = require 'services.server.world_generation.timer'
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 local log = radiant.log.create_logger('world_generation')
 
 local mod_name = 'stonehearth'
@@ -21,6 +24,9 @@ local tree_sizes = { small, medium, large, ancient }
 local berry_bush_name = mod_prefix .. 'berry_bush'
 local generic_vegetaion_name = "vegetation"
 
+local water_shallow = 'water_1'
+local water_deep = 'water_2'
+
 local Landscaper = class()
 
 -- TODO: refactor this class into smaller pieces
@@ -35,6 +41,11 @@ function Landscaper:__init(terrain_info, rng)
    self._density_map_buffer = nil
 
    self._perturbation_grid = PerturbationGrid(self._tile_width, self._tile_height, self._feature_size, self._rng)
+
+   self._water_table = {
+      water_1 = 5,
+      water_2 = 10
+   }
 
    self:_initialize_function_table()
 end
@@ -83,15 +94,17 @@ function Landscaper:is_forest_feature(feature_name)
    return false
 end
 
+function Landscaper:is_water_feature(feature_name)
+   local result = self._water_table[feature_name] ~= nil
+   return result
+end
+
 function Landscaper:place_flora(tile_map, feature_map, tile_offset_x, tile_offset_y)
    local place_item = function(uri, x, y)
       local entity = radiant.entities.create_entity(uri)
       self:_set_random_facing(entity)
 
-      -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
-      -- swtich from tile coordinates to world coordinates
-      local world_x = x-1+tile_offset_x
-      local world_z = y-1+tile_offset_y
+      local world_x, world_z = self:_to_world_coordinates(x, y, tile_offset_x, tile_offset_y)
       local location = radiant.terrain.get_point_on_terrain(Point3(world_x, 1, world_z))
 
       if radiant.terrain.is_standable(entity, location) then
@@ -102,6 +115,152 @@ function Landscaper:place_flora(tile_map, feature_map, tile_offset_x, tile_offse
    end
 
    self:place_features(tile_map, feature_map, place_item)
+end
+
+function Landscaper:mark_water_bodies(elevation_map, feature_map)
+   local rng = self._rng
+   local terrain_info = self._terrain_info
+   local noise_map, density_map = self:_get_filter_buffers(feature_map.width, feature_map.height)
+
+   local noise_fn = function(i, j)
+      local mean = 0
+      local std_dev = 100
+
+      local terrain_means = {
+         plains = -20,
+         foothills = -10,
+         mountains = -10
+      }
+
+      local boundary = noise_map:is_boundary(i, j) or not self:_is_flat(elevation_map, i, j, 1)
+
+      if boundary then
+         -- don't allow lakes near boundaries
+         mean = -200
+      else
+         local elevation = elevation_map:get(i, j)
+         local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
+         mean = terrain_means[terrain_type]
+      end
+
+      return rng:get_gaussian(mean, std_dev)
+   end
+
+   noise_map:fill(noise_fn)
+   FilterFns.filter_2D_0125(density_map, noise_map, noise_map.width, noise_map.height, 10)
+
+   local old_feature_map = Array2D(feature_map.width, feature_map.height)
+
+   for j=1, density_map.height do
+      for i=1, density_map.width do
+         local occupied = feature_map:get(i, j) ~= nil
+
+         if not occupied then
+            local value = density_map:get(i, j)
+
+            if value > 0 then
+               local old_value = feature_map:get(i, j)
+               old_feature_map:set(i, j, old_value)
+               feature_map:set(i, j, water_shallow)
+            end
+         end
+      end
+   end
+
+   self:_remove_juts(feature_map)
+   self:_remove_ponds(feature_map, old_feature_map)
+   self:_add_deep_water(feature_map)
+end
+
+function Landscaper:_remove_juts(feature_map)
+   -- just 1 pass currently
+   -- could record fixups and recursively recheck the 8 adjacents
+   for j=2, feature_map.height-1 do
+      for i=2, feature_map.width-1 do
+         if self:_is_peninsula(feature_map, i, j) then
+            feature_map:set(i, j, water_shallow)
+         end
+      end
+   end
+end
+
+function Landscaper:_remove_ponds(feature_map, old_feature_map)
+   for j=2, feature_map.height-1 do
+      for i=2, feature_map.width-1 do
+         local feature_name = feature_map:get(i, j)
+
+         if self:is_water_feature(feature_name) then
+            local has_water_neighbor = false
+
+            feature_map:each_neighbor(i, j, false, function(value)
+                  if self:is_water_feature(value) then
+                     has_water_neighbor = true
+                     return true -- stop iteration
+                  end
+               end)
+
+            if not has_water_neighbor then
+               local old_value = old_feature_map:get(i, j)
+               feature_map:set(i, j, old_value)
+            end
+         end
+      end
+   end
+end
+
+function Landscaper:_add_deep_water(feature_map)
+   for j=2, feature_map.height-1 do
+      for i=2, feature_map.width-1 do
+         local feature_name = feature_map:get(i, j)
+
+         if self:is_water_feature(feature_name) then
+            local surrounded_by_water = true
+
+            feature_map:each_neighbor(i, j, true, function(value)
+                  if not self:is_water_feature(value) then
+                     surrounded_by_water = false
+                     return true -- stop iteration
+                  end
+               end)
+
+            if surrounded_by_water then
+               feature_map:set(i, j, water_deep)
+            end
+         end
+      end
+   end
+end
+
+function Landscaper:place_water_bodies(tile_region, tile_map, feature_map, tile_offset_x, tile_offset_y)
+   local water_region = Region3()
+
+   feature_map:visit(function(value, i, j)
+         if not self:is_water_feature(value) then
+            return
+         end
+
+         local depth = self._water_table[value]
+         local x, y, w, h = self._perturbation_grid:get_cell_bounds(i, j)
+
+         -- use the center of the cell to get the elevation because the edges may have been detailed
+         local cx, cy = x + math.floor(w*0.5), y + math.floor(h*0.5)
+         local lake_top = tile_map:get(cx, cy)
+         local lake_bottom = lake_top - depth
+
+         local world_x, world_z = self:_to_world_coordinates(x, y, tile_offset_x, tile_offset_y)
+         local cube = Cube3(
+               Point3(world_x, lake_bottom, world_z),
+               Point3(world_x + w, lake_top, world_z + h)
+            )
+
+         tile_region:subtract_cube(cube)
+
+         water_region:add_cube(cube)
+      end)
+
+   water_region:optimize_by_merge('place water bodies')
+
+   return water_region
 end
 
 function Landscaper:mark_trees(elevation_map, feature_map)
@@ -567,6 +726,24 @@ function Landscaper:_is_flat(tile_map, x, y, distance)
    return is_flat
 end
 
+function Landscaper:_is_peninsula(feature_map, i, j)
+   local feature_name = feature_map:get(i, j)
+   if self:is_water_feature(feature_name) then
+      return false
+   end
+
+   local water_count = 0
+
+   feature_map:each_neighbor(i, j, false, function(value)
+         if self:is_water_feature(value) then
+            water_count = water_count + 1
+         end
+      end)
+
+   local result = water_count == 3
+   return result
+end
+
 function Landscaper:_set_random_facing(entity)
    entity:add_component('mob'):turn_to(90*self._rng:get_int(0, 3))
 end
@@ -580,6 +757,14 @@ function Landscaper:is_tree_name(feature_name)
    -- may need to be more robust later
    local index = feature_name:find('_tree', -5)
    return index ~= nil
+end
+
+-- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
+-- swtich from tile coordinates to world coordinates
+function Landscaper:_to_world_coordinates(x, y, tile_offset_x, tile_offset_y)
+   local world_x = x-1+tile_offset_x
+   local world_z = y-1+tile_offset_y
+   return world_x, world_z
 end
 
 return Landscaper
