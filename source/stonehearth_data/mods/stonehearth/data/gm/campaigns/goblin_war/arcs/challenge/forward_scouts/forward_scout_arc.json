@@ -9,6 +9,10 @@
       "create_scout_camp" : "file(encounters/create_scout_camp.json)", 
       "wait_for_wakeup" : "file(encounters/wait_for_wakeup.json)",
       "wakeup_wolves" : "file(encounters/wakeup_wolves.json)",
-      "create_wolf_riders" : "file(encounters/create_wolf_riders.json)"
+      "create_wolf_riders" : "file(encounters/create_wolf_riders.json)",
+      "wait_for_cage_destruction" : "file(encounters/wait_for_cage_kill.json)", 
+      "wolves_escaping_dialog" : "file(encounters/wolves_escaping_dialog.json)",
+      "refugees_hint" : "file(encounters/refugees_hint.json)",
+      "mysterious_orc_hint" : "file(encounters/mysterious_orc_hint.json)"
    }
 }

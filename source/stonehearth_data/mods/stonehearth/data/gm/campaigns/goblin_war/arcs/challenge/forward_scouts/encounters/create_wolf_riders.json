@@ -4,6 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "create_wolf_riders",
+   "out_edge" : "unique_defeat_hint", 
 
    "city_raid_info" : {
       "missions" : {
@@ -28,7 +29,8 @@
                   },
                   "attributes" : {
                      "raid_timeout_minutes" : 120,
-                     "raid_timeout_variance_minutes" : 30
+                     "raid_timeout_variance_minutes" : 30,
+                     "health" : 1000
                   }
                },
                "maurauder_b" : {
@@ -41,7 +43,8 @@
                   },
                   "attributes" : {
                      "raid_timeout_minutes" : 120,
-                     "raid_timeout_variance_minutes" : 30
+                     "raid_timeout_variance_minutes" : 30,
+                     "health" : 1000
                   }
                },
                "maurauder_c" : {
@@ -54,7 +57,9 @@
                   },
                   "attributes" : {
                      "raid_timeout_minutes" : 120,
-                     "raid_timeout_variance_minutes" : 30
+                     "raid_timeout_variance_minutes" : 30,
+                     "health" : 1000
+
                   }
                }
             }
