@@ -17,7 +17,7 @@ except:
 
 
 MAKE_TEMPLATES = [
-   '../../build/source/stonehearth/RelWithDebInfo/Stonehearth.exe',
+   '../../build/x64/source/stonehearth/RelWithDebInfo/Stonehearth.exe',
    '--game.main_mod=stonehearth_templates',
    '--renderer.screen_width=1920',
    '--renderer.screen_height=1080',
