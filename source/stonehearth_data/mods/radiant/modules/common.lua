@@ -72,6 +72,15 @@ function radiant.not_yet_implemented(fmt, ...)
    error(string.format('NOT YET IMPLEMENTED (%s:%d)', info.source, info.currentline) .. tail)
 end
 
+function radiant.bind_callback(controller, fn_name)
+   checks('controller', 'string')
+   return { controller, fn_name }
+end
+
+function radiant.fire_callback(bound_callback, ...)
+   local controller, fn_name = unpack(bound_callback)
+   return controller[fn_name](controller, ...)
+end
 
 function radiant.create_controller(...)
    local args = { ... }

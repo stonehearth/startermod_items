@@ -2,6 +2,9 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "render_info" : {
+         "material" : "materials/shiny.material.json"
+      },
       "item": {
          "material": "steel ingot",
          "category": "resources",
@@ -24,9 +27,6 @@
       }
    },
    "entity_data" : {
-      "stonehearth:render_materials" : {
-         "default" : "materials/shiny.material.json"
-      },
       "stonehearth:net_worth" : {
          "value_in_gold" : 25,
          "rarity" : "common",

@@ -24,10 +24,11 @@ using namespace ::radiant::client;
 
 #define RI_LOG(level)      LOG(renderer.render_info, level)
 
+core::StaticString defaultMaterial("materials/voxel.material.json");
+
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
    render_info_(render_info),
-   _voxelMeshNode(0),
    scale_(1.0),
    dirty_(-1)
 {
@@ -56,6 +57,7 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
 
       // if the material changes...
       material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      material_map_trace_ = render_info->TraceMaterialMaps("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
    }
 
    // Manually update immediately on construction.
@@ -154,28 +156,35 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
    // First, check to see if we have manually overridden the material for this entity.
    std::string material = entity_.GetMaterialOverride();
-
-   // If we haven't, see if the entity has a 'default' material path set up.
-   if (material.empty()) {
-      material = entity_.GetMaterialPathFromKind("default");
+   if (!material.empty()) {
+      ApplyMaterialToVoxelNodes(material.c_str());
+      return;
    }
 
-   // Still nothing?  Consult the material on the render_info.
-   if (material.empty() && render_info) {
+   // No override.  Try the material in the render_info
+   if (render_info) {
       material = render_info->GetMaterial();
+      if (!material.empty()) {
+         ApplyMaterialToVoxelNodes(material.c_str());
+         return;
+      }
    }
 
-   // render_info is null--I'm not even sure if that can happen, but just in case,
-   // here's the absolute default.
-   if (material.empty()) {
-      material = "materials/voxel.material.json";
-   }
-
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);
-   if (_voxelMeshNode != 0) {
-      h3dSetNodeParamI(_voxelMeshNode, H3DVoxelMeshNodeParams::MatResI, mat);
+   // Use the color map version.
+   for (VoxelNode n: _voxelMeshNodes) {
+      H3DRes mat = h3dAddResource(H3DResTypes::Material, n.material, 0);
+      h3dSetNodeParamI(n.node, H3DVoxelMeshNodeParams::MatResI, mat);
    }
 }
+
+void RenderRenderInfo::ApplyMaterialToVoxelNodes(core::StaticString material)
+{
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, material, 0);
+   for (VoxelNode n: _voxelMeshNodes) {
+      h3dSetNodeParamI(n.node, H3DVoxelMeshNodeParams::MatResI, mat);
+   }
+}
+
 
 void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 {
@@ -198,6 +207,7 @@ void RenderRenderInfo::RebuildModels(om::RenderInfoPtr render_info)
 
       FlatModelMap flattened;
       FlattenModelMap(all_models, flattened);
+      RebuildMaterialMap(render_info);
       RebuildModel(render_info, flattened);
    }
 }
@@ -230,6 +240,63 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    return bone;
 }
 
+void RenderRenderInfo::RebuildMaterialMap(om::RenderInfoPtr render_info)
+{
+   _materialMap.clear();
+
+   if (render_info) {
+      std::string colormap = render_info->GetColorMap();
+      if (colormap.empty()) {
+         return;
+      }
+      InverseColorMap icm = CreateInverseColorMap(colormap);
+      auto icmEnd = icm.end();
+
+      for (std::string const& materialMap : render_info->EachMaterialMap()) {
+         try {
+            res::ResourceManager2::GetInstance().LookupJson(materialMap, [this, &icm, icmEnd](JSONNode const& data) {
+               for (json::Node const& node : json::Node(data)) {
+                  std::string material = node.get<std::string>("render_material", "");
+                  if (!material.empty()) {
+                     csg::MaterialName materialName(material);
+
+                     // node.name() is the name of the material.  we can find all the colors mapped
+                     // to this material by looking them up in the inverse color map
+                     auto i = icm.find(node.name());
+                     if (i != icmEnd) {
+                        for (csg::Color3 const& color : i->second) {
+                           _materialMap.emplace(color, materialName);
+                        }
+                     }
+                  }
+               }
+            });
+         } catch (res::Exception const& e) {
+            RI_LOG(1) << "failed to process material map " << materialMap << " (" << e.what() << ")";
+         }
+      }
+   }
+}
+
+RenderRenderInfo::InverseColorMap RenderRenderInfo::CreateInverseColorMap(std::string const& colormap)
+{
+   InverseColorMap icm;
+
+   try {
+      res::ResourceManager2::GetInstance().LookupJson(colormap, [&icm](JSONNode const& cm) mutable {
+         for (json::Node const& i : json::Node(cm)) {
+            // i.name() is the color (e.g. #ff0000).
+            // *i is the material map entry (e.g. 'stonehearth:materials:wood_1')
+            csg::Color3 color = csg::Color3::FromString(i.name());
+            icm[i.as<csg::MaterialName>()].emplace_back(color);
+         }
+      });
+   } catch (res::Exception const& e) {
+      RI_LOG(1) << "failed to process colormap " << colormap << " (" << e.what() << ")";
+   }
+   return icm;
+}
+
 void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap const& nodes)
 {
    ASSERT(render_info);
@@ -247,70 +314,79 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
       std::string const& boneName = node.first;
       MatrixVector const& matrices = node.second;
 
+      // This 'primes' the skeleton, making sure every single bone node is allocated before mesh
+      // generation begins.  This is done to ensure identical mapping when the geometry is created.
+      int boneNum = skeleton.GetBoneNumber(boneName);
+
       for (voxel::QubicleMatrix const* matrix : matrices) {
          // this assumes matrices are loaded exactly once at a stable address.
          key.AddElement("matrix", matrix);
+         key.AddElement("matrix", boneNum);
       }
-      // This 'primes' the skeleton, making sure every single bone node is allocated before mesh
-      // generation begins.  This is done to ensure identical mapping when the geometry is created.
-      skeleton.GetBoneNumber(boneName);
    }
 
-   auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::Mesh &mesh, int lodLevel) {
+   auto generate_matrix = [this, useSkeletonOrigin, &skeleton, &nodes](csg::MaterialToMeshMap& meshes, int lodLevel) {
       for (auto const& node : nodes) {
          std::string const& boneName = node.first;
          MatrixVector const& matrices = node.second;
 
-         if (!matrices.empty()) {
-            csg::Region3 all_models;
-
-            // Since we're stacking them up and deriving the position of the generated mesh from the
-            // same skeleton, we try to make very sure that they all have the exact same matrix
-            // proportions.  If not, complain loudly.
-            csg::Point3 size = matrices.front()->GetSize();
-            csg::Point3 pos  = matrices.front()->GetPosition();
-
-            for (voxel::QubicleMatrix const* matrix : matrices) {
-               csg::Region3 model = voxel::QubicleBrush(matrix, lodLevel)
-                  .SetOffsetMode(voxel::QubicleBrush::File)
-                  .PaintOnce();
-
-               if (matrix->GetSize() != size) {
-                  RI_LOG(0) << "stacked matrix " << matrix->GetName() << " size " << matrix->GetSize() << " does not match first matrix size of " << size;
-               }
-               if (matrix->GetPosition() != pos) {
-                  RI_LOG(0) << "stacked matrix " << matrix->GetName() << " pos " << matrix->GetPosition() << " does not match first matrix pos of " << pos;
-               }
-               all_models += model;   
-            }
-
-            csg::Point3f origin = csg::Point3f::zero;
-            if (useSkeletonOrigin) {
-               origin = GetBoneOffset(boneName);
-            }
-
-            // Qubicle orders voxels in the file as if we were looking at the model from the
-            // front.  The matrix loader will reverse them when covering to a region, but this
-            // means the origin contained in the skeleton file is now reading from the wrong
-            // "side" of the model (like how your sides get reversed in a mirror).  Flip it over
-            // to the other side before meshing.
-            csg::Point3f meshOrigin = origin;
-            meshOrigin.x = (float)pos.x * 2 + size.x - origin.x;
-
-            RI_LOG(7) << "offsetting mesh " << all_models.GetBounds() << " origin:" << origin << " meshOrigin:" << meshOrigin << " matrixSize:" << size << " pos:" << pos;
-            csg::RegionToMesh(all_models, mesh, -meshOrigin, true, skeleton.GetBoneNumber(boneName));
+         if (matrices.empty()) {
+            return;
          }
+         csg::Region3 all_models;
+
+         // Since we're stacking them up and deriving the position of the generated mesh from the
+         // same skeleton, we try to make very sure that they all have the exact same matrix
+         // proportions.  If not, complain loudly.
+         csg::Point3 size = matrices.front()->GetSize();
+         csg::Point3 pos  = matrices.front()->GetPosition();
+
+         for (voxel::QubicleMatrix const* matrix : matrices) {
+            csg::Region3 model = voxel::QubicleBrush(matrix, lodLevel)
+               .SetOffsetMode(voxel::QubicleBrush::File)
+               .PaintOnce();
+
+            if (matrix->GetSize() != size) {
+               RI_LOG(0) << "stacked matrix " << matrix->GetName() << " size " << matrix->GetSize() << " does not match first matrix size of " << size;
+            }
+            if (matrix->GetPosition() != pos) {
+               RI_LOG(0) << "stacked matrix " << matrix->GetName() << " pos " << matrix->GetPosition() << " does not match first matrix pos of " << pos;
+            }
+            all_models += model;   
+         }
+
+         csg::Point3f origin = csg::Point3f::zero;
+         if (useSkeletonOrigin) {
+            origin = GetBoneOffset(boneName);
+         }
+
+         // Qubicle orders voxels in the file as if we were looking at the model from the
+         // front.  The matrix loader will reverse them when covering to a region, but this
+         // means the origin contained in the skeleton file is now reading from the wrong
+         // "side" of the model (like how your sides get reversed in a mirror).  Flip it over
+         // to the other side before meshing.
+         csg::Point3f meshOrigin = origin;
+         meshOrigin.x = (float)pos.x * 2 + size.x - meshOrigin.x;
+
+         RI_LOG(7) << "offsetting mesh " << all_models.GetBounds() << " origin:" << origin << " meshOrigin:" << meshOrigin << " matrixSize:" << size << " pos:" << pos;
+
+         csg::RegionToMeshMap(all_models, meshes, -meshOrigin, _materialMap, defaultMaterial, skeleton.GetBoneNumber(boneName));
       }
    };
    bool noInstancing = skeleton.GetNumBones() > 1;
 
+   Pipeline::MaterialToGeometryMapPtr geometry;
    Pipeline& pipeline = Pipeline::GetInstance();
-   H3DNode voxelModelNode = entity_.GetNode();
-   GeometryInfo geo;
+   pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing);
 
-   pipeline.CreateSharedGeometryFromGenerator(geo, key, generate_matrix, noInstancing);
-   _voxelMeshNode = pipeline.CreateVoxelMeshNode(voxelModelNode, geo);
-   h3dSetNodeParamF(voxelModelNode, H3DModel::ModelScaleF, 0, scale_);
+   H3DNode parent = entity_.GetNode();
+   for (auto const& entry : *geometry) {
+      csg::MaterialName material = entry.first;
+      GeometryInfo const& geo = entry.second;
+
+      H3DNode mesh = pipeline.CreateVoxelMeshNode(parent, geo);
+      _voxelMeshNodes.emplace_back(mesh, material);
+   }
 }
 
 void RenderRenderInfo::RebuildBoneOffsets(om::RenderInfoPtr render_info)
@@ -388,8 +464,8 @@ csg::Point3f RenderRenderInfo::GetBoneOffset(std::string const& boneName)
 
 void RenderRenderInfo::DestroyVoxelMeshNode()
 {
-   if (_voxelMeshNode) {
-      h3dRemoveNode(_voxelMeshNode);
-      _voxelMeshNode = 0;
+   for (VoxelNode& node : _voxelMeshNodes) {
+      h3dRemoveNode(node.node);
    }
+   _voxelMeshNodes.clear();  
 }

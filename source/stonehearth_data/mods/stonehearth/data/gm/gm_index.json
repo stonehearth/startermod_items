@@ -5,6 +5,9 @@
       },
       "combat" : {
          "goblin_war" : "file(campaigns/goblin_war/goblin_war_campaign.json)"
-      }
+      },
+      "ambient_threats" : {
+         "ambient_threats" : "file(campaigns/ambient_threats/ambient_threats_campaign.json)"
+      }     
    }
 }

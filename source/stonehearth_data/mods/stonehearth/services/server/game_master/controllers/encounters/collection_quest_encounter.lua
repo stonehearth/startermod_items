@@ -30,6 +30,7 @@ function CollectionQuest:start(ctx, info)
    assert(info.out_edges)   
    assert(info.duration)
    assert(info.nodes)
+   
    local nodes = info.nodes
    assert(nodes.shakedown)
    assert(nodes.collection_progress)

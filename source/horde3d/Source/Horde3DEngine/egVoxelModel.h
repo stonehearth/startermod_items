@@ -87,7 +87,8 @@ public:
       return _useCoarseCollisionBox;
    }
 
-   std::unordered_map<int, SceneNode*> const& getBoneLookup() const;
+   std::vector<SceneNode*> const& getBoneLookup() const;
+   std::vector<Matrix4f> const& getBoneRelTransLookup() const;
 
    float getModelScale() const { return _modelScale; }
 
@@ -105,8 +106,9 @@ protected:
 	float                         _lodDist1, _lodDist2, _lodDist3, _lodDist4;
    float                         _modelScale;
 	
-	VoxelMeshNode*                _meshNode;
-   std::unordered_map<int, SceneNode*> _boneLookup;
+	std::vector<VoxelMeshNode*>   _meshNodes;
+   std::vector<SceneNode*>       _boneLookup;
+   std::vector<Matrix4f>         _boneRelTransLookup;
    std::unordered_map<int, BoundingBox> _boneBounds;
 
 	bool                          _nodeListDirty;  // An animatable node has been attached to model

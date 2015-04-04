@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_time_of_day",
+
+   "in_edge"  : "city_raid",
+   "out_edge" : "nighttime_city_raid",
+
+   "wait_for_time_of_day_info" :  {
+      "time" : "22:00+1h30m"
+   }
+}

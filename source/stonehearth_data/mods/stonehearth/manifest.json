@@ -41,6 +41,10 @@
       "cursors:erase_fixture" : "file(data/cursors/erase_fixture.cur)",
       "cursors:mine" : "file(data/cursors/mine.cur)",
 
+      "color_map:trees" : "file(data/materials/color_maps/trees_color_map.json)",
+      "color_map:resources" : "file(data/materials/color_maps/resources_color_map.json)",
+      "color_map:undead" : "file(data/materials/color_maps/undead_color_map.json)",
+
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",
       "mixins:critter" : "file(mixins/critter)",
@@ -208,6 +212,8 @@
 
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/skeleton_female.json)",
+      "monsters:undead:zombie" : "file(entities/monsters/undead/zombie)",
+      "monsters:undead:zombie_female" : "file(entities/monsters/undead/zombie/zombie_female.json)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -276,7 +282,9 @@
       "crops:turnip_crop" : "file(entities/crops/turnip_crop)",
       "crops:pumpkin_crop" : "file(entities/crops/pumpkin_crop)",
       "crops:tester_crop" : "file(entities/crops/tester_crop)",
+      "crops:tester_crop_2" : "file(entities/crops/tester_crop_2)",
       "crops:silkweed_crop" : "file(entities/crops/silkweed_crop)", 
+      "crops:tester_silkweed_crop" : "file(entities/crops/tester_silkweed_crop)", 
 
       "plants:brightbell" : "file(entities/plants/brightbell_plant)",
       "plants:frostsnap" : "file(entities/plants/frostsnap_plant)",
@@ -1373,6 +1381,7 @@
       "game_master:node_list" : "file(services/server/game_master/controllers/node_list.lua)",
       "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
+      "game_master:util:choose_location_outside_town" : "file(services/server/game_master/controllers/util/choose_location_outside_town.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
       "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp_encounter.lua)",
       "game_master:encounters:collection_quest" : "file(services/server/game_master/controllers/encounters/collection_quest_encounter.lua)",
@@ -1384,6 +1393,7 @@
       "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
+      "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",

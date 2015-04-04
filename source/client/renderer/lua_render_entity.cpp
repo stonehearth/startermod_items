@@ -16,6 +16,11 @@ Renderer& RenderEntity_GetRenderer(RenderEntity const& e)
    return Renderer::GetInstance();
 }
 
+std::string RenderEntity_GetMaterialPathFromKind(RenderEntity const& e, std::string const& matKind)
+{
+   return e.GetMaterialPathFromKind(matKind, "materials/voxel.material.json");
+}
+
 om::EntityRef RenderEntity_GetEntity(RenderEntity const& e)
 {
    return e.GetEntity();
@@ -47,7 +52,7 @@ void LuaRenderEntity::RegisterType(lua_State* L)
                .def("add_query_flag",        &RenderEntity::AddQueryFlag)
                .def("remove_query_flag",     &RenderEntity::RemoveQueryFlag)
                .def("has_query_flag",        &RenderEntity::HasQueryFlag)
-               .def("get_material_path",     &RenderEntity::GetMaterialPathFromKind)
+               .def("get_material_path",     &RenderEntity_GetMaterialPathFromKind)
                .def("get_visibility_override_handle", &RenderEntity::GetVisibilityOverrideHandle)
             ,
             class_<RenderEntity::VisibilityHandle, std::shared_ptr<RenderEntity::VisibilityHandle>>("VisibilityHandle")

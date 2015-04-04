@@ -64,7 +64,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       H3DNode GetOriginNode() const;
 
       std::string const& GetName() const;
-      std::string const GetMaterialPathFromKind(std::string const& matKind) const;
+      std::string GetMaterialPathFromKind(std::string const& matKind, std::string const& deflt) const;
 
       static int GetTotalObjectCount();
 

@@ -7,6 +7,7 @@
 #include "csg/point.h"
 #include "csg/meshtools.h"
 #include "h3d_resource_types.h"
+#include "core/static_string.h"
 #include "resource_cache_key.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -39,7 +40,7 @@ public:
    RenderNodePtr SetCanQuery(bool canQuery);
    RenderNodePtr SetUserFlags(int flags);
    RenderNodePtr SetGeometry(SharedGeometry geo);
-   RenderNodePtr SetMaterial(std::string const& material);
+   RenderNodePtr SetMaterial(core::StaticString material);
    RenderNodePtr SetMaterial(SharedMaterial mat);
    RenderNodePtr SetOverrideMaterial(SharedMaterial mat);
    RenderNodePtr SetPosition(csg::Point3f const& pos);

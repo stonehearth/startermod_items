@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_net_worth",
+
+   "in_edge"  : "start",
+   "out_edge" : "create_camp",
+
+   "wait_for_net_worth_info" :  {
+      "threshold" : 3500,
+      "interval" : "1h"
+   }
+}
