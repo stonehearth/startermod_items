@@ -5,23 +5,29 @@
 using namespace ::radiant;
 using namespace ::radiant::core;
 
+StaticString StaticString::EmptyString("");
 
-StaticString::StaticString(StaticString const& s)
+StaticString::StaticString() :
+   _value(StaticString::EmptyString._value)
 {
-   _value = s._value;
 }
 
-StaticString::StaticString(std::string const& s)
+StaticString::StaticString(StaticString const& s) :
+   _value(s._value)
 {
-   _value = dm::SafeCStringTable()(s.c_str());
 }
 
-StaticString::StaticString(const char* s)
+StaticString::StaticString(std::string const& s) :
+   _value(dm::SafeCStringTable()(s.c_str()))
 {
-   _value = dm::SafeCStringTable()(s);
 }
 
-StaticString::StaticString(const char* s, size_t len)
+StaticString::StaticString(const char* s) :
+   _value(dm::SafeCStringTable()(s))
 {
-   _value = dm::SafeCStringTable()(s, len);
+}
+
+StaticString::StaticString(const char* s, size_t len) :
+   _value(dm::SafeCStringTable()(s, len))
+{   
 }
