@@ -5,12 +5,23 @@
 #include "namespace.h"
 #include "lib/lua/bind.h"
 #include "core/static_string.h"
+#include "lua_file_mapper_generated.h"
 
 BEGIN_RADIANT_RES_NAMESPACE
 
-class FileLineInfo {
+class LuaFileIndex {
 public:
-   std::vector<const char*> lineToFunction;
+   void Load(fbs::LuaFileIndex const*);
+   flatbuffers::Offset<fbs::LuaFileIndex> Save(flatbuffers::FlatBufferBuilder& fbb, core::StaticString filename) const;
+
+   void AddFunction(core::StaticString fn, int min, int max);
+   core::StaticString GetFunction(int line);
+   std::string const& GetHash() const;
+   void SetHash(std::string const& hash);
+
+private:
+   std::string                      _hash;
+   std::vector<core::StaticString>  _lines;
 };
 
 class LuaFileMapper {
@@ -20,13 +31,25 @@ public:
    core::StaticString MapFileLineToFunction(core::StaticString file, int line);
    void IndexFile(core::StaticString filename, std::string const& contents);
 
-public:
-   typedef std::unordered_map<core::StaticString, FileLineInfo, std::hash<const char*>> FileIndex;
+private:
+   void RequireFileMapper(lua::ScriptHost& sh);
+   void Load();
+   void Load(fbs::LuaFileMapper const* lfi);
+   void Save() const;
+   flatbuffers::Offset<fbs::LuaFileMapper> Save(flatbuffers::FlatBufferBuilder& fbb) const;
 
+   LuaFileIndex& Find(core::StaticString filename, std::string const& contents, bool& needsIndexing);
+   LuaFileIndex& Find(core::StaticString filename);
+
+private:
+   typedef std::unordered_map<core::StaticString, LuaFileIndex, core::StaticString::Hash> LuaFileMappingIndex;
+
+private:
    lua::ScriptHost&     _sh;
    luabind::object      _flameGraphObj;
    luabind::object      _mapSourceFunctionsFn;
-   FileIndex            _files;
+   LuaFileMappingIndex	_files;
+   core::StaticString   _fbsPath;
 };
 
 

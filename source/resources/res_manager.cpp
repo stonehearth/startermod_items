@@ -62,7 +62,7 @@ static void ParsePath(std::string const& path, std::string& modname, std::vector
    }
 }
 
-static std::string Checksum(std::string const& input)
+std::string Checksum(std::string const& input)
 {
    CryptoPP::SHA256 hash;
    byte buffer[2 * CryptoPP::SHA256::DIGESTSIZE]; // Output size of the buffer

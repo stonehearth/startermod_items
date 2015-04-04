@@ -70,3 +70,7 @@
 	path = modules/boost
 	url = https://github.com/radent/boost.git
 	branch = master
+[submodule "modules/flatbuffers"]
+	path = modules/flatbuffers
+	url = https://github.com/radent/flatbuffers.git
+	branch = master

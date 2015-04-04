@@ -10,6 +10,11 @@ class IModule;
 class LuaFileMapper;
 class ResourceCompiler;
 
+namespace fbs {
+   struct LuaFileIndex;
+   struct LuaFileMapper;
+};
+
 DECLARE_SHARED_POINTER_TYPES(LuaFileMapper);
 DECLARE_SHARED_POINTER_TYPES(ResourceCompiler)
 
