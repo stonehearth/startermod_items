@@ -44,7 +44,7 @@ public:
    }
 
    void updateHash() {
-      hash = (uint32)(geoResource) ^ (uint32)(matResource);
+      hash = (uint32)(((uintptr_t)(geoResource) ^ (uintptr_t)(matResource)) >> 2);
    }
 
    bool operator==(const InstanceKey& other) const {

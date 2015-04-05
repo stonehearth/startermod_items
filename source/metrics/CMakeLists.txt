@@ -5,7 +5,6 @@ add_library(metrics STATIC
 
 target_link_libraries(metrics
                       core
-                      metrics
                       resources
                       platform
                       )

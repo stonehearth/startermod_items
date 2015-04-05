@@ -7,6 +7,130 @@ using namespace ::radiant::om;
 
 #define TILED_REGION_LOG(level)    LOG(simulation.terrain, level)
 
+template <>
+class TiledRegionAdapter<Region3BoxedPtrMap>
+{
+public:     // types
+	typedef om::Region3Boxed RegionType;
+
+public:
+	TiledRegionAdapter(Region3BoxedPtrMap& container) : _container(container) { }
+	~TiledRegionAdapter() { }
+
+	void Clear() {
+		for (auto const& entry : _container) {
+			entry.second->Modify([](csg::Region3& cursor) {
+				cursor.Clear();
+			});
+		}
+	}
+
+	int NumTiles() const {
+		return _container.Size();
+	}
+
+	Region3BoxedPtr FindTile(csg::Point3 const& index) const {
+		Region3BoxedPtr tile;
+		auto i = _container.find(index);
+		if (i != _container.end()) {
+			tile = i->second;
+		}
+		return tile;
+	}
+
+	Region3BoxedPtr GetTile(csg::Point3 const& index) {
+		Region3BoxedPtr tile = FindTile(index);
+		if (!tile) {
+			tile = _container.GetStore().AllocObject<Region3Boxed>();
+			_container.Add(index, tile);
+		}
+		return tile;
+	}
+
+	void EachTile(std::function<void(csg::Point3 const&, csg::Region3 const&)> fn) const {
+		for (auto const& entry : _container) {
+			fn(entry.first, entry.second->Get());
+		}
+	}
+
+	void ModifyTile(csg::Point3 const& index, std::function<void(csg::Region3 &)> fn) {
+		GetTile(index)->Modify(fn);
+	}
+
+	csg::Region3 const& GetTileRegion(Region3BoxedPtr tile) const {
+		if (!tile) {
+			ASSERT(false);
+			throw core::Exception("null tile");
+		}
+		return tile->Get();
+	}
+
+private:
+	Region3BoxedPtrMap&   _container;
+};
+
+template <>
+class TiledRegionAdapter<Region3PtrMap>
+{
+public:     // types
+	typedef csg::Region3 RegionType;
+
+public:
+	TiledRegionAdapter(Region3PtrMap& container) : _container(container) { }
+	~TiledRegionAdapter() { }
+
+	void Clear() {
+		for (auto const& entry : _container) {
+			entry.second->Clear();
+		}
+	}
+
+	int NumTiles() const {
+		return static_cast<int>(_container.size());
+	}
+
+	csg::Region3Ptr FindTile(csg::Point3 const& index) const {
+		csg::Region3Ptr tile;
+		auto i = _container.find(index);
+		if (i != _container.end()) {
+			tile = i->second;
+		}
+		return tile;
+	}
+
+	csg::Region3Ptr GetTile(csg::Point3 const& index) {
+		csg::Region3Ptr tile = FindTile(index);
+		if (!tile) {
+			tile = std::make_shared<csg::Region3>();
+			_container[index] = tile;
+		}
+		return tile;
+	}
+
+	csg::Region3 const& GetTileRegion(csg::Region3Ptr tile) const {
+		if (!tile) {
+			ASSERT(false);
+			throw core::Exception("null tile");
+		}
+		return *tile;
+	}
+
+	void EachTile(std::function<void(csg::Point3 const&, csg::Region3 const&)> fn) const {
+		for (auto const& entry : _container) {
+			fn(entry.first, *entry.second);
+		}
+	}
+
+	void ModifyTile(csg::Point3 const& index, std::function<void(csg::Region3 &)> fn) {
+		csg::Region3Ptr tile = GetTile(index);
+		fn(*tile);
+	}
+
+private:
+	Region3PtrMap&  _container;
+};
+
+
 // TiledRegion is used for manipulating large regions that need to be spatially subdivided.
 template <typename ContainerType, typename TileType>
 TiledRegion<ContainerType, TileType>::TiledRegion(csg::Point3 const& tileSize, ContainerType& tiles) :
@@ -241,132 +365,6 @@ csg::Cube3f TiledRegion<ContainerType, TileType>::GetTileBounds(csg::Point3 cons
    return csg::Cube3f(min, max);
 }
 
-// Region3PtrMap 
-
-template <>
-class TiledRegionAdapter<Region3PtrMap>
-{
-public:     // types
-   typedef csg::Region3 RegionType;
-
-public:
-   TiledRegionAdapter(Region3PtrMap& container) : _container(container) { }
-   ~TiledRegionAdapter() { }
-
-   void Clear() {
-      for (auto const& entry : _container) {
-         entry.second->Clear();
-      }
-   }
-
-   int NumTiles() const {
-      return static_cast<int>(_container.size());
-   }
-
-   csg::Region3Ptr FindTile(csg::Point3 const& index) const {
-      csg::Region3Ptr tile;
-      auto i = _container.find(index);
-      if (i != _container.end()) {
-         tile = i->second;
-      }
-      return tile;
-   }
-
-   csg::Region3Ptr GetTile(csg::Point3 const& index) {
-      csg::Region3Ptr tile = FindTile(index);
-      if (!tile) {
-         tile = std::make_shared<csg::Region3>();
-         _container[index] = tile;
-      }
-      return tile;
-   }
-
-   csg::Region3 const& GetTileRegion(csg::Region3Ptr tile) const {
-      if (!tile) {
-         ASSERT(false);
-         throw core::Exception("null tile");
-      }
-      return *tile;
-   }
-
-   void EachTile(std::function<void(csg::Point3 const&, csg::Region3 const&)> fn) const {
-      for (auto const& entry : _container) {
-         fn(entry.first, *entry.second);
-      }
-   }
-
-   void ModifyTile(csg::Point3 const& index, std::function<void(csg::Region3 &)> fn) {
-      csg::Region3Ptr tile = GetTile(index);
-      fn(*tile);
-   }
-
-private:
-   Region3PtrMap&  _container;
-};
-
-// Region3BoxedPtrMap 
-
-template <>
-class TiledRegionAdapter<Region3BoxedPtrMap>
-{
-public:     // types
-   typedef om::Region3Boxed RegionType;
-
-public:
-   TiledRegionAdapter(Region3BoxedPtrMap& container) : _container(container) { }
-   ~TiledRegionAdapter() { }
-
-   void Clear() {
-      for (auto const& entry : _container) {
-         entry.second->Modify([](csg::Region3& cursor) {
-            cursor.Clear();
-         });
-      }
-   }
-
-   int NumTiles() const {
-      return _container.Size();
-   }
-
-   Region3BoxedPtr FindTile(csg::Point3 const& index) const {
-      Region3BoxedPtr tile;
-      auto i = _container.find(index);
-      if (i != _container.end()) {
-         tile = i->second;
-      }
-      return tile;
-   }
-
-   Region3BoxedPtr GetTile(csg::Point3 const& index) {
-      Region3BoxedPtr tile = FindTile(index);
-      if (!tile) {
-         tile = _container.GetStore().AllocObject<Region3Boxed>();
-         _container.Add(index, tile);
-      }
-      return tile;
-   }
-
-   void EachTile(std::function<void(csg::Point3 const&, csg::Region3 const&)> fn) const {
-      for (auto const& entry : _container) {
-         fn(entry.first, entry.second->Get());
-      }
-   }
-
-   void ModifyTile(csg::Point3 const& index, std::function<void(csg::Region3 &)> fn) {
-      GetTile(index)->Modify(fn);
-   }
-
-   csg::Region3 const& GetTileRegion(Region3BoxedPtr tile) const {
-      if (!tile) {
-         ASSERT(false);
-         throw core::Exception("null tile");
-      }
-      return tile->Get();
-   }
-
-private:
-   Region3BoxedPtrMap&   _container;
-};
 
 // instantiate the common template types
 template Region3Tiled;

@@ -30,7 +30,7 @@ template <typename Resource, void (*ReclaimFn)(Resource)>
 struct UniqueResourceDeleter
 {
    void operator()(void *res) const {
-      ReclaimFn(reinterpret_cast<Resource>(res));
+      ReclaimFn((Resource)(uintptr_t)res);
    }
 };
 
@@ -41,23 +41,23 @@ public:
    typedef std::unique_ptr<void, UniqueResourceDeleter<Resource, ReclaimFn>> SuperClass;
 
    UniqueResource() : std::unique_ptr<void, Deleter>() { }
-   UniqueResource(Resource res) : std::unique_ptr<void, Deleter>(reinterpret_cast<void*>(res)) { }
+   UniqueResource(Resource res) : std::unique_ptr<void, Deleter>(reinterpret_cast<void*>((uintptr_t)res)) { }
    UniqueResource(UniqueResource& other) { *this = other; }
 
    Resource get() {
-      return reinterpret_cast<Resource>(SuperClass::get());
+      return (Resource)(uintptr_t)SuperClass::get();
    }
 
    Resource const get() const {
-      return reinterpret_cast<Resource>(SuperClass::get());
+	   return (Resource)(uintptr_t)SuperClass::get();
    }
 
    Resource release() {
-      return reinterpret_cast<Resource>(SuperClass::release());
+	   return (Resource)(uintptr_t)SuperClass::release();
    }
 
    void reset(Resource const res) {
-      SuperClass::reset(reinterpret_cast<void*>(res));
+      SuperClass::reset(reinterpret_cast<void*>((uintptr_t)res));
    }
 
    UniqueResource const& operator=(UniqueResource& other) {      
