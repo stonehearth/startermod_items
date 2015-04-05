@@ -533,7 +533,7 @@ std::string ExtractAllocKey(lua_State *l) {
          fnName = stack.name;
       }
       fnName += BUILD_STRING("[set_prefix " << oldLine << "]");
-   } else if (srcName == "@radiant/lualibs/unclasslib.lua" && fnName == "build") {
+   } else if (srcName == "@radiant/lib/unclasslib.lua" && fnName == "build") {
       int oldLine = stack.currentline;
       // Reach back to find the listener.
       lua_getstack(l, 1, &stack);
@@ -1080,7 +1080,7 @@ void ScriptHost::CreateModules(om::ModListPtr mods, AllocDataStoreFn allocd)
          CreateModule(mods, mod_name, allocd);
       }
    }
-   Require("radiant.lualibs.strict");
+   Require("radiant.lib.strict");
    Trigger("radiant:required_loaded");
 }
 

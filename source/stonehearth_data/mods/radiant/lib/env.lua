@@ -130,5 +130,5 @@ function string:ends_with(suffix)
    return suffix == '' or self:sub(-suffix:len()) == suffix
 end
 
-require 'lualibs.unclasslib'
-require 'lualibs.checks'
+require 'lib.unclasslib'
+require 'lib.checks'
