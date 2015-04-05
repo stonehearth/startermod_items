@@ -1,0 +1,39 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+   "unique" : true,
+
+   "in_edge"  : "unique_defeat_hint",
+
+   "dialog_tree_info" : {
+      "start_node" : "msg1",
+      "nodes" : {
+         "msg1" : {
+            "bulletin" : {
+               "title" : "A message on an arrow appears on your banner",
+               "dialog_title" : "Mysterious Message",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : "Wild at heart, by bridle and bit tamed, against the cage your hopes dart, wolf and rider dechained.",
+               "choices" : {
+                  "stonehearth:next" : {
+                     "next_node" : "msg2"
+                  }
+               }               
+            }
+         },
+         "msg2" : {
+            "bulletin" : {
+               "title" : "Mysterious Note",
+               "dialog_title" : "Mysterious Message",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : "--the one who watches you",
+               "choices" : {
+                  "stonehearth:ok" : {
+                  }
+               }
+            }
+         }
+      }
+   }
+}

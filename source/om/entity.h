@@ -10,6 +10,7 @@
 #include "dm/boxed.h"
 #include "dm/map.h"
 #include "dm/store.h"
+#include "core/static_string.h"
 #include "core/object_counter.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
@@ -22,8 +23,8 @@ public:
 
    void Destroy();
  
-   typedef dm::Map<dm::CString, om::ComponentPtr, dm::SharedCStringHash, dm::CStringKeyTransform<0>> ComponentMap;
-   typedef dm::Map<dm::CString, om::DataStorePtr, dm::SharedCStringHash, dm::CStringKeyTransform<0>> LuaComponentMap;
+   typedef dm::Map<core::StaticString, om::ComponentPtr, core::StaticString::Hash, core::StaticString::ToStaticString> ComponentMap;
+   typedef dm::Map<core::StaticString, om::DataStorePtr, core::StaticString::Hash, core::StaticString::ToStaticString> LuaComponentMap;
 
    const ComponentMap& GetComponents() const { return components_; }
    const LuaComponentMap& GetLuaComponents() const { return lua_components_; }

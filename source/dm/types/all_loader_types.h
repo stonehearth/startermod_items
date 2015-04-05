@@ -11,6 +11,7 @@
 #include "dm/store.h"
 #include "dm/map_util.h"
 #include "lib/marshall/convert.h"
+#include "core/static_string.h"
 
 IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
 IMPLEMENT_DM_BASIC_TYPE(bool, Protocol::boolean);
@@ -44,6 +45,20 @@ IMPLEMENT_DM_EXTENSION(csg::Ray3, Protocol::ray3f)
 IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
 
 template<>
+struct ::radiant::dm::SaveImpl<core::StaticString>
+{
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const core::StaticString& value) {
+      msg->SetExtension(Protocol::string, (const char *)value);
+   }
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, core::StaticString& value) {
+      value = msg.GetExtension(Protocol::string);
+   }
+   static void GetDbgInfo(core::StaticString const& obj, DbgInfo &info) {
+      info.os << obj;
+   }
+};
+
+template<>
 struct ::radiant::dm::SaveImpl<const char *>
 {
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const char* value) {
@@ -51,9 +66,8 @@ struct ::radiant::dm::SaveImpl<const char *>
    }
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, const char *& value) {
       // The returned const char* will be valid only as long as the msg extension is around (and doesn't reallocate).
-      // Convert the temporary string into a durable string using the CStringKeyTransform function operator.
-      std::string tempString = msg.GetExtension(Protocol::string);
-      value = radiant::dm::CStringKeyTransform<0>()(tempString.c_str());
+      // Convert the temporary string into a durable string using the StaticString function operator.
+      value = core::StaticString(msg.GetExtension(Protocol::string));
    }
    static void GetDbgInfo(const char *obj, DbgInfo &info) {
       info.os << obj;

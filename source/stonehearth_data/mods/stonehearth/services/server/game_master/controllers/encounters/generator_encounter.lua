@@ -10,6 +10,7 @@ end
 
 function GeneratorEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.generator')
+   self._sv.num_spawns = 0
 
    if self._sv.timer then
       self._sv.timer:bind(function()
@@ -36,6 +37,10 @@ function GeneratorEncounter:start(ctx, info)
       end
    end
 
+   if info.max_spawns then
+      self._sv.max_spawns = info.max_spawns
+   end
+
    local delay = info.delay
    local override = radiant.util.get_config('game_master.encounters.generator.delay')
    if override ~= nil then
@@ -59,12 +64,23 @@ function GeneratorEncounter:stop()
    end
 end
 
+-- Spawn the encounter associated with this generator
+-- If no max-encounters have been specified, or if we aren't yet at max-encounters, 
+-- start a timer for the next encounter
+--If we are have a max_spawns AND we have that many spawns, trigger the next encounter
 function GeneratorEncounter:_spawn_encounter()
    local ctx = self._sv.ctx
-
+   
    self._log:info('spawning encounter at %s %s', stonehearth.calendar:format_time(), stonehearth.calendar:format_date())  
    ctx.arc:spawn_encounter(ctx, self._sv.spawn_edge)
-   self:_start_timer()
+   self._sv.num_spawns = self._sv.num_spawns + 1
+
+   if not self._sv.max_spawns or self._sv.num_spawns < self._sv.max_spawns then
+      self:_start_timer()
+   else
+      local ctx = self._sv.ctx
+      ctx.arc:trigger_next_encounter(ctx)
+   end 
 end
 
 function GeneratorEncounter:_start_timer()

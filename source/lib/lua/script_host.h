@@ -119,6 +119,7 @@ private:
 
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
+   bool                 throw_on_lua_exceptions_;
    ReportErrorCb        error_cb_;
    int                  bytes_allocated_;
 

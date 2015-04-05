@@ -2,6 +2,7 @@
 #define _RADIANT_CORE_STATIC_STRING_H
 
 #include <functional>
+#include <unordered_set>
 #include "radiant_macros.h"
 #include "namespace.h"
 
@@ -20,13 +21,10 @@ class StaticString
 {
 public:
    StaticString();
-   StaticString(StaticString const& );
    StaticString(std::string const& s);
    StaticString(const char* s);
    StaticString(const char* s, size_t len);
    operator const char*() const { return _value; }
-
-   static StaticString EmptyString;
 
    struct Hash {
       inline std::size_t operator()(StaticString const& s) {
@@ -34,6 +32,12 @@ public:
       }
    };
 
+   struct ToStaticString {
+      const char* operator()(const char* key, size_t n = std::string::npos);
+   };
+
+   static StaticString Empty;
+   
 private:
    const char*    _value;
 };

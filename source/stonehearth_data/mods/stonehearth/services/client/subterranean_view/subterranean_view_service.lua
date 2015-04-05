@@ -45,6 +45,7 @@ function SubterraneanViewService:initialize()
    self._interior_region_traces = {}
    self._interior_region_tiles = {}
    self._dirty_xray_tiles = {}
+   self._visible_volume_dirty = true
 
    self._input_capture = stonehearth.input:capture_input()
    self._input_capture:on_keyboard_event(function(e)
@@ -59,8 +60,110 @@ function SubterraneanViewService:initialize()
       end)
 end
 
-function SubterraneanViewService:clip_enabled()
+function SubterraneanViewService:get_clip_enabled()
    return self._sv.clip_enabled
+end
+
+function SubterraneanViewService:set_clip_enabled(enabled)
+   if enabled ~= self._sv.clip_enabled then
+      self._sv.clip_enabled = enabled
+      self.__saved_variables:mark_changed()
+      self:_update_clip_height()
+      self:_update_all_entities_visibility()
+      self._visible_volume_dirty = true
+   end
+end
+
+function SubterraneanViewService:set_clip_height(height)
+   if height ~= self._sv.clip_height then
+      self._sv.clip_height = height
+      self.__saved_variables:mark_changed()
+      self:_update_clip_height()
+      self:_update_all_entities_visibility()
+      self._visible_volume_dirty = true
+   end
+end
+
+function SubterraneanViewService:move_clip_height_up()
+   self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_down()
+   self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:initialize_clip_height(height)
+   self:set_clip_height(height)
+   self._sv.clip_height_initialized = true
+end
+
+function SubterraneanViewService:clip_height_initialized()
+   return self._sv.clip_height_initialized
+end
+
+function SubterraneanViewService:set_clip_enabled_command(sessions, response, enabled)
+   self:set_clip_enabled(enabled)
+   return {}
+end
+
+function SubterraneanViewService:move_clip_height_up_command(session, response)
+   self:move_clip_height_up()
+   return {}
+end
+
+function SubterraneanViewService:move_clip_height_down_command(session, response)
+   self:move_clip_height_down()
+   return {}
+end
+
+function SubterraneanViewService:toggle_xray_mode(mode)
+   if self._sv.xray_mode == mode then
+      self._sv.xray_mode = nil
+   else
+      self._sv.xray_mode = mode
+      self:_mark_all_dirty()
+   end
+   self.__saved_variables:mark_changed()
+
+   self:_update_xray_mode()
+   self:_update_all_entities_visibility()
+   self:_update_dirty_tiles()
+   self._visible_volume_dirty = true
+end
+
+function SubterraneanViewService:toggle_xray_mode_command(sessions, response, mode)
+   self:toggle_xray_mode(mode)
+   return {}
+end
+
+function SubterraneanViewService:intersect_region_with_visible_volume(region)
+   local clipped_region
+
+   if self._sv.clip_enabled then
+      local bounds = region:get_bounds()
+
+      if bounds.min.y >= self._sv.clip_height then
+         -- everything clipped
+         return Region3()
+      end
+
+      if bounds.max.y <= self._sv.clip_height then
+         -- nothing clipped
+         clipped_region = Region3(region)
+      else
+         -- retain the region below clip_height
+         bounds.max.y = self._sv.clip_height
+         clipped_region = region:intersect_cube(bounds)
+      end
+   else
+      clipped_region = Region3(region)
+   end
+
+   if self._sv.xray_mode then
+      clipped_region = self._xray_tiles:intersect_region(clipped_region)
+   end
+
+   return clipped_region
 end
 
 -- Remember that the terrain tiles most likely have not been added at this point
@@ -91,6 +194,7 @@ function SubterraneanViewService:_create_render_frame_trace()
    self._render_frame_trace = _radiant.client.trace_render_frame()
       :on_frame_start('subterranean view', function()
             self:_update_dirty_tiles()
+            self:_notify_if_visible_volume_changed()
          end)
 end
 
@@ -236,6 +340,12 @@ function SubterraneanViewService:_update_dirty_tiles()
       return
    end
 
+   if not next(self._dirty_xray_tiles) then
+      return
+   end
+
+   self._visible_volume_dirty = true
+
    for _, index in pairs(self._dirty_xray_tiles) do
       self._xray_tiles:clear_tile(index)
    end
@@ -376,6 +486,11 @@ function SubterraneanViewService:_update_visiblity(entity, visible)
       return
    end
 
+   local custom_clip = radiant.entities.get_entity_data(entity, 'stonehearth:hud:custom_clip', true)
+   if custom_clip == true then
+      return
+   end
+
    local id = entity:get_id()
 
    if visible == nil then
@@ -446,79 +561,10 @@ function SubterraneanViewService:_get_visibility_handle(entity)
    return visibility_handle
 end
 
-function SubterraneanViewService:toggle_xray_mode(mode)
-   if self._sv.xray_mode == mode then
-      self._sv.xray_mode = nil
-   else
-      self._sv.xray_mode = mode
-      self:_mark_all_dirty()
-   end
-   self.__saved_variables:mark_changed()
-
-   self:_update_xray_mode()
-   self:_update_all_entities_visibility()
-   self:_update_dirty_tiles()
-end
-
 function SubterraneanViewService:_update_xray_mode()
    -- explicitly check against nil to coerce to boolean type
    local enabled = self._sv.xray_mode ~= nil and self._sv.xray_mode ~= ''
    _radiant.renderer.enable_xray_mode(enabled)
-end
-
-function SubterraneanViewService:set_clip_enabled(enabled)
-   if enabled ~= self._sv.clip_enabled then
-      self._sv.clip_enabled = enabled
-      self.__saved_variables:mark_changed()
-      self:_update_clip_height()
-      self:_update_all_entities_visibility()
-   end
-end
-
-function SubterraneanViewService:set_clip_height(height)
-   if height ~= self._sv.clip_height then
-      self._sv.clip_height = height
-      self.__saved_variables:mark_changed()
-      self:_update_clip_height()
-      self:_update_all_entities_visibility()
-   end
-end
-
-function SubterraneanViewService:clip_height_initialized()
-   return self._sv.clip_height_initialized
-end
-
-function SubterraneanViewService:initialize_clip_height(height)
-   self:set_clip_height(height)
-   self._sv.clip_height_initialized = true
-end
-
-function SubterraneanViewService:move_clip_height_up()
-   self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_down()
-   self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:toggle_xray_mode_command(sessions, response, mode)
-   self:toggle_xray_mode(mode)
-   return {}
-end
-
-function SubterraneanViewService:set_clip_enabled_command(sessions, response, enabled)
-   self:set_clip_enabled(enabled)
-   return {}
-end
-
-function SubterraneanViewService:move_clip_height_up_command(session, response)
-   self:move_clip_height_up()
-   return {}
-end
-
-function SubterraneanViewService:move_clip_height_down_command(session, response)
-   self:move_clip_height_down()
-   return {}
 end
 
 function SubterraneanViewService:_update_clip_height()
@@ -563,6 +609,13 @@ function SubterraneanViewService:_each_contained_entity(entity_container, cb)
 
    for id, entity in entity_container:each_attached_item() do
       cb(entity)
+   end
+end
+
+function SubterraneanViewService:_notify_if_visible_volume_changed()
+   if self._visible_volume_dirty then
+      radiant.events.trigger_async(self, 'stonehearth:visible_volume_changed')
+      self._visible_volume_dirty = false
    end
 end
 

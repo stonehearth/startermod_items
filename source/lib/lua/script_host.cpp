@@ -402,25 +402,13 @@ ScriptHost::ScriptHost(std::string const& site) :
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
 
    bytes_allocated_ = 0;
-   filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("filter_lua_exceptions", true);
-   enable_profile_memory_ = core::Config::GetInstance().Get<bool>("enable_lua_memory_profiler", false);
+
+   throw_on_lua_exceptions_ = core::Config::GetInstance().Get<bool>("lua.throw_on_lua_exceptions", false);
+   filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
+   enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
+   enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
    _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua_profiler_instruction_sampling_rate", 50);
-
-   // f - Profile with precision down to the function level.
-   // l - Profile with precision down to the line level.
-   // i<number> — Sampling interval in milliseconds (default 10ms).
-   cpu_profile_mode_ = core::Config::GetInstance().Get<std::string>("lua_cpu_profile_mode", "f");
-
-   // p - Preserve the full path for module names. Otherwise only the file name is used.
-   // f - Dump the function name if it can be derived. Otherwise use module:line.
-   // F - Ditto, but dump module:name.
-   // l - Dump module:line.
-   // Z - Zap the following characters for the last dumped frame.
-   // All other characters are added verbatim to the output string.
-   cpu_profile_stack_fmt_ = core::Config::GetInstance().Get<std::string>("lua_cpu_profiler_stack_fmt", "pf\n");
-   cpu_profile_stack_depth_ = core::Config::GetInstance().Get<int>("lua_cpu_profiler_stack_depth", -100);
-
-   std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua_gc_setting", "auto");
+   std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
 
    if (gc_setting == "auto") {
       _gc_setting = 0;
@@ -710,6 +698,9 @@ void ScriptHost::ReportLuaStackException(std::string const& error, std::string c
 {
    error_count++;
    ReportStackException("lua", error, traceback);
+   if (throw_on_lua_exceptions_) {
+      throw;
+   }
 }
 
 void ScriptHost::ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const

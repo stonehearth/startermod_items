@@ -9,9 +9,11 @@ using namespace ::radiant::client;
 
 #define LC_LOG(level)      LOG(renderer.lua_component, level)
 
-RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& name, om::DataStorePtr datastore) :
+RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, core::StaticString componentName, om::DataStorePtr datastore) :
    entity_(entity)
 {
+   std::string name(componentName);
+
    size_t offset = name.find(':');
    if (offset != std::string::npos) {
       std::string modname = name.substr(0, offset);

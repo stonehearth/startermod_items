@@ -11,7 +11,7 @@ class Renderer;
 
 class RenderLuaComponent : public RenderComponent {
 public:
-   RenderLuaComponent(RenderEntity& entity, std::string const& name, om::DataStorePtr obj);
+   RenderLuaComponent(RenderEntity& entity, core::StaticString name, om::DataStorePtr obj);
    ~RenderLuaComponent();
 
 private:

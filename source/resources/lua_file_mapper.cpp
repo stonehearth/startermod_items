@@ -137,14 +137,14 @@ flatbuffers::Offset<fbs::LuaFileIndex> LuaFileIndex::Save(flatbuffers::FlatBuffe
    for (i = 0; i < c; i++) {
       core::StaticString fn = _lines[i];
       if (startFn != fn) {
-         if (startFn != core::StaticString::EmptyString) {
+         if (startFn != core::StaticString::Empty) {
             functions.emplace_back(fbs::CreateLuaFunctionRange(fbb, fbb.CreateString(startFn), startLine, i - 1));
          }
          startFn = fn;
          startLine = i;
       }
    }
-   if (startFn != core::StaticString::EmptyString) {
+   if (startFn != core::StaticString::Empty) {
       functions.emplace_back(fbs::CreateLuaFunctionRange(fbb, fbb.CreateString(startFn), startLine, i - 1));
    }
 
