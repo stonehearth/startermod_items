@@ -529,7 +529,7 @@ void Simulation::UpdateGameState()
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      luabind::call_function<int>(radiant_["update"]);      
+      radiant_["update"]();
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);

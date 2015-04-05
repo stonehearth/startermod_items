@@ -27,7 +27,7 @@ public:
    operator const char*() const { return _value; }
 
    struct Hash {
-      inline std::size_t operator()(StaticString const& s) {
+      inline std::size_t operator()(StaticString const& s) const {
          return std::hash<const char *>()(static_cast<const char*>(s));
       }
    };

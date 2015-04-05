@@ -191,7 +191,7 @@ if [ ! -z $STAGE_BIN ]; then
 
    echo Copying sfml 
    SFML_ROOT=$STONEHEARTH_ROOT/modules/sfml
-   SFML_BUILD_ROOT=$SFML_ROOT/build/$BUILD_ARCH/lib/$BUILD_TYPE
+   SFML_BUILD_ROOT=$SFML_ROOT/build/$BUILD_ARCH/lib/$MODULE_BUILD_TYPE
    SFML_EXTLIB_ROOT=$SFML_ROOT/package/SFML-2.1/extlibs/bin/$BUILD_ARCH
    if [ $BUILD_TYPE == Debug ]; then
       SUFFIX=-d

@@ -180,7 +180,7 @@ Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
                   if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
                      E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
                   } else {
-                     call_function<void>(fn, EntityRef(entity));
+                     fn(EntityRef(entity));
                   }
                } catch (std::exception &e) {
                   E_LOG(3) << "failed to run init script for " << uri << ": " << e.what();

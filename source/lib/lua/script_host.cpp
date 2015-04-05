@@ -171,7 +171,7 @@ JSONNode ScriptHost::LuaToJsonImpl(luabind::object current_obj)
             return result;
          }
       } else if (t == LUA_TUSERDATA) {
-         class_info ci = call_function<class_info>(globals(L_)["class_info"], obj);
+         class_info ci = object_cast<class_info>((globals(L_)["class_info"])(obj));
          LUA_LOG(1) << "lua userdata object of type " << ci.name << " does not implement __tojson";
          return JSONNode("", "\"userdata\"");
       } else if (t == LUA_TSTRING) {
@@ -962,7 +962,7 @@ luabind::object ScriptHost::GetJsonRepresentation(luabind::object obj) const
          // If there's a __tojson function, call it.
          luabind::object __tojson = obj["__tojson"];
          if (__tojson && __tojson.is_valid()) {
-            luabind::object json = luabind::call_function<luabind::object>(__tojson, obj);
+            luabind::object json = __tojson(obj);
             if (json && json.is_valid()) {
                obj = json;
             }

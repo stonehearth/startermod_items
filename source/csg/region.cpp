@@ -78,13 +78,6 @@ Region<S, C>::Region(Cube const& cube) :
 }
 
 template <class S, int C>
-Region<S, C>::Region(Region const&& r)
-{
-   cubes_ = std::move(r.cubes_);
-   _churn = r._churn;
-}
-
-template <class S, int C>
 S Region<S, C>::GetArea() const
 {
    S area = 0;

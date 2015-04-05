@@ -79,6 +79,18 @@ bool csg::Cube3Intersects(const Cube3f& rgn, const Ray3& ray, double& distance)
    return Cube3IntersectsImpl(rgn, ray, distance);
 }
 
+
+template <class S, int C>
+Cube<S, C> Cube<S, C>::Construct(Point min_value, Point max_value, int tag)
+{
+   for (int i = 0; i < C; i++) {
+      if (min_value[i] > max_value[i]) {
+         std::swap(min_value[i], max_value[i]);
+      }
+   }
+   return Cube(min_value, max_value, tag);
+}
+
 template <class S, int C>
 void Cube<S, C>::SetCombineStrategy(CombineStrategy s)
 {
@@ -830,6 +842,7 @@ Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
 }
 
 #define MAKE_CUBE(Cls) \
+   template Cls Cls::Construct(Cls::Point min_value, Cls::Point max_value, int tag); \
    template Cls::Cube(); \
    template Cls::Cube(const Cls::Point&, int); \
    template Cls::Cube(const Cls::Point&, const Cls::Point&, int); \

@@ -95,19 +95,13 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
       ;
 }
 
-template <typename S, int C>
-Cube<S, C> RotateCubeFn(Cube<S, C> const &obj, int degrees)
-{
-	return csg::Rotated(obj, degrees);
-}
-
 scope LuaCube::RegisterLuaTypes(lua_State* L)
 {
    return
       def("construct_cube3", &Cube3f::Construct),
       Register<Cube3f>(L, "Cube3")
          .def("each_point",   &EachPointCube3f)
-         .def("rotated",      &RotateCubeFn<float, 3>)
+         .def("rotated",      (Cube3f(*)(Cube3f const&, int))&csg::Rotated)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),
       Register<Cube3>(L, "Cube3i")
          .def("to_float",     &Cube_ToFloat<int, 3>),

@@ -906,7 +906,7 @@ void Client::mainloop()
    if (!loading_) {
       perfmon::SwitchToCounter("update lua");
       try {
-         luabind::call_function<int>(radiant_["update"]);
+         radiant_["update"]();
       } catch (std::exception const& e) {
          CLIENT_LOG(3) << "error in client update: " << e.what();
          GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);

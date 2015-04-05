@@ -7,6 +7,12 @@ using namespace ::radiant::om;
 
 #define TILED_REGION_LOG(level)    LOG(simulation.terrain, level)
 
+template <typename ContainerType, typename TileType>
+std::ostream& ::operator<<(std::ostream& out, TiledRegion<ContainerType, TileType> const& t) {
+   out << t.NumTiles() << " tiles";
+   return out;
+}
+
 template <>
 class TiledRegionAdapter<Region3BoxedPtrMap>
 {
@@ -369,3 +375,6 @@ csg::Cube3f TiledRegion<ContainerType, TileType>::GetTileBounds(csg::Point3 cons
 // instantiate the common template types
 template Region3Tiled;
 template Region3BoxedTiled;
+
+template std::ostream& ::operator<<(std::ostream& out, Region3Tiled const& t);
+template std::ostream& ::operator<<(std::ostream& out, Region3BoxedTiled const& t);

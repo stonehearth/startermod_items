@@ -55,7 +55,7 @@ std::size_t Dbj2Hash(const char *str)
  */
 
 struct StringHash {
-   std::size_t operator()(std::string const& s) {
+   std::size_t operator()(std::string const& s) const {
       return Dbj2Hash(s.c_str());
    }
 };
