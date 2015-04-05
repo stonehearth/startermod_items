@@ -232,9 +232,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local worker5 = place_citizen_embark(camp_x+3, camp_z+3)
    local worker6 = place_citizen_embark(camp_x-3, camp_z+0)
    local worker7 = place_citizen_embark(camp_x+3, camp_z+0)
-   for i=1,6 do
-      place_citizen_embark(camp_x+3, camp_z+0)
-   end
    
    self:place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
 

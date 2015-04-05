@@ -12,30 +12,18 @@ function SettlementTest:__init()
          stonehearth.game_master:start()
       end)
 
+    -- build the player camp
+   self:place_citizen(4, 4, 'footman')
+   self:place_citizen(4, 7, 'footman')
+   self:place_citizen(10, 7, 'footman')
+   self:place_citizen(13, 7, 'footman')
+   self:place_citizen(7, 4)
+   self:place_citizen(7, 7)
+
    local banner = radiant.entities.create_entity('stonehearth:camp_standard', { owner = 'player_1' })
    radiant.terrain.place_entity(banner, Point3(8, 1, 8), { force_iconic = false })
    stonehearth.town:get_town('player_1')
                      :set_banner(banner)
-
-   -- build the player camp
-   self:place_citizen(4, 4, 'footman')
-   if true then return end
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(10, 7, 'footman')
-   self:place_citizen(13, 7, 'footman')
-   self:place_citizen(4, 4, 'footman')
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(10, 7, 'footman')
-   self:place_citizen(13, 7, 'footman')
-   self:place_citizen(4, 4, 'footman')
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(10, 7, 'footman')
-   self:place_citizen(13, 7, 'footman')
-   self:place_citizen(4, 4, 'footman')
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(10, 7, 'footman')
-   self:place_citizen(13, 7, 'footman')
-
 
    local function create_stockpile(x, z)
       stonehearth.inventory:get_inventory('player_1')
@@ -48,6 +36,11 @@ function SettlementTest:__init()
    create_stockpile(10, 8)
    create_stockpile(2, 16)
    
+   -- send in the goblins!!
+   radiant.set_realtime_timer(500, function()
+         stonehearth.game_master:start()
+      end)
+
    -- just for fun...
    --[[
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)
