@@ -1,5 +1,5 @@
-#ifndef _RADIANT_PERFMON_FLAMEGRAPH_H
-#define _RADIANT_PERFMON_FLAMEGRAPH_H
+#ifndef _RADIANT_PERFMON_SAMPLING_PROFILER_H
+#define _RADIANT_PERFMON_SAMPLING_PROFILER_H
 
 #include <stack>
 #include <unordered_map>
@@ -8,7 +8,7 @@
 
 BEGIN_RADIANT_PERFMON_NAMESPACE
 
-typedef std::unordered_map<core::StaticString, CounterValueType, core::StaticString::Hash> TimeTable;
+typedef std::unordered_map<core::StaticString, CounterValueType, core::StaticString::Hash> FunctionTimes;
 
 class StackFrame {
 public:
@@ -26,7 +26,7 @@ public:
    StackFrame* AddStackFrame(core::StaticString name);
    void Clear();
 
-   void CollectStats(TimeTable &stats, FunctionNameStack& stack) const;
+   void CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const;
 
 private:
    core::StaticString         _name;
@@ -35,10 +35,10 @@ private:
    std::vector<StackFrame>    _children;
 };
 
-class FlameGraph
+class SamplingProfiler
 {
 public:
-   FlameGraph();
+   SamplingProfiler();
 
 public:
    void Clear();
@@ -48,7 +48,7 @@ public:
    void PushFrame(core::StaticString fn);
    void PopFrame(core::StaticString fn);
 
-   void CollectStats(TimeTable& stats) const;
+   void CollectStats(FunctionTimes& stats) const;
 
 private:
    struct StackEntry {
@@ -68,4 +68,4 @@ private:
 
 END_RADIANT_PERFMON_NAMESPACE
 
-#endif // _RADIANT_PERFMON_FLAMEGRAPH_H
+#endif // _RADIANT_PERFMON_SAMPLING_PROFILER_H

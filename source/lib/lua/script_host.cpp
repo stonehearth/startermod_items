@@ -14,12 +14,11 @@
 #include "lib/perfmon/store.h"
 #include "lib/perfmon/report.h"
 #include "lib/perfmon/timeline.h"
-#include "lib/perfmon/flame_graph.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
 #include "caching_allocator.h"
-#include "lua_flame_graph.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -33,15 +32,6 @@ DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 #define SH_LOG(level)    LOG(script_host, level)
 
 extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud);
-
-typedef void (*luaJIT_profile_callback)(void *data, lua_State *L,
-					int samples, int vmstate);
-
-extern "C" bool luaJIT_profile_start(lua_State *L, const char *mode,
-				     luaJIT_profile_callback cb, void *data);
-extern "C" void luaJIT_profile_stop(lua_State *L);
-extern "C" const char *luaJIT_profile_dumpstack(lua_State *L, const char *fmt,
-					        int depth, size_t *len);
 
 const core::StaticString C_MODULE("=[C]");
 
@@ -273,21 +263,6 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
-inline void unsigned_to_decimal(unsigned long number, char* buffer)
-{
-   if( number == 0 ) {
-      *buffer++ = '0';
-   } else {
-      char* p_first = buffer;
-      while( number != 0 ) {
-         *buffer++ = '0' + number % 10;
-         number /= 10;
-      }
-      std::reverse( p_first, buffer );
-   }
-   *buffer = '\0';
-}
-
 void ScriptHost::ProfileHookFn(lua_State *L, lua_Debug *ar)
 {
    ScriptHost* sh = ScriptHost::GetScriptHost(L);
@@ -332,9 +307,10 @@ int RegisterThreadFn(lua_State* L)
 
 void ScriptHost::RegisterThread(lua_State* L)
 {
+   ASSERT(!shut_down_);
+
    allThreads_.insert(L);
    lua_atpanic(L, PanicCallbackFn);
-   // xxx: what about the paraonid hook?
    if (_cpuProfilerRunning) {
       InstallProfileHook(L);
    }
@@ -374,8 +350,6 @@ ScriptHost::ScriptHost(std::string const& site) :
       // "full"
       _gc_setting = 2;
    }
-
-   profile_cpu_ = false;
 
    // Allocate the interpreter.  64-bit builds of LuaJit require using luaL_newstate.
    bool is64Bit = core::System::IsProcess64Bit();
@@ -468,7 +442,7 @@ ScriptHost::~ScriptHost()
 {
    LUA_LOG(1) << "Shutting down script host.";
    FullGC();
-   modules_.clear();
+   required_.clear();
    lua_close(L_);
    ASSERT(this->bytes_allocated_ == 0);
    LUA_LOG(1) << "Script host destroyed.";
@@ -717,16 +691,6 @@ void ScriptHost::GC(platform::timer &timer)
 
 luabind::object ScriptHost::Require(std::string const& s)
 {
-   return RequireInterp(L_, s);
-}
-
-luabind::object ScriptHost::RequireScript(std::string const& path)
-{
-   return RequireScriptInterp(L_, path);
-}
-
-luabind::object ScriptHost::RequireInterp(lua_State* L, std::string const& s)
-{
    std::string path;
 
    std::vector<std::string> parts;
@@ -735,10 +699,10 @@ luabind::object ScriptHost::RequireInterp(lua_State* L, std::string const& s)
 
    path = boost::algorithm::join(parts, "/") + ".lua";
 
-   return RequireScriptInterp(L, path);
+   return RequireScript(path);
 }
 
-luabind::object ScriptHost::RequireScriptInterp(lua_State* L, std::string const& path)
+luabind::object ScriptHost::RequireScript(std::string const& path)
 {
    res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
    std::string canonical_path;
@@ -752,14 +716,14 @@ luabind::object ScriptHost::RequireScriptInterp(lua_State* L, std::string const&
 
    luabind::object obj;
 
-   auto i = modules_.find(canonical_path);
-   if (i != modules_.end()) {
+   auto i = required_.find(canonical_path);
+   if (i != required_.end()) {
       obj = i->second;
    } else {
       LUA_LOG(5) << "requiring script " << canonical_path;
-      modules_[canonical_path] = luabind::object();
-      obj = rm.LoadScript(L, canonical_path);
-      modules_[canonical_path] = obj;
+      required_[canonical_path] = luabind::object();
+      obj = rm.LoadScript(L_, canonical_path);
+      required_[canonical_path] = obj;
    }
    return obj;
 }
@@ -1117,7 +1081,7 @@ void ScriptHost::CreateModules(om::ModListPtr mods, AllocDataStoreFn allocd)
       }
    }
    Require("radiant.lualibs.strict");
-   Trigger("radiant:modules_loaded");
+   Trigger("radiant:required_loaded");
 }
 
 luabind::object ScriptHost::GetModuleList() const
@@ -1252,13 +1216,13 @@ bool ScriptHost::ToggleCpuProfiling()
    }
 
    if (!_cpuProfilerRunning) {
-      perfmon::TimeTable stats;
+      perfmon::FunctionTimes stats;
       for (auto const& entry : _profilers) {
          entry.second.CollectStats(stats);
       }
       _profilers.clear();
       LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
-      perfmon::ReportCounters<perfmon::TimeTable, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
+      perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
          LOG(lua.code, 1) << std::setw(120) << name << " : "
                            << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
                            << std::string(rows, '#');

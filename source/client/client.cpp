@@ -55,7 +55,7 @@
 #include "lib/audio/audio.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
-#include "lib/perfmon/flame_graph.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "lib/perfmon/report.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"

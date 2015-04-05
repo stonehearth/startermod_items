@@ -1,5 +1,5 @@
 #include "radiant.h"
-#include "flame_graph.h"
+#include "sampling_profiler.h"
 #include "timer.h"
 
 using namespace radiant;
@@ -26,7 +26,7 @@ StackFrame* StackFrame::AddStackFrame(core::StaticString name)
 
 void StackFrame::Clear()
 {
-   // we assume the next use of the FlameGraph will get an extremely similar
+   // we assume the next use of the SamplingProfiler will get an extremely similar
    // stack frame pattern, so zero out the entries rather than clearing the
    // whole table.
 
@@ -46,7 +46,7 @@ std::vector<StackFrame> const& StackFrame::GetChildren() const
    return _children;
 }
 
-void StackFrame::CollectStats(TimeTable &stats, FunctionNameStack& stack) const
+void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const
 {
    bool recursive = std::find(stack.begin(), stack.end(), _name) != stack.end();
 
@@ -62,24 +62,24 @@ void StackFrame::CollectStats(TimeTable &stats, FunctionNameStack& stack) const
 }
 
 
-FlameGraph::FlameGraph() :
+SamplingProfiler::SamplingProfiler() :
    _base("base"),
    _first(true),
    _depth(0)
 {
 }
 
-StackFrame *FlameGraph::GetBaseStackFrame()
+StackFrame *SamplingProfiler::GetBaseStackFrame()
 {
    return &_base;
 }
 
-void FlameGraph::Clear()
+void SamplingProfiler::Clear()
 {
    _base.Clear();
 }
 
-void FlameGraph::PushFrame(core::StaticString fn)
+void SamplingProfiler::PushFrame(core::StaticString fn)
 {
    if (_first) {
       _stack.push(&_base);
@@ -91,7 +91,7 @@ void FlameGraph::PushFrame(core::StaticString fn)
    _stack.push(StackEntry(s));
 }
 
-void FlameGraph::PopFrame(core::StaticString fn)
+void SamplingProfiler::PopFrame(core::StaticString fn)
 {
    StackEntry e = _stack.top();
    _stack.pop();
@@ -106,18 +106,18 @@ void FlameGraph::PopFrame(core::StaticString fn)
    e.frame->IncrementCount(e.GetElapsed());
 }
 
-FlameGraph::StackEntry::StackEntry(StackFrame* f) :
+SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
    frame(f),
    start(Timer::GetCurrentCounterValueType())
 {
 }
 
-CounterValueType FlameGraph::StackEntry::GetElapsed() const
+CounterValueType SamplingProfiler::StackEntry::GetElapsed() const
 {
    return Timer::GetCurrentCounterValueType() - start;
 }
 
-void FlameGraph::CollectStats(TimeTable& stats) const
+void SamplingProfiler::CollectStats(FunctionTimes& stats) const
 {
    _base.CollectStats(stats, StackFrame::FunctionNameStack());
 }

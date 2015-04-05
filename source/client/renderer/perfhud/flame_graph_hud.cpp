@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "radiant.h"
 #include "flame_graph_hud.h"
-#include "lib/perfmon/flame_graph.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "client/renderer/renderer.h"
 
 using namespace ::radiant;
@@ -34,7 +34,7 @@ FlameGraphHud& FlameGraphHud::Render()
 {
 #if 0
    // One day I will get this working... Until that happy, happy day, do nothin' -- tony
-   perfmon::FlameGraph &g = ???;
+   perfmon::SamplingProfiler &g = ???;
 
    double height = bounds_.GetHeight() / (g.GetDepth() + 1);
    csg::Rect2f rc = bounds_;

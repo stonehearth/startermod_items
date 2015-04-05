@@ -5,5 +5,5 @@ add_library(perfmon
             timeline.cpp
             store.cpp
             perfmon.cpp
-            flame_graph.cpp
+            sampling_profiler.cpp
             )

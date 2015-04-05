@@ -76,9 +76,6 @@ public: // the static interface
    static void ProfileHookFn(lua_State *L, lua_Debug *ar);
 
 private:
-   luabind::object RequireInterp(lua_State* L, std::string const& name);
-   luabind::object RequireScriptInterp(lua_State* L, std::string const& name);
-
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
@@ -110,10 +107,7 @@ private:
    lua_State*           cb_thread_;
    std::unordered_set<lua_State*>   allThreads_;
    std::string          site_;
-
-   // this is silly.  we should have an Interpreter class which abstracts this away, then
-   // have a _sandbox and _privileged Interpreter instead of L_ and _private.
-   ModuleMap            modules_;
+   ModuleMap            required_;
 
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
@@ -137,11 +131,6 @@ private:
    bool                 enable_profile_cpu_;
    int                  _cpuProfileInstructionSamplingRate;
    bool                 _cpuProfilerRunning;
-   bool                 profile_cpu_;
-   std::string          cpu_profile_mode_;
-   std::string          cpu_profile_stack_fmt_;
-   int                  cpu_profile_stack_depth_;
-   bool                 _mappingLuaFile;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
@@ -149,7 +138,7 @@ private:
    bool                       shut_down_;
    lua_State*                 _lastHookL;
    perfmon::CounterValueType  _lastHookTimestamp;
-   std::unordered_map<lua_State*, perfmon::FlameGraph>   _profilers;
+   std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
 };
 
 END_RADIANT_LUA_NAMESPACE

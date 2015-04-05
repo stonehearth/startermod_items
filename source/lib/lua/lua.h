@@ -9,7 +9,6 @@ BEGIN_RADIANT_LUA_NAMESPACE
 void Initialize();
 bool JitIsEnabled();
 
-class LuaFlameGraph;
 class ScriptHost;
 class TraceWrapper;
 

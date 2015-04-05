@@ -3,7 +3,6 @@
 
 #include "namespace.h"
 #include "lib/lua/bind.h"
-#include "lib/perfmon/flame_graph.h"
 
 BEGIN_RADIANT_RES_NAMESPACE
 

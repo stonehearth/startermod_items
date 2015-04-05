@@ -135,15 +135,6 @@ static void (__cdecl *luaL_openlibs_fn)(lua_State *L);
 static lua_State *(__cdecl *lj_state_newstate_fn)(lua_Alloc f, void *ud);
 static int (*luaL_error_fn) (lua_State *L, const char *fmt, ...);
 
-/* Low-overhead profiling API. */
-typedef void (*luaJIT_profile_callback)(void *data, lua_State *L,
-					int samples, int vmstate);
-static void (*luaJIT_profile_start_fn)(lua_State *L, const char *mode,
-				     luaJIT_profile_callback cb, void *data);
-static void (*luaJIT_profile_stop_fn)(lua_State *L);
-static const char *(*luaJIT_profile_dumpstack_fn)(lua_State *L, const char *fmt,
-					     int depth, size_t *len);
-
 void lua::Initialize()
 {
    bool is64Bit = core::System::IsProcess64Bit();
@@ -279,10 +270,6 @@ void lua::Initialize()
    luaL_findtable_fn = (const char *(*)(lua_State *L, int idx, const char *fname, int szhint))LoadSymbol("luaL_findtable");
    luaL_openlibs_fn = (void(*)(lua_State *L))LoadSymbol("luaL_openlibs");
    lj_state_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lj_state_newstate");
-
-   luaJIT_profile_start_fn = (void (*)(lua_State *, const char *, luaJIT_profile_callback, void *))LoadSymbol("luaJIT_profile_start");
-   luaJIT_profile_stop_fn = (void (*)(lua_State *L))LoadSymbol("luaJIT_profile_stop");
-   luaJIT_profile_dumpstack_fn = (const char *(*)(lua_State *, const char *, int, size_t *))LoadSymbol("luaJIT_profile_dumpstack");
 
    luaL_error_fn = (int(*)(lua_State *L, const char *fmt, ...))LoadSymbol("luaL_error_fn");
 }
@@ -1256,33 +1243,6 @@ extern "C" const char * lua_pushfstring(lua_State *L, const char *fmt, ...)
       va_end(argp);
    }
    return NULL;
-}
-
-/* Low-overhead profiling API. */
-extern "C" bool luaJIT_profile_start(lua_State *L, const char *mode,
-				     luaJIT_profile_callback cb, void *data)
-{
-   if (luaJIT_profile_start_fn) {
-      (*luaJIT_profile_start_fn)(L, mode, cb, data);
-      return true;
-   }
-   return false;
-}
-
-extern "C" void luaJIT_profile_stop(lua_State *L)
-{
-   if (luaJIT_profile_stop_fn) {
-      (*luaJIT_profile_stop_fn)(L);
-   }
-}
-
-extern "C" const char *luaJIT_profile_dumpstack(lua_State *L, const char *fmt,
-					        int depth, size_t *len)
-{
-   if (luaJIT_profile_dumpstack_fn) {
-      return (*luaJIT_profile_dumpstack_fn)(L, fmt, depth, len);
-   }
-   return "";
 }
 
 extern "C" int luaL_error(lua_State *L, const char *fmt, ...)

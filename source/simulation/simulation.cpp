@@ -51,7 +51,7 @@
 #include "remote_client.h"
 #include "lib/perfmon/frame.h"
 #include "lib/perfmon/namespace.h"
-#include "lib/perfmon/flame_graph.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "platform/sysinfo.h"
 #include "physics/water_tight_region_builder.h"
 
