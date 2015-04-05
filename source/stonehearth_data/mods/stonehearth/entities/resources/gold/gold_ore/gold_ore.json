@@ -2,6 +2,13 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "render_info" : {
+         "color_map" : "stonehearth:color_map:resources",
+         "material_maps" : [
+            "/stonehearth/data/materials/material_maps/resources_material_map.json"
+         ]
+      },
+
       "item": {
          "category": "resources",
          "stacks": 40

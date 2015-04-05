@@ -13,9 +13,9 @@ function resources.get_mod_list()
    return _host:get_mod_list();
 end
 
-function resources.load_json(uri, cached)
+function resources.load_json(uri, enable_caching)
    local json
-   if cached then
+   if enable_caching then
       -- the json loader will convert the json object to a lua table, which can be really
       -- expensive for large json objects.  maybe lua objects would get created, etc.  so
       -- cache it so we only do that conversion once.
@@ -23,7 +23,7 @@ function resources.load_json(uri, cached)
    end
    if not json then
       json = _radiant.res.load_json(uri)
-      if cached then
+      if enable_caching then
          singleton._cached_json[uri] = json
       end
    end

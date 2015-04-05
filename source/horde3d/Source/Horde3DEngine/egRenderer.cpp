@@ -57,7 +57,7 @@ const char *fsDefColor =
 
 float* Renderer::_vbInstanceVoxelBuf;
 std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
-Matrix4f Renderer::_boneMats[64];
+Matrix4f Renderer::_defaultBoneMat;
 
 Renderer::Renderer()
 {
@@ -86,6 +86,7 @@ Renderer::Renderer()
    bool openglES = false;
    _lod_polygon_offset_x = 0.0f;
    _lod_polygon_offset_y = 0.0f;
+   _defaultBoneMat.toIdentity();
 #if defined(OPTIMIZE_GSLS)
    _glsl_opt_ctx = glslopt_initialize(openglES);
 #endif
@@ -2690,6 +2691,8 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
    VoxelGeometryResource *curVoxelGeoRes = 0x0;
    MaterialResource *curMatRes = 0x0;
 
+   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
+
    R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
 
    // Loop over mesh queue
@@ -2712,8 +2715,6 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
          RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
          continue;
       }
-
-      Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
 
       // Bind geometry
       RENDER_LOG() << "binding geometry...";
@@ -2814,18 +2815,17 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
+      Matrix4f* boneMats;
       if (curShader->uni_bones >= 0) {
          int numBones = (int)modelNode->_boneLookup.size();
 
          if (numBones == 0) {
             numBones = 1;
-            _boneMats[0].toIdentity();
+            boneMats = &_defaultBoneMat;
          } else {
-            for (int i = 0; i < numBones; i++) {
-               _boneMats[i] = modelNode->_boneLookup[i]->getRelTrans();
-            }
+            boneMats = modelNode->_boneRelTransLookup.data();
          }
-         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats, numBones);
       }
       if (curShader->uni_modelScale >= 0) {
          gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
@@ -2949,19 +2949,17 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
+      Matrix4f* boneMats;
       if (curShader->uni_bones >= 0) {
-         int numBones = (int)voxelModel->_boneLookup.size();
+         int numBones = (int)vmn->getParentModel()->_boneLookup.size();
 
          if (numBones == 0) {
             numBones = 1;
-            _boneMats[0].toIdentity();
+            boneMats = &_defaultBoneMat;
          } else {
-            for (int i = 0; i < numBones; i++) {
-               _boneMats[i] = voxelModel->_boneLookup.at(i)->getRelTrans();
-            }
+            boneMats = vmn->getParentModel()->_boneRelTransLookup.data();
          }
-
-         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, _boneMats[0].x, numBones);
+         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats, numBones);
       }
 
       if (curShader->uni_modelScale >= 0) {

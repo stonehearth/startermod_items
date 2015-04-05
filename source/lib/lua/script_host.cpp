@@ -4,15 +4,17 @@
 #include "radiant_file.h"
 #include "core/config.h"
 #include "core/system.h"
+#include "core/static_string.h"
 #include "core/profiler.h"
 #include "script_host.h"
-#include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
 #include "lib/lua/lua.h"
 #include "lib/json/namespace.h"
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
+#include "lib/perfmon/report.h"
 #include "lib/perfmon/timeline.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
@@ -30,6 +32,8 @@ DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 #define SH_LOG(level)    LOG(script_host, level)
 
 extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud);
+
+const core::StaticString C_MODULE("=[C]");
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -65,6 +69,15 @@ static int PCallCallbackFn(lua_State* L)
    ScriptHost::ReportLuaStackException(L, error, traceback);
    return 1;
 }
+
+static int PanicCallbackFn(lua_State *L)
+{
+   LUA_LOG(0) << "lua panic.  forcing application exit";
+   PCallCallbackFn(L);
+   exit(2);
+   return 0;
+}
+
 
 ScriptHost* ScriptHost::GetScriptHost(lua_State *L)
 {
@@ -250,22 +263,83 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
+void ScriptHost::ProfileHookFn(lua_State *L, lua_Debug *ar)
+{
+   ScriptHost* sh = ScriptHost::GetScriptHost(L);
+   if (sh) {
+      sh->ProfileHook(L, ar);
+   }
+}
 
-ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs) :
+void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
+{
+   perfmon::CounterValueType now = perfmon::Timer::GetCurrentCounterValueType();
+   if (_lastHookL == L) {
+      lua_Debug f;
+      int count = 0;
+      res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
+      perfmon::CounterValueType delta = now - _lastHookTimestamp;
+
+      perfmon::StackFrame* current = _profilers[L].GetBaseStackFrame();
+      while (lua_getstack(L, count++, &f)) {
+         lua_getinfo(L, "nS", &f);
+         core::StaticString source(f.source), fn(C_MODULE);
+         if (source != C_MODULE) {
+            fn = rm.MapFileLineToFunction(f.source, f.linedefined);
+         }
+         current->IncrementCount(delta);
+         current = current->AddStackFrame(fn);
+      }
+   }
+   _lastHookL = L;
+   _lastHookTimestamp = now;
+}
+
+int RegisterThreadFn(lua_State* L)
+{
+   ScriptHost* s = ScriptHost::GetScriptHost(L);
+   if (s) {
+      lua_State* thread = lua_tothread(L, 1);
+      s->RegisterThread(thread);
+   }
+   return 0;
+}
+
+void ScriptHost::RegisterThread(lua_State* L)
+{
+   ASSERT(!shut_down_);
+
+   allThreads_.insert(L);
+   lua_atpanic(L, PanicCallbackFn);
+   if (_cpuProfilerRunning) {
+      InstallProfileHook(L);
+   }
+}
+
+ScriptHost::ScriptHost(std::string const& site) :
    site_(site),
    error_count(0),
-   _allocDs(allocDs),
+   cb_thread_(nullptr),
    L_(nullptr),
-   shut_down_(false)
+   shut_down_(false),
+   _lastHookL(nullptr),
+   enable_profile_cpu_(false),
+   _cpuProfilerRunning(false),
+   _lastHookTimestamp(0)
 {
    current_line = 0;
    *current_file = '\0';
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
 
    bytes_allocated_ = 0;
+
+   throw_on_lua_exceptions_ = core::Config::GetInstance().Get<bool>("lua.throw_on_lua_exceptions", false);
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
+   if (enable_profile_cpu_) {
+      _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua_profiler_instruction_sampling_rate", 50);
+   }
    std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
 
    if (gc_setting == "auto") {
@@ -276,8 +350,6 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
       // "full"
       _gc_setting = 2;
    }
-
-   profile_cpu_ = false;
 
    // Allocate the interpreter.  64-bit builds of LuaJit require using luaL_newstate.
    bool is64Bit = core::System::IsProcess64Bit();
@@ -334,19 +406,22 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
                .def("enum_objects",    &ScriptHost::EnumObjects)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
-               .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
-               .def("require_script",  (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::RequireScript)
+               .def("require",         &ScriptHost::Require)
+               .def("require_script",  &ScriptHost::RequireScript)
                .def("get_error_count", &ScriptHost::GetErrorCount)
          ]
       ]
    ];
+   object radiant = globals(L_)["_radiant"];
+   radiant["register_thread"] = GetPointerToCFunction(L_, &RegisterThreadFn);
+
    globals(L_)["_host"] = object(L_, this);
 
    if (!core::Config::GetInstance().Get<bool>("lua.enable_luajit", true)) {
       if (luaL_dostring(L_, "jit.off()") != 0) {
          LUA_LOG(0) << "Failed to disable jit. " << lua_tostring(L_, -1);
       } else {
-         LUA_LOG(0) << "luajit disabled.";
+         LUA_LOG(0) << "luajit disabled."; 
       }
    }
 
@@ -358,6 +433,9 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    // from running on whatever state the main thread was in (e.g. if it most recently yielded
    // from a coroutine...)
    cb_thread_ = lua_newthread(L_);
+
+   RegisterThread(L_);
+   RegisterThread(cb_thread_);
 }
 
 ScriptHost::~ScriptHost()
@@ -369,7 +447,6 @@ ScriptHost::~ScriptHost()
    ASSERT(this->bytes_allocated_ == 0);
    LUA_LOG(1) << "Script host destroyed.";
 }
-
 
 void paranoid_hook(lua_State *L, lua_Debug *ar)
 {
@@ -403,7 +480,6 @@ int ScriptHost::GetErrorCount() const
 {
    return error_count;
 }
-
 
 std::string ExtractAllocKey(lua_State *l) {
     // At this point, we know we have a valid stack to extract info from--so do that!
@@ -457,7 +533,7 @@ std::string ExtractAllocKey(lua_State *l) {
          fnName = stack.name;
       }
       fnName += BUILD_STRING("[set_prefix " << oldLine << "]");
-   } else if (srcName == "@radiant/lualibs/unclasslib.lua" && fnName == "build") {
+   } else if (srcName == "@radiant/lib/unclasslib.lua" && fnName == "build") {
       int oldLine = stack.currentline;
       // Reach back to find the listener.
       lua_getstack(l, 1, &stack);
@@ -552,6 +628,9 @@ void ScriptHost::ReportLuaStackException(std::string const& error, std::string c
 {
    error_count++;
    ReportStackException("lua", error, traceback);
+   if (throw_on_lua_exceptions_) {
+      throw;
+   }
 }
 
 void ScriptHost::ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const
@@ -610,40 +689,6 @@ void ScriptHost::GC(platform::timer &timer)
    }
 }
 
-luabind::object ScriptHost::LoadScript(std::string const& path)
-{
-   luabind::object obj;
-
-   LUA_LOG(5) << "loading script " << path;
-   
-   int error;
-   try {
-      error = luaL_loadfile_from_resource(L_, path.c_str());
-   } catch (std::exception const& e) {
-      LUA_LOG(1) << e.what();
-      return luabind::object();
-   }
-
-   if (error == LUA_ERRFILE) {
-      ReportStackException("lua", BUILD_STRING("Could not open script file \"" << path << "\"."), "");
-   } else if (error != 0) {
-      std::string error = lua_tostring(L_, -1);
-      ReportStackException("lua", BUILD_STRING("Error loading \"" << path << "\"."), error);
-      lua_pop(L_, 1);
-      return obj;
-   }
-   if (lua_pcall(L_, 0, LUA_MULTRET, 0) != 0) {
-      std::string error = lua_tostring(L_, -1);
-      ReportStackException("lua", BUILD_STRING("Error loading \"" << path << "\"."), error);
-      lua_pop(L_, 1);
-      return obj;
-   }
-
-   obj = luabind::object(luabind::from_stack(L_, -1));
-   lua_pop(L_, 1);
-   return obj;
-}
-
 luabind::object ScriptHost::Require(std::string const& s)
 {
    std::string path;
@@ -659,7 +704,7 @@ luabind::object ScriptHost::Require(std::string const& s)
 
 luabind::object ScriptHost::RequireScript(std::string const& path)
 {
-   res::ResourceManager2 const& rm = res::ResourceManager2::GetInstance();
+   res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
    std::string canonical_path;
    try {
       canonical_path = rm.FindScript(path);
@@ -677,7 +722,7 @@ luabind::object ScriptHost::RequireScript(std::string const& path)
    } else {
       LUA_LOG(5) << "requiring script " << canonical_path;
       required_[canonical_path] = luabind::object();
-      obj = LoadScript(canonical_path);
+      obj = rm.LoadScript(L_, canonical_path);
       required_[canonical_path] = obj;
    }
    return obj;
@@ -964,7 +1009,7 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
    return luabind::type(tbl) == LUA_TTABLE && luabind::type(tbl[1]) != LUA_TNIL;
 }
 
-void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores)
+void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores)
 {
    // Two passes: First create all the controllers for the datastores we just
    // created.
@@ -983,7 +1028,7 @@ void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, 
    }
    SH_LOG(7) << "finished restoring datastores controller data";
 
-   CreateModules(mods);
+   CreateModules(mods, allocd);
 
    for (om::DataStorePtr datastore : datastores) {
       try {
@@ -1013,9 +1058,9 @@ void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, 
    Trigger("radiant:game_loaded");
 }
 
-void ScriptHost::CreateGame(om::ModListPtr mods)
+void ScriptHost::CreateGame(om::ModListPtr mods, AllocDataStoreFn allocd)
 {
-   CreateModules(mods);
+   CreateModules(mods, allocd);
 
    core::Config const& config = core::Config::GetInstance();
    std::string const module = config.Get<std::string>("game.main_mod", "stonehearth");
@@ -1025,18 +1070,18 @@ void ScriptHost::CreateGame(om::ModListPtr mods)
    }
 }
 
-void ScriptHost::CreateModules(om::ModListPtr mods)
+void ScriptHost::CreateModules(om::ModListPtr mods, AllocDataStoreFn allocd)
 {
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
 
-   CreateModule(mods, "radiant");
+   CreateModule(mods, "radiant", allocd);
    for (std::string const& mod_name : resource_manager.GetModuleNames()) {
       if (mod_name != "radiant") {
-         CreateModule(mods, mod_name);
+         CreateModule(mods, mod_name, allocd);
       }
    }
-   Require("radiant.lualibs.strict");
-   Trigger("radiant:modules_loaded");
+   Require("radiant.lib.strict");
+   Trigger("radiant:required_loaded");
 }
 
 luabind::object ScriptHost::GetModuleList() const
@@ -1119,7 +1164,7 @@ luabind::object ScriptHost::EnumObjects(const char* modname, const char* path)
 }
 
 
-luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const& mod_name)
+luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const& mod_name, AllocDataStoreFn allocDs)
 {
    res::ResourceManager2 &resource_manager = res::ResourceManager2::GetInstance();
    std::string script_name;
@@ -1134,7 +1179,7 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
          luabind::object savestate = mods->GetMod(mod_name);
 
          if (!savestate || !savestate.is_valid()) {
-            om::DataStoreRef datastore = _allocDs(mods->GetStore().GetStoreId());
+            om::DataStoreRef datastore = allocDs(mods->GetStore().GetStoreId());
             datastore.lock()->SetData(luabind::newtable(L_));
             savestate = luabind::object(L_, datastore);
          }
@@ -1154,3 +1199,44 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    return module;
 }
 
+bool ScriptHost::ToggleCpuProfiling()
+{
+   if (!enable_profile_cpu_) {
+      SH_LOG(1) << "cpu profiler not enabled.  set lua.enable_cpu_profiler to true";
+      return false;
+   }
+
+   _cpuProfilerRunning = !_cpuProfilerRunning;
+   for (lua_State* L : allThreads_) {
+      if (_cpuProfilerRunning) {
+         InstallProfileHook(L);
+      } else {
+         RemoveProfileHook(L);
+      }
+   }
+
+   if (!_cpuProfilerRunning) {
+      perfmon::FunctionTimes stats;
+      for (auto const& entry : _profilers) {
+         entry.second.CollectStats(stats);
+      }
+      _profilers.clear();
+      LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
+      perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
+         LOG(lua.code, 1) << std::setw(120) << name << " : "
+                           << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
+                           << std::string(rows, '#');
+      });
+   }
+   return _cpuProfilerRunning;
+}
+
+void ScriptHost::InstallProfileHook(lua_State* L)
+{
+   lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCOUNT, _cpuProfileInstructionSamplingRate);
+}
+
+void ScriptHost::RemoveProfileHook(lua_State* L)
+{
+   lua_sethook(L, nullptr, 0, 0);
+}

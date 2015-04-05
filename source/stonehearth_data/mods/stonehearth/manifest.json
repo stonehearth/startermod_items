@@ -41,6 +41,10 @@
       "cursors:erase_fixture" : "file(data/cursors/erase_fixture.cur)",
       "cursors:mine" : "file(data/cursors/mine.cur)",
 
+      "color_map:trees" : "file(data/materials/color_maps/trees_color_map.json)",
+      "color_map:resources" : "file(data/materials/color_maps/resources_color_map.json)",
+      "color_map:undead" : "file(data/materials/color_maps/undead_color_map.json)",
+
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",
       "mixins:critter" : "file(mixins/critter)",
@@ -204,10 +208,13 @@
       "monsters:goblins:outfits:footman" : "file(entities/monsters/goblins/outfits/footman_outfit)",
       "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
       "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
+      "monsters:goblins:wolf_cage" : "file(entities/monsters/goblins/wolf_cage)", 
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/skeleton_female.json)",
+      "monsters:undead:zombie" : "file(entities/monsters/undead/zombie)",
+      "monsters:undead:zombie_female" : "file(entities/monsters/undead/zombie/zombie_female.json)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -276,7 +283,9 @@
       "crops:turnip_crop" : "file(entities/crops/turnip_crop)",
       "crops:pumpkin_crop" : "file(entities/crops/pumpkin_crop)",
       "crops:tester_crop" : "file(entities/crops/tester_crop)",
+      "crops:tester_crop_2" : "file(entities/crops/tester_crop_2)",
       "crops:silkweed_crop" : "file(entities/crops/silkweed_crop)", 
+      "crops:tester_silkweed_crop" : "file(entities/crops/tester_silkweed_crop)", 
 
       "plants:brightbell" : "file(entities/plants/brightbell_plant)",
       "plants:frostsnap" : "file(entities/plants/frostsnap_plant)",
@@ -668,6 +677,10 @@
       "actions:shepherd:wait_for_pasture_vacancy" : "file(ai/actions/wait_for_pasture_vacancy.lua)",
       "actions:shepherd:create_animal_for_pasture" : "file(ai/actions/create_animal_for_pasture.lua)",  
 
+      "actions:wait_for_event" : "file(ai/actions/wait_for_event_action.lua)",
+      "actions:find_point_beyond_visible" : "file(ai/actions/find_point_beyond_visible_region_action.lua)",
+      "actions:depart_visible_area" : "file(ai/actions/depart_visible_area_action.lua)",    
+
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
@@ -680,6 +693,7 @@
       "observers:health_score" : "file(ai/observers/health_observer.lua)", 
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
       "observers:kill_at_zero_health" : "file(ai/observers/kill_at_zero_health_observer.lua)", 
+      "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)", 
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -912,7 +926,8 @@
 
       "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)",
       "abilities:thief_abilities" : "file(entities/abilities/thief_abilities.json)",
-      "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)"
+      "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)",
+      "abilities:wolf_rider_abilities" : "file(entities/abilities/wolf_rider_abilities.json)" 
    },
    "functions" : {
       "save_browser_object": {
@@ -1373,6 +1388,7 @@
       "game_master:node_list" : "file(services/server/game_master/controllers/node_list.lua)",
       "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
+      "game_master:util:choose_location_outside_town" : "file(services/server/game_master/controllers/util/choose_location_outside_town.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
       "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp_encounter.lua)",
       "game_master:encounters:collection_quest" : "file(services/server/game_master/controllers/encounters/collection_quest_encounter.lua)",
@@ -1384,7 +1400,13 @@
       "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
+<<<<<<< HEAD
+      "game_master:encounters:destroy_entity" : "file(services/server/game_master/controllers/encounters/destroy_entity_encounter.lua)", 
+=======
+      "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
+>>>>>>> 5ba81e18896e192668593f9a973358d0a5a91670
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
+
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
       "unit_control:party" : "file(services/server/unit_control/party.lua)",

@@ -47,5 +47,3 @@ add_subdirectory(resources)
 add_subdirectory(dm)
 add_subdirectory(simulation)
 add_subdirectory(type_registry)
-
-

@@ -60,14 +60,6 @@ private:
    typename ContainerType::const_iterator lastErasedIterator_;
 };
 
-/*
- * This would be nice,
- *
-template <typename V, int Namespace=-1> using CStringMap = Map<CString, V, SharedCStringHash, CStringKeyTransform<Namespace>>;
-
- * but Microsoft still does not support alias templates.  ARGH!
- */
-
 END_RADIANT_DM_NAMESPACE
 
 #endif // _RADIANT_DM_MAP_H_

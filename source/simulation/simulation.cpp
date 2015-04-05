@@ -51,8 +51,10 @@
 #include "remote_client.h"
 #include "lib/perfmon/frame.h"
 #include "lib/perfmon/namespace.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "platform/sysinfo.h"
 #include "physics/water_tight_region_builder.h"
+
 
 // Uncomment this to only profile the pathfinding path in VTune
 // #define PROFILE_ONLY_PATHFINDING 1
@@ -76,7 +78,6 @@ Simulation::Simulation() :
    _tcp_acceptor(nullptr),
    _showDebugNodes(false),
    _singleStepPathFinding(false),
-   profile_next_lua_update_(false),
    begin_loading_(false),
    _sequenceNumber(1)
 {
@@ -92,6 +93,10 @@ void Simulation::OneTimeIninitializtion()
    base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
    game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
+
+   _allocDataStoreFn = [this](int storeId) {
+      return AllocDatastore();
+   };
 
    // sessions (xxx: stub it out for single player)
    session_ = std::make_shared<rpc::Session>();
@@ -191,9 +196,8 @@ void Simulation::OneTimeIninitializtion()
       }
       return result;
    });
-   core_reactor_->AddRouteV("radiant:profile_next_lua_upate", [this](rpc::Function const& f) {
-      profile_next_lua_update_ = true;
-      SIM_LOG(0) << "profiling next lua update";
+   core_reactor_->AddRouteV("radiant:toggle_cpu_profile", [this](rpc::Function const& f) {
+      SIM_LOG(0) << "lua cpu profile is " << (scriptHost_->ToggleCpuProfiling() ? "on" : "off");
    });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
       scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
@@ -323,9 +327,7 @@ void Simulation::InitializeGameObjects()
       waterTightRegionBuilder_ = std::unique_ptr<phys::WaterTightRegionBuilder>(new phys::WaterTightRegionBuilder(octtree_->GetNavGrid()));
    }
 
-   scriptHost_.reset(new lua::ScriptHost("server", [this](int storeId) {
-      return AllocDatastore();
-   }));
+   scriptHost_.reset(new lua::ScriptHost("server"));
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
@@ -434,7 +436,7 @@ void Simulation::CreateGame()
    GetOctTree().SetRootEntity(root_entity_);
 
    radiant_ = scriptHost_->Require("radiant.server");
-   scriptHost_->CreateGame(modList_);
+   scriptHost_->CreateGame(modList_, _allocDataStoreFn);
 }
 
 Simulation::~Simulation()
@@ -527,12 +529,11 @@ void Simulation::UpdateGameState()
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      luabind::call_function<int>(radiant_["update"], profile_next_lua_update_);      
+      luabind::call_function<int>(radiant_["update"]);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
-   profile_next_lua_update_ = false;
 }
 
 void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
@@ -1174,7 +1175,7 @@ void Simulation::FinishLoadingGame()
       }
    })->PushStoreState();
 
-   scriptHost_->LoadGame(modList_, entityMap_, datastores);
+   scriptHost_->LoadGame(modList_, _allocDataStoreFn, entityMap_, datastores);
 }
 
 void Simulation::Reset()

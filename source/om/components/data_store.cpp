@@ -98,7 +98,7 @@ void DataStore::RestoreController(DataStoreRef self)
 
    if (!uri.empty()) {
       try {
-         luabind::object ctor = scriptHost->RequireScript(L, uri);
+         luabind::object ctor = scriptHost->RequireScript(uri);
          if (ctor) {
             DS_LOG(3) << "restored controller for script " << uri;
             _controllerObject = ctor();

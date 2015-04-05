@@ -224,8 +224,14 @@ function csg_lib._cube_touches_region(cube, region)
 end
 
 function csg_lib.get_non_diagonal_xz_inflated_region(region)
-   local inflated = Region3()
-   inflated:add_region(region:inflated(Point3.unit_x))
+   local inflated = region:inflated(Point3.unit_x)
+   inflated:add_region(region:inflated(Point3.unit_z))
+   return inflated
+end
+
+function csg_lib.get_non_diagonal_xyz_inflated_region(region)
+   local inflated = region:inflated(Point3.unit_x)
+   inflated:add_region(region:inflated(Point3.unit_y))
    inflated:add_region(region:inflated(Point3.unit_z))
    return inflated
 end

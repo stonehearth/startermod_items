@@ -3,5 +3,8 @@
    "components" : {
       "stonehearth:water" : {
       }
-	}
+	},
+   "entity_data" : {
+      "stonehearth:hud:custom_clip" : true
+   }
 }

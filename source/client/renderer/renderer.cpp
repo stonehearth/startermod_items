@@ -16,7 +16,6 @@
 #include <SFML/Audio.hpp>
 #include "camera.h"
 #include "lib/perfmon/perfmon.h"
-#include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
 #include "csg/iterators.h"
 #include "csg/random_number_generator.h"
@@ -613,7 +612,7 @@ void Renderer::BuildSkySphere()
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
    H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoDraw, true);
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 }
 
 void Renderer::SetStarfieldBrightness(float brightness)
@@ -671,15 +670,7 @@ void Renderer::BuildStarfield()
    
    H3DNode modelNode = h3dAddModelNode(mainSceneRoot_, "starfield_model", geoRes);
    starfieldMeshNode = h3dAddMeshNode(modelNode, "starfield_mesh", starfieldMat, 0, NumStars * 6, 0, NumStars * 4 - 1);
-   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoDraw | H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
-}
-
-void Renderer::ShowPerfHud(bool value) {
-   if (value && !perf_hud_) {
-      perf_hud_.reset(new PerfHud(*this));
-   } else if (!value && perf_hud_) {
-      delete perf_hud_.release();
-   }
+   h3dSetNodeFlags(modelNode, H3DNodeFlags::NoCull | H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
 }
 
 // These options should be worded so that they can default to false

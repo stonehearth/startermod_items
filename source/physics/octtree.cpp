@@ -63,7 +63,7 @@ void OctTree::TraceEntity(om::EntityPtr entity)
          EntityMapEntry& entry = entities_[id];
          entry.entity = entity;
          entry.components_trace = entity->TraceComponents("octtree", trace_category_)
-                                             ->OnAdded([this, id](std::string const& name, om::ComponentPtr component) {
+                                             ->OnAdded([this, id](core::StaticString name, om::ComponentPtr component) {
                                                 OnComponentAdded(id, component);
                                              })
                                              ->OnDestroyed([this, id]() {

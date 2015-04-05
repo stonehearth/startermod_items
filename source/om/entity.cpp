@@ -81,10 +81,10 @@ void Entity::SerializeToJson(json::Node& node) const
       node.set("debug_text", debug_text);
    }
    for (auto const& entry : GetComponents()) {
-      node.set(entry.first, entry.second->GetStoreAddress());
+      node.set(std::string(entry.first), entry.second->GetStoreAddress());
    }
    for (auto const& entry : GetLuaComponents()) {
-      node.set(entry.first, entry.second->GetStoreAddress());
+      node.set(std::string(entry.first), entry.second->GetStoreAddress());
    }
 }
 

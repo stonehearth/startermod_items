@@ -257,6 +257,12 @@ void h3dSetGlobalUniformFloat(const char* name, float value)
    h3dSetGlobalUniform(name, H3DUniformType::FLOAT, &value);
 }
 
+RenderNodePtr RenderNode_SetMaterial(RenderNodePtr node, const char *material)
+{
+   return node->SetMaterial(material);
+}
+
+
 DEFINE_INVALID_JSON_CONVERSION(RaycastResult);
 DEFINE_INVALID_JSON_CONVERSION(RenderNode);
 IMPLEMENT_TRIVIAL_TOSTRING(RenderNode);
@@ -387,7 +393,7 @@ void LuaRenderer::RegisterType(lua_State* L)
          .def("set_name",                    &RenderNode::SetName)
          .def("set_visible",                 &RenderNode::SetVisible)
          .def("set_can_query",               &RenderNode::SetCanQuery)
-         .def("set_material",                static_cast<RenderNodePtr (RenderNode::*)(std::string const&)>(&RenderNode::SetMaterial))
+         .def("set_material",                &RenderNode_SetMaterial)
          .def("destroy",                     &RenderNode::Destroy)
          .def("set_polygon_offset",          &RenderNode::SetPolygonOffset)
       ,

@@ -7,7 +7,6 @@ local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
-local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('game_master')
 
 local VISION_PADDING = Point2(16, 16)
@@ -17,26 +16,37 @@ function CreateCamp:start(ctx, info)
    assert(ctx)
    assert(info)
    assert(info.pieces)
+   assert(info.npc_player_id)
+   assert(info.spawn_range)
+   assert(info.spawn_range.min)
+   assert(info.spawn_range.max)
 
-   self._sv._info = info
+   local min = info.spawn_range.min
+   local max = info.spawn_range.max
+
    self._sv.ctx = ctx
-
-   ctx.enemy_player_id = info.player_id -- xxx: should be 'npc_enemy_id'
-   self:_search_for_camp_location()
+   self._sv._info = info
+   self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
+                                                 ctx.player_id, min, max,
+                                                 radiant.bind_callback(self, '_create_camp'))
 end
 
 function CreateCamp:stop()
    -- nothing to do
+   if self._sv.searcher then
+      self._sv.searcher:destroy()
+      self._sv.searcher = nil      
+   end
 end
 
-function CreateCamp:_create_camp()
+function CreateCamp:_create_camp(location)
    local ctx = self._sv.ctx
    local info = self._sv._info
 
-   assert(ctx.enemy_player_id)
-   assert(ctx.enemy_location)
+   assert(info.npc_player_id)
+   ctx.enemy_location = location
 
-   self._population = stonehearth.population:get_population(ctx.enemy_player_id)
+   self._population = stonehearth.population:get_population(info.npc_player_id)
 
    -- carve a hole in the ground for the camp to sit in
    local size = 20
@@ -79,72 +89,11 @@ function CreateCamp:_create_camp()
    if info.script then
       local script = radiant.create_controller(info.script, ctx)
       self._sv.script = script
-      script:start(ctx)
+      script:start(ctx, info)
    end
    
    -- camp created!  move onto the next encounter in the arc.
    ctx.arc:trigger_next_encounter(ctx)   
-end
-
-function CreateCamp:_destroy_find_location_timer()
-   if self._find_location_timer then
-      self._find_location_timer:destroy()
-      self._find_location_timer = nil
-   end
-end
-
-function CreateCamp:_start_find_location_timer()
-   self:_destroy_find_location_timer()
-   self._find_location_timer = radiant.set_realtime_timer(5000, function()
-         self:_search_for_camp_location()
-      end)
-end
-
-function CreateCamp:_search_for_camp_location()
-   self:_destroy_find_location_timer()
-
-   local ctx = self._sv.ctx
-   local info = self._sv._info
-
-   -- choose a distance and start looking for a place to put the camp
-   local player_banner = stonehearth.town:get_town(ctx.player_id)
-                                             :get_banner()
-   local min = info.spawn_range.min
-   local max = info.spawn_range.max
-   local d = rng:get_int(min, max)
-
-   -- we use a goblin for pathfinding.  sigh.  ideally we should be able to pass in a mob type
-   -- (e.g. HUMANOID) so we avoid creating this guy
-   if not self._sv.find_camp_location_entity then   
-      self._sv.find_camp_location_entity = radiant.entities.create_entity('stonehearth:monsters:goblins:goblin')
-   end
-
-   local success = function(location)
-      log:info('found camp location %s', location)
-      self:_finalize_camp_location(location)
-   end
-
-   local fail = function()
-      log:info('failed to create camp.  trying again')
-      self:_start_find_location_timer()
-   end
-   log:info('looking for camp location %d units away', d)
-
-   local attempted = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity_astar(self._sv.find_camp_location_entity, player_banner, d, 1, d * 100, success, fail) 
-   if not attempted then
-      self:_start_find_location_timer()
-   end
-end
-
-function CreateCamp:_finalize_camp_location(location)
-   self:_destroy_find_location_timer()
-   radiant.entities.destroy_entity(self._sv.find_camp_location_entity)
-
-   self._sv.find_camp_location_entity = nil
-   self._sv.ctx.enemy_location = location
-   self.__saved_variables:mark_changed()
-
-   self:_create_camp()
 end
 
 function CreateCamp:_add_piece(piece, visible_rgn)
@@ -153,7 +102,9 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    local rot = piece.rotation
 
    local ctx = self._sv.ctx
-   local player_id = ctx.enemy_player_id
+   local info = self._sv.info
+
+   local player_id = info.npc_player_id
    local origin = ctx.enemy_location + Point3(x, 0, z)
    
    -- add all the entities.
@@ -162,11 +113,13 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          local entity = radiant.entities.create_entity(info.uri, { owner = player_id })
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
-
          if rot then
             radiant.entities.turn_to(entity, rot)
          end
          self:_add_entity_to_visible_rgn(entity, visible_rgn)
+
+         --TODO: add this entity to the ctx
+         ctx[name] = entity
       end
    end
 
@@ -175,6 +128,9 @@ function CreateCamp:_add_piece(piece, visible_rgn)
       for name, info in pairs(piece.info.citizens) do
          local citizen = game_master_lib.create_citizen(self._population, info, origin)
          self:_add_entity_to_visible_rgn(citizen, visible_rgn)
+
+         --TODO: add this entity to the ctx
+         ctx[name] = citizen
       end
    end
 

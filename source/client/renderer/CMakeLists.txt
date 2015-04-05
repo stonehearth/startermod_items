@@ -32,6 +32,7 @@ add_library(client_renderer STATIC
             camera.cpp
             ui_buffer.cpp
             perfhud/perfhud.cpp
+            perfhud/flame_graph_hud.cpp
             perfhud/timeline.cpp
             perfhud/timeline_column.cpp
             perfhud/render_context.cpp

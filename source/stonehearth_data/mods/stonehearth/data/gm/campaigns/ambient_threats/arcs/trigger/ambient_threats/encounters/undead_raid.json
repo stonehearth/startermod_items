@@ -1,0 +1,53 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_mission",
+   "rarity" : "common",
+
+   "in_edge"  : "start",
+
+   "create_mission_info" : {
+      "spawn_range" : {
+         "min" : 100,
+         "max" : 100
+      },
+
+      "mission" : {
+         "role" : "raid_stockpiles",
+         "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+         "sighted_bulletin" : {
+            "title" : "BRAAIAINANANSSSSSS!",
+            "message" : "Gonna get you!"
+         },
+
+         "npc_player_id" : "undead",
+
+         "members" : {
+            "maurauder_a" : {
+               "location" : { "x": 1, "z": -1 },
+               "job" : "stonehearth:jobs:footman",
+               "role" : "zombie",
+               "equipment" : {
+                  
+               }
+            },
+            "maurauder_b" : {
+               "location" : { "x": -1, "z": -1 },
+               "job" : "stonehearth:jobs:footman",
+               "role" : "zombie",
+               "equipment" : {
+                  
+               }
+            },
+            "maurauder_c" : {
+               "location" : { "x": 0, "z": 1 },
+               "job" : "stonehearth:jobs:footman",
+               "role" : "skeleton",
+               "equipment" : {
+                  "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ]
+               }
+            }
+         }
+      }
+   }
+}

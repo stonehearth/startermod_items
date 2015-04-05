@@ -119,7 +119,7 @@ RenderNodePtr RenderNode::SetGeometry(SharedGeometry geo)
    return shared_from_this();
 }
 
-RenderNodePtr RenderNode::SetMaterial(std::string const& material)
+RenderNodePtr RenderNode::SetMaterial(core::StaticString material)
 {
    SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial(material);
    return SetMaterial(mat);

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <libjson.h>
 #include "namespace.h"
+#include "core/static_string.h"
 
 BEGIN_RADIANT_JSON_NAMESPACE
 
@@ -249,6 +250,7 @@ private:
 };
 
 template <> std::string decode(Node const& node);
+template <> core::StaticString decode(Node const& node);
 template <> int decode(Node const& node);
 template <> double decode(Node const& node);
 template <> float decode(Node const& node);

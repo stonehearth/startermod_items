@@ -122,10 +122,10 @@ RenderNodePtr Client_CreateObjRenderNode(lua_State* L,
 }
 
 RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L, 
-                                          H3DNode parent,
-                                          std::string const& qubicle_file,
-                                          std::string const& qubicle_matrix,
-                                          csg::Point3f const& origin)
+                                             H3DNode parent,
+                                             std::string const& qubicle_file,
+                                             std::string const& qubicle_matrix,
+                                             csg::Point3f const& origin)
 {
    RenderNodePtr node;
    Pipeline& pipeline = Pipeline::GetInstance();

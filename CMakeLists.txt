@@ -137,6 +137,7 @@ INCLUDE(${RADIANT_MODULE_ROOT}/sfml/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/snappy/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/eastl/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/tbb/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/flatbuffers/cmake/config.txt)
 
 set(Boost_USE_STATIC_LIBS     ON)
 set(Boost_USE_STATIC_RUNTIME  ON)

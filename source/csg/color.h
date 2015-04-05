@@ -29,73 +29,30 @@ public:
       return (&r)[i];
    }
 
-   bool operator==(const Color4& other) {
-      return r == other.r && g == other.g && b == other.b && a == other.a;
-   }
-
-   bool operator!=(const Color4& other) {
-      return r != other.r || g != other.g || b != other.b || a != other.a;
-   }
-
-   void operator*=(float s) {
-      s = std::min(std::max(s, 1.0f), 0.0f);
-      for (int i = 0; i < 4; i++) {
-         (*this)[i] = (int)((*this)[i] * s);
-      }
-   }
+   bool operator==(const Color4& other) const;
+   bool operator!=(const Color4& other) const;
+   bool operator<(const Color4& other) const;
+   void operator*=(float s);
 
    void LoadValue(const protocol::color& c);
    void SaveValue(protocol::color *c) const;
 
-   Point3f ToHsl() const {
-      const Point3f nRGB(r / 255.0, g / 255.0, b / 255.0);
-      const double cMax = std::max(std::max(nRGB.x, nRGB.y), nRGB.z);
-      const double cMin = std::min(std::min(nRGB.x, nRGB.y), nRGB.z);
-      const double delta = cMax - cMin;
-      Point3f result(0, 0, (cMax + cMin) / 2.0);
+   Point3f ToHsl() const;
+   int ToInteger() const;
+   std::string ToString() const;
+   static Color4 FromInteger(unsigned int i);
+   static Color4 FromString(std::string const& str);
 
-      if (delta != 0) {
-         result.y = result.z > 0.5f ? delta / (2.0f - cMax - cMin) : delta / (cMax + cMin);
-         if (cMax == nRGB.x) {
-            result.x = (nRGB.y - nRGB.z) / delta + (nRGB.y < nRGB.z ? 6.0f : 0.0f);
-         } else if (cMax == nRGB.y) {
-            result.x = (nRGB.z - nRGB.x) / delta + 2.0f;
-         } else {
-            result.x = (nRGB.x - nRGB.y) / delta + 4.0f;
-         }
-         result.x /= 6.0;
+   struct Hash { 
+      inline size_t operator()(Color4 const& c) const {
+         return static_cast<size_t>(c.r * 73856093) ^
+                static_cast<size_t>(c.g * 19349669) ^
+                static_cast<size_t>(c.b * 83492791) ^
+                static_cast<size_t>(c.a * 22121887);
       }
-      return result;
-   }
+   };
 
-   int ToInteger() const {
-      return ((unsigned int)r) |
-               (((unsigned int)g) << 8) |
-               (((unsigned int)b) << 16) |
-               (((unsigned int)a) << 24);
-   }
-   std::string ToString() const {
-      std::stringstream out;
-      out << std::hex << std::setfill('0') << std::setw(2) << '#' << r << g << b << a;
-      return out.str();
-   }
-   static Color4 FromInteger(unsigned int i) {
-      return Color4(i & 0xff, (i >> 8) & 0xff, (i >> 16) & 0xff, (i >> 24) & 0xff);
-   }
-   static Color4 FromString(std::string const& str) {
-      const char* c = str.c_str();
-      size_t len = str.length();
-      if (*c == '#') {
-         int val = strtol(c + 1, nullptr, 16);
-         switch (len - 1) {
-         case 6: // #ffcc00
-            return Color4((val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff, 255);
-         case 8: // #ffcc0080
-            return Color4((val >> 24) & 0xff, (val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff);
-         }
-      }
-      return Color4(0, 0, 0, 255);
-   }
+
 };
 
 std::ostream& operator<<(std::ostream& out, const Color4 &c);
@@ -115,33 +72,26 @@ public:
       return (&r)[i];
    }
 
-   void operator*=(float s) {
-      s = std::min(std::max(s, 1.0f), 0.0f);
-      for (int i = 0; i < 3; i++) {
-         (*this)[i] = (int)((*this)[i] * s);
-      }
-   }
+   bool operator==(const Color3& other) const;
+   bool operator!=(const Color3& other) const;
+   bool operator<(const Color3& other) const;
+   void operator*=(float s);
 
    void SaveValue(protocol::color *c) const;
    void LoadValue(const protocol::color& c);
 
-   int ToInteger() const {
-      return ((unsigned int)r) |
-               (((unsigned int)g) << 8) |
-               (((unsigned int)b) << 16);
-   }
-   std::string ToString() const {
-      std::stringstream out;
-      out << std::hex << std::setfill('0') << std::setw(2) << '#' << r << g << b;
-      return out.str();
-   }
-   static Color3 FromInteger(unsigned int i) {
-      return Color3(i & 0xff, (i >> 8) & 0xff, (i >> 16) & 0xff);
-   }
-   static Color3 FromString(std::string const& str) {
-      Color4 c = Color4::FromString(str);
-      return Color3(c.r, c.g, c.b);
-   }
+   int ToInteger() const;
+   std::string ToString() const;
+   static Color3 FromInteger(unsigned int i);
+   static Color3 FromString(std::string const& str);
+
+   struct Hash { 
+      inline size_t operator()(Color3 const& c) const {
+         return static_cast<size_t>(c.r * 73856093) ^
+                static_cast<size_t>(c.g * 19349669) ^
+                static_cast<size_t>(c.b * 83492791);
+      }
+   };
 
    static Color3 red;
    static Color3 orange;

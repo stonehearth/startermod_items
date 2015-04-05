@@ -19,6 +19,8 @@ class Frame;
 class Timeline;
 class Store;
 class Hud;
+class StackFrame;
+class SamplingProfiler;
 
 END_RADIANT_PERFMON_NAMESPACE
 

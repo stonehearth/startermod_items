@@ -12,6 +12,9 @@ class RenderInfo(Component):
    material = dm.Boxed(std.string())
    visible = dm.Boxed(c.bool())
 
+   color_map= dm.Boxed(std.string())
+   material_maps = dm.Set(std.string(), iterate='define', singular_name='material_map')
+
    attached_entities = dm.Set(EntityRef(), add=None, remove=None, iterate='define', singular_name='attached_entity')
 
    attach_entity = ridl.Method(c.void(), ('entity', EntityRef()))

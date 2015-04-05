@@ -8,8 +8,11 @@ function Stockpile:initialize(piece)
    self.__saved_variables:mark_changed()
 end
 
-function Stockpile:start(ctx)
+function Stockpile:start(ctx, info)
    self._ctx = ctx
+   self._info = info
+   assert(info.npc_player_id)
+   
    local size = self._sv.piece.info.script_info.stockpile_size
 
    local stockpile_location = ctx.enemy_location + Point3(self._sv.piece.position.x - (size.w / 2), 1, self._sv.piece.position.y - (size.h / 2))
@@ -17,7 +20,7 @@ function Stockpile:start(ctx)
 end
 
 function Stockpile:_create_stockpile(location, w, h)
-   stonehearth.inventory:get_inventory(self._ctx.enemy_player_id)
+   stonehearth.inventory:get_inventory(self._info.npc_player_id)
                            :create_stockpile(location, Point2(w, h))
 
    local contents = self._sv.piece.info.script_info.stockpile_contents

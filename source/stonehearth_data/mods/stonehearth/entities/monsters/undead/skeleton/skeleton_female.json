@@ -3,7 +3,7 @@
    "mixins" : "stonehearth:mixins:monster",
    "components": {
       "render_info" : {
-         "animation_table": "file(/data/rigs/monsters/skeleton/skeletons/female.json)"
+         "animation_table": "file(/data/rigs/monsters/undead/skeletons/female.json)"
       },
       "model_variants": {
          "default": {
@@ -29,7 +29,7 @@
          },
          "speed": {
             "type" : "basic",
-            "value" : 50
+            "value" : 40
          },
          "menace": {
             "type" : "basic",

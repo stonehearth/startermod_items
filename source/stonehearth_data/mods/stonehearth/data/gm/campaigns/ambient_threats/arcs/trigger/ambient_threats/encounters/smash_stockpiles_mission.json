@@ -1,0 +1,51 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "city_raid",
+   "rarity" : "common",
+
+   "in_edge"  : "city_raid",
+
+   "city_raid_info" : {
+      "missions" : {
+         "raid_stockpiles" : {
+            "role" : "raid_stockpiles",
+            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+            "sighted_bulletin" : {
+               "title" : "A goblin raiding party approaches!",
+               "message" : "Gonna get you!"
+            },
+            
+            "members" : {
+               "maurauder_a" : {
+                  "location" : { "x": 1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                  }
+               },
+               "maurauder_b" : {
+                  "location" : { "x": -1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                  }
+               },
+               "maurauder_c" : {
+                  "location" : { "x": 0, "z": 1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:maurauder_abilities"
+                  }
+               }
+            }
+         }
+      }
+   }
+}

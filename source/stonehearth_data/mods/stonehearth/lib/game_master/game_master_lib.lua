@@ -98,9 +98,21 @@ function game_master_lib.create_citizen(population, info, origin)
                   :set_attack_leash(origin, info.combat_leash_range)
    end
 
-   -- finally, put the new citizen in the world and return it
+   --if info.attributes, then add these attributes to the entity
+   --this should allow us to tweak the attributes of specific entities
+   --we are only allowed to add basic attributes
+   if info.attributes then
+      local attrib_component = citizen:add_component('stonehearth:attributes')
+      for name, value in pairs(info.attributes) do
+         attrib_component:set_attribute(name, value)
+      end
+   end
+
+   -- put the new citizen in the world and return it
    radiant.terrain.place_entity(citizen, origin)
 
+   -- let any listeners know that the entity has been added by the gm 
+   radiant.events.trigger_async(citizen, 'stonehearth:game_master:citizen_added', {})
    return citizen
 end
 

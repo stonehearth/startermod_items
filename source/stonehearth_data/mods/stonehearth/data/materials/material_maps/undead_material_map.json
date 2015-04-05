@@ -1,0 +1,5 @@
+{
+   "stonehearth:humanoid:glowing_eyes" : {
+      "render_material" : "materials/glowy_voxel.material.json"
+   }
+}
