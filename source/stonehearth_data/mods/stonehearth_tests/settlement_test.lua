@@ -8,11 +8,7 @@ function SettlementTest:__init()
    self[MicroWorld]:__init(1024)
    self:create_world()
 
-   radiant.set_realtime_timer(500, function()
-         stonehearth.game_master:start()
-      end)
-
-    -- build the player camp
+   -- build the player camp
    self:place_citizen(4, 4, 'footman')
    self:place_citizen(4, 7, 'footman')
    self:place_citizen(10, 7, 'footman')
@@ -35,12 +31,12 @@ function SettlementTest:__init()
    create_stockpile(14, 14)
    create_stockpile(10, 8)
    create_stockpile(2, 16)
-   
+
    -- send in the goblins!!
    radiant.set_realtime_timer(500, function()
          stonehearth.game_master:start()
       end)
-
+   
    -- just for fun...
    --[[
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)
