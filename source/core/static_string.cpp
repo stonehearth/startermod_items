@@ -1,23 +1,31 @@
 #include "radiant.h"
+#include "radiant_logger.h"
 #include "dm/map_util.h"
 #include "static_string.h"
 
 using namespace ::radiant;
 using namespace ::radiant::core;
 
+StaticString StaticString::Empty("");
+
 StaticString::StaticString() :
    _value(Empty._value)
 {
 }
 
-StaticString::StaticString(std::string const& s)
+StaticString::StaticString(std::string const& s) :
+   _value(ToStaticString()(s.c_str()))
 {
-   _value = ToStaticString()(s.c_str());
 }
 
-StaticString::StaticString(const char* s)
+StaticString::StaticString(const char* s) :
+   _value(ToStaticString()(s))
 {
-   _value = ToStaticString()(s);
+}
+
+StaticString::StaticString(const char* s, size_t len) :
+   _value(ToStaticString()(s, len))
+{   
 }
 
 
@@ -52,13 +60,12 @@ struct StringHash {
    }
 };
 
-std::string __key;
-tbb::spin_mutex __mutex;
-std::unordered_set<std::string, StringHash> __strtab;
-StaticString StaticString::Empty("");
-
-const char* StaticString::ToStaticString::operator()(const char* key)
+const char* StaticString::ToStaticString::operator()(const char* key, size_t n)
 {
+   static std::string __key;
+   static tbb::spin_mutex __mutex;
+   static std::unordered_set<std::string, StringHash> __strtab;
+
    /*
     * The same types get created on the client and the server, so we need to
     * grab a lock when modifying the table.  You could imagine using a reader/writer
@@ -71,7 +78,10 @@ const char* StaticString::ToStaticString::operator()(const char* key)
     * Use the static __key to do all our operations.  Constructing a new
     * string here on the stack would alloc, which is what we're trying to avoid!
     */
-   __key = key;
+   if (n == std::string::npos) {
+      n = strlen(key);
+   }
+   __key.replace(0, std::string::npos, key, n);
 
    auto i = __strtab.find(__key);
    if (i == __strtab.end()) {

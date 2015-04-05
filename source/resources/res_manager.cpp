@@ -18,6 +18,7 @@
 #include "directory_module.h"
 #include "zip_module.h"
 #include "lib/voxel/qubicle_file.h"
+#include "resource_compiler.h"
 #include <Poco/Zip/ZipStream.h>
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
@@ -61,7 +62,7 @@ static void ParsePath(std::string const& path, std::string& modname, std::vector
    }
 }
 
-static std::string Checksum(std::string const& input)
+std::string Checksum(std::string const& input)
 {
    CryptoPP::SHA256 hash;
    byte buffer[2 * CryptoPP::SHA256::DIGESTSIZE]; // Output size of the buffer
@@ -742,4 +743,34 @@ bool ResourceManager2::IsValidModule(std::string const& modname, std::unique_ptr
       return false;
    }
    return true;
+}
+
+luabind::object ResourceManager2::LoadScript(lua_State* L, std::string const& path)
+{
+   std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+   LUA_LOG(5) << "loading script " << path;
+   std::shared_ptr<std::istream> in = OpenResource(path);
+   if (!in->good()) {
+      throw std::logic_error(BUILD_STRING("Could not open script file \"" << path << "\"."));
+   }
+   std::string contents = io::read_contents(*in);
+
+   DelayLoadCompiler();
+   return _compiler->CompileScript(L, path, contents);
+}
+
+
+core::StaticString ResourceManager2::MapFileLineToFunction(core::StaticString file, int line)
+{
+   DelayLoadCompiler();
+   return _compiler->MapFileLineToFunction(file, line);
+}
+
+void ResourceManager2::DelayLoadCompiler()
+{
+   if (!_compiler) {
+      _compiler.reset(new ResourceCompiler());
+      _compiler->Initialize();
+   }
 }

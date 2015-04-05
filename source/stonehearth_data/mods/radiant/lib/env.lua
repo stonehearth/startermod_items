@@ -1,6 +1,3 @@
-local Entity = _radiant.om.Entity
-local Point3 = _radiant.om.Point3
-
 -- if these variables don't exist yet, they never will.  put them in the global
 -- namespace so we can check them before using (otherwise strict.lua will kick
 -- us in the teeth just for checking against nil)
@@ -11,6 +8,16 @@ if not decoda_output then
    decoda_output = false
 end
 
+-- register all threads with the backend
+local coroutine_create = coroutine.create
+coroutine.create = function(f, ...)
+   local co = coroutine_create(function(...)
+         return f(...)
+      end, ...)
+   _radiant.register_thread(co)
+   return co
+end
+         
 -- this function is only valid in very specific circumstances!  specfically, the
 -- caller must be called DIRECTLY from a 3rd party module source file.
 __get_current_module_name = function(depth)
@@ -48,15 +55,23 @@ require = function(s)
    -- level 1 would be the __get_current_module_name function in env.lua...
    -- level 2 would be the caller of this function (e.g. require in env.lua...)
    -- level 3 is the caller of the caller, which is in the module we're looking for!
+   local mod
    local modname = __get_current_module_name(3)
    if modname then
-      local mod = _host:require(modname .. '.' .. s)
-      if mod then
-         return mod
-      end
+      mod = _host:require(modname .. '.' .. s)
    end
-   -- try the full path...
-   return _host:require(s)
+
+   if not mod then
+      -- try the full path...
+      mod =  _host:require(s)
+   end
+
+   if not mod then
+      -- try radiant.lib
+      mod = _host:require('radiant.lib.' .. s)
+   end
+   
+   return mod
 end
 
 -- We need to redefine 'next' and 'pairs' in order to allow for traversal of tables that have 
@@ -115,31 +130,5 @@ function string:ends_with(suffix)
    return suffix == '' or self:sub(-suffix:len()) == suffix
 end
 
-require 'lualibs.unclasslib'
-
--- augment checks with the some radiant native types.
-require 'lualibs.checks'
-
-local NATIVE_CHECKS = {
-   Entity         = _radiant.om.Entity,
-   Region3Boxed   = _radiant.om.Region3Boxed,
-   Point3         = _radiant.csg.Point3,
-   Region3        = _radiant.csg.Region3,
-}
-for name, expected_type in pairs(NATIVE_CHECKS) do
-   assert(not checkers[name])
-   checkers[name] = function(x)
-      return radiant.util.is_a(x, expected_type)
-   end
-end
-
--- add a 'self' check to improve readiblity in methods.
-function checkers.self(x)
-   return type(x) == 'table'
-end
-
--- check for radiant controllers.
-function checkers.controller(x)
-   return radiant.util.is_instance(x) and
-          radiant.util.is_a(x.__saved_variables, _radiant.om.DataStore)
-end
+require 'lib.unclasslib'
+require 'lib.checks'

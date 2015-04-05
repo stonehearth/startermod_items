@@ -10,6 +10,8 @@
 #include "exceptions.h"
 #include "manifest.h"
 #include "lib/voxel/forward_defines.h"
+#include "lib/lua/bind.h"
+#include "core/static_string.h"
 
 BEGIN_RADIANT_RES_NAMESPACE
 
@@ -35,6 +37,9 @@ public:
 
    std::string GetAliasUri(std::string const& mod_name, std::string const& alias_name) const;
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
+
+   luabind::object LoadScript(lua_State* L, std::string const& path);
+   core::StaticString MapFileLineToFunction(core::StaticString file, int line);
 
 private:
    enum MixinMode {
@@ -69,6 +74,7 @@ private:
    void ImportModOverrides(std::string const& modname, json::Node const& overrides);
    std::shared_ptr<std::istream> OpenResourceCanonical(std::string const& stream) const;
    bool IsValidModule(std::string const& modname, std::unique_ptr<IModule> const& module);
+   void DelayLoadCompiler();
 
 private:
    bool                                            _modDirectoryChanged;
@@ -83,6 +89,7 @@ private:
 
    mutable std::unordered_map<std::string, std::shared_ptr<JSONNode>>     jsons_;
    mutable std::unordered_map<std::string, std::string>    _canonicalPaths;
+   std::unique_ptr<ResourceCompiler>               _compiler;
 };
 
 END_RADIANT_RES_NAMESPACE

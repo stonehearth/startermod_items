@@ -176,7 +176,7 @@ Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
             std::string init_script = n.get<std::string>("init_script", "");
             if (!init_script.empty()) {
                try {        
-                  object fn = lua::ScriptHost::RequireScript(L, init_script);
+                  object fn = lua::ScriptHost::GetScriptHost(L)->RequireScript(init_script);
                   if (!fn.is_valid() || type(fn) != LUA_TFUNCTION) {
                      E_LOG(3) << "failed to load init script " << init_script << "... skipping.";
                   } else {

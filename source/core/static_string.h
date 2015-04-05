@@ -23,6 +23,7 @@ public:
    StaticString();
    StaticString(std::string const& s);
    StaticString(const char* s);
+   StaticString(const char* s, size_t len);
    operator const char*() const { return _value; }
 
    struct Hash {
@@ -32,7 +33,7 @@ public:
    };
 
    struct ToStaticString {
-      const char* operator()(const char* key);
+      const char* operator()(const char* key, size_t n = std::string::npos);
    };
 
    static StaticString Empty;
