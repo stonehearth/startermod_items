@@ -9,13 +9,13 @@ if not decoda_output then
 end
 
 -- register all threads with the backend
-if false then
-   local cocreate = coroutine.create
-   coroutine.create = function(f, ...)
-    local co = cocreate(function(...)
-      return f(...)
-    end, ...)
-    _host:register_thread(co)end
+local coroutine_create = coroutine.create
+coroutine.create = function(f, ...)
+   local co = coroutine_create(function(...)
+         return f(...)
+      end, ...)
+   _radiant.register_thread(co)
+   return co
 end
          
 -- this function is only valid in very specific circumstances!  specfically, the
