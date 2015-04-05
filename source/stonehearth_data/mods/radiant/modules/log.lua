@@ -22,7 +22,7 @@ local LOG_LEVELS = {}
 -- body of write.  The stack has to be organized *just* so in order to get the
 -- module name correct!  This includes those "return true"'s at the bottom of these
 -- functions to disable tail-call optimization of write_.
- 
+
 function Log.write_(category, level, format, ...)
    if radiant.log.is_enabled(category, level) then
       local args = {...}
