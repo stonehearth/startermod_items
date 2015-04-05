@@ -7,8 +7,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-#pragma optimize( "", off )
-
 FlameGraphHud::FlameGraphHud(Renderer& r)
 {
    guard_ += r.OnRenderFrameStart([this](FrameStartInfo const&) {
@@ -34,14 +32,16 @@ FlameGraphHud::~FlameGraphHud()
 
 FlameGraphHud& FlameGraphHud::Render()
 {
-   perfmon::FlameGraph &g = flameGraphs.LockFrontBuffer();
+#if 0
+   // One day I will get this working... Until that happy, happy day, do nothin' -- tony
+   perfmon::FlameGraph &g = ???;
 
    double height = bounds_.GetHeight() / (g.GetDepth() + 1);
    csg::Rect2f rc = bounds_;
    rc.min.y = rc.max.y - height;
 
    RenderStackFrame(*g.GetBaseStackFrame(), rc, csg::Color3::red);
-   flameGraphs.UnlockFrontBuffer();
+#endif
    return *this;
 }
 

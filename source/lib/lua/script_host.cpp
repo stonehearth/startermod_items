@@ -21,8 +21,6 @@
 #include "caching_allocator.h"
 #include "lua_flame_graph.h"
 
-#pragma optimize ( "", off )
-
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::lua;
@@ -292,18 +290,6 @@ inline void unsigned_to_decimal(unsigned long number, char* buffer)
 
 void ScriptHost::ProfileHookFn(lua_State *L, lua_Debug *ar)
 {
-#if 0
-   ASSERT(ar->event == LUA_HOOKCALL || ar->event == LUA_HOOKRET || ar->event == LUA_HOOKTAILRET);
-
-   lua_getinfo(L, "nS", ar);
-   if (!ar->name || !ar->what) {
-      return;
-   }
-   if (strcmp(ar->what, "C") == 0) {
-      return;
-   }
-#endif
-
    ScriptHost* sh = ScriptHost::GetScriptHost(L);
    if (sh) {
       sh->ProfileHook(L, ar);
@@ -332,39 +318,6 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
    }
    _lastHookL = L;
    _lastHookTimestamp = now;
-
-#if 0
-   char buf[MAX_PATH];
-   strcpy(buf, ar->source);
-   int len = strlen(buf);
-   buf[len++] = ':';
-   itoa(ar->linedefined, buf + len, 10);
-
-   core::StaticString fn(buf);
-   //   core::StaticString fn = _luaFlameGraph->MapFileLineToFunction(ar->source, ar->linedefined);
-
-   perfmon::FlameGraph &g = flameGraphs.LockFrontBuffer();
-   if (ar->event == LUA_HOOKCALL) {
-      g.PushFrame(fn);
-      // Do something with... core::StaticString(ar->name));
-   } else {
-      g.PopFrame(fn);
-      // PROFILE_STOP();
-   }
-#endif
-#if 0
-   g.AddLuaBacktrace(stack, len, [this](core::StaticString fileLine) {
-      const char* start = fileLine;
-      const char* colon = strchr(start, ':');
-      if (!colon) {
-         return fileLine;
-      }
-      core::StaticString file(start, colon - start);
-      int line = atoi(colon + 1);
-      return _luaFlameGraph->MapFileLineToFunction(file, line);
-   });
-#endif
-   flameGraphs.UnlockFrontBuffer();
 }
 
 int RegisterThreadFn(lua_State* L)
@@ -382,7 +335,7 @@ void ScriptHost::RegisterThread(lua_State* L)
    allThreads_.insert(L);
    lua_atpanic(L, PanicCallbackFn);
    // xxx: what about the paraonid hook?
-   if (enable_profile_cpu_) {
+   if (_cpuProfilerRunning) {
       InstallProfileHook(L);
    }
 }
@@ -395,6 +348,7 @@ ScriptHost::ScriptHost(std::string const& site) :
    shut_down_(false),
    _lastHookL(nullptr),
    enable_profile_cpu_(false),
+   _cpuProfilerRunning(false),
    _lastHookTimestamp(0)
 {
    current_line = 0;
@@ -407,7 +361,9 @@ ScriptHost::ScriptHost(std::string const& site) :
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
-   _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua_profiler_instruction_sampling_rate", 50);
+   if (enable_profile_cpu_) {
+      _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua_profiler_instruction_sampling_rate", 50);
+   }
    std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
 
    if (gc_setting == "auto") {
@@ -1279,46 +1235,23 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    return module;
 }
 
-void ScriptHost::LuaProfileFn(void *data, lua_State *L, int samples, int vmstate)
-{
-   static_cast<ScriptHost*>(data)->LuaProfileCb(L, samples, vmstate);
-}
-
-void ScriptHost::LuaProfileCb(lua_State *L, int samples, int vmstate)
-{
-   ASSERT(false);
-#if 0
-   ASSERT(!_luaFlameGraph->IsIndexing());
-
-   size_t len = 0;
-   const char* stack = luaJIT_profile_dumpstack(L, cpu_profile_stack_fmt_.c_str(), cpu_profile_stack_depth_, &len);
-
-   perfmon::FlameGraph &g = flameGraphs.LockFrontBuffer();
-   g.AddLuaBacktrace(stack, len, [this](core::StaticString fileLine) {
-      const char* start = fileLine;
-      const char* colon = strchr(start, ':');
-      if (!colon) {
-         return fileLine;
-      }
-      core::StaticString file(start, colon - start);
-      int line = atoi(colon + 1);
-      return _luaFlameGraph->MapFileLineToFunction(file, line);
-   });
-   flameGraphs.UnlockFrontBuffer();
-#endif
-}
-
 bool ScriptHost::ToggleCpuProfiling()
 {
-   enable_profile_cpu_ = !enable_profile_cpu_;
+   if (!enable_profile_cpu_) {
+      SH_LOG(1) << "cpu profiler not enabled.  set lua.enable_cpu_profiler to true";
+      return false;
+   }
+
+   _cpuProfilerRunning = !_cpuProfilerRunning;
    for (lua_State* L : allThreads_) {
-      if (enable_profile_cpu_) {
+      if (_cpuProfilerRunning) {
          InstallProfileHook(L);
       } else {
          RemoveProfileHook(L);
       }
    }
-   if (!enable_profile_cpu_) {
+
+   if (!_cpuProfilerRunning) {
       perfmon::TimeTable stats;
       for (auto const& entry : _profilers) {
          entry.second.CollectStats(stats);
@@ -1331,13 +1264,12 @@ bool ScriptHost::ToggleCpuProfiling()
                            << std::string(rows, '#');
       });
    }
-   return enable_profile_cpu_;
+   return _cpuProfilerRunning;
 }
 
 void ScriptHost::InstallProfileHook(lua_State* L)
 {
    lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCOUNT, _cpuProfileInstructionSamplingRate);
-   //lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCALL | LUA_MASKRET, 0);
 }
 
 void ScriptHost::RemoveProfileHook(lua_State* L)

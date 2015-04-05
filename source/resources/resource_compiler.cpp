@@ -3,6 +3,7 @@
 #include "resource_compiler.h"
 #include "lib/lua/script_host.h"
 #include "lua_file_mapper.h"
+#include "core/config.h"
 
 using namespace ::radiant;
 using namespace ::radiant::res;
@@ -46,7 +47,10 @@ void ResourceCompiler::Initialize()
    _scriptHost->Require("radiant.lib.env");
    //_scriptHost->Require("radiant.lib.strict");
 
-   _luaFileMapper.reset(new LuaFileMapper(*_scriptHost));
+   bool cpuProfilerEnabled = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
+   if (cpuProfilerEnabled) {
+      _luaFileMapper.reset(new LuaFileMapper(*_scriptHost));
+   }
 }
 
 ResourceCompiler::~ResourceCompiler()
@@ -87,5 +91,8 @@ luabind::object ResourceCompiler::CompileScript(lua_State* L, std::string const&
 core::StaticString ResourceCompiler::MapFileLineToFunction(core::StaticString file, int line)
 {
    ASSERT(_luaFileMapper);
-   return _luaFileMapper->MapFileLineToFunction(file, line);
+   if (_luaFileMapper) {
+      return _luaFileMapper->MapFileLineToFunction(file, line);
+   }
+   return "cpu profiler not enabled";
 }

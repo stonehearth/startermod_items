@@ -5,10 +5,6 @@
 using namespace radiant;
 using namespace radiant::perfmon;
 
-#pragma optimize ( "", off )
-
-core::DoubleBuffer<perfmon::FlameGraph> flameGraphs;
-
 StackFrame::StackFrame(core::StaticString name) :
    _name(name),
    _count(0),

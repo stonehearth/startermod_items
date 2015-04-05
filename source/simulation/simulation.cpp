@@ -856,7 +856,6 @@ void Simulation::main()
    while (1) {
       Mainloop();
       ++_sequenceNumber;
-      //flameGraphs.Swap();
    }
 }
 

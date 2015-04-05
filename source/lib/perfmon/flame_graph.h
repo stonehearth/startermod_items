@@ -68,8 +68,4 @@ private:
 
 END_RADIANT_PERFMON_NAMESPACE
 
-// This greatly annoys me, but is good for now.
-#include "core/double_buffer.h"
-extern ::radiant::core::DoubleBuffer<::radiant::perfmon::FlameGraph> flameGraphs;
-
 #endif // _RADIANT_PERFMON_FLAMEGRAPH_H

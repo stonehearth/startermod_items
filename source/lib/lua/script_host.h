@@ -82,7 +82,6 @@ private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
-   static void LuaProfileFn(void *data, lua_State *L, int samples, int vmstate);
    void Log(const char* category, int level, const char* str);
    void Exit(int code);
    int GetLogLevel(std::string const& category);
@@ -97,7 +96,6 @@ private:
    void ProfileHook(lua_State *L, lua_Debug *ar);
 
 private:
-   void LuaProfileCb(lua_State *L, int samples, int vmstate);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
    void SetPerformanceCounter(const char* name, double value, const char* kind);
@@ -138,6 +136,7 @@ private:
    // CPU profiling
    bool                 enable_profile_cpu_;
    int                  _cpuProfileInstructionSamplingRate;
+   bool                 _cpuProfilerRunning;
    bool                 profile_cpu_;
    std::string          cpu_profile_mode_;
    std::string          cpu_profile_stack_fmt_;
@@ -147,7 +146,7 @@ private:
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
-   bool                 shut_down_;
+   bool                       shut_down_;
    lua_State*                 _lastHookL;
    perfmon::CounterValueType  _lastHookTimestamp;
    std::unordered_map<lua_State*, perfmon::FlameGraph>   _profilers;
