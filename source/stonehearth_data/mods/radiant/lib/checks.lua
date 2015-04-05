@@ -20,7 +20,9 @@
 -- Alternative implementation of checks() in Lua. Slower than
 -- the C counterpart, but no compilation/porting concerns.
 
-checkers = { }
+checkers = {
+    __get_typename = type    
+}
 
 local function check_one(expected, val)
     if type(val)==expected then return true end
@@ -50,7 +52,7 @@ function checks(...)
         if not success then
             local fname = debug.getinfo(2, 'n').name
             local fmt = "bad argument #%d to '%s' (%s expected, got %s)"
-            local msg = string.format(fmt, i, fname or "?", arg, type(val))
+            local msg = string.format(fmt, i, fname or "?", arg, checkers.__get_typename(val))
             error(msg, 3)
         end
     end
