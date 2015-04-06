@@ -142,7 +142,6 @@ Shape Physics_WorldToLocal(Shape const& s, om::EntityRef e)
 }
 
 DEFINE_INVALID_JSON_CONVERSION(OctTree)
-DEFINE_INVALID_LUA_CONVERSION(OctTree)
 IMPLEMENT_TRIVIAL_TOSTRING(OctTree)
 
 void lua::phys::open(lua_State* L, OctTree& octtree)

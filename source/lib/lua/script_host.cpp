@@ -25,7 +25,6 @@ using namespace ::radiant::lua;
 namespace fs = ::boost::filesystem;
 
 DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
-DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 
 #define SH_LOG(level)    LOG(script_host, level)
 
@@ -323,6 +322,9 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
          def("set_profiler_enabled",   &core::SetProfilerEnabled),
          def("is_profiler_enabled",    &core::IsProfilerEnabled),
          def("is_profiler_available",  &core::IsProfilerAvailable),
+         namespace_("core") [
+            lua::RegisterType<core::StaticString>("StaticString")               
+         ],
          namespace_("lua") [
             lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
                .def("log",             &ScriptHost::Log)
