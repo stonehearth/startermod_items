@@ -486,8 +486,9 @@ function SubterraneanViewService:_update_visiblity(entity, visible)
       return
    end
 
-   local custom_clip = radiant.entities.get_entity_data(entity, 'stonehearth:hud:custom_clip', true)
-   if custom_clip == true then
+   -- don't auto show/hide the entity if it indicates it has custom clipping turned on
+   local data = radiant.entities.get_entity_data(entity, 'stonehearth:subterreanean_view')
+   if data and data.clip_mode == 'custom' then
       return
    end
 

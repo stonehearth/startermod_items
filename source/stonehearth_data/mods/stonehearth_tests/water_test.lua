@@ -7,7 +7,7 @@ local log = radiant.log.create_logger('water')
 local WaterTest = class(MicroWorld)
 
 function WaterTest:__init()
-   self[MicroWorld]:__init(128)
+   self[MicroWorld]:__init(256)
    self:create_world()
 
    local session = self:get_session()
@@ -77,10 +77,10 @@ end
 
 function WaterTest:_water_test()
    local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
-   stonehearth.hydrology:add_water(64/4 + 64*4, location)
+   stonehearth.hydrology:add_water(64/4 + 64*3.5, location)
 
    stonehearth.calendar:set_interval(10, function()
-         --stonehearth.hydrology:add_water(1, location)
+         stonehearth.hydrology:add_water(4, location)
       end)
 end
 
