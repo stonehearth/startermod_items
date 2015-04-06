@@ -32,7 +32,7 @@ DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
 
 extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud);
 
-const core::StaticString C_MODULE("=[C]");
+const char* C_MODULE = "=[C]";
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -278,16 +278,17 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
       int count = 0;
       res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
       perfmon::CounterValueType delta = now - _lastHookTimestamp;
+      
+      _profilerDuration = _profilerDuration + delta;
+      _profilerSampleCounts++;
 
       perfmon::StackFrame* current = _profilers[L].GetBaseStackFrame();
       while (lua_getstack(L, count++, &f)) {
-         lua_getinfo(L, "nS", &f);
-         core::StaticString source(f.source), fn(C_MODULE);
-         if (source != C_MODULE) {
-            fn = rm.MapFileLineToFunction(f.source, f.linedefined);
+         lua_getinfo(L, "Sl", &f);
+         if (strcmp(f.source, C_MODULE)) {
+            current = current->AddStackFrame(f.source, f.linedefined);
+            current->IncrementCount(delta, f.currentline);
          }
-         current->IncrementCount(delta);
-         current = current->AddStackFrame(fn);
       }
    }
    _lastHookL = L;
@@ -337,7 +338,7 @@ ScriptHost::ScriptHost(std::string const& site) :
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
    if (enable_profile_cpu_) {
-      _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua_profiler_instruction_sampling_rate", 50);
+      _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_rate", 15000);
    }
    std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
 
@@ -1218,18 +1219,48 @@ bool ScriptHost::ToggleCpuProfiling()
    }
 
    if (!_cpuProfilerRunning) {
+      int bottomUpDepth = 2;
       perfmon::FunctionTimes stats;
+      for (auto& entry : _profilers) {
+         entry.second.ResolveFnNames(res::ResourceManager2::GetInstance());
+      }
+
       for (auto const& entry : _profilers) {
          entry.second.CollectStats(stats);
       }
+      perfmon::FunctionAtLineTimes bottomUpStats;
+      for (auto const& entry : _profilers) {
+         entry.second.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
+      }
       _profilers.clear();
+
+      int msPerSample = 0;
+      if (_profilerSampleCounts) {
+         msPerSample  = perfmon::CounterToMilliseconds(_profilerDuration / _profilerSampleCounts);
+      }
+      LOG(lua.code, 1) << "---- lua cpu profilers stats --------------------------------------";
+      LOG(lua.code, 1) << "   profiler_instruction_sampling_rate: " << _cpuProfileInstructionSamplingRate << " instructions";
+      LOG(lua.code, 1) << "   profiling duration:                 " << perfmon::CounterToMilliseconds(_profilerDuration) << " ms";
+      LOG(lua.code, 1) << "   samples taken:                      " << _profilerSampleCounts;
+      LOG(lua.code, 1) << "   average ms per sample interval:     " << msPerSample << " ms";
       LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
       perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
          LOG(lua.code, 1) << std::setw(120) << name << " : "
                            << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
                            << std::string(rows, '#');
       });
+
+      LOG(lua.code, 1) << "---- bottom up time (" << bottomUpDepth << " deep) -----------------------------------------------";
+      perfmon::ReportCounters<perfmon::FunctionAtLineTimes, 30>(bottomUpStats, [](std::string const& name, perfmon::CounterValueType const& duration, size_t rows) {
+         LOG(lua.code, 1) << std::setw(120) << name << " : "
+                           << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
+                           << std::string(rows, '#');
+      });
    }
+
+   _profilerDuration = 0;
+   _profilerSampleCounts = 0;
+
    return _cpuProfilerRunning;
 }
 

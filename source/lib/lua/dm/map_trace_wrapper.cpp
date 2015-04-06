@@ -20,7 +20,7 @@ using namespace radiant::lua;
 template <typename T>
 struct ValueCast {
    // By default, just return the value
-   T ToLua(T const& value)
+   T const& ToLua(T const& value)
    {
       return value;
    }
@@ -30,6 +30,15 @@ template <typename T>
 struct ValueCast<std::shared_ptr<T>> {
    // Shared pointers turn into weak pointers.
    std::weak_ptr<T> ToLua(std::shared_ptr<T> value)
+   {
+      return value;
+   }
+};
+
+template <>
+struct ValueCast<core::StaticString> {
+   // Shared pointers turn into weak pointers.
+   const char* ToLua(core::StaticString value)
    {
       return value;
    }
@@ -80,7 +89,7 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(luabind::object 
 
    trace_->OnAdded([added_cb](typename T::Key const& key, typename T::Value const& value) mutable {
       try {
-         added_cb(key, ValueCast<T::Value>().ToLua(value));
+         added_cb(ValueCast<T::Key>().ToLua(key), ValueCast<T::Value>().ToLua(value));
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }
@@ -100,7 +109,7 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnRemoved(luabind::objec
 
    trace_->OnRemoved([removed_cb](typename T::Key const& key) mutable {
       try {
-         removed_cb(key);
+         removed_cb(ValueCast<T::Key>().ToLua(key));
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }

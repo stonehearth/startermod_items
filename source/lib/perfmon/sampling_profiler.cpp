@@ -5,22 +5,25 @@
 using namespace radiant;
 using namespace radiant::perfmon;
 
-StackFrame::StackFrame(core::StaticString name) :
-   _name(name),
+const char* BASE_FRAME = "base";
+
+StackFrame::StackFrame(const char* sourceName, unsigned int fnDefLine) :
+   _sourceName(sourceName),
+   _fnDefLine(fnDefLine),
    _count(0),
    _childTotalCount(0)
 {
 }
 
-StackFrame* StackFrame::AddStackFrame(core::StaticString name)
+StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDefLine)
 {
    // O(n), but much more cache-friendly then a hashtable.
    for (StackFrame& c : _children) {
-      if (c._name == name) {
+      if (c._fnDefLine == fnDefLine && !strcmp(c._sourceName, sourceName)) {
          return &c;
       }
    }
-   _children.emplace_back(name);
+   _children.emplace_back(sourceName, fnDefLine);
    return &_children.back();
 }
 
@@ -31,6 +34,11 @@ void StackFrame::Clear()
    // whole table.
 
    _count = 0;
+
+   for (int i = 0; i < _lineNumTimes.size(); i++) {
+      _lineNumTimes[i] = 0;
+   }
+
    for (StackFrame& c : _children) {
       c.Clear();
    }
@@ -41,20 +49,32 @@ std::vector<StackFrame> const& StackFrame::GetChildren() const
    std::vector<StackFrame> &children = const_cast<std::vector<StackFrame>&>(_children);
 
    std::sort(children.begin(), children.end(), [](StackFrame const& lhs, StackFrame const& rhs) -> bool {
-      return strcmp(lhs._name, rhs._name) < 0;
+      return strcmp(lhs._sourceName, rhs._sourceName) < 0;
    });
    return _children;
 }
 
+void StackFrame::ResolveFnNames(res::ResourceManager2& resMan)
+{
+   if (strcmp(_sourceName, BASE_FRAME)) {
+      _fnName = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
+   } else {
+      _fnName = BASE_FRAME;
+   }
+   for (StackFrame& c : _children) {
+      c.ResolveFnNames(resMan);
+   }
+}
+
 void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const
 {
-   bool recursive = std::find(stack.begin(), stack.end(), _name) != stack.end();
+   bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
 
    if (!recursive) {
-      stats[_name] += _count;
+      stats[_fnName] += _count;
    }
 
-   stack.emplace_back(_name);
+   stack.emplace_back(_fnName);
    for (StackFrame const& c : _children) {
       c.CollectStats(stats, stack);
    }
@@ -62,8 +82,27 @@ void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) co
 }
 
 
+void StackFrame::CollectBottomUpStats(FunctionAtLineTimes &stats, FunctionNameStack& stack, int remainingDepth) const
+{
+   bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
+
+   if (!recursive) {
+      for (int i = 0; i < _lineNumLookups.size(); i++) {
+         stats[BUILD_STRING(_fnName << ":" << _lineNumLookups[i])] += _lineNumTimes[i];
+      }
+   }
+
+   if (remainingDepth > 0) {
+      stack.emplace_back(_fnName);
+      for (StackFrame const& c : _children) {
+         c.CollectBottomUpStats(stats, stack, remainingDepth - 1);
+      }
+      stack.pop_back();
+   }
+}
+
 SamplingProfiler::SamplingProfiler() :
-   _base("base"),
+   _base("base", 999999999),
    _first(true),
    _depth(0)
 {
@@ -79,37 +118,15 @@ void SamplingProfiler::Clear()
    _base.Clear();
 }
 
-void SamplingProfiler::PushFrame(core::StaticString fn)
-{
-   if (_first) {
-      _stack.push(&_base);
-      _first = false;
-   }
-
-   ASSERT(!_stack.empty());
-   StackFrame *s = _stack.top().frame->AddStackFrame(fn);
-   _stack.push(StackEntry(s));
-}
-
-void SamplingProfiler::PopFrame(core::StaticString fn)
-{
-   StackEntry e = _stack.top();
-   _stack.pop();
-
-   if (e.frame->GetName() != fn) {
-      LOG_(0) << "popping " << fn << " " << e.frame->GetName() << " " << strcmp(e.frame->GetName(), fn);
-   }
-
-   ASSERT(e.frame->GetName() == fn);
-   ASSERT(!_stack.empty());
-
-   e.frame->IncrementCount(e.GetElapsed());
-}
-
 SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
    frame(f),
    start(Timer::GetCurrentCounterValueType())
 {
+}
+
+void SamplingProfiler::ResolveFnNames(res::ResourceManager2& resMan)
+{
+   _base.ResolveFnNames(resMan);
 }
 
 CounterValueType SamplingProfiler::StackEntry::GetElapsed() const
@@ -120,4 +137,10 @@ CounterValueType SamplingProfiler::StackEntry::GetElapsed() const
 void SamplingProfiler::CollectStats(FunctionTimes& stats) const
 {
    _base.CollectStats(stats, StackFrame::FunctionNameStack());
+}
+
+void SamplingProfiler::CollectBottomUpStats(FunctionAtLineTimes& stats, int maxDepth) const
+{
+
+   _base.CollectBottomUpStats(stats, StackFrame::FunctionNameStack(), maxDepth);
 }
