@@ -16,6 +16,8 @@ public:
    unsigned char r, g, b, a;
    Color4() { }
    Color4(unsigned char r_, unsigned char g_, unsigned char b_, unsigned char a_ = 255) : r(r_), g(g_), b(b_), a(a_) { }
+   Color4(unsigned int i)  { (*this) = FromInteger(i); }
+   Color4(const char* s)  { (*this) = FromString(s); }
    Color4(const protocol::color& c) {
       LoadValue(c);
    }
@@ -62,6 +64,8 @@ class Color3 {
 public:
    unsigned char r, g, b;
    Color3() { }
+   Color3(unsigned int i)  { (*this) = FromInteger(i); }
+   Color3(const char* s)  { (*this) = FromString(s); }
    Color3(unsigned char r_, unsigned char g_, unsigned char b_) : r(r_), g(g_), b(b_) { }
 
    unsigned char operator[](int i) const {
