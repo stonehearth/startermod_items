@@ -260,8 +260,8 @@ static int e(const char *str)
    #define e(x,y)  e(x)
 #endif
 
-#define epf(x,y)   ((float *) (e(x,y)?NULL:NULL))
-#define epuc(x,y)  ((unsigned char *) (e(x,y)?NULL:NULL))
+#define epf(x,y)   (e(x, y), (float *)nullptr)
+#define epuc(x,y)  (e(x, y), (unsigned char *)nullptr);
 
 void stbi_image_free(void *retval_from_stbi_load)
 {

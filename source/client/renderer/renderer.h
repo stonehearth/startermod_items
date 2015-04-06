@@ -115,7 +115,6 @@ class Renderer
       void RenderOneFrame(int now, float alpha, bool screenshot=false);
       void ConstructAllRenderEntities();
       void LoadResources();
-      void ShowPerfHud(bool value);
       void SetServerTick(int tick);
 
       csg::Point2 const& GetScreenSize() const;
@@ -307,7 +306,6 @@ class Renderer
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_finished_slot_;
-      std::unique_ptr<PerfHud>            perf_hud_;
 
       int               last_render_time_;
       float             last_render_alpha_;

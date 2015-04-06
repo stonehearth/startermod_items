@@ -1,0 +1,13 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "generator",
+
+   "in_edge"  : "create_camps",
+   "out_edge" : "arc:finish",
+
+   "generator_info" :  {
+      "delay" : "22h+4h",
+      "max_spawns" : 3,
+      "spawn_edge" : "create_scout_camp"
+   }
+}

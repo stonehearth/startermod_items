@@ -1,0 +1,69 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "city_raid",
+   "rarity" : "common",
+
+   "in_edge"  : "create_wolf_riders",
+   "out_edge" : "unique_defeat_hint", 
+
+   "city_raid_info" : {
+      "missions" : {
+         "raid_stockpiles" : {
+            "require_free_stockpile_space" : false,
+            "role" : "raid_stockpiles",
+            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+            "sighted_bulletin" : {
+               "title" : "Mounted goblins approach!",
+               "message" : "Need your stuff!"
+            },
+
+            "members" : {
+               "maurauder_a" : {
+                  "location" : { "x": 1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 30,
+                     "health" : 1000
+                  }
+               },
+               "maurauder_b" : {
+                  "location" : { "x": -1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 30,
+                     "health" : 1000
+                  }
+               },
+               "maurauder_c" : {
+                  "location" : { "x": 0, "z": 1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 30,
+                     "health" : 1000
+
+                  }
+               }
+            }
+         }
+      }
+   }
+}

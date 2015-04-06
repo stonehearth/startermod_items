@@ -23,7 +23,6 @@ bool lua::JitIsEnabled()
    return __jitEnabled;
 }
 
-
 static lua_State * (__cdecl *lua_newstate_fn)(lua_Alloc f, void *ud);
 static void (__cdecl *lua_close_fn)(lua_State *L);
 static lua_State * (__cdecl *lua_newthread_fn)(lua_State *L);
@@ -134,6 +133,7 @@ static const char * (__cdecl *luaL_gsub_fn)(lua_State *L, const char *s, const c
 static const char * (__cdecl *luaL_findtable_fn)(lua_State *L, int idx, const char *fname, int szhint);
 static void (__cdecl *luaL_openlibs_fn)(lua_State *L);
 static lua_State *(__cdecl *lj_state_newstate_fn)(lua_Alloc f, void *ud);
+static int (*luaL_error_fn) (lua_State *L, const char *fmt, ...);
 
 void lua::Initialize()
 {
@@ -270,6 +270,8 @@ void lua::Initialize()
    luaL_findtable_fn = (const char *(*)(lua_State *L, int idx, const char *fname, int szhint))LoadSymbol("luaL_findtable");
    luaL_openlibs_fn = (void(*)(lua_State *L))LoadSymbol("luaL_openlibs");
    lj_state_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lj_state_newstate");
+
+   luaL_error_fn = (int(*)(lua_State *L, const char *fmt, ...))LoadSymbol("luaL_error_fn");
 }
 
 extern "C" lua_State * lua_newstate(lua_Alloc f, void *ud)
@@ -1241,4 +1243,19 @@ extern "C" const char * lua_pushfstring(lua_State *L, const char *fmt, ...)
       va_end(argp);
    }
    return NULL;
+}
+
+extern "C" int luaL_error(lua_State *L, const char *fmt, ...)
+{
+   if (luaL_error_fn) {
+      // this is SO ANNOYING!  get rid of dynamic loading and always use lua jit if
+      // we can sort out the decoda issues...
+      char buffer[4096];
+      va_list args;
+      va_start(args, fmt);
+      vsprintf(buffer, fmt, args);
+      va_end(args);
+      return (*luaL_error_fn)(L, buffer);
+   }
+   return 0;
 }

@@ -41,7 +41,6 @@ public:
 public:
    Region();
    Region(Cube const& cube);
-   Region(Region const&& r);
 
    static const Region zero; 
    CubeVector& GetContents() { return cubes_; }

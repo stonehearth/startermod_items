@@ -1,11 +1,13 @@
 #ifndef _RADIANT_LUA_SCRIPT_HOST_H
 #define _RADIANT_LUA_SCRIPT_HOST_H
 
+#include <unordered_set>
 #include "platform/utils.h"
 #include "lib/lua/bind.h"
 #include "om/error_browser/error_browser.h"
 #include "om/om.h"
 #include "lib/perfmon/perfmon.h"
+#include "core/static_string.h"
 
 class JSONNode;
 
@@ -15,14 +17,14 @@ class ScriptHost {
 public:
    typedef std::function<om::DataStoreRef(int storeId)> AllocDataStoreFn;
 public:
-   ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs);
+   ScriptHost(std::string const& site);
    ~ScriptHost();
 
    lua_State* GetInterpreter();
    lua_State* GetCallbackThread();
 
-   void CreateGame(om::ModListPtr mods);
-   void LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
+   void CreateGame(om::ModListPtr mods, AllocDataStoreFn allocd);
+   void LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores);
    void Shutdown();
    bool IsShutDown() const;
 
@@ -36,6 +38,7 @@ public:
    void DumpHeap(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
+   bool ToggleCpuProfiling();
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn const& fn);
@@ -54,6 +57,9 @@ public:
    typedef std::function<luabind::object(lua_State*L, dm::ObjectPtr)> ObjectToLuaFn;
    void AddObjectToLuaConvertor(dm::ObjectType type,  ObjectToLuaFn const& cast_fn);
    luabind::object CastObjectToLua(dm::ObjectPtr obj);
+   void RegisterThread(lua_State*);
+   void InstallProfileHook(lua_State* L);
+   void RemoveProfileHook(lua_State* L);
 
 public: // the static interface
    static ScriptHost* GetScriptHost(lua_State*);
@@ -62,13 +68,12 @@ public: // the static interface
    static ScriptHost* GetScriptHost(dm::Store const& store);
    static lua_State* GetInterpreter(lua_State* L) { return GetScriptHost(L)->GetInterpreter(); }
    static lua_State* GetCallbackThread(lua_State* L) { return GetScriptHost(L)->GetCallbackThread(); }
-   static luabind::object Require(lua_State* L, std::string const& path) { return GetScriptHost(L)->Require(path); }
-   static luabind::object RequireScript(lua_State* L, std::string const& path) { return GetScriptHost(L)->RequireScript(path); }
    static luabind::object JsonToLua(lua_State* L, JSONNode const& json) { return GetScriptHost(L)->JsonToLua(json); }
    static JSONNode LuaToJson(lua_State* L, luabind::object obj) { return GetScriptHost(L)->LuaToJson(obj); }
    static void ReportCStackException(lua_State* L, std::exception const& e) { return GetScriptHost(L)->ReportCStackThreadException(L, e); }
    static void ReportLuaStackException(lua_State* L, std::string const& error, std::string const& traceback) { return GetScriptHost(L)->ReportLuaStackException(error, traceback); }
    static bool CoerseToBool(luabind::object const& o);
+   static void ProfileHookFn(lua_State *L, lua_Debug *ar);
 
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
@@ -81,32 +86,36 @@ private:
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;
    luabind::object GetJsonRepresentation(luabind::object o) const;
    bool IsNumericTable(luabind::object tbl) const;
-   void CreateModules(om::ModListPtr mods);
-   luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
+   void CreateModules(om::ModListPtr mods, AllocDataStoreFn allocDs);
+   luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name, AllocDataStoreFn allocDs);
    luabind::object GetModuleList() const;
    JSONNode LuaToJsonImpl(luabind::object obj);
+   void ProfileHook(lua_State *L, lua_Debug *ar);
 
 private:
-   luabind::object LoadScript(std::string const& path);
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
    void SetPerformanceCounter(const char* name, double value, const char* kind);
    bool WriteObject(const char* modname, const char* objectName, luabind::object o);
    luabind::object ReadObject(const char* modname, const char* objectName);
    luabind::object EnumObjects(const char* modname, const char* path);
+   
+   typedef std::unordered_map<std::string, luabind::object> ModuleMap;
 
 private:
    lua_State*           L_;
    lua_State*           cb_thread_;
+   std::unordered_set<lua_State*>   allThreads_;
    std::string          site_;
-   std::map<std::string, luabind::object> required_;
+   ModuleMap            required_;
+
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
    bool                 throw_on_lua_exceptions_;
    ReportErrorCb        error_cb_;
    int                  bytes_allocated_;
 
-   char                 current_file[256];
+   char                 current_file[MAX_PATH];
    int                  current_line;
 
    int                  error_count;  // Count of script errors encountered.
@@ -120,15 +129,16 @@ private:
 
    // CPU profiling
    bool                 enable_profile_cpu_;
-   bool                 profile_cpu_;
-
+   int                  _cpuProfileInstructionSamplingRate;
+   bool                 _cpuProfilerRunning;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
-   AllocDataStoreFn     _allocDs;
-
-   bool                 shut_down_;
+   bool                       shut_down_;
+   lua_State*                 _lastHookL;
+   perfmon::CounterValueType  _lastHookTimestamp;
+   std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
 };
 
 END_RADIANT_LUA_NAMESPACE

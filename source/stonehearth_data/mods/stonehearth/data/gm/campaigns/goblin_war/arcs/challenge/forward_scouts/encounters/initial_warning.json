@@ -1,0 +1,51 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+
+   "in_edge"  : "inital_warning",
+
+   "dialog_tree_info" : {
+      "start_node" : "msg1",
+      "nodes" : {
+         "msg1" : {
+            "bulletin" : {
+               "title" : "Mer Burlyhands looks perturbed",
+               "dialog_title" : "Mer Burlyhands",
+               "portrait" : "file(images/mer_burlyhands.png)",
+               "message" : "Hey there again! I just got the last batch of refugees settled somewhere good n' safe.",
+               "choices" : {
+                  "stonehearth:next" : {
+                     "next_node" : "msg2"
+                  }
+               }               
+            }
+         },
+         "msg2" : {
+            "bulletin" : {
+               "title" : "Mer Burlyhands scratches his ear",
+               "dialog_title" : "Mer Burlyhands",
+               "portrait" : "file(images/mer_burlyhands.png)",
+               "message" : "It's been pretty quiet, but you know...? It's a bad sign when th' birds stop singing.",
+               "choices" : {
+                  "stonehearth:next" : {
+                     "next_node" : "msg3"
+                  }
+               }
+            }
+         },
+         "msg3" : {
+            "bulletin" : {
+               "title" : "Mer Burlyhands nods firmly",
+               "dialog_title" : "Mer Burlyhands",
+               "portrait" : "file(images/mer_burlyhands.png)",
+               "message" : "Well, I'd better be off. Watch your borders carefully, y' hear? ",
+               "choices" : {
+                  "stonehearth:ok" : {
+                  }
+               }               
+            }
+         }      
+      }
+   }
+}

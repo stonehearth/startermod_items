@@ -78,13 +78,6 @@ Region<S, C>::Region(Cube const& cube) :
 }
 
 template <class S, int C>
-Region<S, C>::Region(Region const&& r)
-{
-   cubes_ = std::move(r.cubes_);
-   _churn = r._churn;
-}
-
-template <class S, int C>
 S Region<S, C>::GetArea() const
 {
    S area = 0;
@@ -960,7 +953,7 @@ template <int C>
 static inline bool FastToInt(Cube<double, C> const& in, Cube<int, C>& out);
 
 template <>
-static inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
+inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
 {
    int integer;
    FAST_COPY(min.x);
@@ -970,7 +963,7 @@ static inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
 }
 
 template <>
-static inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
+inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
 {
    int integer;
    FAST_COPY(min.x);
@@ -982,7 +975,7 @@ static inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
 }
 
 template <>
-static inline bool FastToInt(Cube<double, 3> const& in, Cube<int, 3>& out)
+inline bool FastToInt(Cube<double, 3> const& in, Cube<int, 3>& out)
 {
    int integer;
    FAST_COPY(min.x);

@@ -13,6 +13,8 @@ function LootDropsComponent:initialize(entity, json)
    assert(not next(json), 'use the "stonehearth:destroyed_loot_table" entity data for statically configured loot drops')
 end
 
+--TODO: there's a difference between destroy and kill; this should be on kill, right? Otherwise
+--if the boss walks off the screen, you would get his loot. 
 function LootDropsComponent:destroy()
    local loot_table = self._sv.loot_table
    if loot_table then

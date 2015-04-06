@@ -101,7 +101,7 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       def("construct_cube3", &Cube3f::Construct),
       Register<Cube3f>(L, "Cube3")
          .def("each_point",   &EachPointCube3f)
-         .def("rotated",      &(Cube3f (*)(Cube3f const&, int))&csg::Rotated)
+         .def("rotated",      (Cube3f(*)(Cube3f const&, int))&csg::Rotated)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),
       Register<Cube3>(L, "Cube3i")
          .def("to_float",     &Cube_ToFloat<int, 3>),

@@ -237,7 +237,7 @@ void VoxelGeometryResource::updateDynamicVertData()
 }
 
 
-inline uint32 VoxelGeometryResource::clampLodLevel(int lodLevel) const
+uint32 VoxelGeometryResource::clampLodLevel(int lodLevel) const
 {
    return lodLevel < _numLodLevels ? lodLevel : _numLodLevels - 1;
 }

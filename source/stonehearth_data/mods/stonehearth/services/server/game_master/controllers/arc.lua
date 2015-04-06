@@ -20,7 +20,7 @@ end
 -- start the arc.  this simply starts the encounter with the `start` edge_in
 --
 function Arc:start()
-   self._sv.ctx.arc = self
+   
    self._sv.encounters = self:_create_nodelist('encounter', self._sv._info.encounters)
    self.__saved_variables:mark_changed()
 
@@ -48,11 +48,11 @@ function Arc:trigger_next_encounter(ctx)
 
    -- if the edge is "arc:finish" then the arc has officially ended. Let
    -- parent campaign know it's OK to start another arc. 
-   -- As a nicety, pass the current node, in case the next arc wants context
-   -- TODO: other encounters from this arc may still be around (waiting on boss death, etc)
-   -- but they should (?) resolve themselves on their own
-   if type(out_edge) == 'string' and out_edge == 'arc:finish' then
-      radiant.events.trigger(self, 'stonehearth:arc_finish', {prev_ctx = ctx})
+   -- As a nicety, pass the current ctx, in case the next arc wants context
+   -- Other encounters from this arc may still be around (waiting on boss death, etc)
+   -- but they should resolve themselves on their own
+   if out_edge == 'arc:finish' then
+      ctx.campaign:finish_arc(ctx)
       return
    end
 

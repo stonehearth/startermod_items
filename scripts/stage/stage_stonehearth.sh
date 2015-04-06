@@ -199,7 +199,9 @@ if [ ! -z $STAGE_BIN ]; then
       SUFFIX=
    fi
    cp -u $SFML_BUILD_ROOT/sfml-audio${SUFFIX}-2.dll $OUTPUT_DIR
+   cp -u $SFML_BUILD_ROOT/sfml-audio${SUFFIX}-2.pdb $OUTPUT_DIR
    cp -u $SFML_BUILD_ROOT/sfml-system${SUFFIX}-2.dll $OUTPUT_DIR
+   cp -u $SFML_BUILD_ROOT/sfml-system${SUFFIX}-2.pdb $OUTPUT_DIR
    cp -u $SFML_EXTLIB_ROOT/openal32.dll $OUTPUT_DIR
    cp -u $SFML_EXTLIB_ROOT/libsndfile-1.dll $OUTPUT_DIR
 

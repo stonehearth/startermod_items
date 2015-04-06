@@ -28,17 +28,17 @@ template <typename Resource, void (*ReclaimFn)(Resource)>
 class SharedResource : public std::shared_ptr<void> {
 public:
    typedef std::shared_ptr<void> SuperClass;
-   static void FreeFn(void *res) { ReclaimFn(reinterpret_cast<Resource>(res)); }
+   static void FreeFn(void *res) { ReclaimFn((Resource)(uintptr_t)res); }
 
    SharedResource() : std::shared_ptr<void>() { }
-   SharedResource(Resource res) : std::shared_ptr<void>(reinterpret_cast<void*>(res), FreeFn) { }
+   SharedResource(Resource res) : std::shared_ptr<void>(reinterpret_cast<void*>((uintptr_t)res), FreeFn) { }
 
    Resource get() {
-      return reinterpret_cast<Resource>(SuperClass::get());
+      return (Resource)(uintptr_t)SuperClass::get();
    }
 
    Resource const get() const {
-      return reinterpret_cast<Resource>(SuperClass::get());
+      return (Resource)(uintptr_t)SuperClass::get();
    }
 
 };
