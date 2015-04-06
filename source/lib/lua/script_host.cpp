@@ -282,7 +282,7 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
       _profilerDuration = _profilerDuration + delta;
       _profilerSampleCounts++;
 
-      perfmon::StackFrame* current = _profilers[L].GetBaseStackFrame();
+      perfmon::StackFrame* current = _profilers[L].GetTopInvertedStackFrame();
       while (lua_getstack(L, count++, &f)) {
          lua_getinfo(L, "Sl", &f);
          if (strcmp(f.source, C_MODULE)) {
@@ -1220,17 +1220,16 @@ bool ScriptHost::ToggleCpuProfiling()
 
    if (!_cpuProfilerRunning) {
       int bottomUpDepth = 2;
-      perfmon::FunctionTimes stats;
-      for (auto& entry : _profilers) {
-         entry.second.ResolveFnNames(res::ResourceManager2::GetInstance());
-      }
 
-      for (auto const& entry : _profilers) {
-         entry.second.CollectStats(stats);
-      }
+      perfmon::FunctionTimes stats;
       perfmon::FunctionAtLineTimes bottomUpStats;
-      for (auto const& entry : _profilers) {
-         entry.second.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
+      res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
+
+      for (auto& entry : _profilers) {
+         perfmon::SamplingProfiler &sp = entry.second;
+         sp.FinalizeCollection(rm);
+         sp.CollectStats(stats);
+         sp.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
       }
       _profilers.clear();
 

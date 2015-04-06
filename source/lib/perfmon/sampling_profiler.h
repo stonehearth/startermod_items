@@ -22,37 +22,30 @@ public:
 
    core::StaticString GetName() const { return _fnName; }
    CounterValueType GetCount() const { return _count; }
-   void IncrementCount(CounterValueType c, int lineNum) { 
-      _count += c;
-
-      for (int i = 0; i < _lineNumLookups.size(); i++) {
-         if (_lineNumLookups[i] == lineNum) {
-            _lineNumTimes[i] += c;
-            return;
-         }
-      }
-      _lineNumLookups.push_back(lineNum);
-      _lineNumTimes.push_back(c);
-   }
-   CounterValueType GetChildrenTotalCount() const { return _childTotalCount; }
-   std::vector<StackFrame> const& GetChildren() const;
+   void IncrementCount(CounterValueType c, int lineNum);
 
    StackFrame* AddStackFrame(const char* name, unsigned int fnDefLine);
-   void Clear();
 
-   void ResolveFnNames(res::ResourceManager2& resMan);
+   void FinalizeCollection(res::ResourceManager2& resMan);
    void CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const;
    void CollectBottomUpStats(FunctionAtLineTimes &stats, FunctionNameStack& stack, int remainingDepth) const;
+
+private:
+   struct LineCount {
+      LineCount() : line(0), count(0) { }
+      LineCount(int l, CounterValueType c) : line(l), count(c) { }
+
+      int               line;
+      CounterValueType  count;
+   };
 
 private:
    unsigned int               _fnDefLine;
    const char*                _sourceName;
    core::StaticString         _fnName;
    CounterValueType           _count;
-   CounterValueType           _childTotalCount;
-   std::vector<StackFrame>    _children;
-   std::vector<CounterValueType> _lineNumTimes;
-   std::vector<unsigned int>     _lineNumLookups;
+   std::vector<StackFrame>    _callers;
+   std::vector<LineCount >    _lines;
 };
 
 class SamplingProfiler
@@ -61,12 +54,9 @@ public:
    SamplingProfiler();
 
 public:
-   void Clear();
-   int GetDepth() const { return _depth; }
-   StackFrame* GetBaseStackFrame();
+   StackFrame* GetTopInvertedStackFrame();
 
-   void ResolveFnNames(res::ResourceManager2& resMan);
-
+   void FinalizeCollection(res::ResourceManager2& resMan);
    void CollectStats(FunctionTimes& stats) const;
    void CollectBottomUpStats(FunctionAtLineTimes &stats, int maxDepth) const;
 
@@ -79,11 +69,8 @@ private:
       StackEntry(StackFrame* f);
    };
 private:
-   bool                    _first;
    StackFrame              *_current;
-   StackFrame              _base;
-   std::stack<StackEntry>  _stack;
-   int                     _depth;
+   StackFrame              _invertedStack;
 };
 
 END_RADIANT_PERFMON_NAMESPACE

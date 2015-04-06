@@ -47,6 +47,8 @@ FlameGraphHud& FlameGraphHud::Render()
 
 void FlameGraphHud::RenderStackFrame(perfmon::StackFrame const& frame, csg::Rect2f const& rc, csg::Color3 const& color)
 {
+#if 0
+   // this isn't even close to working
    rc_.DrawBox(rc, color);
 
    double height = rc.GetHeight();
@@ -60,4 +62,5 @@ void FlameGraphHud::RenderStackFrame(perfmon::StackFrame const& frame, csg::Rect
       RenderStackFrame(c, box, color);
       box.min.x = box.max.x;
    }
+#endif
 }

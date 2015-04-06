@@ -9,6 +9,7 @@ BEGIN_RADIANT_RES_NAMESPACE
 class IModule;
 class LuaFileMapper;
 class ResourceCompiler;
+class ResourceManager2;
 
 namespace fbs {
    struct LuaFileIndex;
