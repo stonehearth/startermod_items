@@ -33,7 +33,7 @@ DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 
 extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud);
 
-const core::StaticString C_MODULE("=[C]");
+const char* C_MODULE = "=[C]";
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -282,13 +282,11 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
 
       perfmon::StackFrame* current = _profilers[L].GetBaseStackFrame();
       while (lua_getstack(L, count++, &f)) {
-         lua_getinfo(L, "nS", &f);
-         core::StaticString source(f.source), fn(C_MODULE);
-         if (source != C_MODULE) {
-            fn = rm.MapFileLineToFunction(f.source, f.linedefined);
+         lua_getinfo(L, "Sl", &f);
+         if (strcmp(f.source, C_MODULE)) {
+            current = current->AddStackFrame(f.source, f.linedefined);
+            current->IncrementCount(delta, f.currentline);
          }
-         current->IncrementCount(delta);
-         current = current->AddStackFrame(fn);
       }
    }
    _lastHookL = L;
@@ -1216,13 +1214,30 @@ bool ScriptHost::ToggleCpuProfiling()
    }
 
    if (!_cpuProfilerRunning) {
+      int bottomUpDepth = 2;
       perfmon::FunctionTimes stats;
+      for (auto& entry : _profilers) {
+         entry.second.ResolveFnNames(res::ResourceManager2::GetInstance());
+      }
+
       for (auto const& entry : _profilers) {
          entry.second.CollectStats(stats);
       }
+      perfmon::FunctionAtLineTimes bottomUpStats;
+      for (auto const& entry : _profilers) {
+         entry.second.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
+      }
       _profilers.clear();
+
       LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
       perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
+         LOG(lua.code, 1) << std::setw(120) << name << " : "
+                           << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
+                           << std::string(rows, '#');
+      });
+
+      LOG(lua.code, 1) << "---- bottom up time (" << bottomUpDepth << " deep) -----------------------------------------------";
+      perfmon::ReportCounters<perfmon::FunctionAtLineTimes, 30>(bottomUpStats, [](std::string const& name, perfmon::CounterValueType const& duration, size_t rows) {
          LOG(lua.code, 1) << std::setw(120) << name << " : "
                            << std::setw(8) << perfmon::CounterToMilliseconds(duration) << " ms : "
                            << std::string(rows, '#');
