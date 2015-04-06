@@ -1,4 +1,5 @@
 #include "radiant.h"
+#include "radiant_file.h"
 #include "radiant_logger.h"
 #include "build_number.h"
 #include "lib/json/node.h"
@@ -196,7 +197,7 @@ void AnalyticsLogger::PostJson(PostData& post_data)
       if (status != HTTPResponse::HTTP_OK)	{
          // unexpected result code
          ANALYTICS_LOG(1) << "AnalyticsLogger.PostEvent: Unexpected result code from HTTP POST: " << status;
-         ANALYTICS_LOG(1) << "HTTP POST response was: " << response_stream;
+         ANALYTICS_LOG(1) << "HTTP POST response was: " << io::read_contents(response_stream);
 	   }
    } catch (std::exception const& e) {
       ANALYTICS_LOG(1) << "error in PostJson: " << e.what();

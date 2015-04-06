@@ -1,0 +1,28 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_camp",
+   "rarity" : "common",
+
+   "in_edge"  : "create_scout_camp",
+   "out_edge" : ["wait_for_wakeup", "wait_for_cage_destruction"],
+
+
+   "create_camp_info" : {
+      "player_id" : "goblins",
+
+      "radius" : 10,
+      
+      "spawn_range" : {
+         "min" : 160,
+         "max" : 180
+      },
+      
+      "pieces" : {
+         "wolf_cage" : {
+            "info" : "file(create_scout_camp/wolf_cage.json)",
+            "position" : {"x": 5, "y" : 5},
+            "rotation" : 0
+         }
+      }
+   }
+}

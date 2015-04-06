@@ -68,7 +68,7 @@ void LuaModuleRouter::CallModuleFunction(ReactorDeferredPtr d, Function const& f
       }
       object obj;
       try {
-         obj = call_function<object>(ctor);
+         obj = ctor();
       } catch (std::exception& e) {
          throw core::Exception(BUILD_STRING("failed to create lua call handler while processing " << fn << ": " << e.what()));
       }

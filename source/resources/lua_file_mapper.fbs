@@ -1,0 +1,20 @@
+namespace radiant.res.fbs;
+
+table LuaFunctionRange {
+  name: string;
+  min:  int;
+  max:  int;
+}
+
+table LuaFileIndex {
+  filename:     string (key);
+  contentsHash: string;
+  functions:    [LuaFunctionRange];
+}
+
+table LuaFileMapper {
+  files: [LuaFileIndex];
+}
+
+file_identifier "LFM0";
+root_type LuaFileMapper;

@@ -12,7 +12,7 @@
    },
    "shaders" : {
       "BLOOM" : {
-         "state" : "states/voxel/blend.state",
+         "state" : "states/voxel/replace.state",
          "shader" : "shaders/color_only.shader"
       }
    }

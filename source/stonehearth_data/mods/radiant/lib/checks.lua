@@ -21,7 +21,7 @@
 -- the C counterpart, but no compilation/porting concerns.
 
 checkers = {
-    __get_typename = type
+    __get_typename = type    
 }
 
 local function check_one(expected, val)

@@ -44,11 +44,14 @@ IMPLEMENT_TRIVIAL_TOSTRING(DeepRegion2fGuard)
 IMPLEMENT_TRIVIAL_TOSTRING(DeepRegion3fGuard)
 
 template <typename BoxedType>
-static void ModifyBoxed(BoxedType& boxed, luabind::object cb)
+static void ModifyBoxed(BoxedType& boxed, luabind::object unsafe_cb)
 {
-   boxed.Modify([cb](typename BoxedType::Value& value) {
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());
+   luabind::object cb(cb_thread, unsafe_cb);
+
+   boxed.Modify([cb](typename BoxedType::Value& value) mutable {
       try {
-         call_function<void>(cb, &value);
+         cb(&value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "error modifying boxed object: " << e.what();
       }

@@ -153,7 +153,8 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
             luabind::class_<OctTree>("Physics")
                .enum_("constants") [
                   value("CLIP_SOLID",       NavGrid::ClippingMode::CLIP_SOLID),
-                  value("CLIP_TERRAIN",     NavGrid::ClippingMode::CLIP_TERRAIN)
+                  value("CLIP_TERRAIN",     NavGrid::ClippingMode::CLIP_TERRAIN),
+                  value("CLIP_STANDABLE",   NavGrid::ClippingMode::CLIP_STANDABLE)
                ]
                .def("clip_region",          &Physics_ClipRegion)
                .def("project_region",       &Physics_ProjectRegion)

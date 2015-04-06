@@ -128,6 +128,7 @@ local constants = {
          IDLE = 1,
          HOLD_FORMATION = 10,
          RAID_STOCKPILE = 20,
+         DEPART_WORLD = 30,
 
          hold_formation = {
             IDLE_IN_FORMATION = 1,

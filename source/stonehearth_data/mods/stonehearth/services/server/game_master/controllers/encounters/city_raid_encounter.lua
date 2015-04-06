@@ -25,10 +25,12 @@ function CityRaid:start(ctx, info)
    for name, mission in pairs(self._sv.missions) do
       mission:start(ctx, info.missions[name])
    end
+
+   ctx.arc:trigger_next_encounter(ctx)
 end
 
 function CityRaid:stop()
-   radiant.not_yet_implemented()
+   --radiant.not_yet_implemented()
 end
 
 function CityRaid:get_ctx()

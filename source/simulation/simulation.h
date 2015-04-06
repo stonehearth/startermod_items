@@ -197,7 +197,6 @@ private:
    int                                 game_tick_interval_;
    int                                 net_send_interval_;
    float                               base_walk_speed_;
-   bool                                profile_next_lua_update_;
    rpc::ReactorDeferredPtr             task_manager_deferred_;
    rpc::ReactorDeferredPtr             perf_counter_deferred_;
    rpc::ReactorDeferredPtr             load_progress_deferred_;
@@ -222,6 +221,7 @@ private:
    boost::filesystem::path             load_saveid_;
    std::vector<std::function<void()>>  _bottomLoopFns;
    int                                 _sequenceNumber;
+   std::function<om::DataStoreRef(int storeId)> _allocDataStoreFn;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

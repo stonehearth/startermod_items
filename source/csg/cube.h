@@ -37,14 +37,7 @@ public:
    Cube(Point const& min_value, int tag = 0);
    Cube(Point const& min_value, Point const& max_value, int tag = 0);
 
-   static Cube Construct(Point min_value, Point max_value, int tag = 0) {
-      for (int i = 0; i < C; i++) {
-         if (min_value[i] > max_value[i]) {
-            std::swap(min_value[i], max_value[i]);
-         }
-      }
-      return Cube(min_value, max_value, tag);
-   }
+   static Cube Construct(Point min_value, Point max_value, int tag = 0);
 
    S GetArea() const;
    bool IsEmpty() const { return GetArea() == 0; }

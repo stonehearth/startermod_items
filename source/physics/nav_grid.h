@@ -104,6 +104,7 @@ class NavGrid {
       enum ClippingMode {
          CLIP_SOLID,
          CLIP_TERRAIN,
+         CLIP_STANDABLE,
       };
       csg::Region3f ClipRegion(csg::Region3f const& region, ClippingMode mode);
       csg::Region3f ProjectRegion(csg::Region3f const& region, ClippingMode mode);

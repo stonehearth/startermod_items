@@ -1,0 +1,32 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "wolf_cage" : {
+         "uri" : "stonehearth:monsters:goblins:wolf_cage",
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      }
+   },
+   "citizens" : {
+      "rider_1" : {
+         "location" : { "x": 3, "z": -3 },
+         "job" : "stonehearth:jobs:footman",
+         "equipment" : {
+            "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+            "outfit" : "stonehearth:monsters:goblins:outfits:footman"
+         }
+      },
+      "rider_2" : {
+         "location" : { "x": 3, "z": -3 },
+         "job" : "stonehearth:jobs:footman",
+         "equipment" : {
+            "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+            "outfit" : "stonehearth:monsters:goblins:outfits:footman"
+         }
+      }
+   }
+}

@@ -20,6 +20,9 @@ function WaterRenderer:initialize(render_entity, datastore)
       )
       :push_object_state()
 
+   self._visible_volume_trace = radiant.events.listen(stonehearth.subterranean_view, 'stonehearth:visible_volume_changed',
+                                                      self, self._update)
+
    stonehearth.selection:set_selectable(self._entity, false)
 end
 
@@ -27,6 +30,11 @@ function WaterRenderer:destroy()
    if self._datastore_trace then
       self._datastore_trace:destroy()
       self._datastore_trace = nil
+   end
+
+   if self._visible_volume_trace then
+      self._visible_volume_trace:destroy()
+      self._visible_volume_trace = nil
    end
 
    self:_destroy_outline_node()
@@ -42,13 +50,18 @@ end
 function WaterRenderer:_update()
    self:_destroy_outline_node()
 
+   local location = radiant.entities.get_world_grid_location(self._entity)
    local data = self._datastore:get_data()
-   local region = data.region:get()
    local height = data.height
+   local working_region = data.region:get():translated(location)
+
+   working_region = stonehearth.subterranean_view:intersect_region_with_visible_volume(working_region)
+   working_region:optimize_by_merge('water renderer')
+   working_region:translate(-location)
 
    local render_region = Region3()
-   for cube in region:each_cube() do
-      -- TODO: only update height if cube reaches top layer
+
+   for cube in working_region:each_cube() do
       cube.max.y = math.min(cube.max.y, height)
       cube.min.y = cube.min.y - 0.001 -- cube must have non-zero thickness for the outline node to generate geometry
       render_region:add_cube(cube)

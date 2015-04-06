@@ -1,0 +1,26 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+   "unique" : true,
+
+   "in_edge"  : "unique_defeat_hint",
+
+   "dialog_tree_info" : {
+      "start_node" : "msg1",
+      "nodes" : {
+         "msg1" : {
+            "bulletin" : {
+               "title" : "Panting refugees appear on the horizon",
+               "dialog_title" : "Refugee",
+               "portrait" : "file(images/refugee.png)",
+               "message" : "Those wolves are nearly impossible to fight! Run away while you still can!",
+               "choices" : {
+                  "stonehearth:ok" : {
+                  }
+               }               
+            }
+         }
+      }
+   }
+}

@@ -55,6 +55,8 @@
 #include "lib/audio/audio.h"
 #include "client/renderer/render_entity.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/perfmon/sampling_profiler.h"
+#include "lib/perfmon/report.h"
 #include "platform/sysinfo.h"
 #include "glfw3.h"
 #include "dm/receiver.h"
@@ -66,6 +68,8 @@
 #include "om/stonehearth.h"
 #include "lib/perfmon/timer.h"
 #include "renderer/render_node.h"
+#include "renderer/perfhud/perfhud.h"
+#include "renderer/perfhud/flame_graph_hud.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -105,7 +109,6 @@ Client::Client() :
    currentCursor_(NULL),
    next_input_id_(1),
    mouse_position_(csg::Point2::zero),
-   perf_hud_shown_(false),
    connected_(false),
    game_clock_(nullptr),
    debug_cursor_mode_("none"),
@@ -119,6 +122,9 @@ Client::Client() :
    _currentUiScreen(InvalidScreen)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
+   _allocDataStoreFn = [this](int storeId) {
+      return AllocateDatastore(storeId);
+   };
 }
 
 Client::~Client()
@@ -205,8 +211,22 @@ void Client::OneTimeIninitializtion()
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this](KeyboardInput const& kb) {
-         perf_hud_shown_ = !perf_hud_shown_;
-         renderer.ShowPerfHud(perf_hud_shown_);
+         bool havePerfHud = _perfHud != nullptr;
+         bool haveFlameGraphHud = _flameGraphHud != nullptr;
+         Renderer& renderer = Renderer::GetInstance();
+
+         _perfHud.reset();
+         _flameGraphHud.reset();
+
+         if (kb.shift) {
+            if (!haveFlameGraphHud) {
+               _flameGraphHud.reset(new FlameGraphHud(renderer));
+            }
+         } else {
+            if (!havePerfHud) {
+               _perfHud.reset(new PerfHud(renderer));
+            }
+         }
       };
       _commands[GLFW_KEY_F11] = [&renderer](KeyboardInput const& kb) {
          // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
@@ -216,9 +236,9 @@ void Client::OneTimeIninitializtion()
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
       };
-      _commands[GLFW_KEY_NUM_LOCK] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
+
       _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
-      // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
+      _commands[GLFW_KEY_KP_ADD] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
    }
 
    // Reactors...
@@ -678,9 +698,7 @@ void Client::Shutdown()
 
 void Client::InitializeDataObjects()
 {
-   scriptHost_.reset(new lua::ScriptHost("client", [this](int storeId) {
-      return AllocateDatastore(storeId);
-   }));
+   scriptHost_.reset(new lua::ScriptHost("client"));
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
 
@@ -840,7 +858,7 @@ void Client::run(int server_port)
    CLIENT_LOG(1) << "user feedback is " << (analytics::GetCollectionStatus() ? "on" : "off");
    
    while (renderer.IsRunning()) {
-      perfmon::BeginFrame(perf_hud_shown_);
+      perfmon::BeginFrame(_perfHud != nullptr);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
       mainloop();
    }
@@ -888,7 +906,7 @@ void Client::mainloop()
    if (!loading_) {
       perfmon::SwitchToCounter("update lua");
       try {
-         luabind::call_function<int>(radiant_["update"]);
+         radiant_["update"]();
       } catch (std::exception const& e) {
          CLIENT_LOG(3) << "error in client update: " << e.what();
          GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
@@ -1828,7 +1846,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->LoadGame(localModList_, authoredEntities_, datastores);  
+   scriptHost_->LoadGame(localModList_, _allocDataStoreFn, authoredEntities_, datastores);  
    initialUpdate_ = true;
 
    platform::SysInfo::LogMemoryStatistics("Finished Loading Client", 0);
@@ -1848,7 +1866,7 @@ void Client::CreateGame()
    InitializeDataObjectTraces();
 
    radiant_ = scriptHost_->Require("radiant.client");
-   scriptHost_->CreateGame(localModList_);
+   scriptHost_->CreateGame(localModList_, _allocDataStoreFn);
    initialUpdate_ = true;
 }
 
