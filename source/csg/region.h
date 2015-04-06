@@ -63,6 +63,7 @@ public:
    Cube GetBounds() const;
    Point GetCentroid() const;
 
+   int GetTag(Point const& pt) const;
    int GetRectCount() const { return (int)cubes_.size(); }
    Cube GetRect(int i) const { return cubes_[i]; }
    int GetCubeCount() const { return (int)cubes_.size(); }
