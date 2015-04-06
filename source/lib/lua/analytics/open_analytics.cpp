@@ -13,7 +13,6 @@ using namespace luabind;
 
 IMPLEMENT_TRIVIAL_TOSTRING(DesignEvent)
 
-DEFINE_INVALID_LUA_CONVERSION(DesignEvent)
 DEFINE_INVALID_JSON_CONVERSION(DesignEvent)
 
 void lua::analytics::open(lua_State *L)

@@ -866,6 +866,17 @@ Cube<S, C> Region<S, C>::GetBounds() const
 }
 
 template <class S, int C>
+int Region<S, C>::GetTag(Point const& pt) const
+{
+   for (auto &c : cubes_) {
+      if (c.Contains(pt)) {
+         return c.GetTag();
+      }
+   }
+   return 0;
+}
+
+template <class S, int C>
 void Region<S, C>::Translate(Point const& pt)
 {
    for (auto &c : cubes_) {
@@ -1080,6 +1091,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
+   template int Cls::GetTag(const Cls::Point& pt) const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
    template Cls Cls::Inflated(const Cls::Point& pt) const; \

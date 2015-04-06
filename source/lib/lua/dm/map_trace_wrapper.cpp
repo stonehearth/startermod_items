@@ -37,7 +37,7 @@ struct ValueCast<std::shared_ptr<T>> {
 
 template <>
 struct ValueCast<core::StaticString> {
-   // Shared pointers turn into weak pointers.
+   // Shared core::StaticStrings into regular strings
    const char* ToLua(core::StaticString value)
    {
       return value;

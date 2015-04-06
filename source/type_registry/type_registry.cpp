@@ -27,6 +27,7 @@ using namespace radiant;
    OBJECT_TYPE(double,                         3,                                   RegisterNotImplementedType) \
    OBJECT_TYPE(bool,                           4,                                   RegisterNotImplementedType) \
    OBJECT_TYPE(std::string,                    5,                                   RegisterNotImplementedType) \
+   OBJECT_TYPE(core::StaticString,             6,                                   RegisterNotImplementedType) \
    \
    OBJECT_TYPE(csg::Cube3,                   100,                                   RegisterValueTypeLegacy) \
    OBJECT_TYPE(csg::Cube3f,                  101,                                   RegisterValueTypeLegacy) \
