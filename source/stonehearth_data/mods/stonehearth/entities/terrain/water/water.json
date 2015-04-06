@@ -5,6 +5,8 @@
       }
 	},
    "entity_data" : {
-      "stonehearth:hud:custom_clip" : true
+      "stonehearth:subterreanean_view" : {
+         "clip_mode" : "custom"
+      }
    }
 }

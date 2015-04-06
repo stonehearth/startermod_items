@@ -100,7 +100,7 @@ std::shared_ptr<RenderTerrain> GetRenderTerrainObject()
 bool Terrain_RenderTerrainIsAvailable()
 {
    auto render_terrain = GetRenderTerrainObject(false);
-   return render_terrain;
+   return render_terrain != nullptr;
 }
 
 void Terrain_MarkDirty(csg::Point3f tile_origin)

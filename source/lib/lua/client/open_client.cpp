@@ -379,10 +379,10 @@ public:
    TraceRenderFramePromisePtr OnFrameStart(std::string const& reason, luabind::object cb) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
       luabind::object callback(L_, cb);
-      guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
+      guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) mutable {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
          try {
-            luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+            callback(info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
@@ -393,10 +393,10 @@ public:
    TraceRenderFramePromisePtr OnFrameFinished(std::string const& reason, luabind::object cb) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
       luabind::object callback(cb_thread, cb);
-      guards_ += frame_finished_slot_.Register([=](FrameStartInfo const &info) {
+      guards_ += frame_finished_slot_.Register([=](FrameStartInfo const &info) mutable {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
          try {
-            luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+            callback(info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
@@ -407,10 +407,10 @@ public:
    TraceRenderFramePromisePtr OnServerTick(std::string const& reason, luabind::object cb) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(cb.interpreter());  
       luabind::object callback(cb_thread, cb);
-      guards_ += server_tick_slot_.Register([=](int now) {
+      guards_ += server_tick_slot_.Register([=](int now) mutable {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
          try {
-            luabind::call_function<void>(callback, now);
+            callback(now);
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }

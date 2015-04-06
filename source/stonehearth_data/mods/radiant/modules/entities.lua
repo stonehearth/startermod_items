@@ -383,7 +383,7 @@ function entities.get_component_data(arg0, key)
    end
 end
 
-function entities.get_entity_data(arg0, key, enable_caching)
+function entities.get_entity_data(arg0, key)
    local uri
    if type(arg0) == 'string' then
       uri = arg0
@@ -392,7 +392,7 @@ function entities.get_entity_data(arg0, key, enable_caching)
       uri = entity:get_uri()
    end
    if uri and #uri > 0 then
-      local json = radiant.resources.load_json(uri, enable_caching)
+      local json = radiant.resources.load_json(uri, true)
       if json.entity_data then
          return json.entity_data[key]
       end

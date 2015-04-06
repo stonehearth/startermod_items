@@ -258,7 +258,7 @@ void RenderEntity::UpdateInvariantRenderers()
                         std::weak_ptr<RenderEntity> re = shared_from_this();
                         luabind::object render_invariant;
                         try {
-                           render_invariant = luabind::call_function<luabind::object>(ctor, re, script->JsonToLua(entry));
+                           render_invariant = ctor(re, script->JsonToLua(entry));
                         } catch (std::exception const& e) {
                            script->ReportCStackThreadException(ctor.interpreter(), e);
                            continue;
