@@ -14,7 +14,7 @@
 
       "script" : "file(shakedown/shakedown.lua)",
 
-      "source_entity" : "npc_boss_entity",
+      "source_entity" : "create_camp.npc_boss_entity",
 
       "duration" : "1d",
 
@@ -22,7 +22,7 @@
          "shakedown" : {
             "bulletin" : {
                "title" : "A goblin with a fancy hat swaggers into town",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
                   "Hahaha!! Your puny settlement now part of Glittering Territory! I deserve tribute of shinies!",
@@ -36,7 +36,7 @@
          "shakedown_refused" : {
             "bulletin" : {
                "title" : "The goblin looks incredulous",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
                   "What? You say no? Then we take! TAKE ALL THINGS!!!!",
@@ -50,7 +50,7 @@
          "collection_progress" : {
             "bulletin" : {
                "title" : "Satisfy the Goblins",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
                   "Me back soon for stuff. Better have it, or no good for you, little hearthling."
@@ -60,7 +60,7 @@
          "collection_due" : {
             "bulletin" : {
                "title" : "The goblin stomps back into town",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
                   "Glittering Army returns! Where iz stuff?", 
@@ -74,7 +74,7 @@
          "collection_failed" : {
             "bulletin" : {
                "title" : "The goblin frowns so hard you can't see his eyes",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
                   "You forgot stuff? You no make? You stain Glittering Army Honor! You die now!",
@@ -87,7 +87,7 @@
          "collection_success" : {
             "bulletin" : {
                "title" : "The goblin grins like a kid on Frostfeast",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
                   "That's right. You cooperate, we get along just fine."

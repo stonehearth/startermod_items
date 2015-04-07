@@ -25,6 +25,7 @@ function CreateCamp:start(ctx, info)
    local max = info.spawn_range.max
 
    self._sv.ctx = ctx
+   self._sv.ctx.create_camp = {}
    self._sv._info = info
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
@@ -66,7 +67,8 @@ function CreateCamp:_create_camp(location)
 
    -- create the boss entity
    if info.boss then
-      ctx.npc_boss_entity = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
+      local boss = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
+      ctx.create_camp.npc_boss_entity = boss
    end
 
    local visible_rgn = Region2()
@@ -102,12 +104,13 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    local rot = piece.rotation
 
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    local player_id = info.npc_player_id
    local origin = ctx.enemy_location + Point3(x, 0, z)
    
    -- add all the entities.
+   ctx.create_camp.entities = {}
    if piece.info.entities then
       for name, info in pairs(piece.info.entities) do
          local entity = radiant.entities.create_entity(info.uri, { owner = player_id })
@@ -118,19 +121,20 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          end
          self:_add_entity_to_visible_rgn(entity, visible_rgn)
 
-         --TODO: add this entity to the ctx
-         ctx[name] = entity
+         --Add this entity to the ctx
+         ctx.create_camp.entities[name] = entity
       end
    end
 
    -- add all the people.
+   ctx.create_camp.citizens = {}
    if piece.info.citizens then
       for name, info in pairs(piece.info.citizens) do
          local citizen = game_master_lib.create_citizen(self._population, info, origin)
          self:_add_entity_to_visible_rgn(citizen, visible_rgn)
 
          --TODO: add this entity to the ctx
-         ctx[name] = citizen
+         ctx.create_camp.citizens[name] = citizen
       end
    end
 

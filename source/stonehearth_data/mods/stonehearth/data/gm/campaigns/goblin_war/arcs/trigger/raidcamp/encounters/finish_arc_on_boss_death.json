@@ -10,8 +10,8 @@
       "nodes" : {
          "msg1" : {
             "bulletin" : {
-               "title" : "%name(npc_boss_entity) is Defeated!",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "title" : "%name(create_camp.npc_boss_entity) is Defeated!",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : "Ow...it hurts...",
                "choices" : {
@@ -23,8 +23,8 @@
          },
          "msg2" : {
             "bulletin" : {
-               "title" : "%name(npc_boss_entity) is Defeated!",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "title" : "%name(create_camp.npc_boss_entity) is Defeated!",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : "Tell my sheep... me loves her always...",
                "choices" : {
@@ -36,8 +36,8 @@
          },
          "msg3" : {
             "bulletin" : {
-               "title" : "%name(npc_boss_entity) is Defeated!",
-               "dialog_title" : "%name(npc_boss_entity)",
+               "title" : "%name(create_camp.npc_boss_entity) is Defeated!",
+               "dialog_title" : "%name(create_camp.npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : "You no win. More... coming. Always more...",
                "choices" : {

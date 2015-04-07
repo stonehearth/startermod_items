@@ -10,10 +10,10 @@
       "nodes" : {
          "msg1" : {
             "bulletin" : {
-               "title" : "Mer Burlyhands looks perturbed",
+               "title" : "A grizzled traveller appears on the horizon",
                "dialog_title" : "Mer Burlyhands",
                "portrait" : "file(images/mer_burlyhands.png)",
-               "message" : "Hey there again! I just got the last batch of refugees settled somewhere good n' safe.",
+               "message" : "Ho there township! How are things for you?",
                "choices" : {
                   "stonehearth:next" : {
                      "next_node" : "msg2"
@@ -26,7 +26,7 @@
                "title" : "Mer Burlyhands scratches his ear",
                "dialog_title" : "Mer Burlyhands",
                "portrait" : "file(images/mer_burlyhands.png)",
-               "message" : "It's been pretty quiet, but you know...? It's a bad sign when th' birds stop singing.",
+               "message" : "It's been pretty quiet, but you know...? It's a bad sign when the birds stop singing.",
                "choices" : {
                   "stonehearth:next" : {
                      "next_node" : "msg3"
@@ -39,7 +39,7 @@
                "title" : "Mer Burlyhands nods firmly",
                "dialog_title" : "Mer Burlyhands",
                "portrait" : "file(images/mer_burlyhands.png)",
-               "message" : "Well, I'd better be off. Watch your borders carefully, y' hear? ",
+               "message" : "My guess is wolves. Goblin wolves. Watch your borders. You don't want to fight them after their trainer's got them in a lather, you hear? Bunker down, if you need to. Or run. Runnin's good! No shame in surviving another day.",
                "choices" : {
                   "stonehearth:ok" : {
                   }

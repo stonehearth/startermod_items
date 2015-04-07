@@ -6,7 +6,7 @@
    "out_edge" : "finish_arc_on_boss_death",
 
    "wait_for_event_info" :  {
-      "source" : "npc_boss_entity",
+      "source" : "create_camp.npc_boss_entity",
       "event"  : "radiant:entity:pre_destroy"
    }
 }
