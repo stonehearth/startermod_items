@@ -64,9 +64,9 @@ void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::S
       self = &i->second;
    }
    self->totalTime += (int)_count;
-   for (int j = 0; j < _lines.size(); j++) {
+   for (int j = 0; j < (int)_lines.size(); j++) {
       bool found = false;
-      for (int k = 0; k < self->lines.size(); k++) {
+      for (int k = 0; k < (int)self->lines.size(); k++) {
          if (_lines[j].line == self->lines[k].line) {
             found = true;
             self->lines[k].count += _lines[j].count;

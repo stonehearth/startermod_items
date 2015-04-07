@@ -1236,7 +1236,7 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
       for (core::StaticString const c : frame.second.callers) {
          // libjson treats '.' as a child node.  Wonderful!
          std::string fnname((const char*)c);
-         for (auto i = 0; i < fnname.length(); i++) {
+         for (int i = 0; i < (int)fnname.length(); i++) {
             if (fnname[i] == '.') {
                fnname[i] = '_';
             }
@@ -1248,7 +1248,7 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
       // libjson treats '.' as a child node.  Wonderful!
       std::string fnname((const char*)frame.first);
-      for (auto i = 0; i < fnname.length(); i++) {
+      for (int i = 0; i < (int)fnname.length(); i++) {
          if (fnname[i] == '.') {
             fnname[i] = '_';
          }
