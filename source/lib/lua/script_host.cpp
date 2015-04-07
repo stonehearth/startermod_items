@@ -288,6 +288,7 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
          if (strcmp(f.source, C_MODULE)) {
             current = current->AddStackFrame(f.source, f.linedefined);
             current->IncrementCount(delta, f.currentline);
+            delta = 0;
          }
       }
    }
@@ -1223,12 +1224,27 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
       json::Node fnNodes(JSON_ARRAY);
       for (core::StaticString const c : frame.second.callers) {
-         JSONNode n("", (const char*)c);
+         // libjson treats '.' as a child node.  Wonderful!
+         std::string fnname((const char*)c);
+         for (auto i = 0; i < fnname.length(); i++) {
+            if (fnname[i] == '.') {
+               fnname[i] = '_';
+            }
+         }
+         JSONNode n("", fnname);
          fnNodes.add(json::Node(n));
       }
       frameNode.set("clrs", fnNodes);
 
-      root.set((const char*)frame.first, frameNode);
+      // libjson treats '.' as a child node.  Wonderful!
+      std::string fnname((const char*)frame.first);
+      for (auto i = 0; i < fnname.length(); i++) {
+         if (fnname[i] == '.') {
+            fnname[i] = '_';
+         }
+      }
+
+      root.set(fnname, frameNode);
    }
 
    std::ofstream f("lua_profile_data.json");
