@@ -11,15 +11,16 @@
          "workers" : {
             "job" : "stonehearth:jobs:worker",
             "role" : "default",
-            "count" : 4
+            "count" : 2
          },
          "citizenfootmen" : {
             "job" : "stonehearth:jobs:footman",
             "role" : "default",
-            "count" : 4,
+            "count" : 2,
             "equipment" : {
-               "weapon" : ["stonehearth:weapons:giant_bone_axe", "stonehearth:weapons:two_handed_sword"]               
-            }
+               "weapon" : ["stonehearth:weapons:two_handed_sword"],
+               "armor" : ["stonehearth:armor:steel_mail"]
+         }
          }         
       }
    },
@@ -35,7 +36,7 @@
          "raiders" : {
             "job" : "stonehearth:jobs:footman",
             "role" : "default",
-            "count" : 5,
+            "count" : 0,
             "equipment" : {
                "outfit" : "stonehearth:monsters:goblins:outfits:footman",
                "weapon" : ["stonehearth:weapons:jagged_cleaver"]
@@ -44,6 +45,7 @@
          "boss" : {
             "job" : "stonehearth:jobs:footman",
             "role" : "default",
+            "count" : 0,
             "equipment" : {
                "outfit" : "stonehearth:monsters:goblins:outfits:miniboss",
                "weapon" : ["stonehearth:weapons:giant_bone_axe", "stonehearth:weapons:two_handed_sword"]
