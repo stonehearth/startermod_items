@@ -52,7 +52,7 @@ table#perfTable tr:nth-child(odd) {
       var sib = row.nextSibling;
       if (sib) {
         var sibDepth = parseInt(sib.getAttribute('depth'), 10);
-        if (sibDepth == curRowDepth + 1) {
+        if (sibDepth > curRowDepth) {
           done = false;
           tableRoot.removeChild(sib);
         }
