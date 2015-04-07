@@ -218,6 +218,106 @@ function WaterComponent:_create_merge_info(entity1, entity2)
    return merge_info
 end
 
+function WaterComponent:merge_with(mergee, allow_uneven_top_layers)
+   self:_merge_regions(self._entity, mergee, allow_uneven_top_layers)
+
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   channel_manager:merge_channels(self._entity, mergee)
+end
+
+-- written as a stateless function
+-- mergee should be destroyed soon after this call
+function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
+   assert(master ~= mergee)
+   local master_location = radiant.entities.get_world_grid_location(master)
+   local mergee_location = radiant.entities.get_world_grid_location(mergee)
+   log:debug('Merging %s at %s with %s at %s', master, master_location, mergee, mergee_location)
+
+   local master_component = master:add_component('stonehearth:water')
+   local mergee_component = mergee:add_component('stonehearth:water')
+   local master_layer_elevation = master_component:get_current_layer_elevation()
+   local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
+   local uneven_merge = allow_uneven_top_layers and master_layer_elevation ~= mergee_layer_elevation
+   local translation = mergee_location - master_location   -- translate between local coordinate systems
+   local update_layer, new_height, new_index, new_layer_region
+
+   if uneven_merge then
+      if mergee_layer_elevation > master_layer_elevation then
+         -- adopt the water level of the mergee
+         update_layer = true
+         new_height = mergee_component:get_water_level() - master_location.y
+         new_index = mergee_layer_elevation - master_location.y
+
+         -- clear the master layer since it will be replaced by the mergee kayer below
+         master_component._sv._current_layer:modify(function(cursor)
+               cursor:clear()
+            end)
+      else
+         -- we're good, just keep the existing layer as it is
+         update_layer = false
+      end
+   else
+      -- layers must be at same level
+      assert(master_layer_elevation == mergee_layer_elevation)
+      update_layer = true
+
+      -- calculate new water level before modifying regions
+      local new_water_level = self:_calculate_merged_water_level(master_component, mergee_component)
+      new_height = new_water_level - master_location.y
+      new_index = master_layer_elevation - master_location.y
+   end
+
+   -- merge the current layers
+   if update_layer then
+      master_component._sv.height = new_height
+      master_component._sv._current_layer_index = new_index
+
+      master_component._sv._current_layer:modify(function(cursor)
+            local mergee_layer = mergee_component._sv._current_layer:get():translated(translation)
+            cursor:add_region(mergee_layer)
+         end)
+   end
+
+   -- merge the main regions
+   master_component._sv.region:modify(function(cursor)
+         local mergee_region = mergee_component._sv.region:get():translated(translation)
+         cursor:add_region(mergee_region)
+      end)
+
+   master_component.__saved_variables:mark_changed()
+end
+
+function WaterComponent:_calculate_merged_water_level(master_component, mergee_component)
+   local master_layer_elevation = master_component:get_current_layer_elevation()
+   local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
+
+   -- layers must be at same level
+   assert(master_layer_elevation == mergee_layer_elevation)
+
+   -- get the heights of the current layers
+   local master_layer_height = master_component:get_water_level() - master_layer_elevation
+   local mergee_layer_height = mergee_component:get_water_level() - mergee_layer_elevation
+   assert(master_layer_height <= 1)
+   assert(mergee_layer_height <= 1)
+
+   -- TODO: take the residual and add it to the water queue
+   -- don't call add_water on the merge to avoid recursive merge logic
+   if master_layer_height == 0 or mergee_layer_height == 0 then
+      -- yes, assert this again in case the first one is removed
+      assert(master_layer_elevation == mergee_layer_elevation)
+      return master_layer_elevation
+   end
+
+   -- calculate the merged layer height
+   local master_layer_area = master_component._sv._current_layer:get():get_area()
+   local mergee_layer_area = mergee_component._sv._current_layer:get():get_area()
+   local new_layer_area = master_layer_area + mergee_layer_area
+   local new_layer_volume = master_layer_area * master_layer_height + mergee_layer_area * mergee_layer_height
+   local new_layer_height = new_layer_volume / new_layer_area
+   local new_water_level = master_layer_elevation + new_layer_height
+   return new_water_level
+end
+
 -- TODO: for channels at the same elevation, pick the closest
 function WaterComponent:_add_water_to_channels(volume)
    local channel_manager = stonehearth.hydrology:get_channel_manager()
