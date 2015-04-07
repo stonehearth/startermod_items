@@ -203,7 +203,9 @@ function events._trigger_error_handler(err)
 end
 
 function events.trigger(object, event, ...)
-   log:spam('triggering %s', tostring(event))
+   if log:is_enabled(radiant.log.SPAM) then
+      log:spam('triggering %s', tostring(event))
+   end
    
    local key = events._convert_object_to_key(object)
    local sender = events._senders[key]

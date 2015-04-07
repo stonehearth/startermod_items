@@ -7,6 +7,7 @@
 #include "om/error_browser/error_browser.h"
 #include "om/om.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/perfmon/sampling_profiler.h"
 #include "core/static_string.h"
 
 class JSONNode;
@@ -91,6 +92,7 @@ private:
    luabind::object GetModuleList() const;
    JSONNode LuaToJsonImpl(luabind::object obj);
    void ProfileHook(lua_State *L, lua_Debug *ar);
+   void DumpFusedFrames(perfmon::FusedFrames& fusedFrames);
 
 private:
    luabind::object GetManifest(std::string const& mod_name);
@@ -140,6 +142,7 @@ private:
    perfmon::CounterValueType  _lastHookTimestamp;
    perfmon::CounterValueType  _profilerDuration;
    perfmon::CounterValueType  _profilerSampleCounts;
+   unsigned int               max_profile_length_;
    std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
 };
 

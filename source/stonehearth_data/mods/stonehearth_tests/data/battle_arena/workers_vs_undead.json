@@ -35,15 +35,13 @@
          "raiders" : {
             "role" : "skeleton",
             "count" : 0,
-            "job" : "stonehearth:jobs:footman",
             "equipment" : {
                "weapon" : ["stonehearth:weapons:jagged_cleaver"]
             }
          },
          "brraaaainz" : {
             "role" : "zombie",
-            "count" : 8,
-            "job" : "stonehearth:jobs:footman",
+            "count" : 4,
             "equipment" : {
                "weapon" : ["stonehearth:weapons:jagged_cleaver"]
             }

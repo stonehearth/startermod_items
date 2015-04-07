@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include "namespace.h"
 #include "core/static_string.h"
 #include "resources\res_manager.h"
@@ -30,7 +31,6 @@ public:
    void CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const;
    void CollectBottomUpStats(FunctionAtLineTimes &stats, FunctionNameStack& stack, int remainingDepth) const;
 
-private:
    struct LineCount {
       LineCount() : line(0), count(0) { }
       LineCount(int l, CounterValueType c) : line(l), count(c) { }
@@ -39,6 +39,15 @@ private:
       CounterValueType  count;
    };
 
+   struct SmallFrame {
+      std::unordered_map<core::StaticString, unsigned int, core::StaticString::Hash> callers;
+      int totalTime;
+      std::vector<LineCount>    lines;
+   };
+
+   void Fuse(std::unordered_map<core::StaticString, SmallFrame, core::StaticString::Hash> &lookup);
+
+
 private:
    unsigned int               _fnDefLine;
    const char*                _sourceName;
@@ -46,7 +55,10 @@ private:
    CounterValueType           _count;
    std::vector<StackFrame>    _callers;
    std::vector<LineCount >    _lines;
+   unsigned int               _callCount;
 };
+
+typedef std::unordered_map<core::StaticString, StackFrame::SmallFrame, core::StaticString::Hash> FusedFrames;
 
 class SamplingProfiler
 {
@@ -56,6 +68,7 @@ public:
 public:
    StackFrame* GetTopInvertedStackFrame();
 
+   void Fuse(FusedFrames &lookup);
    void FinalizeCollection(res::ResourceManager2& resMan);
    void CollectStats(FunctionTimes& stats) const;
    void CollectBottomUpStats(FunctionAtLineTimes &stats, int maxDepth) const;

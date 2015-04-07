@@ -12,7 +12,7 @@
 
       "stonehearth:construction_data" : {
          "type" : "floor",
-         "allow_crouching_construction" : true,
+         "allow_crouching_construction" : true
       },
 
       "movement_modifier_shape" : {

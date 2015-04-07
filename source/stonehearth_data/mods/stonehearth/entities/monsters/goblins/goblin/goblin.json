@@ -60,31 +60,7 @@
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
             "stonehearth:actions:restock_stockpile",
-            "stonehearth:actions:drop_carrying_in_stockpile",
-            "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack_after_cooldown",
-            "stonehearth:actions:combat:attack:melee",
-            "stonehearth:actions:combat:attack:melee_adjacent",
-            "stonehearth:actions:combat:defend_dispatcher",
-            "stonehearth:actions:combat:defend:melee",
-            "stonehearth:actions:combat:idle_dispatcher",
-            "stonehearth:actions:combat:idle:ready",
-            "stonehearth:actions:combat:idle:shuffle",
-            "stonehearth:actions:combat:panic_dispatcher",
-            "stonehearth:actions:combat:panic_watcher",
-            "stonehearth:actions:combat:stop_panicking",
-            "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:combat:create_engage_callback",
-            "stonehearth:actions:combat:get_primary_target",
-            "stonehearth:actions:combat:get_melee_range",
-            "stonehearth:actions:combat:set_global_attack_cooldown",
-            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
-            "stonehearth:actions:chase_entity",
-            "stonehearth:actions:set_posture",
-            "stonehearth:actions:free_time:dispatcher",
-            "stonehearth:actions:equip_carrying",
-            "stonehearth:actions:upgrade_equipment",
-            "stonehearth:actions:find_equipment_upgrade"
+            "stonehearth:actions:drop_carrying_in_stockpile"
          ]
       },
       "stonehearth:observers" : {
@@ -126,11 +102,17 @@
       "stonehearth:entity_reach" : 1.0,
       "stonehearth:combat:melee_attacks" : [
          {
-            "name" : "combat_1h_forehand_spin",
-            "active_frame" : 21,
-            "cooldown" : 8000,
-            "priority" : 1
-         }      
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 2,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 2,
+            "priority" : 0
+         }
       ],
       "stonehearth:combat:melee_defenses" : [
          {

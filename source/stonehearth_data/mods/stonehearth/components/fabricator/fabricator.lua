@@ -288,6 +288,7 @@ function Fabricator:find_another_block(carrying, location)
          if poi_local then
             local block = poi_local + origin
 
+            local material = self:get_material(block)
             if not radiant.entities.is_material(carrying, material) then
                return
             end

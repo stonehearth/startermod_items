@@ -10,7 +10,8 @@ const char* TOP_FRAME = "top";
 StackFrame::StackFrame(const char* sourceName, unsigned int fnDefLine) :
    _sourceName(sourceName),
    _fnDefLine(fnDefLine),
-   _count(0)
+   _count(0),
+   _callCount(1)
 {
 }
 
@@ -19,6 +20,7 @@ StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDef
    // O(n), but much more cache-friendly then a hashtable.
    for (StackFrame& c : _callers) {
       if (c._fnDefLine == fnDefLine && !strcmp(c._sourceName, sourceName)) {
+         c._callCount++;
          return &c;
       }
    }
@@ -48,6 +50,45 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
    }
    for (StackFrame& c : _callers) {
       c.FinalizeCollection(resMan);
+   }
+}
+
+void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::StaticString::Hash> &lookup) 
+{
+   SmallFrame *self;
+   auto& i = lookup.find(_fnName);
+   if (i == lookup.end()) {
+      SmallFrame sf;
+      sf.totalTime = 0;
+      lookup.emplace(_fnName, sf);
+      self = &lookup.find(_fnName)->second;
+   } else {
+      self = &i->second;
+   }
+   self->totalTime += (int)_count;
+   for (int j = 0; j < (int)_lines.size(); j++) {
+      bool found = false;
+      for (int k = 0; k < (int)self->lines.size(); k++) {
+         if (_lines[j].line == self->lines[k].line) {
+            found = true;
+            self->lines[k].count += _lines[j].count;
+            break;
+         }
+      }
+
+      if (!found) {
+         self->lines.push_back(LineCount(_lines[j].line, _lines[j].count));
+      }
+   }
+
+   for (auto &caller : _callers) {
+      caller.Fuse(lookup);
+      auto& k = self->callers.find(caller._fnName);
+      if (k != self->callers.end()) {
+         k->second += caller._callCount;
+      } else {
+         self->callers.emplace(caller._fnName, caller._callCount);
+      }
    }
 }
 
@@ -105,6 +146,11 @@ SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
 void SamplingProfiler::FinalizeCollection(res::ResourceManager2& resMan)
 {
    _invertedStack.FinalizeCollection(resMan);
+}
+
+void SamplingProfiler::Fuse(FusedFrames &lookup)
+{
+   _invertedStack.Fuse(lookup);
 }
 
 CounterValueType SamplingProfiler::StackEntry::GetElapsed() const

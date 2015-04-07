@@ -1,0 +1,184 @@
+<html>
+
+<input type="file" id="files" name="files[]" multiple style="width:500px;"/>
+<div id="sampleTime"> </div>
+<table id="perfTable">
+  <tr>
+    <th>Function Name</th>
+    <th>Total Time In Function(us)</th>
+    <th>Number of Sampled Calls</th>
+    <th>Hot Lines(line, us)</th>
+  </tr>
+</table>
+<style type="text/css">
+table#perfTable tr:nth-child(even) {
+    background-color: #eee;
+}
+table#perfTable tr:nth-child(odd) {
+    background-color: #fff;
+}
+</style>
+<script>
+
+  var perfData = {};
+  var tableRoot = document.getElementById('perfTable');
+
+  function getFunctionData(fnName) {
+    fnName = fnName.trim();
+    var d = perfData[fnName];
+    return {
+      fnName : fnName,
+      tt : d.tt,
+      callers: d.clrs,
+      lines: d.lns
+    };
+  }
+
+  function expandFnRow(row) {
+    var curRowDepth = parseInt(row.getAttribute('depth'), 10);
+    row.setAttribute('expanded', true);
+    var fnName = row.children[0].innerText;
+    var callers = getFunctionData(fnName).callers;
+    var next = row.nextSibling;
+
+    displayFnData(callers, tableRoot, next, curRowDepth + 1);
+  }
+
+  function collapseFnRow(row, curRowDepth) {
+    var curRowDepth = parseInt(row.getAttribute('depth'), 10);
+    row.removeAttribute('expanded');
+    var done = false;
+
+    while (!done) {
+      done = true;
+      var sib = row.nextSibling;
+      if (sib) {
+        var sibDepth = parseInt(sib.getAttribute('depth'), 10);
+        if (sibDepth > curRowDepth) {
+          done = false;
+          tableRoot.removeChild(sib);
+        }
+      }
+    }    
+  }
+
+  function rowClickHandler(e) {
+    var row = e.currentTarget;
+    var isExpanded = row.hasAttribute('expanded');
+
+    if (!isExpanded) {
+      expandFnRow(row);
+    } else {
+      collapseFnRow(row);
+    }
+  }
+
+  function makeDepthSpaces(depth) {
+    var result = '';
+    for (var i = 0; i < depth * 4; i++) {
+      result = result + '&nbsp;';
+    }
+    return result;
+  }
+
+  function formatHotLines(lines) {
+    lines.sort(function(l1, l2) {
+      return l2.t - l1.t;
+    });
+
+    var result = '';
+    for (var i = 0; i < lines.length; i++) {
+      result += '(' + lines[i]['#'] + ', ' + lines[i].t + ') ';
+    }
+    return result;
+  }
+
+  function makeFuncRow(fnData, callCount, depth) {
+    var rowNode = document.createElement('tr');
+    rowNode.setAttribute('depth', depth);
+    var depthSpaces = makeDepthSpaces(depth);
+    var rd;
+    
+    rd = document.createElement('td');
+    rd.innerText = fnData.fnName;
+    rd.innerHTML = depthSpaces + rd.innerText;
+    rowNode.appendChild(rd);
+
+    rd = document.createElement('td');
+    rd.innerText = fnData.tt;
+    rowNode.appendChild(rd);
+
+    rd = document.createElement('td');
+    rd.innerText = callCount;
+    rowNode.appendChild(rd);
+
+    rd = document.createElement('td');
+    rd.innerText = formatHotLines(fnData.lines);
+    rowNode.appendChild(rd);
+
+    rowNode.onclick = rowClickHandler;
+
+    return rowNode;
+  }
+
+  function addFuncData(fnData, callCount, parentNode, nextNode, depth) {
+    parentNode.insertBefore(makeFuncRow(fnData, callCount, depth), nextNode);
+  }
+
+  /*function openFunction(fName, parentNode) {
+    var fnData = getFunctionData(fName);
+
+    for (var i = 0; i < fnData.clrs.length; i++) {
+      addFuncData(fnData.clrs[i], parentNode);
+    }
+  }*/
+
+  function displayFnData(fns, parent, lastElement, depth) {
+    var data = [];
+    var callCounts = []
+    for (var i = 0; i < fns.length; i++) {
+      data.push(getFunctionData(fns[i].nm));
+      callCounts.push(fns[i].n);
+    }
+
+    data.sort(function(d1, d2) {
+      return d2.tt - d1.tt;
+    });
+
+    for (var i = 0; i < data.length; i++) {
+      addFuncData(data[i], callCounts[i], parent, lastElement, depth);
+    }
+  }
+
+  function displayRoot(rootNode) {
+    var fns = [];
+    for (var key in perfData) {
+      if (perfData.hasOwnProperty(key)) {
+        fns.push({ nm: key, n:0 });
+      }
+    }
+
+    displayFnData(fns, rootNode, null, 0);
+  }
+
+  function handleFileSelect(evt) {
+    var files = evt.target.files; // FileList object
+    var file = files[0];
+
+    var reader = new FileReader();
+
+    // Closure to capture the file information.
+    reader.onload = function(e) {
+        var allData = JSON.parse(e.target.result);
+        perfData = allData.profile_data;
+        metaData = allData.metadata;
+        displayRoot(tableRoot);
+        document.getElementById('sampleTime').innerText = metaData.profiling_time + " ms of samples taken";
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById('files').addEventListener('change', handleFileSelect, false);
+</script>
+
+</html>
