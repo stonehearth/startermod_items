@@ -1204,11 +1204,10 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
 
 void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 {
-   json::Node root(JSON_ARRAY);
+   json::Node root;
 
    for (auto& frame : fusedFrames) {
       json::Node frameNode;
-      frameNode.set("nm", (const char*)frame.first);
       frameNode.set("tt", frame.second.totalTime);
 
       json::Node lineNodes(JSON_ARRAY);
@@ -1224,13 +1223,12 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
       json::Node fnNodes(JSON_ARRAY);
       for (core::StaticString const c : frame.second.callers) {
-         //json::Node n(JSON_STRING);
          JSONNode n("", (const char*)c);
          fnNodes.add(json::Node(n));
       }
       frameNode.set("clrs", fnNodes);
 
-      root.add(frameNode);
+      root.set((const char*)frame.first, frameNode);
    }
 
    std::ofstream f("lua_profile_data.json");
