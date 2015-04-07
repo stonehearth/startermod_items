@@ -320,7 +320,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       assert(calling_thread == self._thread, 'on wrong thread in execution frame restart thinking')
    end
 
-   if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
+   if not (self._state == 'thinking' or self._state == 'starting_thinking' or self._state == 'ready' or self._state == 'running') then
       self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
       return false
    end

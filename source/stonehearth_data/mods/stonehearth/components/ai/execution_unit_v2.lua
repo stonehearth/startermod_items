@@ -207,16 +207,16 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
    end
    self:_set_args(args)
 
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
       return
    end
 
-   if self:in_state(THINKING, READY) then
+   if self._state == THINKING or self._state == READY then
       return self:_start_thinking_from_thinking(entity_state)
    end
 
-   if self._state == 'stopped' then
+   if self._state == STOPPED then
       return self:_start_thinking_from_stopped(entity_state)
    end
    self:_unknown_transition('start_thinking')   
@@ -253,18 +253,18 @@ function ExecutionUnitV2:_clear_think_output()
 end
 
 function ExecutionUnitV2:_stop_thinking()
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "stop_thinking" in state "%s"', self._state)
       return
    end
 
-   if self:in_state('thinking', 'ready', 'halted') then
+   if self._state == 'thinking' or self._state == 'ready' or self._state == 'halted' then
       return self:_stop_thinking_from_thinking()
    end
-   if self:in_state('starting', 'started') then
+   if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started()
    end
-   if self:in_state('stopping', 'stopped', 'dead') then
+   if self._state == 'stopping' or self._state == 'stopped' or self._state == 'dead' then
       assert(not self._thinking)
       return -- nop
    end
