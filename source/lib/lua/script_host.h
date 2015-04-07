@@ -142,6 +142,7 @@ private:
    perfmon::CounterValueType  _lastHookTimestamp;
    perfmon::CounterValueType  _profilerDuration;
    perfmon::CounterValueType  _profilerSampleCounts;
+   unsigned int               max_profile_length_;
    std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
 };
 

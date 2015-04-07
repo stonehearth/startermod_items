@@ -294,6 +294,10 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
    }
    _lastHookL = L;
    _lastHookTimestamp = now;
+
+   if (perfmon::CounterToMilliseconds(_profilerDuration) >= max_profile_length_) {
+      ToggleCpuProfiling();
+   }
 }
 
 int RegisterThreadFn(lua_State* L)
@@ -338,6 +342,7 @@ ScriptHost::ScriptHost(std::string const& site) :
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
+   max_profile_length_ = (unsigned int)core::Config::GetInstance().Get<int>("lua.max_profile_length", 999999999);
    if (enable_profile_cpu_) {
       _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_rate", 15000);
    }
@@ -1207,6 +1212,11 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 {
    json::Node root;
 
+   json::Node metadata;
+   metadata.set("profiling_time", perfmon::CounterToMilliseconds(_profilerDuration));
+   root.set("metadata", metadata);
+
+   json::Node profileData;
    for (auto& frame : fusedFrames) {
       json::Node frameNode;
       frameNode.set("tt", frame.second.totalTime);
@@ -1244,10 +1254,18 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
          }
       }
 
-      root.set(fnname, frameNode);
+      profileData.set(fnname, frameNode);
    }
 
-   std::ofstream f("lua_profile_data.json");
+   root.set("profile_data", profileData);
+
+   char date[256];
+   std::time_t t = std::time(NULL);
+   if (!std::strftime(date, sizeof(date), " %Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+      *date = 0;
+   }
+   std::string filename = BUILD_STRING("lua_profile_data_" << date << ".json");
+   std::ofstream f(filename);
    f << root;
    f.close();
 }

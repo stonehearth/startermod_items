@@ -1,6 +1,7 @@
 <html>
 
 <input type="file" id="files" name="files[]" multiple />
+<div id="sampleTime"> </div>
 <table id="perfTable">
   <tr>
     <th>Function Name</th>
@@ -161,8 +162,11 @@ table#perfTable tr:nth-child(odd) {
 
     // Closure to capture the file information.
     reader.onload = function(e) {
-        perfData = JSON.parse(e.target.result);
+        var allData = JSON.parse(e.target.result);
+        perfData = allData.profile_data;
+        metaData = allData.metadata;
         displayRoot(tableRoot);
+        document.getElementById('sampleTime').innerText = metaData.profiling_time + " ms of samples taken";
     };
     reader.readAsText(file);
   }
