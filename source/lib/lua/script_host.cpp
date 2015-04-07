@@ -1233,16 +1233,18 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
       frameNode.set("lns", lineNodes);
 
       json::Node fnNodes(JSON_ARRAY);
-      for (core::StaticString const c : frame.second.callers) {
+      for (auto const c : frame.second.callers) {
          // libjson treats '.' as a child node.  Wonderful!
-         std::string fnname((const char*)c);
+         std::string fnname((const char*)c.first);
          for (int i = 0; i < (int)fnname.length(); i++) {
             if (fnname[i] == '.') {
                fnname[i] = '_';
             }
          }
-         JSONNode n("", fnname);
-         fnNodes.add(json::Node(n));
+         json::Node callerNode;
+         callerNode.set("nm", fnname);
+         callerNode.set("n", c.second);
+         fnNodes.add(callerNode);
       }
       frameNode.set("clrs", fnNodes);
 

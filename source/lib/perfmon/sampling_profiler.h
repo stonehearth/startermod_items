@@ -40,7 +40,7 @@ public:
    };
 
    struct SmallFrame {
-      std::unordered_set<core::StaticString, core::StaticString::Hash> callers;
+      std::unordered_map<core::StaticString, unsigned int, core::StaticString::Hash> callers;
       int totalTime;
       std::vector<LineCount>    lines;
    };
@@ -55,6 +55,7 @@ private:
    CounterValueType           _count;
    std::vector<StackFrame>    _callers;
    std::vector<LineCount >    _lines;
+   unsigned int               _callCount;
 };
 
 typedef std::unordered_map<core::StaticString, StackFrame::SmallFrame, core::StaticString::Hash> FusedFrames;

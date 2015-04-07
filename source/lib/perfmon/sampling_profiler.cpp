@@ -10,7 +10,8 @@ const char* TOP_FRAME = "top";
 StackFrame::StackFrame(const char* sourceName, unsigned int fnDefLine) :
    _sourceName(sourceName),
    _fnDefLine(fnDefLine),
-   _count(0)
+   _count(0),
+   _callCount(1)
 {
 }
 
@@ -19,6 +20,7 @@ StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDef
    // O(n), but much more cache-friendly then a hashtable.
    for (StackFrame& c : _callers) {
       if (c._fnDefLine == fnDefLine && !strcmp(c._sourceName, sourceName)) {
+         c._callCount++;
          return &c;
       }
    }
@@ -81,7 +83,12 @@ void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::S
 
    for (auto &caller : _callers) {
       caller.Fuse(lookup);
-      self->callers.insert(caller._fnName);
+      auto& k = self->callers.find(caller._fnName);
+      if (k != self->callers.end()) {
+         k->second += caller._callCount;
+      } else {
+         self->callers.emplace(caller._fnName, caller._callCount);
+      }
    }
 }
 
