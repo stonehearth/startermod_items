@@ -63,7 +63,7 @@ function new_house(x, y)
    local house
    stonehearth.build:do_command('house', nil, function()
          local w, h = 3, 3
-         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(x, 10, y), Point3(x + w, 11, y + h)))
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(x, 9, y), Point3(x + w, 10, y + h)))
          house = build_util.get_building_for(floor)
          lrbt_util.grow_wooden_walls(session, house)
          lrbt_util.grow_wooden_roof(session, house)
@@ -153,6 +153,8 @@ function crushinator_tests.maul(autotest)
    road = new_road(Point2(39, 5), Point2(73, 8))
    stonehearth.build:set_active(build_util.get_building_for(road), true)
 
+   road = new_road(Point2(0, 57), Point2(70, 60))
+   stonehearth.build:set_active(build_util.get_building_for(road), true)
    --autotest:sleep(15 * 1000)
    --new_template(autotest, -40, 50, "Cottage for Two")
 
