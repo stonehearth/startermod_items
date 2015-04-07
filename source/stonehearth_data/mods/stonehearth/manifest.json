@@ -1400,11 +1400,8 @@
       "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
-<<<<<<< HEAD
       "game_master:encounters:destroy_entity" : "file(services/server/game_master/controllers/encounters/destroy_entity_encounter.lua)", 
-=======
       "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
->>>>>>> 5ba81e18896e192668593f9a973358d0a5a91670
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
 
