@@ -1399,8 +1399,8 @@ function ExecutionFrame:get_state()
 end
 
 function ExecutionFrame:_set_state(state)
-   self._log:debug('state change %s -> %s', tostring(self._state), state)
-   self:_trace_state_change(tostring(self._state), state)
+   self._log:debug('state change %s -> %s', self._state, state)
+   self:_trace_state_change(self._state, state)
    self._state = state
    
    if self._debug_info then
@@ -1536,7 +1536,7 @@ function ExecutionFrame:_spam_entity_state(state, format, ...)
    if self._log:is_enabled(radiant.log.SPAM) then
       self._log:spam(format, ...)
       for key, value in pairs(state) do      
-         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
+         self._log:spam('  CURRENT.%s = %s', key, value)
       end   
    end
 end

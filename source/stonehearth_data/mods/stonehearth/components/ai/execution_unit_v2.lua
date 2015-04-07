@@ -870,11 +870,11 @@ function ExecutionUnitV2:get_state(state)
 end
 
 function ExecutionUnitV2:_set_state(state)
-   self._log:debug('state change %s -> %s', tostring(self._state), state)
+   self._log:debug('state change %s -> %s', self._state, state)
    assert(state and self._state ~= state)
 
    if self._state ~= STARTING and self._state ~= STARTED then
-      self._aitrace:spam('@sc@%s@%s', tostring(self._state), state)
+      self._aitrace:spam('@sc@%s@%s', self._state, state)
    end
 
    if self._state ~= DEAD then
