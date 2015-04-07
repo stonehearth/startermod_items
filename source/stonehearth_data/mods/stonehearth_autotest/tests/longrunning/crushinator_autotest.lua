@@ -2,6 +2,8 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
+local build_util = require 'stonehearth.lib.build_util'
+local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
 local crushinator_tests = {}
 
@@ -52,6 +54,24 @@ end
 function new_trapping_grounds(autotest, x, y, width, height)
    autotest.env:create_trapping_grounds(x, y, { size = { x = width, z = height }})
 end
+
+function new_house(x, y)
+   local session = {
+      player_id = 'player_1',
+   }
+
+   local house
+   stonehearth.build:do_command('house', nil, function()
+         local w, h = 3, 3
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(x, 10, y), Point3(x + w, 11, y + h)))
+         house = build_util.get_building_for(floor)
+         lrbt_util.grow_wooden_walls(session, house)
+         lrbt_util.grow_wooden_roof(session, house)
+      end)
+   stonehearth.build:set_active(house, true)
+   return house
+end
+
 
 function new_template(autotest, x, y, template_name)
    autotest.ui:click_dom_element('#build_menu')
@@ -119,17 +139,21 @@ function crushinator_tests.maul(autotest)
    autotest.env:create_entity_cluster(-8, 8, 7, 7, 'stonehearth:resources:stone:hunk_of_stone')
    autotest.env:create_entity_cluster(-8, -8, 2, 2, 'stonehearth:food:berries:berry_basket')
 
-   new_template(autotest, 50, 50, "Tiny Cottage")
-   new_template(autotest, 10, 50, "Shared Sleeping Quarters")
-   new_template(autotest, 50, 20, "Dining Hall")
+   new_house(50, 50)
+   new_house(30, 50)
+   new_house(10, 50)
+   new_house(50, 20)
+   --new_template(autotest, 50, 50, "Tiny Cottage")
+   --new_template(autotest, 10, 50, "Shared Sleeping Quarters")
+   --new_template(autotest, 50, 20, "Dining Hall")
 
    local road
    road = new_road(Point2(0, 33), Point2(70, 35))
    road = new_road(Point2(70, 5), Point2(73, 35))
    road = new_road(Point2(39, 5), Point2(73, 8))
-   stonehearth.build:set_active(road:get_component('stonehearth:construction_data'):get_building_entity(), true)
+   stonehearth.build:set_active(build_util.get_building_for(road), true)
 
-   autotest:sleep(15 * 1000)
+   --autotest:sleep(15 * 1000)
    --new_template(autotest, -40, 50, "Cottage for Two")
 
 
@@ -139,7 +163,7 @@ function crushinator_tests.maul(autotest)
          autotest.env:create_person(j, i, { job = 'worker' })
       end
    end
-
+--[[
    -- 2 carpenters
    local carp_1 = autotest.env:create_person(6, -6, { job = 'carpenter', attributes = { total_level = 3 } })
    local carp_2 = autotest.env:create_person(6, -4, { job = 'carpenter' })
@@ -181,7 +205,7 @@ function crushinator_tests.maul(autotest)
    -- 2 trappers
    local tr_1 = autotest.env:create_person(8, -4, { job = 'trapper' })
    local tr_2 = autotest.env:create_person(8, -2, { job = 'trapper' })
-
+]]
    autotest:sleep(1 * 60 * 60 * 1000)
 end
 
