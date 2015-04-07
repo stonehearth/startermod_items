@@ -87,7 +87,7 @@ function WaterComponent:_add_water(world_location, volume)
    local channel_manager = stonehearth.hydrology:get_channel_manager()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local channel_region = Region3()
-   local merge_info = nil
+   local info = {}
 
    if self._sv.region:get():empty() then
       local region = Region3()
@@ -104,6 +104,8 @@ function WaterComponent:_add_water(world_location, volume)
       local current_layer = self._sv._current_layer:get():translated(entity_location)
       if current_layer:empty() then
          log:debug('Current layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
+         info.result = 'bounded'
+         info.reason = 'current layer empty'
          break
       end
 
@@ -115,6 +117,8 @@ function WaterComponent:_add_water(world_location, volume)
          local residual = self:_add_height(volume)
          if residual == volume then
             log:info('Could not raise water level for %s', self._entity)
+            info.result = 'bounded'
+            info.reason = 'could not raise water level'
             break
          end
          volume = residual
@@ -143,7 +147,9 @@ function WaterComponent:_add_water(world_location, volume)
                if stonehearth.hydrology:can_merge_water_bodies(self._entity, target_entity) then
                   -- we should save our current region and exit
                   -- a new water entry will process the merged entity
-                  merge_info = self:_create_merge_info(self._entity, target_entity)
+                  info.result = 'merge'
+                  info.entity1 = self._entity
+                  info.entity2 = target_entity
                   break
                end
 
@@ -181,7 +187,7 @@ function WaterComponent:_add_water(world_location, volume)
          delta_region:translate(-entity_location)
          self:_add_to_layer(delta_region)
 
-         if merge_info then
+         if info.result then
             break
          end
       end
@@ -189,7 +195,7 @@ function WaterComponent:_add_water(world_location, volume)
 
    self.__saved_variables:mark_changed()
 
-   return volume, merge_info
+   return volume, info
 end
 
 function WaterComponent:_remove_water(volume)
@@ -207,15 +213,6 @@ function WaterComponent:_remove_water(volume)
    end
 
    return volume
-end
-
-function WaterComponent:_create_merge_info(entity1, entity2)
-   local merge_info = {
-      result = 'merge',
-      entity1 = entity1,
-      entity2 = entity2
-   }
-   return merge_info
 end
 
 function WaterComponent:merge_with(mergee, allow_uneven_top_layers)
@@ -237,11 +234,14 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
    local mergee_component = mergee:add_component('stonehearth:water')
    local master_layer_elevation = master_component:get_current_layer_elevation()
    local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
-   local uneven_merge = allow_uneven_top_layers and master_layer_elevation ~= mergee_layer_elevation
+
    local translation = mergee_location - master_location   -- translate between local coordinate systems
    local update_layer, new_height, new_index, new_layer_region
 
-   if uneven_merge then
+   local is_uneven_merge = self:_is_uneven_merge(master_component, mergee_component)
+   local do_uneven_merge = allow_uneven_top_layers and is_uneven_merge
+
+   if do_uneven_merge then
       if mergee_layer_elevation > master_layer_elevation then
          -- adopt the water level of the mergee
          update_layer = true
@@ -285,6 +285,21 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
       end)
 
    master_component.__saved_variables:mark_changed()
+end
+
+function WaterComponent:_is_uneven_merge(master_component, mergee_component)
+   local master_layer_elevation = master_component:get_current_layer_elevation()
+   local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
+
+   if master_layer_elevation ~= mergee_layer_elevation then
+      return true
+   end
+
+   -- it's uneven if one of the layers cannot grow but the other can
+   local master_bounded = master_component._sv._current_layer:get():empty()
+   local mergee_bounded = mergee_component._sv._current_layer:get():empty()
+   local result = master_bounded ~= mergee_bounded
+   return result
 end
 
 function WaterComponent:_calculate_merged_water_level(master_component, mergee_component)
