@@ -6,7 +6,7 @@ local Point3 = _radiant.csg.Point3
 local log = radiant.log.create_logger('build_editor')
 
 function StructureEditor:__init()
-   self._building_container = radiant.entities.create_entity('stonehearth:entities:building')
+   self._building_container = radiant.entities.create_entity('stonehearth:build:prototypes:building')
    radiant.entities.add_child(radiant._authoring_root_entity, self._building_container)
    self._render_entity = _radiant.client.create_render_entity(H3DRootNode, self._building_container)
 end
@@ -80,7 +80,7 @@ end
 
 function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    self._proxy_blueprint = radiant.entities.create_entity(blueprint_uri)
-   self._proxy_fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
+   self._proxy_fabricator = radiant.entities.create_entity('stonehearth:build:prototypes:fabricator')
 
    radiant.entities.add_child(self._building_container, self._proxy_blueprint)
    radiant.entities.add_child(self._building_container, self._proxy_fabricator)

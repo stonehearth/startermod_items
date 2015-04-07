@@ -1,0 +1,57 @@
+{ 
+   "voxel" : {
+      "wood resource" : [
+         "#958455",
+         "#A59465",
+         "#332B1F",
+         "#4E442F",
+         "#65573A",
+         "#412B1F",
+         "#302118",
+         "#5A3D2D"
+      ],   
+      "stone resource" : [
+         "#2C3339",
+         "#244E7D"
+      ]
+   },
+
+   "pattern" : {
+      "wood resource" : [
+         "stonehearth:build:brushes:pattern:wood_dark_diagonal"
+      ],
+      "stone resource" : [
+         "stonehearth:build:brushes:pattern:brick_tiled",
+         "stonehearth:build:brushes:pattern:cobblestone",
+         "stonehearth:build:brushes:pattern:slate_blue_checkered"
+      ]
+   },
+
+   "wall" : {
+      "wood resource" : [
+         "stonehearth:build:brushes:wall:plastered_wall",
+         "stonehearth:build:brushes:wall:wooden_wall"
+      ],
+      "stone resource" : [
+         "stonehearth:build:brushes:wall:cobblestone_wall"
+      ]
+   },
+
+   "roof" : {
+      "wood resource" : [
+         "stonehearth:build:brushes:roof:thatch_peaked_roof",
+         "stonehearth:build:brushes:roof:wooden_peaked_roof"
+      ],
+      "stone resource" : [
+         "stonehearth:build:brushes:roof:blue_slate_peaked_roof",
+         "stonehearth:build:brushes:roof:castle_roof"
+      ]
+   },
+
+   "column" : {
+      "wood resource" : [
+         "#332B1F"
+      ]
+   }
+}
+

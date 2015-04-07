@@ -1,0 +1,18 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+
+   "components": {
+      "unit_info": {
+         "name": "Floor", 
+         "description": "Keeps feet clean"
+      },
+
+      "stonehearth:floor" : {
+      },
+
+      "stonehearth:construction_data" : {
+         "type" : "floor",
+         "allow_crouching_construction" : true
+      }
+   }
+}

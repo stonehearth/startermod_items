@@ -231,8 +231,9 @@ function Building:_trace_entity(entity, loading)
          self:_on_child_finished(e)
       end)
 
+   --[[
    if entity:get_component('stonehearth:roof') then
-      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
+      local trace = entity:get_component('stonehearth:roof'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
                               :on_changed(function()
                                     self:layout_roof(entity)
                                  end)
@@ -244,6 +245,7 @@ function Building:_trace_entity(entity, loading)
          trace:push_object_state()
       end
    end
+   ]]
 end
 
 function Building:_untrace_entity(id)

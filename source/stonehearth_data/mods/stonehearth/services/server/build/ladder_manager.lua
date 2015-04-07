@@ -65,7 +65,7 @@ function LadderManager:_should_build_rung(pt)
          log:spam(' %s is terrain.  no.', entity)
          return false
       end
-      if entity:get_uri() == 'stonehearth:scaffolding' then
+      if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
          log:spam(' %s is scaffolding.  yes.', entity)
          return true
       end

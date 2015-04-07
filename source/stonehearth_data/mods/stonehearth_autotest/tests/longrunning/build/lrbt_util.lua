@@ -5,10 +5,13 @@ local Point3 = _radiant.csg.Point3
 
 local lrbt_util = {}
 
-local WOODEN_COLUMN = 'stonehearth:wooden_column'
-local WOODEN_WALL = 'stonehearth:wooden_wall'
-local WOODEN_FLOOR = 'stonehearth:wooden_floor_solid_light'
-local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
+local brushes = radiant.resources.load_json('stonehearth:build:brushes')
+
+local WOODEN_WALL    = brushes.wall['wood resource'][1]
+local WOODEN_ROOF    = brushes.roof['wood resource'][1]
+local WOODEN_FLOOR   = brushes.voxel['wood resource'][1]
+local STONE_FLOOR    = brushes.voxel['stone resource'][1]
+local WOODEN_COLUMN  = brushes.column['wood resource'][1]
 
 function lrbt_util.create_workers(autotest, x, y)
    local workers = {}
@@ -45,14 +48,11 @@ function lrbt_util.fund_construction(autotest, buildings)
    local x, y = 18, 20
    
    lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:wood:oak_log')
+   x = x - 3
+   lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:stone:hunk_of_stone')
+   
    for _, building in pairs(buildings) do
       local cost = build_util.get_cost(building)
-      for material, _ in pairs(cost.resources) do
-         if material:find('stone') then
-            x = x - 3
-            lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:stone:hunk_of_stone')
-         end
-      end
       local stockpile_x = x
       for uri, _ in pairs(cost.items) do
          x = x - 3
@@ -86,6 +86,10 @@ end
 
 function lrbt_util.create_wooden_floor(session, cube)
    return stonehearth.build:add_floor(session, WOODEN_FLOOR, cube)
+end
+
+function lrbt_util.create_stone_floor(session, cube)
+   return stonehearth.build:add_floor(session, STONE_FLOOR, cube)
 end
 
 function lrbt_util.erase_floor(session, cube)
@@ -195,10 +199,10 @@ local function track_buildings_and_scaffolding_creation(cb)
 
    local building_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
-         if entity:is_valid() and entity:get_uri() == 'stonehearth:entities:building' then
+         if entity:is_valid() and entity:get_uri() == 'stonehearth:build:prototypes:building' then
             buildings[entity:get_id()] = entity
          end
-         if entity:is_valid() and entity:get_uri() == 'stonehearth:scaffolding' then
+         if entity:is_valid() and entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
             scaffolding[entity:get_id()] = entity
          end
       end)
