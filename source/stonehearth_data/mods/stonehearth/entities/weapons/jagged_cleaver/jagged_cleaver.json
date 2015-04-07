@@ -34,20 +34,6 @@
          "base_damage" : 8,
          "reach" : 1.5
       },
-      "stonehearth:combat:melee_attacks" : [
-         {
-            "name" : "combat_1h_backhand",
-            "active_frame" : 17,
-            "cooldown" : 2,
-            "priority" : 0
-         },
-         {
-            "name" : "combat_1h_forehand",
-            "active_frame" : 16,
-            "cooldown" : 2,
-            "priority" : 0
-         }      
-      ],
       "stonehearth:net_worth" : {
          "value_in_gold" : 25,
          "rarity" : "common",
