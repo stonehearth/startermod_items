@@ -1202,6 +1202,42 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    return module;
 }
 
+void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
+{
+   json::Node root(JSON_ARRAY);
+
+   for (auto& frame : fusedFrames) {
+      json::Node frameNode;
+      frameNode.set("nm", (const char*)frame.first);
+      frameNode.set("tt", frame.second.totalTime);
+
+      json::Node lineNodes(JSON_ARRAY);
+      for (auto const& lineInfo : frame.second.lines) {
+         json::Node lineNode;
+
+         lineNode.set("#", lineInfo.line);
+         lineNode.set("t", (int)lineInfo.count);
+
+         lineNodes.add(lineNode);
+      }
+      frameNode.set("lns", lineNodes);
+
+      json::Node fnNodes(JSON_ARRAY);
+      for (core::StaticString const c : frame.second.callers) {
+         //json::Node n(JSON_STRING);
+         JSONNode n("", (const char*)c);
+         fnNodes.add(json::Node(n));
+      }
+      frameNode.set("clrs", fnNodes);
+
+      root.add(frameNode);
+   }
+
+   std::ofstream f("lua_profile_data.json");
+   f << root;
+   f.close();
+}
+
 bool ScriptHost::ToggleCpuProfiling()
 {
    if (!enable_profile_cpu_) {
@@ -1225,12 +1261,17 @@ bool ScriptHost::ToggleCpuProfiling()
       perfmon::FunctionAtLineTimes bottomUpStats;
       res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
 
+      perfmon::FusedFrames fusedFrames;
       for (auto& entry : _profilers) {
          perfmon::SamplingProfiler &sp = entry.second;
          sp.FinalizeCollection(rm);
          sp.CollectStats(stats);
          sp.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
+         sp.Fuse(fusedFrames);
       }
+
+      DumpFusedFrames(fusedFrames);
+
       _profilers.clear();
 
       int msPerSample = 0;

@@ -51,6 +51,40 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
    }
 }
 
+void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::StaticString::Hash> &lookup) 
+{
+   SmallFrame *self;
+   auto& i = lookup.find(_fnName);
+   if (i == lookup.end()) {
+      SmallFrame sf;
+      sf.totalTime = 0;
+      lookup.emplace(_fnName, sf);
+      self = &lookup.find(_fnName)->second;
+   } else {
+      self = &i->second;
+   }
+   self->totalTime += (int)_count;
+   for (int j = 0; j < _lines.size(); j++) {
+      bool found = false;
+      for (int k = 0; k < self->lines.size(); k++) {
+         if (_lines[j].line == self->lines[k].line) {
+            found = true;
+            self->lines[k].count += _lines[j].count;
+            break;
+         }
+      }
+
+      if (!found) {
+         self->lines.push_back(LineCount(_lines[j].line, _lines[j].count));
+      }
+   }
+
+   for (auto &caller : _callers) {
+      caller.Fuse(lookup);
+      self->callers.insert(caller._fnName);
+   }
+}
+
 void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const
 {
    bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
@@ -105,6 +139,11 @@ SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
 void SamplingProfiler::FinalizeCollection(res::ResourceManager2& resMan)
 {
    _invertedStack.FinalizeCollection(resMan);
+}
+
+void SamplingProfiler::Fuse(FusedFrames &lookup)
+{
+   _invertedStack.Fuse(lookup);
 }
 
 CounterValueType SamplingProfiler::StackEntry::GetElapsed() const
