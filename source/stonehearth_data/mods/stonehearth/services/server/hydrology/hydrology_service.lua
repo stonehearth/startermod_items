@@ -334,7 +334,7 @@ end
 -- returns volume of water that could not be added
 function HydrologyService:add_water(volume, location, entity)
    if volume <= 0 then
-      return
+      return volume
    end
 
    if not entity then
@@ -348,13 +348,14 @@ function HydrologyService:add_water(volume, location, entity)
    local water_component = entity:add_component('stonehearth:water')
    local volume, info = water_component:_add_water(location, volume)
 
-   if volume > 0 and info then
-      assert(info.result == 'merge')
-      -- the entity lower in elevation is the master
-      -- mergee is destroyed in this call
-      local master = self:merge_water_bodies(info.entity1, info.entity2)
-      -- add the remaining water to the master
-      return self:add_water(volume, location, master)
+   if volume > 0 then
+      if info.result == 'merge' then
+         local master = self:merge_water_bodies(info.entity1, info.entity2)
+         -- add the remaining water to the master
+         return self:add_water(volume, location, master)
+      else
+         log:spam('could not add water because: %s', info.reason)
+      end
    end
 
    return volume
