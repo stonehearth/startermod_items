@@ -24,7 +24,7 @@
    },
    "entity_data" : {
       "stonehearth:scaffolding_renderer" : {
-         "lattice" : "file(/entities/build/scaffolding/scaffolding.qb)",
+         "lattice" : "file(scaffolding.qb)",
          "scale" : 0.1,
          "origin" : {
             "x" : 5,

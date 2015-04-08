@@ -265,7 +265,11 @@ function Fabricator:add_block(material_entity, location)
    end
 
    self._project_dst:get_region():modify(function(cursor)
-         cursor:add_point(pt)
+         local color = self._blueprint_dst
+                              :get_region()
+                                 :get()
+                                    :get_tag(pt)
+         cursor:add_point(pt, color)
       end)
    self:release_block(location)
    return true

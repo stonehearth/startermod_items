@@ -643,7 +643,9 @@ function BuildService:_add_new_floor_to_building(building, floor_brush, floor_re
    local origin = radiant.entities.get_world_grid_location(building)
    local local_origin = bounds.min - origin
 
-   local floor_ent = self:_create_blueprint(building, 'stonehearth:build:prototypes:floor', local_origin, function(floor)
+   local prototype = (floor_type == constants.floor_category.FLOOR) and 'floor' or 'road'
+   
+   local floor_ent = self:_create_blueprint(building, 'stonehearth:build:prototypes:' .. prototype, local_origin, function(floor)
          floor:add_component('stonehearth:construction_data')
                   :paint_world_region(floor_brush, floor_region)
       end)

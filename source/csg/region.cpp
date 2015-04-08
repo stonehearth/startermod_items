@@ -116,6 +116,12 @@ void Region<S, C>::Add(Point const& point)
 }
 
 template <class S, int C>
+void Region<S, C>::Add(Point const& point, int tag)
+{
+   Add(Cube(point, point + Point::one, tag));
+}
+
+template <class S, int C>
 void Region<S, C>::Add(Cube const& cube)
 {
    Subtract(cube);
@@ -1065,6 +1071,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::Add(const Cls&); \
    template void Cls::Add(const Cls::Cube&); \
    template void Cls::Add(const Cls::Point&); \
+   template void Cls::Add(const Cls::Point&, int); \
    template void Cls::AddUnique(const Cls::Point&); \
    template void Cls::AddUnique(const Cls::Cube&); \
    template void Cls::AddUnique(const Cls&); \

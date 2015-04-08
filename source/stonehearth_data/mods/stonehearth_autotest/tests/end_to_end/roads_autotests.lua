@@ -5,6 +5,8 @@ local Point3 = _radiant.csg.Point3
 
 local roads_autotests = {}
 
+local BUILD_BRUSHES = radiant.resources.load_json('stonehearth:build:brushes')
+
 function _check_sensor_for_entity(sensor_entity, entity)
    local sensor = sensor_entity:get_component('sensor_list'):get_sensor('sight')
    for id, ent in sensor:each_contents() do
@@ -27,15 +29,15 @@ function roads_autotests.follow_road(autotest)
 
    -- create a zig-zag road.
    local road
-
+   local brush = BUILD_BRUSHES.pattern['stone resource'][1]
    stonehearth.build:do_command('add_road', nil, function()
-         road = stonehearth.build:add_road(session, 'stonehearth:brick_paved_road', nil, Cube3(Point3(-20, 9, -20), Point3(0, 10, -18)))
+         road = stonehearth.build:add_road(session, brush, nil, Cube3(Point3(-20, 9, -20), Point3(0, 10, -18)))
       end)
    stonehearth.build:do_command('add_road', nil, function()
-         stonehearth.build:add_road(session, 'stonehearth:brick_paved_road', nil, Cube3(Point3(-2, 9, -20), Point3(0, 10, 20)))
+         stonehearth.build:add_road(session, brush, nil, Cube3(Point3(-2, 9, -20), Point3(0, 10, 20)))
       end)
    stonehearth.build:do_command('add_road', nil, function()
-         stonehearth.build:add_road(session, 'stonehearth:brick_paved_road', nil, Cube3(Point3(-2, 9, 18), Point3(20, 10, 20)))
+         stonehearth.build:add_road(session, brush, nil, Cube3(Point3(-2, 9, 18), Point3(20, 10, 20)))
       end)  
 
 
