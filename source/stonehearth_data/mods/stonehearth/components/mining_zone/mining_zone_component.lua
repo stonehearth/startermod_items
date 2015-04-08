@@ -576,6 +576,7 @@ function MiningZoneComponent:_create_mining_task()
       :notify_completed(function()
             self._mining_task = nil
          end)
+      :set_affinity_timeout(20)
       :start()
 end
 
