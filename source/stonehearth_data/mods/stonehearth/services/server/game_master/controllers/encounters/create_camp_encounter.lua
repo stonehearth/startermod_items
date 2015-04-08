@@ -24,6 +24,7 @@ function CreateCamp:start(ctx, info)
    local min = info.spawn_range.min
    local max = info.spawn_range.max
 
+   ctx.npc_player_id = info.npc_player_id
    self._sv.ctx = ctx
    self._sv._info = info
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
@@ -66,7 +67,11 @@ function CreateCamp:_create_camp(location)
 
    -- create the boss entity
    if info.boss then
-      ctx.npc_boss_entity = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
+      local members = game_master_lib.create_citizens(self._population, info.boss, ctx.enemy_location)
+
+      for k, boss in pairs(members) do
+         ctx.npc_boss_entity = boss
+      end
    end
 
    local visible_rgn = Region2()
@@ -102,7 +107,7 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    local rot = piece.rotation
 
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    local player_id = info.npc_player_id
    local origin = ctx.enemy_location + Point3(x, 0, z)
@@ -126,18 +131,20 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    -- add all the people.
    if piece.info.citizens then
       for name, info in pairs(piece.info.citizens) do
-         local citizen = game_master_lib.create_citizen(self._population, info, origin)
-         self:_add_entity_to_visible_rgn(citizen, visible_rgn)
-
-         --TODO: add this entity to the ctx
-         ctx[name] = citizen
+         local members = game_master_lib.create_citizens(self._population, info, origin)
+         for id, member in pairs(members) do
+            self:_add_entity_to_visible_rgn(member, visible_rgn)
+            
+            --TODO: Stephanie, add all these people to the context. here's the old code.
+            --ctx[name] = citizen
+         end        
       end
    end
 
    -- if there's a script associated with the mod, give it a chance to customize the camp
    if piece.info.script then
       local script = radiant.create_controller(piece.info.script, piece)
-      script:start(self._sv.ctx)
+      script:start(self._sv.ctx, piece.info.script_info)
    end
 
 end
