@@ -75,6 +75,7 @@ public:
    // xxx: make regions fluent!
    void Clear();
    void Add(Point const& point);
+   void Add(Point const& point, int tag);
    void Add(Cube const& cube);
    void Add(Region const& region);
    void AddUnique(Point const& cube);

@@ -88,6 +88,7 @@ public:
    std::string ToString() const;
    static Color3 FromInteger(unsigned int i);
    static Color3 FromString(std::string const& str);
+   static bool IsColor(std::string const& color);
 
    struct Hash { 
       inline size_t operator()(Color3 const& c) const {
@@ -119,3 +120,4 @@ struct Histogram {
 END_RADIANT_CSG_NAMESPACE
 
 #endif
+

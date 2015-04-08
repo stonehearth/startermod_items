@@ -12,15 +12,24 @@ function Column:initialize(entity, json)
    self._entity = entity
 end
 
+function Column:set_brush(brush)
+   self._sv.brush = brush
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 -- make the rcs region match the shape of the column
 --
 function Column:layout()
    local height =  constants.STOREY_HEIGHT
-   self._entity:get_component('destination')
-                  :get_region()
-                     :modify(function(cursor)
-                           cursor:copy_region(self:_compute_column_shape())
-                        end)
+
+   local rgn = self:_compute_column_shape()
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   rgn:translate(origin)
+
+   self._entity:get_component('stonehearth:construction_data')
+            :paint_world_region(self._sv.brush, rgn)
+
    return self
 end
 
@@ -50,6 +59,8 @@ end
 -- compute the shape of the column.
 --
 function Column:_compute_column_shape()
+   -- xxx: this only works for trivial  1xnx1 brushes, sadly.
+
    local box = Cube3(Point3(0, 0, 0), Point3(1, constants.STOREY_HEIGHT, 1))
 
    -- if we're a client side authoring entity, we might not have a construction

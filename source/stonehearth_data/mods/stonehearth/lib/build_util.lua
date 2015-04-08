@@ -142,7 +142,7 @@ local function save_entity_to_template(entity)
    local uri = entity:get_uri()
    template.uri = uri
 
-   if uri ~= 'stonehearth:entities:building' then
+   if uri ~= 'stonehearth:build:prototypes:building' then
       template.mob = entity:get_component('mob')
                               :get_transform()
    end
@@ -292,7 +292,7 @@ end
 function build_util.can_start_building(blueprint)
    local building = build_util.get_building_for(blueprint)
    if not building then
-      assert(blueprint:get_uri() == 'stonehearth:scaffolding') -- special case...
+      assert(blueprint:get_uri() == 'stonehearth:build:prototypes:scaffolding') -- special case...
       return true
    end
    return building:get_component('stonehearth:building')
@@ -313,7 +313,7 @@ function build_util.get_cost(building)
    }
    radiant.entities.for_all_children(building, function(entity)
          local cp = entity:get_component('stonehearth:construction_progress')
-         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+         if cp and entity:get_uri() ~= 'stonehearth:build:prototypes:scaffolding' then
             local fabricator = cp:get_fabricator_component()
             if fabricator then
                fabricator:accumulate_costs(costs)
@@ -593,7 +593,7 @@ function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricat
    -- scaffolding.  scaffolding parts are managed by the scaffolding_manager.
    local building = build_util.get_building_for(blueprint)
    if not building then
-      assert(blueprint:get_uri() == 'stonehearth:scaffolding')
+      assert(blueprint:get_uri() == 'stonehearth:build:prototypes:scaffolding')
    end
    
    local project = fabricator_component:get_project()

@@ -34,7 +34,7 @@ function GrowWallsEditor:_destroy_preview_entities()
    self._preview_columns = {}
 end
 
-function GrowWallsEditor:go(response, columns_uri, walls_uri)
+function GrowWallsEditor:go(response, column_brush, wall_brush)
    log:detail('running')
    stonehearth.selection:select_entity_tool()
       :set_cursor('stonehearth:cursors:grow_walls')
@@ -66,12 +66,12 @@ function GrowWallsEditor:go(response, columns_uri, walls_uri)
             return true
          end)
       :progress(function(selector, entity)
-            self:_switch_to_target(entity, columns_uri, walls_uri)
+            self:_switch_to_target(entity, column_brush, wall_brush)
          end)
       :done(function(selector, entity)
             log:detail('box selected')
             if entity then
-               _radiant.call_obj(self._build_service, 'grow_walls_command', entity, columns_uri, walls_uri)
+               _radiant.call_obj(self._build_service, 'grow_walls_command', entity, column_brush, wall_brush)
                            :always(function()
                                  self:destroy()
                               end)
@@ -104,17 +104,17 @@ function GrowWallsEditor:is_road(building)
    return false
 end
 
-function GrowWallsEditor:_switch_to_target(target, columns_uri, walls_uri)
+function GrowWallsEditor:_switch_to_target(target, column_brush, wall_brush)
    if target ~= self._last_target then
       self._last_target = target
       self:_destroy_preview_entities()
       if target then
          build_util.grow_walls_around(target, function(min, max, normal)               
-               local col_a = self:_create_preview_column(min, columns_uri)
-               local col_b = self:_create_preview_column(max, columns_uri)
+               local col_a = self:_create_preview_column(min, column_brush)
+               local col_b = self:_create_preview_column(max, column_brush)
                if col_a and col_b then
                   if min ~= max then
-                     return self:_create_preview_wall(col_a, col_b, normal, walls_uri)
+                     return self:_create_preview_wall(col_a, col_b, normal, wall_brush)
                   end
                end
             end)
@@ -122,15 +122,16 @@ function GrowWallsEditor:_switch_to_target(target, columns_uri, walls_uri)
    end
 end
 
-function GrowWallsEditor:_create_preview_column(pt, columns_uri)
+function GrowWallsEditor:_create_preview_column(pt, column_brush)
    local key = pt:key_value()
    local editor = self._preview_columns[key]
    if not editor  then
       editor = StructureEditor()
       self._preview_columns[key] = editor
 
-      local column = editor:create_blueprint(columns_uri, 'stonehearth:column')
+      local column = editor:create_blueprint('stonehearth:build:prototypes:column', 'stonehearth:column')
       column:get_component('stonehearth:column')
+               :set_brush(column_brush)
                :layout()
 
       editor:move_to(pt)
@@ -138,13 +139,14 @@ function GrowWallsEditor:_create_preview_column(pt, columns_uri)
    return editor:get_proxy_blueprint()
 end
 
-function GrowWallsEditor:_create_preview_wall(column_a, column_b, normal, walls_uri)
+function GrowWallsEditor:_create_preview_wall(column_a, column_b, normal, wall_brush)
    local editor = StructureEditor()
-   editor:create_blueprint(walls_uri, 'stonehearth:wall')      
+   editor:create_blueprint('stonehearth:build:prototypes:wall', 'stonehearth:wall')
    table.insert(self._preview_walls, editor)
    
    local wall = editor:get_proxy_blueprint()
    wall:add_component('stonehearth:wall')
+            :set_brush(wall_brush)
             :connect_to(column_a, column_b, normal)
             :layout()
 

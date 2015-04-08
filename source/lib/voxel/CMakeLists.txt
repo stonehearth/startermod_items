@@ -2,6 +2,7 @@ add_library(voxel
             pch.cpp
             qubicle_file.cpp
             qubicle_brush.cpp
+            color_brush.cpp
             fabricator.cpp
             voxel_util.cpp
             nine_grid_brush.cpp

@@ -10,7 +10,7 @@ function construction_tests.simple_build(autotest)
    local construction_complete = false
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
-         if e.entity:get_uri() == 'stonehearth:entities:building' then
+         if e.entity:get_uri() == 'stonehearth:build:prototypes:building' then
             local building = e.entity
             radiant.events.listen(building, 'stonehearth:construction:finished_changed', function ()
                   local finished = building:get_component('stonehearth:construction_progress'):get_finished()
@@ -22,7 +22,7 @@ function construction_tests.simple_build(autotest)
                   end
             end)
          end
-         if e.entity:get_uri() == 'stonehearth:scaffolding' then
+         if e.entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
             local scaffolding = e.entity
             radiant.events.listen(scaffolding, 'stonehearth:construction:finished_changed', function ()
                if construction_complete then

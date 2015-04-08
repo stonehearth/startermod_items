@@ -136,12 +136,16 @@ function FabricatorComponent:accumulate_costs(cost)
    local material = blueprint:get_component('stonehearth:construction_data')
                                     :get_material()
 
-   local area = blueprint:get_component('destination')
+   local rgn = blueprint:get_component('destination')
                            :get_region()
                               :get()
-                                 :get_area()
-
-   cost.resources[material] = (cost.resources[material] or 0) + area
+   
+   for cube in rgn:each_cube() do
+      local area = cube:get_area()
+      local world_point = radiant.entities.local_to_world(cube.min, self._entity)
+      local material = self._fabricator:get_material(world_point)
+      cost.resources[material] = (cost.resources[material] or 0) + area
+   end
 end
 
 return FabricatorComponent

@@ -1,8 +1,9 @@
 local constants = require('constants').construction
 local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local build_util = require 'lib.build_util'
-local BuildUndoManager = require 'services.server.build.build_undo_manager'
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local BuildUndoManager = require 'services.server.build.build_undo_manager'
+
 local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
@@ -124,13 +125,13 @@ end
 --
 --    @param session - the session for the player initiating the request
 --    @param response - a response object which we'll write the result into
---    @param floor_uri - the uri to type of floor we'd like to add
+--    @param floor_brush - the uri of the brush used to paint the floor
 --    @param box - the area of the new floor segment
 
-function BuildService:add_floor_command(session, response, floor_uri, box)
+function BuildService:add_floor_command(session, response, floor_brush, box)
    local floor
    local success = self:do_command('add_floor', response, function()
-         floor = self:add_floor(session, floor_uri, ToCube3(box))
+         floor = self:add_floor(session, floor_brush, ToCube3(box))
       end)
 
    if success then
@@ -167,10 +168,10 @@ function BuildService:add_road_command(session, response, road_uri, curb_uri, bo
    end
 end
 
-function BuildService:add_wall_command(session, response, columns_uri, walls_uri, p0, p1, normal)
+function BuildService:add_wall_command(session, response, column_brush, wall_brush, p0, p1, normal)
    local wall
    local success = self:do_command('add_wall', response, function()
-         wall = self:add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
+         wall = self:add_wall(session, column_brush, wall_brush, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
       end)
 
    if success then
@@ -322,7 +323,7 @@ function BuildService:add_road(session, road_uri, curb_uri, box)
    return road
 end
 
-function BuildService:add_floor(session, floor_uri, box)
+function BuildService:add_floor(session, floor_brush, box)
    local all_overlapping, floor_region = self:_merge_blueprints(box, function(entity)
          return build_util.is_blueprint(entity, 'stonehearth:floor') or
                 build_util.is_blueprint(entity, 'stonehearth:wall')
@@ -348,7 +349,7 @@ function BuildService:add_floor(session, floor_uri, box)
    self:_subtract_region_from_floor_kinds(parent_building, { constants.floor_category.FLOOR }, floor_region)
 
    -- Merge the new floor into that building.
-   return self:_merge_floor_into_building(parent_building, constants.floor_category.FLOOR, floor_region, floor_uri)
+   return self:_merge_floor_into_building(parent_building, constants.floor_category.FLOOR, floor_region, floor_brush)
 end
 
 function BuildService:erase_floor(session, box)
@@ -361,8 +362,8 @@ function BuildService:erase_floor(session, box)
       end)
 
    for _, floor in pairs(all_overlapping_floor) do
-      floor:add_component('stonehearth:floor')
-               :remove_world_region_from_floor(Region3(box))
+      floor:add_component('stonehearth:construction_data')
+               :remove_world_region(Region3(box))
    end
 end
 
@@ -395,7 +396,7 @@ function BuildService:erase_fixture_command(session, response, fixture_blueprint
    return success or nil
 end
 
--- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
+-- adds a new fabricator to blueprint.  this creates a new 'stonehearth:build:prototypes:fabricator'
 -- entity, adds a fabricator component to it, and wires that fabricator up to the blueprint.
 -- See `_init_fabricator` for more details.
 --    @param blueprint - The blueprint which needs a new fabricator.
@@ -404,7 +405,7 @@ function BuildService:add_fabricator(blueprint)
    assert(blueprint:get_component('stonehearth:construction_data'),
           string.format('blueprint %s has no construction_data', tostring(blueprint)))
 
-   local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator', { owner = blueprint })
+   local fabricator = radiant.entities.create_entity('stonehearth:build:prototypes:fabricator', { owner = blueprint })
 
    local blueprint_mob = blueprint:add_component('mob')
    local parent = blueprint_mob:get_parent()
@@ -482,7 +483,7 @@ end
 --                       world
 --
 function BuildService:_create_new_building(session, location)
-   local building = radiant.entities.create_entity('stonehearth:entities:building', { owner = session.player_id })
+   local building = radiant.entities.create_entity('stonehearth:build:prototypes:building', { owner = session.player_id })
    self._undo:trace_building(building)
    
    -- give the building a unique name and establish ownership.
@@ -518,35 +519,31 @@ function BuildService:_subtract_region_from_floor_kinds(building_ent, kinds, reg
       end
    end
    for _, road in pairs(roads) do
-      road:get_component('stonehearth:floor')
-               :remove_world_region_from_floor(region)
+      road:get_component('stonehearth:construction_data')
+               :remove_world_region(region)
    end
 end
 
-function BuildService:_merge_floor_into_building(building_ent, floor_type, floor_region, floor_uri)
-   local bc = building_ent:get_component('stonehearth:building')
-   local building_floors = bc:get_floors(floor_type)
+function BuildService:_merge_floor_into_building(building, floor_type, floor_region, floor_brush)
+   local floors = building:get_component('stonehearth:building')
+                              :get_floors(floor_type)
 
-   local new_floor_ent = radiant.entities.create_entity(floor_uri, { owner = building_ent })
-   local new_floor_cd = new_floor_ent:get_component('stonehearth:construction_data')
+   for _, floor in pairs(floors) do
+      -- only merge if the regions intersect.
+      local region = floor:get_component('destination')
+                              :get_region()
+                                 :get()
+      local envelope = radiant.entities.local_to_world(region, floor)
+                                          :inflated(Point3(1, 1, 1))
 
-   for _, building_floor_ent in pairs(building_floors) do
-      local building_floor_cd = building_floor_ent:get_component('stonehearth:construction_data')
-
-      if building_floor_cd:get_material() == new_floor_cd:get_material() and
-         building_floor_cd:get_brush() == new_floor_cd:get_brush() then
-         
-         -- only merge if the regions intersect.
-         local fc = building_floor_ent:add_component('stonehearth:floor')
-         local envelope = radiant.entities.local_to_world(fc:get_region():get(), building_floor_ent)
-                              :inflated(Point3(1, 1, 1))
-         if envelope:intersects_region(floor_region) then
-            fc:add_world_region_to_floor(floor_region)
-            return building_floor_ent
-         end
+      if envelope:intersects_region(floor_region) then
+         floor:get_component('stonehearth:construction_data')
+                  :paint_world_region(floor_brush, floor_region)
+         return floor
       end
    end
-   return self:_add_new_floor_to_building(building_ent, floor_uri, floor_region, floor_type)
+
+   return self:_add_new_floor_to_building(building, floor_brush, floor_region, floor_type)
 end
 
 function BuildService:_merge_floors_into_building(floors, parent_building)
@@ -636,23 +633,27 @@ end
 -- _merge_floor_into_building for more context.  add_floor and add_road both do the required
 -- merging and clipping.
 --    @param building - the building to contain the new floor
---    @param floor_uri - the uri to type of floor we'd like to add
+--    @param floor_brush - the uri of the brush used to paint the floor
 --    @param floor_region - the area of the new floor segment
 --    @param floor_type - the type of the floor (road, curb, floor)
-function BuildService:_add_new_floor_to_building(building, floor_uri, floor_region, floor_type)
+--
+function BuildService:_add_new_floor_to_building(building, floor_brush, floor_region, floor_type)
    -- try very hard to make the local region in the floor sane.  this means translating the
    -- floor entity!
    local bounds = floor_region:get_bounds()
    local origin = radiant.entities.get_world_grid_location(building)
    local local_origin = bounds.min - origin
 
-   local floor_ent = self:_create_blueprint(building, floor_uri, local_origin, function(floor)
-         floor:add_component('stonehearth:floor')
-                  :add_world_region_to_floor(floor_region)
+   local prototype = (floor_type == constants.floor_category.FLOOR) and 'floor' or 'road'
+   
+   local floor_ent = self:_create_blueprint(building, 'stonehearth:build:prototypes:' .. prototype, local_origin, function(floor)
+         floor:add_component('stonehearth:construction_data')
+                  :paint_world_region(floor_brush, floor_region)
       end)
                
    floor_ent:get_component('stonehearth:floor')
                :set_category(floor_type) -- xxx: must be called after the floor has a fabricator for roads.  ug!
+
    return floor_ent
 end
 
@@ -734,7 +735,7 @@ function BuildService:_merge_building_into(merge_into, building)
 end
 
 
-function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
+function BuildService:add_wall(session, column_brush, wall_brush, p0, p1, normal)
    -- look for floor that we can merge into.
    local c0 = self:_get_blueprint_at_point(p0)
    local c1 = self:_get_blueprint_at_point(p1)
@@ -768,7 +769,7 @@ function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
       building = self:_create_new_building(session, p0)
    end
 
-   return self:_add_wall_span(building, p0, p1, normal, columns_uri, walls_uri)
+   return self:_add_wall_span(building, p0, p1, normal, column_brush, wall_brush)
 end
 
 -- add walls around all the floor segments for the specified `building` which
@@ -777,21 +778,21 @@ end
 --    @param session - the session for the player initiating the request
 --    @param response - a response object which we'll write the result into
 --    @param floor - the floor we need to put walls around
---    @param columns_uri - the type of columns to generate
---    @param walls_uri - the type of walls to generate
+--    @param column_brush - the type of columns to generate
+--    @param wall_brush - the type of walls to generate
 --
-function BuildService:grow_walls_command(session, response, floor, columns_uri, walls_uri)
+function BuildService:grow_walls_command(session, response, floor, column_brush, wall_brush)
    local success = self:do_command('grow_walls', response, function()
-         self:grow_walls(floor, columns_uri, walls_uri)
+         self:grow_walls(floor, column_brush, wall_brush)
       end)
    return success or nil
 end
 
-function BuildService:grow_walls(floor, columns_uri, walls_uri)
+function BuildService:grow_walls(floor, column_brush, wall_brush)
    local building = build_util.get_building_for(floor)
 
    build_util.grow_walls_around(floor, function(min, max, normal)
-         self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
+         self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
       end)
 end
 
@@ -801,12 +802,12 @@ end
 --    @param session - the session for the player initiating the request
 --    @param response - a response object which we'll write the result into
 --    @param building - the building to pop the roof onto
---    @param roof_uri - what kind of roof to make
+--    @param roof_brush - what kind of roof to make
 
-function BuildService:grow_roof_command(session, response, building, roof_uri, options)
+function BuildService:grow_roof_command(session, response, building, roof_brush, options)
    local roof
    local success = self:do_command('grow_roof', response, function()
-         roof = self:grow_roof(building, roof_uri, options)
+         roof = self:grow_roof(building, roof_brush, options)
       end)
 
    if success then
@@ -822,9 +823,10 @@ function BuildService:grow_roof_command(session, response, building, roof_uri, o
    end
 end
 
-function BuildService:grow_roof(building, roof_uri, options)
+function BuildService:grow_roof(building, roof_brush, options)
    local structures = building:get_component('stonehearth:building')
                               :get_all_structures()
+
    if next(structures['stonehearth:roof']) then
       self._log:info('already have roof in building %s.  not growing.', building)
       return
@@ -839,11 +841,10 @@ function BuildService:grow_roof(building, roof_uri, options)
    -- now make the roof!
    local height = constants.STOREY_HEIGHT
    local roof_location = Point3(0, height - 1, 0)
-   local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof_entity)
-         roof_entity:add_component('stonehearth:construction_data')
-                        :apply_nine_grid_options(options)
+   local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', roof_location, function(roof_entity)
          roof_entity:add_component('stonehearth:roof')
-                        :cover_region2(region2)
+                        :apply_nine_grid_options(options)
+                        :cover_region2(roof_brush, region2)
       end)
 
    building:get_component('stonehearth:building')
@@ -893,11 +894,12 @@ end
 -- column there.
 --    @param building - the building the column should be in (or created in)
 --    @param point - the world space coordinate of where you're looking
---    @param column_uri - the type of column to create if there's nothing at `point`
+--    @param column_brush - the type of column to create if there's nothing at `point`
 --
-function BuildService:_fetch_column_at_point(building, point, column_uri)
-   return self:_fetch_blueprint_at_point(building, point, column_uri, function(column)
+function BuildService:_fetch_column_at_point(building, point, column_brush)
+   return self:_fetch_blueprint_at_point(building, point, 'stonehearth:build:prototypes:column', function(column)
          column:add_component('stonehearth:column')
+                  :set_brush(column_brush)
                   :layout()
       end)
 end
@@ -908,14 +910,14 @@ end
 --    @param building - the building to put all the new objects in
 --    @param min - the start of the wall span. 
 --    @param max - the end of the wall span.
---    @param columns_uri - the type of columns to generate
---    @param walls_uri - the type of walls to generate
+--    @param column_brush - the type of columns to generate
+--    @param wall_brush - the type of walls to generate
 --
-function BuildService:_add_wall_span(building, min, max, normal, columns_uri, wall_uri)
-   local col_a = self:_fetch_column_at_point(building, min, columns_uri)
-   local col_b = self:_fetch_column_at_point(building, max, columns_uri)
+function BuildService:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
+   local col_a = self:_fetch_column_at_point(building, min, column_brush)
+   local col_b = self:_fetch_column_at_point(building, max, column_brush)
    if col_a and col_b then
-      return self:_create_wall(building, col_a, col_b, normal, wall_uri)
+      return self:_create_wall(building, col_a, col_b, normal, wall_brush)
    end
 end
 
@@ -925,12 +927,13 @@ end
 --    @param column_a - one of the columns to attach the wall to
 --    @param column_b - the other column to attach the wall to
 --    @param normal - a Point3 pointing "outside" of the wall
---    @param wall_uri - the type of wall to build
+--    @param wall_brush - the type of wall to build
 --
-function BuildService:_create_wall(building, column_a, column_b, normal, wall_uri)
-   return self:_create_blueprint(building, wall_uri, Point3.zero, function(wall)      
+function BuildService:_create_wall(building, column_a, column_b, normal, wall_brush)
+   return self:_create_blueprint(building, 'stonehearth:build:prototypes:wall', Point3.zero, function(wall)      
          wall:add_component('stonehearth:wall')
                   :connect_to(column_a, column_b, normal)
+                  :set_brush(wall_brush)
                   :layout()
 
          wall:add_component('stonehearth:construction_data')
@@ -1120,17 +1123,24 @@ function BuildService:apply_options_command(session, response, blueprint, option
 end
 
 function BuildService:_apply_nine_grid_options(blueprint, options)
-   local cd = blueprint:get_component('stonehearth:construction_data')
-   if cd then
+   local roof = blueprint:get_component('stonehearth:roof')
+   if roof then
       -- apply the new options to the blueprint      
-      cd:apply_nine_grid_options(options)
+      roof:apply_nine_grid_options(options)
 
+      local building = build_util.get_building_for(blueprint)
+      building:get_component('stonehearth:building')
+                  :layout_roof(blueprint)
+
+      --[[
       -- copy the options to the project.
-      local fab = cd:get_fabricator_entity()
+      local fab = blueprint:get_component('stonehearth:construction_data')
+                              :get_fabricator_entity()
       local proj = fab:get_component('stonehearth:fabricator')
                            :get_project()
       proj:get_component('stonehearth:construction_data')
                :clone_from(blueprint)
+      ]]
       return true
    end
    return false
@@ -1139,28 +1149,17 @@ end
 -- called by the roof to add a patch wall to the specified building. 
 --
 --    @param building - the building which needs a new patch wall.
---    @param wall_uri - the type of wall to create
+--    @param wall_brush - the type of wall to create
 --    @param normal - the normal for the wall
 --    @param position - the local coordinate of the wall to add
 --    @param region - the exact shape of the patch wall
 --
-function BuildService:add_patch_wall_to_building(building, wall_uri, normal, position, region)
-   self:_create_blueprint(building, wall_uri, position, function(wall)
+function BuildService:add_patch_wall_to_building(building, wall_brush, normal, position, region)
+   self:_create_blueprint(building, 'stonehearth:build:prototypes:wall', position, function(wall)
          wall:add_component('stonehearth:wall')
+                  :set_brush(wall_brush)
                   :create_patch_wall(normal, region)
                   :layout()
-
-         -- we're going to cheat a little bit here.  it's very very difficult to
-         -- get scaffolding building looking 'proper' on patch walls.  to do a good
-         -- job, we need to make sure the scaffolding only gets built where the roof
-         -- exists to support it and avoid all sorts of issues with "reachable but
-         -- unsupported" pieces of wall being created (since walls can be built diagonally)
-         -- it turns out to look much better to pound up patch walls like columns, so
-         -- do that until we have more time to invest in building patch walls like every
-         -- other wall.
-         wall:add_component('stonehearth:construction_data')
-                  :set_project_adjacent_to_base(true)
-                  :set_needs_scaffolding(false)
       end)
 end
 
@@ -1202,7 +1201,7 @@ function BuildService:instabuild(building)
 
    self:_call_all_children(building, function(entity)
          local cp = entity:get_component('stonehearth:construction_progress')
-         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+         if cp and entity:get_uri() ~= 'stonehearth:build:prototypes:scaffolding' then
             local fabricator = cp:get_fabricator_component()
             if fabricator then
                self._log:info( '  fabricator %s -> %s instabuild', entity:get_uri(), fabricator._entity)
