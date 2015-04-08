@@ -35,11 +35,12 @@ void StackFrame::IncrementTimes(CounterValueType selfTime, CounterValueType tota
 
    for (auto& lc : _lines) {
       if (lc.line == line) {
-         lc.count += selfTime;
+         // We don't really know how long a given line has been 'running', so just record that we saw it.
+         lc.count++;
          return;
       }
    }
-   _lines.emplace_back(line, selfTime);
+   _lines.emplace_back(line, 1);
 }
 
 void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
