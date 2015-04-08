@@ -92,14 +92,14 @@ function BuildEditorService:add_doodad(session, response, uri)
          :go(session, response, uri)
 end
 
-function BuildEditorService:place_new_wall(session, response, columns_uri, walls_uri)
+function BuildEditorService:place_new_wall(session, response, column_brush, wall_brush)
    WallLoopEditor(self._build_service)
-         :go(columns_uri, walls_uri, response)
+         :go(column_brush, wall_brush, response)
 end
 
-function BuildEditorService:place_new_floor(session, response, brush_shape_uri)
+function BuildEditorService:place_new_floor(session, response, brush)
    FloorEditor(self._build_service)
-         :go(response, brush_shape_uri, { sink_floor = true })
+         :go(response, brush, { sink_floor = true })
 end
 
 function BuildEditorService:place_new_slab(session, response, slab_shape)
@@ -122,9 +122,9 @@ function BuildEditorService:place_template(session, response, template_name)
          :go(response, template_name)
 end
 
-function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri)
+function BuildEditorService:grow_walls(session, response, column_brush, wall_brush)
    GrowWallsEditor(self._build_service)
-         :go(response, columns_uri, walls_uri)
+         :go(response, column_brush, wall_brush)
 end
 
 function BuildEditorService:set_grow_roof_options(session, response, options)

@@ -8,11 +8,15 @@
          "#65573A",
          "#412B1F",
          "#302118",
-         "#5A3D2D"
-      ],   
+         "#5A3D2D",
+         "#A59F8B",
+         "#C0BBA8"
+      ],
       "stone resource" : [
          "#2C3339",
-         "#244E7D"
+         "#244E7D",
+         "#604B42",
+         "#644F46"
       ]
    },
 
@@ -52,6 +56,20 @@
       "wood resource" : [
          "#332B1F"
       ]
+   },
+
+   "doors": {
+      "wood door" : [
+         "stonehearth:portals:wooden_door",
+         "stonehearth:portals:wooden_double_door",
+         "stonehearth:portals:wooden_door_2"
+      ]
+   },
+
+   "windows": {
+      "wood window" : [
+         "stonehearth:portals:wooden_window_frame",
+         "stonehearth:portals:wooden_diamond_window"
+      ]
    }
 }
-

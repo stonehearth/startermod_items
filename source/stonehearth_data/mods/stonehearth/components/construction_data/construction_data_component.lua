@@ -151,23 +151,7 @@ end
 function ConstructionDataComponent:create_voxel_brush(brush, origin)
    checks('self', 'string', '?Point3')
 
-   if Color3.is_color(brush) then
-      return _radiant.voxel.create_color_brush(brush)
-   end
-
-   local brush = _radiant.voxel.create_qubicle_brush(brush)
-   if origin then
-      brush:set_origin(origin)
-   end
-
-   local normal = self._sv.normal
-   if normal then
-      brush:set_normal(normal)
-   end
-
-   brush:set_clip_whitespace(true)                                   
-
-   return brush
+   return voxel_brush_util.create_brush(brush, origin, self._sv.normal)
 end
 
 function ConstructionDataComponent:save_to_template()

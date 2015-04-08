@@ -27,74 +27,72 @@ var GrowRoofTool;
 
       addTabMarkup: function(root) {
          var self = this;
-         $.get('/stonehearth/data/build/building_parts.json')
-            .done(function(json) {
-               self.buildingParts = json;
+         var brushes = self.buildingDesigner.getBuildBrushes();
 
-               var click = function(brush) {
-                  // Re/activate the floor tool with the new material.
-                  self.buildingDesigner.activateTool(self.buildTool);
-               };
+         var click = function(brush) {
+            // Re/activate the floor tool with the new material.
+            self.buildingDesigner.activateTool(self.buildTool);
+         };
 
-               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
-               root.append(tab);
+         var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+         root.append(tab);
 
-               self._materialHelper = new MaterialHelper(tab,
-                                                         self.buildingDesigner,
-                                                         'Roof',
-                                                         self.materialClass,
-                                                         self.buildingParts.roofPatterns,
-                                                         click);
+         self._materialHelper = new MaterialHelper(tab,
+                                                   self.buildingDesigner,
+                                                   'Roof',
+                                                   self.materialClass,
+                                                   brushes.roof,
+                                                   null,
+                                                   click);
 
-               $.get('/stonehearth/ui/game/modes/build_mode/building_designer_2/roof_shape_template.html')
-                  .done(function(html) {
+         $.get('/stonehearth/ui/game/modes/build_mode/building_designer_2/roof_shape_template.html')
+            .done(function(html) {
 
-                     // Seriously.  Thanks, Ember!
-                     var o = {data:{buffer:[]}};
-                     var h = Ember.Handlebars.compile(html)(null, o);
-                     tab.append(o.data.buffer.join(''));
+               // Seriously.  Thanks, Ember!
+               var o = {data:{buffer:[]}};
+               var h = Ember.Handlebars.compile(html)(null, o);
+               tab.append(o.data.buffer.join(''));
 
-                     tab.find('.roofNumericInput').change(function() {
-                        // update the options for future roofs
-                        var numericInput = $(this);
-                        if (numericInput.attr('id') == 'inputMaxRoofHeight') {
-                           self.options.nine_grid_max_height = parseInt(numericInput.val());
-                        } else if (numericInput.attr('id') == 'inputMaxRoofSlope') {
-                           self.options.nine_grid_slope = parseInt(numericInput.val());
-                        }
-                        self.buildingDesigner.saveKey('growRoofOptions', self.options);
+               tab.find('.roofNumericInput').change(function() {
+                  // update the options for future roofs
+                  var numericInput = $(this);
+                  if (numericInput.attr('id') == 'inputMaxRoofHeight') {
+                     self.options.nine_grid_max_height = parseInt(numericInput.val());
+                  } else if (numericInput.attr('id') == 'inputMaxRoofSlope') {
+                     self.options.nine_grid_slope = parseInt(numericInput.val());
+                  }
+                  self.buildingDesigner.saveKey('growRoofOptions', self.options);
 
-                        App.stonehearthClient.setGrowRoofOptions(self.options);
+                  App.stonehearthClient.setGrowRoofOptions(self.options);
 
-                        // if a roof is selected, change it too
-                        var blueprint = self.buildingDesigner.getBlueprint();
-                        if (blueprint) {
-                           App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
-                        }
-                     });
+                  // if a roof is selected, change it too
+                  var blueprint = self.buildingDesigner.getBlueprint();
+                  if (blueprint) {
+                     App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
+                  }
+               });
 
-                     // roof slope buttons
-                     tab.find('.roofDiagramButton').click(function() {
-                        // update the options for future roofs
-                        $(this).toggleClass('active');
+               // roof slope buttons
+               tab.find('.roofDiagramButton').click(function() {
+                  // update the options for future roofs
+                  $(this).toggleClass('active');
 
-                        self.options.nine_grid_gradiant = [];
-                        tab.find('.roofDiagramButton.active').each(function() {
-                           if($(this).is(':visible')) {
-                              self.options.nine_grid_gradiant.push($(this).attr('gradient'));
-                           }
-                        });
-                        App.stonehearthClient.setGrowRoofOptions(self.options);
-                        
-                        self.buildingDesigner.saveKey('growRoofOptions', self.options);
-
-                        // if a roof is selected, change it too
-                        var blueprint = self.buildingDesigner.getBlueprint();
-                        if (blueprint) {
-                           App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
-                        }
-                     });                  
+                  self.options.nine_grid_gradiant = [];
+                  tab.find('.roofDiagramButton.active').each(function() {
+                     if($(this).is(':visible')) {
+                        self.options.nine_grid_gradiant.push($(this).attr('gradient'));
+                     }
                   });
+                  App.stonehearthClient.setGrowRoofOptions(self.options);
+                  
+                  self.buildingDesigner.saveKey('growRoofOptions', self.options);
+
+                  // if a roof is selected, change it too
+                  var blueprint = self.buildingDesigner.getBlueprint();
+                  if (blueprint) {
+                     App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
+                  }
+               });                  
             });
       },
 
