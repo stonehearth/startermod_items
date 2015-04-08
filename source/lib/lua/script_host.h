@@ -139,6 +139,7 @@ private:
 
    bool                       shut_down_;
    lua_State*                 _lastHookL;
+   perfmon::CounterValueType  _cpuProfileStart;
    perfmon::CounterValueType  _lastHookTimestamp;
    perfmon::CounterValueType  _profilerDuration;
    perfmon::CounterValueType  _profilerSampleCounts;
