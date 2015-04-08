@@ -248,6 +248,9 @@
   }
 
   function displayRoot(rootNode, sortFunc) {
+    while (rootNode.children.length > 1) {
+      rootNode.removeChild(rootNode.lastChild);
+    }
     var fns = [];
     for (var key in perfData) {
       if (perfData.hasOwnProperty(key)) {
