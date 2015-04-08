@@ -151,16 +151,16 @@ function ExecutionFrame:_start_thinking(args, entity_state)
 end
 
 function ExecutionFrame:_stop_thinking()
-   if self:in_state('thinking', 'starting_thinking') then
+   if self._state == 'thinking' or self._state == 'starting_thinking' then
       return self:_stop_thinking_from_thinking()
    end
    if self._state == 'ready' then
       return self:_stop_thinking_from_ready()
    end
-   if self:in_state('starting', 'started') then
+   if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started() -- intentionally aliased
    end
-   if self:in_state('stopped', 'dead') then
+   if self._state == 'stopped' or self._state == 'dead' then
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
@@ -446,7 +446,7 @@ function ExecutionFrame:start_thinking(args, entity_state)
    assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
 
    self:_start_thinking(args, entity_state)
-   if self:in_state(READY) then
+   if self._state == READY then
       assert(self._active_unit_think_output)
       return self._active_unit_think_output
    end
