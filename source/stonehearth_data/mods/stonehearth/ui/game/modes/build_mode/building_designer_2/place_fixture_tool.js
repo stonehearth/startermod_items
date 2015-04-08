@@ -43,7 +43,7 @@ var PlaceFixtureTool;
                                                    self.buildingDesigner,
                                                    self.category,
                                                    self.materialClass,
-                                                   brushes.doors,
+                                                   brushes[self.category],
                                                    null,
                                                    click);
       },
