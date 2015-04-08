@@ -90,11 +90,11 @@ function PopulationFaction:create_new_citizen(role)
       end
    end
 
-   local roles = self._data.roles[role]
-   if not roles then
+   local role_data = self._data.roles[role]
+   if not role_data then
       error(string.format('unknown role %s in population', role))
    end
-   local entities = roles[gender]
+   local entities = role_data[gender].uri
    if not entities then
       error(string.format('role %s in population has no gender table for %s', role, gender))
    end
@@ -110,7 +110,7 @@ function PopulationFaction:create_new_citizen(role)
    citizen:add_component('unit_info')
                :set_player_id(self._sv.player_id)
 
-   self:_set_citizen_initial_state(citizen, gender)
+   self:_set_citizen_initial_state(citizen, gender, role_data)
 
    self._sv.citizens[citizen:get_id()] = citizen
    stonehearth.score:update_aggregate_score(self._sv.player_id)
@@ -296,12 +296,15 @@ function PopulationFaction:get_citizens()
    return self._sv.citizens
 end
 
-function PopulationFaction:_set_citizen_initial_state(citizen, gender)
+function PopulationFaction:_set_citizen_initial_state(citizen, gender, role_data)
    -- name
-   local name = self:generate_random_name(gender)
-   radiant.entities.set_display_name(citizen, name)
-
+   local name = self:generate_random_name(gender, role_data)
+   if name then
+      radiant.entities.set_display_name(citizen, name)
+   end
+   
    -- personality
+   --TODO: parametrize these by role too?
    local personality = personality_service:get_new_personality()
    local personality_component = citizen:add_component('stonehearth:personality')
    personality_component:set_personality(personality)
@@ -324,18 +327,21 @@ function PopulationFaction:set_home_location(location)
    self._town_location = location
 end
 
-function PopulationFaction:generate_random_name(gender)
-   local first_names
-   if gender == 'female' then
-      first_names = self._data.given_names.female
+function PopulationFaction:generate_random_name(gender, role_data)
+   if role_data[gender].given_names then
+      local first_names = ""
+
+      first_names = role_data[gender].given_names
+
+      local first = first_names[rng:get_int(1, #first_names)]
+      local surname = ""
+      if role_data.surnames then
+         surname = role_data.surnames[rng:get_int(1, #role_data.surnames)]
+      end
+      return first .. ' ' .. surname
    else
-      first_names = self._data.given_names.male
+      return nil
    end
-
-   local first = first_names[rng:get_int(1, #first_names)]
-   local surname = self._data.surnames[rng:get_int(1, #self._data.surnames)]
-
-   return first .. ' ' .. surname
 end
 
 --- Given an entity, iterate through the array of people in this town and find the
