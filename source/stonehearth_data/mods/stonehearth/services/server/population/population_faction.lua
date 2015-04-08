@@ -94,6 +94,11 @@ function PopulationFaction:create_new_citizen(role)
    if not role_data then
       error(string.format('unknown role %s in population', role))
    end
+   
+   --If there is no gender, default to male
+   if not role_data[gender] then
+      gender = 'male'
+   end
    local entities = role_data[gender].uri
    if not entities then
       error(string.format('role %s in population has no gender table for %s', role, gender))

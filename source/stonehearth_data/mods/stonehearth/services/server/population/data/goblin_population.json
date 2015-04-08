@@ -75,7 +75,7 @@
       }, 
       "wolf" : {
          "male" : {
-            "uri" : ["stonehearth:tame_wolf"],
+            "uri" : ["stonehearth:wolf"],
             "given_names" : [
                "Upear",
                "Fastpaw",
@@ -97,6 +97,7 @@
                "Dumbrawrrrr",
                "Cliffy",
                "Lancer",
+               "Spike",
                "Toothy"
             ]
          }, 
