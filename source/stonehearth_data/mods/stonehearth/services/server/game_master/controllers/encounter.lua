@@ -6,6 +6,7 @@ mixin_class(Encounter, Node)
 function Encounter:initialize(info)
    self._sv._info = info
 
+   self._log = radiant.log.create_logger('game_master.encounter')
    local etype, einfo = self:_get_script_info()
    assert(etype and einfo, string.format('missing encounter data for type "%s"', etype))
 
@@ -23,7 +24,6 @@ function Encounter:restore()
 end
 
 function Encounter:activate()
-   self._log = radiant.log.create_logger('game_master.encounter')
 end
 
 function Encounter:destroy()

@@ -21,11 +21,11 @@ function RaidStockpilesMission:can_start(ctx, info)
    assert(ctx)
    assert(ctx.enemy_location)
    assert(info)
-   assert(info.npc_player_id)
+   assert(ctx.npc_player_id)
 
    -- don't raid the enemy stockpiles if there's no room in ours
    if info.require_free_stockpile_space then
-      local friendly_stockpiles = stonehearth.inventory:get_inventory(info.npc_player_id)
+      local friendly_stockpiles = stonehearth.inventory:get_inventory(ctx.npc_player_id)
                                                             :get_all_stockpiles()
       if friendly_stockpiles then
          for _, stockpile in pairs(friendly_stockpiles) do
@@ -123,7 +123,7 @@ function RaidStockpilesMission:_update_party_orders()
 
    local raid_stockpile = self:_find_closest_stockpile(ctx.enemy_location, ctx.player_id)
    if raid_stockpile then
-      local friendly_stockpiles = stonehearth.inventory:get_inventory(info.npc_player_id)
+      local friendly_stockpiles = stonehearth.inventory:get_inventory(ctx.npc_player_id)
                                                             :get_all_stockpiles()
       if friendly_stockpiles and next(friendly_stockpiles) then
          self:_raid_stockpile(raid_stockpile, friendly_stockpiles)
