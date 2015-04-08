@@ -132,22 +132,22 @@ function Task:check_worker_against_task_affinity(worker)
    end
 
    local now = stonehearth.calendar:get_elapsed_time()
-   local existing_timeout = self._worker_affinity_timeout[worker:get_id()]
-   if existing_timeout then
-      if existing_timeout < now then
+   local expire_time = self._worker_affinity_timeout[worker:get_id()]
+   if expire_time then
+      if expire_time > now then
          -- worker restarted this task before his affinity timeout expired.  definitely
          -- let him through.
-         self._log:debug('%s resuming task %s with %d ticks left', worker, self._name, (existing_timeout - now))
+         self._log:debug('%s resuming task %s with %d ticks left', worker, self._name, (expire_time - now))
          return true
       else
-         self._log:debug('%s lost affinity to ask task %s with (%d ticks behind)', worker, self._name, (now - existing_timeout))
+         self._log:debug('%s lost affinity to ask task %s with (%d - %d)', worker, self._name, now, expire_time)
       end
    end
 
    -- count the number of non-expired timeouts we have left...
    local still_bound_count = 0
-   for id, timeout in pairs(self._worker_affinity_timeout) do
-      if timeout < now then
+   for id, expire_time in pairs(self._worker_affinity_timeout) do
+      if expire_time < now then
          self._worker_affinity_timeout[id] = nil
          self._log:debug('%s did not resume task %s in time.  breaking affinity', worker, self._name)
       else
