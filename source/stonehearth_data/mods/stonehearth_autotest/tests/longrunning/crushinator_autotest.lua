@@ -110,7 +110,7 @@ function new_road(min_point, max_point)
    }
    local road
    stonehearth.build:do_command('add_road', nil, function()
-      road = stonehearth.build:add_road(session, 'stonehearth:brick_paved_road', nil, Cube3(Point3(min_point.x, 9, min_point.y), Point3(max_point.x, 10, max_point.y)))
+      road = stonehearth.build:add_road(session, 'stonehearth:build:brushes:pattern:wood_dark_diagonal', nil, Cube3(Point3(min_point.x, 9, min_point.y), Point3(max_point.x, 10, max_point.y)))
    end)
    return road
 end
@@ -162,7 +162,7 @@ function crushinator_tests.maul(autotest)
    -- 25 workers
    for i = -4, 4, 2 do
       for j = -4, 4, 2 do
-         autotest.env:create_person(j, i, { job = 'worker' })
+         autotest.env:create_person(i, j, { job = 'worker' })
       end
    end
 --[[
