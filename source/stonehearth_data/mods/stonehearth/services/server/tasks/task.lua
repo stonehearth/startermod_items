@@ -426,6 +426,28 @@ function Task:_is_work_finished()
    return self._times - self._complete_count <= 0
 end
 
+function Task:has_worker_affinity_expired(worker)
+   if not self._affinity_timeout then
+      -- task has not been configured with worker affinity.
+      return true
+   end
+
+   local expire_time = self._worker_affinity_timeout[worker:get_id()]
+   if not expire_time then
+      -- the worker is not in the affinity window
+      return true
+   end
+
+   local now = stonehearth.calendar:get_elapsed_time()
+   if expire_time < now then
+      -- the worker hasn't restarted the task before the timeout expired.  bail
+      return true
+   end
+
+   -- no, this worker is not reserving space in this task
+   return false
+end
+
 function Task:_is_work_available()
    -- finally, if there's just nothing to do, there's just nothing to do.
    if self:_is_work_finished() then
@@ -535,6 +557,10 @@ function Task:__action_try_start(action, worker)
    if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s is pending to be removed.  cannot start!', entity)
       return false;
+   end
+
+   if not self:check_worker_against_task_affinity(worker) then
+      return false
    end
 
    -- if the work "went away" before the call to __action_can_start and now, reject
