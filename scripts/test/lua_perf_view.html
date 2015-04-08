@@ -112,9 +112,9 @@
 
   function sortFuncForTable(tableNode) {
     if (tableNode == buTableRoot) {
-      return function(d1, d2) { return d2.st - d1.st; };
+      return function(d1, d2) { return d2.d.st - d1.d.st; };
     }
-    return function(d1, d2) { return d2.tt - d1.tt; };
+    return function(d1, d2) { return d2.d.tt - d1.d.tt; };
   }
 
   function getFunctionData(fnName) {
@@ -236,16 +236,14 @@
 
   function displayFnData(fns, parent, lastElement, depth, sortFunc) {
     var data = [];
-    var callCounts = []
     for (var i = 0; i < fns.length; i++) {
-      data.push(getFunctionData(fns[i].nm));
-      callCounts.push(fns[i].n);
+      data.push({d: getFunctionData(fns[i].nm), n: fns[i].n});
     }
 
     data.sort(sortFunc);
 
     for (var i = 0; i < data.length; i++) {
-      addFuncData(data[i], callCounts[i], parent, lastElement, depth);
+      addFuncData(data[i].d, data[i].n, parent, lastElement, depth);
     }
   }
 
@@ -253,7 +251,7 @@
     var fns = [];
     for (var key in perfData) {
       if (perfData.hasOwnProperty(key)) {
-        fns.push({ nm: key, n:getFunctionData(key).n });
+        fns.push({ nm: key, n: getFunctionData(key).n });
       }
     }
 
