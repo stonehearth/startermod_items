@@ -1,11 +1,12 @@
 <html>
 
-<input type="file" id="files" name="files[]" multiple />
+<input type="file" id="files" name="files[]" multiple style="width:500px;"/>
 <div id="sampleTime"> </div>
 <table id="perfTable">
   <tr>
     <th>Function Name</th>
     <th>Total Time In Function(us)</th>
+    <th>Number of Sampled Calls</th>
     <th>Hot Lines(line, us)</th>
   </tr>
 </table>
@@ -92,7 +93,7 @@ table#perfTable tr:nth-child(odd) {
     return result;
   }
 
-  function makeFuncRow(fnData, depth) {
+  function makeFuncRow(fnData, callCount, depth) {
     var rowNode = document.createElement('tr');
     rowNode.setAttribute('depth', depth);
     var depthSpaces = makeDepthSpaces(depth);
@@ -108,6 +109,10 @@ table#perfTable tr:nth-child(odd) {
     rowNode.appendChild(rd);
 
     rd = document.createElement('td');
+    rd.innerText = callCount;
+    rowNode.appendChild(rd);
+
+    rd = document.createElement('td');
     rd.innerText = formatHotLines(fnData.lines);
     rowNode.appendChild(rd);
 
@@ -116,8 +121,8 @@ table#perfTable tr:nth-child(odd) {
     return rowNode;
   }
 
-  function addFuncData(fnData, parentNode, nextNode, depth) {
-    parentNode.insertBefore(makeFuncRow(fnData, depth), nextNode);
+  function addFuncData(fnData, callCount, parentNode, nextNode, depth) {
+    parentNode.insertBefore(makeFuncRow(fnData, callCount, depth), nextNode);
   }
 
   /*function openFunction(fName, parentNode) {
@@ -130,8 +135,10 @@ table#perfTable tr:nth-child(odd) {
 
   function displayFnData(fns, parent, lastElement, depth) {
     var data = [];
+    var callCounts = []
     for (var i = 0; i < fns.length; i++) {
-      data.push(getFunctionData(fns[i]));
+      data.push(getFunctionData(fns[i].nm));
+      callCounts.push(fns[i].n);
     }
 
     data.sort(function(d1, d2) {
@@ -139,7 +146,7 @@ table#perfTable tr:nth-child(odd) {
     });
 
     for (var i = 0; i < data.length; i++) {
-      addFuncData(data[i], parent, lastElement, depth);
+      addFuncData(data[i], callCounts[i], parent, lastElement, depth);
     }
   }
 
@@ -147,7 +154,7 @@ table#perfTable tr:nth-child(odd) {
     var fns = [];
     for (var key in perfData) {
       if (perfData.hasOwnProperty(key)) {
-        fns.push(key);
+        fns.push({ nm: key, n:0 });
       }
     }
 
