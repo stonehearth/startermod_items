@@ -11,7 +11,7 @@ end
 function Stockpile:start(ctx, info)
    self._ctx = ctx
    self._info = info
-   assert(info.npc_player_id)
+   assert(ctx.npc_player_id)
    
    local size = self._sv.piece.info.script_info.stockpile_size
 
@@ -20,7 +20,7 @@ function Stockpile:start(ctx, info)
 end
 
 function Stockpile:_create_stockpile(location, w, h)
-   stonehearth.inventory:get_inventory(self._info.npc_player_id)
+   stonehearth.inventory:get_inventory(self._ctx.npc_player_id)
                            :create_stockpile(location, Point2(w, h))
 
    local contents = self._sv.piece.info.script_info.stockpile_contents

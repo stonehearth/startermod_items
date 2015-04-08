@@ -56,64 +56,96 @@ function game_master_lib.create_context(node_name, node, parent_node)
    return ctx
 end
 
-function game_master_lib.create_citizen(population, info, origin)
-   local citizen = population:create_new_citizen(info.role)
+local function create_or_load_citizens(population, info, origin)
+   local citizens = {}
 
-   -- info.job: promote the citizen to the proper job
-   if info.job then
-      citizen:add_component('stonehearth:job')
-                  :promote_to(info.job)
+   if info.from_population then
+      local min = info.from_population.min or 1
+      local max = info.from_population.max or 1
+      local num = rng:get_int(min, max)
+      
+      for i = 1, num do
+         local citizen = population:create_new_citizen(info.from_population.role)
+         citizens[citizen:get_id()] = citizen
+      end
+   elseif info.from_ctx then
+      radiant.not_yet_implemented()
    end
 
-   -- info.equipment: gear up!
-   if info.equipment then
-      local ec = citizen:add_component('stonehearth:equipment')
-      for _, piece in pairs(info.equipment) do
-         -- piece is either the uri to the piece or an array of candidates
-         if type(piece) == 'table' then
-            piece = piece[rng:get_int(1, #piece)]            
+   return citizens
+end
+
+function game_master_lib.create_citizens(population, info, origin)
+   local citizens = create_or_load_citizens(population, info, origin)
+  
+   for id, citizen in pairs(citizens) do
+      -- info.job: promote the citizen to the proper job
+      if info.job then
+         citizen:add_component('stonehearth:job')
+                     :promote_to(info.job)
+      end
+
+      -- info.equipment: gear up!
+      if info.equipment then
+         local ec = citizen:add_component('stonehearth:equipment')
+         for _, piece in pairs(info.equipment) do
+            -- piece is either the uri to the piece or an array of candidates
+            if type(piece) == 'table' then
+               piece = piece[rng:get_int(1, #piece)]            
+            end
+            ec:equip_item(piece)
          end
-         ec:equip_item(piece)
+      end
+
+      -- info.loot_drops: what does the guy drop when it dies?
+      if info.loot_drops then
+         citizen:add_component('stonehearth:loot_drops')
+                     :set_loot_table(info.loot_drops)
+      end
+
+      -- info.combat_leash_range: set the leash on the citizen if provide.  the
+      -- leash prevents the mob from being kited too far off their home location
+      if info.combat_leash_range then
+         citizen:add_component('stonehearth:combat_state')
+                     :set_attack_leash(origin, info.combat_leash_range)
+      end
+
+
+      --if info.attributes, then add these attributes to the entity
+      --this should allow us to tweak the attributes of specific entities
+      --we are only allowed to add basic attributes
+      if info.attributes then
+         local attrib_component = citizen:add_component('stonehearth:attributes')
+         for name, value in pairs(info.attributes) do
+            attrib_component:set_attribute(name, value)
+         end
+      end
+
+      -- if we created the citizen, place him on the terrain now (after he's been fully initialized)
+      if info.from_population then
+         local location = origin
+         if info.from_population.location then
+            local x = info.from_population.location.x or 0
+            local y = info.from_population.location.y or 0
+            local z = info.from_population.location.z or 0
+
+            location = location + Point3(x, y, z)
+
+            -- spawn within some range of the location
+            if info.from_population.range then
+               location = radiant.terrain.find_placement_point(location, 1, info.from_population.range)
+            end
+            
+         end
+         -- put the new citizen in the world and return it
+         radiant.terrain.place_entity(citizen, location)
+
+         -- trigger at the end when the citizen is fully initialized
+         radiant.events.trigger_async(citizen, 'stonehearth:game_master:citizen_added', {})
       end
    end
 
-   -- info.loot_drops: what does the guy drop when it dies?
-   if info.loot_drops then
-      citizen:add_component('stonehearth:loot_drops')
-                  :set_loot_table(info.loot_drops)
-   end
-
-   -- info.location: compute the offset from the origin to place the citizen
-   if info.location then
-      local x = info.location.x or 0
-      local y = info.location.y or 0
-      local z = info.location.z or 0
-      origin = origin + Point3(x, y, z)
-   end
-
-   -- info.combat_leash_range: set the leash on the citizen if provide.  the
-   -- leash prevents the mob from being kited too far off their home location
-   if info.combat_leash_range then
-      citizen:add_component('stonehearth:combat_state')
-                  :set_attack_leash(origin, info.combat_leash_range)
-   end
-
-   --if info.attributes, then add these attributes to the entity
-   --this should allow us to tweak the attributes of specific entities
-   --we are only allowed to add basic attributes
-   if info.attributes then
-      local attrib_component = citizen:add_component('stonehearth:attributes')
-      for name, value in pairs(info.attributes) do
-         attrib_component:set_attribute(name, value)
-      end
-   end
-
-   -- put the new citizen in the world and return it
-   radiant.terrain.place_entity(citizen, origin)
-
-   -- let any listeners know that the entity has been added by the gm 
-   radiant.events.trigger_async(citizen, 'stonehearth:game_master:citizen_added', {})
-   return citizen
+   return citizens
 end
 
 return game_master_lib
