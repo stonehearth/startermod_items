@@ -24,8 +24,7 @@ function FloorEditor:go(response, brush_uri, options)
    log:detail('running')
 
    local selector = stonehearth.selection:select_xz_region()
-   local brush = _radiant.voxel.create_brush(brush_uri)
-   brush:set_clip_whitespace(true)
+   local brush = voxel_brush_util.create_brush(brush_uri)
    
    if options.sink_floor then
       -- create a terrain cut region to remove the terrain overlapping the cursor

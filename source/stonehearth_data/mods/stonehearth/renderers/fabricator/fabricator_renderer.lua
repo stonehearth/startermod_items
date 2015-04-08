@@ -18,11 +18,11 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
 
    self._show_preview_mode = fabricator:get_data().editing
 
-   local blueprint = fabricator:get_data().blueprint
-   assert(blueprint)
+   self._blueprint = fabricator:get_data().blueprint
+   assert(self._blueprint)
 
-   self._blueprint_cd = blueprint:get_component('stonehearth:construction_data')
-   self._blueprint_cp = blueprint:get_component('stonehearth:construction_progress')
+   self._blueprint_cd = self._blueprint:get_component('stonehearth:construction_data')
+   self._blueprint_cp = self._blueprint:get_component('stonehearth:construction_progress')
    assert(self._blueprint_cd)
    assert(self._blueprint_cp)
 
@@ -141,7 +141,7 @@ function FabricatorRenderer:update_selection_material(selected_entity, material)
    end
 end
 
-function FabricatorRenderer:_update_region(region)
+function FabricatorRenderer:_update_region(stencil)
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
@@ -151,14 +151,18 @@ function FabricatorRenderer:_update_region(region)
       self._preview_render_node = nil
    end
 
-   if not self._blueprint_cp:get_teardown() and region then
-      self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._blueprint_cd)
+   if not self._blueprint_cp:get_teardown() and stencil then
       local material = self._render_entity:get_material_path('normal')
-      self._render_node:set_material(material)
+      local shape = self._blueprint:get_component('destination')
+                                       :get_region()
+                                          :get()
+                                             :intersect_region(stencil:get())
+
+      self._render_node = _radiant.client.create_voxel_node(self._parent_node, shape, material, Point3(0, 0, 0))
       self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.json')
 
       if self._show_preview_mode then
-         self._preview_render_node = _radiant.client.create_region_outline_node(self._parent_node, region:get(), PREVIEW_EDGE_COLOR, PREVIEW_FACE_COLOR, 'materials/build_preview.material.json')
+         self._preview_render_node = _radiant.client.create_region_outline_node(self._parent_node, stencil:get(), PREVIEW_EDGE_COLOR, PREVIEW_FACE_COLOR, 'materials/build_preview.material.json')
          self._preview_render_node:set_position(MODEL_OFFSET)
       end
    end

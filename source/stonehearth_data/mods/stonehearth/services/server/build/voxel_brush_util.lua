@@ -1,30 +1,26 @@
 local voxel_brush_util = {}
 local Point3 = _radiant.csg.Point3
-local Region3 = _radiant.csg.Region3
-local Region2 = _radiant.csg.Region2
-local NineGridBrush = _radiant.voxel.NineGridBrush
+local Color3 = _radiant.csg.Color3
 
 local MODEL_OFFSET = Point3(0, 0, 0)
 
-function voxel_brush_util.create_construction_data_node(parent_node, entity, region, construction_data)
-   local render_node
-   if region then
-      local model
-      local stencil = region:get()
-      if stencil then
-         local render_info = entity:get_component('render_info')
-         local material = render_info and render_info:get_material() or 'materials/voxel.material.json'
+function voxel_brush_util.create_brush(brush, origin, normal)
+   checks('string', '?Point3', '?Point3')
 
-         local blueprint = construction_data:get_blueprint_entity()
-         model = blueprint:get_component('destination')
-                              :get_region()
-                                 :get()
-                                    :intersect_region(stencil)
-
-         render_node = _radiant.client.create_voxel_node(parent_node, model, material, MODEL_OFFSET)
-      end
+   if Color3.is_color(brush) then
+      return _radiant.voxel.create_color_brush(brush)
    end
-   return render_node
+
+   local brush = _radiant.voxel.create_qubicle_brush(brush)
+   if origin then
+      brush:set_origin(origin)
+   end
+   if normal then
+      brush:set_normal(normal)
+   end
+   brush:set_clip_whitespace(true)                                   
+
+   return brush
 end
 
 return voxel_brush_util

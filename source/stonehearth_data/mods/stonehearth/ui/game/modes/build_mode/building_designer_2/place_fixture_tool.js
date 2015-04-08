@@ -1,13 +1,16 @@
-var DrawFloorTool;
+var PlaceFixtureTool;
 
 (function () {
-   DrawFloorTool = SimpleClass.extend({
+   PlaceFixtureTool = SimpleClass.extend({
 
-      toolId: 'drawFloorTool',
-      materialClass: 'floorMaterial',
+      toolId: undefined,
+      category: undefined,
+      materialClass: undefined,
 
-      handlesType: function(type) {
-         return type == 'floor';
+      init: function(o) {
+         this.category = o.category;
+         this.toolId = o.toolId;
+         this.materialClass = o.materialClass;
       },
 
       inDom: function(buildingDesigner) {
@@ -20,7 +23,7 @@ var DrawFloorTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                var brush = self._materialHelper.getSelectedBrush();
-               return App.stonehearthClient.buildFloor(brush);
+               return App.stonehearthClient.addDoodad(brush);
             });
       },
 
@@ -38,10 +41,10 @@ var DrawFloorTool;
 
          self._materialHelper = new MaterialHelper(tab,
                                                    self.buildingDesigner,
-                                                   'Floor',
+                                                   self.category,
                                                    self.materialClass,
-                                                   brushes.voxel,
-                                                   brushes.pattern,
+                                                   brushes.doors,
+                                                   null,
                                                    click);
       },
 
