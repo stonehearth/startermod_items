@@ -161,7 +161,6 @@ function Terrain.is_blocked(arg0, arg1)
 end
 
 function Terrain.is_terrain(location)
-   assert(radiant.util.is_a(location, Point3))
    return _physics:is_terrain(location)
 end
 

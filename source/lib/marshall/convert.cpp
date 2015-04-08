@@ -78,17 +78,17 @@ void Convert::UserdataToProtobuf(luabind::object const& obj, Protocol::Value* ms
          msg->set_type_id(0);
          return;
       }
-      typeId = luabind::call_function<int>(__get_userdata_type_id);
+      typeId = luabind::object_cast<int>(__get_userdata_type_id());
    } catch (std::exception const& e) {
       LUA_LOG(0) << "wtf? " << e.what();
    }
    if (!typeId) {
-      luabind::class_info ci = luabind::call_function<luabind::class_info>(luabind::globals(L)["class_info"], obj);
+      luabind::class_info ci = luabind::object_cast<luabind::class_info>(luabind::globals(L)["class_info"](obj));
       throw std::logic_error(BUILD_STRING("object type " << ci.name << " has no __userdata_type_id field"));
    }
 
    if (!typeinfo::Dispatcher(store_, flags_).LuaToProto(typeId, obj, msg)) {
-      luabind::class_info ci = luabind::call_function<luabind::class_info>(luabind::globals(L)["class_info"], obj);
+	  luabind::class_info ci = luabind::object_cast<luabind::class_info>(luabind::globals(L)["class_info"](obj));
       throw std::logic_error(BUILD_STRING("unknown conversion from object type " << ci.name << " to protobuf"));
    }
 }
@@ -103,7 +103,7 @@ void Convert::ProtobufToUserdata(Protocol::Value const& msg, luabind::object& ob
       return;
    }
    if (!typeinfo::Dispatcher(store_, flags_).ProtoToLua(typeId, msg, obj)) {
-      luabind::class_info ci = luabind::call_function<luabind::class_info>(luabind::globals(L)["class_info"], obj);
+      luabind::class_info ci = luabind::object_cast<luabind::class_info>(luabind::globals(L)["class_info"](obj));
       throw std::logic_error(BUILD_STRING("unknown conversion from object type " << ci.name << " to protobuf"));
    }
 }

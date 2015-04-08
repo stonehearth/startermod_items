@@ -347,14 +347,16 @@ function CompoundAction:_get_entity()
 end
 
 function CompoundAction:_spam_current_state(format, ...)
-   self._log:spam(string.format(format, ...))
-   if self._ai.CURRENT then
-      self._log:spam('  CURRENT is %s', tostring(self._ai.CURRENT))
-      for key, value in pairs(self._ai.CURRENT) do      
-         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
-      end   
-   else
-      self._log:spam('  no CURRENT state!')
+   if self._log:is_enabled(radiant.log.SPAM) then
+      self._log:spam(string.format(format, ...))
+      if self._ai.CURRENT then
+         self._log:spam('  CURRENT is %s', tostring(self._ai.CURRENT))
+         for key, value in pairs(self._ai.CURRENT) do      
+            self._log:spam('  CURRENT.%s = %s', key, tostring(value))
+         end   
+      else
+         self._log:spam('  no CURRENT state!')
+      end
    end
 end
 

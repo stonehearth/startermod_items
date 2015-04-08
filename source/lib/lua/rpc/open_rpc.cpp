@@ -20,7 +20,7 @@ LuaDeferredPtr LuaDeferred_Done(lua_State* L, LuaDeferredPtr deferred, object cb
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
       deferred->Done([L, cb](luabind::object result) {
-         call_function<void>(object(L, cb), result);
+         object(L, cb)(result);
       });
    }
    return deferred;
@@ -38,8 +38,8 @@ LuaDeferredPtr LuaDeferred_Always(lua_State* L, LuaDeferredPtr deferred, object 
 {
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
-      deferred->Always([L, cb]() {
-         call_function<void>(object(L, cb));
+      deferred->Always([L, cb]() mutable {
+         object(L, cb)();
       });
    }
    return deferred;
@@ -49,8 +49,8 @@ LuaDeferredPtr LuaDeferred_Progress(lua_State* L, LuaDeferredPtr deferred, objec
 {
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
-      deferred->Progress([L, cb](luabind::object result) {
-         call_function<void>(object(L, cb), result);
+      deferred->Progress([L, cb](luabind::object result) mutable {
+         object(L, cb)(result);
       });
    }
    return deferred;
@@ -61,7 +61,7 @@ LuaDeferredPtr LuaDeferred_Fail(lua_State* L, LuaDeferredPtr deferred, object cb
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
       deferred->Fail([L, cb](luabind::object result) {
-         call_function<void>(object(L, cb), result);
+         object(L, cb)(result);
       });
    }
    return deferred;
@@ -119,7 +119,6 @@ int call_obj(lua_State* L)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(CoreReactor);
-DEFINE_INVALID_LUA_CONVERSION(CoreReactor)
 DEFINE_INVALID_JSON_CONVERSION(CoreReactor);
 DEFINE_INVALID_JSON_CONVERSION(LuaDeferred);
 DEFINE_INVALID_JSON_CONVERSION(Session);

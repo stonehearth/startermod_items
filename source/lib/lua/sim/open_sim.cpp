@@ -244,11 +244,11 @@ FilterResultCachePtr FilterResultCache_SetFilterFn(FilterResultCachePtr frc, lua
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
       luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
 
-      frc->SetFilterFn([filter_fn, cb_thread](om::EntityPtr e) -> bool {
+      frc->SetFilterFn([filter_fn, cb_thread](om::EntityPtr e) mutable -> bool {
          MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "lua cb");
          try {
             LOG_CATEGORY(simulation.pathfinder.bfs, 5, "calling filter function on " << *e);
-            luabind::object result = luabind::call_function<luabind::object>(filter_fn, om::EntityRef(e));
+            luabind::object result = filter_fn(om::EntityRef(e));
             if (luabind::type(result) == LUA_TNIL) {
                return false;
             }
@@ -315,7 +315,6 @@ DEFINE_INVALID_JSON_CONVERSION(FollowPath);
 DEFINE_INVALID_JSON_CONVERSION(DirectPathFinder);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
-DEFINE_INVALID_LUA_CONVERSION(Simulation)
 
 void lua::sim::open(lua_State* L, Simulation* sim)
 {

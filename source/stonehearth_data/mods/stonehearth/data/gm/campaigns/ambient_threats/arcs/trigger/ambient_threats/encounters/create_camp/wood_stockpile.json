@@ -1,9 +1,0 @@
-{
-   "type" : "camp_piece",
-
-   "script" : "file(stockpile.lua)",
-   "script_info" : {
-      "stockpile_size" : { "w" : 4, "h" : 4 }
-   }
-
-}

@@ -392,7 +392,7 @@ function entities.get_entity_data(arg0, key)
       uri = entity:get_uri()
    end
    if uri and #uri > 0 then
-      local json = radiant.resources.load_json(uri)
+      local json = radiant.resources.load_json(uri, true)
       if json.entity_data then
          return json.entity_data[key]
       end

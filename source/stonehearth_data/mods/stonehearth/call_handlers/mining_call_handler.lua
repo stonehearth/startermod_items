@@ -32,7 +32,7 @@ function MiningCallHandler:designate_mining_zone(session, response, aligned)
    local face_color = Color4(255, 255, 0, 16)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
    local y_cell_size = constants.mining.Y_CELL_SIZE
-   local clip_enabled = stonehearth.subterranean_view:clip_enabled()
+   local clip_enabled = stonehearth.subterranean_view:get_clip_enabled()
 
    local get_proposed_points = function(p0, p1, normal)
       if not self:_valid_endpoints(p0, p1) then

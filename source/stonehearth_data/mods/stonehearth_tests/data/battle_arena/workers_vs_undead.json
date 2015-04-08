@@ -7,20 +7,33 @@
          "z" : -24
       },
 
+      "offset" : { "x" : 0, "y" : 0, "z" : -10 },
+
       "members" : {
          "workers" : {
-            "job" : "stonehearth:jobs:worker",
-            "role" : "default",
-            "count" : 4
+            "from_population" : {
+               "role" : "default",
+               "job" : "stonehearth:jobs:worker",
+               "location" : { "x": 0, "z": 0 },
+               "min" : 3,
+               "max" : 5,
+               "range" : 4
+            }
          },
-         "citizenfootmen" : {
-            "job" : "stonehearth:jobs:footman",
-            "role" : "default",
-            "count" : 0,
+         "army" : {
+            "from_population" : {
+               "role" : "default",
+               "job" : "stonehearth:jobs:footman",
+               "location" : { "x": 3, "z": 3 },
+               "min" : 2,
+               "max" : 3,
+               "range" : 4
+            },
+
             "equipment" : {
                "weapon" : ["stonehearth:weapons:giant_bone_axe", "stonehearth:weapons:two_handed_sword"]               
             }
-         }         
+         }            
       }
    },
    "team2" : {
@@ -30,24 +43,35 @@
          "y" : 0,
          "z" : 24
       },
+      "offset" : { "x" : 0, "y" : 0, "z" : 10 },
 
       "members" : {
-         "raiders" : {
-            "role" : "skeleton",
-            "count" : 0,
-            "job" : "stonehearth:jobs:footman",
+         "zombies" : {
+            "from_population" : {
+               "role" : "zombie",
+               "location" : { "x": 0, "z": 0 },
+               "min" : 1,
+               "max" : 3,
+               "range" : 4
+            },
+
             "equipment" : {
-               "weapon" : ["stonehearth:weapons:jagged_cleaver"]
+               "weapon" : [ "stonehearth:weapons:jagged_cleaver" ]
             }
          },
-         "brraaaainz" : {
-            "role" : "zombie",
-            "count" : 8,
-            "job" : "stonehearth:jobs:footman",
+         "skeletons" : {
+            "from_population" : {
+               "role" : "skeleton",
+               "location" : { "x": 3, "z": 3 },
+               "min" : 1,
+               "max" : 1,
+               "range" : 4
+            },
+
             "equipment" : {
-               "weapon" : ["stonehearth:weapons:jagged_cleaver"]
+               "weapon" : [ "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ]
             }
-         }         
+         }            
       }
    }
 }

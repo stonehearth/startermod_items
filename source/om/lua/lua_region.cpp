@@ -21,9 +21,9 @@ std::shared_ptr<LuaDeepRegionGuard<OuterBox>> LuaDeepRegionGuard<OuterBox>::OnCh
    luabind::object changed_cb(cb_thread, unsafe_changed_cb);
 
    typedef OuterBox::Value::element_type::Value Region;
-   trace_->OnChanged([this, changed_cb](Region const& value) {
+   trace_->OnChanged([this, changed_cb](Region const& value) mutable {
       try {
-         luabind::call_function<void>(changed_cb, value);
+         changed_cb(value);
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }

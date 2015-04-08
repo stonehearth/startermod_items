@@ -3,7 +3,8 @@
    "rarity" : "common",
 
    "encounters" : {
-      "undead_raid" : "file(encounters/undead_raid.json)"
+      "undead at night" : "file(encounters/nighttime_undead.json)",
+      "undead raid" : "file(encounters/undead_raid.json)"
    },
 
    "___old_encounters" : {
@@ -14,7 +15,7 @@
       "steal from stockpiles" : "file(encounters/steal_from_stockpiles_mission.json)",
       "smash stockpiles" : "file(encounters/smash_stockpiles_mission.json)",
       "stealthy thief" : "file(encounters/stealthy_thief_mission.json)",
-      "night raid" : "file(encounters/nighttime_city_raids.json)",
+      
 
       "wait for next shakedown" : "file(encounters/wait_for_next_shakedown.json)",
       "wait for boss death" : "file(encounters/wait_for_boss_death.json)",

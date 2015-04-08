@@ -51,8 +51,8 @@
 #define NOT_REACHED()            throw std::logic_error(BUILD_STRING("reached unreachable code: " << __FILE__ << ":" << __LINE__))
 #define NOT_TESTED()             LOG_CRITICAL() << "not tested " << __FILE__ << " " << __LINE__
 
-#define DECLARE_SHARED_POINTER_TYPES(Cls) \
-   typedef std::shared_ptr<Cls>  Cls ## Ptr; \
+#define DECLARE_SHARED_POINTER_TYPES(Cls)          \
+   typedef std::shared_ptr<Cls>  Cls ## Ptr;       \
    typedef std::weak_ptr<Cls>    Cls ## Ref;
 
 #define NO_COPY_CONSTRUCTOR(Cls) \

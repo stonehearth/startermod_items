@@ -23,16 +23,17 @@ public:
    StaticString();
    StaticString(std::string const& s);
    StaticString(const char* s);
+   StaticString(const char* s, size_t len);
    operator const char*() const { return _value; }
 
    struct Hash {
-      inline std::size_t operator()(StaticString const& s) {
+      inline std::size_t operator()(StaticString const& s) const {
          return std::hash<const char *>()(static_cast<const char*>(s));
       }
    };
 
    struct ToStaticString {
-      const char* operator()(const char* key);
+      const char* operator()(const char* key, size_t n = std::string::npos);
    };
 
    static StaticString Empty;

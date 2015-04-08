@@ -9,19 +9,23 @@ function Mission:_create_party(ctx, info)
    assert(ctx.enemy_location)
    assert(info.offset)
    assert(info.members)
-   assert(info.npc_player_id)
+
+   local npc_player_id = ctx.npc_player_id or info.npc_player_id
+   assert (npc_player_id)
    
    local origin = ctx.enemy_location
-   local population = stonehearth.population:get_population(info.npc_player_id)
+   local population = stonehearth.population:get_population(npc_player_id)
 
    local offset = Point3(info.offset.x, info.offset.y, info.offset.z)
 
    -- xxx: "enemy" here should be "npc"
-   local party = stonehearth.unit_control:get_controller(info.npc_player_id)
+   local party = stonehearth.unit_control:get_controller(npc_player_id)
                                              :create_party()
    for name, info in pairs(info.members) do
-      local member = game_master_lib.create_citizen(population, info, origin + offset)
-      party:add_member(member)
+      local members = game_master_lib.create_citizens(population, info, origin + offset)
+      for id, member in pairs(members) do
+         party:add_member(member)
+      end
    end
    return party
 end

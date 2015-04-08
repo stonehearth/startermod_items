@@ -3,5 +3,10 @@
    "components" : {
       "stonehearth:water" : {
       }
-	}
+	},
+   "entity_data" : {
+      "stonehearth:subterreanean_view" : {
+         "clip_mode" : "custom"
+      }
+   }
 }

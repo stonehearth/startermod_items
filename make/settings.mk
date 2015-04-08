@@ -82,7 +82,14 @@ RADIANT_CMAKE_FLAGS := $(RADIANT_CMAKE_FLAGS) -DRADIANT_BUILD_PLATFORM=$(RADIANT
 
 # default commands and such
 7ZA=7za
+
+ifeq ($(RADIANT_VISUAL_STUDIO_MAJOR_VERSION),14) 
+MSBUILD_BINARY='/c/Program Files (x86)/MSBuild/14.0/Bin/msbuild.exe'
+endif
+ifeq ($(MSBUILD_BINARY),) 
 MSBUILD_BINARY='/c/windows/Microsoft.NET/Framework/v4.0.30319/msbuild.exe'
+endif
+
 MSBUILD_FLAGS= -nologo -p:PlatformToolset=$(RADIANT_VISUAL_STUDIO_PLATFORM_TOOLS_VERSION) $(RADIANT_MSBUILD_FLAGS)
 MSBUILD=$(MSBUILD_BINARY) $(MSBUILD_FLAGS) -maxcpucount
 MSBUILD_SERIAL=$(MSBUILD_BINARY) $(MSBUILD_FLAGS) -maxcpucount:1

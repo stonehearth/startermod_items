@@ -78,13 +78,6 @@ Region<S, C>::Region(Cube const& cube) :
 }
 
 template <class S, int C>
-Region<S, C>::Region(Region const&& r)
-{
-   cubes_ = std::move(r.cubes_);
-   _churn = r._churn;
-}
-
-template <class S, int C>
 S Region<S, C>::GetArea() const
 {
    S area = 0;
@@ -873,6 +866,17 @@ Cube<S, C> Region<S, C>::GetBounds() const
 }
 
 template <class S, int C>
+int Region<S, C>::GetTag(Point const& pt) const
+{
+   for (auto &c : cubes_) {
+      if (c.Contains(pt)) {
+         return c.GetTag();
+      }
+   }
+   return 0;
+}
+
+template <class S, int C>
 void Region<S, C>::Translate(Point const& pt)
 {
    for (auto &c : cubes_) {
@@ -949,7 +953,7 @@ template <int C>
 static inline bool FastToInt(Cube<double, C> const& in, Cube<int, C>& out);
 
 template <>
-static inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
+inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
 {
    int integer;
    FAST_COPY(min.x);
@@ -959,7 +963,7 @@ static inline bool FastToInt(Cube<double, 1> const& in, Cube<int, 1>& out)
 }
 
 template <>
-static inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
+inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
 {
    int integer;
    FAST_COPY(min.x);
@@ -971,7 +975,7 @@ static inline bool FastToInt(Cube<double, 2> const& in, Cube<int, 2>& out)
 }
 
 template <>
-static inline bool FastToInt(Cube<double, 3> const& in, Cube<int, 3>& out)
+inline bool FastToInt(Cube<double, 3> const& in, Cube<int, 3>& out)
 {
    int integer;
    FAST_COPY(min.x);
@@ -1087,6 +1091,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
+   template int Cls::GetTag(const Cls::Point& pt) const; \
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
    template Cls Cls::Inflated(const Cls::Point& pt) const; \

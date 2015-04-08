@@ -24,6 +24,7 @@ function CreateCamp:start(ctx, info)
    local min = info.spawn_range.min
    local max = info.spawn_range.max
 
+   ctx.npc_player_id = info.npc_player_id
    self._sv.ctx = ctx
    self._sv.ctx.create_camp = {}
    self._sv._info = info
@@ -67,8 +68,12 @@ function CreateCamp:_create_camp(location)
 
    -- create the boss entity
    if info.boss then
-      local boss = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
-      ctx.create_camp.npc_boss_entity = boss
+      local members = game_master_lib.create_citizens(self._population, info.boss, ctx.enemy_location)
+      --This is a bit weird. There's just one boss, really. Last boss gets it
+      --TODO: if this becomes a problem later, we can fix it them
+      for k, boss in pairs(members) do
+         ctx.create_camp.npc_boss_entity = boss
+      end
    end
 
    local visible_rgn = Region2()
@@ -129,19 +134,27 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    -- add all the people.
    ctx.create_camp.citizens = {}
    if piece.info.citizens then
+      
       for name, info in pairs(piece.info.citizens) do
-         local citizen = game_master_lib.create_citizen(self._population, info, origin)
-         self:_add_entity_to_visible_rgn(citizen, visible_rgn)
-
-         --TODO: add this entity to the ctx
-         ctx.create_camp.citizens[name] = citizen
+         local members = game_master_lib.create_citizens(self._population, info, origin)
+         local member_count = 1
+         for id, member in pairs(members) do
+            self:_add_entity_to_visible_rgn(member, visible_rgn)
+            
+            --Add all these people to the context, under key name_1, name_2, etc
+            local name_augmented = name .. '_' .. member_count
+            assert(ctx.create_camp[name_augmented] == nil, 
+               'There is a name collision, adding things to the context. Consider implementing a unique naming scheme. Refer to items from previous encounters with Back(2) like actions.')
+            ctx.create_camp.citizens[name_augmented] = citizen
+            member_count = member_count + 1
+         end        
       end
    end
 
    -- if there's a script associated with the mod, give it a chance to customize the camp
    if piece.info.script then
       local script = radiant.create_controller(piece.info.script, piece)
-      script:start(self._sv.ctx)
+      script:start(self._sv.ctx, piece.info.script_info)
    end
 
 end

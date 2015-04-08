@@ -76,12 +76,6 @@ public:     // public methods
    int NumTiles() const;
    int NumCubes() const;
 
-   // keeping this inline as it gets messy otherwise
-   friend std::ostream& operator<<(std::ostream& out, TiledRegion const& t) {
-      out << t._tilemap.NumTiles() << " tiles";
-      return out;
-   }
-
 private:
    void TriggerModified(csg::Region3f const& region);
    void AddToChangedSet(csg::Point3 const& index);
@@ -105,5 +99,8 @@ DECLARE_SHARED_POINTER_TYPES(Region3Tiled)
 DECLARE_SHARED_POINTER_TYPES(Region3BoxedTiled)
 
 END_RADIANT_OM_NAMESPACE
+
+template <typename ContainerType, typename TileType>
+std::ostream& operator<<(std::ostream& out, ::radiant::om::TiledRegion<ContainerType, TileType> const& t);
 
 #endif // _RADIANT_OM_TILED_REGION_H
