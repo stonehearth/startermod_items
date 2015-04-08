@@ -151,16 +151,16 @@ function ExecutionFrame:_start_thinking(args, entity_state)
 end
 
 function ExecutionFrame:_stop_thinking()
-   if self:in_state('thinking', 'starting_thinking') then
+   if self._state == 'thinking' or self._state == 'starting_thinking' then
       return self:_stop_thinking_from_thinking()
    end
    if self._state == 'ready' then
       return self:_stop_thinking_from_ready()
    end
-   if self:in_state('starting', 'started') then
+   if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started() -- intentionally aliased
    end
-   if self:in_state('stopped', 'dead') then
+   if self._state == 'stopped' or self._state == 'dead' then
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
@@ -320,7 +320,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       assert(calling_thread == self._thread, 'on wrong thread in execution frame restart thinking')
    end
 
-   if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
+   if not (self._state == 'thinking' or self._state == 'starting_thinking' or self._state == 'ready' or self._state == 'running') then
       self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
       return false
    end
@@ -446,7 +446,7 @@ function ExecutionFrame:start_thinking(args, entity_state)
    assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
 
    self:_start_thinking(args, entity_state)
-   if self:in_state(READY) then
+   if self._state == READY then
       assert(self._active_unit_think_output)
       return self._active_unit_think_output
    end
@@ -1399,8 +1399,8 @@ function ExecutionFrame:get_state()
 end
 
 function ExecutionFrame:_set_state(state)
-   self._log:debug('state change %s -> %s', tostring(self._state), state)
-   self:_trace_state_change(tostring(self._state), state)
+   self._log:debug('state change %s -> %s', self._state, state)
+   self:_trace_state_change(self._state, state)
    self._state = state
    
    if self._debug_info then
@@ -1536,7 +1536,7 @@ function ExecutionFrame:_spam_entity_state(state, format, ...)
    if self._log:is_enabled(radiant.log.SPAM) then
       self._log:spam(format, ...)
       for key, value in pairs(state) do      
-         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
+         self._log:spam('  CURRENT.%s = %s', key, value)
       end   
    end
 end
