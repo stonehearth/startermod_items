@@ -21,8 +21,7 @@ local Fabricator = class()
 -- build the inverse material map
 local function build_color_to_material_map()
    local c2m = {}
-   local brushes = radiant.resources.load_json('stonehearth:build:brushes')
-   for material, colorlist in pairs(brushes.voxel) do
+   for material, colorlist in pairs(stonehearth.constants.construction.brushes.voxel) do
       for _, color in ipairs(colorlist) do
          if c2m[color] then
             radiant.error('duplicate color %s in stonehearth:build:brushes', color)

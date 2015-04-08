@@ -60,6 +60,10 @@ function Wall:set_brush(brush)
    return self
 end
 
+function Wall:get_brush()
+   return self._sv.brush
+end
+
 
 -- returns whether or not this wall is a patch wall.  patch walls are inserted
 -- by the roofing process to plug holes near roof junctions.

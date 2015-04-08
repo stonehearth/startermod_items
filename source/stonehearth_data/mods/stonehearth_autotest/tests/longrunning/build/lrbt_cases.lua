@@ -188,6 +188,24 @@ function lrbt_cases.peaked_roof(autotest, session)
    }
 end
 
+function lrbt_cases.patch_walls(autotest, session)
+   local floor
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(8, 11, 4)))
+      end,
+      function()
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 6)))
+      end,
+      function()
+         lrbt_util.grow_wooden_walls(session, floor)
+      end,
+      function()
+         lrbt_util.grow_wooden_roof(session, build_util.get_building_for(floor))
+      end,
+   }
+end
+
 function lrbt_cases.floating_wall(autotest, session)
    return {
       function()

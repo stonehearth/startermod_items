@@ -1,8 +1,9 @@
 local constants = require('constants').construction
 local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local build_util = require 'lib.build_util'
-local BuildUndoManager = require 'services.server.build.build_undo_manager'
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local BuildUndoManager = require 'services.server.build.build_undo_manager'
+
 local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
@@ -1154,22 +1155,11 @@ end
 --    @param region - the exact shape of the patch wall
 --
 function BuildService:add_patch_wall_to_building(building, wall_brush, normal, position, region)
-   self:_create_blueprint(building, wall_brush, position, function(wall)
+   self:_create_blueprint(building, 'stonehearth:build:prototypes:wall', position, function(wall)
          wall:add_component('stonehearth:wall')
+                  :set_brush(wall_brush)
                   :create_patch_wall(normal, region)
                   :layout()
-
-         -- we're going to cheat a little bit here.  it's very very difficult to
-         -- get scaffolding building looking 'proper' on patch walls.  to do a good
-         -- job, we need to make sure the scaffolding only gets built where the roof
-         -- exists to support it and avoid all sorts of issues with "reachable but
-         -- unsupported" pieces of wall being created (since walls can be built diagonally)
-         -- it turns out to look much better to pound up patch walls like columns, so
-         -- do that until we have more time to invest in building patch walls like every
-         -- other wall.
-         wall:add_component('stonehearth:construction_data')
-                  :set_project_adjacent_to_base(true)
-                  :set_needs_scaffolding(false)
       end)
 end
 

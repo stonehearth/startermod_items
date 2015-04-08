@@ -5,13 +5,11 @@ local Point3 = _radiant.csg.Point3
 
 local lrbt_util = {}
 
-local brushes = radiant.resources.load_json('stonehearth:build:brushes')
-
-local WOODEN_WALL    = brushes.wall['wood resource'][1]
-local WOODEN_ROOF    = brushes.roof['wood resource'][1]
-local WOODEN_FLOOR   = brushes.voxel['wood resource'][1]
-local STONE_FLOOR    = brushes.voxel['stone resource'][1]
-local WOODEN_COLUMN  = brushes.column['wood resource'][1]
+local WOODEN_WALL    = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
+local WOODEN_ROOF    = stonehearth.constants.construction.DEAFULT_WOOD_ROOF_BRUSH
+local WOODEN_FLOOR   = stonehearth.constants.construction.DEAFULT_WOOD_FLOOR_BRUSH
+local STONE_FLOOR    = stonehearth.constants.construction.DEAFULT_WOOD_STONE_BRUSH
+local WOODEN_COLUMN  = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
 
 function lrbt_util.create_workers(autotest, x, y)
    local workers = {}
