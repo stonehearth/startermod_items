@@ -1,3 +1,5 @@
+-- Have the raiding party listen on a timeout, and after that timeout, have it depart
+
 local RaidTimeoutObserver = class()
 
 function RaidTimeoutObserver:initialize(entity)
