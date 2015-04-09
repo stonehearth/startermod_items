@@ -10,10 +10,10 @@
       "nodes" : {
          "msg1" : {
             "bulletin" : {
-               "title" : "The wolves explode out of the cages",
-               "dialog_title" : "Wolf Rider",
-               "portrait" : "file(images/wolf_rider.png)",
-               "message" : "Nooo! Wolfy!!! Come baaaaccckkk!!!!",
+               "title" : "The wolves explode joyfully of the cages",
+               "dialog_title" : "Escaping Wolves",
+               "portrait" : "file(images/wolf.png)",
+               "message" : "Yip! Yip! AWOOOOOO!!!!!!!",
                "choices" : {
                   "stonehearth:ok" : {
                   }

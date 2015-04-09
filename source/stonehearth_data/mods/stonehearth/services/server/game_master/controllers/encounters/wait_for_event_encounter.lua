@@ -1,4 +1,3 @@
-
 local WaitForEventEncounter = class()
 
 function WaitForEventEncounter:activate()
@@ -15,13 +14,15 @@ function WaitForEventEncounter:start(ctx, info)
    assert(source)
    assert(event)
 
-   source = ctx[source]
-   self._sv.ctx = ctx
-   self._sv.source = source
-   self._sv.event = event
-   self.__saved_variables:mark_changed()
+   source = ctx:get(source)
+   if source and source:is_valid() then
+      self._sv.ctx = ctx
+      self._sv.source = source
+      self._sv.event = event
+      self.__saved_variables:mark_changed()
 
-   self:_listen_for_event()
+      self:_listen_for_event()
+   end
 end
 
 function WaitForEventEncounter:_listen_for_event()

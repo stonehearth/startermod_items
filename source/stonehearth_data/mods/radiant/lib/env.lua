@@ -74,21 +74,6 @@ require = function(s)
    return mod
 end
 
--- We need to redefine 'next' and 'pairs' in order to allow for traversal of tables that have 
--- metamethod overrides for '__newindex' and '__index'.  FIXME: if we move to Lua 5.2, we can
--- get rid of this and just implement __pairs on the meta table.
-
-local rawnext = next
-function next(t, k)
-  local m = getmetatable(t)
-  local n = m and m.__next or rawnext
-  return n(t, k)
-end
-
-function pairs(t)
-  return next, t, nil
-end
-
 -- pythonesque string split taken from the lua manual
 --
 function string:split(sSeparator, nMax, bRegexp)

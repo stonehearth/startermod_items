@@ -22,7 +22,7 @@ function Mission:_create_party(ctx, info)
    local party = stonehearth.unit_control:get_controller(npc_player_id)
                                              :create_party()
    for name, info in pairs(info.members) do
-      local members = game_master_lib.create_citizens(population, info, origin + offset)
+      local members = game_master_lib.create_citizens(population, info, origin + offset, ctx)
       for id, member in pairs(members) do
          party:add_member(member)
       end

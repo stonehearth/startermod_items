@@ -196,7 +196,9 @@
       "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
       "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
       "monsters:goblins:wolf_cage" : "file(entities/monsters/goblins/wolf_cage)", 
+      "monsters:goblins:wolf" : "file(entities/monsters/goblins/goblin_wolf)", 
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
+      "monsters:goblins:wolf_sleep_collar" : "file(entities/critters/collars/goblin_wolf_sleep_collar.json)", 
 
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton/male/skeleton_male.json)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/female/skeleton_female.json)",
@@ -666,7 +668,7 @@
 
       "actions:wait_for_event" : "file(ai/actions/wait_for_event_action.lua)",
       "actions:find_point_beyond_visible" : "file(ai/actions/find_point_beyond_visible_region_action.lua)",
-      "actions:depart_visible_area" : "file(ai/actions/depart_visible_area_action.lua)",    
+      "actions:depart_visible_area" : "file(ai/actions/depart_visible_area_action.lua)",  
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
@@ -680,7 +682,7 @@
       "observers:health_score" : "file(ai/observers/health_observer.lua)", 
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
       "observers:kill_at_zero_health" : "file(ai/observers/kill_at_zero_health_observer.lua)", 
-      "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)", 
+      "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -1468,6 +1470,7 @@
       "ladder" : "file(components/ladder/ladder_component.lua)",
       "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)",
       "party_member" : "file(components/party_member/party_member_component.lua)",
+      "caged_entity" : "file(components/caged_entity/caged_entity_component.lua)", 
       "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
    },
    "client_components" : {

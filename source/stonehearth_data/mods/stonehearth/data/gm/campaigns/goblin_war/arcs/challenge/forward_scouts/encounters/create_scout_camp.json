@@ -8,7 +8,8 @@
 
 
    "create_camp_info" : {
-      "player_id" : "goblins",
+      "npc_player_id" : "goblins",
+      "encounter_name" : "create_scout_camp",
 
       "radius" : 10,
       
@@ -16,6 +17,8 @@
          "min" : 160,
          "max" : 180
       },
+
+      "script" : "file(create_scout_camp/scout_camp.lua)",
       
       "pieces" : {
          "wolf_cage" : {

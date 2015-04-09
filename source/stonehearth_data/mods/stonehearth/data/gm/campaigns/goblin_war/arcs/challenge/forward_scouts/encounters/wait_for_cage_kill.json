@@ -6,7 +6,7 @@
    "out_edge" : "wolves_escaping_dialog",
 
    "wait_for_event_info" :  {
-      "source" : "wolf_cage",
+      "source" : "create_scout_camp.entities.wolf_cage",
       "event"  : "stonehearth:kill_event"
    }
 }

@@ -166,8 +166,10 @@ end
 
 
 function Party:cancel_tasks()
-   for _, task in pairs(self._party_tasks) do
-      task:destroy()
+   if self._party_tasks then 
+      for _, task in pairs(self._party_tasks) do
+         task:destroy()
+      end
    end
    self._party_tasks = {}
 end

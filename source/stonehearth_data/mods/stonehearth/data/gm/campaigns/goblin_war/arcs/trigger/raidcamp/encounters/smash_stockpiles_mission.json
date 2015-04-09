@@ -6,6 +6,8 @@
    "in_edge"  : "city_raid",
 
    "city_raid_info" : {
+      "npc_player_id" : "goblins",
+      
       "missions" : {
          "raid_stockpiles" : {
             "role" : "raid_stockpiles",
