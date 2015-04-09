@@ -50,25 +50,32 @@ function NodeContext._create_factory()
 end
 
 -- Given a string path to a value, split it and find it in the ctx
--- Sample strings: create_camp.npc_boss_entity, create_camp.entities.wolf_1
+-- Sample strings: create_camp.npc_boss_entity, foo.bar[1].baz
 -- @param path - dot-separated path that can be found inside ctx
 -- @param deflt - optional! Ff we can't find anything, return the default value instead of nil
 -- @returns the value if found, nil if not, default if not found and default is provided
 function NodeContext:get(path, deflt)
-   local path_arr = radiant.util.split_string(path, '.')
-   local ctx_ptr = self
-   for i, piece in ipairs(path_arr) do 
-      if ctx_ptr[piece] then
-         ctx_ptr = ctx_ptr[piece]
-      else
-         ctx_ptr = nil
-         break
-      end
+   -- path is something like "foo.bar[1].baz".  transform to
+   -- "self.foo.bar[1].baz" and eval and we're all good!
+
+   -- create a function that we can pass a paramter to to look up `path`
+   local fn = string.format('return function(self) return self.%s end', path)
+   local f, error = loadstring(fn)
+   if f == nil then
+      -- parse error?  no problem!
+      return deflt
    end
-   if deflt and not ctx_ptr then
-      ctx_ptr = deflt
+   
+   -- now call that function, passing ourself in!
+   local success, result = pcall(function()
+         local fetch = f()
+         return fetch(self)
+      end)
+   if not success then
+      return deflt
    end
-   return ctx_ptr
+   
+   return result
 end
 
 return NodeContext._create_factory()

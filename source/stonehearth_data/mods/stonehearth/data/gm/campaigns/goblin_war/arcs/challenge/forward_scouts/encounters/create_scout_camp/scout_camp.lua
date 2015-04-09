@@ -17,14 +17,9 @@ end
 function GoblinScoutCamp:start(ctx)
    self._sv.ctx = ctx
 
-   local wolves = {
-      ctx.create_scout_camp.citizens.tame_wolf_1,
-      ctx.create_scout_camp.citizens.tame_wolf_2,
-      ctx.create_scout_camp.citizens.tame_wolf_3}
-
    --These wolves sleep as long as their cage exists. If its destroyed by the player, the wolves escape. 
-   --If it's destroyed by the timer/trainer, the wolves attack the town. 
-   for i, wolf in ipairs(wolves) do 
+   --If it's destroyed by the timer/trainer, the wolves attack the town . 
+   for i, wolf in ipairs(ctx.create_scout_camp.citizens.tame_wolf) do 
       if wolf and wolf:is_valid() then
          --Add the caged beast component 
          assert(ctx.create_scout_camp.entities.wolf_cage and ctx.create_scout_camp.entities.wolf_cage:is_valid())
