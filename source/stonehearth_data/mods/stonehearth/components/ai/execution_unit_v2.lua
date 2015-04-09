@@ -140,7 +140,7 @@ function ExecutionUnitV2:get_weight()
 end
 
 function ExecutionUnitV2:is_runnable()
-   return self._action.priority > 0 and self:in_state(READY, RUNNING)
+   return self._action.priority > 0 and self._state == READY or self._state == RUNNING
 end
 
 function ExecutionUnitV2:get_current_entity_state()
@@ -223,7 +223,7 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
 end
 
 function ExecutionUnitV2:_set_think_output(think_output)
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "set_think_output" in state "%s"', self._state)
       return
    end
@@ -272,7 +272,7 @@ function ExecutionUnitV2:_stop_thinking()
 end
 
 function ExecutionUnitV2:_start()
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "start" in state "%s"', self._state)
       return
    end
@@ -284,7 +284,7 @@ function ExecutionUnitV2:_start()
 end
 
 function ExecutionUnitV2:_run()
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "run" in state "%s"', self._state)
       return
    end
@@ -301,12 +301,12 @@ end
 function ExecutionUnitV2:_stop()
    self:_destroy_object_monitor()
    
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "stop" in state "%s"', self._state)
       return
    end
 
-   if self:in_state('thinking', 'ready', 'halted') then
+   if self._state == 'thinking' or self._state == 'ready' or self._state == 'halted' then
       return self:_stop_from_thinking()
    end
    if self._state == 'starting' then
@@ -321,7 +321,7 @@ function ExecutionUnitV2:_stop()
    if self._state == 'finished' then
       return self:_stop_from_finished()
    end
-   if self:in_state('stopped', 'stopping', 'stop_thinking') then
+   if self._state == 'stopped' or self._state == 'stopping' or self._state == 'stop_thinking' then
       return -- nop
    end
    self:_unknown_transition('stop')   
@@ -332,7 +332,7 @@ function ExecutionUnitV2:_destroy()
 
    self:_destroy_object_monitor()
    
-   if self:in_state('thinking', 'ready', 'halted') then
+   if self._state == 'thinking' or self._state == 'ready' or self._state == 'halted' then
       return self:_destroy_from_thinking()
    end
    if self._state == 'starting' then

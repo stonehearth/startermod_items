@@ -359,7 +359,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    for unit, entity_state in pairs(rethinking_units) do
       self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
                         unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
-      assert(unit:in_state('stopped', 'thinking', 'ready'))
+      assert(unit._state == 'stopped' or unit._state == 'thinking' or unit._state == 'ready')
       unit:_start_thinking(self._args, entity_state)
 
       -- if units bail or abort, the current pcall should have been interrupted.
@@ -1312,7 +1312,7 @@ function ExecutionFrame:_get_best_execution_unit()
       local is_runnable = unit:is_runnable()
 
       self._log:spam('  unit %s -> (priority:%d cost:%.3f weight:%d runnable:%s state:%s)',
-                     name, priority, cost, unit:get_weight(), tostring(is_runnable), unit:get_state())
+                     name, priority, cost, unit:get_weight(), is_runnable, unit:get_state())
 
       if is_runnable then
          local replace_existing = priority > best_priority or (priority == best_priority and cost < best_cost)
