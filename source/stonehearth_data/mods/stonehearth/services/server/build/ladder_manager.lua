@@ -21,7 +21,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
       -- height ladder!  we should probably make a ladder builder anyway and just
       -- not create it until the destination becomes reachable, but that's a project
       -- for another day (probably must be done before mining can be called "finished")
-      return radiant.lib.Destructor.new(function() end)
+      return radiant.lib.Destructor(function() end)
    end
    
    local base = self:get_base_of_ladder_to(to)
@@ -34,7 +34,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
    end
    ladder_builder:add_point(to)
 
-   return radiant.lib.Destructor.new(function()
+   return radiant.lib.Destructor(function()
          ladder_builder:remove_point(to)
       end)
 end
