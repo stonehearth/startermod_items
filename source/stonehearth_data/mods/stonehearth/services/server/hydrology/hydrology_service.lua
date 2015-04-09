@@ -89,6 +89,8 @@ function HydrologyService:_on_terrain_changed(delta_region)
          local modified_water_region = self:_get_affected_water_region(delta_region, entity)
          for point in modified_water_region:each_point() do
             if self._water_tight_region:contains_point(point) then
+               -- Someone placed a watertight block in the water. Just mimic the displacement for now.
+               -- TODO: update current layer
                -- TODO: merge may have occured
                -- TODO: check for unused volume
                -- TODO: check for bisection at end
@@ -246,7 +248,16 @@ function HydrologyService:_get_container_region(entity)
 end
 
 function HydrologyService:create_water_body(location)
-   return self:_create_water_body_impl(location)
+   -- Create the water body with the origin as part of the region.
+   -- We need to do this because some merges occur before there's a chance
+   -- to add water to the region. The downside is that this magically creates
+   -- a wetted block that doesn't consume water from anywhere.
+   -- TODO: fix conservation of water principle, but not a biggie if we don't
+   local boxed_region = _radiant.sim.alloc_region3()
+   boxed_region:modify(function(cursor)
+         cursor:add_point(Point3.zero)
+      end)
+   return self:_create_water_body_impl(location, boxed_region, 0)
 end
 
 -- Optimzied path to create a water body that is already filled.
@@ -300,7 +311,7 @@ function HydrologyService:get_water_body(location)
    for id, entity in pairs(self._sv._water_bodies) do
       local entity_location = radiant.entities.get_world_grid_location(entity)
 
-      -- we need this test in case the water body doesn't have any water yet
+      -- perform this test in case the water body doesn't have any water yet
       if entity_location == location then
          return entity
       end
