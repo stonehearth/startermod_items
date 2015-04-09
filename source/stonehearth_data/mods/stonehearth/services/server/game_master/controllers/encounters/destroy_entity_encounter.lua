@@ -9,7 +9,7 @@ function DestroyEntityEncounter:start(ctx, info)
    local num_destroyed = 0
 
    for i, entity_name in ipairs(info.target_entities) do 
-      local entity_object = ctx[entity_name]
+      local entity_object = ctx:get(entity_name)
       if entity_object and entity_object:is_valid() then
          if info.effect then
             radiant.effects.run_effect(entity_object, info.effect)

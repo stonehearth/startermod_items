@@ -2,6 +2,7 @@
 #include "open.h"
 #include "csg/util.h"
 #include "resources/res_manager.h"
+#include "lib/voxel/color_brush.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/voxel/nine_grid_brush.h"
 #include "lib/json/core_json.h"
@@ -13,11 +14,16 @@ using namespace luabind;
 IMPLEMENT_TRIVIAL_TOSTRING(QubicleBrush)
 IMPLEMENT_TRIVIAL_TOSTRING(NineGridBrush)
 
-QubicleBrushPtr Voxel_CreateBrush(std::string const& filename)
+ColorBrushPtr Voxel_CreateColorBrush(std::string const& brush)
 {
-   voxel::QubicleFile const* q = res::ResourceManager2::GetInstance().LookupQubicleFile(filename);
+   return std::make_shared<ColorBrush>(csg::Color3(brush.c_str()));
+}
+
+QubicleBrushPtr Voxel_CreateQubicleBrush(std::string const& brush)
+{
+   voxel::QubicleFile const* q = res::ResourceManager2::GetInstance().LookupQubicleFile(brush);
    if (!q) {
-      throw std::logic_error(BUILD_STRING("could not find qubicle file "  << filename));
+      throw std::logic_error(BUILD_STRING("could not find qubicle file "  << brush));
    }
    return std::make_shared<QubicleBrush>(q);
 }
@@ -41,6 +47,16 @@ QubicleBrush& QubicleBrush_SetNormal(QubicleBrush &brush, csg::Point3f const& no
 {
    brush.SetNormal(csg::ToClosestInt(normal));
    return brush;
+}
+
+csg::Region3f ColorBrush_PaintOnce(ColorBrush &brush)
+{
+   return csg::ToFloat(brush.PaintOnce());
+}
+
+csg::Region3f ColorBrush_PaintThroughStencil(ColorBrush &brush, csg::Region3f const& stencil)
+{
+   return csg::ToFloat(brush.PaintThroughStencil(csg::ToInt(stencil)));
 }
 
 csg::Region3f QubicleBrush_PaintOnce(QubicleBrush &brush)
@@ -81,8 +97,13 @@ void lua::voxel::open(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("voxel") [
-            def("create_brush",    &Voxel_CreateBrush),
+            def("create_color_brush",        &Voxel_CreateColorBrush),
+            def("create_qubicle_brush",      &Voxel_CreateQubicleBrush),
             def("create_nine_grid_brush",    &Voxel_CreateNineGridBrush),
+            lua::RegisterTypePtr_NoTypeInfo<ColorBrush>("ColorBrush")
+               .def("paint_once",             &ColorBrush_PaintOnce)
+               .def("paint_through_stencil",  &ColorBrush_PaintThroughStencil)
+            ,
             lua::RegisterTypePtr_NoTypeInfo<QubicleBrush>("QubicleBrush")
                .enum_("constants") [
                   value("Color",    QubicleBrush::Color),

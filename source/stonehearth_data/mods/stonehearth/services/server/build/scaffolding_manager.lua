@@ -59,8 +59,8 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    return builder
 end
 
-function ScaffoldingManager:_add_region(rid, entity, origin, blueprint_region, region, normal)
-   checks('self', 'number', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
+function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, blueprint_region, region, normal)
+   checks('self', 'number', 'string', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
 
    assert(not self._sv.regions[rid])
 
@@ -70,9 +70,11 @@ function ScaffoldingManager:_add_region(rid, entity, origin, blueprint_region, r
       origin = origin,
       region = region,
       normal = normal,
+      debug_text = debug_text,
       blueprint_region = blueprint_region,
    }
    self._sv.regions[rid] = rblock
+   log:detail('adding region rid:%4d origin:%s dbg:%s blueprint_region:%s', rid, origin, debug_text, blueprint_region:get():get_bounds())
    self:_trace_region(rblock)
 end
 
@@ -181,7 +183,8 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local normal = rblock.normal
 
    local region = radiant.alloc_region3()
-   local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding', { owner = owner })
+   local scaffolding = radiant.entities.create_entity('stonehearth:build:prototypes:scaffolding', { owner = owner })
+   scaffolding:set_debug_text(string.format('rid:%d', rblock.rid))
 
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
@@ -192,7 +195,7 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local fabricator = radiant.entities.create_entity('', { owner = owner })
    radiant.terrain.place_entity_at_exact_location(fabricator, origin)
 
-   fabricator:set_debug_text('(Fabricator for ' .. tostring(scaffolding) .. ')')   
+   fabricator:set_debug_text(rblock.debug_text .. ':scaffolding:fab')
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(scaffolding)
 
@@ -235,6 +238,7 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
    for rid, rblock in pairs(sblock.regions) do
       local climb_to = self:_compute_ladder_top(rblock)
       if climb_to then
+         log:detail('creating ladder to %s for rid:%d', climb_to, rid)
          local ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
                                                  climb_to,
                                                  rblock.normal)
@@ -264,8 +268,21 @@ function ScaffoldingManager:_compute_ladder_top(rblock)
       end
    end
 
+   -- start at the origin of the entity
+   local climb_to = rblock.origin
+
+   -- move over to the edge of the region we need to support
+   local region_min = rblock.blueprint_region
+                                 :get()
+                                    :get_bounds().min
+   climb_to = climb_to + region_min
+
+   -- mover over again by twice the normal.  once is where the scaffolding
+   -- will be and again so that we're oustide of it
    local normal = rblock.normal
-   local climb_to = rblock.origin + normal + normal
+   climb_to = climb_to + normal + normal
+
+   -- adjust y by the height
    climb_to.y = climb_to.y + height
 
    return climb_to

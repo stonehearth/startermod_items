@@ -12,7 +12,7 @@ FabricateStructureAdjacent.version = 2
 FabricateStructureAdjacent.priority = 1
 
 function FabricateStructureAdjacent:start_thinking(ai, entity, args)
-   local material = args.fabricator:get_material()
+   local material = args.fabricator:get_material(args.block)
    if not radiant.entities.is_material(ai.CURRENT.carrying, material) then
       return
    end

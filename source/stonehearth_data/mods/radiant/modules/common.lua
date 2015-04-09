@@ -82,6 +82,10 @@ function radiant.fire_callback(bound_callback, ...)
    return controller[fn_name](controller, ...)
 end
 
+function radiant.error(...)
+   error(string.format(...), 2)
+end
+
 function radiant.create_controller(...)
    local args = { ... }
    local name = args[1]
@@ -113,9 +117,12 @@ end
 local NATIVE_CHECKS = {
    Entity         = _radiant.om.Entity,
    Region3Boxed   = _radiant.om.Region3Boxed,
+   Point2         = _radiant.csg.Point2,
    Point3         = _radiant.csg.Point3,
    Region3        = _radiant.csg.Region3,
+   Region2        = _radiant.csg.Region2,
 }
+
 for name, expected_type in pairs(NATIVE_CHECKS) do
    assert(not checkers[name])
    checkers[name] = function(x)

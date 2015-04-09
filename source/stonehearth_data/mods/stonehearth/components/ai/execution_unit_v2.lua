@@ -19,12 +19,6 @@ local CALL_NOT_IMPLEMENTED = {}
 local placeholders = require 'services.server.ai.placeholders'
 local ObjectMonitor = require 'components.ai.object_monitor'
 
-local ENTITY_STATE_FIELDS = {
-   location = true,
-   carrying = true,
-   future = true,
-}
-
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
    assert(action.name)
    assert(action.does)
@@ -140,7 +134,7 @@ function ExecutionUnitV2:get_weight()
 end
 
 function ExecutionUnitV2:is_runnable()
-   return self._action.priority > 0 and self:in_state(READY, RUNNING)
+   return self._action.priority > 0 and self._state == READY or self._state == RUNNING
 end
 
 function ExecutionUnitV2:get_current_entity_state()
@@ -207,23 +201,23 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
    end
    self:_set_args(args)
 
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
       return
    end
 
-   if self:in_state(THINKING, READY) then
+   if self._state == THINKING or self._state == READY then
       return self:_start_thinking_from_thinking(entity_state)
    end
 
-   if self._state == 'stopped' then
+   if self._state == STOPPED then
       return self:_start_thinking_from_stopped(entity_state)
    end
    self:_unknown_transition('start_thinking')   
 end
 
 function ExecutionUnitV2:_set_think_output(think_output)
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "set_think_output" in state "%s"', self._state)
       return
    end
@@ -253,18 +247,18 @@ function ExecutionUnitV2:_clear_think_output()
 end
 
 function ExecutionUnitV2:_stop_thinking()
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "stop_thinking" in state "%s"', self._state)
       return
    end
 
-   if self:in_state('thinking', 'ready', 'halted') then
+   if self._state == 'thinking' or self._state == 'ready' or self._state == 'halted' then
       return self:_stop_thinking_from_thinking()
    end
-   if self:in_state('starting', 'started') then
+   if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started()
    end
-   if self:in_state('stopping', 'stopped', 'dead') then
+   if self._state == 'stopping' or self._state == 'stopped' or self._state == 'dead' then
       assert(not self._thinking)
       return -- nop
    end
@@ -272,7 +266,7 @@ function ExecutionUnitV2:_stop_thinking()
 end
 
 function ExecutionUnitV2:_start()
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "start" in state "%s"', self._state)
       return
    end
@@ -284,7 +278,7 @@ function ExecutionUnitV2:_start()
 end
 
 function ExecutionUnitV2:_run()
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "run" in state "%s"', self._state)
       return
    end
@@ -301,12 +295,12 @@ end
 function ExecutionUnitV2:_stop()
    self:_destroy_object_monitor()
    
-   if self:in_state(DEAD) then
+   if self._state == DEAD then
       self._log:detail('ignoring "stop" in state "%s"', self._state)
       return
    end
 
-   if self:in_state('thinking', 'ready', 'halted') then
+   if self._state == 'thinking' or self._state == 'ready' or self._state == 'halted' then
       return self:_stop_from_thinking()
    end
    if self._state == 'starting' then
@@ -321,7 +315,7 @@ function ExecutionUnitV2:_stop()
    if self._state == 'finished' then
       return self:_stop_from_finished()
    end
-   if self:in_state('stopped', 'stopping', 'stop_thinking') then
+   if self._state == 'stopped' or self._state == 'stopping' or self._state == 'stop_thinking' then
       return -- nop
    end
    self:_unknown_transition('stop')   
@@ -332,7 +326,7 @@ function ExecutionUnitV2:_destroy()
 
    self:_destroy_object_monitor()
    
-   if self:in_state('thinking', 'ready', 'halted') then
+   if self._state == 'thinking' or self._state == 'ready' or self._state == 'halted' then
       return self:_destroy_from_thinking()
    end
    if self._state == 'starting' then
@@ -612,21 +606,12 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
 
-   self:_verify_entity_state(entity_state)
-   
    self._cost = self._action.cost or 0
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
    if self:_call_start_thinking() == CALL_NOT_IMPLEMENTED then
       self:_set_think_output(nil)
-   end
-end
-
-function ExecutionUnitV2:_verify_entity_state(entity_state)
-   for name in pairs(entity_state) do
-      assert(ENTITY_STATE_FIELDS[name] == true,
-             string.format('invalid field "%s" in ai.CURRENT (entity_state) after calling start_thinking on "%s"', name, self._action.name))
    end
 end
 
@@ -870,11 +855,11 @@ function ExecutionUnitV2:get_state(state)
 end
 
 function ExecutionUnitV2:_set_state(state)
-   self._log:debug('state change %s -> %s', tostring(self._state), state)
+   self._log:debug('state change %s -> %s', self._state, state)
    assert(state and self._state ~= state)
 
    if self._state ~= STARTING and self._state ~= STARTED then
-      self._aitrace:spam('@sc@%s@%s', tostring(self._state), state)
+      self._aitrace:spam('@sc@%s@%s', self._state, state)
    end
 
    if self._state ~= DEAD then
@@ -896,7 +881,7 @@ function ExecutionUnitV2:_create_object_monitor()
 
    if self._action.unprotected_args then
       self._log:debug('not protecting entities on action\'s request')
-      return ObjectMonitor(self._log)
+      return ObjectMonitor.new(self._log)
    end
    
    -- run through the arguments once looking for bad ones.
@@ -906,9 +891,10 @@ function ExecutionUnitV2:_create_object_monitor()
       end
    end
 
+   local object_monitor = ObjectMonitor.new(self._log)
+
    -- all good!  create the object monitor
    self._log:detail('creating object monitor')
-   local object_monitor = ObjectMonitor(self._log)
    for _, obj in pairs(self._args) do
       self:_enable_argument_protection(object_monitor, obj, true)
    end

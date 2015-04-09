@@ -11,11 +11,12 @@ function BattleArenaTest:__init()
 
    self:place_item('stonehearth:large_oak_tree', -25, -25)
 
-   local battle_data = radiant.resources.load_json('/stonehearth_tests/data/battle_arena/workers_vs_goblins.json')
+   local battle_data = radiant.resources.load_json('/stonehearth_tests/data/battle_arena/workers_vs_undead.json')
    self:load_teams(battle_data)
 
+
    self:at(100, function()
-         --tree:get_component('stonehearth:commands'):do_command('chop', player_id)
+         stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 1, minute = 58 })
       end)
 end
 
@@ -25,22 +26,21 @@ function BattleArenaTest:load_teams(battle_data)
    end
 end
 
-function BattleArenaTest:load_team(team)
+function BattleArenaTest:load_team(info)
    local citizen_count = 0
-   local population = stonehearth.population:get_population(team.player_id)
-   
-   for key, citizen_spec in pairs(team.members) do
+   local population = stonehearth.population:get_population(info.player_id)
+   local offset = Point3(info.offset.x, info.offset.y, info.offset.z)
+
+   for key, citizen_spec in pairs(info.members) do
       if not key:starts_with('_')  then
-         local count = citizen_spec.count or 1
-         for i = 1,count do
-            local location = Point3(team.location.x + citizen_count * 4, team.location.y, team.location.z)
-            local citizen = game_master_lib.create_citizen(population, citizen_spec, location)
 
-            if team.player_id == 'player_1' then
-               radiant.entities.turn_to(citizen, 180)
+         for name, info in pairs(info.members) do
+            local citizens = game_master_lib.create_citizens(population, info, offset)
+            if info.player_id == 'player_1' then
+               for id, citizen in pairs(citizens) do
+                  radiant.entities.turn_to(citizen, 180)
+               end
             end
-
-            citizen_count = citizen_count + 1
          end
       end
    end

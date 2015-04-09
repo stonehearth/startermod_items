@@ -204,11 +204,12 @@ end
 -- to moving away from the point. At this time, we validate the next contiguous move.
 function FollowPath:_is_valid_move(from, to)
    local current_point = self._contiguous_points[self._contiguous_index]
+   local move_vector = to - from
 
    -- iterate until we're moving towards the next contiguous point
    -- this better handles cases where the entity's start location does not match the path start location
    -- or when the entity is bumped off the path
-   while self:_moving_away_from_point(from, to, current_point) do
+   while self:_moving_away_from_point(move_vector, from, current_point) do
       -- validate the move from the current point to the next point
       self._contiguous_index = self._contiguous_index + 1
       local next_point = self._contiguous_points[self._contiguous_index]
@@ -224,8 +225,7 @@ function FollowPath:_is_valid_move(from, to)
    return true
 end
 
-function FollowPath:_moving_away_from_point(from, to, point)
-   local move_vector = to - from
+function FollowPath:_moving_away_from_point(move_vector, from, point)
    local location_vector = point - from
 
    -- we're moving away from the point if the dot product is negative

@@ -373,6 +373,9 @@ end
 
 function MiningZoneComponent:_add_top_facing_blocks(working_region, working_bounds, add_block_fn)
    local up = Point3.unit_y
+   
+   local upper_bound_points = Region3()
+   local other_points = Region3()
 
    for cube in working_region:each_cube() do
       if cube.max.y >= working_bounds.max.y - MAX_DESTINATION_DELTA_Y then
@@ -380,17 +383,26 @@ function MiningZoneComponent:_add_top_facing_blocks(working_region, working_boun
 
          if top_face.max.y == working_bounds.max.y then
             for point in cube:each_point() do
-               if face_is_exposed(point, up) then
-                  add_block_fn(point)
-               end
+               upper_bound_points:add_point(point + up)
             end
          else
             for point in cube:each_point() do
-               if face_is_exposed(point, up) and not has_higher_neighbor(point, 1) then
-                  add_block_fn(point)
-               end
+               other_points:add_point(point + up)
             end
          end
+      end
+   end
+
+   local res = _physics:clip_region(upper_bound_points, _radiant.physics.Physics.CLIP_TERRAIN)
+   for point in res:each_point() do
+      add_block_fn(point - up)
+   end
+
+   res = _physics:clip_region(other_points, _radiant.physics.Physics.CLIP_TERRAIN)
+   for point in res:each_point() do
+      local p = point - up
+      if not has_higher_neighbor(p, 1) then
+         add_block_fn(p)
       end
    end
 end
@@ -399,11 +411,13 @@ function MiningZoneComponent:_add_side_and_bottom_blocks(working_region, working
    for _, normal in ipairs(NON_TOP_DIRECTIONS) do
       local face_region = Region3(csg_lib.get_face(working_bounds, normal))
       local face_blocks = face_region:intersect_region(working_region)
-      for point in face_blocks:each_point() do
-         if face_is_exposed(point, normal) then
-            add_block_fn(point)
-         end
+      face_blocks:translate(normal)
+      local res = _physics:clip_region(face_blocks, _radiant.physics.Physics.CLIP_TERRAIN)
+      res:translate(-normal)
+      for point in res:each_point() do
+         add_block_fn(point)
       end
+      face_blocks:empty()
    end
 end
 
@@ -562,6 +576,7 @@ function MiningZoneComponent:_create_mining_task()
       :notify_completed(function()
             self._mining_task = nil
          end)
+      :set_affinity_timeout(20)
       :start()
 end
 

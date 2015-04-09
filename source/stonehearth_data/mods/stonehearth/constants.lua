@@ -139,6 +139,8 @@ local constants = {
       compelled_behavior = {
          STRUGGLE = 4,
          HIT_STUN = 100,
+         IMPRISONED = 200, 
+         DEPART_WORLD = 1000
       }, 
 
       goblins = {
@@ -156,7 +158,8 @@ local constants = {
          ROAD = 'road',
          SLAB = 'slab',
          CURB = 'curb'
-      }
+      },
+      brushes = radiant.resources.load_json('stonehearth:build:brushes')      
    },
 
    input = {
@@ -269,6 +272,17 @@ local constants = {
       MERGE_VOLUME_THRESHOLD = 1,       -- how much water has to flow to equalize water levels for a merge
    },
 }
+
+constants.construction.DEAFULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
+constants.construction.DEAFULT_WOOD_WALL_BRUSH   = constants.construction.brushes.wall['wood resource'][1]
+constants.construction.DEAFULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
+constants.construction.DEAFULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
+constants.construction.DEAFULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
+constants.construction.DEAFULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
+constants.construction.DEAFULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
+constants.construction.DEAFULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
+constants.construction.DEAFULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]
+constants.construction.DEAFULT_STONE_PATTERN_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
 
 return constants
    

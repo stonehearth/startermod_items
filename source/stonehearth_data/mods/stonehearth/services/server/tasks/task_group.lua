@@ -362,7 +362,7 @@ function TaskGroup:_get_worker_score_for_task(worker_entry_id, worker_entry, tas
       self:remove_worker(worker_entry_id)
       return
    end
-
+ 
    -- obey task affinity
    if not task:check_worker_against_task_affinity(worker) then
       return

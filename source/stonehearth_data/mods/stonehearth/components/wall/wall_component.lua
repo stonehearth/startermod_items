@@ -54,6 +54,17 @@ function Wall:initialize(entity, json)
    end
 end
 
+function Wall:set_brush(brush)
+   self._sv.brush = brush
+   self.__saved_variables:mark_changed()
+   return self
+end
+
+function Wall:get_brush()
+   return self._sv.brush
+end
+
+
 -- returns whether or not this wall is a patch wall.  patch walls are inserted
 -- by the roofing process to plug holes near roof junctions.
 --
@@ -228,7 +239,7 @@ function Wall:layout()
    local function compute_collision_shape()
       local stencil = self:_compute_wall_shape()
       return self._entity:get_component('stonehearth:construction_data')
-                               :create_voxel_brush()
+                               :create_voxel_brush(self._sv.brush)
                                :paint_through_stencil(stencil)
    end
 

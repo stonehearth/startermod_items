@@ -1,0 +1,30 @@
+{
+   "mixins": "stonehearth:wolf",
+   "components": {
+      "unit_info": {
+         "name": "Goblin Raiding Wolf",
+         "description": "Bred to inspire terror"
+      },
+      "stonehearth:attributes": {
+         "menace": {
+            "type" : "basic", 
+            "value" :  20
+         },
+        "speed" : {
+            "type" : "basic", 
+            "value": 120
+         }
+      },
+      "stonehearth:ai": {
+         "actions": [
+         ]
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(goblin_wolf.qb)"
+            ]
+         }
+      }
+   }
+}

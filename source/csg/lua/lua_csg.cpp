@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "lib/lua/lua.h"
+#include "lib/lua/register.h"
 #include "lua_cube.h"
 #include "lua_point.h"
 #include "lua_region.h"
@@ -10,12 +11,19 @@
 #include "lua_mesh.h"
 #include "lua_iterator.h"
 #include "lua_random_number_generator.h"
+#include "csg/color.h"
 #include "csg/region.h"
 #include "csg/random_number_generator.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
+
+int Color3_IsColor(lua_State* L)
+{
+   lua_pushboolean(L, csg::Color3::IsColor(luaL_checkstring(L, 1)));
+   return 1;
+}
 
 void csg::RegisterLuaTypes(lua_State* L)
 {
@@ -41,6 +49,7 @@ void csg::RegisterLuaTypes(lua_State* L)
    ];
    object Point3f = globals(L)["_radiant"]["csg"]["Point3"];
    object Point2f = globals(L)["_radiant"]["csg"]["Point2"];
+   object Color3 = globals(L)["_radiant"]["csg"]["Color3"];
    Point3f["zero"] = csg::Point3f::zero;
    Point3f["one"] = csg::Point3f::one;
    Point3f["unit_x"] = csg::Point3f::unitX;
@@ -48,4 +57,5 @@ void csg::RegisterLuaTypes(lua_State* L)
    Point3f["unit_z"] = csg::Point3f::unitZ;
    Point2f["zero"] = csg::Point2f::zero;
    Point2f["one"] = csg::Point2f::one;
+   Color3["is_color"] = lua::GetPointerToCFunction(L, &Color3_IsColor);
 }

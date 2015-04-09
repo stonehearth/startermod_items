@@ -17,7 +17,7 @@ function ThoughtBubbleComponent:add_thought(uri, priority)
    local id = self:_add_thought(uri, priority)
    self:_update_thoughts()
 
-   return radiant.lib.Destructor(function()
+   return radiant.lib.Destructor.new(function()
          self._thoughts[id] = nil
          self:_update_thoughts()
       end)

@@ -21,7 +21,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
       -- height ladder!  we should probably make a ladder builder anyway and just
       -- not create it until the destination becomes reachable, but that's a project
       -- for another day (probably must be done before mining can be called "finished")
-      return radiant.lib.Destructor(function() end)
+      return radiant.lib.Destructor.new(function() end)
    end
    
    local base = self:get_base_of_ladder_to(to)
@@ -34,7 +34,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
    end
    ladder_builder:add_point(to)
 
-   return radiant.lib.Destructor(function()
+   return radiant.lib.Destructor.new(function()
          ladder_builder:remove_point(to)
       end)
 end
@@ -65,7 +65,7 @@ function LadderManager:_should_build_rung(pt)
          log:spam(' %s is terrain.  no.', entity)
          return false
       end
-      if entity:get_uri() == 'stonehearth:scaffolding' then
+      if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
          log:spam(' %s is scaffolding.  yes.', entity)
          return true
       end

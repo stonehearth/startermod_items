@@ -1,0 +1,22 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+
+   "components": {
+      "unit_info": {
+         "name": "Road", 
+         "description": "For speedier travel"
+      },
+
+      "stonehearth:floor" : {
+      },
+
+      "stonehearth:construction_data" : {
+         "type" : "floor",
+         "allow_crouching_construction" : true
+      },
+
+      "movement_modifier_shape" : {
+         "modifier" : 1.0
+      }
+   }
+}

@@ -6,34 +6,9 @@ local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+local Color3 = _radiant.csg.Color3
 
 local log = radiant.log.create_logger('build')
-
-local NINE_GRID_OPTION_TYPES = {
-   nine_grid_gradiant = 'table',
-   nine_grid_slope = 'number',
-   nine_grid_max_height = 'number',
-}
-
-local NG_STRING_TO_DEGREES = {
-   front  = 1,
-   left   = 2,
-   back   = 3,
-   right  = 4,
-}
-
-local NG_ROTATION_TABLE = { 
-   "front",    -- 0 degrees.
-   "left",     -- 90 degress.
-   "back",     -- 180 degress.
-   "right",    -- 270 degress.
-   "front",    -- 360 degress.
-   "left",     -- 450 degress.
-   "back",     -- 540 degress.
-   "right",    -- 630 degress.
-   "front",    -- 720 degrees (longer than it needs to be, frankly).
-}
-
 
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
@@ -44,9 +19,6 @@ function ConstructionDataComponent:initialize(entity, json)
       self._sv.initialized = true           
       self.__saved_variables:set_data(self._sv)
 
-      if not self._sv.material then
-         self._sv.material = 'wood resource'
-      end
       if self._sv.normal then
          self._sv.normal = Point3(self._sv.normal.x, self._sv.normal.y, self._sv.normal.z)
       end
@@ -65,35 +37,16 @@ end
 -- table copy, but such is life!
 --
 function ConstructionDataComponent:_clone_writeable_options(into, from)
-   into.normal = from.normal and Point3(from.normal) or nil
-   into.nine_grid_region = from.nine_grid_region and Region2(from.nine_grid_region) or nil
-   into.nine_grid_slope = from.nine_grid_slope
-   into.nine_grid_gradiant = from.nine_grid_gradiant
-   into.nine_grid_max_height = from.nine_grid_max_height
-   into.project_adjacent_to_base = from.project_adjacent_to_base
 end
 
 function ConstructionDataComponent:clone_from(entity)
    if entity then
-      local other_cd = entity:get_component('stonehearth:construction_data')
-      self:_clone_writeable_options(self._sv, other_cd._sv)
-      self.__saved_variables:mark_changed()
-   end
-end
+      local into = self._sv
+      local from = entity:get_component('stonehearth:construction_data')._sv
 
--- changes properties in the construction data component.
--- 
---    @param options - the options to change.  
---
-function ConstructionDataComponent:apply_nine_grid_options(options)
-   if options then
-      for name, val in pairs(options) do
-         if NINE_GRID_OPTION_TYPES[name] == 'number' then
-            self._sv[name] = tonumber(val)
-         elseif NINE_GRID_OPTION_TYPES[name] == 'table' then
-            self._sv[name] = val
-         end
-      end
+      into.normal = from.normal and Point3(from.normal) or nil
+      into.project_adjacent_to_base = from.project_adjacent_to_base
+
       self.__saved_variables:mark_changed()
    end
 end
@@ -106,10 +59,6 @@ end
 
 function ConstructionDataComponent:get_use_custom_renderer()
    return self._sv.use_custom_renderer
-end
-
-function ConstructionDataComponent:get_paint_through_blueprint()
-   return self._sv.paint_through_blueprint
 end
 
 function ConstructionDataComponent:get_connected_to()
@@ -136,12 +85,6 @@ end
 function ConstructionDataComponent:set_normal(normal)
    assert(radiant.util.is_a(normal, Point3))
    self._sv.normal = normal
-   self.__saved_variables:mark_changed()
-   return self
-end
-
-function ConstructionDataComponent:set_nine_grid_region2(region2)
-   self._sv.nine_grid_region = region2
    self.__saved_variables:mark_changed()
    return self
 end
@@ -205,21 +148,16 @@ function ConstructionDataComponent:get_allow_crouching_construction()
    return self._sv.allow_crouching_construction and true or false
 end
 
-function ConstructionDataComponent:create_voxel_brush()
-   if self._sv.brush then
-      return voxel_brush_util.create_brush(self._sv)
-   end
+function ConstructionDataComponent:create_voxel_brush(brush, origin)
+   checks('self', 'string', '?Point3')
+
+   return voxel_brush_util.create_brush(brush, origin, self._sv.normal)
 end
 
 function ConstructionDataComponent:save_to_template()
    local result = {
       normal = self._sv.normal,
-      nine_grid_region = self._sv.nine_grid_region2,
       project_adjacent_to_base = self._sv.project_adjacent_to_base,
-      nine_grid_region = self._sv.nine_grid_region,
-      nine_grid_slope = self._sv.nine_grid_slope,
-      nine_grid_gradiant = self._sv.nine_grid_gradiant,
-      nine_grid_max_height = self._sv.nine_grid_max_height,      
    }
    return result
 end
@@ -228,15 +166,7 @@ function ConstructionDataComponent:load_from_template(data, options, entity_map)
    if data.normal then
       self._sv.normal = Point3(data.normal.x, data.normal.y, data.normal.z)
    end
-   if data.nine_grid_region then
-      self._sv.nine_grid_region = Region2()
-      self._sv.nine_grid_region:load(data.nine_grid_region)
-   end
    self._sv.project_adjacent_to_base = data.project_adjacent_to_base
-   if options.mode == 'preview' then
-      self._sv.paint_through_blueprint = false
-   end
-   self:apply_nine_grid_options(data)
 
    self.__saved_variables:mark_changed()
 end
@@ -245,24 +175,47 @@ function ConstructionDataComponent:rotate_structure(degrees)
    if self._sv.normal then
       self._sv.normal = self._sv.normal:rotated(degrees)
    end
-   if self._sv.nine_grid_region then
-      local cursor = self._sv.nine_grid_region
-      local origin = Point2(0.5, 0.5)
-      cursor:translate(-origin)
-      cursor:rotate(degrees)
-      cursor:translate(origin)      
-   end
-   if self._sv.nine_grid_gradiant then
-      local new_gradiant = {}
-      local rotation_offset = degrees / 90
-      for _, value in pairs(self._sv.nine_grid_gradiant) do
-         local rotation = NG_STRING_TO_DEGREES[value]
-         local next_value = NG_ROTATION_TABLE[rotation + rotation_offset]
-         table.insert(new_gradiant, next_value)
-      end
-      self._sv.nine_grid_gradiant = new_gradiant
-   end  
    self.__saved_variables:mark_changed()
+end
+
+
+-- adds the `region` in world coordinates to the floor
+--    @param brush_uri - the uri of the brush used to paint the floor
+--    @param region - the region to add to the floor, in world coordinates
+--
+function ConstructionDataComponent:paint_world_region(brush_uri, world_region)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local brush = self:create_voxel_brush(brush_uri, origin)
+
+   local shape = world_region:translated(-origin)
+   local rgn = brush:paint_through_stencil(shape)
+
+   return self:add_world_region(rgn)
+end
+
+function ConstructionDataComponent:add_world_region(rgn)
+   self._entity:get_component('destination')
+                  :get_region()
+                     :modify(function(c)                           
+                           c:add_region(rgn)
+                           c:optimize_by_merge('growing building structure')
+                        end)         
+
+   return self
+end
+
+function ConstructionDataComponent:remove_world_region(world_region)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local shape = world_region:translated(-origin)
+
+   self._entity:get_component('destination')
+                  :get_region()
+                     :modify(function(c)                           
+                           c:subtract_region(shape)
+                           c:optimize_by_merge('shrinking building structure')
+                        end)         
+
+   return self
 end
 
 return ConstructionDataComponent

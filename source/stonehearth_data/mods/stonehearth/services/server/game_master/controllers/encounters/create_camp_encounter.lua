@@ -24,7 +24,10 @@ function CreateCamp:start(ctx, info)
    local min = info.spawn_range.min
    local max = info.spawn_range.max
 
+   ctx.npc_player_id = info.npc_player_id
    self._sv.ctx = ctx
+   self._sv.encounter_name = info.encounter_name
+   self._sv.ctx[self._sv.encounter_name] = {}
    self._sv._info = info
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
@@ -66,7 +69,13 @@ function CreateCamp:_create_camp(location)
 
    -- create the boss entity
    if info.boss then
-      ctx.npc_boss_entity = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
+      local members = game_master_lib.create_citizens(
+         self._population, info.boss, ctx.enemy_location, ctx)
+      --This is a bit weird. There's just one boss, really. Last boss gets it
+      --TODO: if this becomes a problem later, we can fix it them
+      for k, boss in pairs(members) do
+         ctx[self._sv.encounter_name].npc_boss_entity = boss
+      end
    end
 
    local visible_rgn = Region2()
@@ -102,15 +111,16 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    local rot = piece.rotation
 
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    local player_id = info.npc_player_id
    local origin = ctx.enemy_location + Point3(x, 0, z)
    
    -- add all the entities.
+   ctx[self._sv.encounter_name].entities = {}
    if piece.info.entities then
       for name, info in pairs(piece.info.entities) do
-         local entity = radiant.entities.create_entity(info.uri, { owner = player_id })
+         local entity = game_master_lib.create_entity(info, player_id)
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
          if rot then
@@ -118,26 +128,44 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          end
          self:_add_entity_to_visible_rgn(entity, visible_rgn)
 
-         --TODO: add this entity to the ctx
-         ctx[name] = entity
+         --Add this entity to the ctx
+         ctx[self._sv.encounter_name].entities[name] = entity
       end
    end
 
    -- add all the people.
-   if piece.info.citizens then
+   local ctx_citizens = {}
+   ctx[self._sv.encounter_name].citizens = ctx_citizens
+   
+   if piece.info.citizens then      
       for name, info in pairs(piece.info.citizens) do
-         local citizen = game_master_lib.create_citizen(self._population, info, origin)
-         self:_add_entity_to_visible_rgn(citizen, visible_rgn)
-
-         --TODO: add this entity to the ctx
-         ctx[name] = citizen
+         local citizens = game_master_lib.create_citizens(self._population, info, origin, ctx)
+         local citizen_count = 0
+         for id, citizen in pairs(citizens) do
+            citizen_count = citizen_count + 1
+         end 
+         for id, citizen in pairs(citizens) do
+            self:_add_entity_to_visible_rgn(citizen, visible_rgn)
+            
+            if citizen_count > 1 then
+               local arr = ctx_citizens[name]
+               if not arr then
+                  arr = {}
+                  ctx_citizens[name] = arr
+               end
+               table.insert(arr, citizen)
+            else
+               -- just use the name
+               ctx_citizens[name] = citizen
+            end
+         end        
       end
    end
 
    -- if there's a script associated with the mod, give it a chance to customize the camp
    if piece.info.script then
       local script = radiant.create_controller(piece.info.script, piece)
-      script:start(self._sv.ctx)
+      script:start(self._sv.ctx, piece.info.script_info)
    end
 
 end

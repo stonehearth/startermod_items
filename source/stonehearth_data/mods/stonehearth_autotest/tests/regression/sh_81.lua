@@ -23,7 +23,7 @@ function sh_81.verify_no_ladder_inside_door(autotest)
       end)
 
    -- if we create a ladder while making this building, we have failed.
-   autotest.util:fail_if_created('stonehearth:wooden_ladder')
+   autotest.util:fail_if_created('stonehearth:build:prototypes:ladder')
 
    -- fire it up!
    lrbt_util.fund_construction(autotest, buildings)

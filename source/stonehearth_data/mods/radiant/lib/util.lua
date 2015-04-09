@@ -102,11 +102,20 @@ end
 
 --- Split a string into a table (e.g. "foo bar baz" -> { "foo", "bar", "baz" }
 -- Borrowed from http://lua-users.org/wiki/SplitJoin
-function util.split_string(str)
-   local fields = {}
-   local pattern = string.format("([^%s]+)", ' ')
-   str:gsub(pattern, function(c) fields[#fields+1] = c end)
-   return fields
+function util.split_string(str, sep)
+   -- esacpe all special chars (for now, just .  someone find the rest!)
+   if sep == nil then
+      sep = ' '
+   elseif sep == '.' then
+      sep = '%' .. sep
+   end
+   local ret={}
+   local n=1
+   for w in str:gmatch("([^"..sep.."]*)") do
+      ret[n]=ret[n] or w -- only set once (so the blank after a string is ignored)
+      if w=="" then n=n+1 end -- step forwards on a blank but not a string
+    end
+   return ret
 end
 
 -- when a check fails, use util.typename to get the type of the

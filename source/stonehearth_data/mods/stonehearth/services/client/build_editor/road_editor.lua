@@ -66,15 +66,11 @@ function RoadEditor:__init(build_service)
 end
 
 function RoadEditor:go(response, road_uri, curb_uri)
-   local road_brush_shape = voxel_brush_util.brush_from_uri(road_uri)
-   local road_brush = _radiant.voxel.create_brush(road_brush_shape)
-
-   local curb_brush_shape = nil
+   local road_brush = voxel_brush_util.create_brush(road_uri)
    local curb_brush = nil
 
    if curb_uri then
-      curb_brush_shape = voxel_brush_util.brush_from_uri(curb_uri)
-      curb_brush = _radiant.voxel.create_brush(curb_brush_shape)
+      curb_brush = voxel_brush_util.create_brush(curb_uri)
    end
    stonehearth.selection:select_xz_region()
       :require_unblocked(false)
