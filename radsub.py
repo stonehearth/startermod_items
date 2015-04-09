@@ -170,7 +170,7 @@ if args.official:
    sh_build_root = './'
    sh_exe_path = './Stonehearth.exe'
 
-sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=0'
+sh_args = '--game.main_mod=stonehearth_autotest --simulation.game_speed=4 --logging.log_level=0 --lua.throw_on_lua_exceptions=true'
 
 if args.function and args.script:
    sh_args += ' --mods.stonehearth_autotest.options.script=' + args.script
