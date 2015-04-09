@@ -1,30 +1,28 @@
-
 -- class Destructor
 --
 -- A utility class which makes it really easy to implement objects which implement
 -- only a single "destroy" method.
---
-local Destructor = class()
-Destructor.__classname = 'radiant.Destructor'
 
--- create a new destructor. `destroy_cb` will be called the first time the user
--- calls :destroy() on this object
---
---    @param destroy_cb - the function to call on :destroy()
-function Destructor:__init(destroy_cb)
-   assert(destroy_cb)
-   self._destroy_cb = destroy_cb
+local function _destroy(self)
+	local result
+	if self._destroy_cb then
+		result = self._destroy_cb()
+		self._destroy_cb = nil
+	end
+	return result
 end
 
--- Calls the registered `destroy_cb`
---
-function Destructor:destroy()
-   local result
-   if self._destroy_cb then
-      result = self._destroy_cb()
-      self._destroy_cb = nil
-   end
-   return result
+local function _new(destroy_cb)
+	assert(destroy_cb)
+	local dtor = {
+		_destroy_cb = destroy_cb,
+		destroy = _destroy,
+	}
+	return dtor
 end
+
+local Destructor = {
+	new = _new,
+}
 
 return Destructor
