@@ -82,11 +82,6 @@ local ENTITY_STATE_META_TABLE = {
       state.__values[k] = v
    end,
 
-   __next = function(state, k)
-      radiant.log.write('', 0, 'omg next! %s', debug.traceback())
-      return next(state.__values, k)
-   end,
-
    __index = function(state, k)
       return state.__values[k]
    end
@@ -102,7 +97,6 @@ local function create_entity_state(copy_from)
    }
    if copy_from then
       for k, v in pairs(copy_from.__values) do
-         radiant.log.write('', 0, ' copying %s (%s)', k, v)
          state.__values[k] = v
       end
    end
