@@ -808,6 +808,9 @@ end
 function ExecutionFrame:_start_from_ready()
    assert(self._active_unit)
 
+   -- Ensure all lower priority units are stopped, so they don't waste our time.
+   self:_stop_thinking_from_started()
+
    self._current_entity_state = nil
    self:_set_state(STARTING)
    self._active_unit:_start()
