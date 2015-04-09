@@ -192,10 +192,10 @@ function lrbt_cases.patch_walls(autotest, session)
    local floor
    return {
       function()
-         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(8, 11, 4)))
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(8, 10, 0), Point3(16, 11, 4)))
       end,
       function()
-         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 6)))
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(8, 10, 0), Point3(12, 11, 6)))
       end,
       function()
          lrbt_util.grow_wooden_walls(session, floor)
