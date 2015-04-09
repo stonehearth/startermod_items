@@ -113,7 +113,7 @@ function events.listen(object, event, self, fn)
       log:spam('resurrecting listener for ' .. event)
    end
 
-   return radiant.lib.Destructor.new(function()
+   return radiant.lib.Destructor(function()
          events._unlisten(object, key, event, self, fn)
       end)
 end

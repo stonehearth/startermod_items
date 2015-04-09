@@ -431,3 +431,45 @@ function mixin_class(cls, mixin)
       end
    end
 end
+
+--
+-- These methods and tables define a 'radiant_class', which looks functions similarly in an object-oriented fashion
+-- to the above, but has far less overhead (and far fewer features--no inheritence, for example).  These can also be
+-- used in a pooled fashion by calling 'radiant_release' on an allocated object, which will allow it to be re-used
+-- in future allocations.
+
+local RADIANT_CLASS_MT = {}
+
+RADIANT_CLASS_MT.__init = function(cls)
+   local obj = {}
+   setmetatable(obj, cls)
+   return obj
+end
+
+function RADIANT_CLASS_MT:__call(...)
+   local obj
+   if #self.__free_list > 0 then
+      obj = table.remove(self.__free_list)
+   else 
+      obj = {}
+      setmetatable(obj, self)
+   end
+   obj:__init(...)
+   return obj
+end
+
+function radiant_class()
+   local c = {
+   }
+   c.__index = c
+   c.__class = c
+   c.__free_list = {}
+   setmetatable(c, RADIANT_CLASS_MT)
+   return c
+end
+
+function radiant_release(obj)
+   local class_mt = getmetatable(obj)
+
+   table.insert(class_mt.__free_list, obj)
+end

@@ -137,13 +137,6 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
                           :set_entity(self._entity)
 
    self._log:debug('creating execution frame')
-   self._aitrace = radiant.log.create_logger('ai_trace')
-
-   -- Set the trace-route initially to the old route, so that in logging it is clear that the
-   -- unit is creating this frame.
-   self._aitrace:set_prefix(trace_route)
-   self._aitrace:spam('@cef@%d@%s', self._id, self._activity_name)
-   self._aitrace:set_prefix(self._trace_route)
 
    self:_set_state(STOPPED)
 
@@ -371,7 +364,6 @@ end
 -- Returns true iff a child unit is active (and is different from the previously active unit)
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
-   self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
 
    if self._state == 'running' then
       -- if we're running, we need to thunk over to the ai thread in order to restart thinking
@@ -996,7 +988,6 @@ end
 
 function ExecutionFrame:abort()
    self._log:info('abort')
-   self:_trace_state_change(tostring(self._state), 'abort')
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
@@ -1154,7 +1145,6 @@ function ExecutionFrame:_remove_execution_unit(unit)
    assert(unit ~= self._active_unit)
    for key, u in pairs(self._execution_units) do
       if unit == u then
-         --self._aitrace:spam('execution_frame:remove_exec_unit:%s,%s', tostring(self._entity), unit:get_name())
          self._log:debug('removing execution unit "%s"', unit:get_name())
          unit:_destroy()
          self._execution_units[key] = nil
@@ -1279,7 +1269,7 @@ function ExecutionFrame:_clone_entity_state(name)
    cloned.carrying = s.carrying
    cloned.future = s.future
 
-   self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned))
+   self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', self._current_entity_state, name, cloned)
 
    return cloned
 end
@@ -1362,8 +1352,6 @@ function ExecutionFrame:_get_best_execution_unit()
    self._log:spam('%s  best unit for "%s" is "%s" (priority:%d  cost:%.3f  total_candidates:%d)',
                    self._entity, self._activity_name, active_unit:get_name(), best_priority, best_cost, total_candidates)
 
-   self._aitrace:spam('@beu@%d', active_unit._id)
-
    return active_unit
 end
 
@@ -1421,7 +1409,6 @@ end
 
 function ExecutionFrame:_set_state(state)
    self._log:debug('state change %s -> %s', self._state, state)
-   self:_trace_state_change(self._state, state)
    self._state = state
    
    if self._debug_info then
@@ -1448,7 +1435,6 @@ function ExecutionFrame:wait_until(state)
       self._waiting_until = state
       while self._state ~= state do
          self._calling_thread:suspend('waiting for ' .. state)
-         self._aitrace:spam('@w@%s', state)
       end
       self._waiting_until = nil
       self._calling_thread = nil
@@ -1545,12 +1531,6 @@ function ExecutionFrame:_no_other_thread_is_running()
       return true
    end
    return false
-end
-
-function ExecutionFrame:_trace_state_change(old_state, new_state)
-   if new_state ~= STARTED and new_state ~= STARTING then
-      self._aitrace:spam('@sc@%s@%s', old_state, new_state)
-   end
 end
 
 function ExecutionFrame:_spam_entity_state(state, format, ...)
