@@ -56,10 +56,22 @@ function game_master_lib.create_context(node_name, node, parent_node)
    return ctx
 end
 
+--Creates an entity and adds optional info from the json file
+--Currently supports unit_info (name/description)
+function game_master_lib.create_entity(info, player_id)
+   local entity = radiant.entities.create_entity(info.uri, {owner = player_id })
+   if info.unit_info and info.unit_info.name then
+      radiant.entities.set_name(entity, info.unit_info.name)
+   end
+   if info.unit_info and info.unit_info.description then
+      radiant.entities.set_description(entity, info.unit_info.description)
+   end
+   return entity
+end
+
 --If the citizen should be created from scratch, from the population, do that
---Otherwise, the citizen should exist already in the ctx, and should be 
---info.from_ctx
-local function _create_or_load_citizens(population, info, origin)
+--Otherwise, the citizen should exist already in the ctx, and should be reused from there
+local function _create_or_load_citizens(population, info, origin, ctx)
    local citizens = {}
 
    if info.from_population then
@@ -71,16 +83,29 @@ local function _create_or_load_citizens(population, info, origin)
          local citizen = population:create_new_citizen(info.from_population.role)
          citizens[citizen:get_id()] = citizen
       end
-   elseif info.from_ctx then
-      --TODO: if from ctx, and has history, then get that node from ctx
-      radiant.not_yet_implemented()
+   elseif info.from_ctx and ctx then
+      --Retrieve the citizen from the context. Can only create 1 citizen from context per block
+      local entity = ctx:get(info.from_ctx)
+      if entity and entity:is_valid() then
+         citizens[entity:get_id()] = entity
+      end
    end
-
    return citizens
 end
 
-function game_master_lib.create_citizens(population, info, origin)
-   local citizens = _create_or_load_citizens(population, info, origin)
+-- Given data about citzens, spit out a citizen
+-- In info: 
+--    from_population means that we create via the population service.
+--       Can also pass in role, location, and min/max if we want to create more than one entity
+--    from_ctx means that we re-use something in the ctx. Pass a string path from ctx to the entity
+--    equipment: allows you to add equipment to the entity
+--    attributes: allows you to reset specific attributes for this entity
+-- @param population: the population that these citizens should belong to
+-- @param info: details about the people we're going to create
+-- @param ctx : optional, the ctx if we have it
+-- @returns the array of citizens it managed to create
+function game_master_lib.create_citizens(population, info, origin, ctx)
+   local citizens = _create_or_load_citizens(population, info, origin, ctx)
   
    for id, citizen in pairs(citizens) do
       -- info.job: promote the citizen to the proper job
@@ -144,9 +169,10 @@ function game_master_lib.create_citizens(population, info, origin)
          -- put the new citizen in the world and return it
          radiant.terrain.place_entity(citizen, location)
 
-         -- trigger at the end when the citizen is fully initialized
-         radiant.events.trigger_async(citizen, 'stonehearth:game_master:citizen_added', {})
       end
+
+      -- trigger at the end when the citizen is fully initialized
+      radiant.events.trigger_async(citizen, 'stonehearth:game_master:citizen_config_complete', {})
    end
 
    return citizens

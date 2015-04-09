@@ -75,7 +75,7 @@
       }, 
       "wolf" : {
          "male" : {
-            "uri" : ["stonehearth:wolf"],
+            "uri" : ["stonehearth:monsters:goblins:wolf"],
             "given_names" : [
                "Upear",
                "Fastpaw",

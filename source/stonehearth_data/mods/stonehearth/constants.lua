@@ -139,6 +139,8 @@ local constants = {
       compelled_behavior = {
          STRUGGLE = 4,
          HIT_STUN = 100,
+         IMPRISONED = 200, 
+         DEPART_WORLD = 1000
       }, 
 
       goblins = {

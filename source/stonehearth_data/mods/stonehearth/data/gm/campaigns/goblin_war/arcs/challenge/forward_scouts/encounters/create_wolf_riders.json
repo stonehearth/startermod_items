@@ -1,69 +1,65 @@
 {
    "type" : "encounter",
-   "encounter_type" : "city_raid",
+   "encounter_type" : "create_mission",
    "rarity" : "common",
 
    "in_edge"  : "create_wolf_riders",
    "out_edge" : "unique_defeat_hint", 
 
-   "city_raid_info" : {
-      "missions" : {
-         "raid_stockpiles" : {
-            "require_free_stockpile_space" : false,
-            "role" : "raid_stockpiles",
-            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+   "create_mission_info" : {
+      "spawn_range" : {
+         "min" : 50,
+         "max" : 60
+      },
 
-            "sighted_bulletin" : {
-               "title" : "Mounted goblins approach!",
-               "message" : "Need your stuff!"
+      "mission" : {
+         "role" : "raid_stockpiles",
+         "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+         "sighted_bulletin" : {
+            "title" : "Snarling wolves approach!",
+            "message" : "Run! Mer told you to run!!!"
+         },
+
+         "members" : {
+            "ferocious_wolf_1" : {
+               "from_ctx" : "create_scout_camp.citizens.tame_wolf_1",
+               "equipment" : {
+                  "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+               },
+               "attributes" : {
+                  "raid_timeout_minutes" : 120,
+                  "raid_timeout_variance_minutes" : 30,
+                  "health" : 200, 
+                  "menace" : 150
+               }
             },
-
-            "members" : {
-               "maurauder_a" : {
-                  "location" : { "x": 1, "z": -1 },
-                  "job" : "stonehearth:jobs:footman",
-                  "equipment" : {
-                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
-                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
-                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
-                  },
-                  "attributes" : {
-                     "raid_timeout_minutes" : 120,
-                     "raid_timeout_variance_minutes" : 30,
-                     "health" : 1000
-                  }
+            "ferocious_wolf_2" : {
+               "from_ctx" : "create_scout_camp.citizens.tame_wolf_2",
+               "equipment" : {
+                  "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
-               "maurauder_b" : {
-                  "location" : { "x": -1, "z": -1 },
-                  "job" : "stonehearth:jobs:footman",
-                  "equipment" : {
-                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
-                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
-                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
-                  },
-                  "attributes" : {
-                     "raid_timeout_minutes" : 120,
-                     "raid_timeout_variance_minutes" : 30,
-                     "health" : 1000
-                  }
-               },
-               "maurauder_c" : {
-                  "location" : { "x": 0, "z": 1 },
-                  "job" : "stonehearth:jobs:footman",
-                  "equipment" : {
-                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
-                     "armor" : [ "stonehearth:monsters:goblins:outfits:maurauder" ],
-                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
-                  },
-                  "attributes" : {
-                     "raid_timeout_minutes" : 120,
-                     "raid_timeout_variance_minutes" : 30,
-                     "health" : 1000
+               "attributes" : {
+                  "raid_timeout_minutes" : 120,
+                  "raid_timeout_variance_minutes" : 30,
+                  "health" : 150, 
+                  "menace" : 120
 
-                  }
+               }
+            },
+            "ferocious_wolf_3" : {
+               "from_ctx" : "create_scout_camp.citizens.tame_wolf_3",
+               "equipment" : {
+                  "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+               },
+               "attributes" : {
+                  "raid_timeout_minutes" : 120,
+                  "raid_timeout_variance_minutes" : 30,
+                  "health" : 250,
+                  "menace" : 200
                }
             }
          }
-      }
+      } 
    }
 }

@@ -2,7 +2,7 @@
 local GoblinRaidingCampScript = class()
 
 function GoblinRaidingCampScript:start(ctx)
-   local boss = ctx.create_camp.npc_boss_entity
+   local boss = ctx.goblin_raiding_camp_1.npc_boss_entity
 
    assert(boss and boss:is_valid())
 

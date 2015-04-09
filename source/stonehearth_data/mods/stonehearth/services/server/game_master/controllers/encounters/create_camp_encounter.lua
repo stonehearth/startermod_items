@@ -26,7 +26,8 @@ function CreateCamp:start(ctx, info)
 
    ctx.npc_player_id = info.npc_player_id
    self._sv.ctx = ctx
-   self._sv.ctx.create_camp = {}
+   self._sv.encounter_name = info.encounter_name
+   self._sv.ctx[self._sv.encounter_name] = {}
    self._sv._info = info
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
@@ -68,11 +69,12 @@ function CreateCamp:_create_camp(location)
 
    -- create the boss entity
    if info.boss then
-      local members = game_master_lib.create_citizens(self._population, info.boss, ctx.enemy_location)
+      local members = game_master_lib.create_citizens(
+         self._population, info.boss, ctx.enemy_location, ctx)
       --This is a bit weird. There's just one boss, really. Last boss gets it
       --TODO: if this becomes a problem later, we can fix it them
       for k, boss in pairs(members) do
-         ctx.create_camp.npc_boss_entity = boss
+         ctx[self._sv.encounter_name].npc_boss_entity = boss
       end
    end
 
@@ -115,10 +117,10 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    local origin = ctx.enemy_location + Point3(x, 0, z)
    
    -- add all the entities.
-   ctx.create_camp.entities = {}
+   ctx[self._sv.encounter_name].entities = {}
    if piece.info.entities then
       for name, info in pairs(piece.info.entities) do
-         local entity = radiant.entities.create_entity(info.uri, { owner = player_id })
+         local entity = game_master_lib.create_entity(info, player_id)
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
          if rot then
@@ -127,25 +129,27 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          self:_add_entity_to_visible_rgn(entity, visible_rgn)
 
          --Add this entity to the ctx
-         ctx.create_camp.entities[name] = entity
+         ctx[self._sv.encounter_name].entities[name] = entity
       end
    end
 
    -- add all the people.
-   ctx.create_camp.citizens = {}
+   ctx[self._sv.encounter_name].citizens = {}
    if piece.info.citizens then
       
       for name, info in pairs(piece.info.citizens) do
-         local members = game_master_lib.create_citizens(self._population, info, origin)
+         local members = game_master_lib.create_citizens(self._population, info, origin, ctx)
          local member_count = 1
          for id, member in pairs(members) do
             self:_add_entity_to_visible_rgn(member, visible_rgn)
             
             --Add all these people to the context, under key name_1, name_2, etc
+            --TODO: uniquely identify the people by the instance of the encounter
+            --TODO: as interim step, make the interim name not the type of the encounter, but the name of the encounter (ctx.goblin_camp_1.wolf_1 etc)
             local name_augmented = name .. '_' .. member_count
-            assert(ctx.create_camp[name_augmented] == nil, 
+            assert(ctx[self._sv.encounter_name].citizens[name_augmented] == nil, 
                'There is a name collision, adding things to the context. Consider implementing a unique naming scheme. Refer to items from previous encounters with Back(2) like actions.')
-            ctx.create_camp.citizens[name_augmented] = citizen
+            ctx[self._sv.encounter_name].citizens[name_augmented] = member
             member_count = member_count + 1
          end        
       end

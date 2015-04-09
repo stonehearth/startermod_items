@@ -1,6 +1,6 @@
 {
    "type": "entity",
-   "mixins": "stonehearth:mixins:mob",
+   "mixins": "stonehearth:mixins:monster",
    "init_script" : "file(wolf_init_script.lua)",      
    "components": {
       "unit_info": {
@@ -10,11 +10,11 @@
       "stonehearth:attributes": {
          "menace": {
             "type" : "basic", 
-            "value" :  10
+            "value" :  150
         },
          "health": {
             "type" : "basic", 
-            "value" :  10
+            "value" :  100
         },
         "speed" : {
             "type" : "basic", 
@@ -23,9 +23,6 @@
       },
       "stonehearth:ai": {
          "actions": [
-            "stonehearth:actions:attack_closest_enemy",
-            "stonehearth:actions:follow_leash",
-            "stonehearth:actions:fear_fire"
          ]
       },
       "sensor_list": {
