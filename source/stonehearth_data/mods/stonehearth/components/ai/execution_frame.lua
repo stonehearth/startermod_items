@@ -57,6 +57,65 @@ local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
+
+-- only theee keys are allowed to be set.  all others are forbidden to 
+-- prevent actions from using ai.CURRENT as a private communication channel
+local ENTITY_STATE_FIELDS = {
+   location = true,
+   carrying = true,
+   future = true,
+}
+
+local ENTITY_STATE_META_TABLE = {
+   __newindex = function(state, k, v)
+      if not ENTITY_STATE_FIELDS[k] then
+         radiant.error('cannot write to invalid field "%s" in entity state', tostring(k))
+      end
+
+      if k == 'location' then
+         -- if this is not the first time we're writing a new value to location, we
+         -- must be in some future state.
+         if state.__values.location and state.__values.location ~= v then
+            state.__values.future = true
+         end
+      end
+      state.__values[k] = v
+   end,
+
+   __index = function(state, k)
+      return state.__values[k]
+   end
+}
+
+local function create_entity_state(copy_from)
+   -- we hide the actual values in __values so __new_index will catch every
+   -- write.
+   local state = {
+      __values = {
+         future = false
+      }
+   }
+   if copy_from then
+      for k, v in pairs(copy_from.__values) do
+         state.__values[k] = v
+      end
+   end
+   setmetatable(state, ENTITY_STATE_META_TABLE)
+
+   return state
+end
+
+local function copy_entity_state(state, copy_from)
+   -- we iterate through the keys rather than copying the whole table to make
+   -- sure shared references among units get the changes as well
+   for name in pairs(state.__values) do
+      state.__values[name] = nil
+   end
+   for name, value in pairs(copy_from.__values) do
+      state.__values[name] = value
+   end
+end
+
 function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route, trace_route)
    self._id = stonehearth.ai:get_next_object_id()
    self._debug_route = debug_route .. ' f:' .. tostring(self._id)
@@ -784,12 +843,7 @@ function ExecutionFrame:_set_active_unit(unit, think_output)
       end
 
       -- clear the table to make sure nil values are copied from the new to the current state
-      for name in pairs(self._current_entity_state) do
-         self._current_entity_state[name] = nil
-      end
-      for name, value in pairs(new_entity_state) do
-         self._current_entity_state[name] = value
-      end
+      copy_entity_state(self._current_entity_state, new_entity_state)
    end
 end
 
@@ -1219,7 +1273,7 @@ end
 function ExecutionFrame:_clone_entity_state(name)
    assert(self._current_entity_state)
    local s = self._current_entity_state
-   local cloned = _make_entity_state_table()
+   local cloned = create_entity_state()
 
    cloned.location = s.location and Point3(s.location.x, s.location.y, s.location.z)
    cloned.carrying = s.carrying
@@ -1230,44 +1284,8 @@ function ExecutionFrame:_clone_entity_state(name)
    return cloned
 end
 
-function _make_entity_state_table()
-   local state = {
-   }
-
-   local _state = state
-
-   state = {
-      __location_writes = -1
-   }
-
-   local meta_state = {
-      __newindex = function(t, k, v)
-         if k == 'location' then
-            -- The very first time an AI writes to 'location', ought to be the initialization of the entity_state.
-            -- The _next_ time it gets written, ought to be because it's thinking about the future.
-            state.__location_writes = state.__location_writes + 1
-            if state.__location_writes >= 1 then
-               _state.future = true
-            end
-         end
-         _state[k] = v
-      end,
-
-      __index = function(t, k)
-         return _state[k]
-      end,
-
-      __next = function(t, k)
-         return next(_state, k)
-      end
-   }
-   setmetatable(state, meta_state)
-
-   return state
-end
-
 function ExecutionFrame:_create_entity_state()
-   local state = _make_entity_state_table()
+   local state = create_entity_state()
    state.carrying = radiant.entities.get_carrying(self._entity)
    state.location = radiant.entities.get_world_grid_location(self._entity)
    state.future = false

@@ -19,12 +19,6 @@ local CALL_NOT_IMPLEMENTED = {}
 local placeholders = require 'services.server.ai.placeholders'
 local ObjectMonitor = require 'components.ai.object_monitor'
 
-local ENTITY_STATE_FIELDS = {
-   location = true,
-   carrying = true,
-   future = true,
-}
-
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
    assert(action.name)
    assert(action.does)
@@ -612,21 +606,12 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
 
-   self:_verify_entity_state(entity_state)
-   
    self._cost = self._action.cost or 0
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
    if self:_call_start_thinking() == CALL_NOT_IMPLEMENTED then
       self:_set_think_output(nil)
-   end
-end
-
-function ExecutionUnitV2:_verify_entity_state(entity_state)
-   for name in pairs(entity_state) do
-      assert(ENTITY_STATE_FIELDS[name] == true,
-             string.format('invalid field "%s" in ai.CURRENT (entity_state) after calling start_thinking on "%s"', name, self._action.name))
    end
 end
 

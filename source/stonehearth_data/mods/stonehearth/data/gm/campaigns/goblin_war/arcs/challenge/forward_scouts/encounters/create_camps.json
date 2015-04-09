@@ -6,7 +6,7 @@
    "out_edge" : "arc:finish",
 
    "generator_info" :  {
-      "delay" : "22h+4h",
+      "delay" : "1d+5h",
       "max_spawns" : 3,
       "spawn_edge" : "create_scout_camp"
    }

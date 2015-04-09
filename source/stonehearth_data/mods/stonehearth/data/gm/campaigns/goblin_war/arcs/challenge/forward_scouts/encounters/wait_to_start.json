@@ -6,6 +6,6 @@
    "out_edge" : ["inital_warning", "create_camps"],
 
    "wait_info" :  {
-      "duration" : "1h"
+      "duration" : "2d"
    }
 }

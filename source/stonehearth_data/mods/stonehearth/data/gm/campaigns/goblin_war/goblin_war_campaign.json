@@ -7,6 +7,7 @@
          "raiding_camp" : "file(arcs/trigger/raidcamp/raidcamp_arc.json)"
       },
       "challenge" : {
+         "army_forward_scouts" : "file(arcs/challenge/forward_scouts/forward_scout_arc.json)"
       },
       "climax" : {
       }

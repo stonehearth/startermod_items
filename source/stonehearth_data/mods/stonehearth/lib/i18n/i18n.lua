@@ -61,7 +61,8 @@ function i18n:_call_helper(name, args, context)
 
    args = args:split(',')
    for i, arg in pairs(args) do
-      local value = context[arg:strip()]
+      local arg_stripped = arg:strip()
+      local value = context:get(arg_stripped)
       if not value then
          return string.format('i18n helper %%%s: could not find "%s" in arg %d', name, arg, i)
       end

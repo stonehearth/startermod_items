@@ -16,6 +16,19 @@ function SettlementTest:__init()
    self:place_citizen(7, 4)
    self:place_citizen(7, 7)
 
+   --local wolf = radiant.entities.create_entity('stonehearth:wolf', { owner = 'player_1' })
+   --radiant.terrain.place_entity(wolf, Point3(10, 1, 10), {force_iconic = false})
+   
+   --Sample wolf, can sleep?
+   --local wolf = self:place_item('stonehearth:wolf', -3, -6, {owner = 'player_1'})
+   --local ec = wolf:add_component('stonehearth:equipment'):equip_item('stonehearth:monsters:goblins:wolf_sleep_collar')
+   --local task = wolf:add_component('stonehearth:ai')
+   --         :get_task_group('stonehearth:urgent')
+   --         :create_task('stonehearth:sleep_exhausted')
+   --         :set_priority(stonehearth.constants.priorities.party.IDLE)
+   --         :start()
+
+
    local banner = radiant.entities.create_entity('stonehearth:camp_standard', { owner = 'player_1' })
    radiant.terrain.place_entity(banner, Point3(8, 1, 8), { force_iconic = false })
    stonehearth.town:get_town('player_1')
