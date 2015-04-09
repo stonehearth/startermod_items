@@ -134,23 +134,30 @@ function CreateCamp:_add_piece(piece, visible_rgn)
    end
 
    -- add all the people.
-   ctx[self._sv.encounter_name].citizens = {}
-   if piece.info.citizens then
-      
+   local ctx_citizens = {}
+   ctx[self._sv.encounter_name].citizens = ctx_citizens
+   
+   if piece.info.citizens then      
       for name, info in pairs(piece.info.citizens) do
-         local members = game_master_lib.create_citizens(self._population, info, origin, ctx)
-         local member_count = 1
-         for id, member in pairs(members) do
-            self:_add_entity_to_visible_rgn(member, visible_rgn)
+         local citizens = game_master_lib.create_citizens(self._population, info, origin, ctx)
+         local citizen_count = 0
+         for id, citizen in pairs(citizens) do
+            citizen_count = citizen_count + 1
+         end 
+         for id, citizen in pairs(citizens) do
+            self:_add_entity_to_visible_rgn(citizen, visible_rgn)
             
-            --Add all these people to the context, under key name_1, name_2, etc
-            --TODO: uniquely identify the people by the instance of the encounter
-            --TODO: as interim step, make the interim name not the type of the encounter, but the name of the encounter (ctx.goblin_camp_1.wolf_1 etc)
-            local name_augmented = name .. '_' .. member_count
-            assert(ctx[self._sv.encounter_name].citizens[name_augmented] == nil, 
-               'There is a name collision, adding things to the context. Consider implementing a unique naming scheme. Refer to items from previous encounters with Back(2) like actions.')
-            ctx[self._sv.encounter_name].citizens[name_augmented] = member
-            member_count = member_count + 1
+            if citizen_count > 1 then
+               local arr = ctx_citizens[name]
+               if not arr then
+                  arr = {}
+                  ctx_citizens[name] = arr
+               end
+               table.insert(arr, citizen)
+            else
+               -- just use the name
+               ctx_citizens[name] = citizen
+            end
          end        
       end
    end

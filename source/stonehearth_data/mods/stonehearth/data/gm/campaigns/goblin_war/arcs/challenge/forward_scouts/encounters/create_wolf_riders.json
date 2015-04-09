@@ -23,7 +23,7 @@
 
          "members" : {
             "ferocious_wolf_1" : {
-               "from_ctx" : "create_scout_camp.citizens.tame_wolf_1",
+               "from_ctx" : "create_scout_camp.citizens.tame_wolf[1]",
                "equipment" : {
                   "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
@@ -35,7 +35,7 @@
                }
             },
             "ferocious_wolf_2" : {
-               "from_ctx" : "create_scout_camp.citizens.tame_wolf_2",
+               "from_ctx" : "create_scout_camp.citizens.tame_wolf[2]",
                "equipment" : {
                   "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
@@ -48,7 +48,7 @@
                }
             },
             "ferocious_wolf_3" : {
-               "from_ctx" : "create_scout_camp.citizens.tame_wolf_3",
+               "from_ctx" : "create_scout_camp.citizens.tame_wolf[3]",
                "equipment" : {
                   "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
