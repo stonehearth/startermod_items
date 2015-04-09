@@ -8,7 +8,6 @@ local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
 local TraceCategories = _radiant.dm.TraceCategories
 
-local log = radiant.log.create_logger('scaffolding_builder')
 local INFINITE = 1000000
 local CLIP_SOLID = _radiant.physics.Physics.CLIP_SOLID
 
@@ -42,9 +41,23 @@ function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn
 end
 
 function ScaffoldingBuilder_OneDim:activate()
-   self._log = radiant.log.create_logger('build.s1d')
-                              :set_entity(self._sv.entity)
-                              :set_prefix('s1d')
+   local entity = self._sv.entity
+   local name = radiant.entities.get_display_name(entity)
+
+   self._debug_text = ''
+   if name then
+      self._debug_text = self._debug_text .. ' ' .. name
+   else
+      self._debug_text = self._debug_text .. ' ' .. entity:get_uri()
+   end
+   local debug_text = entity:get_debug_text()
+   if debug_text then
+      self._debug_text = self._debug_text .. ' ' .. debug_text
+   end
+
+   self._log = radiant.log.create_logger('build.scaffolding.1d')
+                              :set_entity(entity)
+                              :set_prefix('s1d ' .. self._debug_text)
 
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
@@ -65,6 +78,7 @@ function ScaffoldingBuilder_OneDim:set_active(active)
    checks('self', '?boolean')
 
    if active ~= self._sv.active then
+      self._log:detail('active changed to %s', active)
       self._sv.active = active
       self.__saved_variables:mark_changed()
       self:_update_status()
@@ -86,6 +100,7 @@ end
 
 function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
    self._sv.manager:_add_region(self._sv.id,
+                                self._debug_text,
                                 self._sv.entity,
                                 self._sv.origin,
                                 self._sv.blueprint_rgn,
@@ -252,12 +267,14 @@ end
 function ScaffoldingBuilder_OneDim:_choose_normal()
    -- if we have a preferred normal, use that and its opposite.
    -- otherwise, consider all 4 normals
-   self._log:detail('choosing normal for %s.', self._sv.entity)
+   self._log:detail('choosing normal')
 
    local normals
    local preferred_normal = self._sv.preferred_normal
    if preferred_normal then
       normals = { preferred_normal, preferred_normal:scaled(-1) }
+      self._sv.normal = preferred_normal
+      return
    else
       normals = { Point3(0, 0, 1), Point3(0, 0, -1), Point3(1, 0, 0), Point3(-1, 0, 0)}
    end
