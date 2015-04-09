@@ -245,17 +245,17 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
    end
    assert(project_top < blueprint_top)
    
-   local clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
+   local clipper = Cube3(Point3(-INFINITE, -INFINITE,       -INFINITE),
                          Point3( INFINITE, project_top + 1,  INFINITE))
    local top_row = blueprint_rgn:clipped(clipper)
-                        :get_bounds()
+
    -- starting 1 row down and 1 row out, all the way till we find terrain
    top_row:translate(-Point3.unit_y + normal)
 
    -- and clip out the terrain
    local origin = self._sv.origin
    top_row:translate(origin)
-   local region = _physics:project_region(Region3(top_row), CLIP_SOLID)
+   local region = _physics:project_region(top_row, CLIP_SOLID)
    region:translate(-origin)
 
    -- finally, copy into the cursor
