@@ -416,7 +416,10 @@ function BuildService:add_fabricator(blueprint)
    fabricator:add_component('mob')
                   :set_transform(transform)
 
-   fabricator:set_debug_text('(Fabricator for ' .. tostring(blueprint) .. ')')
+
+   local parts = blueprint:get_uri():split(':')
+   local desc = parts[#parts]
+   fabricator:set_debug_text(desc .. ':' .. tostring(blueprint:get_id()) .. ':fab')
    
    fabricator:add_component('stonehearth:fabricator')
                   :start_project(blueprint)   
@@ -1155,7 +1158,7 @@ end
 --    @param region - the exact shape of the patch wall
 --
 function BuildService:add_patch_wall_to_building(building, wall_brush, normal, position, region)
-   self:_create_blueprint(building, 'stonehearth:build:prototypes:wall', position, function(wall)
+   self:_create_blueprint(building, 'stonehearth:build:prototypes:patch_wall', position, function(wall)
          wall:add_component('stonehearth:wall')
                   :set_brush(wall_brush)
                   :create_patch_wall(normal, region)

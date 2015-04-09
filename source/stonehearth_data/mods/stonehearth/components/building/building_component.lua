@@ -674,14 +674,22 @@ function Building:_compute_dependencies()
    for _, entry in pairs(self._sv.structures[WALL]) do
       init_dependencies(entry)
 
+      -- walls depend on their connected columns
       local wall = entry.entity
-      local col_a, col_b = wall:get_component(WALL)
-                                    :get_columns()
+      local wc = wall:get_component(WALL)
+      local col_a, col_b = wc:get_columns()
       if col_a then
          entry.dependencies[col_a:get_id()] = col_a
       end
       if col_b then
          entry.dependencies[col_b:get_id()] = col_b
+      end
+      -- patch walls depend on roof
+      if wc:is_patch_wall() then
+         for _, e in pairs(self._sv.structures[ROOF]) do
+            local roof = e.entity
+            entry.dependencies[roof:get_id()] = roof
+         end
       end
    end
    for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do
