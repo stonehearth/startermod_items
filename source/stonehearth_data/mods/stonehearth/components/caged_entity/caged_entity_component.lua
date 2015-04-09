@@ -34,6 +34,12 @@ end
 
 function CagedEntityComponent:_listen_on_cage_kill()
    assert(self._sv.cage and self._sv.cage:is_valid())
+
+   -- we listen explicitly for the 'stonehearth:kill_event' to distingush between
+   -- in-game-events destroying the cage which would cause the caged entity to flee
+   -- vs. programtically destroying the cage.  If someone in the future wants to
+   -- programatically kill the cage (e.g. to trigger the death effect), we could change
+   -- this so that :set_cage(nil) would remove the listeners.
    self._cage_listener = radiant.events.listen(self._sv.cage, 'stonehearth:kill_event', self, self._on_cage_killed)
    self._cage_destroy_listener = radiant.events.listen(self._sv.cage, 'radiant:entity:pre_destroy', self, self._on_cage_destroyed)
 end
@@ -47,10 +53,10 @@ function CagedEntityComponent:_on_cage_killed(e)
    end
 
    self._depart_task = self._entity:add_component('stonehearth:ai')
-            :get_task_group('stonehearth:compelled_behavior')
-            :create_task('stonehearth:depart_visible_area')
-            :set_priority(stonehearth.constants.priorities.compelled_behavior.DEPART_WORLD)
-            :start()
+                                       :get_task_group('stonehearth:compelled_behavior')
+                                          :create_task('stonehearth:depart_visible_area')
+                                             :set_priority(stonehearth.constants.priorities.compelled_behavior.DEPART_WORLD)
+                                             :start()
 end
 
 --When the cage is destroyed, wake up
@@ -65,10 +71,10 @@ end
 --The sleep task is always lower priority than the depart world task
 function CagedEntityComponent:_sleep_in_cage()
    self._sleep_task = self._entity:add_component('stonehearth:ai')
-            :get_task_group('stonehearth:compelled_behavior')
-            :create_task('stonehearth:sleep_exhausted')
-            :set_priority(stonehearth.constants.priorities.compelled_behavior.IMPRISONED)
-            :start()
+                                    :get_task_group('stonehearth:compelled_behavior')
+                                       :create_task('stonehearth:sleep_exhausted')
+                                          :set_priority(stonehearth.constants.priorities.compelled_behavior.IMPRISONED)
+                                          :start()
 end
 
 return CagedEntityComponent
