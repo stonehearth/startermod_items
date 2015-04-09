@@ -363,13 +363,6 @@ function TaskGroup:_get_worker_score_for_task(worker_entry_id, worker_entry, tas
       return
    end
  
-   -- make sure the worker isn't bound to another task
-   for fed_tasks, _ in pairs(worker_entry.all_fed_tasks) do
-      if not fed_tasks:has_worker_affinity_expired(worker) then
-         return
-      end
-   end
-
    -- obey task affinity
    if not task:check_worker_against_task_affinity(worker) then
       return
