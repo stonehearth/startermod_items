@@ -277,9 +277,10 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
       lua_Debug f;
       int count = 0;
       res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
-      perfmon::CounterValueType delta = now - _lastHookTimestamp;
+      perfmon::CounterValueType selfTime = now - _lastHookTimestamp;
+      perfmon::CounterValueType totalTime = selfTime;
       
-      _profilerDuration = _profilerDuration + delta;
+      _profilerDuration = _profilerDuration + selfTime;
       _profilerSampleCounts++;
 
       perfmon::StackFrame* current = _profilers[L].GetTopInvertedStackFrame();
@@ -287,15 +288,15 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
          lua_getinfo(L, "Sl", &f);
          if (strcmp(f.source, C_MODULE)) {
             current = current->AddStackFrame(f.source, f.linedefined);
-            current->IncrementCount(delta, f.currentline);
-            delta = 0;
+            current->IncrementTimes(selfTime, totalTime, f.currentline);
+            selfTime = 0;
          }
       }
    }
    _lastHookL = L;
    _lastHookTimestamp = now;
 
-   if (perfmon::CounterToMilliseconds(_profilerDuration) >= max_profile_length_) {
+   if (perfmon::Timer::GetCurrentTimeMs () - _cpuProfileStart >= max_profile_length_) {
       ToggleCpuProfiling();
    }
 }
@@ -1214,12 +1215,15 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
    json::Node metadata;
    metadata.set("profiling_time", perfmon::CounterToMilliseconds(_profilerDuration));
+   metadata.set("run_time", (int)(perfmon::Timer().GetCurrentTimeMs() - _cpuProfileStart));
    root.set("metadata", metadata);
 
    json::Node profileData;
    for (auto& frame : fusedFrames) {
       json::Node frameNode;
       frameNode.set("tt", frame.second.totalTime);
+      frameNode.set("st", frame.second.selfTime);
+      frameNode.set("n", frame.second.totalSamples);
 
       json::Node lineNodes(JSON_ARRAY);
       for (auto const& lineInfo : frame.second.lines) {
@@ -1334,6 +1338,7 @@ bool ScriptHost::ToggleCpuProfiling()
 
    _profilerDuration = 0;
    _profilerSampleCounts = 0;
+   _cpuProfileStart = perfmon::Timer::GetCurrentTimeMs();
 
    return _cpuProfilerRunning;
 }

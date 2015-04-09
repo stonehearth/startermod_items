@@ -40,6 +40,14 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
+
+      radiant.trace('stonehearth:build:brushes')
+         .progress(function(brushes) {
+            self._buildBrushes = brushes;
+            if ($.isEmptyObject(self.tools)) {
+               self.initializeTools();
+            }
+         });
    },   
 
    showOverview: function() {
@@ -85,11 +93,18 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          doEraseStructure();
       });
 
+      if (self._buildBrushes) {
+         self.initializeTools();
+      }
+   },
+
+   initializeTools: function()  {
+      var self = this;
       self._state = {};
 
       $.each(this.tools, function(_, tool) {
-         tool.addTabMarkup(self.$('#toolOptions'));
          tool.inDom(self);
+         tool.addTabMarkup(self.$('#toolOptions'));
       });
 
       self._addEventHandlers();
@@ -215,6 +230,10 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       if (activeTool == tool) {
          this._doToolCall(tool);
       }
+   },
+
+   getBuildBrushes: function() {
+      return this._buildBrushes;
    },
 
    _deactivateTool: function(toolTag) {

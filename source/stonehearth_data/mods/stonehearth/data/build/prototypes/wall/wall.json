@@ -1,0 +1,19 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",
+
+   "components": {
+      "unit_info": {
+         "name": "Wall", 
+         "description": "Keeps roofs up"
+      },
+      
+      "stonehearth:wall" : {
+      },
+
+      "stonehearth:construction_data" : {
+         "type": "wall",
+         "allow_diagonal_adjacency" : true,
+         "max_workers": 3
+      }
+   }
+}

@@ -12,7 +12,7 @@ function LadderEditor:__init(build_service)
    self._build_service = build_service
    self._ladder_height = 0
    self._normal = Point3.unit_x
-   self._ladder_uri = 'stonehearth:wooden_ladder'
+   self._ladder_uri = 'stonehearth:build:prototypes:ladder'
    self._log = radiant.log.create_logger('builder')
 end
 

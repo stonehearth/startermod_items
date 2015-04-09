@@ -4,13 +4,7 @@ local Point3 = _radiant.csg.Point3
 local build_util = require 'stonehearth.lib.build_util'
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
-local WOODEN_COLUMN = 'stonehearth:wooden_column'
-local WOODEN_WALL = 'stonehearth:wooden_wall'
-local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
-local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
-
-local BRICK_SLAB = 'stonehearth:brick_slab_1'
-
+local BRICK_SLAB = 'stonehearth:build:voxel_brushes:voxel:stone:brick_tiled'
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 local lrbt_cases = {}
@@ -20,6 +14,18 @@ function lrbt_cases.simple_floor(autotest, session)
       function()
          local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
+      end
+   }
+end
+
+function lrbt_cases.hybrid_floor(autotest, session)
+   local floor
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 8)))
+      end,
+      function()
+         floor = lrbt_util.create_stone_floor(session, Cube3(Point3(4, 10, 0), Point3(8, 11, 8)))
       end
    }
 end
@@ -172,6 +178,24 @@ function lrbt_cases.peaked_roof(autotest, session)
    return {
       function()
          floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(5, 11, 5)))
+      end,
+      function()
+         lrbt_util.grow_wooden_walls(session, floor)
+      end,
+      function()
+         lrbt_util.grow_wooden_roof(session, build_util.get_building_for(floor))
+      end,
+   }
+end
+
+function lrbt_cases.patch_walls(autotest, session)
+   local floor
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(8, 11, 4)))
+      end,
+      function()
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 6)))
       end,
       function()
          lrbt_util.grow_wooden_walls(session, floor)

@@ -181,7 +181,7 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local normal = rblock.normal
 
    local region = radiant.alloc_region3()
-   local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding', { owner = owner })
+   local scaffolding = radiant.entities.create_entity('stonehearth:build:prototypes:scaffolding', { owner = owner })
 
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)

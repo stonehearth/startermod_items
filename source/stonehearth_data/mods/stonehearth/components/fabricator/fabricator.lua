@@ -4,6 +4,7 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
+local Color3 = _radiant.csg.Color3
 local TraceCategories = _radiant.dm.TraceCategories
 
 local emptyRegion = Region3()
@@ -16,6 +17,21 @@ local ADJACENT_POINTS = {
 }
 
 local Fabricator = class()
+
+-- build the inverse material map
+local function build_color_to_material_map()
+   local c2m = {}
+   for material, colorlist in pairs(stonehearth.constants.construction.brushes.voxel) do
+      for _, color in ipairs(colorlist) do
+         if c2m[color] then
+            radiant.error('duplicate color %s in stonehearth:build:brushes', color)
+         end
+         c2m[color] = material
+      end
+   end
+   return c2m
+end
+local COLOR_TO_MATERIAL = build_color_to_material_map()
 
 -- this is the component which manages the fabricator entity.
 function Fabricator:__init(name, entity, blueprint, project)
@@ -179,8 +195,29 @@ function Fabricator:_on_can_start_changed()
    end
 end
 
-function Fabricator:get_material()
-   return self._resource_material
+function Fabricator:get_material(world_location)
+   checks('self', 'Point3')
+
+   if self._resource_material then
+      -- for example, the scaffolding is made of wood (period).  this is only
+      -- used by the scaffolding code
+      self._log:spam('returning cd material "%s"', self._resource_material)
+      return self._resource_material
+   end
+
+   local offset = radiant.entities.world_to_local(world_location, self._entity)
+   local tag = self._blueprint_dst
+                        :get_region()
+                           :get()
+                              :get_tag(offset)
+
+   local color = Color3(tag)
+   local material = COLOR_TO_MATERIAL[tostring(color)]
+   if not material then
+      radiant.error("building color to material map has no entry for color %s", tostring(color))
+   end
+   self._log:detail('returning material "%s" for block at %s (color:%s)', material, offset, color)
+   return material
 end
 
 function Fabricator:get_project()
@@ -227,7 +264,11 @@ function Fabricator:add_block(material_entity, location)
    end
 
    self._project_dst:get_region():modify(function(cursor)
-         cursor:add_point(pt)
+         local color = self._blueprint_dst
+                              :get_region()
+                                 :get()
+                                    :get_tag(pt)
+         cursor:add_point(pt, color)
       end)
    self:release_block(location)
    return true
@@ -249,6 +290,11 @@ function Fabricator:find_another_block(carrying, location)
          local poi_local = self._fabricator_dst:get_point_of_interest(pt)
          if poi_local then
             local block = poi_local + origin
+
+            local material = self:get_material(block)
+            if not radiant.entities.is_material(carrying, material) then
+               return
+            end
 
             -- make sure the next block we get is on the same level as the current
             -- block so we don't confuse the scaffolding fabricator.  if we really

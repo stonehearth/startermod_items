@@ -98,14 +98,22 @@ function ConstructionDataRenderer:_trace_collision_shape()
    end
 end
 
-function ConstructionDataRenderer:_update_region(region, mode) 
+function ConstructionDataRenderer:_update_region(stencil, mode) 
    -- recreate our render node
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
    end
-   if region then
-      self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._construction_data)
+   if stencil then
+      local render_info = self._entity:get_component('render_info')
+      local material = render_info and render_info:get_material() or 'materials/voxel.material.json'
+
+      local shape = self._entity:get_component('region_collision_shape')
+                                    :get_region()
+                                       :get()
+                                          :intersect_region(stencil:get())
+
+      self._render_node = _radiant.client.create_voxel_node(self._parent_node, shape, material, Point3(0, 0, 0))
    end
 
    -- if we enter or leave rpg mode, hide all our children that are not

@@ -8,6 +8,7 @@ local Region3 = _radiant.csg.Region3
 
 local placement_autotests = {}
 
+
 -- Test that 2 workers can compete to move the bed to a target location
 -- Starting from a proxy, place it and then move it several times
 --
@@ -64,8 +65,8 @@ function placement_autotests.place_on_wall(autotest)
    stonehearth.build:do_command('place_on_wall', nil, function()
          normal = Point3(0, 0, 1)
          wall = stonehearth.build:add_wall(session,
-                                           'stonehearth:wooden_column',
-                                           'stonehearth:wooden_wall',
+                                           stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH,
+                                           stonehearth.constants.construction.DEAFULT_WOOD_WALL_BRUSH,
                                            Point3(-2, 10, 2),
                                            Point3( 2, 10, 2),
                                            normal)

@@ -29,32 +29,31 @@ var DrawWallTool;
 
       addTabMarkup: function(root) {
          var self = this;
-         $.get('/stonehearth/data/build/building_parts.json')
-            .done(function(json) {
-               self.buildingParts = json;
+         var brushes = self.buildingDesigner.getBuildBrushes();
 
-               var click = function() {
-                  // Re/activate the floor tool with the new material.
-                  self.buildingDesigner.activateTool(self.buildTool);      
-               };
+         var click = function() {
+            // Re/activate the floor tool with the new material.
+            self.buildingDesigner.activateTool(self.buildTool);      
+         };
 
-               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
-               root.append(tab);
+         var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+         root.append(tab);
 
-               self._wallMaterial = new MaterialHelper(tab,
-                                                       self.buildingDesigner,
-                                                       'Wall',
-                                                       self.wallMaterialClass,
-                                                       self.buildingParts.wallPatterns,
-                                                       click);
+         self._wallMaterial = new MaterialHelper(tab,
+                                                 self.buildingDesigner,
+                                                 'Wall',
+                                                 self.wallMaterialClass,
+                                                 brushes.wall,
+                                                 null,
+                                                 click);
 
-               self._columnMaterial = new MaterialHelper(tab,
-                                                       self.buildingDesigner,
-                                                       'Column',
-                                                       self.columnMaterialClass,
-                                                       self.buildingParts.columnPatterns,
-                                                       click);
-         });
+         self._columnMaterial = new MaterialHelper(tab,
+                                                 self.buildingDesigner,
+                                                 'Column',
+                                                 self.columnMaterialClass,
+                                                 brushes.column,
+                                                 null,
+                                                 click);
       },
 
       activateOnBuilding: function() {

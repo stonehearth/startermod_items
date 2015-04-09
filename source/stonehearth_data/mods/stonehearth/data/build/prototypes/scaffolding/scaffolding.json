@@ -1,0 +1,46 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Scaffolding", 
+         "description": "Construction support structure"
+      },
+      "destination" : {
+         "region" : [
+         ]
+      },
+      "region_collision_shape" : {
+         "region_collision_type" : "platform"
+      },
+      "stonehearth:scaffolding_top" : {},
+      "stonehearth:construction_data" : {
+         "project_adjacent_to_base" : true,
+         "allow_diagonal_adjacency" : true,
+         "max_workers" : 2,
+         "use_custom_renderer" : true,
+         "material": "wood resource"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:scaffolding_renderer" : {
+         "lattice" : "file(scaffolding.qb)",
+         "scale" : 0.1,
+         "origin" : {
+            "x" : 5,
+            "y" : 0,
+            "z" : 5
+         },
+         "width" : 4, 
+         "height" : 4
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 0,
+         "rarity" : "junk",
+         "shop_info" : {
+            "buyable" : false,   
+            "sellable" : false
+         }
+      }
+   }
+}

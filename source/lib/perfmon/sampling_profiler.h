@@ -22,8 +22,8 @@ public:
    StackFrame(const char* _sourceName, unsigned int fnDefLine);
 
    core::StaticString GetName() const { return _fnName; }
-   CounterValueType GetCount() const { return _count; }
-   void IncrementCount(CounterValueType c, int lineNum);
+   CounterValueType GetSelfTime() const { return _selfTime; }
+   void IncrementTimes(CounterValueType selfTime, CounterValueType totalTime, int lineNum);
 
    StackFrame* AddStackFrame(const char* name, unsigned int fnDefLine);
 
@@ -42,6 +42,8 @@ public:
    struct SmallFrame {
       std::unordered_map<core::StaticString, unsigned int, core::StaticString::Hash> callers;
       int totalTime;
+      int selfTime;
+      int totalSamples;
       std::vector<LineCount>    lines;
    };
 
@@ -52,7 +54,8 @@ private:
    unsigned int               _fnDefLine;
    const char*                _sourceName;
    core::StaticString         _fnName;
-   CounterValueType           _count;
+   CounterValueType           _selfTime;
+   CounterValueType           _totalTime;
    std::vector<StackFrame>    _callers;
    std::vector<LineCount >    _lines;
    unsigned int               _callCount;
