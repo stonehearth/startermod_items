@@ -6,7 +6,7 @@
    "out_edge" : "",
 
    "destroy_entity_info" :  {
-      "target_entities" : ["create_scout_camp.citizens.trainer_1"], 
+      "target_entities" : ["create_scout_camp.citizens.trainer"], 
       "effect" : "/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json", 
       "continue_always" : true
    }

@@ -60,12 +60,17 @@ end
 --Currently supports unit_info (name/description)
 function game_master_lib.create_entity(info, player_id)
    local entity = radiant.entities.create_entity(info.uri, {owner = player_id })
-   if info.unit_info and info.unit_info.name then
-      radiant.entities.set_name(entity, info.unit_info.name)
+
+   local unit_info = info.unit_info
+   if unit_info then
+      if unit_info.name then
+         radiant.entities.set_name(entity, unit_info.name)
+      end
+      if unit_info.description then
+         radiant.entities.set_description(entity, unit_info.description)
+      end
    end
-   if info.unit_info and info.unit_info.description then
-      radiant.entities.set_description(entity, info.unit_info.description)
-   end
+
    return entity
 end
 
