@@ -125,9 +125,17 @@
          "Rowan",
          "Ike",
          "Backster",
-         "Liam"
+         "Liam",
+         "Nao",
+         "Bob",
+         "Devlin",
+         "Oin",
+         "Petom"
       ],
       "female" : [
+         "Asta",
+         "Mina",
+         "Tama",
          "Nia",
          "Petra",
          "Yui",
@@ -189,7 +197,9 @@
          "Runa",
          "Micah",
          "Soar",
-         "Meghaan"
+         "Meghaan",
+         "Uuen",
+         "Kelia"
       ]
    }, 
    "town_pieces" : {
