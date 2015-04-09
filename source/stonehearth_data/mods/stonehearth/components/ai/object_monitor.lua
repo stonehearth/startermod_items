@@ -1,14 +1,6 @@
 local TraceCategories = _radiant.dm.TraceCategories
 
-local ObjectMonitor = class()
-
-function ObjectMonitor:__init(log)
-   self._log = log
-   self._log:spam('constructing object monitor')
-   self._traces = {}
-end
-
-function ObjectMonitor:destroy()
+local function _destroy(self)
    self._log:spam('destroying object monitor')
    for _, trace in pairs(self._traces) do
       trace:destroy()
@@ -16,7 +8,7 @@ function ObjectMonitor:destroy()
    self._traces = {}
 end
 
-function ObjectMonitor:resume()
+local function _resume(self)
    self._log:spam('resuming object monitor')
    self._paused = false
    if self._triggered then
@@ -24,16 +16,16 @@ function ObjectMonitor:resume()
    end
 end
 
-function ObjectMonitor:pause()
+local function _pause(self)
    self._log:spam('pausing object monitor')
    self._paused = true
 end
 
-function ObjectMonitor:is_running()
+local function _is_running(self)
    return not self._paused
 end
 
-function ObjectMonitor:protect_object(obj)
+local function _protect_object(self, obj)
    assert(type(obj) == 'userdata')
    assert(obj and obj:is_valid())
    local id = obj:get_id()
@@ -47,7 +39,7 @@ function ObjectMonitor:protect_object(obj)
    self._traces[id] = trace
 end
 
-function ObjectMonitor:unprotect_object(obj)
+local function _unprotect_object(self, obj)
    assert(type(obj) == 'userdata')
    assert(obj and obj:is_valid())
    local id = obj:get_id()
@@ -61,11 +53,11 @@ function ObjectMonitor:unprotect_object(obj)
    end
 end
 
-function ObjectMonitor:set_destroyed_cb(cb)
+local function _set_destroyed_cb(self, cb)
    self._destroyed_cb = cb
 end
 
-function ObjectMonitor:_on_destroyed(name)
+local function _on_destroyed(self, name)
    self:destroy()
    self._triggered = true
 
@@ -81,5 +73,29 @@ function ObjectMonitor:_on_destroyed(name)
    self._log:debug('object monitor calling destroyed cb (%s is no more!)',  name)
    self._destroyed_cb(name)
 end
+
+local function _new(log)
+   log:spam('constructing object monitor')
+   
+   local om = {
+      _log = log,
+      _traces = {},
+
+      destroy = _destroy,
+      resume = _resume,
+      pause = _pause,
+      is_running = _is_running,
+      protect_object = _protect_object,
+      unprotect_object = _unprotect_object,
+      set_destroyed_cb = _set_destroyed_cb,
+      _on_destroyed = _on_destroyed,
+   }
+
+   return om
+end
+
+local ObjectMonitor = {
+   new = _new,
+}
 
 return ObjectMonitor

@@ -896,7 +896,7 @@ function ExecutionUnitV2:_create_object_monitor()
 
    if self._action.unprotected_args then
       self._log:debug('not protecting entities on action\'s request')
-      return ObjectMonitor(self._log)
+      return ObjectMonitor.new(self._log)
    end
    
    -- run through the arguments once looking for bad ones.
@@ -906,9 +906,10 @@ function ExecutionUnitV2:_create_object_monitor()
       end
    end
 
+   local object_monitor = ObjectMonitor.new(self._log)
+
    -- all good!  create the object monitor
    self._log:detail('creating object monitor')
-   local object_monitor = ObjectMonitor(self._log)
    for _, obj in pairs(self._args) do
       self:_enable_argument_protection(object_monitor, obj, true)
    end
