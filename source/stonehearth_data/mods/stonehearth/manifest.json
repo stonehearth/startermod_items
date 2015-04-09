@@ -88,6 +88,7 @@
 
       "build:prototypes:floor" : "file(data/build/prototypes/floor/floor.json)",
       "build:prototypes:wall" : "file(data/build/prototypes/wall/wall.json)",
+      "build:prototypes:patch_wall" : "file(data/build/prototypes/patch_wall/patch_wall.json)",
       "build:prototypes:column" : "file(data/build/prototypes/column/column.json)",
       "build:prototypes:roof" : "file(data/build/prototypes/roof/roof.json)",
       "build:prototypes:road" : "file(data/build/prototypes/road/road.json)",
