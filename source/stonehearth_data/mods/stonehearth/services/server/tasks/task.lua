@@ -366,9 +366,7 @@ function Task:_estimate_task_distance(worker)
    local worker_location = radiant.entities.get_world_grid_location(worker)
    if radiant.util.is_a(self._source, Point3) then
       source_location = self._source
-   end
-
-   if radiant.util.is_a(self._source, Entity) and self._source:is_valid() then
+   elseif radiant.util.is_a(self._source, Entity) and self._source:is_valid() then
       -- try the destination...
       local destination = self._source:get_component('destination')
       if destination then
@@ -378,7 +376,7 @@ function Task:_estimate_task_distance(worker)
             if not rgn:empty() then
                -- great!  find the closest point..
                local origin = radiant.entities.get_world_grid_location(self._source)
-               source_location = rgn:get_closest_point(worker_location) + origin
+               source_location = rgn:get_closest_point(worker_location - origin) + origin
             end
          end
       end
