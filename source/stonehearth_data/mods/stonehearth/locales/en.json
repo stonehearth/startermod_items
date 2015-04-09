@@ -11,6 +11,9 @@
    "remove" : "Remove",
    "close" : "Close",
 
+   "wood_resource" : "Wood",
+   "stone_resource" : "Stone",
+
    "title_screen_exit": "exit",
    "title_screen_settings": "settings",
    "title_screen_credits": "credits",
