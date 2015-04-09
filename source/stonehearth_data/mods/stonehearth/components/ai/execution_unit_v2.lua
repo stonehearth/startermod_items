@@ -92,14 +92,6 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
                           :set_entity(self._entity)
 
    self._log:debug('creating execution unit')
-   self._aitrace = radiant.log.create_logger('ai_trace')
-   
-   -- Set the trace-route initially to the old route, so that in logging it is clear that the
-   -- frame is creating this unit.
-   self._aitrace:set_prefix(trace_route)   
-   self._aitrace:spam('@ceu@%d@%s', self._id, self:get_name())
-   self._aitrace:set_prefix(self._trace_route)   
-   
 
    self:_set_state(STOPPED)
 end
@@ -709,7 +701,6 @@ function ExecutionUnitV2:__execute(activity_name, args)
 end 
 
 function ExecutionUnitV2:__set_think_output(args)
-   self._aitrace:spam('@o@%s', stonehearth.ai:format_args(args))
    self._log:debug('__set_think_output %s called', stonehearth.ai:format_args(args))
    self:_set_think_output(args)
 end
@@ -858,9 +849,6 @@ function ExecutionUnitV2:_set_state(state)
    self._log:debug('state change %s -> %s', self._state, state)
    assert(state and self._state ~= state)
 
-   if self._state ~= STARTING and self._state ~= STARTED then
-      self._aitrace:spam('@sc@%s@%s', self._state, state)
-   end
 
    if self._state ~= DEAD then
       self._state = state   
