@@ -1,7 +1,7 @@
 local Entity = _radiant.om.Entity
 local DataStore = _radiant.om.DataStore
 
-local ExecutionUnitV2 = class()
+local ExecutionUnitV2 = radiant.class()
 
 local THINKING = 'thinking'
 local READY = 'ready'
