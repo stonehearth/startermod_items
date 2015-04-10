@@ -17,11 +17,11 @@ end
 -- run a build test
 --
 local function do_build(autotest, cb)
-   local buildings, scaffolding = lrbt_util.create_buildings(autotest, cb)
+   local buildings = lrbt_util.create_buildings(autotest, cb)
 
    lrbt_util.fund_construction(autotest, buildings)
+   lrbt_util.succeed_when_buildings_finished(autotest, buildings)
    lrbt_util.mark_buildings_active(autotest, buildings)
-   lrbt_util.succeed_when_buildings_finished(autotest, buildings, scaffolding)
       
    autotest:sleep(6000000)
    autotest:fail('failed to build structures')
@@ -34,11 +34,11 @@ local function do_template(autotest, cb)
    local location = Point3(-4, 15, -4)
    local centroid = lrbt_util.create_template(autotest, TEMPLATE_NAME, cb)
 
-   local buildings, scaffolding = lrbt_util.place_template(autotest, TEMPLATE_NAME, location, centroid, rotation)
+   local buildings = lrbt_util.place_template(autotest, TEMPLATE_NAME, location, centroid, rotation)
 
    lrbt_util.fund_construction(autotest, buildings)
+   lrbt_util.succeed_when_buildings_finished(autotest, buildings)
    lrbt_util.mark_buildings_active(autotest, buildings)
-   lrbt_util.succeed_when_buildings_finished(autotest, buildings, scaffolding)
       
    autotest:sleep(6000000)
    autotest:fail('failed to build structures')

@@ -67,6 +67,7 @@ end
 
 function ScaffoldingBuilder_OneDim:destroy()
    self:_untrace_blueprint_and_project()
+   self._sv.scaffolding_rgn = nil
 end
 
 -- interfaces for the owner of the builder
