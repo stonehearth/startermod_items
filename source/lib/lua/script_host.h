@@ -101,6 +101,7 @@ private:
    bool WriteObject(const char* modname, const char* objectName, luabind::object o);
    luabind::object ReadObject(const char* modname, const char* objectName);
    luabind::object EnumObjects(const char* modname, const char* path);
+   void ReportCPUDump(luabind::object profTable);
    
    typedef std::unordered_map<std::string, luabind::object> ModuleMap;
 

@@ -289,8 +289,8 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
          if (strcmp(f.source, C_MODULE)) {
             current = current->AddStackFrame(f.source, f.linedefined);
             current->IncrementTimes(selfTime, totalTime, f.currentline);
-            selfTime = 0;
          }
+         selfTime = 0;
       }
    }
    _lastHookL = L;
@@ -419,6 +419,7 @@ ScriptHost::ScriptHost(std::string const& site) :
                .def("require",         &ScriptHost::Require)
                .def("require_script",  &ScriptHost::RequireScript)
                .def("get_error_count", &ScriptHost::GetErrorCount)
+               .def("report_cpu_dump", &ScriptHost::ReportCPUDump)
          ]
       ]
    ];
@@ -1260,12 +1261,25 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
    char date[256];
    std::time_t t = std::time(NULL);
-   if (!std::strftime(date, sizeof(date), " %Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+   if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
       *date = 0;
    }
    std::string filename = BUILD_STRING("lua_profile_data_" << date << ".json");
    std::ofstream f(filename);
    f << root;
+   f.close();
+}
+
+void ScriptHost::ReportCPUDump(luabind::object profTable)
+{
+   char date[256];
+   std::time_t t = std::time(NULL);
+   if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+      *date = 0;
+   }
+   std::string filename = BUILD_STRING("eu_stats_" << date << ".json");
+   std::ofstream f(filename);
+   f << LuaToJson(profTable).write_formatted();
    f.close();
 }
 
@@ -1286,6 +1300,8 @@ bool ScriptHost::ToggleCpuProfiling()
    }
 
    if (!_cpuProfilerRunning) {
+
+      Trigger("radiant:report_cpu_profile");
       int bottomUpDepth = 2;
 
       perfmon::FunctionTimes stats;

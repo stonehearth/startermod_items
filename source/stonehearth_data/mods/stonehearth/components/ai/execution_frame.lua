@@ -116,10 +116,9 @@ local function copy_entity_state(state, copy_from)
    end
 end
 
-function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route, trace_route)
+function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route)
    self._id = stonehearth.ai:get_next_object_id()
    self._debug_route = debug_route .. ' f:' .. tostring(self._id)
-   self._trace_route = trace_route .. tostring(self._id) .. '/'
    self._entity = entity
    self._activity_name = activity_name
    self._action_index = action_index
@@ -1232,8 +1231,7 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                 self._entity,
                                 entry.injecting_entity,
                                 action,
-                                self._action_index,
-                                self._trace_route)
+                                self._action_index)
    if action.type == 'filter' then
       assert(not self._execution_filters[key])
       self._execution_filters[key] = unit
