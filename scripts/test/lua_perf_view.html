@@ -134,6 +134,7 @@
     var curRowDepth = parseInt(row.getAttribute('depth'), 10);
     row.setAttribute('expanded', true);
     var fnName = row.children[0].innerText;
+    fnName = fnName.replace('.', '&#46;');
     var callers = getFunctionData(fnName).callers;
     var next = row.nextSibling;
 
