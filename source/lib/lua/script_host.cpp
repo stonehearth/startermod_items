@@ -9,6 +9,7 @@
 #include "script_host.h"
 #include "client/renderer/render_entity.h"
 #include "lib/lua/lua.h"
+#include "lib/rpc/lua_deferred.h"
 #include "lib/json/namespace.h"
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
@@ -452,10 +453,24 @@ ScriptHost::~ScriptHost()
 {
    LUA_LOG(1) << "Shutting down script host.";
    FullGC();
+
+   std::vector<rpc::LuaPromiseRef> promises(_luaPromises.begin(), _luaPromises.end());
+   _luaPromises.clear();
    required_.clear();
    lua_close(L_);
    ASSERT(this->bytes_allocated_ == 0);
    LUA_LOG(1) << "Script host destroyed.";
+
+   // At this point, we've cleared the _luaPromises array and destroyed the interpreter.
+   // LuaPromises are supposed to only be pushed to Lua, so if there are any left alive
+   // something has SERIOUSLY gone wrong.
+   for (auto const& p : promises) {
+      int c =  p.use_count();
+      if (c > 0) {
+         LUA_LOG(5) << "lua promise is still alive! (count:" << c << " dbg:" << p.lock()->LogPrefix() << ")";
+         ASSERT(false);
+      }
+   }
 }
 
 void paranoid_hook(lua_State *L, lua_Debug *ar)
@@ -1345,3 +1360,15 @@ void ScriptHost::RemoveProfileHook(lua_State* L)
 {
    lua_sethook(L, nullptr, 0, 0);
 }
+
+void ScriptHost::SaveLuaPromise(rpc::LuaPromisePtr promise)
+{
+   _luaPromises.insert(promise);
+}
+
+void ScriptHost::FreeLuaPromise(rpc::LuaPromisePtr promise)
+{
+   _luaPromises.erase(promise);
+}
+
+

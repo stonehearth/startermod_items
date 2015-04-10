@@ -15,7 +15,7 @@ using namespace ::radiant;
 using namespace ::radiant::rpc;
 using namespace luabind;
 
-LuaDeferredPtr LuaDeferred_Done(lua_State* L, LuaDeferredPtr deferred, object cb)
+LuaPromisePtr LuaPromise_Done(lua_State* L, LuaPromisePtr deferred, object cb)
 {
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
@@ -26,15 +26,7 @@ LuaDeferredPtr LuaDeferred_Done(lua_State* L, LuaDeferredPtr deferred, object cb
    return deferred;
 }
 
-LuaDeferredPtr LuaDeferred_Destroy(lua_State* L, LuaDeferredPtr deferred)
-{
-   if (deferred) {
-      deferred->Destroy();
-   }
-   return deferred;
-}
-
-LuaDeferredPtr LuaDeferred_Always(lua_State* L, LuaDeferredPtr deferred, object cb)
+LuaPromisePtr LuaPromise_Always(lua_State* L, LuaPromisePtr deferred, object cb)
 {
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
@@ -45,7 +37,7 @@ LuaDeferredPtr LuaDeferred_Always(lua_State* L, LuaDeferredPtr deferred, object 
    return deferred;
 }
 
-LuaDeferredPtr LuaDeferred_Progress(lua_State* L, LuaDeferredPtr deferred, object cb)
+LuaPromisePtr LuaPromise_Progress(lua_State* L, LuaPromisePtr deferred, object cb)
 {
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
@@ -56,7 +48,7 @@ LuaDeferredPtr LuaDeferred_Progress(lua_State* L, LuaDeferredPtr deferred, objec
    return deferred;
 }
 
-LuaDeferredPtr LuaDeferred_Fail(lua_State* L, LuaDeferredPtr deferred, object cb)
+LuaPromisePtr LuaPromise_Fail(lua_State* L, LuaPromisePtr deferred, object cb)
 {
    L = lua::ScriptHost::GetCallbackThread(L);
    if (deferred) {
@@ -93,7 +85,7 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
    std::string name = BUILD_STRING("lua " << fn);
    ReactorDeferredPtr d = GetReactor(L)->Call(fn);
 
-   object(L, LuaDeferred::Wrap(L, name, d)).push(L);
+   object(L, LuaPromise::Create(L, d, name)).push(L);
    return 1;
 }
 
@@ -129,15 +121,18 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
       namespace_("_radiant") [
          namespace_("rpc") [
             lua::RegisterType_NoTypeInfo<CoreReactor>("CoreReactor"),
-            lua::RegisterTypePtr_NoTypeInfo<LuaDeferred>("LuaDeferred")
-               .def("resolve",    &LuaDeferred::Resolve)
-               .def("reject",     &LuaDeferred::Reject)
-               .def("notify",     &LuaDeferred::Notify)
-               .def("done",       &LuaDeferred_Done)
-               .def("fail",       &LuaDeferred_Fail)
-               .def("progress",   &LuaDeferred_Progress)
-               .def("always",     &LuaDeferred_Always)
-               .def("destroy",    &LuaDeferred_Destroy)
+            lua::RegisterTypePtr_NoTypeInfo<LuaFuture>("LuaFuture")
+               .def("resolve",    &LuaFuture::Resolve)
+               .def("reject",     &LuaFuture::Reject)
+               .def("notify",     &LuaFuture::Notify)
+               .def("destroy",    &LuaFuture::Destroy)
+               ,
+            lua::RegisterTypePtr_NoTypeInfo<LuaPromise>("LuaPromise")
+               .def("done",       &LuaPromise_Done)
+               .def("fail",       &LuaPromise_Fail)
+               .def("progress",   &LuaPromise_Progress)
+               .def("always",     &LuaPromise_Always)
+               .def("destroy",    &LuaPromise::Destroy)
                ,
             lua::RegisterTypePtr_NoTypeInfo<Session>("Session")
                .def_readonly("player_id", &Session::player_id)

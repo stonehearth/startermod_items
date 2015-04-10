@@ -95,10 +95,10 @@ public: // the promise...
    }
    void Always(VoidFn cb) override {
       if (IsPending()) {
-         DEFERRED_LOG(5) << LogPrefix() << "fail called while waiting. buffering cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "always called while waiting. buffering cb.";
          always_.push_back(cb);
       } else {
-         DEFERRED_LOG(5) << LogPrefix() << "fail called in non-wait state. firing cb.";
+         DEFERRED_LOG(5) << LogPrefix() << "always called in non-wait state. firing cb.";
          cb();
       }
    }

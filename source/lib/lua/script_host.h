@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include "platform/utils.h"
 #include "lib/lua/bind.h"
+#include "lib/rpc/namespace.h"
 #include "om/error_browser/error_browser.h"
 #include "om/om.h"
 #include "lib/perfmon/perfmon.h"
@@ -61,6 +62,9 @@ public:
    void RegisterThread(lua_State*);
    void InstallProfileHook(lua_State* L);
    void RemoveProfileHook(lua_State* L);
+
+   void SaveLuaPromise(rpc::LuaPromisePtr promise);
+   void FreeLuaPromise(rpc::LuaPromisePtr promise);
 
 public: // the static interface
    static ScriptHost* GetScriptHost(lua_State*);
@@ -145,6 +149,7 @@ private:
    perfmon::CounterValueType  _profilerSampleCounts;
    unsigned int               max_profile_length_;
    std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
+   std::unordered_set<rpc::LuaPromisePtr> _luaPromises;
 };
 
 END_RADIANT_LUA_NAMESPACE
