@@ -1001,11 +1001,21 @@ function ExecutionFrame:_get_top_of_stack()
 end
 
 function ExecutionFrame:_log_stack(msg)
-   self._log:detail(msg)
+   -- It is possible this function can be called from within a destroyed frame (whose logger has gone
+   -- back to the pool).  Hence, the need for a logging alternate.
+   if self._log then
+      self._log:detail(msg)
+   else
+      radiant.log.spam('ai_ef', msg)
+   end
    local runstack = self._thread:get_thread_data('stonehearth:run_stack')
    for i = #runstack,1,-1 do
       local f = runstack[i]
-      self._log:spam('  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
+      if self._log then
+         self._log:spam('  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
+      else
+         radiant.log.spam('ai_ef', '  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
+      end
    end
 end
 
@@ -1476,7 +1486,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          -- *will not return*      
          self:_unwind_call_stack(exit_handler)
          assert(self._active_unit)
-         self._log:debug('finished unwinding!')
+         radiant.log.debug('ai_exec', 'finished unwinding!')
       elseif err == UNWIND_NEXT_FRAME then
          self:_cleanup_protected_call_exit()
          exit_handler()
@@ -1484,7 +1494,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          -- it's magic.  don't question it (there's a 2nd pcall in run...
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
-         self._log:info("aborting on error '%s' (state:%s)", err, self._state)
+         radiant.log.info('ai_exec', "aborting on error '%s' (state:%s)", err, self._state)
          -- If the action is removed from the running state, we might be dead, and we can't
          -- transition from dead to stopped.
          if self._state ~= DEAD then

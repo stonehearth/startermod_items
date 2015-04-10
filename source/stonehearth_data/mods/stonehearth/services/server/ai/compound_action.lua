@@ -319,7 +319,6 @@ function CompoundAction:destroy()
    if self._action.destroy then
       self._action:destroy(self._ai, self._entity, self._args)
    end
-   radiant.log.return_logger(self._log)
    self._log = nil
 end
 

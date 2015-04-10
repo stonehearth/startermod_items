@@ -122,7 +122,7 @@ function Log.create_logger(sub_category)
    local level = Log.get_log_level(category)
    local logger = {
       _category = category,
-      _log_prefix = '',
+      _prefix = '',
       _log_level = level,
 
       set_prefix = function (self, prefix)
