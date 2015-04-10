@@ -5,6 +5,7 @@ radiant = {
    is_server = true,
    _root_entity = _radiant.sim.get_object(1)
 }
+require 'modules.common'
 
 function radiant.get_object(addr)
    return _radiant.sim.get_object(addr)
@@ -39,7 +40,6 @@ radiant.mods = require 'modules.mods'
 
 radiant.log.info('radiant', 'radiant api initialized.')
 
-require 'modules.common'
 require 'modules.timer'
 
 function radiant.not_reached(reason, ...)

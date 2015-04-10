@@ -1,3 +1,4 @@
+local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 local Point3 = _radiant.csg.Point3
 
 local construction_tests = {}
@@ -12,28 +13,7 @@ function construction_tests.simple_build(autotest)
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          if e.entity:get_uri() == 'stonehearth:build:prototypes:building' then
             local building = e.entity
-            radiant.events.listen(building, 'stonehearth:construction:finished_changed', function ()
-                  local finished = building:get_component('stonehearth:construction_progress'):get_finished()
-                  if finished then
-                     construction_complete = true
-                     -- unlisten from notifications about the blueprint.  The listen code above
-                     -- will now wait for the scaffolding to be torn down.
-                     return radiant.events.UNLISTEN
-                  end
-            end)
-         end
-         if e.entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
-            local scaffolding = e.entity
-            radiant.events.listen(scaffolding, 'stonehearth:construction:finished_changed', function ()
-               if construction_complete then
-                  local finished = scaffolding:get_component('stonehearth:construction_progress'):get_finished()
-                  local rgn = scaffolding:get_component('destination'):get_region()
-                  if finished and rgn:get():get_area() == 0 then
-                     autotest:success()
-                     return radiant.events.UNLISTEN
-                  end
-               end
-            end)
+            lrbt_util.succeed_when_buildings_finished(autotest, { building })
          end
    end)
 

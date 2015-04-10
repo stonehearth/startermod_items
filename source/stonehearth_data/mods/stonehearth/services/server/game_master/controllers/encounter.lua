@@ -1,7 +1,7 @@
 local Node = require 'services.server.game_master.controllers.node'
 
 local Encounter = class()
-mixin_class(Encounter, Node)
+radiant.mixin(Encounter, Node)
 
 function Encounter:initialize(info)
    self._sv._info = info

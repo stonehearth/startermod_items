@@ -34,7 +34,7 @@ function PathFinder:find_path_to_entity(location, item, solved_cb, exhausted_cb)
 
    local id = item:get_id()
    pf:add_destination(item, solved_cb, exhausted_cb)
-   return radiant.lib.Destructor.new(function()
+   return radiant.lib.Destructor(function()
          return pf:remove_destination(id, solved_cb, exhausted_cb)
       end)
 end
@@ -99,7 +99,7 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
    assert(pf:get_description() == description)
 
    pf:add_solved_cb(solved_cb)
-   return radiant.lib.Destructor.new(function()
+   return radiant.lib.Destructor(function()
          return pf:remove_solved_cb(solved_cb)
       end)
 end

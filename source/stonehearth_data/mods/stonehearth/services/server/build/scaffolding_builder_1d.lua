@@ -67,6 +67,7 @@ end
 
 function ScaffoldingBuilder_OneDim:destroy()
    self:_untrace_blueprint_and_project()
+   self._sv.scaffolding_rgn = nil
 end
 
 -- interfaces for the owner of the builder
@@ -217,9 +218,12 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
 
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
+
+   self._log:spam('blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    if clipbox then
       project_rgn   = project_rgn:intersect_cube(clipbox)
       blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+      self._log:spam('(clipped) blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    end
 
    -- compute the top of the project.  the `top` is the height
@@ -230,6 +234,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
    local project_top
    if stand_at_base then
       project_top = blueprint_bounds.min.y
+      self._log:spam('standing at base.  using %d for project_top', project_top)
    elseif not project_rgn:empty() then
       local project_bounds = project_rgn:get_bounds()
       project_top = project_bounds.max.y
@@ -240,8 +245,10 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
          project_top = project_top - 1
       end
       project_top = math.min(project_top, blueprint_top - 1)
+      self._log:spam('project is not empty.  using %d for project_top', project_top)
    else
       project_top = blueprint_bounds.min.y
+      self._log:spam('project is empty.  using %d for project_top', project_top)
    end
    assert(project_top < blueprint_top)
    

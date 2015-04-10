@@ -97,10 +97,11 @@ function Log.create_logger(sub_category)
    --    2: Log.create_logger       
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
+   local level = Log.get_log_level(category)
    local logger = {
       _category = category,
       _log_prefix = '',
-      _log_level = Log.get_log_level(category),
+      _log_level = level,
 
       set_prefix = function (self, prefix)
             self._prefix = prefix
@@ -147,7 +148,7 @@ function Log.create_logger(sub_category)
          end,
    }
 
-   logger:set_log_level(Log.get_log_level(category))   
+   logger:set_log_level(level)   
    return logger
 end
 

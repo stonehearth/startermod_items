@@ -2,7 +2,7 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 local Node = require 'services.server.game_master.controllers.node'
 
 local Campaign = class()
-mixin_class(Campaign, Node)
+radiant.mixin(Campaign, Node)
 
 local TRIGGER = 'trigger'
 local CHALLENGE = 'challenge'

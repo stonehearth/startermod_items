@@ -1,4 +1,42 @@
 
+
+-- These methods and tables define a 'radiant.class', which looks functions similarly in an object-oriented fashion
+-- to unclass(), but has far less overhead (and far fewer features--no inheritence, for example).
+
+local RADIANT_CLASS_MT = {}
+
+RADIANT_CLASS_MT.__init = function(cls)
+   local obj = {}
+   setmetatable(obj, cls)
+   return obj
+end
+
+function RADIANT_CLASS_MT:__call(...)
+   local obj = {}
+   setmetatable(obj, self)
+   obj:__init(...)
+   return obj
+end
+
+function radiant.class()
+   local c = {}
+   c.__index = c
+   c.__class = c
+   setmetatable(c, RADIANT_CLASS_MT)
+   return c
+end
+
+-- used to add all the methods of `mixin` to `class`.  useful for sharing
+-- implementation across common classes.
+--
+function radiant.mixin(cls, mixin)
+   for k, v in pairs(mixin) do
+      if type(v) == 'function' then
+         cls[k] = v
+      end
+   end
+end
+
 function radiant.keys(t)
    local n, keys = 1, {}
    for k, _ in pairs(t) do
