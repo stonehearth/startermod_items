@@ -472,10 +472,14 @@ function Fabricator:_stop_project()
       self._fabricate_task = nil
    end
 
-   for zone, _ in pairs(self._mining_zones) do
-      radiant.entities.destroy_entity(zone)
-      self._mining_zones[zone] = nil
-      self._mining_traces[zone] = nil
+   for id, mining_zone in pairs(self._mining_zones) do
+      -- xxx: this is could cause some trouble... what happens if the mining zone
+      -- got merged with some other mining request?  didn't we just kill that one,
+      -- too?
+      radiant.entities.destroy_entity(mining_zone)
+      self._mining_traces[id]:destroy()
+      self._mining_zones[id] = nil
+      self._mining_traces[id] = nil
    end
 end
 
@@ -526,21 +530,20 @@ function Fabricator:_update_dst_region()
    --self:_log_region(dst_region, 'resulted in destination ->')
    
    -- Any region that needs mining should be removed from our destination region.
-   for zone, mining_dst in pairs(self._mining_zones) do
-      local mining_region = mining_dst:get_region():get()
+   for id, mining_zone in pairs(self._mining_zones) do
+      local mining_region = mining_zone:get_component('destination')
+                                          :get_region()
+                                             :get()
       if not mining_region:empty() then
-         local parent = radiant.entities.get_parent(self._entity)
-         local parent_pos = radiant.entities.get_world_location(parent)
-         local zone_pos = radiant.entities.get_world_location(zone)
-         if parent_pos == nil then
-            parent_pos = Point3(0, 0, 0)
-         end
-         local offset = zone_pos - parent_pos
+         local offset = radiant.entities.get_world_grid_location(self._entity) -
+                        radiant.entities.get_world_grid_location(mining_zone)
+
          local fab_mining_region = mining_region:translated(offset)
 
          dst_region:subtract_region(fab_mining_region)
       end
    end
+
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
@@ -598,24 +601,35 @@ function Fabricator:_update_mining_region()
    -- The mining service will handle all existing mining region overlap merging for us.
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
-   
-   if mining_zone and not self._mining_zones[mining_zone] then
-      mining_zone:add_component('stonehearth:mining_zone'):set_selectable(false)
-      local mining_dst = mining_zone:get_component('destination')
-      self._mining_zones[mining_zone] = mining_dst
+   if not mining_zone then
+      return
+   end
 
-      self._mining_traces[mining_zone] = mining_dst:trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
-         :on_changed(function(region)
-            self:_update_dst_region()
-         end)
-         :push_object_state()
+   local id = mining_zone:get_id()
+   if not self._mining_zones[id] then
+      self._mining_zones[id] = mining_zone
+
+      mining_zone:add_component('stonehearth:mining_zone')
+                     :set_selectable(false)
+
+      local trace = mining_zone:get_component('destination')
+                                    :trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+                                       :on_changed(function(region)
+                                             self:_update_dst_region()
+                                          end)
+
+      self._mining_traces[id] = trace
+      trace:push_object_state()
 
       -- Needs to be pre_destroy!  Otherwise, the mining region is destroyed, which triggers
       -- the callback in the fabricator to update the region, which accessess the cached
       -- destination component, which blows up.
       radiant.events.listen_once(mining_zone, 'radiant:entity:pre_destroy', function()
-         self._mining_zones[mining_zone] = nil
-         self._mining_traces[mining_zone] = nil
+         self._mining_zones[id] = nil
+         if self._mining_traces[id] then
+            self._mining_traces[id]:destroy()
+            self._mining_traces[id] = nil
+         end
       end)
    end
 end
