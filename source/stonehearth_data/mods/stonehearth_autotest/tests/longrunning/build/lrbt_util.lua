@@ -149,35 +149,66 @@ function lrbt_util.create_endless_entity(autotest, x0, y0, w, h, uri)
    end                        
 end
 
-function lrbt_util.succeed_when_buildings_finished(autotest, buildings, scaffoldings)
-   local succeeded = false
-   local function succeed_if_finished()
-      if not succeeded then
-         for _, building in pairs(buildings) do
-            if not building:get_component('stonehearth:construction_progress'):get_finished() then
-               return
-            end
+function lrbt_util.succeed_when_buildings_finished(autotest, buildings)
+   local unfinished = {}
+   local listeners = {}
+   local traces = {}
+
+   local function check_success()
+      if radiant.empty(unfinished) then
+         for _, listener in pairs(listeners) do
+            listener:destroy()
          end
-         for _, scaffolding in pairs(scaffoldings) do
-            if not scaffolding:get_component('destination'):get_region():get():empty() then
-               return
-            end
+         for _, trace in pairs(traces) do
+            trace:destroy()
          end
-         succeeded = true
          autotest:success()
       end
    end
-   
-   local function install_listeners(t)
-      for _, entity in pairs(t) do
-         radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
-               succeed_if_finished();
-            end)
-      end
+
+   local create_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
+         local entity = e.entity
+         local id = entity:get_id()
+         if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+            local trace = entity:get_component('region_collision_shape')
+                     :trace_region('checking success')
+                        :on_changed(function(rgn)
+                              local finished = rgn and rgn:empty()
+                              if finished then
+                                 unfinished[id] = nil
+                                 check_success()
+                              else
+                                 unfinished[id] = entity
+                              end
+                           end)
+            traces[id] = trace
+            trace:push_object_state()
+         end
+      end)
+   local destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
+         local entity = e.entity
+         unfinished[entity:get_id()] = nil
+         local entity = e.entity
+         if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+            unfinished[entity:get_id()] = entity
+         end
+      end)
+   table.insert(listeners, create_listener)
+   table.insert(listeners, destroy_listener)
+
+   for id, building in pairs(buildings) do
+      unfinished[id] = building
+      local building_listener = radiant.events.listen(building, 'stonehearth:construction:finished_changed', function()
+            local finished = building:get_component('stonehearth:construction_progress'):get_finished()
+            if not finished then
+               unfinished[id] = building
+               return
+            end
+            unfinished[id] = nil
+            check_success()
+         end)
+      table.insert(listeners, building_listener)
    end
-   
-   install_listeners(buildings)
-   install_listeners(scaffoldings)
 end
 
 function lrbt_util.succeed_when_buildings_destroyed(autotest, buildings)
