@@ -19,19 +19,27 @@ local ADJACENT_POINTS = {
 local Fabricator = class()
 
 -- build the inverse material map
-local function build_color_to_material_map()
-   local c2m = {}
+local COLOR_TO_MATERIAL = {}
+local function build_color_to_material_map()  
    for material, colorlist in pairs(stonehearth.constants.construction.brushes.voxel) do
       for _, color in ipairs(colorlist) do
-         if c2m[color] then
+         if COLOR_TO_MATERIAL[color] then
             radiant.error('duplicate color %s in stonehearth:build:brushes', color)
          end
-         c2m[color] = material
+         COLOR_TO_MATERIAL[color] = material
       end
    end
-   return c2m
 end
-local COLOR_TO_MATERIAL = build_color_to_material_map()
+
+-- this is quite annoying.  the order of operations during loading means that the fabricator for
+-- an entity may be required before the stonehearth mod gets loaded.  if that happens, wait for
+-- the load message before trying to rebuild the colormap
+if rawget(_G, 'stonehearth') then
+   build_color_to_material_map()
+else
+   radiant.events.listen_once(radiant, 'radiant:game_loaded',  build_color_to_material_map)
+   return
+end
 
 -- this is the component which manages the fabricator entity.
 function Fabricator:__init(name, entity, blueprint, project)
@@ -318,8 +326,12 @@ function Fabricator:remove_block(location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
-   local rgn = self._fabricator_dst:get_region():get()
-   if not rgn:contains(pt) then
+   if not self._fabricator_dst:get_region():get():contains(pt) then
+      self._log:warning('trying to remove unbuild portion %s of construction project', pt)
+      return false
+   end
+   local project_rgn = self._project_dst:get_region():get()
+   if not project_rgn:contains(pt) then
       self._log:warning('trying to remove unbuild portion %s of construction project', pt)
       return false
    end
@@ -329,7 +341,6 @@ function Fabricator:remove_block(location)
    -- block to remove to the project collision shape by starting at the tip
    -- top and looking down
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
-      local project_rgn = self._project_dst:get_region():get()
       local bounds = project_rgn:get_bounds()
       local top = bounds.max.y - 1
       local bottom = bounds.min.y
@@ -668,6 +679,9 @@ function Fabricator:_update_fabricator_region()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br
+   self._log:spam('blueprint region: %s   area:%d', br:get_bounds(), br:get_area())
+   self._log:spam('project   region: %s   area:%d', pr:get_bounds(), br:get_area())
+   self._log:spam('teardown  region: %s   area:%d', teardown_region:get_bounds(), teardown_region:get_area())
 
    self._should_teardown = not teardown_region:empty()
    if self._should_teardown then
