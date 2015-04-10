@@ -13,4 +13,15 @@
 
 #define RPC_LOG(level)     LOG(rpc, level)
 
+
+BEGIN_RADIANT_RPC_NAMESPACE
+
+class LuaFuture;
+class LuaPromise;
+
+DECLARE_SHARED_POINTER_TYPES(LuaFuture)
+DECLARE_SHARED_POINTER_TYPES(LuaPromise)
+
+END_RADIANT_RPC_NAMESPACE
+
 #endif //  _RADIANT_RPC_NAMESPACE_H

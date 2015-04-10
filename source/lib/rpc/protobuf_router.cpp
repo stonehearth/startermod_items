@@ -19,7 +19,7 @@ ProtobufRouter::ProtobufRouter(SendRequestFn send_request_fn) :
 
 ReactorDeferredPtr ProtobufRouter::Call(Function const& fn)
 {
-   RPC_LOG(5) << "protobuf router dispatching call " << fn;
+   RPC_LOG(5) << "protobuf router dispatching call " << fn << "(call_id:" << fn.call_id << ")";
 
    proto::PostCommandRequest request;
    request.set_op(request.CALL);
@@ -33,7 +33,7 @@ ReactorDeferredPtr ProtobufRouter::Call(Function const& fn)
 
 ReactorDeferredPtr ProtobufRouter::InstallTrace(Trace const& t)
 {
-   RPC_LOG(5) << "protobuf router dispatching trace " << t;
+   RPC_LOG(5) << "protobuf router dispatching trace " << t << "(call_id:" << t.call_id << ")";
 
    // xxx: if multiple clients all trace the same uri, we should only trace the
    // remote end once.
@@ -54,13 +54,15 @@ ReactorDeferredPtr ProtobufRouter::InstallTrace(Trace const& t)
 
 ReactorDeferredPtr ProtobufRouter::SendNewRequest(proto::PostCommandRequest& r)
 {
-   RPC_LOG(5) << "protobuf router creating deferred to deliver remote result";
-
    int call_id = r.call_id();
+
+   RPC_LOG(5) << "protobuf router creating deferred to deliver remote result " << "(call_id:" << call_id << ")";
+
    ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(std::string("remote " + stdutil::ToString(call_id) + " " + r.route()));
    pending_calls_[call_id] = d;
 
    d->Always([this, call_id]() {
+      RPC_LOG(5) << "call finished.  erasing from pending call map (call_id: " << call_id << ")";
       pending_calls_.erase(call_id);
    });
    send_request_fn_(r);
@@ -70,7 +72,7 @@ ReactorDeferredPtr ProtobufRouter::SendNewRequest(proto::PostCommandRequest& r)
 
 ReactorDeferredPtr ProtobufRouter::RemoveTrace(UnTrace const& u)
 {
-   RPC_LOG(5) << "protobuf router removing trace " << u;
+   RPC_LOG(5) << "protobuf router removing trace "  << "(call_id:" << u.call_id << ")";
 
    auto i = pending_calls_.find(u.call_id);
    if (i != pending_calls_.end()) {
@@ -95,9 +97,12 @@ void ProtobufRouter::DestroyRemoteTrace(int call_id)
 
 void ProtobufRouter::OnPostCommandReply(proto::PostCommandReply const& reply)
 {
-   auto i = pending_calls_.find(reply.call_id());
+   int call_id = reply.call_id();
+   RPC_LOG(5) << "protobuf router received reply (call_id:" << call_id << ")";
+
+   auto i = pending_calls_.find(call_id);
    if (i == pending_calls_.end()) {
-      RPC_LOG(1) << "received reply with unknown call id '" << reply.call_id() << "'";
+      RPC_LOG(1) << "received reply with unknown call id '" << call_id << "'";
       return;
    }
 
