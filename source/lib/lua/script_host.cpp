@@ -1240,11 +1240,8 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
       for (auto const c : frame.second.callers) {
          // libjson treats '.' as a child node.  Wonderful!
          std::string fnname((const char*)c.first);
-         for (int i = 0; i < (int)fnname.length(); i++) {
-            if (fnname[i] == '.') {
-               fnname[i] = '_';
-            }
-         }
+         boost::replace_all(fnname, ".", "&#46;");
+         
          json::Node callerNode;
          callerNode.set("nm", fnname);
          callerNode.set("n", c.second);
@@ -1254,11 +1251,7 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
       // libjson treats '.' as a child node.  Wonderful!
       std::string fnname((const char*)frame.first);
-      for (int i = 0; i < (int)fnname.length(); i++) {
-         if (fnname[i] == '.') {
-            fnname[i] = '_';
-         }
-      }
+      boost::replace_all(fnname, ".", "&#46;");
 
       profileData.set(fnname, frameNode);
    }
