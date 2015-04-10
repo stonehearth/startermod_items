@@ -12,7 +12,7 @@
 
   <div class="tab-content">
     <div id="bottomUp" class="tab active">
-      <table id="bottomUpPerfTable">
+      <table id="bottomUpPerfTable" class="perfTable">
         <tr>
           <th>Function Name</th>
           <th>Self Time In Function(us)</th>
@@ -23,7 +23,7 @@
       </table>
     </div>
     <div id="topDown" class="tab">
-      <table id="topDownPerfTable">
+      <table id="topDownPerfTable" class="perfTable">
         <tr>
           <th>Function Name</th>
           <th>Self Time In Function(us)</th>
@@ -94,10 +94,10 @@
     display:block;
   }
 
-  table#perfTable tr:nth-child(even) {
+  table.perfTable tr:nth-child(even) {
       background-color: #eee;
   }
-  table#perfTable tr:nth-child(odd) {
+  table.perfTable tr:nth-child(odd) {
       background-color: #fff;
   }
 </style>
