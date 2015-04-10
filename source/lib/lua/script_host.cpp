@@ -1195,6 +1195,8 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    std::string script_name;
    luabind::object module;
 
+   LUA_LOG(3) << "creating module " << mod_name << "...";
+
    std::string scriptKey = BUILD_STRING(site_ << "_init_script");
    resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
       script_name = manifest.get<std::string>(scriptKey, "");
