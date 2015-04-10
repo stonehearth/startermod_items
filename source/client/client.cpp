@@ -205,7 +205,33 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F2] = [=](KeyboardInput const& kb) { EnableDisableLifetimeTracking(); };
       _commands[GLFW_KEY_F3] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) { ReloadBrowser(); };
+      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) {
+         if (kb.shift) {
+
+            if (!_reloadSavePromise && !_reloadLoadPromise) {
+
+               // Sweet.  No reload is in progress.  First save the game.  What that's done, load
+               // the game we just saved.  The ->Always() blocks null out the promise pointers.
+               // Always is always (ha!) called after Done or Reject.
+
+               _reloadSavePromise = SaveGame("force_reload", json::Node());
+
+               _reloadSavePromise->Done([this](json::Node const&n) {
+                                    ASSERT(!_reloadLoadPromise);
+
+                                    _reloadLoadPromise = LoadGame("force_reload");
+                                    _reloadLoadPromise->Always([this]() {
+                                       _reloadLoadPromise = nullptr;
+                                    });
+                                 });
+               _reloadSavePromise->Always([this]() {
+                                    _reloadSavePromise = nullptr;
+                                 });
+            }
+         } else {
+            ReloadBrowser();
+         }
+      };
       _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame("hotkey_save", json::Node()); };
       _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame("hotkey_save"); };
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
@@ -1640,13 +1666,13 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("client save");
    if (saveid.empty()) {
       CLIENT_LOG(0) << "ignoring save request: saveid is empty";
-      d->ResolveWithMsg("stonehearth:no_saveid");
+      d->RejectWithMsg("stonehearth:no_saveid");
       return d;
    }
 
    if (client_save_deferred_) {
       CLIENT_LOG(0) << "ignoring save request: request is already in flight";
-      d->ResolveWithMsg("stonehearth:save_in_progress");
+      d->RejectWithMsg("stonehearth:save_in_progress");
       return d;
    }
 
@@ -1672,13 +1698,14 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
       SaveClientMetadata(tmpdir, gameinfo);
-      client_save_deferred_->Resolve(n);
 
       // finally. move the save game to the correct direcory
       fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
       DeleteSaveGame(saveid);
       rename(tmpdir, savedir);
       CLIENT_LOG(1) << "moving " << tmpdir.string() << " to " << savedir;
+
+      client_save_deferred_->Resolve(n);
    });
    server_save_deferred_->Fail([this, tmpdir, gameinfo](JSONNode const&n) {
       client_save_deferred_->Reject(n);
