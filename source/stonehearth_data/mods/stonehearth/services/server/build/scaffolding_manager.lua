@@ -74,7 +74,7 @@ function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, bluepri
       blueprint_region = blueprint_region,
    }
    self._sv.regions[rid] = rblock
-   log:detail('adding region rid:%4d origin:%s dbg:%s blueprint_region:%s', rid, origin, debug_text, blueprint_region:get():get_bounds())
+   log:detail('adding region rid:%-4d origin:%s dbg:%s blueprint_region:%s', rid, origin, debug_text, blueprint_region:get():get_bounds())
    self:_trace_region(rblock)
 end
 
@@ -108,8 +108,10 @@ function ScaffoldingManager:_mark_region_changed(rblock)
    end
    local sblock = rblock.sblock
    if sblock then
+      log:detail('rid:%d changed.  marking sblock sid:%d changed as well.', rblock.rid, sblock.sid)
       self._changed_scaffolding[sblock.sid] = sblock
    else
+      log:detail('rid:%d changed.  no sblock yet.  adding to new region set!', rblock.rid)
       self._new_regions[rblock.rid] = rblock
    end
 end
@@ -171,6 +173,7 @@ function ScaffoldingManager:_find_scaffolding_for(rblock)
    end
    rblock.sblock = sblock
    sblock.regions[rblock.rid] = rblock
+   log:detail('bound rid:%d to existing sblock sid:%d', rblock.rid, sblock.sid)
    return true
 end
 
@@ -218,6 +221,8 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    }
    self._sv.scaffolding[sid] = sblock
    rblock.sblock = sblock
+
+   log:detail('created new sblock sid:%d for rblock rid:%d', rblock.rid, sblock.sid)
 
    return sblock
 end
