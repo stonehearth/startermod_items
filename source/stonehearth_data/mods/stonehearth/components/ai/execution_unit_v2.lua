@@ -898,10 +898,7 @@ end
 function ExecutionUnitV2:_destroy_object_monitor()
    if self._object_monitor then
       self._log:detail('destroying object monitor. was running = %s', self._object_monitor:is_running())
-      self._object_monitor:reset()
-
-      -- Return the object monitor to the pool, so it can be re-used by someone else!
-      radiant_release(self._object_monitor)
+      self._object_monitor:destroy()
       self._object_monitor = nil
    end
 end

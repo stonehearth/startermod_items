@@ -1,6 +1,6 @@
 local TraceCategories = _radiant.dm.TraceCategories
 
-local ObjectMonitor = radiant_class()
+local ObjectMonitor = radiant.class()
 
 function ObjectMonitor:__init(log)
    log:spam('constructing object monitor')
@@ -14,13 +14,6 @@ function ObjectMonitor:destroy()
       trace:destroy()
    end
    self._traces = {}
-end
-
-function ObjectMonitor:reset()
-   self:destroy()
-   self._triggered = false
-   self._destroyed_cb = nil
-   self._log = nil
 end
 
 function ObjectMonitor:resume()

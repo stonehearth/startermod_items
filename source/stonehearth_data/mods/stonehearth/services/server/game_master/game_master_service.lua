@@ -2,7 +2,7 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 local Node = require 'services.server.game_master.controllers.node'
 
 local GameMasterService = class()
-mixin_class(GameMasterService, Node)
+radiant.mixin(GameMasterService, Node)
 
 function GameMasterService:initialize()
    self._log = radiant.log.create_logger('game_master')

@@ -3,7 +3,7 @@
 -- A utility class which makes it really easy to implement objects which implement
 -- only a single "destroy" method.
 
-local Destructor = radiant_class()
+local Destructor = radiant.class()
 
 function Destructor:__init(destroy_cb)
 	assert(destroy_cb)
