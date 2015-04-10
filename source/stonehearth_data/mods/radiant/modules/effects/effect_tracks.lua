@@ -94,6 +94,8 @@ function EffectTracks:_cleanup()
       self._effect_list:remove_effect(self._effect)
    end
    self._mgr:_remove_effect(self)
+   radiant.log.return_logger(self._log)
+   self._log = nil
 end
 
 function EffectTracks:update(e)

@@ -490,6 +490,11 @@ function ExecutionUnitV2:_stop_from_running()
    self:_do_stop()
 end
 
+function ExecutionUnitV2:_clear_log()
+   radiant.log.return_logger(self._log)
+   self._log = nil
+end
+
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._current_execution_frame)
@@ -497,6 +502,7 @@ function ExecutionUnitV2:_destroy_from_thinking()
    self:_call_stop_thinking()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_starting()
@@ -512,6 +518,7 @@ function ExecutionUnitV2:_destroy_from_starting()
    end
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_stopping()
@@ -520,6 +527,7 @@ function ExecutionUnitV2:_destroy_from_stopping()
    self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_stopped()
@@ -528,6 +536,7 @@ function ExecutionUnitV2:_destroy_from_stopped()
    self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_running()
@@ -536,6 +545,7 @@ function ExecutionUnitV2:_destroy_from_running()
    self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_finished()
@@ -544,6 +554,7 @@ function ExecutionUnitV2:_destroy_from_finished()
    self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_do_start()

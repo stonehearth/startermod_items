@@ -606,6 +606,8 @@ function ExecutionFrame:destroy()
    self._log:spam('destroy')
    self:_protected_call(function()
          self:_destroy()
+         radiant.log.return_logger(self._log)
+         self._log = nil
          self:wait_until(DEAD)
       end)
 end
