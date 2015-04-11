@@ -31,7 +31,7 @@ function CreateCamp:start(ctx, info)
    self._sv._info = info
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
-                                                 radiant.bind_callback(self, '_create_camp'))
+                                                 radiant.bind(self, '_create_camp'))
 end
 
 function CreateCamp:stop()
