@@ -83,6 +83,7 @@ namespace fs = boost::filesystem;
 namespace proto = ::radiant::tesseract::protocol;
 
 static const std::regex call_path_regex__("/r/call/?");
+const char *HOTKEY_SAVE_KEY = "hotkey_save";
 
 static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
 static int POST_SYSINFO_INTERVAL_MS = 5 * 60 * 1000;  // every 5 minutes
@@ -214,12 +215,12 @@ void Client::OneTimeIninitializtion()
                // the game we just saved.  The ->Always() blocks null out the promise pointers.
                // Always is always (ha!) called after Done or Reject.
 
-               _reloadSavePromise = SaveGame("force_reload", json::Node());
+               _reloadSavePromise = SaveGame(HOTKEY_SAVE_KEY, json::Node());
 
                _reloadSavePromise->Done([this](json::Node const&n) {
                                     ASSERT(!_reloadLoadPromise);
 
-                                    _reloadLoadPromise = LoadGame("force_reload");
+                                    _reloadLoadPromise = LoadGame(HOTKEY_SAVE_KEY);
                                     _reloadLoadPromise->Always([this]() {
                                        _reloadLoadPromise = nullptr;
                                     });
@@ -232,8 +233,8 @@ void Client::OneTimeIninitializtion()
             ReloadBrowser();
          }
       };
-      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame("hotkey_save", json::Node()); };
-      _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame("hotkey_save"); };
+      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame(HOTKEY_SAVE_KEY, json::Node()); };
+      _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame(HOTKEY_SAVE_KEY); };
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this](KeyboardInput const& kb) {

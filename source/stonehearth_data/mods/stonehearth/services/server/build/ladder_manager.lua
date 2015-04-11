@@ -34,6 +34,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
    end
    ladder_builder:add_point(to)
 
+   -- xxx: this must be a controller so it can be save/load compatible.  ug!
    return radiant.lib.Destructor(function()
          ladder_builder:remove_point(to)
       end)

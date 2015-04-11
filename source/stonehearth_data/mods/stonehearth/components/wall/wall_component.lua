@@ -46,6 +46,7 @@ function Wall:initialize(entity, json)
    
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
+
    if not self._sv.initialized then
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
@@ -310,8 +311,12 @@ function Wall:_compute_wall_measurements()
    if self._sv.patch_wall_region then
       return
    end
-   
+
    local normal, pos_a, pos_b = self._sv.normal, self._sv.pos_a, self._sv.pos_b
+   if not self._sv.normal then
+      -- we're the project, not the blueprint.  nothing to compute.
+      return
+   end
 
    -- figure out the tangent and normal coordinate indicies based on the direction
    -- of the normal
