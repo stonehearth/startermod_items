@@ -197,6 +197,7 @@ EdgeMap<S, C> RegionTools<S, C>::GetEdgeMap(Region<S, C> const& region) {
       edgemap.AddEdge(info.min, info.max, info.normal);
    });
    edgemap.FixNormals();
+   edgemap.MergeAdjacentEdges();
    return std::move(edgemap);
 }
 
@@ -207,6 +208,7 @@ Region<double, C> RegionTools<S, C>::GetInnerBorder(Region<S, C> const& region, 
       edgemap.AddEdge(info.min, info.max, info.normal);
    });
    edgemap.FixNormals();
+   edgemap.MergeAdjacentEdges();
 
    Region<double, C> result;
    for (Edge<S, C> const& edge : edgemap) {
