@@ -38,7 +38,6 @@ if rawget(_G, 'stonehearth') then
    build_color_to_material_map()
 else
    radiant.events.listen_once(radiant, 'radiant:game_loaded',  build_color_to_material_map)
-   return
 end
 
 -- this is the component which manages the fabricator entity.
