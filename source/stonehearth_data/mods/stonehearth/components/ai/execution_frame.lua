@@ -436,7 +436,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
       if self._active_unit then
          self._log:detail('stopping old active unit "%s" in _restart_thinking.', self._active_unit:get_name())
-         self._active_unit:stop()
+         self._active_unit:_stop()
          self._active_unit = nil
       end
       self._log:detail('using "%s" as active unit in _restart_thinking.', unit:get_name())
