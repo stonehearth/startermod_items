@@ -598,11 +598,11 @@ var StonehearthClient;
       },
 
 
-      buildFloor : function(floorBrush) {
+      buildFloor : function(floorBrush, sinkFloor) {
          var self = this;
          return function() {
             var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
-            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush, sinkFloor)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
