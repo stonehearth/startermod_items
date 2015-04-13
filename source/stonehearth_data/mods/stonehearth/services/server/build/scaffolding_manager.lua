@@ -100,9 +100,11 @@ function ScaffoldingManager:_remove_region(rid)
 
       -- remove the rblock from the sblock
       local sid = rblock.sid
-      local sblock = self._sv.scaffolding[sid]
-      sblock.regions[rid] = nil
-      self._changed_scaffolding[sid] = sblock
+      if sid then
+         local sblock = self._sv.scaffolding[sid]
+         sblock.regions[rid] = nil
+         self._changed_scaffolding[sid] = sblock
+      end
    end
 end
 
@@ -175,15 +177,16 @@ end
 function ScaffoldingManager:_process_new_regions()
    for rid, rblock in pairs(self._new_regions) do
       assert(not rblock.sblock)
+      if rblock.entity:is_valid() then
+         if not self:_find_scaffolding_for(rblock) then
+            self:_create_scaffolding_for(rblock)
+         end
+         local sblock = rblock.sblock
+         assert(sblock)
+         assert(sblock.regions[rblock.rid] == rblock)
 
-      if not self:_find_scaffolding_for(rblock) then
-         self:_create_scaffolding_for(rblock)
+         self._changed_scaffolding[sblock.sid] = sblock
       end
-      local sblock = rblock.sblock
-      assert(sblock)
-      assert(sblock.regions[rblock.rid] == rblock)
-
-      self._changed_scaffolding[sblock.sid] = sblock
    end
    self._new_regions = {}
 end

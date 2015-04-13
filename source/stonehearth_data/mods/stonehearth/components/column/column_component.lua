@@ -77,11 +77,13 @@ end
 
 
 function Column:save_to_template()
-   return {}
+   return {
+      brush = self._sv.brush
+   }
 end
 
 function Column:load_from_template(data, options, entity_map)
-   -- nothing to do!   
+   self._sv.brush = data.brush
 end
 
 function Column:rotate_structure(degrees)

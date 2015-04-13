@@ -402,8 +402,11 @@ end
 --    @param blueprint - The blueprint which needs a new fabricator.
 --
 function BuildService:add_fabricator(blueprint)
+   self._log:info('adding fabricator to %s', blueprint)
+   
    assert(blueprint:get_component('stonehearth:construction_data'),
           string.format('blueprint %s has no construction_data', tostring(blueprint)))
+
 
    local fabricator = radiant.entities.create_entity('stonehearth:build:prototypes:fabricator', { owner = blueprint })
 
@@ -793,7 +796,6 @@ end
 
 function BuildService:grow_walls(floor, column_brush, wall_brush)
    local building = build_util.get_building_for(floor)
-
    build_util.grow_walls_around(floor, function(min, max, normal)
          self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
       end)

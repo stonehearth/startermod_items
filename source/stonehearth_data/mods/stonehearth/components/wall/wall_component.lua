@@ -45,19 +45,22 @@ function Wall:initialize(entity, json)
    assert(entity and entity:is_valid())
    
    self._entity = entity
-   self._sv = self.__saved_variables:get_data()
+
+   self._log = radiant.log.create_logger('build.wall')
+                              :set_entity(entity)
 
    if not self._sv.initialized then
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
       self:_compute_wall_measurements()
-   end
+   end   
 end
 
-function Wall:set_brush(brush)
+function Wall:set_brush(brush)   
    self._sv.brush = brush
    self.__saved_variables:mark_changed()
+   self._log:detail('set brush (brush %s)', self._sv.brush)
    return self
 end
 
@@ -102,6 +105,7 @@ function Wall:clone_from(entity)
       self._sv.pos_a = other_wall._sv.pos_a
       self._sv.pos_b = other_wall._sv.pos_b
       self._sv.normal = other_wall._sv.normal
+      self._sv.brush = other_wall._sv.brush
       self._sv.patch_wall_region = other_wall._sv.patch_wall_region
       self.__saved_variables:mark_changed()
       self:_compute_wall_measurements()
@@ -235,15 +239,23 @@ end
 -- is useful (e.g. connect_to(), attach_to_roof())
 -- 
 function Wall:layout()
-   local collision_shape
+   local building = build_util.get_building_for(self._entity)
+   if not building then
+      -- sometimes, depending on the order that things get destroyed, a wall
+      -- will be asked to layout after it has been divorces from it's building
+      -- (e.g. when the blueprint still exists, but the project (and thus the
+      -- fabricator) has been destroyed).
+      return
+   end
 
    local function compute_collision_shape()
-      local stencil = self:_compute_wall_shape()
+      local stencil = self:_compute_wall_shape(building)
       return self._entity:get_component('stonehearth:construction_data')
                                :create_voxel_brush(self._sv.brush)
                                :paint_through_stencil(stencil)
    end
 
+   local collision_shape
    if not self._editing then
       -- server side...
       collision_shape = compute_collision_shape()
@@ -308,6 +320,8 @@ function Wall:get_columns()
 end
 
 function Wall:_compute_wall_measurements()
+   self._log:detail('computing measurements')
+
    if self._sv.patch_wall_region then
       return
    end
@@ -383,9 +397,9 @@ end
 -- unless it has a roof attached, in which case it extends all the way to
 -- the bottom of the roof.
 --
-function Wall:_compute_wall_shape()
+function Wall:_compute_wall_shape(building)
    -- if we're a patch wall, the region was passed in directly at creation
-   -- time.  no computatio need by done
+   -- time.  no computation need by done   
    if self._sv.patch_wall_region then
       return self._sv.patch_wall_region
    end
@@ -395,8 +409,6 @@ function Wall:_compute_wall_shape()
    if box:get_area() == 0 then
       return Region3()
    end
-
-   local building = build_util.get_building_for(self._entity)
 
    return building:get_component('stonehearth:building')
                      :grow_local_box_to_roof(self._entity, box)
@@ -408,12 +420,14 @@ function Wall:save_to_template()
       normal = self._sv.normal,
       pos_a = self._sv.pos_a,
       pos_b = self._sv.pos_b,
+      brush = self._sv.brush,
       patch_wall_region = self._sv.patch_wall_region,
    }
 end
 
 function Wall:load_from_template(data, options, entity_map)
    self._sv.normal = Point3(data.normal.x, data.normal.y, data.normal.z)
+   self._sv.brush = data.brush
    if data.patch_wall_region then
       self._sv.patch_wall_region = Region3()
       self._sv.patch_wall_region:load(data.patch_wall_region)
