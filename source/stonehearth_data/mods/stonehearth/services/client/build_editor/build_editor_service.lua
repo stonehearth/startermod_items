@@ -51,6 +51,11 @@ function BuildEditorService:on_selection_changed()
                end
             end
          end
+      else
+         local bc = maybe_selected:get_component('stonehearth:building')
+         if bc then
+            building_entity = maybe_selected
+         end
       end
    end
 
