@@ -1,5 +1,7 @@
 
-stonehearth = {}
+stonehearth = {
+   constants = require 'constants'
+}
 
 -- For services that handle input, make sure you load them in the order
 -- that you want input to be handled (i.e. xz-region-selection gets priority

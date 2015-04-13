@@ -62,7 +62,6 @@ function ScaffoldingBuilder_OneDim:activate()
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
       end)
-   self:_update_status()
 end
 
 function ScaffoldingBuilder_OneDim:destroy()

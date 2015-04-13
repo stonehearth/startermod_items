@@ -1,4 +1,4 @@
-local RunTaskAction = class()
+local RunTaskAction = radiant.class()
 
 RunTaskAction.version = 2
 

@@ -91,16 +91,38 @@ local function compute_log_prefix(prefix, entity)
    return '[' .. (entity_prefix and (entity_prefix .. ' ') or '') .. (prefix or '') .. '] '
 end
 
+
+local log_free_list = {}
+
+function Log.return_logger(logger)
+   logger:set_prefix('')
+   logger:set_entity(nil)
+   local log_cat_free_list = log_free_list[logger._category]
+   if not log_cat_free_list then
+      log_cat_free_list = {}
+      log_free_list[logger._category] = log_cat_free_list
+   end
+   table.insert(log_cat_free_list, logger)
+end
+
 function Log.create_logger(sub_category)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
    --    2: Log.create_logger       
    --    3: --> some module whose name we want! <-- 
    local category = __get_current_module_name(3) .. '.' .. sub_category
+
+   local log_cat_free_list = log_free_list[category]
+   if log_cat_free_list then
+      if #log_cat_free_list > 0 then
+         return table.remove(log_cat_free_list)
+      end
+   end
+
    local level = Log.get_log_level(category)
    local logger = {
       _category = category,
-      _log_prefix = '',
+      _prefix = '',
       _log_level = level,
 
       set_prefix = function (self, prefix)

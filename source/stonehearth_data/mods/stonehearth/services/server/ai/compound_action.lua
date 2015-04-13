@@ -4,7 +4,7 @@ local Entity = _radiant.om.Entity
 
 local placeholders = require 'services.server.ai.placeholders'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
-local CompoundAction = class()
+local CompoundAction = radiant.class()
 
 function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, think_output_placeholders)
    -- initialize metadata
@@ -319,6 +319,7 @@ function CompoundAction:destroy()
    if self._action.destroy then
       self._action:destroy(self._ai, self._entity, self._args)
    end
+   self._log = nil
 end
 
 function CompoundAction:get_debug_info(depth)

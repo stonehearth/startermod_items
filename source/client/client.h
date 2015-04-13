@@ -282,6 +282,8 @@ private:
       rpc::ReactorDeferredPtr     perf_counter_deferred_;
       rpc::ReactorDeferredPtr     server_save_deferred_;
       rpc::ReactorDeferredPtr     client_save_deferred_;
+      rpc::ReactorDeferredPtr     _reloadSavePromise;
+      rpc::ReactorDeferredPtr     _reloadLoadPromise;
       int                         _lastSequenceNumber;
       int                         _nextSysInfoPostTime;
 

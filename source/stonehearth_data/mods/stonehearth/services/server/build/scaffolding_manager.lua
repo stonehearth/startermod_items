@@ -16,16 +16,21 @@ function ScaffoldingManager:initialize()
    self._sv.builders = {}        -- line and plen builders
    self._sv.regions = {}         -- per builder..
    self._sv.scaffolding = {}
+   self.__saved_variables:mark_changed()
+end
 
+function ScaffoldingManager:activate()
    self._new_regions = {}
    self._changed_scaffolding = {}
    self._rblock_region_traces = {}
    self._sblock_region_traces = {}
 
-   self.__saved_variables:mark_changed()
-end
-
-function ScaffoldingManager:activate()
+   for rid, rblock in pairs(self._sv.regions) do
+      self:_trace_rblock_region(rblock)
+   end
+   for sid, sblock in pairs(self._sv.scaffolding) do
+      self:_trace_sblock_region(sblock)
+   end
 end
 
 function ScaffoldingManager:request_scaffolding_for(requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
@@ -82,18 +87,24 @@ end
 function ScaffoldingManager:_remove_region(rid)
    log:detail('removing region rid:%d', rid)
 
-   if self._sv.regions[rid] then
+   local rblock = self._sv.regions[rid]
+   if rblock then
       -- remove all the rblock tracking data
       assert(self._sv.regions[rid])
       self._sv.regions[rid] = nil
-      self._rblock_region_traces[rid]:destroy()
-      self._rblock_region_traces[rid] = nil
+
+      if self._rblock_region_traces[rid] then
+         self._rblock_region_traces[rid]:destroy()
+         self._rblock_region_traces[rid] = nil
+      end
 
       -- remove the rblock from the sblock
       local sid = rblock.sid
-      local sblock = self._sv.scaffolding[sid]
-      sblock.regions[rid] = nil
-      self._changed_scaffolding[sid] = sblock
+      if sid then
+         local sblock = self._sv.scaffolding[sid]
+         sblock.regions[rid] = nil
+         self._changed_scaffolding[sid] = sblock
+      end
    end
 end
 
@@ -130,8 +141,10 @@ function ScaffoldingManager:_check_sblock_destroy(sblock)
    if sblock.region:get():empty() then
       local sid = sblock.sid
 
-      self._sblock_region_traces[sid]:destroy()
-      self._sblock_region_traces[sid] = nil
+      if self._sblock_region_traces[sid] then
+         self._sblock_region_traces[sid]:destroy()
+         self._sblock_region_traces[sid] = nil
+      end
       self._sv.scaffolding[sid] = nil
       self.__saved_variables:mark_changed()
 
@@ -164,15 +177,16 @@ end
 function ScaffoldingManager:_process_new_regions()
    for rid, rblock in pairs(self._new_regions) do
       assert(not rblock.sblock)
+      if rblock.entity:is_valid() then
+         if not self:_find_scaffolding_for(rblock) then
+            self:_create_scaffolding_for(rblock)
+         end
+         local sblock = rblock.sblock
+         assert(sblock)
+         assert(sblock.regions[rblock.rid] == rblock)
 
-      if not self:_find_scaffolding_for(rblock) then
-         self:_create_scaffolding_for(rblock)
+         self._changed_scaffolding[sblock.sid] = sblock
       end
-      local sblock = rblock.sblock
-      assert(sblock)
-      assert(sblock.regions[rblock.rid] == rblock)
-
-      self._changed_scaffolding[sblock.sid] = sblock
    end
    self._new_regions = {}
 end

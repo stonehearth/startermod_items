@@ -1,7 +1,7 @@
 local Entity = _radiant.om.Entity
 local DataStore = _radiant.om.DataStore
 
-local ExecutionUnitV2 = class()
+local ExecutionUnitV2 = radiant.class()
 
 local THINKING = 'thinking'
 local READY = 'ready'
@@ -16,10 +16,20 @@ local HALTED = 'halted'
 
 local CALL_NOT_IMPLEMENTED = {}
 
+local EU_STATS = {}
+
 local placeholders = require 'services.server.ai.placeholders'
 local ObjectMonitor = require 'components.ai.object_monitor'
 
-function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
+function ExecutionUnitV2._dump_and_reset_stats()
+   local stats_copy = EU_STATS
+   EU_STATS = {}
+   _host:report_cpu_dump(stats_copy)
+end
+
+radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionUnitV2._dump_and_reset_stats)
+
+function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index)
    assert(action.name)
    assert(action.does)
    assert(action.args)
@@ -31,7 +41,6 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._thread = thread
    self._debug_name = string.format("[u:%d %s]", self._id, action.name)
    self._debug_route = debug_route .. ' u:' .. tostring(self._id)
-   self._trace_route = trace_route .. tostring(self._id) .. '/'
    self._entity = entity
    self._ai_component = entity:get_component('stonehearth:ai')
    self._action = action
@@ -275,6 +284,7 @@ function ExecutionUnitV2:_run()
       return
    end
 
+   self:_update_stats(0, 1)
    if self._state == 'ready' then
       return self:_run_from_ready()
    end
@@ -490,6 +500,11 @@ function ExecutionUnitV2:_stop_from_running()
    self:_do_stop()
 end
 
+function ExecutionUnitV2:_clear_log()
+   radiant.log.return_logger(self._log)
+   self._log = nil
+end
+
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._current_execution_frame)
@@ -497,6 +512,7 @@ function ExecutionUnitV2:_destroy_from_thinking()
    self:_call_stop_thinking()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_starting()
@@ -512,6 +528,7 @@ function ExecutionUnitV2:_destroy_from_starting()
    end
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_stopping()
@@ -520,6 +537,7 @@ function ExecutionUnitV2:_destroy_from_stopping()
    self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_stopped()
@@ -528,6 +546,7 @@ function ExecutionUnitV2:_destroy_from_stopped()
    self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_running()
@@ -536,6 +555,7 @@ function ExecutionUnitV2:_destroy_from_running()
    self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_destroy_from_finished()
@@ -544,6 +564,7 @@ function ExecutionUnitV2:_destroy_from_finished()
    self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
+   self:_clear_log()
 end
 
 function ExecutionUnitV2:_do_start()
@@ -582,7 +603,7 @@ function ExecutionUnitV2:_do_start()
 end
 
 function ExecutionUnitV2:_do_stop()
-   self._log:debug('_do_stop (state:%s)', tostring(self._state))
+   self._log:debug('_do_stop (state:%s)', self._state)
    assert(not self._current_execution_frame)
    assert(not self._thinking)
    assert(self._started, '_do_stop called before start')
@@ -593,11 +614,30 @@ function ExecutionUnitV2:_do_stop()
    self:_set_state(STOPPED)
 end
 
+if radiant.util.get_config('enable_eu_stats', false) then
+   function ExecutionUnitV2:_update_stats(thinks, runs)
+      local stats = EU_STATS[self._debug_route]
+      if not stats then
+         stats = {
+            name = self._action.name,
+            thinks = 0,
+            runs = 0,
+         }
+         EU_STATS[self._debug_route] = stats
+      end
+      stats.thinks = stats.thinks + thinks
+      stats.runs = stats.runs + runs
+   end
+else
+   function ExecutionUnitV2:_update_stats(thinks, runs)
+   end
+end
 function ExecutionUnitV2:_do_start_thinking(entity_state)
    assert(entity_state, '_do_start_thinking called with no entity_state')
-   self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
+   self._log:debug('_do_start_thinking (state:%s)', self._state)
    assert(not self._thinking)
 
+   self:_update_stats(1, 0)
    self._cost = self._action.cost or 0
    self._thinking = true
    self._current_entity_state = entity_state
@@ -608,7 +648,7 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
 end
 
 function ExecutionUnitV2:_do_stop_thinking()
-   self._log:debug('_do_stop_thinking (state:%s)', tostring(self._state))
+   self._log:debug('_do_stop_thinking (state:%s)', self._state)
    assert(self._thinking)
 
    self._current_entity_state = nil
@@ -686,7 +726,7 @@ function ExecutionUnitV2:__execute(activity_name, args)
 
    self._current_execution_frame = self._execution_frames[activity_name]
    if not self._current_execution_frame then
-      self._current_execution_frame = self._ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
+      self._current_execution_frame = self._ai_component:create_execution_frame(activity_name, self._debug_route)
       self._execution_frames[activity_name] = self._current_execution_frame
    end
 
@@ -714,7 +754,7 @@ end
 function ExecutionUnitV2:__spawn(activity_name)
    self._log:debug('__spawn %s called', activity_name)
   
-   return self._ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
+   return self._ai_component:create_execution_frame(activity_name, self._debug_route)
 end
 
 function ExecutionUnitV2:__suspend(format, ...)

@@ -507,8 +507,8 @@ function Task:_log_state(tag)
       end
       local work_available = self:_is_work_available()
       self._log:detail('%s [state:%s running:%d completed:%d total:%s available:%s]',
-                       tag, self._state, running_count, self._complete_count, tostring(self._times),
-                       tostring(work_available))
+                       tag, self._state, running_count, self._complete_count, self._times,
+                       work_available)
    end
 end
 
