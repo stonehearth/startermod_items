@@ -7,7 +7,6 @@ local Destructor = radiant.class()
 
 function Destructor:initialize(binding)
    checks('self', 'binding')
-   radiant.log.write('destructor', 0, 'creating destructor for ' .. binding.fn)
    self._sv.binding = binding
    self._sv.is_server = radiant.is_server
 end
