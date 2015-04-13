@@ -56,6 +56,11 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
          self.$('.palette').hide();
          self.$('#' + palette).show();
       });
-      this.$('#toolPaletteBuild').click();
-   }
+      this.$('#toolPaletteBuild').click();     
+   },
+
+   showEditor: function() {
+      this._super();
+      this.$('[tool=drawFloorTool]').click();
+   },
 });
