@@ -16,15 +16,21 @@ function ScaffoldingManager:initialize()
    self._sv.builders = {}        -- line and plen builders
    self._sv.regions = {}         -- per builder..
    self._sv.scaffolding = {}
-
-   self._new_regions = {}
-   self._changed_scaffolding = {}
-   self._region_traces = {}
-
    self.__saved_variables:mark_changed()
 end
 
 function ScaffoldingManager:activate()
+   self._new_regions = {}
+   self._changed_scaffolding = {}
+   self._rblock_region_traces = {}
+   self._sblock_region_traces = {}
+
+   for rid, rblock in pairs(self._sv.regions) do
+      self:_trace_rblock_region(rblock)
+   end
+   for sid, sblock in pairs(self._sv.scaffolding) do
+      self:_trace_sblock_region(sblock)
+   end
 end
 
 function ScaffoldingManager:request_scaffolding_for(requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
@@ -59,8 +65,8 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    return builder
 end
 
-function ScaffoldingManager:_add_region(rid, entity, origin, blueprint_region, region, normal)
-   checks('self', 'number', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
+function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, blueprint_region, region, normal)
+   checks('self', 'number', 'string', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
 
    assert(not self._sv.regions[rid])
 
@@ -70,44 +76,94 @@ function ScaffoldingManager:_add_region(rid, entity, origin, blueprint_region, r
       origin = origin,
       region = region,
       normal = normal,
+      debug_text = debug_text,
       blueprint_region = blueprint_region,
    }
    self._sv.regions[rid] = rblock
-   self:_trace_region(rblock)
+   log:detail('adding region rid:%-4d origin:%s dbg:%s blueprint_region:%s', rid, origin, debug_text, blueprint_region:get():get_bounds())
+   self:_trace_rblock_region(rblock)
 end
 
 function ScaffoldingManager:_remove_region(rid)
-   if self._sv.regions[rid] then
+   log:detail('removing region rid:%d', rid)
+
+   local rblock = self._sv.regions[rid]
+   if rblock then
+      -- remove all the rblock tracking data
       assert(self._sv.regions[rid])
       self._sv.regions[rid] = nil
-      self._region_traces[rid]:destroy()
-      self._region_traces[rid] = nil
-      radiant.not_yet_implemented()       -- gotta pull it out of the scaffolding, too
+
+      if self._rblock_region_traces[rid] then
+         self._rblock_region_traces[rid]:destroy()
+         self._rblock_region_traces[rid] = nil
+      end
+
+      -- remove the rblock from the sblock
+      local sid = rblock.sid
+      if sid then
+         local sblock = self._sv.scaffolding[sid]
+         sblock.regions[rid] = nil
+         self._changed_scaffolding[sid] = sblock
+      end
    end
 end
 
-function ScaffoldingManager:_trace_region(rblock)
-   assert(rblock)
-   assert(not self._region_traces[rblock.rid])
+function ScaffoldingManager:_trace_sblock_region(sblock)
+   assert(sblock)
+   assert(not self._sblock_region_traces[sblock.sid])
 
-   local trace = rblock.region:trace('watch scaffolding regions')
+   local trace = sblock.region:trace('watch scaffolding sblock regions')
                                  :on_changed(function()
-                                       self:_mark_region_changed(rblock)
+                                       self:_check_sblock_destroy(sblock)
                                     end)
 
-   self._region_traces[rblock.rid] = trace
+   self._sblock_region_traces[sblock.sid] = trace
    trace:push_object_state()
 end
 
-function ScaffoldingManager:_mark_region_changed(rblock)
+function ScaffoldingManager:_trace_rblock_region(rblock)
+   assert(rblock)
+   assert(not self._rblock_region_traces[rblock.rid])
+
+   local trace = rblock.region:trace('watch scaffolding rblock regions')
+                                 :on_changed(function()
+                                       self:_mark_rblock_region_changed(rblock)
+                                    end)
+
+   self._rblock_region_traces[rblock.rid] = trace
+   trace:push_object_state()
+end
+
+function ScaffoldingManager:_check_sblock_destroy(sblock)
+   if not radiant.empty(sblock.regions) then
+      return
+   end
+   if sblock.region:get():empty() then
+      local sid = sblock.sid
+
+      if self._sblock_region_traces[sid] then
+         self._sblock_region_traces[sid]:destroy()
+         self._sblock_region_traces[sid] = nil
+      end
+      self._sv.scaffolding[sid] = nil
+      self.__saved_variables:mark_changed()
+
+      radiant.entities.destroy_entity(sblock.scaffolding)
+      sblock.region = nil
+   end
+end
+
+function ScaffoldingManager:_mark_rblock_region_changed(rblock)
    if not self._marked_changed then
       self._marked_changed = true
       radiant.events.listen_once(radiant, 'stonehearth:gameloop', self, self._process_changes)
    end
    local sblock = rblock.sblock
    if sblock then
+      log:detail('rid:%d changed.  marking sblock sid:%d changed as well.', rblock.rid, sblock.sid)
       self._changed_scaffolding[sblock.sid] = sblock
    else
+      log:detail('rid:%d changed.  no sblock yet.  adding to new region set!', rblock.rid)
       self._new_regions[rblock.rid] = rblock
    end
 end
@@ -121,15 +177,16 @@ end
 function ScaffoldingManager:_process_new_regions()
    for rid, rblock in pairs(self._new_regions) do
       assert(not rblock.sblock)
+      if rblock.entity:is_valid() then
+         if not self:_find_scaffolding_for(rblock) then
+            self:_create_scaffolding_for(rblock)
+         end
+         local sblock = rblock.sblock
+         assert(sblock)
+         assert(sblock.regions[rblock.rid] == rblock)
 
-      if not self:_find_scaffolding_for(rblock) then
-         self:_create_scaffolding_for(rblock)
+         self._changed_scaffolding[sblock.sid] = sblock
       end
-      local sblock = rblock.sblock
-      assert(sblock)
-      assert(sblock.regions[rblock.rid] == rblock)
-
-      self._changed_scaffolding[sblock.sid] = sblock
    end
    self._new_regions = {}
 end
@@ -169,6 +226,7 @@ function ScaffoldingManager:_find_scaffolding_for(rblock)
    end
    rblock.sblock = sblock
    sblock.regions[rblock.rid] = rblock
+   log:detail('bound rid:%d to existing sblock sid:%d', rblock.rid, sblock.sid)
    return true
 end
 
@@ -181,7 +239,8 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local normal = rblock.normal
 
    local region = radiant.alloc_region3()
-   local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding', { owner = owner })
+   local scaffolding = radiant.entities.create_entity('stonehearth:build:prototypes:scaffolding', { owner = owner })
+   scaffolding:set_debug_text(string.format('rid:%d', rblock.rid))
 
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
@@ -192,7 +251,7 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local fabricator = radiant.entities.create_entity('', { owner = owner })
    radiant.terrain.place_entity_at_exact_location(fabricator, origin)
 
-   fabricator:set_debug_text('(Fabricator for ' .. tostring(scaffolding) .. ')')   
+   fabricator:set_debug_text(rblock.debug_text .. ':scaffolding:fab')
    fabricator:add_component('stonehearth:fabricator')
                               :start_project(scaffolding)
 
@@ -216,6 +275,8 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    self._sv.scaffolding[sid] = sblock
    rblock.sblock = sblock
 
+   log:detail('created new sblock sid:%d for rblock rid:%d', rblock.rid, sblock.sid)
+
    return sblock
 end
 
@@ -235,6 +296,7 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
    for rid, rblock in pairs(sblock.regions) do
       local climb_to = self:_compute_ladder_top(rblock)
       if climb_to then
+         log:detail('creating ladder to %s for rid:%d', climb_to, rid)
          local ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
                                                  climb_to,
                                                  rblock.normal)
@@ -264,11 +326,25 @@ function ScaffoldingManager:_compute_ladder_top(rblock)
       end
    end
 
+   -- start at the origin of the entity
+   local climb_to = rblock.origin
+
+   -- move over to the edge of the region we need to support
+   local region_min = rblock.blueprint_region
+                                 :get()
+                                    :get_bounds().min
+   climb_to = climb_to + region_min
+
+   -- mover over again by twice the normal.  once is where the scaffolding
+   -- will be and again so that we're oustide of it
    local normal = rblock.normal
-   local climb_to = rblock.origin + normal + normal
+   climb_to = climb_to + normal + normal
+
+   -- adjust y by the height
    climb_to.y = climb_to.y + height
 
    return climb_to
 end
 
 return ScaffoldingManager
+

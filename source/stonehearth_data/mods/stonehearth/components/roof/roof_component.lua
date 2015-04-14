@@ -3,9 +3,36 @@ local constants = require('constants').construction
 
 local Roof = class()
 local Point2 = _radiant.csg.Point2
-local Region3 = _radiant.csg.Region3
-local Cube3 = _radiant.csg.Cube3
+local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
+local NineGridBrush = _radiant.voxel.NineGridBrush
+
+local NINE_GRID_OPTION_TYPES = {
+   nine_grid_gradiant = 'table',
+   nine_grid_slope = 'number',
+   nine_grid_max_height = 'number',
+}
+
+local NG_STRING_TO_DEGREES = {
+   front  = 1,
+   left   = 2,
+   back   = 3,
+   right  = 4,
+}
+
+local NG_ROTATION_TABLE = { 
+   "front",    -- 0 degrees.
+   "left",     -- 90 degress.
+   "back",     -- 180 degress.
+   "right",    -- 270 degress.
+   "front",    -- 360 degress.
+   "left",     -- 450 degress.
+   "back",     -- 540 degress.
+   "right",    -- 630 degress.
+   "front",    -- 720 degrees (longer than it needs to be, frankly).
+}
 
 
 -- called to initialize the component on creation and loading.
@@ -19,9 +46,8 @@ end
 -- roof.
 --
 function Roof:layout()
-   local collsion_shape = self._entity:get_component('stonehearth:construction_data')
-                                          :create_voxel_brush()
-                                          :paint_once()
+   local collsion_shape = self:create_voxel_brush()
+                              :paint_once()
 
    self._entity:get_component('destination')
                   :get_region()
@@ -36,25 +62,146 @@ end
 -- construction_data component.  make sure to call :layout() to actually
 -- change the region.
 --
-function Roof:cover_region2(region2)
-   self._entity:get_component('stonehearth:construction_data')
-                  :set_nine_grid_region2(region2)
+function Roof:cover_region2(brush, region2)
+   checks('self', 'string', 'Region2')
+
+   self._sv.brush = brush
+   self._sv.nine_grid_region = region2
+   self.__saved_variables:mark_changed()
+end
+
+function Roof:create_voxel_brush()
+   local brush = self._sv.brush
+   local region = self._sv.nine_grid_region
+   local slope = self._sv.nine_grid_slope
+   local max_height = self._sv.nine_grid_max_height
+   local y_offset = self._sv.nine_grid_y_offset
+   local gradiant = self._sv.nine_grid_gradiant
+
+   -- xxx: i wish we didnt have to do all this fixup nonsense.  fixing
+   -- it requires being able to convert json back to value types, which
+   -- is somewhat tricky...
+   --[[
+   if type(nine_grid_region) == 'table' then
+      local t = nine_grid_region
+      nine_grid_region = Region2()
+      nine_grid_region:load(t)
+   end
+   ]]
+
+   local brush = _radiant.voxel.create_nine_grid_brush(brush)
+                                 :set_grid_shape(region)
+                                 :set_slope(slope or 1)
+
+   if max_height then
+      brush:set_max_height(max_height)
+   end
+   if y_offset then
+      brush:set_y_offset(y_offset)
+   end
+   if gradiant then
+      local flags = 0
+      for _, f in ipairs(gradiant) do
+         if f == "front" then
+            flags = flags + NineGridBrush.Front
+         elseif f == "back" then
+            flags = flags + NineGridBrush.Back
+         elseif f == "left" then
+            flags = flags + NineGridBrush.Left
+         elseif f == "right" then
+            flags = flags + NineGridBrush.Right
+         end
+      end
+      brush:set_gradiant_flags(flags)
+   end
+
+   --[[
+   if construction_data.grid9_tile_mode then
+      brush:set_grid9_tile_mode(construction_data.grid9_tile_mode)
+   end
+   if construction_data.grid9_slope_mode then
+      brush:set_grid9_tile_mode(construction_data.grid9_slope_mode)
+   end
+   ]]
+
+   brush:set_clip_whitespace(true)
+
+   return brush
+end
+
+-- changes properties in the construction data component.
+-- 
+--    @param options - the options to change.  
+--
+function Roof:apply_nine_grid_options(options)
+   if options then
+      for name, val in pairs(options) do
+         if NINE_GRID_OPTION_TYPES[name] == 'number' then
+            self._sv[name] = tonumber(val)
+         elseif NINE_GRID_OPTION_TYPES[name] == 'table' then
+            self._sv[name] = val
+         end
+      end
+      self.__saved_variables:mark_changed()
+   end
    return self
 end
 
 function Roof:save_to_template()
-   return {}
+   local result = {
+      brush = self._sv.brush,
+      nine_grid_region = self._sv.nine_grid_region,
+      nine_grid_slope = self._sv.nine_grid_slope,
+      nine_grid_gradiant = self._sv.nine_grid_gradiant,
+      nine_grid_max_height = self._sv.nine_grid_max_height,      
+   }
+   return result
 end
 
 function Roof:load_from_template(data, options, entity_map)
-   -- nothing to do!   
+   self._sv.brush = data.brush
+   self._sv.nine_grid_slope = data.nine_grid_slope
+   self._sv.nine_grid_gradiant = data.nine_grid_gradiant
+   self._sv.nine_grid_max_height = data.nine_grid_max_height
+   self._sv.nine_grid_region = Region2()
+   self._sv.nine_grid_region:load(data.nine_grid_region)
+   self:apply_nine_grid_options(data)
 end
 
 function Roof:rotate_structure(degrees)
    build_util.rotate_structure(self._entity, degrees)
+
+   if self._sv.nine_grid_region then
+      local cursor = self._sv.nine_grid_region
+      local origin = Point2(0.5, 0.5)
+      cursor:translate(-origin)
+      cursor:rotate(degrees)
+      cursor:translate(origin)      
+   end
+   if self._sv.nine_grid_gradiant then
+      local new_gradiant = {}
+      local rotation_offset = degrees / 90
+      for _, value in pairs(self._sv.nine_grid_gradiant) do
+         local rotation = NG_STRING_TO_DEGREES[value]
+         local next_value = NG_ROTATION_TABLE[rotation + rotation_offset]
+         table.insert(new_gradiant, next_value)
+      end
+      self._sv.nine_grid_gradiant = new_gradiant
+   end  
 end
 
 function Roof:clone_from(entity)
+   if entity then
+      local into = self._sv
+      local from = entity:get_component('stonehearth:construction_data')._sv
+
+      into.nine_grid_region = from.nine_grid_region and Region2(from.nine_grid_region) or nil
+      into.nine_grid_slope = from.nine_grid_slope
+      into.nine_grid_gradiant = from.nine_grid_gradiant
+      into.nine_grid_max_height = from.nine_grid_max_height
+      self.__saved_variables:mark_changed()
+   end
+
    return self
 end
 

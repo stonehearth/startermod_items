@@ -132,22 +132,22 @@ function Task:check_worker_against_task_affinity(worker)
    end
 
    local now = stonehearth.calendar:get_elapsed_time()
-   local existing_timeout = self._worker_affinity_timeout[worker:get_id()]
-   if existing_timeout then
-      if existing_timeout < now then
+   local expire_time = self._worker_affinity_timeout[worker:get_id()]
+   if expire_time then
+      if expire_time > now then
          -- worker restarted this task before his affinity timeout expired.  definitely
          -- let him through.
-         self._log:debug('%s resuming task %s with %d ticks left', worker, self._name, (existing_timeout - now))
+         self._log:debug('%s resuming task %s with %d ticks left', worker, self._name, (expire_time - now))
          return true
       else
-         self._log:debug('%s lost affinity to ask task %s with (%d ticks behind)', worker, self._name, (now - existing_timeout))
+         self._log:debug('%s lost affinity to ask task %s with (%d - %d)', worker, self._name, now, expire_time)
       end
    end
 
    -- count the number of non-expired timeouts we have left...
    local still_bound_count = 0
-   for id, timeout in pairs(self._worker_affinity_timeout) do
-      if timeout < now then
+   for id, expire_time in pairs(self._worker_affinity_timeout) do
+      if expire_time < now then
          self._worker_affinity_timeout[id] = nil
          self._log:debug('%s did not resume task %s in time.  breaking affinity', worker, self._name)
       else
@@ -366,9 +366,7 @@ function Task:_estimate_task_distance(worker)
    local worker_location = radiant.entities.get_world_grid_location(worker)
    if radiant.util.is_a(self._source, Point3) then
       source_location = self._source
-   end
-
-   if radiant.util.is_a(self._source, Entity) and self._source:is_valid() then
+   elseif radiant.util.is_a(self._source, Entity) and self._source:is_valid() then
       -- try the destination...
       local destination = self._source:get_component('destination')
       if destination then
@@ -378,7 +376,7 @@ function Task:_estimate_task_distance(worker)
             if not rgn:empty() then
                -- great!  find the closest point..
                local origin = radiant.entities.get_world_grid_location(self._source)
-               source_location = rgn:get_closest_point(worker_location) + origin
+               source_location = rgn:get_closest_point(worker_location - origin) + origin
             end
          end
       end
@@ -424,6 +422,28 @@ function Task:_is_work_finished()
       return false
    end
    return self._times - self._complete_count <= 0
+end
+
+function Task:has_worker_affinity_expired(worker)
+   if not self._affinity_timeout then
+      -- task has not been configured with worker affinity.
+      return true
+   end
+
+   local expire_time = self._worker_affinity_timeout[worker:get_id()]
+   if not expire_time then
+      -- the worker is not in the affinity window
+      return true
+   end
+
+   local now = stonehearth.calendar:get_elapsed_time()
+   if expire_time < now then
+      -- the worker hasn't restarted the task before the timeout expired.  bail
+      return true
+   end
+
+   -- no, this worker is not reserving space in this task
+   return false
 end
 
 function Task:_is_work_available()
@@ -487,8 +507,8 @@ function Task:_log_state(tag)
       end
       local work_available = self:_is_work_available()
       self._log:detail('%s [state:%s running:%d completed:%d total:%s available:%s]',
-                       tag, self._state, running_count, self._complete_count, tostring(self._times),
-                       tostring(work_available))
+                       tag, self._state, running_count, self._complete_count, self._times,
+                       work_available)
    end
 end
 
@@ -505,6 +525,10 @@ function Task:__action_try_start_thinking(action)
    if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s pending to be removed.  cannot start_thinking!', entity)
       return false;
+   end
+
+   if not self:check_worker_against_task_affinity(entity) then
+      return false
    end
 
    -- actions that are already running (or we've just told to run) are of course
@@ -535,6 +559,10 @@ function Task:__action_try_start(action, worker)
    if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s is pending to be removed.  cannot start!', entity)
       return false;
+   end
+
+   if not self:check_worker_against_task_affinity(worker) then
+      return false
    end
 
    -- if the work "went away" before the call to __action_can_start and now, reject

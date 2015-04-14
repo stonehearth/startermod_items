@@ -6,12 +6,12 @@ local Region3 = _radiant.csg.Region3
 
 local StonehearthTemplateBuilder = class()
 
-local WOODEN_FLOOR_DARK = 'stonehearth:wooden_floor_solid_dark'
-local WOODEN_FLOOR_LIGHT = 'stonehearth:wooden_floor_solid_light'
-local WOODEN_FLOOR_DIAGONAL = 'stonehearth:wooden_floor_diagonal'
-local WOODEN_COLUMN = 'stonehearth:wooden_column'
-local WOODEN_WALL = 'stonehearth:wooden_wall'
-local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
+local WOODEN_FLOOR_DARK = '#958455'
+local WOODEN_FLOOR_LIGHT = '#A59465'
+local WOODEN_FLOOR_DIAGONAL = 'stonehearth:build:brushes:pattern:wood_dark_diagonal'
+local WOODEN_COLUMN = '#332B1F'
+local WOODEN_WALL = 'stonehearth:build:brushes:wall:wooden_wall'
+local WOODEN_ROOF = 'stonehearth:build:brushes:roof:wooden_peaked_roof'
 
 function StonehearthTemplateBuilder:__init()
    -- this is the list of templates to create.
@@ -43,14 +43,16 @@ end
 
 function StonehearthTemplateBuilder:print_walls()
    local walls = self:sort_walls()
+   local origin = radiant.entities.get_world_grid_location(self._building)
    for i, wall in ipairs(walls) do
       local bounds = wall:get_component('destination')
                               :get_region()
                                  :get()
                                     :get_bounds()
+      local offset = radiant.entities.get_world_grid_location(wall) - origin;
       local normal = wall:get_component('stonehearth:construction_data')
                               :get_normal()
-      radiant.log.write('', 0, '%2d) wall bounds: %s  normal: %s', i, bounds, normal)
+      radiant.log.write('', 0, '%2d) wall bounds: %32s  normal: %16s  area:%3d', i, bounds:translated(offset), normal, bounds:get_area())
    end
 end
 
@@ -79,7 +81,7 @@ function StonehearthTemplateBuilder:get_wall_with_bounds(bounds_str)
          return entity
       end
    end
-   error(string.format('could not find wall with bounds %s', bounds))
+   error(string.format('could not find wall with bounds %s', bounds_str))
 end
 
 function StonehearthTemplateBuilder:get_offset_on_wall(wall, dx, dy)
@@ -122,7 +124,7 @@ function StonehearthTemplateBuilder:place_item_on_floor(item_uri, dx, dz, rotati
    local structures = bc:get_all_structures()
    for id, entry in pairs(structures['stonehearth:floor']) do
       local floor = entry.entity
-      stonehearth.build:add_fixture(floor, item_uri, Point3(dx, 0, dz), Point3.unit_y, rotation)
+      stonehearth.build:add_fixture(floor, item_uri, Point3(dx, 1, dz), Point3.unit_y, rotation)
       break
    end
 end
@@ -136,7 +138,12 @@ function StonehearthTemplateBuilder:add_floor(x0, y0, x1, y1, uri)
 end
 
 function StonehearthTemplateBuilder:grow_walls(column_uri, wall_uri)
-   stonehearth.build:grow_walls(self._building, column_uri, wall_uri)
+   local floors = self._building:get_component('stonehearth:building')
+                                    :get_all_structures()['stonehearth:floor']
+   local _, entry = next(floors)
+   local floor = entry.entity
+   
+   stonehearth.build:grow_walls(floor, column_uri, wall_uri)
 end
 
 function StonehearthTemplateBuilder:grow_roof(roof_uri, options)
@@ -169,7 +176,8 @@ function StonehearthTemplateBuilder:_build_cottage_for_two()
          nine_grid_max_height = 10,
       })
 
-   self:print_walls()  
+   self:print_walls()
+   
    self:place_portal_on_wall(5, 'stonehearth:portals:wooden_door', 2, 0)
    self:place_item_on_wall(5, 'stonehearth:decoration:wooden_wall_lantern', 2, 6)
    self:place_portal_on_wall(9, 'stonehearth:portals:wooden_window_frame', 3, 2)

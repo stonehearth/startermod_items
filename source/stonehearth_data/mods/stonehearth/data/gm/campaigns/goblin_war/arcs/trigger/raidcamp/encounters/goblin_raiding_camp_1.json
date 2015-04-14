@@ -10,6 +10,7 @@
 
    "create_camp_info" : {
       "npc_player_id" : "goblins",
+      "encounter_name" : "goblin_raiding_camp_1", 
 
       "radius" : 18,
       

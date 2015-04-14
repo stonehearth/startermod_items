@@ -5,10 +5,9 @@ var DrawRoadTool;
 
       toolId: 'drawRoadTool',
       roadMaterialClass: 'roadMaterial',
-      curbMaterialClass: 'curbMaterial',
 
       handlesType: function(type) {
-         return type == 'road' || type == 'curb';
+         return type == 'road';
       },
 
       inDom: function(buildingDesigner) {
@@ -20,41 +19,31 @@ var DrawRoadTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               var curb = self._curbMaterial.getSelectedBrush();
                var road = self._roadMaterial.getSelectedBrush();
-               return App.stonehearthClient.buildRoad(road, curb == 'none' ? null : curb);
+               return App.stonehearthClient.buildRoad(road);
             });
       },
 
       addTabMarkup: function(root) {
          var self = this;
-         $.get('/stonehearth/data/build/building_parts.json')
-            .done(function(json) {
-               self.buildingParts = json;
+         var brushes = self.buildingDesigner.getBuildBrushes();
 
-               var click = function() {
-                  // Re/activate the floor tool with the new material.
-                  self.buildingDesigner.activateTool(self.buildTool);      
-               };
+         var click = function() {
+            // Re/activate the floor tool with the new material.
+            self.buildingDesigner.activateTool(self.buildTool);      
+         };
 
-               var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
-               root.append(tab);
+         var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
+         root.append(tab);
 
 
-               self._roadMaterial = new MaterialHelper(tab,
-                                                       self.buildingDesigner,
-                                                       'Road',
-                                                       self.roadMaterialClass,
-                                                       self.buildingParts.roadPatterns,
-                                                       click);
-
-               self._curbMaterial = new MaterialHelper(tab,
-                                                       self.buildingDesigner,
-                                                       'Curb',
-                                                       self.curbMaterialClass,
-                                                       self.buildingParts.curbPatterns,
-                                                       click);
-         });
+         self._roadMaterial = new MaterialHelper(tab,
+                                                 self.buildingDesigner,
+                                                 'Road',
+                                                 self.materialClass,
+                                                 brushes.voxel,
+                                                 brushes.pattern,
+                                                 click);
       },
 
       addButtonMarkup: function(root) {
@@ -64,7 +53,6 @@ var DrawRoadTool;
       },
 
       restoreState: function(state) {
-         this._curbMaterial.restoreState(state);
          this._roadMaterial.restoreState(state);
       }
    });

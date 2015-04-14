@@ -215,3 +215,21 @@ Color3 Color3::FromString(std::string const& str)
    Color4 c = Color4::FromString(str);
    return Color3(c.r, c.g, c.b);
 }
+
+bool Color3::IsColor(std::string const& color)
+{
+   if (color.size() != 7 || color[0] != '#') {
+      return false;
+   }
+   for (int i = 1; i < 7; i++) {
+      char ch = color[i];
+      if (ch >= '0' && ch <= '9') {
+         continue;
+      }
+      if (ch >= 'A' && ch <= 'F') {
+         continue;
+      }
+      return false;
+   }
+   return true;
+}

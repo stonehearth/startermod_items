@@ -1,3 +1,5 @@
+-- Have the raiding party listen on a timeout, and after that timeout, have it depart
+
 local RaidTimeoutObserver = class()
 
 function RaidTimeoutObserver:initialize(entity)
@@ -8,7 +10,7 @@ function RaidTimeoutObserver:initialize(entity)
       self._sv.initialized = true
       --Make the timer after the dude has been added to the world
       --so we know that the attributes from items, etc have been added
-      self._terrain_listener = radiant.events.listen(self._entity, 'stonehearth:game_master:citizen_added', self, self._on_added)
+      self._added_listener = radiant.events.listen(self._entity, 'stonehearth:game_master:citizen_config_complete', self, self._on_added)
    else
       if self._sv.raid_timer then
          self._sv.raid_timer:bind(function()
@@ -39,10 +41,10 @@ end
 --Note: the party seems to be using the stonehearth:urgent task group (make this clearer?)
 function RaidTimeoutObserver:_on_timer_expire()
    local task = self._entity:add_component('stonehearth:ai')
-            :get_task_group('stonehearth:urgent')
-            :create_task('stonehearth:depart_visible_area')
-            :set_priority(stonehearth.constants.priorities.party.DEPART_WORLD)
-            :start()
+                              :get_task_group('stonehearth:urgent')
+                                 :create_task('stonehearth:depart_visible_area')
+                                    :set_priority(stonehearth.constants.priorities.party.DEPART_WORLD)
+                                    :start()
    self:_stop_raid_timer()
 end
 
@@ -55,9 +57,9 @@ function RaidTimeoutObserver:_stop_raid_timer()
 end
 
 function RaidTimeoutObserver:destroy()
-   if self._terrain_listener then
-      self._terrain_listener:destroy()
-      self._terrain_listener = nil
+   if self._added_listener then
+      self._added_listener:destroy()
+      self._added_listener = nil
    end
    self:_stop_raid_timer()
 end

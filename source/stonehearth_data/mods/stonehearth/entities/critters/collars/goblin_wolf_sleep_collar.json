@@ -1,0 +1,22 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:sit_on_ground",
+               "stonehearth:actions:pet:pet_sleep_on_ground",
+
+               "stonehearth:actions:depart_visible_area",
+               "stonehearth:actions:find_point_beyond_visible"
+
+            ],
+            "observers": [
+            ]
+         },
+         "injected_commands" : [
+         ]
+      }
+   }
+}

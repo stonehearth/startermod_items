@@ -2,7 +2,7 @@ local ExecutionFrame = require 'components.ai.state_machine'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
-local ExecutionFrame = class()
+local ExecutionFrame = radiant.class()
 
 -- errata note 1:  look at _restart_thinking()?  what crackhead wrote that (probably me).
 -- issues:
@@ -57,10 +57,68 @@ local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
-function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route, trace_route)
+
+-- only theee keys are allowed to be set.  all others are forbidden to 
+-- prevent actions from using ai.CURRENT as a private communication channel
+local ENTITY_STATE_FIELDS = {
+   location = true,
+   carrying = true,
+   future = true,
+}
+
+local ENTITY_STATE_META_TABLE = {
+   __newindex = function(state, k, v)
+      if not ENTITY_STATE_FIELDS[k] then
+         radiant.error('cannot write to invalid field "%s" in entity state', tostring(k))
+      end
+
+      if k == 'location' then
+         -- if this is not the first time we're writing a new value to location, we
+         -- must be in some future state.
+         if state.__values.location and state.__values.location ~= v then
+            state.__values.future = true
+         end
+      end
+      state.__values[k] = v
+   end,
+
+   __index = function(state, k)
+      return state.__values[k]
+   end
+}
+
+local function create_entity_state(copy_from)
+   -- we hide the actual values in __values so __new_index will catch every
+   -- write.
+   local state = {
+      __values = {
+         future = false
+      }
+   }
+   if copy_from then
+      for k, v in pairs(copy_from.__values) do
+         state.__values[k] = v
+      end
+   end
+   setmetatable(state, ENTITY_STATE_META_TABLE)
+
+   return state
+end
+
+local function copy_entity_state(state, copy_from)
+   -- we iterate through the keys rather than copying the whole table to make
+   -- sure shared references among units get the changes as well
+   for name in pairs(state.__values) do
+      state.__values[name] = nil
+   end
+   for name, value in pairs(copy_from.__values) do
+      state.__values[name] = value
+   end
+end
+
+function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route)
    self._id = stonehearth.ai:get_next_object_id()
    self._debug_route = debug_route .. ' f:' .. tostring(self._id)
-   self._trace_route = trace_route .. tostring(self._id) .. '/'
    self._entity = entity
    self._activity_name = activity_name
    self._action_index = action_index
@@ -78,13 +136,6 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
                           :set_entity(self._entity)
 
    self._log:debug('creating execution frame')
-   self._aitrace = radiant.log.create_logger('ai_trace')
-
-   -- Set the trace-route initially to the old route, so that in logging it is clear that the
-   -- unit is creating this frame.
-   self._aitrace:set_prefix(trace_route)
-   self._aitrace:spam('@cef@%d@%s', self._id, self._activity_name)
-   self._aitrace:set_prefix(self._trace_route)
 
    self:_set_state(STOPPED)
 
@@ -151,16 +202,16 @@ function ExecutionFrame:_start_thinking(args, entity_state)
 end
 
 function ExecutionFrame:_stop_thinking()
-   if self:in_state('thinking', 'starting_thinking') then
+   if self._state == 'thinking' or self._state == 'starting_thinking' then
       return self:_stop_thinking_from_thinking()
    end
    if self._state == 'ready' then
       return self:_stop_thinking_from_ready()
    end
-   if self:in_state('starting', 'started') then
+   if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started() -- intentionally aliased
    end
-   if self:in_state('stopped', 'dead') then
+   if self._state == 'stopped' or self._state == 'dead' then
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
@@ -312,7 +363,6 @@ end
 -- Returns true iff a child unit is active (and is different from the previously active unit)
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
-   self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
 
    if self._state == 'running' then
       -- if we're running, we need to thunk over to the ai thread in order to restart thinking
@@ -320,7 +370,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       assert(calling_thread == self._thread, 'on wrong thread in execution frame restart thinking')
    end
 
-   if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
+   if not (self._state == 'thinking' or self._state == 'starting_thinking' or self._state == 'ready' or self._state == 'running') then
       self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
       return false
    end
@@ -359,7 +409,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    for unit, entity_state in pairs(rethinking_units) do
       self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
                         unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
-      assert(unit:in_state('stopped', 'thinking', 'ready'))
+      assert(unit._state == 'stopped' or unit._state == 'thinking' or unit._state == 'ready')
       unit:_start_thinking(self._args, entity_state)
 
       -- if units bail or abort, the current pcall should have been interrupted.
@@ -446,7 +496,7 @@ function ExecutionFrame:start_thinking(args, entity_state)
    assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
 
    self:_start_thinking(args, entity_state)
-   if self:in_state(READY) then
+   if self._state == READY then
       assert(self._active_unit_think_output)
       return self._active_unit_think_output
    end
@@ -555,6 +605,8 @@ function ExecutionFrame:destroy()
    self._log:spam('destroy')
    self:_protected_call(function()
          self:_destroy()
+         radiant.log.return_logger(self._log)
+         self._log = nil
          self:wait_until(DEAD)
       end)
 end
@@ -784,12 +836,7 @@ function ExecutionFrame:_set_active_unit(unit, think_output)
       end
 
       -- clear the table to make sure nil values are copied from the new to the current state
-      for name in pairs(self._current_entity_state) do
-         self._current_entity_state[name] = nil
-      end
-      for name, value in pairs(new_entity_state) do
-         self._current_entity_state[name] = value
-      end
+      copy_entity_state(self._current_entity_state, new_entity_state)
    end
 end
 
@@ -807,6 +854,9 @@ end
 
 function ExecutionFrame:_start_from_ready()
    assert(self._active_unit)
+
+   -- Ensure all lower priority units are stopped, so they don't waste our time.
+   self:_stop_thinking_from_started()
 
    self._current_entity_state = nil
    self:_set_state(STARTING)
@@ -939,7 +989,6 @@ end
 
 function ExecutionFrame:abort()
    self._log:info('abort')
-   self:_trace_state_change(tostring(self._state), 'abort')
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
@@ -952,11 +1001,21 @@ function ExecutionFrame:_get_top_of_stack()
 end
 
 function ExecutionFrame:_log_stack(msg)
-   self._log:detail(msg)
+   -- It is possible this function can be called from within a destroyed frame (whose logger has gone
+   -- back to the pool).  Hence, the need for a logging alternate.
+   if self._log then
+      self._log:detail(msg)
+   else
+      radiant.log.spam('ai_ef', msg)
+   end
    local runstack = self._thread:get_thread_data('stonehearth:run_stack')
    for i = #runstack,1,-1 do
       local f = runstack[i]
-      self._log:spam('  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
+      if self._log then
+         self._log:spam('  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
+      else
+         radiant.log.spam('ai_ef', '  [%d] - (%5d) %s', i, f._id, f._activity_name, stonehearth.ai.format_args(f._args))
+      end
    end
 end
 
@@ -1097,7 +1156,6 @@ function ExecutionFrame:_remove_execution_unit(unit)
    assert(unit ~= self._active_unit)
    for key, u in pairs(self._execution_units) do
       if unit == u then
-         --self._aitrace:spam('execution_frame:remove_exec_unit:%s,%s', tostring(self._entity), unit:get_name())
          self._log:debug('removing execution unit "%s"', unit:get_name())
          unit:_destroy()
          self._execution_units[key] = nil
@@ -1183,8 +1241,7 @@ function ExecutionFrame:_add_execution_unit(key, entry)
                                 self._entity,
                                 entry.injecting_entity,
                                 action,
-                                self._action_index,
-                                self._trace_route)
+                                self._action_index)
    if action.type == 'filter' then
       assert(not self._execution_filters[key])
       self._execution_filters[key] = unit
@@ -1216,55 +1273,19 @@ end
 function ExecutionFrame:_clone_entity_state(name)
    assert(self._current_entity_state)
    local s = self._current_entity_state
-   local cloned = _make_entity_state_table()
+   local cloned = create_entity_state()
 
    cloned.location = s.location and Point3(s.location.x, s.location.y, s.location.z)
    cloned.carrying = s.carrying
    cloned.future = s.future
 
-   self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned))
+   self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', self._current_entity_state, name, cloned)
 
    return cloned
 end
 
-function _make_entity_state_table()
-   local state = {
-   }
-
-   local _state = state
-
-   state = {
-      __location_writes = -1
-   }
-
-   local meta_state = {
-      __newindex = function(t, k, v)
-         if k == 'location' then
-            -- The very first time an AI writes to 'location', ought to be the initialization of the entity_state.
-            -- The _next_ time it gets written, ought to be because it's thinking about the future.
-            state.__location_writes = state.__location_writes + 1
-            if state.__location_writes >= 1 then
-               _state.future = true
-            end
-         end
-         _state[k] = v
-      end,
-
-      __index = function(t, k)
-         return _state[k]
-      end,
-
-      __next = function(t, k)
-         return next(_state, k)
-      end
-   }
-   setmetatable(state, meta_state)
-
-   return state
-end
-
 function ExecutionFrame:_create_entity_state()
-   local state = _make_entity_state_table()
+   local state = create_entity_state()
    state.carrying = radiant.entities.get_carrying(self._entity)
    state.location = radiant.entities.get_world_grid_location(self._entity)
    state.future = false
@@ -1309,7 +1330,7 @@ function ExecutionFrame:_get_best_execution_unit()
       local is_runnable = unit:is_runnable()
 
       self._log:spam('  unit %s -> (priority:%d cost:%.3f weight:%d runnable:%s state:%s)',
-                     name, priority, cost, unit:get_weight(), tostring(is_runnable), unit:get_state())
+                     name, priority, cost, unit:get_weight(), is_runnable, unit:get_state())
 
       if is_runnable then
          local replace_existing = priority > best_priority or (priority == best_priority and cost < best_cost)
@@ -1340,8 +1361,6 @@ function ExecutionFrame:_get_best_execution_unit()
    local active_unit = active_units[math.random(total_candidates)]
    self._log:spam('%s  best unit for "%s" is "%s" (priority:%d  cost:%.3f  total_candidates:%d)',
                    self._entity, self._activity_name, active_unit:get_name(), best_priority, best_cost, total_candidates)
-
-   self._aitrace:spam('@beu@%d', active_unit._id)
 
    return active_unit
 end
@@ -1399,8 +1418,7 @@ function ExecutionFrame:get_state()
 end
 
 function ExecutionFrame:_set_state(state)
-   self._log:debug('state change %s -> %s', tostring(self._state), state)
-   self:_trace_state_change(tostring(self._state), state)
+   self._log:debug('state change %s -> %s', self._state, state)
    self._state = state
    
    if self._debug_info then
@@ -1427,7 +1445,6 @@ function ExecutionFrame:wait_until(state)
       self._waiting_until = state
       while self._state ~= state do
          self._calling_thread:suspend('waiting for ' .. state)
-         self._aitrace:spam('@w@%s', state)
       end
       self._waiting_until = nil
       self._calling_thread = nil
@@ -1469,7 +1486,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          -- *will not return*      
          self:_unwind_call_stack(exit_handler)
          assert(self._active_unit)
-         self._log:debug('finished unwinding!')
+         radiant.log.debug('ai_exec', 'finished unwinding!')
       elseif err == UNWIND_NEXT_FRAME then
          self:_cleanup_protected_call_exit()
          exit_handler()
@@ -1477,7 +1494,7 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          -- it's magic.  don't question it (there's a 2nd pcall in run...
          self:_exit_protected_call(UNWIND_NEXT_FRAME_2)
       else
-         self._log:info("aborting on error '%s' (state:%s)", err, self._state)
+         radiant.log.info('ai_exec', "aborting on error '%s' (state:%s)", err, self._state)
          -- If the action is removed from the running state, we might be dead, and we can't
          -- transition from dead to stopped.
          if self._state ~= DEAD then
@@ -1526,17 +1543,11 @@ function ExecutionFrame:_no_other_thread_is_running()
    return false
 end
 
-function ExecutionFrame:_trace_state_change(old_state, new_state)
-   if new_state ~= STARTED and new_state ~= STARTING then
-      self._aitrace:spam('@sc@%s@%s', old_state, new_state)
-   end
-end
-
 function ExecutionFrame:_spam_entity_state(state, format, ...)
    if self._log:is_enabled(radiant.log.SPAM) then
       self._log:spam(format, ...)
       for key, value in pairs(state) do      
-         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
+         self._log:spam('  CURRENT.%s = %s', key, value)
       end   
    end
 end

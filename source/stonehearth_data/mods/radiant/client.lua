@@ -5,6 +5,8 @@ radiant = {
    is_server = false,
 }
 
+require 'modules.common'
+
 function radiant.get_object(addr)
    return _radiant.client.get_object(addr)
 end
@@ -31,7 +33,6 @@ radiant.gamestate = require 'modules.gamestate'
 radiant.entities = require 'modules.client_entities'
 radiant.terrain = require 'modules.terrain'
 
-require 'modules.common'
 require 'modules.timer'
 
 -- xxx: radiant client and server need to share much more stuff!!! -- tony

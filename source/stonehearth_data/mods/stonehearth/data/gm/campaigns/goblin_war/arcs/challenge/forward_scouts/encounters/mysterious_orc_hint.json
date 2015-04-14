@@ -14,7 +14,7 @@
                "title" : "A message on an arrow appears on your banner",
                "dialog_title" : "Mysterious Message",
                "portrait" : "file(images/mysterious.png)",
-               "message" : "Wild at heart, by bridle and bit tamed, against the cage your hopes dart, wolf and rider dechained.",
+               "message" : "If you want to finish them before they finish you, strike first.",
                "choices" : {
                   "stonehearth:next" : {
                      "next_node" : "msg2"

@@ -2,7 +2,7 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 local Node = require 'services.server.game_master.controllers.node'
 
 local Arc = class()
-mixin_class(Arc, Node)
+radiant.mixin(Arc, Node)
 
 function Arc:initialize(info)
    self._sv._info = info

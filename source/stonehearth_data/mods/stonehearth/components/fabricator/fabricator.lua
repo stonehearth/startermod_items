@@ -4,6 +4,7 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
+local Color3 = _radiant.csg.Color3
 local TraceCategories = _radiant.dm.TraceCategories
 
 local emptyRegion = Region3()
@@ -16,6 +17,28 @@ local ADJACENT_POINTS = {
 }
 
 local Fabricator = class()
+
+-- build the inverse material map
+local COLOR_TO_MATERIAL = {}
+local function build_color_to_material_map()  
+   for material, colorlist in pairs(stonehearth.constants.construction.brushes.voxel) do
+      for _, color in ipairs(colorlist) do
+         if COLOR_TO_MATERIAL[color] then
+            radiant.error('duplicate color %s in stonehearth:build:brushes', color)
+         end
+         COLOR_TO_MATERIAL[color] = material
+      end
+   end
+end
+
+-- this is quite annoying.  the order of operations during loading means that the fabricator for
+-- an entity may be required before the stonehearth mod gets loaded.  if that happens, wait for
+-- the load message before trying to rebuild the colormap
+if rawget(_G, 'stonehearth') then
+   build_color_to_material_map()
+else
+   radiant.events.listen_once(radiant, 'radiant:game_loaded',  build_color_to_material_map)
+end
 
 -- this is the component which manages the fabricator entity.
 function Fabricator:__init(name, entity, blueprint, project)
@@ -105,7 +128,9 @@ end
 
 function Fabricator:set_teardown(teardown)
    self._teardown = teardown
-   self:_update_fabricator_region()
+   if self._active then
+      self:_update_fabricator_region()
+   end
 end
 
 function Fabricator:_initialize_existing_project(project)  
@@ -179,8 +204,29 @@ function Fabricator:_on_can_start_changed()
    end
 end
 
-function Fabricator:get_material()
-   return self._resource_material
+function Fabricator:get_material(world_location)
+   checks('self', 'Point3')
+
+   if self._resource_material then
+      -- for example, the scaffolding is made of wood (period).  this is only
+      -- used by the scaffolding code
+      self._log:spam('returning cd material "%s"', self._resource_material)
+      return self._resource_material
+   end
+
+   local offset = radiant.entities.world_to_local(world_location, self._entity)
+   local tag = self._blueprint_dst
+                        :get_region()
+                           :get()
+                              :get_tag(offset)
+
+   local color = Color3(tag)
+   local material = COLOR_TO_MATERIAL[tostring(color)]
+   if not material then
+      radiant.error("building color to material map has no entry for color %s", tostring(color))
+   end
+   self._log:detail('returning material "%s" for block at %s (color:%s)', material, offset, color)
+   return material
 end
 
 function Fabricator:get_project()
@@ -227,7 +273,11 @@ function Fabricator:add_block(material_entity, location)
    end
 
    self._project_dst:get_region():modify(function(cursor)
-         cursor:add_point(pt)
+         local color = self._blueprint_dst
+                              :get_region()
+                                 :get()
+                                    :get_tag(pt)
+         cursor:add_point(pt, color)
       end)
    self:release_block(location)
    return true
@@ -249,6 +299,11 @@ function Fabricator:find_another_block(carrying, location)
          local poi_local = self._fabricator_dst:get_point_of_interest(pt)
          if poi_local then
             local block = poi_local + origin
+
+            local material = self:get_material(block)
+            if not radiant.entities.is_material(carrying, material) then
+               return
+            end
 
             -- make sure the next block we get is on the same level as the current
             -- block so we don't confuse the scaffolding fabricator.  if we really
@@ -272,8 +327,12 @@ function Fabricator:remove_block(location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
-   local rgn = self._fabricator_dst:get_region():get()
-   if not rgn:contains(pt) then
+   if not self._fabricator_dst:get_region():get():contains(pt) then
+      self._log:warning('trying to remove unbuild portion %s of construction project', pt)
+      return false
+   end
+   local project_rgn = self._project_dst:get_region():get()
+   if not project_rgn:contains(pt) then
       self._log:warning('trying to remove unbuild portion %s of construction project', pt)
       return false
    end
@@ -283,7 +342,6 @@ function Fabricator:remove_block(location)
    -- block to remove to the project collision shape by starting at the tip
    -- top and looking down
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
-      local project_rgn = self._project_dst:get_region():get()
       local bounds = project_rgn:get_bounds()
       local top = bounds.max.y - 1
       local bottom = bounds.min.y
@@ -426,10 +484,14 @@ function Fabricator:_stop_project()
       self._fabricate_task = nil
    end
 
-   for zone, _ in pairs(self._mining_zones) do
-      radiant.entities.destroy_entity(zone)
-      self._mining_zones[zone] = nil
-      self._mining_traces[zone] = nil
+   for id, mining_zone in pairs(self._mining_zones) do
+      -- xxx: this is could cause some trouble... what happens if the mining zone
+      -- got merged with some other mining request?  didn't we just kill that one,
+      -- too?
+      radiant.entities.destroy_entity(mining_zone)
+      self._mining_traces[id]:destroy()
+      self._mining_zones[id] = nil
+      self._mining_traces[id] = nil
    end
 end
 
@@ -480,21 +542,20 @@ function Fabricator:_update_dst_region()
    --self:_log_region(dst_region, 'resulted in destination ->')
    
    -- Any region that needs mining should be removed from our destination region.
-   for zone, mining_dst in pairs(self._mining_zones) do
-      local mining_region = mining_dst:get_region():get()
+   for id, mining_zone in pairs(self._mining_zones) do
+      local mining_region = mining_zone:get_component('destination')
+                                          :get_region()
+                                             :get()
       if not mining_region:empty() then
-         local parent = radiant.entities.get_parent(self._entity)
-         local parent_pos = radiant.entities.get_world_location(parent)
-         local zone_pos = radiant.entities.get_world_location(zone)
-         if parent_pos == nil then
-            parent_pos = Point3(0, 0, 0)
-         end
-         local offset = zone_pos - parent_pos
+         local offset = radiant.entities.get_world_grid_location(self._entity) -
+                        radiant.entities.get_world_grid_location(mining_zone)
+
          local fab_mining_region = mining_region:translated(offset)
 
          dst_region:subtract_region(fab_mining_region)
       end
    end
+
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
@@ -552,24 +613,35 @@ function Fabricator:_update_mining_region()
    -- The mining service will handle all existing mining region overlap merging for us.
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
-   
-   if mining_zone and not self._mining_zones[mining_zone] then
-      mining_zone:add_component('stonehearth:mining_zone'):set_selectable(false)
-      local mining_dst = mining_zone:get_component('destination')
-      self._mining_zones[mining_zone] = mining_dst
+   if not mining_zone then
+      return
+   end
 
-      self._mining_traces[mining_zone] = mining_dst:trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
-         :on_changed(function(region)
-            self:_update_dst_region()
-         end)
-         :push_object_state()
+   local id = mining_zone:get_id()
+   if not self._mining_zones[id] then
+      self._mining_zones[id] = mining_zone
+
+      mining_zone:add_component('stonehearth:mining_zone')
+                     :set_selectable(false)
+
+      local trace = mining_zone:get_component('destination')
+                                    :trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+                                       :on_changed(function(region)
+                                             self:_update_dst_region()
+                                          end)
+
+      self._mining_traces[id] = trace
+      trace:push_object_state()
 
       -- Needs to be pre_destroy!  Otherwise, the mining region is destroyed, which triggers
       -- the callback in the fabricator to update the region, which accessess the cached
       -- destination component, which blows up.
       radiant.events.listen_once(mining_zone, 'radiant:entity:pre_destroy', function()
-         self._mining_zones[mining_zone] = nil
-         self._mining_traces[mining_zone] = nil
+         self._mining_zones[id] = nil
+         if self._mining_traces[id] then
+            self._mining_traces[id]:destroy()
+            self._mining_traces[id] = nil
+         end
       end)
    end
 end
@@ -608,6 +680,9 @@ function Fabricator:_update_fabricator_region()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br
+   self._log:spam('blueprint region: %s   area:%d', br:get_bounds(), br:get_area())
+   self._log:spam('project   region: %s   area:%d', pr:get_bounds(), br:get_area())
+   self._log:spam('teardown  region: %s   area:%d', teardown_region:get_bounds(), teardown_region:get_area())
 
    self._should_teardown = not teardown_region:empty()
    if self._should_teardown then

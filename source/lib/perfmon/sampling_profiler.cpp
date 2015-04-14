@@ -10,7 +10,8 @@ const char* TOP_FRAME = "top";
 StackFrame::StackFrame(const char* sourceName, unsigned int fnDefLine) :
    _sourceName(sourceName),
    _fnDefLine(fnDefLine),
-   _count(0),
+   _selfTime(0),
+   _totalTime(0),
    _callCount(1)
 {
 }
@@ -28,16 +29,18 @@ StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDef
    return &_callers.back();
 }
 
-void StackFrame::IncrementCount(CounterValueType c, int line) { 
-   _count += c;
+void StackFrame::IncrementTimes(CounterValueType selfTime, CounterValueType totalTime, int line) { 
+   _selfTime += selfTime;
+   _totalTime += totalTime;
 
    for (auto& lc : _lines) {
       if (lc.line == line) {
-         lc.count += c;
+         // We don't really know how long a given line has been 'running', so just record that we saw it.
+         lc.count++;
          return;
       }
    }
-   _lines.emplace_back(line, c);
+   _lines.emplace_back(line, 1);
 }
 
 void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
@@ -60,12 +63,16 @@ void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::S
    if (i == lookup.end()) {
       SmallFrame sf;
       sf.totalTime = 0;
+      sf.selfTime = 0;
+      sf.totalSamples = 0;
       lookup.emplace(_fnName, sf);
       self = &lookup.find(_fnName)->second;
    } else {
       self = &i->second;
    }
-   self->totalTime += (int)_count;
+   self->totalTime += (int)_totalTime;
+   self->selfTime += (int)_selfTime;
+   self->totalSamples += (int)_callCount;
    for (int j = 0; j < (int)_lines.size(); j++) {
       bool found = false;
       for (int k = 0; k < (int)self->lines.size(); k++) {
@@ -97,7 +104,7 @@ void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) co
    bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
 
    if (!recursive) {
-      stats[_fnName] += _count;
+      stats[_fnName] += _totalTime;
    }
 
    stack.emplace_back(_fnName);

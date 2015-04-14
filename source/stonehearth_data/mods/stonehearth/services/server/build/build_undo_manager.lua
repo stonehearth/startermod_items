@@ -122,13 +122,19 @@ function BuildUndoManager:undo()
       end
 
       -- remove all the entities created by the last operation
-      for _, o in pairs(entry.added_entities) do         
+   for _, o in pairs(entry.added_entities) do         
          radiant.entities.destroy_entity(o.entity)
       end
    end
 end
 
 function BuildUndoManager:unlink_entity(entity)
+   if not self._in_transaction then
+      log:error('unlinking entity outside of transaction!  clearing undo stack.')
+      self:clear()
+      return
+   end
+
    log:detail('unlinking %s', entity)
    local entry = {
       entity = entity

@@ -1,3 +1,43 @@
+require 'checks'
+
+-- These methods and tables define a 'radiant.class', which looks functions similarly in an object-oriented fashion
+-- to unclass(), but has far less overhead (and far fewer features--no inheritence, for example).
+
+local RADIANT_CLASS_MT = {}
+
+RADIANT_CLASS_MT.__init = function(cls)
+   local obj = {}
+   setmetatable(obj, cls)
+   return obj
+end
+
+function RADIANT_CLASS_MT:__call(...)
+   local obj = {}
+   setmetatable(obj, self)
+   if obj.__init then
+      obj:__init(...)
+   end
+   return obj
+end
+
+function radiant.class()
+   local c = {}
+   c.__index = c
+   c.__class = c
+   setmetatable(c, RADIANT_CLASS_MT)
+   return c
+end
+
+-- used to add all the methods of `mixin` to `class`.  useful for sharing
+-- implementation across common classes.
+--
+function radiant.mixin(cls, mixin)
+   for k, v in pairs(mixin) do
+      if type(v) == 'function' then
+         cls[k] = v
+      end
+   end
+end
 
 function radiant.keys(t)
    local n, keys = 1, {}
@@ -72,14 +112,109 @@ function radiant.not_yet_implemented(fmt, ...)
    error(string.format('NOT YET IMPLEMENTED (%s:%d)', info.source, info.currentline) .. tail)
 end
 
-function radiant.bind_callback(controller, fn_name)
-   checks('controller', 'string')
-   return { controller, fn_name }
+function radiant.is_controller(c)
+   return radiant.util.is_instance(c) and
+          radiant.util.is_a(c.__saved_variables, _radiant.om.DataStore)
 end
 
-function radiant.fire_callback(bound_callback, ...)
-   local controller, fn_name = unpack(bound_callback)
-   return controller[fn_name](controller, ...)
+-- a nop function.  useful for creating bindings which do nothing.
+function radiant.nop()
+end
+
+-- bind an invocation of a method or function and its parameters to an object which can later be
+-- called with radiant.invoke.  the function form of bind must pass a string which can be used
+-- to lookup the function from the global namespace (e.g. radiant.nop).  the method invocation
+-- form must pass a radiant controller for the first argument and the name of the method for
+-- the second.  all other arguments will be passed to the function or method being bound.
+--
+-- function bindings are savable, meaning they survive the trip across a save/load.
+--
+-- examples:
+--
+--    radiant.bind('radiand.nop')  -- do nothing
+--
+--    local binding = radiant.bind(stonehearth.town, 'get_citizens')
+--    ...
+--    local n = radiant.invoke(binding)
+--
+function radiant.bind(...)
+   local obj
+   local args = {...}
+   if #args < 1 then
+      radiant.error('expected at least one argument to radiant.bind')
+   end
+   if radiant.is_controller(args[1]) then
+      if #args < 2 then
+         radiant.error('expected at least two arguments for method invocation in radiant.bind')
+      end
+      obj = table.remove(args, 1)
+   elseif type(args[1]) ~= 'string' then
+      radiant.error('expected controller or function name for first arg in radiant.bind.  got "%s"', tostring(args[1]))
+   end
+
+   local fn = table.remove(args, 1)
+   if type(fn) ~= 'string' then
+      radiant.error('expected string type for function name in radiant.bind.  got "%s"', tostring(fn))
+   end
+
+   local binding = {
+      type = 'binding',
+      obj    = obj,
+      fn     = fn,
+      args   = args,
+   }
+
+   return binding
+end
+
+-- invoke a bound function (see radiant.bind).  the arguments pass to radiant.invoke will be
+-- appended to the call. 
+--
+-- example:
+--
+--    function add(a, b) return a + b end
+--    local add_two = radiant.bind('add', 2)
+--    local five = radiant.invoke(add_two, 3)
+
+function radiant.invoke(binding, ...)
+   checks('binding')
+
+   local args, c = {}, table.maxn(binding.args)
+   for i=1,c do
+      args[i] = binding.args[i]
+   end
+   local passed_args = { ... }
+   for i=1,table.maxn(passed_args) do
+      args[i + c] = passed_args[i]
+   end
+
+   local results 
+   if binding.obj then
+      results = { binding.obj[binding.fn](binding.obj, unpack(args)) }
+   else
+      local parts = string.split(binding.fn, '.')
+      local current = _G
+      for _, part in pairs(parts) do
+         current = rawget(current, part)
+         if not current then
+            radiant.error('failed to look up function binding name "%s"', binding.fn)
+         end
+      end
+      local fn = current
+      results = { fn(unpack(args)) }
+   end
+   return unpack(results)
+end
+
+-- check to make sure `binding` is a binding.  see radiant.bind for what a binding is.
+function checkers.binding(binding)
+   return type(binding) == 'table' and
+          binding.type == 'binding'
+end
+
+
+function radiant.error(...)
+   error(string.format(...), 2)
 end
 
 function radiant.create_controller(...)
@@ -113,9 +248,12 @@ end
 local NATIVE_CHECKS = {
    Entity         = _radiant.om.Entity,
    Region3Boxed   = _radiant.om.Region3Boxed,
+   Point2         = _radiant.csg.Point2,
    Point3         = _radiant.csg.Point3,
    Region3        = _radiant.csg.Region3,
+   Region2        = _radiant.csg.Region2,
 }
+
 for name, expected_type in pairs(NATIVE_CHECKS) do
    assert(not checkers[name])
    checkers[name] = function(x)
@@ -124,12 +262,11 @@ for name, expected_type in pairs(NATIVE_CHECKS) do
 end
 
 -- add a 'self' check to improve readiblity in methods.
-function checkers.self(x)
-   return type(x) == 'table'
+function checkers.self(t)
+   return type(t) == 'table'
 end
 
 -- check for radiant controllers.
-function checkers.controller(x)
-   return radiant.util.is_instance(x) and
-          radiant.util.is_a(x.__saved_variables, _radiant.om.DataStore)
+function checkers.controller(c)
+   return radiant.is_controller(c)
 end

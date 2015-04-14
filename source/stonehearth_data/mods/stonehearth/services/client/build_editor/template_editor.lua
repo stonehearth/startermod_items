@@ -20,7 +20,7 @@ end
 function TemplateEditor:_restore_template(template_name)
    local template = radiant.mods.read_object('building_templates/' .. template_name)
    if template then
-      self._building = radiant.entities.create_entity('stonehearth:entities:building')
+      self._building = radiant.entities.create_entity('stonehearth:build:prototypes:building')
       build_util.restore_template(self._building, template_name, { mode = 'preview'})
 
       self._center_offset = build_util.get_building_centroid(self._building)
@@ -124,8 +124,8 @@ function TemplateEditor:go(response, template_name)
       :done(function(selector, location, rotation)
             _radiant.call_obj(self._build_service, 'build_template_command', template_name, location, self._center_offset, rotation)
                :done(function(r)
-                     if r.new_building then
-                        stonehearth.selection:select_entity(r.new_building)
+                     if r.building then
+                        stonehearth.selection:select_entity(r.building)
                      end
                      response:resolve(r)
                   end)

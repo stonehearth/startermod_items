@@ -2,7 +2,7 @@ local game_master_lib = require 'lib.game_master.game_master_lib'
 local Node = require 'services.server.game_master.controllers.node'
 
 local GameMasterService = class()
-mixin_class(GameMasterService, Node)
+radiant.mixin(GameMasterService, Node)
 
 function GameMasterService:initialize()
    self._log = radiant.log.create_logger('game_master')
@@ -40,7 +40,7 @@ function GameMasterService:start()
    end
    self:_start_campaign('combat')
    self:_start_campaign('trader')
-   --self:_start_campaign('ambient_threats')
+   self:_start_campaign('ambient_threats')
 end
 
 function GameMasterService:is_enabled()

@@ -42,7 +42,8 @@ function FabricatorComponent:_restore()
    self._fabricator:set_scaffolding(self._sv.scaffolding)
    self._fabricator:set_teardown(self._sv.teardown)
    self._fabricator:set_active(self._sv.active)
-   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)   
+   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._destroy_self)
+   radiant.events.listen_once(self._sv.project,   'radiant:entity:pre_destroy', self, self._destroy_self)
 end
 
 function FabricatorComponent:destroy()
@@ -109,7 +110,8 @@ function FabricatorComponent:start_project(blueprint)
    self._sv.total_mining_region = self._fabricator:get_total_mining_region()
    self.__saved_variables:mark_changed()
    
-   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
+   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._destroy_self)
+   radiant.events.listen_once(self._sv.project,   'radiant:entity:pre_destroy', self, self._destroy_self)
 
    return self
 end
@@ -125,8 +127,8 @@ end
 -- called just before the blueprint for this fabricator is destroyed.  we need only
 -- destroy the entity for this fabricator.  the rest happens directly as a side-effect
 -- of doing so (see :destroy())
-function FabricatorComponent:_on_blueprint_destroyed()
-   if self._entity then
+function FabricatorComponent:_destroy_self()
+   if self._entity and self._entity:is_valid() then
       radiant.entities.destroy_entity(self._entity)
    end
 end
@@ -136,12 +138,16 @@ function FabricatorComponent:accumulate_costs(cost)
    local material = blueprint:get_component('stonehearth:construction_data')
                                     :get_material()
 
-   local area = blueprint:get_component('destination')
+   local rgn = blueprint:get_component('destination')
                            :get_region()
                               :get()
-                                 :get_area()
-
-   cost.resources[material] = (cost.resources[material] or 0) + area
+   
+   for cube in rgn:each_cube() do
+      local area = cube:get_area()
+      local world_point = radiant.entities.local_to_world(cube.min, self._entity)
+      local material = self._fabricator:get_material(world_point)
+      cost.resources[material] = (cost.resources[material] or 0) + area
+   end
 end
 
 return FabricatorComponent

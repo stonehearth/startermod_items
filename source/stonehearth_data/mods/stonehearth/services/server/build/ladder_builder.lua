@@ -9,7 +9,7 @@ local log = radiant.log.create_logger('ladder_builder')
 function LadderBuilder:initialize(manager, owner, base, normal, removeable)
    self._sv.climb_to = {}
 
-   local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder', { owner = owner })
+   local ladder = radiant.entities.create_entity('stonehearth:build:prototypes:ladder', { owner = owner })
    self._ladder_dtor_trace = ladder:trace('ladder dtor')
                                        :on_destroyed(function()
                                              self._sv.manager:_destroy_builder(self._sv.base, self)

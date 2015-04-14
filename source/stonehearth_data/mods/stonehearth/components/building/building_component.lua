@@ -231,8 +231,9 @@ function Building:_trace_entity(entity, loading)
          self:_on_child_finished(e)
       end)
 
+   --[[
    if entity:get_component('stonehearth:roof') then
-      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
+      local trace = entity:get_component('stonehearth:roof'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
                               :on_changed(function()
                                     self:layout_roof(entity)
                                  end)
@@ -244,6 +245,7 @@ function Building:_trace_entity(entity, loading)
          trace:push_object_state()
       end
    end
+   ]]
 end
 
 function Building:_untrace_entity(id)
@@ -392,8 +394,8 @@ function Building:_add_patch_walls_to_building(roof)
       if current_patch_wall_shape then
          self:_remove_building_from_region(roof_origin, current_patch_wall_shape)
          if not current_patch_wall_shape:empty() then
-            local uri = self:_recommend_patch_wall_material(roof_origin, current_patch_wall_shape)
-            stonehearth.build:add_patch_wall_to_building(self._entity, uri, normal, roof_origin, current_patch_wall_shape)
+            local brush = self:_recommend_patch_wall_material(roof_origin, current_patch_wall_shape)
+            stonehearth.build:add_patch_wall_to_building(self._entity, brush, normal, roof_origin, current_patch_wall_shape)
          end
          current_patch_wall_shape = nil
       end
@@ -495,7 +497,7 @@ end
 
 function Building:_recommend_patch_wall_material(origin, shape)
    local closest_d
-   local recommended = 'stonehearth:wooden_wall'
+   local recommended = constants.DEAFULT_WOOD_WALL_BRUSH
    local bounds = shape:get_bounds()
 
    for _, entry in pairs(self._sv.structures[WALL]) do
@@ -509,7 +511,7 @@ function Building:_recommend_patch_wall_material(origin, shape)
                                     :translated(offset)
          local d = bounds:distance_to(rgn_bounds:translated(offset))
          if not closest_d or d < closest_d then
-            recommended = entry.entity:get_uri()
+            recommended = entry.structure:get_brush()
             closest_d = d
             if closest_d == 0 then
                break
@@ -672,14 +674,22 @@ function Building:_compute_dependencies()
    for _, entry in pairs(self._sv.structures[WALL]) do
       init_dependencies(entry)
 
+      -- walls depend on their connected columns
       local wall = entry.entity
-      local col_a, col_b = wall:get_component(WALL)
-                                    :get_columns()
+      local wc = wall:get_component(WALL)
+      local col_a, col_b = wc:get_columns()
       if col_a then
          entry.dependencies[col_a:get_id()] = col_a
       end
       if col_b then
          entry.dependencies[col_b:get_id()] = col_b
+      end
+      -- patch walls depend on roof
+      if wc:is_patch_wall() then
+         for _, e in pairs(self._sv.structures[ROOF]) do
+            local roof = e.entity
+            entry.dependencies[roof:get_id()] = roof
+         end
       end
    end
    for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do

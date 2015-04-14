@@ -11,6 +11,11 @@ TeardownStructureAdjacent.args = {
 TeardownStructureAdjacent.version = 2
 TeardownStructureAdjacent.priority = 1
 
+local MATERIAL_TO_RESOURCE = {
+   ['wood resource']  = 'stonehearth:resources:wood:oak_log',
+   ['stone resource'] = 'stonehearth:resources:resources:stone:hunk_of_stone',
+}
+
 function TeardownStructureAdjacent:start(ai, entity, args)
    ai:set_status_text('tearing down structures...')
 end
@@ -22,8 +27,8 @@ function TeardownStructureAdjacent:start_thinking(ai, entity, args)
       return
    end
 
-   local material = args.fabricator:get_material()
-   if not radiant.entities.is_material(carrying, material) then
+   self._material = args.fabricator:get_material(args.block)
+   if not radiant.entities.is_material(carrying, self._material) then
       return
    end
 
@@ -46,10 +51,10 @@ function TeardownStructureAdjacent:run(ai, entity, args)
 
    if fabricator:remove_block(block) then
       if not radiant.entities.increment_carrying(entity) then
-         local oak_log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
-         local item_component = oak_log:add_component('item')
-         item_component:set_stacks(1)
-         radiant.entities.pickup_item(entity, oak_log)
+         local resource = radiant.entities.create_entity(MATERIAL_TO_RESOURCE[self._material])
+         resource:add_component('item')
+                     :set_stacks(1)
+         radiant.entities.pickup_item(entity, resource)
       end
    end
 end

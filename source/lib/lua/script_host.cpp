@@ -9,6 +9,7 @@
 #include "script_host.h"
 #include "client/renderer/render_entity.h"
 #include "lib/lua/lua.h"
+#include "lib/rpc/lua_deferred.h"
 #include "lib/json/namespace.h"
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
@@ -277,9 +278,10 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
       lua_Debug f;
       int count = 0;
       res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
-      perfmon::CounterValueType delta = now - _lastHookTimestamp;
+      perfmon::CounterValueType selfTime = now - _lastHookTimestamp;
+      perfmon::CounterValueType totalTime = selfTime;
       
-      _profilerDuration = _profilerDuration + delta;
+      _profilerDuration = _profilerDuration + selfTime;
       _profilerSampleCounts++;
 
       perfmon::StackFrame* current = _profilers[L].GetTopInvertedStackFrame();
@@ -287,15 +289,15 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
          lua_getinfo(L, "Sl", &f);
          if (strcmp(f.source, C_MODULE)) {
             current = current->AddStackFrame(f.source, f.linedefined);
-            current->IncrementCount(delta, f.currentline);
-            delta = 0;
+            current->IncrementTimes(selfTime, totalTime, f.currentline);
          }
+         selfTime = 0;
       }
    }
    _lastHookL = L;
    _lastHookTimestamp = now;
 
-   if (perfmon::CounterToMilliseconds(_profilerDuration) >= max_profile_length_) {
+   if (perfmon::Timer::GetCurrentTimeMs () - _cpuProfileStart >= max_profile_length_) {
       ToggleCpuProfiling();
    }
 }
@@ -418,6 +420,7 @@ ScriptHost::ScriptHost(std::string const& site) :
                .def("require",         &ScriptHost::Require)
                .def("require_script",  &ScriptHost::RequireScript)
                .def("get_error_count", &ScriptHost::GetErrorCount)
+               .def("report_cpu_dump", &ScriptHost::ReportCPUDump)
          ]
       ]
    ];
@@ -451,10 +454,24 @@ ScriptHost::~ScriptHost()
 {
    LUA_LOG(1) << "Shutting down script host.";
    FullGC();
+
+   std::vector<rpc::LuaPromiseRef> promises(_luaPromises.begin(), _luaPromises.end());
+   _luaPromises.clear();
    required_.clear();
    lua_close(L_);
    ASSERT(this->bytes_allocated_ == 0);
    LUA_LOG(1) << "Script host destroyed.";
+
+   // At this point, we've cleared the _luaPromises array and destroyed the interpreter.
+   // LuaPromises are supposed to only be pushed to Lua, so if there are any left alive
+   // something has SERIOUSLY gone wrong.
+   for (auto const& p : promises) {
+      int c =  p.use_count();
+      if (c > 0) {
+         LUA_LOG(5) << "lua promise is still alive! (count:" << c << " dbg:" << p.lock()->LogPrefix() << ")";
+         ASSERT(false);
+      }
+   }
 }
 
 void paranoid_hook(lua_State *L, lua_Debug *ar)
@@ -1179,6 +1196,8 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    std::string script_name;
    luabind::object module;
 
+   LUA_LOG(3) << "creating module " << mod_name << "...";
+
    std::string scriptKey = BUILD_STRING(site_ << "_init_script");
    resource_manager.LookupManifest(mod_name, [&](const res::Manifest& manifest) {
       script_name = manifest.get<std::string>(scriptKey, "");
@@ -1214,12 +1233,15 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
    json::Node metadata;
    metadata.set("profiling_time", perfmon::CounterToMilliseconds(_profilerDuration));
+   metadata.set("run_time", (int)(perfmon::Timer().GetCurrentTimeMs() - _cpuProfileStart));
    root.set("metadata", metadata);
 
    json::Node profileData;
    for (auto& frame : fusedFrames) {
       json::Node frameNode;
       frameNode.set("tt", frame.second.totalTime);
+      frameNode.set("st", frame.second.selfTime);
+      frameNode.set("n", frame.second.totalSamples);
 
       json::Node lineNodes(JSON_ARRAY);
       for (auto const& lineInfo : frame.second.lines) {
@@ -1236,11 +1258,8 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
       for (auto const c : frame.second.callers) {
          // libjson treats '.' as a child node.  Wonderful!
          std::string fnname((const char*)c.first);
-         for (int i = 0; i < (int)fnname.length(); i++) {
-            if (fnname[i] == '.') {
-               fnname[i] = '_';
-            }
-         }
+         boost::replace_all(fnname, ".", "&#46;");
+         
          json::Node callerNode;
          callerNode.set("nm", fnname);
          callerNode.set("n", c.second);
@@ -1250,11 +1269,7 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
       // libjson treats '.' as a child node.  Wonderful!
       std::string fnname((const char*)frame.first);
-      for (int i = 0; i < (int)fnname.length(); i++) {
-         if (fnname[i] == '.') {
-            fnname[i] = '_';
-         }
-      }
+      boost::replace_all(fnname, ".", "&#46;");
 
       profileData.set(fnname, frameNode);
    }
@@ -1263,12 +1278,25 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
 
    char date[256];
    std::time_t t = std::time(NULL);
-   if (!std::strftime(date, sizeof(date), " %Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+   if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
       *date = 0;
    }
    std::string filename = BUILD_STRING("lua_profile_data_" << date << ".json");
    std::ofstream f(filename);
    f << root;
+   f.close();
+}
+
+void ScriptHost::ReportCPUDump(luabind::object profTable)
+{
+   char date[256];
+   std::time_t t = std::time(NULL);
+   if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+      *date = 0;
+   }
+   std::string filename = BUILD_STRING("eu_stats_" << date << ".json");
+   std::ofstream f(filename);
+   f << LuaToJson(profTable).write_formatted();
    f.close();
 }
 
@@ -1289,6 +1317,8 @@ bool ScriptHost::ToggleCpuProfiling()
    }
 
    if (!_cpuProfilerRunning) {
+
+      Trigger("radiant:report_cpu_profile");
       int bottomUpDepth = 2;
 
       perfmon::FunctionTimes stats;
@@ -1334,6 +1364,7 @@ bool ScriptHost::ToggleCpuProfiling()
 
    _profilerDuration = 0;
    _profilerSampleCounts = 0;
+   _cpuProfileStart = perfmon::Timer::GetCurrentTimeMs();
 
    return _cpuProfilerRunning;
 }
@@ -1347,3 +1378,15 @@ void ScriptHost::RemoveProfileHook(lua_State* L)
 {
    lua_sethook(L, nullptr, 0, 0);
 }
+
+void ScriptHost::SaveLuaPromise(rpc::LuaPromisePtr promise)
+{
+   _luaPromises.insert(promise);
+}
+
+void ScriptHost::FreeLuaPromise(rpc::LuaPromisePtr promise)
+{
+   _luaPromises.erase(promise);
+}
+
+

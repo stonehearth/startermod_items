@@ -45,11 +45,22 @@ function TerrainService:_register_events()
             self:_on_tick()
          end)
    end
+
+   if self._sv.hull_timer then
+      self._sv.hull_timer:bind(function()
+            self:_update_convex_hull()
+         end)
+   else
+      -- We want to update the hull every 10 realtime seconds
+      local cal_seconds = stonehearth.calendar:realtime_to_calendar_time(10)
+      self._sv.hull_timer = stonehearth.calendar:set_interval(cal_seconds, function()
+            self:_update_convex_hull()
+         end)
+   end
 end
 
 function TerrainService:_on_tick()
    self:_update_regions()
-   self:_update_convex_hull()
    self:_update_terrain_counts()
 end
 
@@ -108,7 +119,7 @@ function TerrainService:_update_convex_hull()
       new_hull_point = endpoint
    until endpoint == new_hull[1]
 
-   log:info('convex hull has %d points', #new_hull)
+   log:spam('convex hull has %d points', #new_hull)
    self._sv._convex_hull = new_hull
 end
 

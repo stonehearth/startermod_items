@@ -8,7 +8,6 @@ local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
 local TraceCategories = _radiant.dm.TraceCategories
 
-local log = radiant.log.create_logger('scaffolding_builder')
 local INFINITE = 1000000
 local CLIP_SOLID = _radiant.physics.Physics.CLIP_SOLID
 
@@ -42,18 +41,32 @@ function ScaffoldingBuilder_OneDim:initialize(manager, id, entity, blueprint_rgn
 end
 
 function ScaffoldingBuilder_OneDim:activate()
-   self._log = radiant.log.create_logger('build.s1d')
-                              :set_entity(self._sv.entity)
-                              :set_prefix('s1d')
+   local entity = self._sv.entity
+   local name = radiant.entities.get_display_name(entity)
+
+   self._debug_text = ''
+   if name then
+      self._debug_text = self._debug_text .. ' ' .. name
+   else
+      self._debug_text = self._debug_text .. ' ' .. entity:get_uri()
+   end
+   local debug_text = entity:get_debug_text()
+   if debug_text then
+      self._debug_text = self._debug_text .. ' ' .. debug_text
+   end
+
+   self._log = radiant.log.create_logger('build.scaffolding.1d')
+                              :set_entity(entity)
+                              :set_prefix('s1d ' .. self._debug_text)
 
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
       end)
-   self:_update_status()
 end
 
 function ScaffoldingBuilder_OneDim:destroy()
    self:_untrace_blueprint_and_project()
+   self._sv.scaffolding_rgn = nil
 end
 
 -- interfaces for the owner of the builder
@@ -65,6 +78,7 @@ function ScaffoldingBuilder_OneDim:set_active(active)
    checks('self', '?boolean')
 
    if active ~= self._sv.active then
+      self._log:detail('active changed to %s', active)
       self._sv.active = active
       self.__saved_variables:mark_changed()
       self:_update_status()
@@ -86,6 +100,7 @@ end
 
 function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
    self._sv.manager:_add_region(self._sv.id,
+                                self._debug_text,
                                 self._sv.entity,
                                 self._sv.origin,
                                 self._sv.blueprint_rgn,
@@ -202,9 +217,12 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
 
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
+
+   self._log:spam('blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    if clipbox then
       project_rgn   = project_rgn:intersect_cube(clipbox)
       blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+      self._log:spam('(clipped) blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    end
 
    -- compute the top of the project.  the `top` is the height
@@ -215,6 +233,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
    local project_top
    if stand_at_base then
       project_top = blueprint_bounds.min.y
+      self._log:spam('standing at base.  using %d for project_top', project_top)
    elseif not project_rgn:empty() then
       local project_bounds = project_rgn:get_bounds()
       project_top = project_bounds.max.y
@@ -225,22 +244,24 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
          project_top = project_top - 1
       end
       project_top = math.min(project_top, blueprint_top - 1)
+      self._log:spam('project is not empty.  using %d for project_top', project_top)
    else
       project_top = blueprint_bounds.min.y
+      self._log:spam('project is empty.  using %d for project_top', project_top)
    end
    assert(project_top < blueprint_top)
    
-   local clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
+   local clipper = Cube3(Point3(-INFINITE, -INFINITE,       -INFINITE),
                          Point3( INFINITE, project_top + 1,  INFINITE))
    local top_row = blueprint_rgn:clipped(clipper)
-                        :get_bounds()
+
    -- starting 1 row down and 1 row out, all the way till we find terrain
    top_row:translate(-Point3.unit_y + normal)
 
    -- and clip out the terrain
    local origin = self._sv.origin
    top_row:translate(origin)
-   local region = _physics:project_region(Region3(top_row), CLIP_SOLID)
+   local region = _physics:project_region(top_row, CLIP_SOLID)
    region:translate(-origin)
 
    -- finally, copy into the cursor
@@ -252,12 +273,14 @@ end
 function ScaffoldingBuilder_OneDim:_choose_normal()
    -- if we have a preferred normal, use that and its opposite.
    -- otherwise, consider all 4 normals
-   self._log:detail('choosing normal for %s.', self._sv.entity)
+   self._log:detail('choosing normal')
 
    local normals
    local preferred_normal = self._sv.preferred_normal
    if preferred_normal then
       normals = { preferred_normal, preferred_normal:scaled(-1) }
+      self._sv.normal = preferred_normal
+      return
    else
       normals = { Point3(0, 0, 1), Point3(0, 0, -1), Point3(1, 0, 0), Point3(-1, 0, 0)}
    end

@@ -11,16 +11,16 @@ function WallLoopEditor:__init(build_service)
    self._log = radiant.log.create_logger('builder')
 end
 
-function WallLoopEditor:go(column_uri, wall_uri, response)
-   self._column_uri = column_uri
-   self._wall_uri = wall_uri
+function WallLoopEditor:go(column_brush, wall_brush, response)
+   self._column_brush = column_brush
+   self._wall_brush = wall_brush
    self._response = response
 
    self._queued_points = {}
    
    local last_location
    local last_column_editor
-   local current_column_editor = self:_create_column_editor(column_uri)
+   local current_column_editor = self:_create_column_editor(column_brush)
 
    self._selector = stonehearth.selection:select_location()
       :allow_shift_queuing(true)
@@ -75,7 +75,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
             if not finished then
                last_column_editor = current_column_editor
                last_location = radiant.entities.get_world_grid_location(last_column_editor:get_proxy_blueprint())
-               current_column_editor = self:_create_column_editor(column_uri)
+               current_column_editor = self:_create_column_editor(column_brush)
                current_column_editor:move_to(last_location)
             else
                current_column_editor:destroy()
@@ -126,7 +126,7 @@ function WallLoopEditor:_pump_queue()
    end
 
    self._waiting_for_response = true
-   _radiant.call_obj(self._build_service, 'add_wall_command', self._column_uri, self._wall_uri, p0, p1, normal)
+   _radiant.call_obj(self._build_service, 'add_wall_command', self._column_brush, self._wall_brush, p0, p1, normal)
             :done(function(result)
                   if result.new_selection then
                      stonehearth.selection:select_entity(result.new_selection)
@@ -170,10 +170,12 @@ function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)
    return p1
 end
 
-function WallLoopEditor:_create_column_editor(column_uri)
+function WallLoopEditor:_create_column_editor(column_brush)
    local column_editor = StructureEditor()
-   local column = column_editor:create_blueprint(column_uri, 'stonehearth:column')      
+   local column = column_editor:create_blueprint('stonehearth:build:prototypes:column', 'stonehearth:column')
+   
    column:get_component('stonehearth:column')
+            :set_brush(column_brush)
             :layout()
 
    return column_editor

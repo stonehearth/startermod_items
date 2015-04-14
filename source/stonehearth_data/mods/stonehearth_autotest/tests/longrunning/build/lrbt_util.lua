@@ -5,10 +5,11 @@ local Point3 = _radiant.csg.Point3
 
 local lrbt_util = {}
 
-local WOODEN_COLUMN = 'stonehearth:wooden_column'
-local WOODEN_WALL = 'stonehearth:wooden_wall'
-local WOODEN_FLOOR = 'stonehearth:wooden_floor_solid_light'
-local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
+local WOODEN_WALL    = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
+local WOODEN_ROOF    = stonehearth.constants.construction.DEAFULT_WOOD_ROOF_BRUSH
+local WOODEN_FLOOR   = stonehearth.constants.construction.DEAFULT_WOOD_FLOOR_BRUSH
+local STONE_FLOOR    = stonehearth.constants.construction.DEAFULT_WOOD_STONE_BRUSH
+local WOODEN_COLUMN  = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
 
 function lrbt_util.create_workers(autotest, x, y)
    local workers = {}
@@ -45,14 +46,11 @@ function lrbt_util.fund_construction(autotest, buildings)
    local x, y = 18, 20
    
    lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:wood:oak_log')
+   x = x - 3
+   lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:stone:hunk_of_stone')
+   
    for _, building in pairs(buildings) do
       local cost = build_util.get_cost(building)
-      for material, _ in pairs(cost.resources) do
-         if material:find('stone') then
-            x = x - 3
-            lrbt_util.create_endless_entity(autotest, x, y, 3, 3, 'stonehearth:resources:stone:hunk_of_stone')
-         end
-      end
       local stockpile_x = x
       for uri, _ in pairs(cost.items) do
          x = x - 3
@@ -86,6 +84,10 @@ end
 
 function lrbt_util.create_wooden_floor(session, cube)
    return stonehearth.build:add_floor(session, WOODEN_FLOOR, cube)
+end
+
+function lrbt_util.create_stone_floor(session, cube)
+   return stonehearth.build:add_floor(session, STONE_FLOOR, cube)
 end
 
 function lrbt_util.erase_floor(session, cube)
@@ -147,35 +149,66 @@ function lrbt_util.create_endless_entity(autotest, x0, y0, w, h, uri)
    end                        
 end
 
-function lrbt_util.succeed_when_buildings_finished(autotest, buildings, scaffoldings)
-   local succeeded = false
-   local function succeed_if_finished()
-      if not succeeded then
-         for _, building in pairs(buildings) do
-            if not building:get_component('stonehearth:construction_progress'):get_finished() then
-               return
-            end
+function lrbt_util.succeed_when_buildings_finished(autotest, buildings)
+   local unfinished = {}
+   local listeners = {}
+   local traces = {}
+
+   local function check_success()
+      if radiant.empty(unfinished) then
+         for _, listener in pairs(listeners) do
+            listener:destroy()
          end
-         for _, scaffolding in pairs(scaffoldings) do
-            if not scaffolding:get_component('destination'):get_region():get():empty() then
-               return
-            end
+         for _, trace in pairs(traces) do
+            trace:destroy()
          end
-         succeeded = true
          autotest:success()
       end
    end
-   
-   local function install_listeners(t)
-      for _, entity in pairs(t) do
-         radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
-               succeed_if_finished();
-            end)
-      end
+
+   local create_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
+         local entity = e.entity
+         local id = entity:get_id()
+         if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+            local trace = entity:get_component('region_collision_shape')
+                     :trace_region('checking success')
+                        :on_changed(function(rgn)
+                              local finished = rgn and rgn:empty()
+                              if finished then
+                                 unfinished[id] = nil
+                                 check_success()
+                              else
+                                 unfinished[id] = entity
+                              end
+                           end)
+            traces[id] = trace
+            trace:push_object_state()
+         end
+      end)
+   local destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
+         local entity = e.entity
+         unfinished[entity:get_id()] = nil
+         local entity = e.entity
+         if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+            unfinished[entity:get_id()] = entity
+         end
+      end)
+   table.insert(listeners, create_listener)
+   table.insert(listeners, destroy_listener)
+
+   for id, building in pairs(buildings) do
+      unfinished[id] = building
+      local building_listener = radiant.events.listen(building, 'stonehearth:construction:finished_changed', function()
+            local finished = building:get_component('stonehearth:construction_progress'):get_finished()
+            if not finished then
+               unfinished[id] = building
+               return
+            end
+            unfinished[id] = nil
+            check_success()
+         end)
+      table.insert(listeners, building_listener)
    end
-   
-   install_listeners(buildings)
-   install_listeners(scaffoldings)
 end
 
 function lrbt_util.succeed_when_buildings_destroyed(autotest, buildings)
@@ -195,10 +228,10 @@ local function track_buildings_and_scaffolding_creation(cb)
 
    local building_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
-         if entity:is_valid() and entity:get_uri() == 'stonehearth:entities:building' then
+         if entity:is_valid() and entity:get_uri() == 'stonehearth:build:prototypes:building' then
             buildings[entity:get_id()] = entity
          end
-         if entity:is_valid() and entity:get_uri() == 'stonehearth:scaffolding' then
+         if entity:is_valid() and entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
             scaffolding[entity:get_id()] = entity
          end
       end)

@@ -3,41 +3,98 @@
    "kingdom_id" : "undead",
    "roles" : {
       "skeleton" : {
-         "male" : [
-            "stonehearth:monsters:undead:skeleton"
-         ],
-         "female" : [
-            "stonehearth:monsters:undead:skeleton_female"
+         "male" : {
+            "uri" : ["stonehearth:monsters:undead:skeleton"], 
+            "given_names" : [
+               "Broo",
+               "Jokok",
+               "Craglek",
+               "Lost",
+               "Empt",
+               "Brok",
+               "Holvo",
+               "Despr",
+               "Desnad",
+               "Ton",
+               "Ren",
+               "Trest",
+               "Garef",
+               "Lee",
+               "Dih",
+               "Sher",
+               "Beck",
+               "Ian",
+               "Nameless"
+            ]
+         },
+         "female" : {
+            "uri" : "stonehearth:monsters:undead:skeleton_female",
+            "given_names" : [
+               "Kate",
+               "Amy",
+               "Idra",
+               "Loss",
+               "Mourn",
+               "Bleck",
+               "Ness",
+               "Lene",
+               "Elia",
+               "Essa",
+               "Elie",
+               "Nameless"
+            ]
+         },
+         "surnames" : [
+            "Bones",
+            "the Dead",
+            "the Forgotten",
+            "the Skeleton",
+            "Once-Human",
+            "Cordless"
          ]
       },
       "zombie" : {
-         "male" : [
-            "stonehearth:monsters:undead:zombie"
-         ],
-         "female" : [
-            "stonehearth:monsters:undead:zombie_female"
+         "male" : {
+            "uri" : "stonehearth:monsters:undead:zombie",
+            "given_names" : [
+               "Moulder",
+               "Ed",
+               "Fronk",
+               "Slem",
+               "Sowe",
+               "Denet",
+               "Lowder",
+               "Rot",
+               "Neb",
+               "Jonor",
+               "Nameless"
+            ]
+         },
+         "female" : {
+            "uri" : "stonehearth:monsters:undead:zombie_female",
+            "given_names" : [
+               "Twine",
+               "Losse",
+               "Zombi",
+               "Elva",
+               "Less",
+               "Sal",
+               "Em",
+               "Torie",
+               "Nameless"
+            ]
+         }, 
+         "surnames" : [
+            "the Zombie",
+            "the Decaying",
+            "the Tortured",
+            "Wormskull",
+            "the Dead",
+            "the Sad",
+            "the Slow"
          ]
       }
    },
-   "surnames" : [
-      "the Dead",
-      "the Decaying",
-      "the Tortured",
-      "Wormskull"
-   ],
-   "given_names" : {
-      "male" : [
-         "Alton",
-         "Edwyne",
-         "Fostan"
-      ],
-      "female" : [
-         "Kate",
-         "Lorna",
-         "Mell",
-         "Norsa"
-      ]
-   }, 
    "town_pieces" : {
       "optional_prefix" : [
          "Ay"

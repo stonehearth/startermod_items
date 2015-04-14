@@ -421,13 +421,3 @@ function shared(class)
    return { __type = 'share', __class = class }
 end
 
--- used to add all the methods of `mixin` to `class`.  useful for sharing
--- implementation across common classes.
---
-function mixin_class(cls, mixin)
-   for k, v in pairs(mixin) do
-      if type(v) == 'function' then
-         cls[k] = v
-      end
-   end
-end

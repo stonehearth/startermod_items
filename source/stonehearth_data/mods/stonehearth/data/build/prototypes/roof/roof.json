@@ -1,0 +1,19 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+
+   "components": {
+      "unit_info": {
+         "name": "Roof", 
+         "description": "Keeps the rain out"
+      },
+
+      "stonehearth:roof" : {
+      },
+
+      "stonehearth:construction_data" : {
+         "type": "roof",
+         "use_nine_grid" : true,
+         "allow_crouching_construction" : true
+      }
+   }
+}

@@ -27,41 +27,7 @@ void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, F
    try {
       lua_State* L = scriptHost_->GetCallbackThread();
 
-      auto lua_to_json = [L, this](object o) -> JSONNode {
-         JSONNode result;
-         if (!o.is_valid()) {
-            result.push_back(JSONNode("error", "call returned invalid json object"));
-         } else {
-            try {
-               JSONNode value = lua::ScriptHost::LuaToJson(L, o);
-               if (value.type() == JSON_NODE || value.type() == JSON_ARRAY) {
-                  result = value;
-               } else {
-                  value.set_name("result");
-                  result.push_back(value);
-               }
-            } catch (std::exception& e) {
-               std::string err = BUILD_STRING("error converting call result: " << e.what());
-               lua::ScriptHost::ReportCStackException(L, e);
-               result.push_back(JSONNode("error", err));
-            }               
-         }
-         return result;
-      };
-
-      LuaDeferredPtr lua_deferred = std::make_shared<LuaDeferred>(fn.desc());
-
-      lua_deferred->Done([lua_to_json, d](object o) {
-         d->Resolve(lua_to_json(o));
-      });
-      lua_deferred->Progress([lua_to_json, d](object o) {
-         d->Notify(lua_to_json(o));
-      });
-      lua_deferred->Fail([lua_to_json, d](object o) {
-         d->Reject(lua_to_json(o));
-      });
-
-   
+      LuaFuturePtr futre = std::make_shared<LuaFuture>(L, d, fn.desc());
       try {
          int top = lua_gettop(L);
 
@@ -69,7 +35,7 @@ void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, F
          detail::push(L, method);               // method
          detail::push(L, obj);                  // self
          detail::push(L, fn.caller);            // session
-         detail::push(L, lua_deferred);         // response
+         detail::push(L, futre);         // response
          for (const auto& arg : fn.args) {
             detail::push(L, scriptHost_->JsonToLua(L, arg));
          }
@@ -80,7 +46,7 @@ void LuaRouter::CallLuaMethod(ReactorDeferredPtr d, object obj, object method, F
          lua_pop(L, 1);
 
          if (result.is_valid() && type(result) != LUA_TNIL) {
-            lua_deferred->Resolve(result);
+            futre->Resolve(result);
          }
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(L, e);

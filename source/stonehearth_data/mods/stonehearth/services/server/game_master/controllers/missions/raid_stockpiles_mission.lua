@@ -4,7 +4,7 @@ local rng = _radiant.csg.get_default_rng()
 local Mission = require 'services.server.game_master.controllers.missions.mission'
 
 local RaidStockpilesMission = class()
-mixin_class(RaidStockpilesMission, Mission)
+radiant.mixin(RaidStockpilesMission, Mission)
 
 function RaidStockpilesMission:activate()
    if self._sv.update_orders_timer then

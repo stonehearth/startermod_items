@@ -1,27 +1,121 @@
 <html>
 
 <input type="file" id="files" name="files[]" multiple style="width:500px;"/>
-<div id="sampleTime"> </div>
-<table id="perfTable">
-  <tr>
-    <th>Function Name</th>
-    <th>Total Time In Function(us)</th>
-    <th>Number of Sampled Calls</th>
-    <th>Hot Lines(line, us)</th>
-  </tr>
-</table>
+<div id="sampleTime"></div>
+<div id="runTime"></div>
+
+<div class="tabs">
+  <ul class="tab-links">
+      <li class="active"><a href="#bottomUp">Bottom Up</a></li>
+      <li><a href="#topDown">Top Down</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div id="bottomUp" class="tab active">
+      <table id="bottomUpPerfTable" class="perfTable">
+        <tr>
+          <th>Function Name</th>
+          <th>Self Time In Function(us)</th>
+          <th>Total Time In Function(us)</th>
+          <th>Number of Sampled Calls</th>
+          <th>Hot Lines(line, samples)</th>
+        </tr>
+      </table>
+    </div>
+    <div id="topDown" class="tab">
+      <table id="topDownPerfTable" class="perfTable">
+        <tr>
+          <th>Function Name</th>
+          <th>Self Time In Function(us)</th>
+          <th>Total Time In Function(us)</th>
+          <th>Number of Sampled Calls</th>
+          <th>Hot Lines(line, samples)</th>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
 <style type="text/css">
-table#perfTable tr:nth-child(even) {
-    background-color: #eee;
-}
-table#perfTable tr:nth-child(odd) {
-    background-color: #fff;
-}
+
+  .tabs {
+    width:100%;
+    display:inline-block;
+  }
+ 
+  /*----- Tab Links -----*/
+  /* Clearfix */
+  .tab-links:after {
+    display:block;
+    clear:both;
+    content:'';
+  }
+ 
+  .tab-links li {
+    margin:0px 5px;
+    float:left;
+    list-style:none;
+  }
+
+  .tab-links a {
+    padding:9px 15px;
+    display:inline-block;
+    border-radius:3px 3px 0px 0px;
+    background:#7FB5DA;
+    font-size:16px;
+    font-weight:600;
+    color:#4c4c4c;
+    transition:all linear 0.15s;
+  }
+ 
+  .tab-links a:hover {
+    background:#a7cce5;
+    text-decoration:none;
+  }
+ 
+  li.active a, li.active a:hover {
+    background:#fff;
+    color:#4c4c4c;
+  }
+ 
+  /*----- Content of Tabs -----*/
+  .tab-content {
+    padding:15px;
+    border-radius:3px;
+    box-shadow:-1px 1px 1px rgba(0,0,0,0.15);
+    background:#fff;
+  }
+ 
+  .tab {
+    display:none;
+  }
+ 
+  .tab.active {
+    display:block;
+  }
+
+  table.perfTable tr:nth-child(even) {
+      background-color: #eee;
+  }
+  table.perfTable tr:nth-child(odd) {
+      background-color: #fff;
+  }
 </style>
+
+<script src="./jquery-2.1.3.min.js"></script>
+
 <script>
 
   var perfData = {};
-  var tableRoot = document.getElementById('perfTable');
+  var buTableRoot = document.getElementById('bottomUpPerfTable');
+  var tdTableRoot = document.getElementById('topDownPerfTable');
+
+  function sortFuncForTable(tableNode) {
+    if (tableNode == buTableRoot) {
+      return function(d1, d2) { return d2.d.st - d1.d.st; };
+    }
+    return function(d1, d2) { return d2.d.tt - d1.d.tt; };
+  }
 
   function getFunctionData(fnName) {
     fnName = fnName.trim();
@@ -29,22 +123,25 @@ table#perfTable tr:nth-child(odd) {
     return {
       fnName : fnName,
       tt : d.tt,
+      st : d.st,
       callers: d.clrs,
-      lines: d.lns
+      lines: d.lns,
+      n : d.n
     };
   }
 
-  function expandFnRow(row) {
+  function expandFnRow(table, row) {
     var curRowDepth = parseInt(row.getAttribute('depth'), 10);
     row.setAttribute('expanded', true);
     var fnName = row.children[0].innerText;
+    fnName = fnName.replace('.', '&#46;');
     var callers = getFunctionData(fnName).callers;
     var next = row.nextSibling;
 
-    displayFnData(callers, tableRoot, next, curRowDepth + 1);
+    displayFnData(callers, table, next, curRowDepth + 1, sortFuncForTable(table));
   }
 
-  function collapseFnRow(row, curRowDepth) {
+  function collapseFnRow(table, row) {
     var curRowDepth = parseInt(row.getAttribute('depth'), 10);
     row.removeAttribute('expanded');
     var done = false;
@@ -56,7 +153,7 @@ table#perfTable tr:nth-child(odd) {
         var sibDepth = parseInt(sib.getAttribute('depth'), 10);
         if (sibDepth > curRowDepth) {
           done = false;
-          tableRoot.removeChild(sib);
+          table.removeChild(sib);
         }
       }
     }    
@@ -64,12 +161,13 @@ table#perfTable tr:nth-child(odd) {
 
   function rowClickHandler(e) {
     var row = e.currentTarget;
+    var rowTableParent = row.parentElement;
     var isExpanded = row.hasAttribute('expanded');
 
     if (!isExpanded) {
-      expandFnRow(row);
+      expandFnRow(rowTableParent, row);
     } else {
-      collapseFnRow(row);
+      collapseFnRow(rowTableParent, row);
     }
   }
 
@@ -105,6 +203,10 @@ table#perfTable tr:nth-child(odd) {
     rowNode.appendChild(rd);
 
     rd = document.createElement('td');
+    rd.innerText = fnData.st;
+    rowNode.appendChild(rd);
+
+    rd = document.createElement('td');
     rd.innerText = fnData.tt;
     rowNode.appendChild(rd);
 
@@ -133,32 +235,31 @@ table#perfTable tr:nth-child(odd) {
     }
   }*/
 
-  function displayFnData(fns, parent, lastElement, depth) {
+  function displayFnData(fns, parent, lastElement, depth, sortFunc) {
     var data = [];
-    var callCounts = []
     for (var i = 0; i < fns.length; i++) {
-      data.push(getFunctionData(fns[i].nm));
-      callCounts.push(fns[i].n);
+      data.push({d: getFunctionData(fns[i].nm), n: fns[i].n});
     }
 
-    data.sort(function(d1, d2) {
-      return d2.tt - d1.tt;
-    });
+    data.sort(sortFunc);
 
     for (var i = 0; i < data.length; i++) {
-      addFuncData(data[i], callCounts[i], parent, lastElement, depth);
+      addFuncData(data[i].d, data[i].n, parent, lastElement, depth);
     }
   }
 
-  function displayRoot(rootNode) {
+  function displayRoot(rootNode, sortFunc) {
+    while (rootNode.children.length > 1) {
+      rootNode.removeChild(rootNode.lastChild);
+    }
     var fns = [];
     for (var key in perfData) {
       if (perfData.hasOwnProperty(key)) {
-        fns.push({ nm: key, n:0 });
+        fns.push({ nm: key, n: getFunctionData(key).n });
       }
     }
 
-    displayFnData(fns, rootNode, null, 0);
+    displayFnData(fns, rootNode, null, 0, sortFunc);
   }
 
   function handleFileSelect(evt) {
@@ -172,13 +273,32 @@ table#perfTable tr:nth-child(odd) {
         var allData = JSON.parse(e.target.result);
         perfData = allData.profile_data;
         metaData = allData.metadata;
-        displayRoot(tableRoot);
         document.getElementById('sampleTime').innerText = metaData.profiling_time + " ms of samples taken";
+        document.getElementById('runTime').innerText = metaData.run_time + " ms wall-clock time";
+        displayRoot(buTableRoot, sortFuncForTable(buTableRoot));
+        displayRoot(tdTableRoot, sortFuncForTable(tdTableRoot));
     };
     reader.readAsText(file);
   }
 
-  document.getElementById('files').addEventListener('change', handleFileSelect, false);
+  function main() {
+    $(document).ready(function() {
+      $('.tabs .tab-links a').on('click', function(e)  {
+          var currentAttrValue = $(this).attr('href');
+   
+          // Show/Hide Tabs
+          $('.tabs ' + currentAttrValue).show().siblings().hide();
+   
+          // Change/remove current tab to active
+          $(this).parent('li').addClass('active').siblings().removeClass('active');
+   
+          e.preventDefault();
+      });
+    });
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);    
+  }
+
+  main();
 </script>
 
 </html>

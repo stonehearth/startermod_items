@@ -1,36 +1,36 @@
 var MaterialHelper = SimpleClass.extend({
-   init : function(tab, buildingDesigner, tabTitle, materialClass, materials, clickHandler) {
+   init : function(tab, buildingDesigner, tabTitle, materialClass, colors, patterns, clickHandler) {
       var self = this;
 
+      self._tabTitle = tabTitle;
       self._buildingDesigner = buildingDesigner;
 
       self._container = $('<div>')
-      this._materialClass = materialClass;
+      self._materialClass = materialClass;
       self._clickHandler = clickHandler;
 
       tab.append(self._container)
 
-      self._addMaterialPalette(tabTitle, materialClass, materials);
+      self._addMaterialPalette(colors, patterns);
    },
 
-   _buildMaterialPalette : function(category, items, materialClassName) {
-      var palette = $('<div>').addClass('brushPalette');
-
+   _buildMaterialPalette : function(palette, category, brushes) {
       // for each category
-      $.each(items, function(i, material) {
+      var self = this;
+      $.each(brushes, function(i, material) {
          var brush = $('<div>')
                         .addClass('brush')
-                        .attr('brush', material.brush)
+                        .addClass(self._materialClass)
+                        .attr('brush', material)
                         .attr('category', category)
-                        .css({ 'background-image' : 'url(' + material.portrait + ')' })
-                        .attr('title', material.name)
-                        .addClass(materialClassName)
                         .append('<div class=selectBox />'); // for showing the brush when it's selected
-
+         if (material[0] == '#') {
+            brush.css({ 'background-color' : material });
+         } else {
+            brush.addClass(material.split(':').pop());
+         }
          palette.append(brush);
       });
-
-      return palette;
    },
 
    _selectBrush: function(brush, skipSave) {
@@ -84,42 +84,61 @@ var MaterialHelper = SimpleClass.extend({
       return this._state.brush;
    },
 
-   _addMaterialPalette: function(tabTitle, materialClass, materials) {
+   _addToPalette: function(toolbar, palette) {
+      if (!palette) {
+         return;
+      }
+
+      var self = this;
+      $.each(palette, function(material, brushes) {
+         var category = material.replace(' ', '_').replace(':', '_');
+
+         if (toolbar) {
+            if (!toolbar.find('div[category="' + category + '"]')[0]) {
+               toolbar.append($('<div>')
+                                 .addClass('button')
+                                 .addClass(category)
+                                 .attr('category', category)
+                                 .append('<div class=selectBox />')
+                              );
+            }
+         }
+         var palette = self._container.find('.brushPalette[category="' + category + '"]');
+         if (palette.length == 0) {
+            var subtab = $('<div>', { id:material.category, class: 'materialSubTab' });
+            subtab.html($('<h1>')
+                     .text(i18n.t(category) + ' ' + self._tabTitle))
+
+            var downSection = $('<div>', { class:'downSection' })
+            palette = $('<div>').addClass('brushPalette')
+                                .attr('category', category);
+            downSection.append(palette);
+            subtab.append(downSection);
+            self._container.append(subtab);
+         }
+         self._buildMaterialPalette(palette, category, brushes);
+      });
+   },
+
+   _addMaterialPalette: function(colors, patterns) {     
       var self = this;      
       var toolbar;
 
       // add the selector...
-      if (materials.length > 1) {
-         toolbar = $('<div>').attr('id', 'materialToolbar')
-                                 .addClass('downSection');
-         self._container.append(toolbar);
-      }
+      var toolbar = $('<div>').attr('id', 'materialToolbar')
+                              .addClass('downSection');
+
+      self._container.append('<h1>' + self._tabTitle + ' ' + i18n.t('building_designer_material') + '</h1>');
+      self._container.append(toolbar);
 
       // add the tabs...
-      $.each(materials, function(i, material) {
-         var category = material.category.toLowerCase()
+      self._addToPalette(toolbar, patterns);
+      self._addToPalette(toolbar, colors);
 
-         if (toolbar) {
-            toolbar.append($('<img>')
-                              .addClass('button')
-                              .addClass(category)
-                              .attr('category', category)
-                              .append('<div class=selectBox />')
-                           );
-         }
-
-         var subtab = $('<div>', {id:material.category, class: 'materialSubTab'});
-         subtab.html($('<h2>')
-                  .text(material.category + ' ' + tabTitle))
-                  .append($('<div>', {class:'downSection'})
-                  .append(self._buildMaterialPalette(category, material.items, materialClass)));
-         self._container.append(subtab);
-      });
-
-      self._container.find('.' + materialClass).click(function() {
+      self._container.find('.brush').click(function() {
          var brush = $(this).attr('brush');
 
-         self._container.find('.' + materialClass).removeClass('selected');
+         self._container.find('.' + self._materialClass).removeClass('selected');
          $(this).addClass('selected');
 
          self._selectBrush(brush);
@@ -141,3 +160,4 @@ var MaterialHelper = SimpleClass.extend({
       self._container.find("[title]").tooltipster();
    }
 });
+

@@ -3,7 +3,7 @@ local rng = _radiant.csg.get_default_rng()
 local ChooseLocationOutsideTown = class()
 
 function ChooseLocationOutsideTown:initialize(player_id, min_range, max_range, callback)
-   checks('self', 'string', 'number', 'number', 'table')
+   checks('self', 'string', 'number', 'number', 'binding')
 
    self._sv.player_id = player_id
    self._sv.min_range = min_range
@@ -52,7 +52,7 @@ function ChooseLocationOutsideTown:_finalize_location(location)
    self._sv.find_location_entity = nil
    self.__saved_variables:mark_changed()
    if self._sv.callback then
-      radiant.fire_callback(self._sv.callback, location)
+      radiant.invoke(self._sv.callback, location)
       self._sv.callback = nil
    end
 end

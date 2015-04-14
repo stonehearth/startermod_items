@@ -1,15 +1,28 @@
 App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.extend({
    templateName: 'buildingDesigner',
 
+   buildBrushes: null,
+
    init: function() {
       var self = this;
-      this._super();
+      self._super();
+
    },   
 
    didInsertElement: function() {
       var self = this;
+      this._super();
 
       self._initializePalettes();
+   },
+
+   initializeTools : function() {
+      if (!this._buildBrushes) {
+         return;
+      }
+      if (!$.isEmptyObject(this.tools)) {
+         return;
+      }
 
       // TODO, maybe?  I think the argument can be made that all of these should just be sub-views,
       // and could be just declared directly within the HTML of whatever designer you want.  The
@@ -19,11 +32,12 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       // 'cute' factoring than real design advantage, and so is left as an exercise to the bored.
       this.newTool(new PlaceFloorDecoTool({ category: 'decoration', toolId: 'placeDecorationTool'}));
       this.newTool(new PlaceFloorDecoTool({ category: 'furniture',  toolId: 'placeFurnitureTool'}));
-      this.newTool(new DrawFloorTool);
+      this.newTool(new PlaceFixtureTool({ category: 'doors',   toolId: 'drawDoorTool',   materialClass: 'doorMaterials'}));
+      this.newTool(new PlaceFixtureTool({ category: 'windows', toolId: 'drawWindowTool', materialClass: 'windowMaterials'}));
+      this.newTool(new DrawFloorTool({ toolId: 'drawFloorTool', sinkFloor:true }));
+      this.newTool(new DrawFloorTool({ toolId: 'growFloorTool', sinkFloor:false }));
       this.newTool(new DrawWallTool);
       this.newTool(new GrowWallsTool);
-      this.newTool(new DrawDoorTool);
-      this.newTool(new DrawWindowTool);
       this.newTool(new GrowRoofTool);
       this.newTool(new DrawRoadTool);
       // this.newTool(new DrawSlabTool);
@@ -43,6 +57,11 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
          self.$('.palette').hide();
          self.$('#' + palette).show();
       });
-      this.$('#toolPaletteBuild').click();
-   }
+      this.$('#toolPaletteBuild').click();     
+   },
+
+   showEditor: function() {
+      this._super();
+      //this.$('[tool=drawFloorTool]').click();
+   },
 });

@@ -6,6 +6,7 @@
    "in_edge"  : "nighttime_city_raid",
 
    "city_raid_info" : {
+      "npc_player_id" : "goblins",
       "missions" : {
          "raid_stockpiles" : {
             "require_free_stockpile_space" : true,

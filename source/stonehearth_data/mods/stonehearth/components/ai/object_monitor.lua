@@ -1,10 +1,10 @@
 local TraceCategories = _radiant.dm.TraceCategories
 
-local ObjectMonitor = class()
+local ObjectMonitor = radiant.class()
 
 function ObjectMonitor:__init(log)
+   log:spam('constructing object monitor')
    self._log = log
-   self._log:spam('constructing object monitor')
    self._traces = {}
 end
 
