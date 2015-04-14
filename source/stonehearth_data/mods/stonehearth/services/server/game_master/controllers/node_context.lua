@@ -24,8 +24,11 @@ end
 
 function NodeContext:initialize(node, parent_ctx)
    if parent_ctx then
-      for k, v in pairs(parent_ctx) do
-         if not self[k] then 
+      for k, v in pairs(parent_ctx._sv) do
+         -- don't overwrite keys that already exist and don't copy the
+         -- parent node pointer (we'll save our own node in at the end of
+         -- the function)
+         if not self[k] and k ~= 'node' then 
             self[k] = v
          end
       end
