@@ -37,10 +37,8 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       var self = this
 
       self.$().on('click', '#templatesList .row', function() {        
-         self.$('#templatesList .row').removeClass('selected');
          var row = $(this);
 
-         row.addClass('selected');
          self._selectedTemplate = row.attr('template');
          App.stonehearthClient.drawTemplate(null, self._selectedTemplate);
       });
