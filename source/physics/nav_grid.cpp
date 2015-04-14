@@ -1483,8 +1483,8 @@ csg::Region3f NavGrid::ProjectRegion(csg::Region3f const& region, ClippingMode m
       csg::Point3 pt;
       for (pt.z = cube.min.z; pt.z < cube.max.z; pt.z++) {
          for (pt.x = cube.min.x; pt.x < cube.max.x; pt.x++) {
-            pt.y = cube.min.y;
-            while (bounds_.Contains(pt)) {
+            pt.y = std::min(cube.min.y, bounds_.max.y-1);
+            while (pt.y >= bounds_.min.y) {
                bool blocked;
                if (mode == CLIP_SOLID) {
                   blocked = IsBlocked(pt);
