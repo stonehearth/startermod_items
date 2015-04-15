@@ -215,11 +215,11 @@ function CalendarService:_fire_alarms(alarm)
 
    while #self._sv._future_alarms > 0 do
       local alarm = self._sv._future_alarms[1]
-      if alarm:get_expire_time() > now then
+      if alarm and alarm:get_expire_time() > now then
          break
       end
       table.remove(self._sv._future_alarms, 1)
-      if not alarm:is_dead() then
+      if alarm and not alarm:is_dead() then
          alarm:fire()
          table.insert(self._sv._past_alarms, alarm)
       end

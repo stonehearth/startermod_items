@@ -9,13 +9,16 @@ function CagedEntityComponent:initialize(entity, json)
       self._sv.initialized = true
       self:_sleep_in_cage()
    else
-      if self._sv.cage then
-         self:_listen_on_cage_kill()
-      
-         radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+      --We're loading
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+         --if there is a cage
+         if self._sv.cage then
+            self:_listen_on_cage_kill()
             self:_sleep_in_cage()
-         end)
-      end
+         elseif self._sv.cage_killed then
+            self:_fire_depart_task()
+         end
+      end)
    end
 end
 
@@ -54,7 +57,11 @@ function CagedEntityComponent:_on_cage_killed(e)
    end
 
    self._sv.cage = nil
+   self._sv.cage_killed = true
+   self:_fire_depart_task()
+end
 
+function CagedEntityComponent:_fire_depart_task()
    self._depart_task = self._entity:add_component('stonehearth:ai')
                                        :get_task_group('stonehearth:compelled_behavior')
                                           :create_task('stonehearth:depart_visible_area')
