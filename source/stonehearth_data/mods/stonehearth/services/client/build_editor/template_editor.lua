@@ -124,8 +124,8 @@ function TemplateEditor:go(response, template_name)
       :done(function(selector, location, rotation)
             _radiant.call_obj(self._build_service, 'build_template_command', template_name, location, self._center_offset, rotation)
                :done(function(r)
-                     if r.new_building then
-                        stonehearth.selection:select_entity(r.new_building)
+                     if r.building then
+                        stonehearth.selection:select_entity(r.building)
                      end
                      response:resolve(r)
                   end)

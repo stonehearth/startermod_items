@@ -353,6 +353,11 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             });
          }
       });
+
+      this.$().on( 'input', '#overview #name', function() {
+         var building = self.get('building');
+         radiant.call('stonehearth:set_display_name', building.__self, $(this).val());
+      });      
    },
 
    _restoreUiState: function() {

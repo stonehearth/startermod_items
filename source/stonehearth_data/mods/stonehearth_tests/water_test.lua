@@ -12,9 +12,12 @@ function WaterTest:__init()
 
    local session = self:get_session()
 
-   self:_create_lake()
-   --self:_create_enclosed_wall()
+   --self:_create_lake()
+   self:_create_walled_lake()
+   self:_create_enclosed_wall()
    --self:_create_depression()
+
+   --self:place_citizen(0, 20)
 
    -- wait for watertight region to update before starting
    stonehearth.calendar:set_timer(10, function()
@@ -23,6 +26,11 @@ function WaterTest:__init()
 end
 
 function WaterTest:_create_lake()
+   local cube = self:_remove_cube_from_terrain(0, 0, 16, 16, 5)
+   self:_fill_cube(cube, 4.5)
+end
+
+function WaterTest:_create_walled_lake()
    local height = 15
    local cube = Cube3(
          Point3(-10, 10, -10),
@@ -46,6 +54,8 @@ function WaterTest:_create_lake()
 
    radiant.terrain.subtract_cube(inset)
    radiant.terrain.subtract_point(Point3(-5, 14, -1))
+
+   self:_fill_cube(inset, 4.5)
 end
 
 function WaterTest:_create_depression()
@@ -77,10 +87,44 @@ end
 
 function WaterTest:_water_test()
    local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
-   stonehearth.hydrology:add_water(64/4 + 64*3.5, location)
 
    stonehearth.calendar:set_interval(10, function()
-         stonehearth.hydrology:add_water(4, location)
+         stonehearth.hydrology:add_water(2, location)
+      end)
+end
+
+function WaterTest:_add_cube_to_terrain(x, z, width, length, height)
+   local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
+   local cube = Cube3(
+         Point3(x, y, z),
+         Point3(x + width, y + height, z + length)
+      )
+   radiant.terrain.add_cube(cube)
+   return cube
+end
+
+function WaterTest:_remove_cube_from_terrain(x, z, width, length, depth)
+   local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
+   local cube = Cube3(
+         Point3(x, y - depth, z),
+         Point3(x + width, y, z + length)
+      )
+   radiant.terrain.subtract_cube(cube)
+   return cube
+end
+
+function WaterTest:_fill_cube(cube, height)
+   local wetting_constant = 0.25
+   local location = _radiant.csg.get_cube_centroid(cube):to_closest_int()
+   local layer_volume = cube:get_area() / cube:get_size().y
+   local water_volume = layer_volume * (height + wetting_constant)
+   self:_add_water(water_volume, location)
+end
+
+function WaterTest:_add_water(volume, location)
+   stonehearth.calendar:set_timer(10, function()
+         local resolved_location = radiant.terrain.get_point_on_terrain(location)
+         stonehearth.hydrology:add_water(volume, resolved_location)
       end)
 end
 
