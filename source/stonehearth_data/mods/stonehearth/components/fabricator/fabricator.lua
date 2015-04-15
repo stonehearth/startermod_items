@@ -99,6 +99,10 @@ function Fabricator:destroy()
       self._finished_listener:destroy()
       self._finished_listener = nil
    end
+   if self._next_frame_listener then
+      self._next_frame_listener:destroy()
+      self._next_frame_listener = nil
+   end
 
    for _, trace in ipairs(self._traces) do
       trace:destroy()
@@ -118,11 +122,7 @@ end
 
 function Fabricator:set_active(active)
    self._active = active
-   if self._active then
-      self:_start_project()
-   else
-      self:_stop_project()
-   end
+   self:_mark_dirty()
 end
 
 function Fabricator:set_teardown(teardown)
@@ -189,9 +189,26 @@ function Fabricator:_create_new_project()
    self._project:add_component('stonehearth:construction_data', state)
 end
 
+function Fabricator:_mark_dirty()
+   if not self._next_frame_listener then
+      self._next_frame_listener = radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+            self._next_frame_listener = nil
+            self:_updates_state()
+         end)
+   end
+end
+
+function Fabricator:_updates_state()
+   if self._finished then
+      self:_stop_project()
+   else
+      self:_start_project()
+   end   
+end
+
 function Fabricator:_on_dependencies_finished_changed()
    self._log:debug('got stonehearth:construction:dependencies_finished_changed event')
-   self:_start_project()
+   self:_mark_dirty()
 end
 
 function Fabricator:get_material(world_location)
@@ -205,10 +222,15 @@ function Fabricator:get_material(world_location)
    end
 
    local offset = radiant.entities.world_to_local(world_location, self._entity)
-   local tag = self._blueprint_dst
+   local rgn = self._blueprint_dst
                         :get_region()
                            :get()
-                              :get_tag(offset)
+                           
+   -- xxx: this is 2 lookups.  eek!   
+   if not rgn:contains(offset) then
+      return nil
+   end
+   local tag = rgn:get_tag(offset)
 
    local color = Color3(tag)
    local material = COLOR_TO_MATERIAL[tostring(color)]
@@ -409,6 +431,7 @@ function Fabricator:_start_project()
    end
 
    if self._scaffolding then
+      self._scaffolding:set_teardown(self._should_teardown)
       self._scaffolding:set_active(active)
    end
 end
@@ -784,12 +807,7 @@ function Fabricator:_update_fabricator_region()
    self:_log_destination(self._entity)
    self:_log_destination(self._blueprint)
    self:_log_destination(self._project)
-
-   if self._finished then
-      self:_stop_project()
-   else
-      self:_start_project()
-   end
+   self:_mark_dirty()
 end
 
 function Fabricator:_trace_blueprint_and_project()

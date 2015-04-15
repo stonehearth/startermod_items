@@ -85,9 +85,9 @@ function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, bluepri
 end
 
 function ScaffoldingManager:_remove_region(rid)
-   log:detail('removing region rid:%d', rid)
-
    local rblock = self._sv.regions[rid]
+
+   log:detail('removing region rid:%d', rid)
    if rblock then
       -- remove all the rblock tracking data
       assert(self._sv.regions[rid])
@@ -99,9 +99,10 @@ function ScaffoldingManager:_remove_region(rid)
       end
 
       -- remove the rblock from the sblock
-      local sid = rblock.sid
-      if sid then
-         local sblock = self._sv.scaffolding[sid]
+      local sblock = rblock.sblock
+      if sblock then
+         local sid = sblock.sid
+         log:detail('removing region rid:%d from sblock:%d', rid, sid)
          sblock.regions[rid] = nil
          self._changed_scaffolding[sid] = sblock
       end
@@ -135,22 +136,35 @@ function ScaffoldingManager:_trace_rblock_region(rblock)
 end
 
 function ScaffoldingManager:_check_sblock_destroy(sblock)
+   local sid = sblock.sid
+
+   log:detail('checking sblock sid:%d region.', sid)
+
    if not radiant.empty(sblock.regions) then
+      if log:is_enabled(radiant.log.DETAIL) then
+         local regions = ''
+         for rid, rblock in pairs(sblock.regions) do
+            regions = tostring(rid) .. ' '
+         end
+         log:detail('sblock sid:%d still has regions %s.  not destroying.', sid, regions)
+      end
       return
    end
-   if sblock.region:get():empty() then
-      local sid = sblock.sid
-
-      if self._sblock_region_traces[sid] then
-         self._sblock_region_traces[sid]:destroy()
-         self._sblock_region_traces[sid] = nil
-      end
-      self._sv.scaffolding[sid] = nil
-      self.__saved_variables:mark_changed()
-
-      radiant.entities.destroy_entity(sblock.scaffolding)
-      sblock.region = nil
+   if not sblock.region:get():empty() then
+      log:detail('sblock sid:%d still has a non-empty region.  not destroying.', sblock.sid)
+      return
    end
+
+   log:detail('reaping sblock sid:%d', sid)
+   if self._sblock_region_traces[sid]  then
+      self._sblock_region_traces[sid]:destroy()
+      self._sblock_region_traces[sid] = nil
+   end
+   self._sv.scaffolding[sid] = nil
+   self.__saved_variables:mark_changed()
+
+   radiant.entities.destroy_entity(sblock.scaffolding)
+   sblock.region = nil
 end
 
 function ScaffoldingManager:_mark_rblock_region_changed(rblock)
@@ -194,6 +208,7 @@ end
 function ScaffoldingManager:_process_changed_scaffolding()
    for sid, sblock in pairs(self._changed_scaffolding) do
       self:_update_scaffolding_region(sblock)
+      self:_check_sblock_destroy(sblock)
    end
    self._changed_scaffolding = {}
 end
@@ -237,10 +252,11 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    local owner = radiant.entities.get_player_id(rblock.entity)
    local origin = rblock.origin
    local normal = rblock.normal
+   local sid = self:_get_next_id()
 
    local region = radiant.alloc_region3()
    local scaffolding = radiant.entities.create_entity('stonehearth:build:prototypes:scaffolding', { owner = owner })
-   scaffolding:set_debug_text(string.format('rid:%d', rblock.rid))
+   scaffolding:set_debug_text(string.format('sid:%d', sid))
 
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
@@ -260,7 +276,6 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    -- let's go go go!
    stonehearth.build:set_active(scaffolding, true)
 
-   local sid = self:_get_next_id()
    local sblock = {
       sid         = sid,
       scaffolding = scaffolding,
@@ -274,6 +289,7 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
    }
    self._sv.scaffolding[sid] = sblock
    rblock.sblock = sblock
+   self:_trace_sblock_region(sblock)
 
    log:detail('created new sblock sid:%d for rblock rid:%d', rblock.rid, sblock.sid)
 
@@ -281,6 +297,8 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
 end
 
 function ScaffoldingManager:_update_scaffolding_region(sblock)
+   assert(sblock.region)
+   
    local merged = Region3()
    for rid, rblock in pairs(sblock.regions) do
       local r = rblock.region:get():translated(rblock.origin)

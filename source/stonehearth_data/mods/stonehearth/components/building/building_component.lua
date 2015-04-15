@@ -157,26 +157,32 @@ end
 function Building:_remove_structure(entity)
    local id = entity:get_id()
    local layout_roof = false
+   local entry
+
+   self._log:detail('removing structure %s', entity)
 
    -- remove the entity from our structure map.  it appears only once, we just have
    -- to find the right table in our list...
-   for _, structure_type in pairs(STRUCTURE_TYPES) do
-      local trace
-      local structure = entity:get_component(structure_type)
-      if structure then
-         self._sv.structures[structure_type][id] = nil
-         self.__saved_variables:mark_changed()
+   for structure_type, structures in pairs(self._sv.structures) do
+      entry = structures[id]
+      if entry then
+         structures[id] = nil
          if structure_type == ROOF then
             layout_roof = true
          end
+
+         -- fake a finish since the entity is about to go away
+         if self._sv.active then
+            self:_on_child_finished(entry)
+         end
          break
-      end      
+      end
    end
 
    -- if there are any traces for this entity, nuke them now, too.
    self:_untrace_entity(id)
 
-   if layout_roof then
+   if not self._sv.active and layout_roof then
       self:layout_roof()
    end
 end
@@ -193,7 +199,7 @@ function Building:_trace_entity_container()
    local ec = self._entity:add_component('entity_container')
    self._ec_trace = ec:trace_children('auto-destroy building')
                         :on_removed(function()
-                              if ec:is_valid() and ec:num_children() == 1 then
+                              if ec:is_valid() and ec:num_children() == 0 then
                                  local teardown = self._entity:get_component('stonehearth:construction_progress'):get_teardown()
                                  if teardown then
                                     radiant.entities.destroy_entity(self._entity)
@@ -215,8 +221,9 @@ function Building:get_building_footprint()
    return region
 end
 
-function Building:set_active(enabled)
-   if enabled then
+function Building:set_active(active)
+   self._sv.active = active
+   if active then
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
    end
@@ -230,7 +237,8 @@ function Building:_trace_entity(entity, loading)
       end)
 
    self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function(e)
-         self:_on_child_finished(e)
+         local entry = self:_get_entry_for_structure(e.entity)
+         self:_on_child_finished(entry)
       end)
 
    --[[
@@ -531,19 +539,24 @@ end
 -- finished.  manually crawl our entire entity tree to compute that, then update our contruction
 -- progress component
 --
-function Building:_on_child_finished(changed)
-   local entry = self:_get_entry_for_structure(changed.entity)
+function Building:_on_child_finished(entry)
    assert(entry)
 
-   self._log:detail('got finish changed notification from %s', entry.entity)
-   if entry.inverse_dependencies then
-      for id, entity in pairs(entry.inverse_dependencies) do
-         self._log:detail(' -- notifying %s', entity)
-         radiant.events.trigger_async(entity, 'stonehearth:construction:dependencies_finished_changed')
-      end
+   local teardown = self._entity:get_component('stonehearth:construction_progress')
+                                    :get_teardown()
+
+   -- if we're building, we need to notify everyone who depends on us that it might be
+   -- ok for them to start.  if we're tearing down, notify everyone we depend on.
+   -- use sync triggers, since the entity might be going away soon!
+   self._log:detail('structure %s is finished.  sending notifications', entry.entity)
+   local to_notify = teardown and entry.dependencies or entry.inverse_dependencies
+
+   for id, entity in pairs(to_notify) do
+      self._log:detail(' -- notifying %s', entity)
+      radiant.events.trigger(entity, 'stonehearth:construction:dependencies_finished_changed')
    end
 
-   radiant.events.trigger_async(self._entity, 'stonehearth:construction:structure_finished_changed')
+   radiant.events.trigger(self._entity, 'stonehearth:construction:structure_finished_changed')
    self:_update_building_finished()
 end
 
@@ -626,6 +639,8 @@ function Building:finish_restoring_template()
 end
 
 function Building:can_start_blueprint(entity, teardown)
+   checks('self', 'Entity', 'boolean')
+
    local entry = self:_get_entry_for_structure(entity)
    if not entry then
       return false
@@ -633,13 +648,17 @@ function Building:can_start_blueprint(entity, teardown)
    assert(entry.dependencies)
    assert(entry.inverse_dependencies)
 
-   self._log:detail('checking to see if %s @ %s can start', entity, radiant.entities.get_location_aligned(entity))
-   for id, dependency in pairs(entry.dependencies) do
-      if not build_util.blueprint_is_finished(dependency) then
+   local dependencies = teardown and entry.inverse_dependencies or entry.dependencies
+
+   self._log:detail('checking to see if %s @ %s can start (teardown:%s)', entity, radiant.entities.get_location_aligned(entity), teardown)
+   for id, dependency in pairs(dependencies) do
+      if not dependency:is_valid() then
+         self._log:detail('   - dependency has been destroyed.  must be finished!');
+      elseif not build_util.blueprint_is_finished(dependency) then
          self._log:detail('   - %s @ %s not finished!  no', dependency, radiant.entities.get_location_aligned(dependency))
          return false
       else
-         self._log:detail('   - %s @ %s finished!', dependency, radiant.entities.get_location_aligned(dependency))         
+         self._log:detail('   - %s @ %s finished!', dependency, radiant.entities.get_location_aligned(dependency))
       end
    end
    self._log:detail('yay!!')
