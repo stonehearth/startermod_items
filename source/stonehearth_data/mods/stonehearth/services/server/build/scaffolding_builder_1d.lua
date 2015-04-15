@@ -57,7 +57,7 @@ function ScaffoldingBuilder_OneDim:activate()
 
    self._log = radiant.log.create_logger('build.scaffolding.1d')
                               :set_entity(entity)
-                              :set_prefix('s1d ' .. self._debug_text)
+                              :set_prefix('s1d:' .. tostring(self._sv.id) .. ' ' .. self._debug_text)
 
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
@@ -461,6 +461,7 @@ function ScaffoldingBuilder_OneDim:_old_cover_project_region(teardown)
       region:translate(-o)
    end
 
+   region:optimize_by_merge('s1d builder')
    self._sv.scaffolding_rgn:modify(function(cursor)
          cursor:copy_region(region)
       end)

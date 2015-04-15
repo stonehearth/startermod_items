@@ -255,19 +255,42 @@ function Fabricator:add_block(material_entity, location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
+   self._log:info('adding block %s', pt)
+
    -- if we've projected the fabricator region to the base of the project,
    -- the location passed in will be at the base, too.  find the appropriate
    -- block to add to the project collision shape by starting at the bottom
    -- and looking up.
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
       local project_rgn = self._project_dst:get_region():get()
-      while project_rgn:contains(pt) do
+      local blueprint_rgn = self._blueprint_dst:get_region():get()
+      local blueprint_top = blueprint_rgn:get_bounds().max.y
+
+      -- we're looking for the bottom most block that we can build.  keep
+      -- walking the point up until we find something which is both
+      -- inside the blueprint and not in the project.
+      while true do
+         if pt.y > blueprint_top then
+            self._log:warning('grew point %s outside blueprint bounds.  bailing', pt)
+            break
+         end
+
+         if blueprint_rgn:contains(pt) then
+            if not project_rgn:contains(pt) then
+               -- yay!  this is the point we need to build
+               break
+            end
+         end
          pt.y = pt.y + 1
       end
-      if not self._blueprint_dst:get_region():get():contains(pt) then
+
+      if not blueprint_rgn:contains(pt) then
          -- we couldn't find a block in this column that is both missing from the
          -- project and inside the blueprint.  we must already be done!!
-         self._log:info('skipping location %s -> %s.  no longer in blueprint!', location, pt + origin)
+         self._log:info('skipping location %s -> %s.  no longer in blueprint!', location, pt)
+         self:_log_destination(self._entity)
+         self:_log_destination(self._blueprint)
+         self:_log_destination(self._project)
          return
       end
    end
@@ -278,6 +301,7 @@ function Fabricator:add_block(material_entity, location)
                                  :get()
                                     :get_tag(pt)
          cursor:add_point(pt, color)
+         cursor:optimize_by_merge('add block in project')
       end)
    self:release_block(location)
    return true
@@ -367,8 +391,8 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)',
-                     tostring(self._active), tostring(self._should_teardown), tostring(self._finished), tostring(self._can_start))
+   self._log:detail('start_project (active:%s can_start:%s teardown:%s finished:%s)',
+                     tostring(self._active), tostring(self._can_start), tostring(self._should_teardown), tostring(self._finished))
    if self._finished then
       return
    end
@@ -380,8 +404,10 @@ function Fabricator:_start_project()
    -- ones that need destroying.
    if active then
       if self._should_teardown then
+         self:_destroy_fabricate_task()
          self:_start_teardown_task()
       else
+         self:_destroy_teardown_task()
          self:_start_fabricate_task()
       end
    else
@@ -736,6 +762,7 @@ function Fabricator:_update_fabricator_region()
          for _, pt in ipairs(points_to_add) do
             cursor:add_unique_point(pt)
          end
+         cursor:optimize_by_merge('update fab region')
          self._finished = cursor:empty()
       end)
    else
@@ -757,7 +784,14 @@ function Fabricator:_update_fabricator_region()
          return
       end
    end
-   
+
+   for cube in (br - pr):each_cube() do
+      self._log:spam('  br - pr cube:   %s : %d', cube, cube.tag)
+   end
+   self:_log_destination(self._entity)
+   self:_log_destination(self._blueprint)
+   self:_log_destination(self._project)
+
    if self._finished then
       self:_stop_project()
    else
@@ -796,6 +830,37 @@ function Fabricator:_log_region(r, name)
    for c in r:each_cube() do
       self._log:detail('  %s', c)
    end   
+end
+
+if radiant.log.is_enabled('build.fabricator', radiant.log.SPAM) then
+   function Fabricator:_log_destination(entity)
+      self._log:spam('destination for %s', entity)
+      local dst = entity:get_component('destination')
+      local region = dst:get_region()
+      if region then
+         --region:modify(function(c) c:force_optimize_by_merge('debuggin') end)
+         for cube in region:get():each_cube() do
+            self._log:spam('  region cube:   %s : %d', cube, cube.tag)
+         end
+      end
+      local reserved = dst:get_reserved()
+      if reserved then
+         --region:modify(function(c) c:force_optimize_by_merge('debuggin') end)
+         for cube in reserved:get():each_cube() do
+            self._log:spam('  reserved cube: %s : %d', cube, cube.tag)
+         end
+      end
+      local adjacent = dst:get_adjacent()
+      if adjacent then
+         --region:modify(function(c) c:force_optimize_by_merge('debuggin') end)
+         for cube in dst:get_adjacent():get():each_cube() do
+            self._log:spam('  adjacent cube: %s : %d', cube, cube.tag)
+         end
+      end
+   end
+else
+   function Fabricator:_log_destination(entity)
+   end
 end
 
 return Fabricator

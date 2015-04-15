@@ -82,11 +82,12 @@ csg::Region3 RegionTracker<BoxedRegion>::GetOverlappingRegion(csg::Cube3 const& 
    if (region) {
       if (GetType() == PLATFORM) { 	         
          // Just the tops, please
-         csg::Point3 const& min = _lastBounds.min;
-         csg::Point3 const& max = _lastBounds.max;
-         csg::Cube3 top(csg::Point3(min.x, max.y - 1, min.z), max);
-
-         return csg::ToInt(_region) & (top & bounds);
+         csg::Region3 r;
+         csg::Region3 iregion = csg::ToInt(_region);
+         for (csg::Cube3 const& c : csg::EachCube(iregion)) {
+            r.AddUnique(csg::Cube3(csg::Point3(c.min.x, c.max.y - 1, c.min.z), c.max));
+         }
+         return r & bounds;
       }
       return csg::ToInt(_region) & bounds;
    }
