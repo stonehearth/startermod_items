@@ -99,6 +99,15 @@ void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::S
    }
 }
 
+void StackFrame::ComputeTotalTime(CounterValueType time)
+{
+   _totalTime += time;
+
+   for (auto &f : _callers) {
+      f.ComputeTotalTime(time);
+   }
+}
+
 void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const
 {
    bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
@@ -153,6 +162,14 @@ SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
 void SamplingProfiler::FinalizeCollection(res::ResourceManager2& resMan)
 {
    _invertedStack.FinalizeCollection(resMan);
+   ComputeTotalTime();
+}
+
+void SamplingProfiler::ComputeTotalTime()
+{
+   for (auto &f : _invertedStack._callers) {
+      f.ComputeTotalTime(f._selfTime);
+   }
 }
 
 void SamplingProfiler::Fuse(FusedFrames &lookup)

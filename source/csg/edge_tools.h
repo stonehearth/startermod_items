@@ -164,7 +164,7 @@ public:
 
    void MergeAdjacentEdges() {
       uint merged = 1;
-      uint c = edges.size();
+      uint c = (uint)edges.size();
 
       // Maintain the invariant that no edges can be merged with any of the previous
       // edges
