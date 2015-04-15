@@ -45,6 +45,13 @@ end
 
 -- Make a citizen and propose his approach
 function Immigration:start()
+   --TODO: remove when we have better perf!
+   --For Steam EA, don't spawn if we have more than 20 people
+   local num_citizens = stonehearth.population:get_population_size(self._sv.player_id)
+   if num_citizens > self._immigration_data.max_citizens then
+      return
+   end
+
    --Show a bulletin with food/morale/net worth stats
    local message, success = self:_compose_town_report()
    if success then
