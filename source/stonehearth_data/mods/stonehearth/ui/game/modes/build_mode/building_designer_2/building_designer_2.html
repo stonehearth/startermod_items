@@ -61,7 +61,10 @@
       </div>
 
       <div id="bottomButtons">
-         <button id="showOverview">{{i18n stonehearth:finished_editing}}</button>
+         {{#if view.building}}
+            <button id="showOverview">{{i18n stonehearth:finished_editing}}</button>
+         {{/if}}
+         
       </div>
    </div>
 

@@ -62,6 +62,6 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
 
    showEditor: function() {
       this._super();
-      this.$('[tool=drawFloorTool]').click();
+      //this.$('[tool=drawFloorTool]').click();
    },
 });

@@ -1,6 +1,9 @@
 <script type="text/x-handlebars" data-template-name="buildingOverview">
    <div class="window mainWindow">
       <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
+      <h1>Building Name</h1>
+      <input id="name" onClick="this.select();" type="text" {{bind-attr value=view.building.unit_info.name}} />
+
       <h1>Building Cost</h1>
       {{ view stonehearthBuildingCost }}            
       <div id="buttons">

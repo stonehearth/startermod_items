@@ -329,6 +329,7 @@
    "doodad_tip_description" : "Right click to exit",
    "draw_template_title" : "Click to build template", 
    "draw_template_description": "Rotate with , and . keys",
+   "template_default_name": "My new building template",
    "build_road_tip_title" : "Click and drag to build road", 
    "build_road_tip_description" : "Right click to exit", 
    "start_building_confirm_title" : "Really start building?",
