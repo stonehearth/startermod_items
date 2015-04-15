@@ -206,7 +206,7 @@ function BuildUndoManager:_trace_entity(entity)
                               self:_mark_changed(component)
                            end
                         end)
-                     :push_object_state()   
+                     :push_object_state()
    end
    
    local function trace_lua_component(component, name)
@@ -225,8 +225,10 @@ function BuildUndoManager:_trace_entity(entity)
                      :on_changed(function(r)
                            if entity:is_valid() then
                               local region = component:get_region()
-                              log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
-                              self:_mark_changed(region)
+                              if region then
+                                 log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
+                                 self:_mark_changed(region)
+                              end
                            end
                         end)
                      :push_object_state()
