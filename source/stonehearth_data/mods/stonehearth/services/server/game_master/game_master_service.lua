@@ -40,7 +40,7 @@ function GameMasterService:start()
    end
    self:_start_campaign('combat')
    self:_start_campaign('trader')
-   --self:_start_campaign('ambient_threats')
+   self:_start_campaign('ambient_threats')
 end
 
 function GameMasterService:is_enabled()

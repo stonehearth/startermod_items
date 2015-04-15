@@ -6,7 +6,7 @@ App.StonehearthTemplateNameView = App.View.extend({
       var self = this;
       this._super();
 
-      this.$('#name').val('binky');
+      this.$('#name').val(i18n.t('template_default_name'));
       this.$('#name').focus();
 
       this.$('#name').keypress(function (e) {

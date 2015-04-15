@@ -47,7 +47,7 @@ public:
    std::ostream& Print(std::ostream& os) const {
       os << "(";
       for (int i = 0; i < C; i++) {
-         os << (*this)[i];
+         os << std::fixed << std::setprecision(2) << (*this)[i];
          if (i < (C-1)) {
             os << ", ";
          }

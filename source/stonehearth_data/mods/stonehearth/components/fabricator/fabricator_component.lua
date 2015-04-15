@@ -42,7 +42,8 @@ function FabricatorComponent:_restore()
    self._fabricator:set_scaffolding(self._sv.scaffolding)
    self._fabricator:set_teardown(self._sv.teardown)
    self._fabricator:set_active(self._sv.active)
-   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)   
+   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._destroy_self)
+   radiant.events.listen_once(self._sv.project,   'radiant:entity:pre_destroy', self, self._destroy_self)
 end
 
 function FabricatorComponent:destroy()
@@ -99,17 +100,20 @@ function FabricatorComponent:start_project(blueprint)
    local project_rgn = project:get_component('destination'):get_region()
    local blueprint_rgn = blueprint:get_component('destination'):get_region()
    local stand_at_base = ci:get_project_adjacent_to_base()
-   local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
-   self._fabricator:set_scaffolding(scaffolding)
-   self._sv.scaffolding = scaffolding
-
+   if blueprint:get_uri() ~= 'stonehearth:build:prototypes:scaffolding' then
+      local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+      self._fabricator:set_scaffolding(scaffolding)
+      self._sv.scaffolding = scaffolding
+   end
+   
    -- remember the blueprint and project
    self._sv.project = project
    self._sv.blueprint = blueprint
    self._sv.total_mining_region = self._fabricator:get_total_mining_region()
    self.__saved_variables:mark_changed()
    
-   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
+   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._destroy_self)
+   radiant.events.listen_once(self._sv.project,   'radiant:entity:pre_destroy', self, self._destroy_self)
 
    return self
 end
@@ -125,8 +129,8 @@ end
 -- called just before the blueprint for this fabricator is destroyed.  we need only
 -- destroy the entity for this fabricator.  the rest happens directly as a side-effect
 -- of doing so (see :destroy())
-function FabricatorComponent:_on_blueprint_destroyed()
-   if self._entity then
+function FabricatorComponent:_destroy_self()
+   if self._entity and self._entity:is_valid() then
       radiant.entities.destroy_entity(self._entity)
    end
 end

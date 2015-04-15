@@ -15,7 +15,7 @@ function CreateMission:start(ctx, info)
    self._sv.info = info
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
-                                                 radiant.bind_callback(self, '_start_mission'))
+                                                 radiant.bind(self, '_start_mission'))
 end
 
 function CreateMission:stop()

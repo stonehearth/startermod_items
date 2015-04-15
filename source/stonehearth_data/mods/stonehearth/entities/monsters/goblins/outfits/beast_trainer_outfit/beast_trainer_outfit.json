@@ -1,0 +1,28 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(beast_trainer_outfit.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(beast_trainer_outfit.qb)"
+            ]
+         }
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 2
+      }
+   }   
+}
