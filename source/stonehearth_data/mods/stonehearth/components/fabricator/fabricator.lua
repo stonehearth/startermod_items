@@ -88,8 +88,8 @@ function Fabricator:__init(name, entity, blueprint, project)
    
    self:_trace_blueprint_and_project()
 
-   self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_can_start_changed)
-   self:_on_can_start_changed()
+   self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+   self:_on_dependencies_finished_changed()
 end
 
 function Fabricator:destroy()
@@ -98,6 +98,10 @@ function Fabricator:destroy()
    if self._finished_listener then
       self._finished_listener:destroy()
       self._finished_listener = nil
+   end
+   if self._next_frame_listener then
+      self._next_frame_listener:destroy()
+      self._next_frame_listener = nil
    end
 
    for _, trace in ipairs(self._traces) do
@@ -118,12 +122,7 @@ end
 
 function Fabricator:set_active(active)
    self._active = active
-   if self._active then
-      self:_on_can_start_changed()
-      self:_start_project()
-   else
-      self:_stop_project()
-   end
+   self:_mark_dirty()
 end
 
 function Fabricator:set_teardown(teardown)
@@ -190,18 +189,26 @@ function Fabricator:_create_new_project()
    self._project:add_component('stonehearth:construction_data', state)
 end
 
-function Fabricator:_on_can_start_changed()
-   if not self._active then
-      return
+function Fabricator:_mark_dirty()
+   if not self._next_frame_listener then
+      self._next_frame_listener = radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+            self._next_frame_listener = nil
+            self:_updates_state()
+         end)
    end
-   local can_start = build_util.can_start_building(self._blueprint)
-   if can_start ~= self._can_start then
-      self._can_start = can_start
-      self._log:debug('got stonehearth:construction:dependencies_finished_changed event (dependencies finished = %s)',
-                      tostring(self._can_start))
+end
 
+function Fabricator:_updates_state()
+   if self._finished then
+      self:_stop_project()
+   else
       self:_start_project()
-   end
+   end   
+end
+
+function Fabricator:_on_dependencies_finished_changed()
+   self._log:debug('got stonehearth:construction:dependencies_finished_changed event')
+   self:_mark_dirty()
 end
 
 function Fabricator:get_material(world_location)
@@ -215,10 +222,15 @@ function Fabricator:get_material(world_location)
    end
 
    local offset = radiant.entities.world_to_local(world_location, self._entity)
-   local tag = self._blueprint_dst
+   local rgn = self._blueprint_dst
                         :get_region()
                            :get()
-                              :get_tag(offset)
+                           
+   -- xxx: this is 2 lookups.  eek!   
+   if not rgn:contains(offset) then
+      return nil
+   end
+   local tag = rgn:get_tag(offset)
 
    local color = Color3(tag)
    local material = COLOR_TO_MATERIAL[tostring(color)]
@@ -388,16 +400,19 @@ function Fabricator:remove_block(location)
 end
 
 function Fabricator:_start_project()
-   -- If we're tearing down the project, we only need to start the teardown
-   -- task.  If we're building up and all our dependencies are finished
-   -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (active:%s can_start:%s teardown:%s finished:%s)',
-                     tostring(self._active), tostring(self._can_start), tostring(self._should_teardown), tostring(self._finished))
    if self._finished then
       return
    end
 
-   local active = self._active and self._can_start
+   -- If we're tearing down the project, we only need to start the teardown
+   -- task.  If we're building up and all our dependencies are finished
+   -- building up, start the pickup and fabricate tasks
+   local can_start = build_util.can_start_blueprint(self._blueprint, self._should_teardown)
+
+   self._log:detail('start_project (active:%s can_start:%s teardown:%s finished:%s)',
+                     tostring(self._active), tostring(can_start), tostring(self._should_teardown), tostring(self._finished))
+
+   local active = self._active and can_start
 
 
    -- Now apply the deltas.  Create tasks that need creating and destroy
@@ -416,6 +431,7 @@ function Fabricator:_start_project()
    end
 
    if self._scaffolding then
+      self._scaffolding:set_teardown(self._should_teardown)
       self._scaffolding:set_active(active)
    end
 end
@@ -791,12 +807,7 @@ function Fabricator:_update_fabricator_region()
    self:_log_destination(self._entity)
    self:_log_destination(self._blueprint)
    self:_log_destination(self._project)
-
-   if self._finished then
-      self:_stop_project()
-   else
-      self:_start_project()
-   end
+   self:_mark_dirty()
 end
 
 function Fabricator:_trace_blueprint_and_project()

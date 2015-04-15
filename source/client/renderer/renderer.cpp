@@ -1924,7 +1924,6 @@ core::Guard Renderer::OnRenderFrameFinished(std::function<void(FrameStartInfo co
 
 void Renderer::SetShowDebugShapes(dm::ObjectId id)
 {
-   R_LOG(0) << "showing debug shapes for entity " << id;
    show_debug_shapes_changed_slot_.Signal(id);
 }
 

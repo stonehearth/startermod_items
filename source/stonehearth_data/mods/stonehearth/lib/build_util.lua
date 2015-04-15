@@ -289,14 +289,14 @@ function build_util.get_blueprint_for(entity)
    return blueprint
 end
 
-function build_util.can_start_building(blueprint)
+function build_util.can_start_blueprint(blueprint, teardown)
    local building = build_util.get_building_for(blueprint)
    if not building then
       assert(blueprint:get_uri() == 'stonehearth:build:prototypes:scaffolding') -- special case...
       return true
    end
    return building:get_component('stonehearth:building')
-                      :can_start_building(blueprint)
+                      :can_start_blueprint(blueprint, teardown)
 end
 
 function build_util.blueprint_is_finished(blueprint)

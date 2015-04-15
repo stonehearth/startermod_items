@@ -5,7 +5,7 @@ local Point3 = _radiant.csg.Point3
 
 local lrbt_util = {}
 
-local WOODEN_WALL    = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
+local WOODEN_WALL    = stonehearth.constants.construction.DEAFULT_WOOD_WALL_BRUSH
 local WOODEN_ROOF    = stonehearth.constants.construction.DEAFULT_WOOD_ROOF_BRUSH
 local WOODEN_FLOOR   = stonehearth.constants.construction.DEAFULT_WOOD_FLOOR_BRUSH
 local STONE_FLOOR    = stonehearth.constants.construction.DEAFULT_WOOD_STONE_BRUSH
