@@ -16,6 +16,11 @@ function client_entities.create_entity(ref)
    return _radiant.client.create_authoring_entity(ref or "")
 end
 
+function client_entities.get_name(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_display_name() or nil
+end
+
 function client_entities.destroy_entity(entity)
    if entity and entity:is_valid() then
       -- destroy all the children when destorying the parent.  should we do

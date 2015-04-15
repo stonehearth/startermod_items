@@ -1,0 +1,23 @@
+{
+   "type": "entity", 
+   "mixins" : "file(../skeleton.json)",
+   "components": {
+      "render_info" : {
+         "animation_table": "file(/data/rigs/monsters/undead/skeletons/male.json)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(skeleton.qb)",
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(skeleton_head_1.qb)", 
+                     "file(skeleton_head_2.qb)"
+                  ]
+               }
+            ]
+         }
+      }
+   }
+}

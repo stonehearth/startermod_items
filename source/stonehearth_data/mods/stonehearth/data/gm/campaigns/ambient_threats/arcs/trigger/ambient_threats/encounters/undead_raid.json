@@ -3,7 +3,7 @@
    "encounter_type" : "create_mission",
    "rarity" : "common",
 
-   "in_edge"  : "start",
+   "in_edge"  : "nighttime_undead",
 
    "create_mission_info" : {
       "spawn_range" : {

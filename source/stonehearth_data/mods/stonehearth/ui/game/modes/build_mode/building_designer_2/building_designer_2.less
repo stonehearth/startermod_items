@@ -1,7 +1,17 @@
 // common styles for all construction tools are in /ui/game/modes/build_mode/build_mode.less
 #buildingDesigner,#roadDesigner {
 
+   #overview {
+      #name {
+         width: 478px;
+         margin-bottom: 30px;
+      }
+   }
+
    #editor {
+      #showOverview {
+         width: 500px;
+      }
 
       #materialToolbar {
          .active {
@@ -11,23 +21,32 @@
 
          .button {
             display: inline-block;
-            width: 48px;
-            height: 48px;
-            background-position: center;
-            background-repeat: no-repeat;
-            text-align: center;
+            width: 50px;
+            height: 50px;
+            background-size: contain;
+            margin-right: 4px;
+
+            .selectBox {
+               width: 62px;
+               height: 62px;
+               background-size: contain;
+               display: none;
+            }
+
          }
 
          .button.selected {
-            border: 1px solid orange;
+            .selectBox {
+               display: block;
+            }
          }
 
          .stone_resource {
-            content: url(/stonehearth/entities/resources/stone/stone.png);
+            background-image: url(/stonehearth/entities/resources/stone/stone.png);
          }
 
          .wood_resource {
-            content: url(/stonehearth/entities/resources/wood/log.png);
+            background-image: url(/stonehearth/entities/resources/wood/log.png);
          }
       }
 
@@ -163,13 +182,16 @@
 
          .brush {
             .button;
-            width: 72px;
-            height: 72px;
+            width: 50px;
+            height: 50px;
             display: inline-block;
             margin-right: 4px;
             background-size: contain;
 
             .selectBox {
+               width: 62px;
+               height: 62px;
+               background-size: contain;
                display: none;
             }
          }

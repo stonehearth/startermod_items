@@ -15,7 +15,14 @@ RenderSensorList::RenderSensorList(RenderEntity const& entity, om::SensorListPtr
 {
    sensorList_ = sensorList;
 
-   renderer_guard_ = Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+   renderer_guard_ = Renderer::GetInstance().OnShowDebugShapesChanged([this](dm::ObjectId id) {
+      bool enabled;
+      if (id <= 0) {
+         enabled = (id < 0);
+      } else {
+         om::EntityPtr entity = entity_.GetEntity();
+         enabled = (entity && entity->GetObjectId() == id);
+      }
       if (enabled) {
          om::SensorListPtr sensorList = sensorList_.lock();
          if (sensorList) {

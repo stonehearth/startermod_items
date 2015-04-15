@@ -57,15 +57,15 @@ function ScaffoldingBuilder_OneDim:activate()
 
    self._log = radiant.log.create_logger('build.scaffolding.1d')
                               :set_entity(entity)
-                              :set_prefix('s1d ' .. self._debug_text)
+                              :set_prefix('s1d:' .. tostring(self._sv.id) .. ' ' .. self._debug_text)
 
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
       end)
-   self:_update_status()
 end
 
 function ScaffoldingBuilder_OneDim:destroy()
+   self._log:info('destroying scaffolding builder')
    self:_untrace_blueprint_and_project()
    self._sv.scaffolding_rgn = nil
 end
@@ -86,8 +86,9 @@ function ScaffoldingBuilder_OneDim:set_active(active)
    end
 end
 
-function ScaffoldingBuilder_OneDim:set_mode(mode)
-   checks('self', 'string')
+function ScaffoldingBuilder_OneDim:set_teardown(teardown)
+   checks('self', 'boolean')
+   local mode = teardown and 'teardown' or 'build'
 
    if mode ~= self._sv.mode then
       self._sv.mode = mode
@@ -140,14 +141,20 @@ function ScaffoldingBuilder_OneDim:_untrace_blueprint_and_project()
       self._gameloop_listener:destroy()
       self._gameloop_listener = nil
    end
+   if self._building_listener then
+      self._building_listener:destroy()
+      self._building_listener = nil
+   end
 end
 
 function ScaffoldingBuilder_OneDim:_trace_blueprint_and_project()
+   assert(self._sv.entity)
    assert(self._sv.active)
    assert(not self._project_trace)
    assert(not self._blueprint_trace)
 
    local building = build_util.get_building_for(self._sv.entity)
+   assert(building)
 
    local function mark_dirty()
       self:_mark_dirty()
@@ -159,6 +166,7 @@ function ScaffoldingBuilder_OneDim:_trace_blueprint_and_project()
 end
 
 function ScaffoldingBuilder_OneDim:_mark_dirty()
+   assert(self._sv.scaffolding_rgn)
    if not self._gameloop_listener then
       self._gameloop_listener = radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
             self._gameloop_listener = nil
@@ -179,13 +187,7 @@ function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
       return
    end
 
-   if teardown then
-      radiant.not_yet_implemented()
-      return
-   end
-
-   -- still not done with the blueprint.  cover the whole thing
-   self:_cover_project_region()
+   self:_cover_project_region(teardown)
 end
 
 function ScaffoldingBuilder_OneDim:_building_is_finished()
@@ -211,7 +213,7 @@ function ScaffoldingBuilder_OneDim:_building_is_finished()
    return true
 end
 
-function ScaffoldingBuilder_OneDim:_cover_project_region()
+function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    local normal = self._sv.normal
    local clipbox = self._sv.clipbox
    local stand_at_base = self._sv.stand_at_base
@@ -252,6 +254,13 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
    end
    assert(project_top < blueprint_top)
    
+   if teardown and project_top > 0 then
+      local top_row_clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
+                                    Point3( INFINITE, project_top + 1,  INFINITE))
+      if project_rgn:clipped(top_row_clipper):empty() then
+         project_top = project_top - 1
+      end
+   end
    local clipper = Cube3(Point3(-INFINITE, -INFINITE,       -INFINITE),
                          Point3( INFINITE, project_top + 1,  INFINITE))
    local top_row = blueprint_rgn:clipped(clipper)
@@ -263,6 +272,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region()
    local origin = self._sv.origin
    top_row:translate(origin)
    local region = _physics:project_region(top_row, CLIP_SOLID)
+   region = _physics:clip_region(region, CLIP_SOLID)
    region:translate(-origin)
 
    -- finally, copy into the cursor
@@ -326,145 +336,6 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
    -- gotta pick one!
    self._log:detail('choosing normal %s of last resort', normals[1])
    self._sv.normal = normals[1]
-end
-
--- why is this function so big!?
-function ScaffoldingBuilder_OneDim:_old_cover_project_region(teardown)
-   local project_rgn = self._sv.project_rgn:get()
-   local blueprint_rgn = self._sv.blueprint_rgn:get()
-   
-   local clipbox = self._sv.clipbox
-   if clipbox then
-      project_rgn   = project_rgn:intersect_cube(clipbox)
-      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
-   end
-
-   -- scaffolding is 1 unit away from the project.  this is a huge
-   -- optimization to make sure the scaffolding both reaches the ground
-   -- at every point and has no gaps in it when the project has gaps
-   -- (e.g. for doors and windows).  it will not work, however, for
-   -- irregularaly sized projects.  revisit if those ever show up!
-   local project_bounds = project_rgn:get_bounds()
-   local region = Region3()
-   
-   local blueprint_bounds = blueprint_rgn:get_bounds()
-   local is_grounded = blueprint_bounds.min.y == 0
-
-   local size = blueprint_bounds:get_size()
-   local origin = Point2(blueprint_bounds.min.x, blueprint_bounds.min.z)
-
-   -- compute the max height for every column in the blueprint
-   local blueprint_min_heights
-   local blueprint_max_heights = Array2D(size.x, size.z, origin, -INFINITE)
-   if not is_grounded then
-      blueprint_min_heights = Array2D(size.x, size.z, origin, INFINITE)
-   end
-
-   for cube in blueprint_rgn:each_cube() do
-      for x = cube.min.x, cube.max.x - 1 do
-         for z = cube.min.z, cube.max.z - 1 do
-            local h = blueprint_max_heights:get(x, z)
-            blueprint_max_heights:set(x, z, math.max(h, cube.max.y - 1))
-            if not is_grounded then
-               h = blueprint_min_heights:get(x, z)
-               blueprint_min_heights:set(x, z, math.min(h, cube.min.y))
-            end
-         end
-      end
-   end
-
-   local subtract_top_row = false
-   if teardown then
-      -- if we're tearing down, always build 1 below the top row
-      subtract_top_row = true
-   else
-      -- if the top row isn't finished, lower the height by 1.  the top
-      -- row is finished if the project - the blueprint is empty
-      local clipper = Cube3(Point3(-INFINITE, project_bounds.min.y, -INFINITE),
-                            Point3( INFINITE, project_bounds.max.y,  INFINITE))
-
-      if not (blueprint_rgn:clipped(clipper) - project_rgn):empty() then
-         subtract_top_row = true
-      end
-   end
-
-   if subtract_top_row then
-      project_bounds.max = project_bounds.max - Point3.unit_y
-   end
-
-   local max_height = project_bounds.max.y
-
-   -- add a piece of scaffolding for every xz column in `bounds`.  the
-   -- height of the scaffolding will be the min of the max height and the
-   -- previously computed blueprint_max_heights entry for that xz position
-   local scaffolding_heights = Array2D(size.x, size.z, origin, -INFINITE)               
-   local function add_scaffolding(bounds)
-      local xz_bounds = Cube3(Point3(bounds.min.x, 0, bounds.min.z),
-                              Point3(bounds.max.x, 1, bounds.max.z))
-                                        
-      for pt in xz_bounds:each_point() do
-         local h = blueprint_max_heights:get(pt.x, pt.z)
-         h = math.min(h, max_height)
-         scaffolding_heights:set(pt.x, pt.z, h)
-       end
-   end
-
-   -- create a vertical stripe in the scaffolding reaching from
-   -- the top of the computed project region all the way down to the
-   -- base of the scaffolding.  this is to ensure that the scaffolding
-   -- is solid (e.g. obscures doors and windows), without covering parts
-   -- of walls that will be occupied by roof (e.g. the angled supporters
-   -- of a peaked roof)
-
-   -- first make sure the scaffolding fills in all the holes across gaps
-   -- (consider the first row of a wall with a door in it)
-   if max_height > 0 then
-      local top_row_clipper = Cube3(Point3(-INFINITE, project_bounds.max.y, -INFINITE),
-                                    Point3( INFINITE, INFINITE,  INFINITE))
-      local blueprint_top_row = blueprint_rgn:clipped(top_row_clipper)
-      add_scaffolding(blueprint_top_row:get_bounds())
-
-      -- now make sure everything completely covers the project
-      add_scaffolding(project_rgn:get_bounds())
-   end
-
-   -- finally, iterate through every column in the scaffolding heights
-   -- array and add the columns        
-   for x = blueprint_bounds.min.x, blueprint_bounds.max.x - 1 do
-      for z = blueprint_bounds.min.z, blueprint_bounds.max.z - 1 do                  
-         local base, h = 0, scaffolding_heights:get(x, z)
-         if h ~= -INFINITE then
-            if not is_grounded then
-               -- if the region is floating in the air, we put the base of the
-               -- column at the base of the blueprint
-               assert(blueprint_min_heights)
-               base = blueprint_min_heights:get(x, z)
-               assert(base ~= INFINITE)
-            end
-            if base < h then
-               local column = Cube3(Point3(x, base, z), 
-                                    Point3(x + 1, h, z + 1))
-               column:translate(normal)
-               region:add_unique_cube(column)
-            end
-         end
-      end
-   end
-
-   -- finally, don't put scaffolding where the project is slated to go!
-   region:subtract_region(project_rgn)
-
-   -- and clip out the terrain
-   if not region:empty() then
-      local o = self._sv.origin
-      local r = region:translate(o)
-      region = _physics:clip_region(region, CLIP_SOLID)
-      region:translate(-o)
-   end
-
-   self._sv.scaffolding_rgn:modify(function(cursor)
-         cursor:copy_region(region)
-      end)
 end
 
 return ScaffoldingBuilder_OneDim

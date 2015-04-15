@@ -12,7 +12,7 @@ local lrbt_cases = {}
 function lrbt_cases.simple_floor(autotest, session)
    return {
       function()
-         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 4)))
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 9, 0), Point3(4, 10, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
       end
    }

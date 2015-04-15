@@ -62,7 +62,7 @@ Renderer::Renderer() :
    render_frame_start_slot_("render frame start"),
    render_frame_finished_slot_("render frame finished"),
    screen_resize_slot_("screen resize"),
-   show_debug_shapes_changed_slot_("show debug shapes"),
+   show_debug_shapes_changed_slot_("show debug shapes", 0),
    lastGlfwError_("none"),
    currentPipeline_(""),
    iconified_(false),
@@ -147,7 +147,7 @@ void Renderer::OneTimeIninitializtion()
    }
 
    OnWindowResized(windowSize);
-   SetShowDebugShapes(false);
+   SetShowDebugShapes(0);
 
    SetDrawWorld(false);
    initialized_ = true;
@@ -1922,20 +1922,14 @@ core::Guard Renderer::OnRenderFrameFinished(std::function<void(FrameStartInfo co
    return render_frame_finished_slot_.Register(fn);
 }
 
-bool Renderer::ShowDebugShapes()
+void Renderer::SetShowDebugShapes(dm::ObjectId id)
 {
-   return show_debug_shapes_;
+   show_debug_shapes_changed_slot_.Signal(id);
 }
 
-void Renderer::SetShowDebugShapes(bool show_debug_shapes)
+core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(dm::ObjectId)> const& fn)
 {
-   show_debug_shapes_ = show_debug_shapes;
-   show_debug_shapes_changed_slot_.Signal(show_debug_shapes);
-}
-
-core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> const& fn)
-{
-   return show_debug_shapes_changed_slot_.Register(fn);
+     return show_debug_shapes_changed_slot_.Register(fn);
 }
 
 bool Renderer::LoadMissingResources()
@@ -1953,7 +1947,7 @@ bool Renderer::LoadMissingResources()
       // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
       if (rname[0] == '/') {
          resourcePath = rname.substr(1);
-      } else {
+      } else {    
          // No leading '/' means look in the main stonehearth mod for the resource.
          resourcePath = resourcePath_ + "/" + resourceName;
       }
