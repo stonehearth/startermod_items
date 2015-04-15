@@ -21,6 +21,7 @@ public:
 
    static CounterValueType GetCurrentCounterValueType();
    static uint64 GetCurrentTimeMs();
+   static uint64 GetHPCFrequency();
 
 private:
    bool            started_;

@@ -71,6 +71,13 @@ void radiant::perfmon::Timer_Init() {
    }
 }
 
+uint64 Timer::GetHPCFrequency()
+{
+   LARGE_INTEGER i;
+   QueryPerformanceFrequency(&i);
+   return i.QuadPart;
+}
+
 Timer::Timer()
 {
    Reset();
