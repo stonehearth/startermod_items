@@ -12,7 +12,6 @@ setmetatable(action_key_to_activity, akta_meta)
 akta_meta.__mode = 'k'
 
 function AIComponent:initialize(entity, json)
-   self._think_stage = 2
    self._entity = entity
    self._action_index = {}
    self._task_groups = {}
@@ -351,8 +350,7 @@ function AIComponent:start()
          local start_tick = radiant.gamestate.now()
          self._aitrace:spam('@loop')
          self._log:debug('starting new execution frame run in ai loop')
-         self._think_stage = 1
-         self._execution_frame:run({}, true)
+         self._execution_frame:run({})
          self._log:debug('reached bottom of execution frame run in ai loop')
          radiant.events.trigger(self._entity, 'stonehearth:ai:halt')
          
