@@ -11,10 +11,11 @@ function CagedEntityComponent:initialize(entity, json)
    else
       if self._sv.cage then
          self:_listen_on_cage_kill()
+      
+         radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            self:_sleep_in_cage()
+         end)
       end
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-         self:_sleep_in_cage()
-      end)
    end
 end
 
@@ -52,6 +53,8 @@ function CagedEntityComponent:_on_cage_killed(e)
       self._sleep_task = nil
    end
 
+   self._sv.cage = nil
+
    self._depart_task = self._entity:add_component('stonehearth:ai')
                                        :get_task_group('stonehearth:compelled_behavior')
                                           :create_task('stonehearth:depart_visible_area')
@@ -65,6 +68,7 @@ function CagedEntityComponent:_on_cage_destroyed()
       self._sleep_task:destroy()
       self._sleep_task = nil
    end
+   self._sv.cage = nil
 end
 
 --Things in cages always just sleep for now. 
