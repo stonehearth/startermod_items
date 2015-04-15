@@ -120,7 +120,8 @@ Client::Client() :
    loading_(false),
    _lastSequenceNumber(0),
    _nextSysInfoPostTime(0),
-   _currentUiScreen(InvalidScreen)
+   _currentUiScreen(InvalidScreen),
+    _showDebugShapesMode(ShowDebugShapesMode::None)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
    _allocDataStoreFn = [this](int storeId) {
@@ -255,10 +256,25 @@ void Client::OneTimeIninitializtion()
             }
          }
       };
-      _commands[GLFW_KEY_F11] = [&renderer](KeyboardInput const& kb) {
-         // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
-         renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
+      _commands[GLFW_KEY_F11] = [this, &renderer](KeyboardInput const& kb) {
+         _showDebugShapesMode = (ShowDebugShapesMode)(((int)_showDebugShapesMode + 1) % ShowDebugShapesMode::TotalModes);
+         if (_showDebugShapesMode == ShowDebugShapesMode::None) {
+            CLIENT_LOG(0) << "hiding all debug shapes";
+            renderer.SetShowDebugShapes(0);
+         } else if (_showDebugShapesMode == ShowDebugShapesMode::All) {
+            CLIENT_LOG(0) << "showing debug shapes for all entities";
+            // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
+            renderer.SetShowDebugShapes(-1);
+         } else {
+            CLIENT_LOG(0) << "showing debug shapes for only the selected entity";
+            om::EntityRef e = GetSelectedEntity();
+            om::EntityPtr entity = e.lock();
+            if (entity) {
+               renderer.SetShowDebugShapes(entity->GetObjectId());
+            }
+         }
       };
+
       _commands[GLFW_KEY_PAUSE] = [](KeyboardInput const& kb) {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
@@ -1344,6 +1360,15 @@ void Client::SelectEntity(om::EntityPtr entity)
       http_reactor_->QueueEvent("radiant_selection_changed", selectionChanged);
    } else {
       CLIENT_LOG(3) << "same entity.  bailing";
+   }
+   if (_showDebugShapesMode == ShowDebugShapesMode::Selected) {
+      Renderer& renderer = Renderer::GetInstance();
+      om::EntityPtr s = selectedEntity_.lock();
+      if (s) {
+         renderer.SetShowDebugShapes(s->GetObjectId());
+      } else {
+         renderer.SetShowDebugShapes(0);
+      }
    }
 }
 
