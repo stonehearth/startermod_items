@@ -3,6 +3,7 @@ local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 local ExecutionFrame = radiant.class()
+local Thread = require 'services.server.threads.thread'
 
 -- errata note 1:  look at _restart_thinking()?  what crackhead wrote that (probably me).
 -- issues:
@@ -129,6 +130,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._think_progress_cb = nil
    self._state = STOPPED
    self._ai_component = entity:get_component('stonehearth:ai')
+   self._rethinking_units = {}
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
@@ -193,15 +195,17 @@ end
 
 
 function ExecutionFrame:_start_thinking(args, entity_state)
+   local think_stage = self._ai_component._think_stage
    assert(args, "_start_thinking called with no arguments.")
 
-   if self._state == 'stopped' then
+   if self._state == 'stopped' or self._state == STARTING_THINKING or (think_stage == 2 and self._state == 'thinking') then
       return self:_start_thinking_from_stopped(args, entity_state)
    end
    self:_unknown_transition('start_thinking')
 end
 
 function ExecutionFrame:_stop_thinking()
+   self._log:spam('_stop_thinking')
    if self._state == 'thinking' or self._state == 'starting_thinking' then
       return self:_stop_thinking_from_thinking()
    end
@@ -259,7 +263,7 @@ function ExecutionFrame:_unit_ready(unit, think_output)
    if self._state == 'running' then
       return self:_unit_ready_from_running(unit, think_output)
    end
-   if self:in_state('switching', 'finished', 'stopped') then
+   if self:in_state('starting', 'switching', 'finished', 'stopped') then
       return -- nop
    end
    if self._state == 'dead' then
@@ -323,10 +327,10 @@ function ExecutionFrame:_destroy()
 end
 
 function ExecutionFrame:_add_action(...)
-   if self._state == 'thinking' then
+   if self._state == 'thinking' or self._state == 'starting_thinking' then
       return self:_add_action_from_thinking(...)
    end
-   if self._state == 'ready' then
+   if self._state == 'ready' or self._state == 'starting' then
       return self:_add_action_from_ready(...)
    end
    if self:in_state('started', 'running') then
@@ -339,7 +343,7 @@ function ExecutionFrame:_add_action(...)
 end
 
 function ExecutionFrame:_remove_action(unit)
-   if self._state == 'thinking' then
+   if self._state == 'thinking' or self._state == 'starting_thinking' then
       return self:_remove_action_from_thinking(unit)
    end
    if self._state == 'ready' then
@@ -362,6 +366,7 @@ end
 
 -- Returns true iff a child unit is active (and is different from the previously active unit)
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
+   local think_stage = self._ai_component._think_stage
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
 
    if self._state == 'running' then
@@ -389,14 +394,77 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
          return false
       end
    end
-   
-   -- see which units we can restart and clone the state for them
+
+   if think_stage == 1 then
+      self._log:spam('looking for did_run unit')
+      self._rethinking_units = {}
+      for _, unit in pairs(self._execution_units) do
+         if unit.did_run then
+            self._log:spam('found did_run unit %s', unit:get_name())
+            unit.did_run = false
+            if not self:_is_strictly_better_than_active(unit) then
+               break
+            end
+            local cur_active_unit = self._active_unit
+
+            for _, ounit in pairs(self._execution_units) do
+               if unit ~= ounit and ounit:get_priority() > unit:get_priority() then
+                  self._log:spam('found early unit %s with better priority than did_run', ounit:get_name())
+                  self._rethinking_units[ounit] = self:_clone_entity_state('new speculation for unit')
+               end
+            end
+            self._rethinking_units[unit] = self:_clone_entity_state('new speculation for unit')
+
+            for ounit, entity_state in pairs(self._rethinking_units) do
+               self._log:spam('starting early think on unit %s', ounit:get_name())
+               ounit:_start_thinking(self._args, entity_state)
+            end
+            self._rethinking_units = {}
+            
+            if cur_active_unit ~= self._active_unit then
+               self._log:spam('early think unit changed')
+               return false
+            end
+
+            local bunit = self:_get_best_execution_unit()
+            if bunit and bunit ~= self._active_unit then
+               self._log:detail('%s -> %s', self._active_unit and self._active_unit:get_name() or '', bunit:get_name())
+               local think_output = self._saved_think_output[bunit]
+               assert(think_output)
+
+               if self._active_unit then
+                  self._log:detail('stopping old active unit "%s" in _restart_thinking.', self._active_unit:get_name())
+                  self._active_unit:_stop()
+                  self._active_unit = nil
+               end
+               self._log:spam('early ready! using "%s" as active unit in _restart_thinking.', bunit:get_name())
+               self:_set_active_unit(bunit, think_output)
+               self:_set_state(READY)
+               return true
+            end
+            return false
+         end
+      end
+      self._log:spam('no did_run unit found')
+
+      self._rethinking_units = {}
+      -- couldn't find a re-runable unit.  TODO We need a way to signal to the caller that there's no need
+      -- to wait for a slow-start.
+      return false
+   end
+
+   -- see which units we can restart and clone the state for them   
    local rethinking_units = {}
    for _, unit in pairs(self._execution_units) do
-      if self:_is_strictly_better_than_active(unit) then
-         rethinking_units[unit] = self:_clone_entity_state('new speculation for unit')
+      if self._rethinking_units[unit] == nil then
+         if self:_is_strictly_better_than_active(unit) then
+            rethinking_units[unit] = self:_clone_entity_state('new speculation for unit')
+         end
+      else
+         self._log:spam('ignoring rethought unit')
       end
    end
+   self._rethinking_units = {}
 
    local entity_location
    if self._log:is_enabled(radiant.log.DETAIL) then
@@ -414,14 +482,14 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
       -- if units bail or abort, the current pcall should have been interrupted.
       -- verify that this is so
-      assert(self._state == current_state, string.format('state changed in _restart_thinking %s -> %s', current_state, self._state))
+      --assert(self._state == current_state, string.format('state changed in _restart_thinking %s -> %s', current_state, self._state))
    end
 
    if self._active_unit ~= current_active_unit then
       self._log:spam('active unit changed from %s to %s in _restart_thinking.  skipping election...',
                      current_active_unit and current_active_unit:get_name() or '-none-',
                      self._active_unit and self._active_unit:get_name() or '-none-')
-      assert(self._state == 'running')
+      --assert(self._state == 'running')
       return false
    end
    
@@ -447,7 +515,8 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    return false
 end
 
-function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)   
+function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
+   local think_stage = self._ai_component._think_stage
    self._log:debug('_start_thinking_from_stopped')
    
    self._args = args
@@ -461,7 +530,9 @@ function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
 
    -- errata note 1 : this is actually probably correct, but look at it?  wtf?  this code is extremely
    -- opaque.
-   self:_set_state(STARTING_THINKING)
+   if not self:in_state(STARTING_THINKING) then
+      self:_set_state(STARTING_THINKING)
+   end
    if not self:_restart_thinking(entity_state, "thinking from stopped") then
       self:_set_state(THINKING)
    end
@@ -486,6 +557,7 @@ function ExecutionFrame:_do_destroy()
 end
 
 function ExecutionFrame:start_thinking(args, entity_state)
+   local think_stage = self._ai_component._think_stage
    if self._aborting then
       self._log:debug('clearing abort status from previous (presumedly failed) execution.')
       self._aborting = false
@@ -493,7 +565,12 @@ function ExecutionFrame:start_thinking(args, entity_state)
    
    self._log:spam('start_thinking (state: %s)', self._state)
    assert(args, "start_thinking called with no arguments")
-   assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
+
+   if think_stage == 1 then
+      assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
+   --else
+      --assert(self:get_state() == STOPPED or self:get_state() == THINKING, string.format('start thinking called from non-thinking state "%s"', self:get_state()))
+   end
 
    self:_start_thinking(args, entity_state)
    if self._state == READY then
@@ -519,9 +596,11 @@ function ExecutionFrame:set_think_progress_cb(think_progress_cb)
             -- thread which wants the notification actually gets scheduled!)
             self._log:detail('ai thread is not running trying to deliver think progress (%s) notification.  thunking.', msg)
             calling_thread:interrupt(function()
-                  assert(self._think_progress_cb)
-                  self._log:detail('calling think progress (%s) notification with thunk', msg)
-                  think_progress_cb(self, msg, arg)
+                  if self._think_progress_cb then
+                     assert(self._think_progress_cb)
+                     self._log:detail('calling think progress (%s) notification with thunk', msg)
+                     think_progress_cb(self, msg, arg)
+                  end
                end)
          else
             -- sometimes there is no thread (e.g. in pathfinder callbacks).
@@ -551,11 +630,11 @@ function ExecutionFrame:start()
       end)
 end
 
-function ExecutionFrame:run(args)
+function ExecutionFrame:run(args, is_root)
    assert(self._thread:is_running())
 
-   self._log:spam('run')
 
+   self._log:spam('frame run')
    local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
    table.insert(run_stack, self)  
    self:_log_stack('making pcall')
@@ -565,19 +644,48 @@ function ExecutionFrame:run(args)
          error(string.format('invalid initial state "%s" in run', self:get_state()))
       end
       
+      assert(is_root == true or is_root == false or is_root == nil)
+
+      --[[if is_root then
+         self._ai_component._think_stage = 2
+      end]]
+
       if self:in_state(STOPPED) then
          assert(args, "run from stopped state must pass in arguments!")
-         self:start_thinking(args)
+         self._log:spam('doing early thinkers.')
+         self:start_thinking(args, nil)
+         self._ai_component._think_stage = 2
+         --self:wait_until(READY)
+
+         if is_root then
+            self._log:spam('root is waiting for early thinkers.')
+            self:wait_until_2(READY, 5)
+            self._log:spam('%s', self._state)
+         end
+      end
+
+      if is_root then
+         self._log:spam('root is finished waiting for early thinkers. %s', self._state)
+      end
+
+      if self:in_state(STARTING_THINKING) or self:in_state(THINKING) then
+         self._log:spam('root is thinking late waiting.')
+         self:start_thinking(args, nil)
          self:wait_until(READY)
       end
+
       if self:in_state(READY) then
+         self._log:spam('frame is starting.')
          self:_start()
          self:wait_until(STARTED)
       end
       assert(self:in_state(STARTED))
       
+      self._log:spam('frame is running.')
       self:_run()
+      self._log:spam('frame is done running.')
       self:wait_until(FINISHED)
+      self._log:spam('frame is finished.')
    end   
    local call_exit_fn = function()
       self:_log_stack('pcall completed')
@@ -895,6 +1003,7 @@ function ExecutionFrame:_run_from_started()
       end
    until finished
 
+   running_unit.did_run = true
    self._active_unit = nil
    self:_set_state(FINISHED)
 end
@@ -1124,8 +1233,10 @@ function ExecutionFrame:_remove_action_from_ready(unit)
       end
       -- errata note 1 : again, this one is verified correct, but gross and offends
       -- my programmer sensibilities.
-      self:_set_state(STARTING_THINKING)
-      if not self:_restart_thinking(self._current_entity_state, "removing action") then
+      if not self:in_state(STARTING_THINKING) then
+         self:_set_state(STARTING_THINKING)
+      end
+      if not self:_restart_thinking(self._current_entity_state, "removing action") and self._ai_component._think_stage == 2 then
          self:_set_state(THINKING)
       end
    else
@@ -1446,6 +1557,29 @@ function ExecutionFrame:wait_until(state)
       while self._state ~= state do
          self._calling_thread:suspend('waiting for ' .. state)
       end
+      self._waiting_until = nil
+      self._calling_thread = nil
+   end
+end
+
+function ExecutionFrame:wait_until_2(state, timeout)
+   self._calling_thread = stonehearth.threads:get_current_thread()   
+   if self._state ~= state then
+      self._waiting_until = state
+
+      local wait_count = 0
+      local timer = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
+            wait_count = wait_count + 1
+            self._calling_thread._should_resume = false
+            self._calling_thread:resume()
+         end)
+
+      while self._state ~= state and (wait_count < timeout) do
+         --self._calling_thread:_do_yield(Thread.SUSPEND)
+         self._calling_thread:suspend()
+      end
+
+      timer:destroy()
       self._waiting_until = nil
       self._calling_thread = nil
    end
