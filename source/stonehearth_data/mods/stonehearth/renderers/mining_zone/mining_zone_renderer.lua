@@ -67,7 +67,11 @@ function MiningZoneRenderer:_update()
    local data = self._datastore:get_data()
    local region = data.region:get()
 
-   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, region, self._edge_color, self._face_color, 'materials/transparent.material.json')
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node,
+                                                                   region,
+                                                                   edge_color,
+                                                                   face_color,
+                                                                   'materials/transparent.material.json')
 
    stonehearth.selection:set_selectable(self._entity, data.selectable)
 end
