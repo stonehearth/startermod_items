@@ -17,8 +17,8 @@ function WaterComponent:initialize(entity, json)
    if not self._sv._initialized then
       self._sv.region = nil -- for clarity
       self._sv.height = 0
-      self._sv._current_layer = _radiant.sim.alloc_region3()
-      self._sv._current_layer_index = 0
+      self._sv._top_layer = _radiant.sim.alloc_region3()
+      self._sv._top_layer_index = 0
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -43,15 +43,15 @@ end
 function WaterComponent:set_region(boxed_region, height)
    self._sv.region = boxed_region
    local region = boxed_region:get()
-   local current_layer_index
+   local top_layer_index
 
    if region:empty() then
       assert(height == nil or height == 0)
       height = 0
-      current_layer_index = 0
+      top_layer_index = 0
    else
       local bounds = region:get_bounds()
-      current_layer_index = bounds.max.y - 1
+      top_layer_index = bounds.max.y - 1
 
       if height == nil then
          -- use the height of the region
@@ -59,10 +59,10 @@ function WaterComponent:set_region(boxed_region, height)
       end
    end
 
-   assert(height >= current_layer_index and height <= current_layer_index + 1)
+   assert(height >= top_layer_index and height <= top_layer_index + 1)
    self._sv.height = height
-   self._sv._current_layer_index = current_layer_index
-   self:_recalculate_current_layer()
+   self._sv._top_layer_index = top_layer_index
+   self:_recalculate_top_layer()
 
    self.__saved_variables:mark_changed()
 end
@@ -73,10 +73,15 @@ function WaterComponent:get_water_level()
    return water_level
 end
 
-function WaterComponent:get_current_layer_elevation()
+function WaterComponent:get_top_layer_elevation()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
-   local elevation = entity_location.y + self._sv._current_layer_index
+   local elevation = entity_location.y + self._sv._top_layer_index
    return elevation
+end
+
+function WaterComponent:top_layer_in_wetting_mode()
+   local result = self:get_water_level() == self:get_top_layer_elevation()
+   return result
 end
 
 -- TODO: clean up this method
@@ -101,19 +106,19 @@ function WaterComponent:_add_water(world_location, volume)
 
    -- process and raise layers until we run out of volume
    while volume > 0 do
-      local current_layer = self._sv._current_layer:get():translated(entity_location)
-      if current_layer:empty() then
-         log:debug('Current layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
+      local top_layer = self._sv._top_layer:get():translated(entity_location)
+      if top_layer:empty() then
+         log:debug('Top layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
          info.result = 'bounded'
-         info.reason = 'current layer empty'
+         info.reason = 'top layer empty'
          break
       end
 
       -- TODO: rename to adjacent?
-      local edge_region = self:_get_edge_region(current_layer, channel_region)
+      local edge_region = self:_get_edge_region(top_layer, channel_region)
 
       if edge_region:empty() then
-         -- current layer is bounded, raise the water level until we hit the next layer
+         -- top layer is bounded, raise the water level until we hit the next layer
          local residual = self:_add_height(volume)
          if residual == volume then
             log:info('Could not raise water level for %s', self._entity)
@@ -153,14 +158,14 @@ function WaterComponent:_add_water(world_location, volume)
                end
 
                -- Establish a bidirectional link between the two water bodies using two pressure channels.
-               local from_location = current_layer:get_closest_point(point)
+               local from_location = top_layer:get_closest_point(point)
                local to_location = point
                channel = channel_manager:link_pressure_channel(self._entity, target_entity, from_location, to_location)
             else
                local is_drop = not self:_is_blocked(point - Point3.unit_y)
                if is_drop then
                   -- establish a unidirectional link between the two water bodies using a waterfall channel
-                  local source_location = current_layer:get_closest_point(point)
+                  local source_location = top_layer:get_closest_point(point)
                   local waterfall_top = point
                   channel = channel_manager:link_waterfall_channel(self._entity, source_location, waterfall_top)
                end
@@ -225,8 +230,8 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
 
    local master_component = master:add_component('stonehearth:water')
    local mergee_component = mergee:add_component('stonehearth:water')
-   local master_layer_elevation = master_component:get_current_layer_elevation()
-   local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
+   local master_layer_elevation = master_component:get_top_layer_elevation()
+   local mergee_layer_elevation = mergee_component:get_top_layer_elevation()
 
    local translation = mergee_location - master_location   -- translate between local coordinate systems
    local update_layer, new_height, new_index, new_layer_region
@@ -242,7 +247,7 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
          new_index = mergee_layer_elevation - master_location.y
 
          -- clear the master layer since it will be replaced by the mergee kayer below
-         master_component._sv._current_layer:modify(function(cursor)
+         master_component._sv._top_layer:modify(function(cursor)
                cursor:clear()
             end)
       else
@@ -260,13 +265,13 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
       new_index = master_layer_elevation - master_location.y
    end
 
-   -- merge the current layers
+   -- merge the top layers
    if update_layer then
       master_component._sv.height = new_height
-      master_component._sv._current_layer_index = new_index
+      master_component._sv._top_layer_index = new_index
 
-      master_component._sv._current_layer:modify(function(cursor)
-            local mergee_layer = mergee_component._sv._current_layer:get():translated(translation)
+      master_component._sv._top_layer:modify(function(cursor)
+            local mergee_layer = mergee_component._sv._top_layer:get():translated(translation)
             cursor:add_region(mergee_layer)
          end)
    end
@@ -281,28 +286,28 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
 end
 
 function WaterComponent:_is_uneven_merge(master_component, mergee_component)
-   local master_layer_elevation = master_component:get_current_layer_elevation()
-   local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
+   local master_layer_elevation = master_component:get_top_layer_elevation()
+   local mergee_layer_elevation = mergee_component:get_top_layer_elevation()
 
    if master_layer_elevation ~= mergee_layer_elevation then
       return true
    end
 
    -- it's uneven if one of the layers cannot grow but the other can
-   local master_bounded = master_component._sv._current_layer:get():empty()
-   local mergee_bounded = mergee_component._sv._current_layer:get():empty()
+   local master_bounded = master_component._sv._top_layer:get():empty()
+   local mergee_bounded = mergee_component._sv._top_layer:get():empty()
    local result = master_bounded ~= mergee_bounded
    return result
 end
 
 function WaterComponent:_calculate_merged_water_level(master_component, mergee_component)
-   local master_layer_elevation = master_component:get_current_layer_elevation()
-   local mergee_layer_elevation = mergee_component:get_current_layer_elevation()
+   local master_layer_elevation = master_component:get_top_layer_elevation()
+   local mergee_layer_elevation = mergee_component:get_top_layer_elevation()
 
    -- layers must be at same level
    assert(master_layer_elevation == mergee_layer_elevation)
 
-   -- get the heights of the current layers
+   -- get the heights of the top layers
    local master_layer_height = master_component:get_water_level() - master_layer_elevation
    local mergee_layer_height = mergee_component:get_water_level() - mergee_layer_elevation
    assert(master_layer_height <= 1)
@@ -317,8 +322,8 @@ function WaterComponent:_calculate_merged_water_level(master_component, mergee_c
    end
 
    -- calculate the merged layer height
-   local master_layer_area = master_component._sv._current_layer:get():get_area()
-   local mergee_layer_area = mergee_component._sv._current_layer:get():get_area()
+   local master_layer_area = master_component._sv._top_layer:get():get_area()
+   local mergee_layer_area = mergee_component._sv._top_layer:get():get_area()
    local new_layer_area = master_layer_area + mergee_layer_area
    local new_layer_volume = master_layer_area * master_layer_height + mergee_layer_area * mergee_layer_height
    local new_layer_height = new_layer_volume / new_layer_area
@@ -335,8 +340,8 @@ function WaterComponent:_add_water_to_channel(channel, volume)
       return volume
    end
 
-   local current_layer_elevation = self:get_current_layer_elevation()
-   local is_top_layer_waterfall = channel.channel_type == 'waterfall' and source_elevation == current_layer_elevation
+   local top_layer_elevation = self:get_top_layer_elevation()
+   local is_top_layer_waterfall = channel.channel_type == 'waterfall' and source_elevation == top_layer_elevation
 
    -- when adding water to the top layer, virtualize the source height because the added water
    -- has not contributed the height of the layer (particularly if we're in wetting mode)
@@ -352,7 +357,7 @@ end
 function WaterComponent:_add_water_to_channels(volume)
    local channel_manager = stonehearth.hydrology:get_channel_manager()
    local water_level = self:get_water_level()
-   local current_layer_elevation = self:get_current_layer_elevation()
+   local top_layer_elevation = self:get_top_layer_elevation()
 
    self:_each_channel_ascending(function(channel)
          local source_elevation = channel.source_location.y
@@ -513,10 +518,10 @@ function WaterComponent:add_to_region(region)
 
    -- we could support this, but it is not a currently valid use case
    assert(bounds.min.y >= 0)
-   assert(bounds.max.y - 1 <= self._sv._current_layer_index)
+   assert(bounds.max.y - 1 <= self._sv._top_layer_index)
 
-   if bounds.max.y - 1 == self._sv._current_layer_index then
-      self:_recalculate_current_layer()
+   if bounds.max.y - 1 == self._sv._top_layer_index then
+      self:_recalculate_top_layer()
    end
 end
 
@@ -527,9 +532,9 @@ function WaterComponent:_add_to_layer(region)
          cursor:optimize_by_merge('water:_add_to_layer() (region)')
       end)
 
-   self._sv._current_layer:modify(function(cursor)
+   self._sv._top_layer:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge('water:_add_to_layer() (current layer)')
+         cursor:optimize_by_merge('water:_add_to_layer() (top layer)')
       end)
 
    self.__saved_variables:mark_changed()
@@ -542,7 +547,7 @@ function WaterComponent:_remove_from_region(point)
          -- optimize_by_merge doesn't usually help for single subtractions
       end)
 
-   self._sv._current_layer:modify(function(cursor)
+   self._sv._top_layer:modify(function(cursor)
          cursor:subtract_point(point)
       end)
 
@@ -581,13 +586,13 @@ function WaterComponent:_add_height(volume)
    end
    assert(volume > 0)
 
-   local current_layer = self._sv._current_layer:get()
-   local layer_area = current_layer:get_area()
+   local top_layer = self._sv._top_layer:get()
+   local layer_area = top_layer:get_area()
    assert(layer_area > 0)
 
    local delta = volume / layer_area
    local residual = 0
-   local upper_limit = self._sv._current_layer_index + 1
+   local upper_limit = self._sv._top_layer_index + 1
 
    self._sv.height = self._sv.height + delta
 
@@ -609,16 +614,16 @@ function WaterComponent:_remove_height(volume)
    end
    assert(volume > 0)
 
-   local lower_limit = self._sv._current_layer_index
+   local lower_limit = self._sv._top_layer_index
    if self._sv.height <= lower_limit then
       self:_lower_layer()
    end
 
-   local current_layer = self._sv._current_layer:get()
-   local layer_area = current_layer:get_area()
+   local top_layer = self._sv._top_layer:get()
+   local layer_area = top_layer:get_area()
    assert(layer_area > 0)
 
-   lower_limit = current_layer:get_rect(0).min.y
+   lower_limit = top_layer:get_rect(0).min.y
 
    local delta = volume / layer_area
    local residual = 0
@@ -638,20 +643,20 @@ end
 -- TODO: don't raise into another water body
 function WaterComponent:_raise_layer()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
-   local new_layer_index = self._sv._current_layer_index + 1
+   local new_layer_index = self._sv._top_layer_index + 1
    log:debug('Raising layer for %s to %d', self._entity, new_layer_index + entity_location.y)
 
-   local current_layer = self._sv._current_layer:get()
+   local top_layer = self._sv._top_layer:get()
 
-   if current_layer:empty() then
+   if top_layer:empty() then
       log:warning('Cannot raise layer for %s', self._entity)
       return false
    end
 
-   assert(current_layer:get_rect(0).min.y + 1 == new_layer_index)
+   assert(top_layer:get_rect(0).min.y + 1 == new_layer_index)
 
    -- convert to world space and raise one level
-   local raised_layer = current_layer:translated(entity_location + Point3.unit_y)
+   local raised_layer = top_layer:translated(entity_location + Point3.unit_y)
 
    -- subtract any new obstructions
    local intersection = stonehearth.hydrology:get_water_tight_region():intersect_region(raised_layer)
@@ -670,12 +675,12 @@ function WaterComponent:_raise_layer()
          cursor:optimize_by_merge('water:_raise_layer() (updating region)')
       end)
 
-   self._sv._current_layer:modify(function(cursor)
+   self._sv._top_layer:modify(function(cursor)
          cursor:clear()
          cursor:add_region(raised_layer)
       end)
 
-   self._sv._current_layer_index = new_layer_index
+   self._sv._top_layer_index = new_layer_index
 
    self.__saved_variables:mark_changed()
 
@@ -685,10 +690,10 @@ end
 function WaterComponent:_lower_layer()
    local channel_manager = stonehearth.hydrology:get_channel_manager()
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
-   local new_layer_index = self._sv._current_layer_index - 1
+   local new_layer_index = self._sv._top_layer_index - 1
    log:debug('Lowering layer for %s to %d', self._entity, new_layer_index + entity_location.y)
 
-   local old_layer_elevation = self:get_current_layer_elevation()
+   local old_layer_elevation = self:get_top_layer_elevation()
    local orphaned_channels = self:_get_channels_at_elevation(old_layer_elevation)
 
    local lowered_layer = self:_get_layer(new_layer_index)
@@ -698,8 +703,8 @@ function WaterComponent:_lower_layer()
       return false
    end
 
-   -- make a copy since the read only reference to current layer will change below
-   local top_layer = Region3(self._sv._current_layer:get())
+   -- make a copy since the read only reference to top layer will change below
+   local top_layer = Region3(self._sv._top_layer:get())
 
    if not top_layer:empty() then
       assert(top_layer:get_rect(0).min.y - 1 == new_layer_index)
@@ -709,12 +714,12 @@ function WaterComponent:_lower_layer()
          cursor:subtract_region(top_layer)
       end)
 
-   self._sv._current_layer:modify(function(cursor)
+   self._sv._top_layer:modify(function(cursor)
          cursor:clear()
          cursor:add_region(lowered_layer)
       end)
 
-   self._sv._current_layer_index = new_layer_index
+   self._sv._top_layer_index = new_layer_index
 
    local projected_lower_layer = lowered_layer:translated(Point3.unit_y)
    local residual_top_layer = top_layer - projected_lower_layer
@@ -770,10 +775,10 @@ function WaterComponent:_subtract_all_water_regions(region)
    end
 end
 
-function WaterComponent:_recalculate_current_layer()
-   local layer = self:_get_layer(self._sv._current_layer_index)
+function WaterComponent:_recalculate_top_layer()
+   local layer = self:_get_layer(self._sv._top_layer_index)
 
-   self._sv._current_layer:modify(function(cursor)
+   self._sv._top_layer:modify(function(cursor)
          cursor:clear()
          cursor:add_region(layer)
       end)

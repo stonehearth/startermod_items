@@ -104,12 +104,13 @@ function HydrologyService:_on_terrain_changed(delta_region)
       -- fast-ish rejection test to see if the delta region modifies the water region or its container
       if self:_bounds_intersects_water_body(inflated_delta_bounds, entity) then
          local modified_water_region = self:_get_affected_water_region(delta_region, entity)
+
          for point in modified_water_region:each_point() do
             -- check that block was in fact added
             if self._water_tight_region:contains_point(point) then
                -- Someone placed a watertight block in the water. Just mimic the displacement for now.
                -- TODO: remove affected channels
-               -- TODO: update current layer
+               -- TODO: update top layer
                -- TODO: merge may have occured
                -- TODO: check for unused volume
                -- TODO: check for bisection at end
@@ -121,39 +122,47 @@ function HydrologyService:_on_terrain_changed(delta_region)
          local location = radiant.entities.get_world_grid_location(entity)
          local water_component = entity:add_component('stonehearth:water')
          local added_region = Region3()
+         local volume_added = 0
 
          -- TODO: Include the top boundary for analysis. This can occur when a subsection section
          -- of the water body has a ceiling.
          local modified_container_region = self:_get_affected_container_region(delta_region, entity)
+
          for point in modified_container_region:each_point() do
-            local point_key = self:_point_to_key(point)
-            local processed = processed_container_points[point_key] ~= nil
+            local point_in_wetting_layer = point.y == water_component:get_top_layer_elevation() and 
+                                           water_component:top_layer_in_wetting_mode()
 
-            -- check that block was in fact removed
-            if not processed and not self._water_tight_region:contains_point(point) then
-               local source_location = self:_get_best_source_location(entity, point)
-               local channel
+            if not point_in_wetting_layer then
+               local point_key = self:_point_to_key(point)
+               local processed = processed_container_points[point_key] ~= nil
 
-               if point.y == source_location.y then
-                  -- TODO: don't do add or link if on top layer
-                  -- add point to the water region
-                  added_region:clear()
-                  added_region:add_point(point - location)
-                  water_component:add_to_region(added_region)
+               -- check that block was in fact removed
+               if not processed and not self._water_tight_region:contains_point(point) then
+                  local source_location = self:_get_best_source_location(entity, point)
+                  local channel
 
-                  -- check adjacent blocks for channels and transients
-                  self:_link_channels(entity, point, modified_container_region)
-               else
-                  channel = channel_manager:link_waterfall_channel(entity, source_location, source_location)
+                  if point.y == source_location.y then
+                     -- TODO: don't do add or link if on top layer
+                     -- add point to the water region
+                     added_region:clear()
+                     added_region:add_point(point - location)
+                     water_component:add_to_region(added_region)
+                     volume_added = volume_added + 1
+
+                     -- check adjacent blocks for channels and transients
+                     self:_link_channels(entity, point, modified_container_region)
+                  else
+                     channel = channel_manager:link_waterfall_channel(entity, source_location, source_location)
+                  end
+
+                  -- TODO: consider calling add_volume_to_channel here
+
+                  processed_container_points[point_key] = point
                end
-
-               -- TODO: consider calling add_volume_to_channel here
-
-               processed_container_points[point_key] = point
             end
          end
 
-         -- CHECKCHECK - do a remove_water to compensate for the added volume, but this may add water bodies
+         water_component:_remove_water(volume_added)
 
          -- TODO: remove channels that are no longer adjacent to the entity
       end
@@ -475,8 +484,8 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    end
 
    -- only mergable if the top layers are at the same elevation
-   local layer_elevation1 = water_component1:get_current_layer_elevation()
-   local layer_elevation2 = water_component2:get_current_layer_elevation()
+   local layer_elevation1 = water_component1:get_top_layer_elevation()
+   local layer_elevation2 = water_component2:get_top_layer_elevation()
    if layer_elevation1 ~= layer_elevation2 then
       return false
    end
@@ -484,8 +493,8 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    -- if transferring a small volume of water through the channel would equalize heights, then allow merge
    -- TODO: consider optimizing repeated calls to O(n) get_area()
    if elevation_delta < constants.hydrology.MERGE_ELEVATION_THRESHOLD then
-      local entity1_layer_area = water_component1._sv._current_layer:get():get_area()
-      local entity2_layer_area = water_component2._sv._current_layer:get():get_area()
+      local entity1_layer_area = water_component1._sv._top_layer:get():get_area()
+      local entity2_layer_area = water_component2._sv._top_layer:get():get_area()
       local entity1_delta_height = constants.hydrology.MERGE_VOLUME_THRESHOLD / entity1_layer_area
       local entity2_delta_height = constants.hydrology.MERGE_VOLUME_THRESHOLD / entity2_layer_area
       if entity1_delta_height + entity2_delta_height >= elevation_delta then
