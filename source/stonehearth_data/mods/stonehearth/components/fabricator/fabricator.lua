@@ -88,8 +88,8 @@ function Fabricator:__init(name, entity, blueprint, project)
    
    self:_trace_blueprint_and_project()
 
-   self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_can_start_changed)
-   self:_on_can_start_changed()
+   self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+   self:_on_dependencies_finished_changed()
 end
 
 function Fabricator:destroy()
@@ -119,7 +119,6 @@ end
 function Fabricator:set_active(active)
    self._active = active
    if self._active then
-      self:_on_can_start_changed()
       self:_start_project()
    else
       self:_stop_project()
@@ -190,18 +189,9 @@ function Fabricator:_create_new_project()
    self._project:add_component('stonehearth:construction_data', state)
 end
 
-function Fabricator:_on_can_start_changed()
-   if not self._active then
-      return
-   end
-   local can_start = build_util.can_start_building(self._blueprint)
-   if can_start ~= self._can_start then
-      self._can_start = can_start
-      self._log:debug('got stonehearth:construction:dependencies_finished_changed event (dependencies finished = %s)',
-                      tostring(self._can_start))
-
-      self:_start_project()
-   end
+function Fabricator:_on_dependencies_finished_changed()
+   self._log:debug('got stonehearth:construction:dependencies_finished_changed event')
+   self:_start_project()
 end
 
 function Fabricator:get_material(world_location)
@@ -388,16 +378,19 @@ function Fabricator:remove_block(location)
 end
 
 function Fabricator:_start_project()
-   -- If we're tearing down the project, we only need to start the teardown
-   -- task.  If we're building up and all our dependencies are finished
-   -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (active:%s can_start:%s teardown:%s finished:%s)',
-                     tostring(self._active), tostring(self._can_start), tostring(self._should_teardown), tostring(self._finished))
    if self._finished then
       return
    end
 
-   local active = self._active and self._can_start
+   -- If we're tearing down the project, we only need to start the teardown
+   -- task.  If we're building up and all our dependencies are finished
+   -- building up, start the pickup and fabricate tasks
+   local can_start = build_util.can_start_blueprint(self._blueprint, self._should_teardown)
+
+   self._log:detail('start_project (active:%s can_start:%s teardown:%s finished:%s)',
+                     tostring(self._active), tostring(can_start), tostring(self._should_teardown), tostring(self._finished))
+
+   local active = self._active and can_start
 
 
    -- Now apply the deltas.  Create tasks that need creating and destroy
