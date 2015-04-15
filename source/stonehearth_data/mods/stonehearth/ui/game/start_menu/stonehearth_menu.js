@@ -29,14 +29,20 @@ $.widget( "stonehearth.stonehearthMenu", {
    },
 
    showMenu: function(id) {
-      this.menu.find('.menuItemGroup').hide();
-      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());      
-      
+      this.menu.find('.menuItemGroup').each(function(_, el) {
+         if ($(el).hasClass('up')) {
+            $(el).removeClass('up').addClass('down');
+         }
+      });
+
+     
       var nodeData;
 
       if (id) {
          var subMenu = '[parent="' + id +'"]';
-         this.menu.find(subMenu).show();
+         this.menu.find(subMenu)
+            .removeClass('down')
+            .addClass('up');
          nodeData = this._dataToMenuItemMap[id]
       }
 
@@ -153,8 +159,6 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.menu.on( 'click', '.close', function() {
          self.showMenu(null);
       });
-
-      //this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
 
       /*
       $(document).click(function() {
