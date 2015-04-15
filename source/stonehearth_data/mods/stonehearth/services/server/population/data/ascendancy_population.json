@@ -59,7 +59,9 @@
                "Rowan",
                "Ike",
                "Backster",
-               "Liam"
+               "Liam",
+               "Lane",
+               "Niall"
             ]
          },
          "female" : {
@@ -70,6 +72,10 @@
                "stonehearth:female_3"
             ],
             "given_names" : [
+               "Frie",
+               "Sam",
+               "Chel",
+
                "Nia",
                "Petra",
                "Yui",
@@ -114,6 +120,7 @@
                "Silene",
                "Lily",
                "Amelia",
+               "Lia",
                "Kali",
                "Maggie",
                "Iris",
