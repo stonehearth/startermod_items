@@ -66,10 +66,11 @@
 	.rootGroup {
 		position: relative;
 		bottom: 0px;
-		z-index: 999;
+		z-index: 100;
+		vertical-align: bottom;
 
 		.menuItem {
-			top: -4px;
+			vertical-align: bottom;
 		}
 
 		.background {
@@ -78,9 +79,9 @@
 			left: -20px;
 			right: -20px;
 			height: 57px;
-			background: #322f28;
+			//background: #322f28;
 			border-width: 10px 10px 10px 10px;
-			border-image: url(images/bg_border.png) 10 10 10 10;
+			//border-image: url(images/bg_border.png) 10 10 10 10;
 		}
 
 		.close {
@@ -90,17 +91,33 @@
 
 	.menuItemGroup {
 		position: absolute;
-		left: -20px;
-		right: -30px;
-		bottom: 68px;
+		left: 124px;
+		bottom: -120px;
+		z-index: 99;
 
-		background: #322f28;
 		padding-top: 10px;
 		padding-left: 10px;
 		padding-right: 10px;
 		border-width: 10px 10px 10px 10px;
-		border-image: url(images/bg_border.png) 10 10 10 10;
+		background: rgba(0,0,0,0.4);
+		//background: #322f28;
+		//border-image: url(images/bg_border.png) 10 10 10 10;
 		text-align: left;
+		display: inline-block;
+
+		.close {
+			display: none;
+		}
+	}
+
+	.menuItemGroup.up {
+		-webkit-animation: show-menu 0.2s;
+		bottom: 82px;
+	}
+
+	.menuItemGroup.down {
+		-webkit-animation: hide-menu 0.2s;
+		bottom: -120px;
 	}
 
 	.header {
@@ -129,4 +146,14 @@
 	.depth1 {
 		
 	}
+}
+
+@-webkit-keyframes show-menu {
+  0%   { bottom: -100px; opacity: 0 }
+  100% { bottom: 82px; opacity: 1 }
+}
+
+@-webkit-keyframes hide-menu {
+  0%   { bottom: 82px; opacity: 1 }
+  100% { bottom: -100px; opacity: 0 }
 }
