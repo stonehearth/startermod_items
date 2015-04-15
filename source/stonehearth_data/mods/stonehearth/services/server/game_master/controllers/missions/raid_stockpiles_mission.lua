@@ -4,13 +4,18 @@ local rng = _radiant.csg.get_default_rng()
 local Mission = require 'services.server.game_master.controllers.missions.mission'
 
 local RaidStockpilesMission = class()
-mixin_class(RaidStockpilesMission, Mission)
+radiant.mixin(RaidStockpilesMission, Mission)
 
 function RaidStockpilesMission:activate()
    if self._sv.update_orders_timer then
       self._sv.update_orders_timer:bind(function()
             self:_update_party_orders()
          end)
+   elseif self._sv.ctx then
+      --if we're loading, then update the party orders once the game is loaded
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+         self:_update_party_orders()
+      end)
    end
    if self._sv.sighted_bulletin_data then
       self:_listen_for_sighted()
@@ -44,6 +49,9 @@ end
 function RaidStockpilesMission:start(ctx, info)
    self._sv.ctx = ctx
    self._sv.info = info
+   if info.npc_player_id then
+      ctx.npc_player_id = info.npc_player_id
+   end
    self._sv.party = self:_create_party(ctx, info)
 
    if info.sighted_bulletin then

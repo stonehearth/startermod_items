@@ -3,7 +3,13 @@
 -- A utility class which makes it really easy to implement objects which implement
 -- only a single "destroy" method.
 
-local Destructor = radiant_class()
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- this class is legacy!  instead of using radiant.lib.Destructor, you should use
+-- the destructor controller (i.e. radiant.create_controller('radiant:destructor', radiant.bind(...)))
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--
+
+local Destructor = radiant.class()
 
 function Destructor:__init(destroy_cb)
 	assert(destroy_cb)

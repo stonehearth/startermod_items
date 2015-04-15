@@ -51,6 +51,11 @@ function BuildEditorService:on_selection_changed()
                end
             end
          end
+      else
+         local bc = maybe_selected:get_component('stonehearth:building')
+         if bc then
+            building_entity = maybe_selected
+         end
       end
    end
 
@@ -97,9 +102,9 @@ function BuildEditorService:place_new_wall(session, response, column_brush, wall
          :go(column_brush, wall_brush, response)
 end
 
-function BuildEditorService:place_new_floor(session, response, brush)
+function BuildEditorService:place_new_floor(session, response, brush, sink_floor)
    FloorEditor(self._build_service)
-         :go(response, brush, { sink_floor = true })
+         :go(response, brush, { sink_floor = sink_floor })
 end
 
 function BuildEditorService:place_new_slab(session, response, slab_shape)

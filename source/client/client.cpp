@@ -83,6 +83,7 @@ namespace fs = boost::filesystem;
 namespace proto = ::radiant::tesseract::protocol;
 
 static const std::regex call_path_regex__("/r/call/?");
+const char *HOTKEY_SAVE_KEY = "hotkey_save";
 
 static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
 static int POST_SYSINFO_INTERVAL_MS = 5 * 60 * 1000;  // every 5 minutes
@@ -119,7 +120,8 @@ Client::Client() :
    loading_(false),
    _lastSequenceNumber(0),
    _nextSysInfoPostTime(0),
-   _currentUiScreen(InvalidScreen)
+   _currentUiScreen(InvalidScreen),
+    _showDebugShapesMode(ShowDebugShapesMode::None)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
    _allocDataStoreFn = [this](int storeId) {
@@ -205,9 +207,35 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F2] = [=](KeyboardInput const& kb) { EnableDisableLifetimeTracking(); };
       _commands[GLFW_KEY_F3] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) { ReloadBrowser(); };
-      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame("hotkey_save", json::Node()); };
-      _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame("hotkey_save"); };
+      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) {
+         if (kb.shift) {
+
+            if (!_reloadSavePromise && !_reloadLoadPromise) {
+
+               // Sweet.  No reload is in progress.  First save the game.  What that's done, load
+               // the game we just saved.  The ->Always() blocks null out the promise pointers.
+               // Always is always (ha!) called after Done or Reject.
+
+               _reloadSavePromise = SaveGame(HOTKEY_SAVE_KEY, json::Node());
+
+               _reloadSavePromise->Done([this](json::Node const&n) {
+                                    ASSERT(!_reloadLoadPromise);
+
+                                    _reloadLoadPromise = LoadGame(HOTKEY_SAVE_KEY);
+                                    _reloadLoadPromise->Always([this]() {
+                                       _reloadLoadPromise = nullptr;
+                                    });
+                                 });
+               _reloadSavePromise->Always([this]() {
+                                    _reloadSavePromise = nullptr;
+                                 });
+            }
+         } else {
+            ReloadBrowser();
+         }
+      };
+      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame(HOTKEY_SAVE_KEY, json::Node()); };
+      _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame(HOTKEY_SAVE_KEY); };
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
       _commands[GLFW_KEY_F10] = [&renderer, this](KeyboardInput const& kb) {
@@ -228,10 +256,25 @@ void Client::OneTimeIninitializtion()
             }
          }
       };
-      _commands[GLFW_KEY_F11] = [&renderer](KeyboardInput const& kb) {
-         // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
-         renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
+      _commands[GLFW_KEY_F11] = [this, &renderer](KeyboardInput const& kb) {
+         _showDebugShapesMode = (ShowDebugShapesMode)(((int)_showDebugShapesMode + 1) % ShowDebugShapesMode::TotalModes);
+         if (_showDebugShapesMode == ShowDebugShapesMode::None) {
+            CLIENT_LOG(0) << "hiding all debug shapes";
+            renderer.SetShowDebugShapes(0);
+         } else if (_showDebugShapesMode == ShowDebugShapesMode::All) {
+            CLIENT_LOG(0) << "showing debug shapes for all entities";
+            // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
+            renderer.SetShowDebugShapes(-1);
+         } else {
+            CLIENT_LOG(0) << "showing debug shapes for only the selected entity";
+            om::EntityRef e = GetSelectedEntity();
+            om::EntityPtr entity = e.lock();
+            if (entity) {
+               renderer.SetShowDebugShapes(entity->GetObjectId());
+            }
+         }
       };
+
       _commands[GLFW_KEY_PAUSE] = [](KeyboardInput const& kb) {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
@@ -1318,6 +1361,15 @@ void Client::SelectEntity(om::EntityPtr entity)
    } else {
       CLIENT_LOG(3) << "same entity.  bailing";
    }
+   if (_showDebugShapesMode == ShowDebugShapesMode::Selected) {
+      Renderer& renderer = Renderer::GetInstance();
+      om::EntityPtr s = selectedEntity_.lock();
+      if (s) {
+         renderer.SetShowDebugShapes(s->GetObjectId());
+      } else {
+         renderer.SetShowDebugShapes(0);
+      }
+   }
 }
 
 #if 0
@@ -1640,13 +1692,13 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
    rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("client save");
    if (saveid.empty()) {
       CLIENT_LOG(0) << "ignoring save request: saveid is empty";
-      d->ResolveWithMsg("stonehearth:no_saveid");
+      d->RejectWithMsg("stonehearth:no_saveid");
       return d;
    }
 
    if (client_save_deferred_) {
       CLIENT_LOG(0) << "ignoring save request: request is already in flight";
-      d->ResolveWithMsg("stonehearth:save_in_progress");
+      d->RejectWithMsg("stonehearth:save_in_progress");
       return d;
    }
 
@@ -1672,13 +1724,14 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
       SaveClientMetadata(tmpdir, gameinfo);
-      client_save_deferred_->Resolve(n);
 
       // finally. move the save game to the correct direcory
       fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
       DeleteSaveGame(saveid);
       rename(tmpdir, savedir);
       CLIENT_LOG(1) << "moving " << tmpdir.string() << " to " << savedir;
+
+      client_save_deferred_->Resolve(n);
    });
    server_save_deferred_->Fail([this, tmpdir, gameinfo](JSONNode const&n) {
       client_save_deferred_->Reject(n);

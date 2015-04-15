@@ -87,6 +87,13 @@ class Client : public core::Singleton<Client> {
          LoadingScreen,
       };
 
+      enum ShowDebugShapesMode {
+         None = 0,
+         Selected,
+         All,
+         TotalModes
+      };
+
       const char* GetCurrentUIScreen() const;
       void SetCurrentUIScreen(UIScreen screen, bool reloadRequested = true);
 
@@ -282,6 +289,8 @@ private:
       rpc::ReactorDeferredPtr     perf_counter_deferred_;
       rpc::ReactorDeferredPtr     server_save_deferred_;
       rpc::ReactorDeferredPtr     client_save_deferred_;
+      rpc::ReactorDeferredPtr     _reloadSavePromise;
+      rpc::ReactorDeferredPtr     _reloadLoadPromise;
       int                         _lastSequenceNumber;
       int                         _nextSysInfoPostTime;
 
@@ -292,6 +301,9 @@ private:
       std::unique_ptr<PerfHud>         _perfHud;
       std::unique_ptr<FlameGraphHud>   _flameGraphHud;
       std::function<om::DataStoreRef(int storeId)> _allocDataStoreFn;
+
+      ShowDebugShapesMode         _showDebugShapesMode;
+
 };
 
 END_RADIANT_CLIENT_NAMESPACE

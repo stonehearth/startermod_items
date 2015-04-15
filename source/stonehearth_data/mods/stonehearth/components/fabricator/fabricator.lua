@@ -19,19 +19,26 @@ local ADJACENT_POINTS = {
 local Fabricator = class()
 
 -- build the inverse material map
-local function build_color_to_material_map()
-   local c2m = {}
+local COLOR_TO_MATERIAL = {}
+local function build_color_to_material_map()  
    for material, colorlist in pairs(stonehearth.constants.construction.brushes.voxel) do
       for _, color in ipairs(colorlist) do
-         if c2m[color] then
+         if COLOR_TO_MATERIAL[color] then
             radiant.error('duplicate color %s in stonehearth:build:brushes', color)
          end
-         c2m[color] = material
+         COLOR_TO_MATERIAL[color] = material
       end
    end
-   return c2m
 end
-local COLOR_TO_MATERIAL = build_color_to_material_map()
+
+-- this is quite annoying.  the order of operations during loading means that the fabricator for
+-- an entity may be required before the stonehearth mod gets loaded.  if that happens, wait for
+-- the load message before trying to rebuild the colormap
+if rawget(_G, 'stonehearth') then
+   build_color_to_material_map()
+else
+   radiant.events.listen_once(radiant, 'radiant:game_loaded',  build_color_to_material_map)
+end
 
 -- this is the component which manages the fabricator entity.
 function Fabricator:__init(name, entity, blueprint, project)
@@ -121,7 +128,9 @@ end
 
 function Fabricator:set_teardown(teardown)
    self._teardown = teardown
-   self:_update_fabricator_region()
+   if self._active then
+      self:_update_fabricator_region()
+   end
 end
 
 function Fabricator:_initialize_existing_project(project)  
@@ -246,19 +255,42 @@ function Fabricator:add_block(material_entity, location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
+   self._log:info('adding block %s', pt)
+
    -- if we've projected the fabricator region to the base of the project,
    -- the location passed in will be at the base, too.  find the appropriate
    -- block to add to the project collision shape by starting at the bottom
    -- and looking up.
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
       local project_rgn = self._project_dst:get_region():get()
-      while project_rgn:contains(pt) do
+      local blueprint_rgn = self._blueprint_dst:get_region():get()
+      local blueprint_top = blueprint_rgn:get_bounds().max.y
+
+      -- we're looking for the bottom most block that we can build.  keep
+      -- walking the point up until we find something which is both
+      -- inside the blueprint and not in the project.
+      while true do
+         if pt.y > blueprint_top then
+            self._log:warning('grew point %s outside blueprint bounds.  bailing', pt)
+            break
+         end
+
+         if blueprint_rgn:contains(pt) then
+            if not project_rgn:contains(pt) then
+               -- yay!  this is the point we need to build
+               break
+            end
+         end
          pt.y = pt.y + 1
       end
-      if not self._blueprint_dst:get_region():get():contains(pt) then
+
+      if not blueprint_rgn:contains(pt) then
          -- we couldn't find a block in this column that is both missing from the
          -- project and inside the blueprint.  we must already be done!!
-         self._log:info('skipping location %s -> %s.  no longer in blueprint!', location, pt + origin)
+         self._log:info('skipping location %s -> %s.  no longer in blueprint!', location, pt)
+         self:_log_destination(self._entity)
+         self:_log_destination(self._blueprint)
+         self:_log_destination(self._project)
          return
       end
    end
@@ -269,6 +301,7 @@ function Fabricator:add_block(material_entity, location)
                                  :get()
                                     :get_tag(pt)
          cursor:add_point(pt, color)
+         cursor:optimize_by_merge('add block in project')
       end)
    self:release_block(location)
    return true
@@ -318,8 +351,12 @@ function Fabricator:remove_block(location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
-   local rgn = self._fabricator_dst:get_region():get()
-   if not rgn:contains(pt) then
+   if not self._fabricator_dst:get_region():get():contains(pt) then
+      self._log:warning('trying to remove unbuild portion %s of construction project', pt)
+      return false
+   end
+   local project_rgn = self._project_dst:get_region():get()
+   if not project_rgn:contains(pt) then
       self._log:warning('trying to remove unbuild portion %s of construction project', pt)
       return false
    end
@@ -329,7 +366,6 @@ function Fabricator:remove_block(location)
    -- block to remove to the project collision shape by starting at the tip
    -- top and looking down
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
-      local project_rgn = self._project_dst:get_region():get()
       local bounds = project_rgn:get_bounds()
       local top = bounds.max.y - 1
       local bottom = bounds.min.y
@@ -355,8 +391,8 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)',
-                     tostring(self._active), tostring(self._should_teardown), tostring(self._finished), tostring(self._can_start))
+   self._log:detail('start_project (active:%s can_start:%s teardown:%s finished:%s)',
+                     tostring(self._active), tostring(self._can_start), tostring(self._should_teardown), tostring(self._finished))
    if self._finished then
       return
    end
@@ -368,8 +404,10 @@ function Fabricator:_start_project()
    -- ones that need destroying.
    if active then
       if self._should_teardown then
+         self:_destroy_fabricate_task()
          self:_start_teardown_task()
       else
+         self:_destroy_teardown_task()
          self:_start_fabricate_task()
       end
    else
@@ -472,10 +510,14 @@ function Fabricator:_stop_project()
       self._fabricate_task = nil
    end
 
-   for zone, _ in pairs(self._mining_zones) do
-      radiant.entities.destroy_entity(zone)
-      self._mining_zones[zone] = nil
-      self._mining_traces[zone] = nil
+   for id, mining_zone in pairs(self._mining_zones) do
+      -- xxx: this is could cause some trouble... what happens if the mining zone
+      -- got merged with some other mining request?  didn't we just kill that one,
+      -- too?
+      radiant.entities.destroy_entity(mining_zone)
+      self._mining_traces[id]:destroy()
+      self._mining_zones[id] = nil
+      self._mining_traces[id] = nil
    end
 end
 
@@ -526,21 +568,20 @@ function Fabricator:_update_dst_region()
    --self:_log_region(dst_region, 'resulted in destination ->')
    
    -- Any region that needs mining should be removed from our destination region.
-   for zone, mining_dst in pairs(self._mining_zones) do
-      local mining_region = mining_dst:get_region():get()
+   for id, mining_zone in pairs(self._mining_zones) do
+      local mining_region = mining_zone:get_component('destination')
+                                          :get_region()
+                                             :get()
       if not mining_region:empty() then
-         local parent = radiant.entities.get_parent(self._entity)
-         local parent_pos = radiant.entities.get_world_location(parent)
-         local zone_pos = radiant.entities.get_world_location(zone)
-         if parent_pos == nil then
-            parent_pos = Point3(0, 0, 0)
-         end
-         local offset = zone_pos - parent_pos
+         local offset = radiant.entities.get_world_grid_location(self._entity) -
+                        radiant.entities.get_world_grid_location(mining_zone)
+
          local fab_mining_region = mining_region:translated(offset)
 
          dst_region:subtract_region(fab_mining_region)
       end
    end
+
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
@@ -598,24 +639,35 @@ function Fabricator:_update_mining_region()
    -- The mining service will handle all existing mining region overlap merging for us.
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
-   
-   if mining_zone and not self._mining_zones[mining_zone] then
-      mining_zone:add_component('stonehearth:mining_zone'):set_selectable(false)
-      local mining_dst = mining_zone:get_component('destination')
-      self._mining_zones[mining_zone] = mining_dst
+   if not mining_zone then
+      return
+   end
 
-      self._mining_traces[mining_zone] = mining_dst:trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
-         :on_changed(function(region)
-            self:_update_dst_region()
-         end)
-         :push_object_state()
+   local id = mining_zone:get_id()
+   if not self._mining_zones[id] then
+      self._mining_zones[id] = mining_zone
+
+      mining_zone:add_component('stonehearth:mining_zone')
+                     :set_selectable(false)
+
+      local trace = mining_zone:get_component('destination')
+                                    :trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+                                       :on_changed(function(region)
+                                             self:_update_dst_region()
+                                          end)
+
+      self._mining_traces[id] = trace
+      trace:push_object_state()
 
       -- Needs to be pre_destroy!  Otherwise, the mining region is destroyed, which triggers
       -- the callback in the fabricator to update the region, which accessess the cached
       -- destination component, which blows up.
       radiant.events.listen_once(mining_zone, 'radiant:entity:pre_destroy', function()
-         self._mining_zones[mining_zone] = nil
-         self._mining_traces[mining_zone] = nil
+         self._mining_zones[id] = nil
+         if self._mining_traces[id] then
+            self._mining_traces[id]:destroy()
+            self._mining_traces[id] = nil
+         end
       end)
    end
 end
@@ -654,6 +706,9 @@ function Fabricator:_update_fabricator_region()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br
+   self._log:spam('blueprint region: %s   area:%d', br:get_bounds(), br:get_area())
+   self._log:spam('project   region: %s   area:%d', pr:get_bounds(), br:get_area())
+   self._log:spam('teardown  region: %s   area:%d', teardown_region:get_bounds(), teardown_region:get_area())
 
    self._should_teardown = not teardown_region:empty()
    if self._should_teardown then
@@ -707,6 +762,7 @@ function Fabricator:_update_fabricator_region()
          for _, pt in ipairs(points_to_add) do
             cursor:add_unique_point(pt)
          end
+         cursor:optimize_by_merge('update fab region')
          self._finished = cursor:empty()
       end)
    else
@@ -728,7 +784,14 @@ function Fabricator:_update_fabricator_region()
          return
       end
    end
-   
+
+   for cube in (br - pr):each_cube() do
+      self._log:spam('  br - pr cube:   %s : %d', cube, cube.tag)
+   end
+   self:_log_destination(self._entity)
+   self:_log_destination(self._blueprint)
+   self:_log_destination(self._project)
+
    if self._finished then
       self:_stop_project()
    else
@@ -767,6 +830,37 @@ function Fabricator:_log_region(r, name)
    for c in r:each_cube() do
       self._log:detail('  %s', c)
    end   
+end
+
+if radiant.log.is_enabled('build.fabricator', radiant.log.SPAM) then
+   function Fabricator:_log_destination(entity)
+      self._log:spam('destination for %s', entity)
+      local dst = entity:get_component('destination')
+      local region = dst:get_region()
+      if region then
+         --region:modify(function(c) c:force_optimize_by_merge('debuggin') end)
+         for cube in region:get():each_cube() do
+            self._log:spam('  region cube:   %s : %d', cube, cube.tag)
+         end
+      end
+      local reserved = dst:get_reserved()
+      if reserved then
+         --region:modify(function(c) c:force_optimize_by_merge('debuggin') end)
+         for cube in reserved:get():each_cube() do
+            self._log:spam('  reserved cube: %s : %d', cube, cube.tag)
+         end
+      end
+      local adjacent = dst:get_adjacent()
+      if adjacent then
+         --region:modify(function(c) c:force_optimize_by_merge('debuggin') end)
+         for cube in dst:get_adjacent():get():each_cube() do
+            self._log:spam('  adjacent cube: %s : %d', cube, cube.tag)
+         end
+      end
+   end
+else
+   function Fabricator:_log_destination(entity)
+   end
 end
 
 return Fabricator

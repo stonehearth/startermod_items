@@ -3,9 +3,10 @@ local constants = require('constants').construction
 
 local Roof = class()
 local Point2 = _radiant.csg.Point2
-local Region3 = _radiant.csg.Region3
-local Cube3 = _radiant.csg.Cube3
+local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 local NineGridBrush = _radiant.voxel.NineGridBrush
 
 local NINE_GRID_OPTION_TYPES = {
@@ -148,6 +149,7 @@ end
 
 function Roof:save_to_template()
    local result = {
+      brush = self._sv.brush,
       nine_grid_region = self._sv.nine_grid_region,
       nine_grid_slope = self._sv.nine_grid_slope,
       nine_grid_gradiant = self._sv.nine_grid_gradiant,
@@ -157,10 +159,12 @@ function Roof:save_to_template()
 end
 
 function Roof:load_from_template(data, options, entity_map)
-   if data.nine_grid_region then
-      self._sv.nine_grid_region = Region2()
-      self._sv.nine_grid_region:load(data.nine_grid_region)
-   end
+   self._sv.brush = data.brush
+   self._sv.nine_grid_slope = data.nine_grid_slope
+   self._sv.nine_grid_gradiant = data.nine_grid_gradiant
+   self._sv.nine_grid_max_height = data.nine_grid_max_height
+   self._sv.nine_grid_region = Region2()
+   self._sv.nine_grid_region:load(data.nine_grid_region)
    self:apply_nine_grid_options(data)
 end
 

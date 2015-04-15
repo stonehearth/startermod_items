@@ -378,6 +378,7 @@ function build_util.restore_template(building, template_name, options)
    building:get_component('stonehearth:building')
                :finish_restoring_template()
 
+   --[[
    if options.mode ~= 'preview' then
       local roof
       local bc = building:get_component('stonehearth:building')
@@ -388,6 +389,7 @@ function build_util.restore_template(building, template_name, options)
       end      
       bc:layout_roof(roof)
    end
+   ]]
 end
 
 function build_util.get_templates()
@@ -527,9 +529,11 @@ function build_util.get_footprint_region2(blueprint)
    local footprint = Region2()
    for cube in region:each_cube() do
       local rect = Rect2(Point2(cube.min.x, cube.min.z),
-                         Point2(cube.max.x, cube.max.z))
+                         Point2(cube.max.x, cube.max.z),
+                         0)
       footprint:add_cube(rect)
    end
+   footprint:force_optimize_by_merge('creating footprint region')
    return footprint
 end
 

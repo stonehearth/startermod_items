@@ -9,11 +9,13 @@
 
    "controllers" :  {
       "controllers:timer" : "file(controllers/timer_controller.lua)",
-      "controllers:time_tracker" : "file(controllers/time_tracker_controller.lua)"
+      "controllers:time_tracker" : "file(controllers/time_tracker_controller.lua)",
+      "destructor" : "file(controllers/destructor.lua)"
    },
 
    "client_controllers" :  {
       "controllers:timer" : "file(controllers/timer_controller.lua)",
-      "controllers:time_tracker" : "file(controllers/time_tracker_controller.lua)"
+      "controllers:time_tracker" : "file(controllers/time_tracker_controller.lua)",
+      "destructor" : "file(controllers/destructor.lua)"
    }
 }

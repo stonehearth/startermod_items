@@ -20,7 +20,15 @@ RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
 
    entity_id_ = entity.GetObjectId();
 
-   show_debug_shape_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+   show_debug_shape_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](dm::ObjectId id) {
+      bool enabled;
+      if (id <= 0) {
+         enabled = (id < 0);
+      } else {
+         om::EntityPtr entity = entity_.GetEntity();
+         enabled = (entity && entity->GetObjectId() == id);
+      }
+
       if (enabled) {
          RenderAxes();
       } else {

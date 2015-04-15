@@ -94,8 +94,8 @@ var MaterialHelper = SimpleClass.extend({
          var category = material.replace(' ', '_').replace(':', '_');
 
          if (toolbar) {
-            if (!toolbar.find('img[category="' + category + '"]')[0]) {
-               toolbar.append($('<img>')
+            if (!toolbar.find('div[category="' + category + '"]')[0]) {
+               toolbar.append($('<div>')
                                  .addClass('button')
                                  .addClass(category)
                                  .attr('category', category)
@@ -106,8 +106,8 @@ var MaterialHelper = SimpleClass.extend({
          var palette = self._container.find('.brushPalette[category="' + category + '"]');
          if (palette.length == 0) {
             var subtab = $('<div>', { id:material.category, class: 'materialSubTab' });
-            subtab.html($('<h2>')
-                     .text(category + ' ' + self._tabTitle))
+            subtab.html($('<h1>')
+                     .text(i18n.t(category) + ' ' + self._tabTitle))
 
             var downSection = $('<div>', { class:'downSection' })
             palette = $('<div>').addClass('brushPalette')
@@ -128,6 +128,7 @@ var MaterialHelper = SimpleClass.extend({
       var toolbar = $('<div>').attr('id', 'materialToolbar')
                               .addClass('downSection');
 
+      self._container.append('<h1>' + self._tabTitle + ' ' + i18n.t('building_designer_material') + '</h1>');
       self._container.append(toolbar);
 
       // add the tabs...

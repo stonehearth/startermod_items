@@ -435,8 +435,12 @@ void Simulation::CreateGame()
    InitializeDataObjectTraces();
    GetOctTree().SetRootEntity(root_entity_);
 
-   radiant_ = scriptHost_->Require("radiant.server");
-   scriptHost_->CreateGame(modList_, _allocDataStoreFn);
+   try {
+      radiant_ = scriptHost_->Require("radiant.server");
+      scriptHost_->CreateGame(modList_, _allocDataStoreFn);
+   } catch (std::exception const& e) {
+      scriptHost_->ReportCStackException(scriptHost_->GetInterpreter(), e);
+   }
 }
 
 Simulation::~Simulation()
