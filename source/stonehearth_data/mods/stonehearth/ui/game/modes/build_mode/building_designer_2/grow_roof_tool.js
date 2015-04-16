@@ -73,6 +73,17 @@ var GrowRoofTool;
                   }
                });
 
+               // shape buttons
+               tab.find('.brush').click(function() {
+                  var blueprint = self.buildingDesigner.getBlueprint();
+                  if (blueprint) {
+                     var brush = $(this).attr('brush');
+                     if (brush) {
+                        App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
+                     }
+                  }
+               });
+
                // roof slope buttons
                tab.find('.roofDiagramButton').click(function() {
                   // update the options for future roofs
