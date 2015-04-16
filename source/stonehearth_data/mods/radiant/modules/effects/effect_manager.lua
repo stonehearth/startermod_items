@@ -43,12 +43,21 @@ end
 function EffectManager:get_resolved_action(action)  
   if self._postures then 
       local posture = self._posture_component:get_posture()
+      local postures
+
+      if posture ~= nil then
+         postures = self._postures[posture]
+      else 
+         -- if there is no posture set, fall back to the (optional) default set
+         postures = self._postures['default']
+      end
+
       -- if a posture is set and that posture is in the override table
-      if self._postures[posture] then
+      if postures then
          -- if the set posture overrides this action
-         if self._postures[posture][action] then
+         if postures[action] then
             -- return the override action
-            local resolved_action = self._postures[posture][action]
+            local resolved_action = postures[action]
             log:debug('effect %s resolved to %s [%s posture:%s]', action, resolved_action, self._entity, posture)
             return resolved_action
          end
