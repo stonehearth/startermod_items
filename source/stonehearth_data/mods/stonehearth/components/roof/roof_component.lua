@@ -10,6 +10,7 @@ local Region3 = _radiant.csg.Region3
 local NineGridBrush = _radiant.voxel.NineGridBrush
 
 local NINE_GRID_OPTION_TYPES = {
+   brush = 'string',
    nine_grid_gradiant = 'table',
    nine_grid_slope = 'number',
    nine_grid_max_height = 'number',
@@ -138,7 +139,7 @@ function Roof:apply_nine_grid_options(options)
       for name, val in pairs(options) do
          if NINE_GRID_OPTION_TYPES[name] == 'number' then
             self._sv[name] = tonumber(val)
-         elseif NINE_GRID_OPTION_TYPES[name] == 'table' then
+         else
             self._sv[name] = val
          end
       end
