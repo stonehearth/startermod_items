@@ -11,52 +11,6 @@ local MODEL_OFFSET = Point3(-0.5, 0, -0.5)
 local RoadEditor = class()
 
 
-function RoadEditor:_region_to_road_regions(total_region, origin, build_curb)
-   local proj_curb_region = Region2()
-   local road_region = Region3()
-   local curb_region = nil
-
-   if build_curb and total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
-      -- If we're big enough, add a curb along the edge.
-      local edges = total_region:get_edge_list()
-      curb_region = Region3()
-      for edge in edges:each_edge() do
-         local min = Point2(edge.min.location.x, edge.min.location.y)
-         local max = Point2(edge.max.location.x, edge.max.location.y)
-
-         if min.y == max.y then
-            if edge.min.accumulated_normals.y < 0 then
-               max.y = max.y + 1
-            elseif edge.min.accumulated_normals.y > 0 then
-               min.y = min.y - 1
-            end
-         elseif min.x == max.x then
-            if edge.min.accumulated_normals.x < 0 then
-               max.x = max.x + 1
-            elseif edge.min.accumulated_normals.x > 0 then
-               min.x = min.x - 1
-            end
-         end
-
-         local c = Cube3(Point3(min.x, origin.y, min.y), Point3(max.x, 2 + origin.y, max.y))
-         curb_region:add_cube(c)
-      end
-
-      proj_curb_region = curb_region:project_onto_xz_plane()
-   end
-
-   local proj_road_region = total_region - proj_curb_region
-
-   for cube in proj_road_region:each_cube() do
-      local c = Cube3(Point3(cube.min.x, origin.y, cube.min.y),
-         Point3(cube.max.x, origin.y + 1, cube.max.y))
-      road_region:add_cube(c)
-   end
-
-   return curb_region, road_region
-end
-
-
 -- this is the component which manages the fabricator entity.
 function RoadEditor:__init(build_service)
    self._build_service = build_service
@@ -65,13 +19,9 @@ function RoadEditor:__init(build_service)
    _radiant.renderer.add_terrain_cut(self._cut_region)
 end
 
-function RoadEditor:go(response, road_uri, curb_uri)
+function RoadEditor:go(response, road_uri)
    local road_brush = voxel_brush_util.create_brush(road_uri)
-   local curb_brush = nil
 
-   if curb_uri then
-      curb_brush = voxel_brush_util.create_brush(curb_uri)
-   end
    stonehearth.selection:select_xz_region()
       :require_unblocked(false)
       :select_front_brick(false)
@@ -81,12 +31,8 @@ function RoadEditor:go(response, road_uri, curb_uri)
       :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_support_filter(true))
       :set_can_contain_entity_filter(stonehearth.selection.floor_can_contain)
       :use_manual_marquee(function(selector, box)
-            local proj_region = Region3(box):project_onto_xz_plane():to_int()
-            local curb_region, road_region = self:_region_to_road_regions(proj_region, box.min, curb_uri ~= nil)
+            local road_region = Region3(box)
             local model_region = road_brush:paint_through_stencil(road_region)
-            if curb_region and curb_uri then
-               model_region:add_region(curb_brush:paint_through_stencil(curb_region))
-            end
             local node =  _radiant.client.create_voxel_node(H3DRootNode, model_region, 'materials/blueprint.material.json', Point3(0, 0, 0))
             node:set_polygon_offset(-5, -5)
             node:set_position(MODEL_OFFSET)
@@ -97,7 +43,7 @@ function RoadEditor:go(response, road_uri, curb_uri)
             return node
          end)
       :done(function(selector, box)
-            self:_add_road(response, selector, box, road_uri, curb_uri)
+            self:_add_road(response, selector, box, road_uri)
          end)
       :fail(function(selector)
             response:reject('no region')            
@@ -113,8 +59,8 @@ function RoadEditor:go(response, road_uri, curb_uri)
    return self
 end
 
-function RoadEditor:_add_road(response, selector, box, road_uri, curb_uri)
-   _radiant.call_obj(self._build_service, 'add_road_command', road_uri, curb_uri, box)
+function RoadEditor:_add_road(response, selector, box, road_uri)
+   _radiant.call_obj(self._build_service, 'add_road_command', road_uri, box)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)

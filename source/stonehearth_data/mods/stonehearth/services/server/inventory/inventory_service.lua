@@ -111,12 +111,13 @@ function InventoryService:_register_score_functions()
    end)
 end
 
---- The score for a building is its area * the multiplier for that kind of wall/region, divided by 10
+--- The score for a building is its area * the multiplier for that kind of wall/region, modified by ^0.6, 
+--  so that the first bldg is very important, and building decreases logarithmically as we get more buildings.
 function InventoryService:_get_score_for_building(entity)
    local region = entity:get_component('destination'):get_region()
    local area = region:get():get_area()
    local item_multiplier = stonehearth.score:get_score_for_entity(entity)
-   return area * item_multiplier / 10
+   return (area * item_multiplier) ^ 0.5
 end
 
 --- Returns the score for all the items in the stockpile. 

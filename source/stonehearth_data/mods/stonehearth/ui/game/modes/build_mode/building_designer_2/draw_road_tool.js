@@ -43,6 +43,7 @@ var DrawRoadTool;
                                                  self.materialClass,
                                                  brushes.voxel,
                                                  brushes.pattern,
+                                                 true,
                                                  click);
       },
 

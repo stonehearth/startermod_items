@@ -4,8 +4,8 @@
    "components": {
       "item": {
          "category": "resources",
-         "stacks": 3, 
-         "max_stacks" : 3
+         "stacks": 5, 
+         "max_stacks" : 5
       },
       "stonehearth:material" : {
          "tags" : "fiber resource plant"

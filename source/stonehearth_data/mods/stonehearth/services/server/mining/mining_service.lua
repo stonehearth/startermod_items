@@ -48,6 +48,9 @@ end
 
 -- Dig an arbitary region. Region is defined in world space.
 function MiningService:dig_region(player_id, region)
+   region:optimize_by_merge('dig_region')
+   log:debug('mining designation contains %d cubes', region:get_num_rects())
+
    if self._enable_insta_mine then
       self:_insta_mine(region)
       return nil

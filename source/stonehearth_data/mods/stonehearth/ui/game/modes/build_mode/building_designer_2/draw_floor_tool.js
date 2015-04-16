@@ -26,6 +26,9 @@ var DrawFloorTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                var brush = self._materialHelper.getSelectedBrush();
+               if (brush == 'eraser') {
+                  return App.stonehearthClient.eraseStructure();
+               }
                return App.stonehearthClient.buildFloor(brush, self.sinkFloor);
             });
       },
@@ -48,6 +51,7 @@ var DrawFloorTool;
                                                    self.materialClass,
                                                    brushes.voxel,
                                                    brushes.pattern,
+                                                   true,
                                                    click);
       },
 

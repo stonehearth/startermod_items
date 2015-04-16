@@ -43,6 +43,7 @@ var GrowRoofTool;
                                                    self.materialClass,
                                                    brushes.roof,
                                                    null,
+                                                   false,
                                                    click);
 
          $.get('/stonehearth/ui/game/modes/build_mode/building_designer_2/roof_shape_template.html')
@@ -69,6 +70,17 @@ var GrowRoofTool;
                   var blueprint = self.buildingDesigner.getBlueprint();
                   if (blueprint) {
                      App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
+                  }
+               });
+
+               // shape buttons
+               tab.find('.brush').click(function() {
+                  var blueprint = self.buildingDesigner.getBlueprint();
+                  if (blueprint) {
+                     var brush = $(this).attr('brush');
+                     if (brush) {
+                        App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
+                     }
                   }
                });
 
