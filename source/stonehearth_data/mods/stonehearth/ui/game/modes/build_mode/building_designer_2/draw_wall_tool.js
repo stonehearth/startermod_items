@@ -45,6 +45,7 @@ var DrawWallTool;
                                                  self.wallMaterialClass,
                                                  brushes.wall,
                                                  null,
+                                                 false,
                                                  click);
 
          self._columnMaterial = new MaterialHelper(tab,
@@ -53,6 +54,7 @@ var DrawWallTool;
                                                  self.columnMaterialClass,
                                                  brushes.column,
                                                  null,
+                                                 false,
                                                  click);
       },
 

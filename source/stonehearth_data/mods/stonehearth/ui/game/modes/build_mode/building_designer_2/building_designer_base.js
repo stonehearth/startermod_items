@@ -80,19 +80,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          App.stonehearthClient.undo();
       });
 
-      // move this to the floor eraser tab or something...
-      var doEraseStructure = function() {
-         App.stonehearthClient.eraseStructure(
-            self.activateElement('#eraseStructureTool'))
-            .fail(self._deactivateTool('#eraseStructureTool'))
-            .done(function() {
-               doEraseStructure();
-            });
-      };
-      this.$('#eraseStructureTool').click(function() {
-         doEraseStructure();
-      });
-
       if (self._buildBrushes) {
          self.initializeTools();
       }
