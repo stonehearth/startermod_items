@@ -43,6 +43,7 @@ var GrowRoofTool;
                                                    self.materialClass,
                                                    brushes.roof,
                                                    null,
+                                                   false,
                                                    click);
 
          $.get('/stonehearth/ui/game/modes/build_mode/building_designer_2/roof_shape_template.html')

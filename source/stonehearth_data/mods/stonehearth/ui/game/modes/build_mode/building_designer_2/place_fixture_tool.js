@@ -45,6 +45,7 @@ var PlaceFixtureTool;
                                                    self.materialClass,
                                                    brushes[self.category],
                                                    null,
+                                                   false,
                                                    click);
       },
 

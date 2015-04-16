@@ -611,6 +611,20 @@ var StonehearthClient;
          };
       },
 
+      eraseStructure : function() {
+         var self = this;
+         return function() {
+            var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
+            return radiant.call_obj(self._build_editor, 'erase_structure')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });      
+         };
+      },
+
       callTool: function(toolStruct) {
          return this._callTool(toolStruct.toolId, toolFn, toolStruct.precall);
       },
@@ -629,23 +643,6 @@ var StonehearthClient;
                   self.hideTip(tip);
                });
          };
-      },
-
-      eraseStructure: function(precall) {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
-         var self = this;
-
-         var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
-
-         return this._callTool('eraseStructure', function() {
-            return radiant.call_obj(self._build_editor, 'erase_structure')
-               .done(function(response) {                  
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-               })
-               .fail(function(response) {
-                  self.hideTip(tip);
-               });
-         }, precall);
       },
 
       buildRoad: function(roadBrush, curbBrush) {

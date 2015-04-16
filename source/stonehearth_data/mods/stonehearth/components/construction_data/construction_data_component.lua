@@ -190,10 +190,18 @@ function ConstructionDataComponent:paint_world_region(brush_uri, world_region)
    local shape = world_region:translated(-origin)
    local rgn = brush:paint_through_stencil(shape)
 
-   return self:add_world_region(rgn)
+   return self:add_local_region(rgn)
 end
 
-function ConstructionDataComponent:add_world_region(rgn)
+function ConstructionDataComponent:add_world_region(world_region)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local shape = world_region:translated(-origin)
+
+   self:add_local_region(shape)
+   return self
+end
+
+function ConstructionDataComponent:add_local_region(rgn)
    self._entity:get_component('destination')
                   :get_region()
                      :modify(function(c)                           
@@ -208,13 +216,18 @@ function ConstructionDataComponent:remove_world_region(world_region)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local shape = world_region:translated(-origin)
 
-   self._entity:get_component('destination')
-                  :get_region()
-                     :modify(function(c)                           
-                           c:subtract_region(shape)
-                           c:optimize_by_merge('shrinking building structure')
-                        end)         
+   self:remove_local_region(shape)
+   return self
+end
 
+function ConstructionDataComponent:remove_local_region(shape)
+   local region = self._entity:get_component('destination')
+                                 :get_region()
+
+   region:modify(function(c)                           
+         c:subtract_region(shape)
+         c:optimize_by_merge('shrinking building structure')
+      end)         
    return self
 end
 
