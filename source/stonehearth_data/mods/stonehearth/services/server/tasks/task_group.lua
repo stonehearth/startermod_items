@@ -344,7 +344,12 @@ function TaskGroup:_greedy_prioritize_tasks()
    end
 
    table.sort(ptasks, function(l, r)
-         return l:get_priority() > r:get_priority()
+         if l:get_priority() > r:get_priority() then
+            return true
+         elseif l:get_priority() < r:get_priority() then
+            return false
+         end
+         return l._fed_workers < r._fed_workers
       end)
 
    return ptasks
