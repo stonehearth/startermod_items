@@ -134,18 +134,7 @@ function BuildService:add_floor_command(session, response, floor_brush, box)
          floor = self:add_floor(session, floor_brush, ToCube3(box))
       end)
 
-   if success then
-      -- if we managed to create some floor, return the fabricator to the client as the
-      -- new selected entity.  otherwise, return an error.
-      if floor then
-         local floor_fab = floor:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-         response:resolve({
-            new_selection = floor_fab
-         })
-      else
-         response:reject({ error = 'could not create floor' })
-      end
-   end
+   self:_resolve_and_select_blueprint(success, response, floor)
 end
 
 function BuildService:add_road_command(session, response, road_uri, box)
@@ -154,18 +143,7 @@ function BuildService:add_road_command(session, response, road_uri, box)
          road = self:add_road(session, road_uri, ToCube3(box))
       end)
 
-   if success then
-      -- if we managed to create some road, return the fabricator to the client as the
-      -- new selected entity.  otherwise, return an error.
-      if road then
-         local road_fab = road:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-         response:resolve({
-            new_selection = road_fab
-         })
-      else
-         response:reject({ error = 'could not create road' })
-      end
-   end
+   self:_resolve_and_select_blueprint(success, response, road)
 end
 
 function BuildService:add_wall_command(session, response, column_brush, wall_brush, p0, p1, normal)
@@ -174,17 +152,35 @@ function BuildService:add_wall_command(session, response, column_brush, wall_bru
          wall = self:add_wall(session, column_brush, wall_brush, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
       end)
 
-   if success then
-      if wall then
-         local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
-         response:resolve({
-            new_selection = wall_fab
-         })
-      else
-         response:reject({ error = 'could not create wall' })      
-      end
-   end
+   self:_resolve_and_select_blueprint(success, response, wall)
 end
+
+function BuildService:repaint_wall_command(session, response, wall, wall_brush)
+   local success = self:do_command('repaint_wall', response, function()
+         self:repaint_wall(wall, wall_brush)
+      end)
+   self:_resolve_and_select_blueprint(success, response, wall)
+end
+
+function BuildService:repaint_column_command(session, response, blueprint, column_brush)
+   local success = self:do_command('repaint_wall', response, function()
+         self:repaint_column(blueprint, column_brush)
+      end)
+   self:_resolve_and_select_blueprint(success, response, blueprint)
+end
+
+function BuildService:_resolve_and_select_blueprint(success, response, blueprint)
+   if success then
+      local fab = blueprint:get_component('stonehearth:construction_progress')
+                              :get_fabricator_entity()
+      response:resolve({
+         new_selection = fab
+      })
+      return
+   end
+   response:reject({ error = 'something has gone tragicly wrong' })
+end
+
 
 function BuildService:_merge_blueprints(box, acceptable_merge_filter_fn)
    -- look for entities in a 1-voxel border around the box specified.  this lets
@@ -598,6 +594,35 @@ function BuildService:_merge_building_into(merge_into, building)
    self:unlink_entity(building)
 end
 
+function BuildService:repaint_wall(wall, wall_brush)
+   local wc = wall:get_component('stonehearth:wall')
+   if not wc then
+      return
+   end
+
+   wc:set_brush(wall_brush)
+   wc:layout()
+
+   return wall
+end
+
+
+function BuildService:repaint_column(blueprint, column_brush)   
+   local cc = blueprint:get_component('stonehearth:column')
+   if cc then
+      cc:set_brush(column_brush)
+      cc:layout()
+      return
+   end
+
+   local wc = blueprint:get_component('stonehearth:wall')
+   if wc then
+      local columns = { wc:get_columns() }
+      for _, column in pairs(columns) do
+         self:repaint_column(column, column_brush)
+      end
+   end
+end
 
 function BuildService:add_wall(session, column_brush, wall_brush, p0, p1, normal)
    -- look for floor that we can merge into.
@@ -673,17 +698,7 @@ function BuildService:grow_roof_command(session, response, building, roof_brush,
          roof = self:grow_roof(building, roof_brush, options)
       end)
 
-   if success then
-      if roof then     
-         response:resolve({
-            new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-         })
-      else
-         response:reject({
-            error = 'failed to grow roof'
-         })
-      end
-   end
+   self:_resolve_and_select_blueprint(success, response, roof)
 end
 
 function BuildService:grow_roof(building, roof_brush, options)
@@ -820,7 +835,9 @@ function BuildService:add_fixture_command(session, response, parent_entity, fixt
       response:resolve({
          new_selection = fixture
       })
+      return
    end
+   response:reject({ error = 'failed to add fixture'})
 end
 
 function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal, rotation, always_show_ghost)
@@ -891,34 +908,6 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
                            :set_active(true)
    end
    return fixture_blueprint
-end
-
--- replace the `old` object with a brand new one created from `new_uri`, keeping
--- the structure of the building in-tact
---
---    @param session - the session for the player initiating the request
---    @param response - a response object which we'll write the result into
---    @param old - the old blueprint to destroy
---    @param new_uri - the uri of the new guy to take `old`'s place
---
-function BuildService:substitute_blueprint_command(session, response, old, new_uri)
-   local replaced
-   local success = self:do_command('substitute_blueprint', response, function()
-         replaced = self:_substitute_blueprint(old, new_uri)
-      end)
-
-   if success then   
-      if not replaced then
-         return false
-      end
-      
-      -- set the fabricator as the new selected entity to preserve the illusion that
-      -- the entity selected in the editor got changed.
-      local replaced_fab = replaced:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-      response:resolve({
-         new_selection = replaced_fab
-      })
-   end
 end
 
 function BuildService:_substitute_blueprint(old, new_uri)

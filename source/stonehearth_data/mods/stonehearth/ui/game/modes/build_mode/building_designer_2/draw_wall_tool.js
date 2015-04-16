@@ -31,9 +31,24 @@ var DrawWallTool;
          var self = this;
          var brushes = self.buildingDesigner.getBuildBrushes();
 
-         var click = function() {
+         var wallClick = function(brush) {
             // Re/activate the floor tool with the new material.
-            self.buildingDesigner.activateTool(self.buildTool);      
+            var blueprint = self.buildingDesigner.getBlueprint();
+            if (blueprint) {
+              radiant.call_obj('stonehearth.build', 'repaint_wall_command', blueprint.__self, brush);
+            } else {
+              self.buildingDesigner.activateTool(self.buildTool);
+            }
+         };
+
+         var columnClick = function(brush) {
+            // Re/activate the floor tool with the new material.
+            var blueprint = self.buildingDesigner.getBlueprint();
+            if (blueprint) {
+              radiant.call_obj('stonehearth.build', 'repaint_column_command', blueprint.__self, brush);
+            } else {
+              self.buildingDesigner.activateTool(self.buildTool);
+            }
          };
 
          var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
@@ -46,7 +61,7 @@ var DrawWallTool;
                                                  brushes.wall,
                                                  null,
                                                  false,
-                                                 click);
+                                                 wallClick);
 
          self._columnMaterial = new MaterialHelper(tab,
                                                  self.buildingDesigner,
@@ -55,20 +70,7 @@ var DrawWallTool;
                                                  brushes.column,
                                                  null,
                                                  false,
-                                                 click);
-      },
-
-      activateOnBuilding: function() {
-         var blueprint = this.buildingDesigner.getBlueprint();
-         var constructionData = this.buildingDesigner.getConstructionData();
-
-         if (blueprint && constructionData) {
-            if (constructionData.type == 'column') {
-
-            } else if (constructionData.type == 'wall') {
-               
-            }
-         } 
+                                                 columnClick);
       },
 
       restoreState: function(state) {

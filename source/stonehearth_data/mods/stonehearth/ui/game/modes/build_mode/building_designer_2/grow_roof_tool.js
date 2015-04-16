@@ -29,9 +29,14 @@ var GrowRoofTool;
          var self = this;
          var brushes = self.buildingDesigner.getBuildBrushes();
 
-         var click = function(brush) {
-            // Re/activate the floor tool with the new material.
-            self.buildingDesigner.activateTool(self.buildTool);
+         var click = function(brush) {            
+            var blueprint = self.buildingDesigner.getBlueprint();
+            if (blueprint) {
+               App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
+            } else {
+               // Re/activate the floor tool with the new material.
+               self.buildingDesigner.activateTool(self.buildTool);               
+            }            
          };
 
          var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
@@ -70,17 +75,6 @@ var GrowRoofTool;
                   var blueprint = self.buildingDesigner.getBlueprint();
                   if (blueprint) {
                      App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
-                  }
-               });
-
-               // shape buttons
-               tab.find('.brush').click(function() {
-                  var blueprint = self.buildingDesigner.getBlueprint();
-                  if (blueprint) {
-                     var brush = $(this).attr('brush');
-                     if (brush) {
-                        App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
-                     }
                   }
                });
 
