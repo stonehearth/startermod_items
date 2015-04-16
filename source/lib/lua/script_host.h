@@ -79,6 +79,7 @@ public: // the static interface
    static void ReportLuaStackException(lua_State* L, std::string const& error, std::string const& traceback) { return GetScriptHost(L)->ReportLuaStackException(error, traceback); }
    static bool CoerseToBool(luabind::object const& o);
    static void ProfileHookFn(lua_State *L, lua_Debug *ar);
+   static void ProfileSampleHookFn(lua_State *L, lua_Debug *ar);
 
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
@@ -96,6 +97,7 @@ private:
    luabind::object GetModuleList() const;
    JSONNode LuaToJsonImpl(luabind::object obj);
    void ProfileHook(lua_State *L, lua_Debug *ar);
+   void ProfileSampleHook(lua_State *L, lua_Debug *ar);
    void DumpFusedFrames(perfmon::FusedFrames& fusedFrames);
 
 private:
@@ -137,6 +139,7 @@ private:
    // CPU profiling
    bool                 enable_profile_cpu_;
    int                  _cpuProfileInstructionSamplingRate;
+   int                  _cpuProfileInstructionSamplingTime;
    bool                 _cpuProfilerRunning;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 

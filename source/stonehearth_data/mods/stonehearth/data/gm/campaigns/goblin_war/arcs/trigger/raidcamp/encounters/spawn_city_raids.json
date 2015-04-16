@@ -6,7 +6,7 @@
 
    "generator_info" :  {
       "delay" : "22h+4h",
-      "source_entity" : "npc_boss_entity",
+      "source_entity" : "goblin_raiding_camp_1.npc_boss_entity",
       "spawn_edge" : "city_raid"
    }
 }
