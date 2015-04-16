@@ -1,4 +1,7 @@
 {
+   "default" : {
+      "run" : "undead_walk"
+   },
    "stonehearth:carrying" : {
       "idle_breathe" : "carry_idle",
       "run" : "carry_walk"
@@ -15,7 +18,7 @@
       "run" : "undead_walk"
    },
    "stonehearth:combat" : {
-     "run" : "undead_walk" 
+      "run" : "undead_walk" 
    },
    "stonehearth:sitting_on_chair" : {
       "eat" : "sitting_on_chair_eat"
