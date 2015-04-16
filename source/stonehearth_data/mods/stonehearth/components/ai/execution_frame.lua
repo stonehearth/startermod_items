@@ -57,6 +57,8 @@ local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
+local SLOWSTART_TIMEOUTS = {250, 750}
+local SLOWSTART_MAX_UNITS = {4, INFINITE}
 
 -- only theee keys are allowed to be set.  all others are forbidden to 
 -- prevent actions from using ai.CURRENT as a private communication channel
@@ -126,6 +128,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._execution_units = {}
    self._execution_filters = {}
    self._saved_think_output = {}
+   self._slow_start_timers = {}
    self._think_progress_cb = nil
    self._state = STOPPED
    self._ai_component = entity:get_component('stonehearth:ai')
@@ -360,6 +363,35 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
+function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units)
+   -- Check top state to see if anybody (not idle!) is running, in which case bail.
+   -- Then, make sure we're in a thinkable state, too.
+   local top_state = self:get_top_state()
+   if not (top_state == 'thinking' or top_state == 'starting_thinking') or 
+      not (self._state == 'thinking' or self._state == 'starting_thinking') then
+      -- We might not have a logger, if we're dead....
+      if self._log then
+         self._log:spam('slow aborted')
+      end
+
+      -- Abort all our timers, just in case.
+      for _, timer in pairs(self._slow_start_timers) do
+         if timer then
+            timer:destroy()
+         end
+      end
+      return
+   end
+
+   self._log:spam('slow start think begins %s, %s, %s', units_start, units_start + (num_units - 1), #units)
+
+   for i = units_start,units_start + (num_units - 1) do
+      local u = units[i]
+      self._log:spam('slow start thinking on %s', u.unit:get_name())
+      u.unit:_start_thinking(local_args, u.state)
+   end
+end
+
 -- Returns true iff a child unit is active (and is different from the previously active unit)
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
@@ -391,13 +423,98 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    end
    
    -- see which units we can restart and clone the state for them
-   local rethinking_units = {}
+
+   -- First, see if we can find a unit that just ran.  There's a good chance it'll be able to
+   -- run again!
+   local rerun_unit
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
-         rethinking_units[unit] = self:_clone_entity_state('new speculation for unit')
+         if unit._did_run then
+            rerun_unit = unit
+            -- We do NOT want to break here.  It's possible (because of unwinding/interruptions)
+            -- that more than one unit has a 'did run' bit set, so we take this opportunity
+            -- to clear all our bits.  Honestly?  There might be other ways for more than one
+            -- EU of a given EF to have the did_run flag set....
+         end
+      end
+      unit._did_run = false
+   end
+
+   local rethinking_units = {}
+   if rerun_unit then
+      self._log:spam('adding rerun unit %s', rerun_unit:get_name())      
+      rethinking_units[rerun_unit] = self:_clone_entity_state('new speculation for unit')
+   else
+      self._log:spam('no rerun unit found')
+   end
+
+   -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
+   -- Anbody not rethinking right now gets added to the 'leftovers' :-)
+   local leftovers = {}
+   for _, unit in pairs(self._execution_units) do
+      if self:_is_strictly_better_than_active(unit) then
+         local new_state = self:_clone_entity_state('new speculation for unit')
+         if rerun_unit then
+            if rerun_unit:get_priority() < unit:get_priority() then
+               -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
+               -- we can easily starve important tasks from running.
+               self._log:spam('fast start unit %s', unit:get_name())
+               rethinking_units[unit] = new_state
+            elseif rerun_unit ~= unit then
+               table.insert(leftovers, { unit = unit, state = new_state })
+            end
+         else
+            -- No re-run units, so just enqueue.
+            rethinking_units[unit] = new_state
+         end
       end
    end
 
+   -- Sort the leftovers, first by priority, then by number of times run.  This will
+   -- ensure that higher-priority leftovers get to think first.
+   table.sort(leftovers, function(l, r)
+         if l.unit:get_priority() > r.unit:get_priority() then
+            return true
+         elseif l.unit:get_priority() < r.unit:get_priority() then
+            return false
+         end
+         return l.unit._num_runs > r.unit._num_runs
+      end)
+
+
+   -- Launch all our slow starts.  SLOWSTART_MAX_UNITS defines how many units per callback we should
+   -- process, while SLOWSTART_TIMEOUTS defines the wait times for each callback.
+   if #leftovers > 0 then
+      local local_args = self._args
+      local num_left = #leftovers
+
+      local i = 1
+      local units_start = 1
+      while num_left > 0 do
+         if self._slow_start_timers[i] then
+            self._slow_start_timers[i]:destroy()
+         end
+
+         local num_units_used = SLOWSTART_MAX_UNITS[i]
+         if num_units_used + units_start - 1 > #leftovers then
+            num_units_used = #leftovers - units_start + 1
+         end
+
+         self._log:spam('deferring %s units for %s ms', num_units_used, SLOWSTART_TIMEOUTS[i])
+
+         -- Sigh, don't bind to the variable outside the lexical body....
+         local local_units_start = units_start
+         self._slow_start_timers[i] = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
+               self:_do_slow_thinking(local_args, leftovers, local_units_start, num_units_used)
+            end)
+
+         num_left = num_left - num_units_used
+         units_start = units_start + num_units_used
+         i = i + 1
+      end
+   end
+
+   -- Continue to process our currently rethinking units.
    local entity_location
    if self._log:is_enabled(radiant.log.DETAIL) then
       entity_location = radiant.entities.get_world_grid_location(self._entity)
@@ -413,15 +530,17 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       unit:_start_thinking(self._args, entity_state)
 
       -- if units bail or abort, the current pcall should have been interrupted.
-      -- verify that this is so
-      assert(self._state == current_state, string.format('state changed in _restart_thinking %s -> %s', current_state, self._state))
+      -- verify that this is so.  The only valid change should be to a ready state.
+
+      if self._state ~= current_state then
+         assert(self._state == READY, string.format('state changed in _restart_thinking %s -> %s', current_state, self._state))
+      end
    end
 
    if self._active_unit ~= current_active_unit then
       self._log:spam('active unit changed from %s to %s in _restart_thinking.  skipping election...',
                      current_active_unit and current_active_unit:get_name() or '-none-',
                      self._active_unit and self._active_unit:get_name() or '-none-')
-      assert(self._state == 'running')
       return false
    end
    
@@ -1415,6 +1534,10 @@ end
 
 function ExecutionFrame:get_state()
    return self._state
+end
+
+function ExecutionFrame:get_top_state()
+   return self._ai_component:get_current_exec_frame_state()
 end
 
 function ExecutionFrame:_set_state(state)

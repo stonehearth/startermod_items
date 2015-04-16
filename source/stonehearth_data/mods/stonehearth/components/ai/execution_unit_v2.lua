@@ -47,6 +47,8 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._action_index = action_index
    self._execution_frames = {}
    self._think_output_types = self._action.think_output or self._action.args
+   self._did_run = false
+   self._num_runs = 0
      
    self._ai_interface = { ___execution_unit = self }   
    local chain_function = function (fn)
