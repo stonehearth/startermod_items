@@ -19,6 +19,16 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    blueprint_components: {
       'unit_info': {},
       'stonehearth:floor' : {},
+      'stonehearth:wall' : {
+         'column_a' : {
+            'stonehearth:column' : {}      
+         },
+         'column_b' : {
+            'stonehearth:column' : {}      
+         },
+      },
+      'stonehearth:column' : {},
+      'stonehearth:roof' : {},
       'stonehearth:construction_data' : {},
       'stonehearth:construction_progress' : {
          'building_entity' : {
@@ -182,7 +192,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       var popTool = function() {
          self._removeTool(stackDepth);
          if (self._lastTool()[1] == null) {
-            self.$('.toolButton').removeClass('active');
+            self._updateImageMap('buildPalette', null);
          }
       }
 
@@ -234,8 +244,12 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    },
 
    _updateImageMap: function(palette, toolId) {
+      var background = 'none';
+      if (toolId) {
+         background = 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)';
+      }
       this.$('#' + palette + ' .selectionDisplay').css({
-            'background-image' : 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)'
+            'background-image' : background
          });
    },
 
@@ -442,6 +456,9 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             if (tool.handlesType && tool.handlesType(type)) {
                self.$('.tabPage').hide();
                self.$('#' + tool.toolId).show();
+               if (tool.copyMaterials) {
+                  tool.copyMaterials(blueprint_entity)
+               }
                self.showEditor();
             }
          });
