@@ -322,131 +322,156 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
    local up = Point3.unit_y
    local down = -Point3.unit_y
    local one = Point3.one
-   local world_to_local_translation = -zone_location
    local working_region, zone_reserved_region = self:_get_working_region(zone_cube, zone_location)
    local working_bounds = working_region:get_bounds()
-   local unsupported_blocks = {}
+   local unsupported_region = Region3()
 
-   local add_block = function(point)
-         local block = Cube3(point, point + one)
-         block:translate(world_to_local_translation)
-         destination_region:add_cube(block)
-      end
-
-   local try_add_block = function(point)
-         if face_is_exposed(point, down) and face_is_exposed(point, up) then
-            local num_exposed_sides = count_open_faces_for_block(point, SIDE_DIRECTIONS, 3)
-            local block_info = { num_exposed_sides = num_exposed_sides, point = point }
-            table.insert(unsupported_blocks, block_info)
-         else
-            add_block(point)
-         end
-      end
-
-   self:_add_top_facing_blocks(working_region, working_bounds, try_add_block)
-   self:_add_side_and_bottom_blocks(working_region, working_bounds, try_add_block)
-
-   self:_add_unsupported_blocks(unsupported_blocks, add_block)
+   self:_add_top_facing_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
+   self:_add_side_and_bottom_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
+   self:_add_unsupported_blocks(destination_region, zone_location, unsupported_region)
 
    if destination_region:empty() then
       -- fallback condition
-      log:detail('adding all exposed faces to destination')
-      self:_add_all_exposed_faces(working_region, add_block)
+      log:detail('adding all exposed blocks to destination')
+      self:_add_all_exposed_blocks(destination_region, zone_location, working_region)
    end
 
    if destination_region:empty() then
       -- fallback condition
       log:detail('adding all blocks to destination')
-      working_region:translate(world_to_local_translation)
+      working_region:translate(-zone_location)
       destination_region:add_region(working_region)
       working_region = nil -- don't reuse, not in world coordinates anymore
    end
 
    -- add the reserved region back, since we excluded it from the working set analysis
-   for point in zone_reserved_region:each_point() do
-      -- point may have been mined, but not yet unreserved
-      if radiant.terrain.is_terrain(point) then
-         add_block(point)
-      end
-   end
+   -- point may have been mined, but not yet unreserved, so check against the terrain
+   zone_reserved_region = radiant.terrain.intersect_region(zone_reserved_region)
+   zone_reserved_region:translate(-zone_location)
+   destination_region:add_region(zone_reserved_region)
 end
 
-function MiningZoneComponent:_add_top_facing_blocks(working_region, working_bounds, add_block_fn)
+function MiningZoneComponent:_add_top_facing_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
    local up = Point3.unit_y
-   
-   local upper_bound_points = Region3()
-   local other_points = Region3()
+   local top_blocks = Region3()
+   local other_blocks = Region3()
 
    for cube in working_region:each_cube() do
       if cube.max.y >= working_bounds.max.y - MAX_DESTINATION_DELTA_Y then
          local top_face = csg_lib.get_face(cube, up)
 
          if top_face.max.y == working_bounds.max.y then
-            for point in cube:each_point() do
-               upper_bound_points:add_point(point + up)
-            end
+            top_blocks:add_unique_cube(top_face)
          else
-            for point in cube:each_point() do
-               other_points:add_point(point + up)
-            end
+            other_blocks:add_unique_cube(top_face)
          end
       end
    end
 
-   local res = _physics:clip_region(upper_bound_points, _radiant.physics.Physics.CLIP_TERRAIN)
-   for point in res:each_point() do
-      add_block_fn(point - up)
-   end
+   -- Top blocks
+   -- This skips the check that a block must be level with its neighbors before being mined,
+   -- because all the blocks in this set are already on the top of the mining region.
+   -- Roads and floors will both take this optimization.
+   local destination_blocks, unsupported_blocks = self:_derive_destination_blocks(top_blocks)
+   destination_blocks:translate(-zone_location)
+   destination_region:add_region(destination_blocks)
+   unsupported_region:add_region(unsupported_blocks)
 
-   res = _physics:clip_region(other_points, _radiant.physics.Physics.CLIP_TERRAIN)
-   for point in res:each_point() do
-      local p = point - up
-      if not has_higher_neighbor(p, 1) then
-         add_block_fn(p)
-      end
-   end
+   -- Other blocks
+   -- The custom clip region makes sure that we can't dig down on a block until all its neighbors are level
+   -- with the block. Make sure that terrain_region is clipped by the working bounds, as we don't want a 
+   -- terrain block outside any of the mining regions to prevent a block from being mined because it wasn't
+   -- level with the terrain.
+   local terrain_region = radiant.terrain.intersect_cube(working_bounds)
+   terrain_region:set_tag(0)
+   local custom_clip_region = terrain_region:inflated(Point3(1, 0, 1))
+   destination_blocks, unsupported_blocks = self:_derive_destination_blocks(other_blocks, custom_clip_region)
+   destination_blocks:translate(-zone_location)
+   destination_region:add_region(destination_blocks)
+   unsupported_region:add_region(unsupported_blocks)
 end
 
-function MiningZoneComponent:_add_side_and_bottom_blocks(working_region, working_bounds, add_block_fn)
-   for _, normal in ipairs(NON_TOP_DIRECTIONS) do
-      local face_region = Region3(csg_lib.get_face(working_bounds, normal))
+function MiningZoneComponent:_add_side_and_bottom_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
+   local up = Point3.unit_y
+   local down = -up
+   local candidate_blocks = Region3()
+
+   for _, direction in ipairs(NON_TOP_DIRECTIONS) do
+      local face_region = Region3(csg_lib.get_face(working_bounds, direction))
       local face_blocks = face_region:intersect_region(working_region)
-      face_blocks:translate(normal)
-      local res = _physics:clip_region(face_blocks, _radiant.physics.Physics.CLIP_TERRAIN)
-      res:translate(-normal)
-      for point in res:each_point() do
-         add_block_fn(point)
-      end
-      face_blocks:empty()
+      face_blocks:translate(direction)
+      face_blocks = radiant.terrain.clip_region(face_blocks)
+      face_blocks:translate(-direction)
+      candidate_blocks:add_region(face_blocks)
    end
+
+   local destination_blocks, unsupported_blocks = self:_derive_destination_blocks(candidate_blocks)
+   destination_blocks:translate(-zone_location)
+   destination_region:add_region(destination_blocks)
+   unsupported_region:add_region(unsupported_blocks)
 end
 
-function MiningZoneComponent:_add_unsupported_blocks(unsupported_blocks, add_block_fn)
-   if not next(unsupported_blocks) then
+function MiningZoneComponent:_derive_destination_blocks(candidate_blocks, custom_clip_region)
+   local up = Point3.unit_y
+   local down = -up
+   local destination_blocks
+
+   -- project up to see if the top face is exposed
+   local projected_candidates = candidate_blocks:translated(up)
+   if custom_clip_region then
+      projected_candidates:subtract_region(custom_clip_region)
+      destination_blocks = projected_candidates
+   else
+      destination_blocks = radiant.terrain.clip_region(projected_candidates)
+   end
+   destination_blocks:translate(down)
+
+   -- project down to see if the bottom face is exposed
+   local unsupported_blocks = radiant.terrain.clip_region(destination_blocks:translated(down))
+   unsupported_blocks:translate(up)
+
+   destination_blocks:subtract_region(unsupported_blocks)
+
+   return destination_blocks, unsupported_blocks
+end
+
+function MiningZoneComponent:_add_unsupported_blocks(destination_region, zone_location, unsupported_region)
+   if unsupported_region:empty() then
       return
    end
 
-   local compare_block = function(a, b)
-      return a.num_exposed_sides > b.num_exposed_sides
+   -- count the number of exposed faces for each block
+   local block_data = {}
+   for point in unsupported_region:each_point() do
+      local num_exposed_faces = count_open_faces_for_block(point, SIDE_DIRECTIONS, 3)
+      local entry = { num_exposed_faces = num_exposed_faces, point = point }
+      table.insert(block_data, entry)
    end
 
-   table.sort(unsupported_blocks, compare_block)
-   local cutoff = math.min(unsupported_blocks[1].num_exposed_sides, 3)
+   local compare_block = function(a, b)
+      return a.num_exposed_faces > b.num_exposed_faces
+   end
 
-   for _, block_info in ipairs(unsupported_blocks) do
-      if block_info.num_exposed_sides >= cutoff then
-         add_block_fn(block_info.point)
+   -- prioritize blocks by corner, then edge, then remaining blocks
+   table.sort(block_data, compare_block)
+   local cutoff = math.min(block_data[1].num_exposed_faces, 3)
+
+   for _, entry in ipairs(block_data) do
+      if entry.num_exposed_faces >= cutoff then
+         destination_region:add_point(entry.point - zone_location)
       end
    end
 end
 
-function MiningZoneComponent:_add_all_exposed_faces(working_region, add_block_fn)
+function MiningZoneComponent:_add_all_exposed_blocks(destination_region, zone_location, working_region)
    for cube in working_region:each_cube() do
-      csg_lib.each_face_block_in_cube(cube, function(point)
-            if has_n_plus_exposed_faces(point, DIRECTIONS, 1) then
-               add_block_fn(point)
-            end
-         end)
+      for _, direction in ipairs(DIRECTIONS) do
+         local face_region = Region3(csg_lib.get_face(cube, direction))
+         face_region:translate(direction)
+         radiant.terrain.clip_region(face_region)
+         face_region:translate(-direction - zone_location)
+         destination_region:add_region(face_region)
+      end
    end
 end
 

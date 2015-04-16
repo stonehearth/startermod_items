@@ -405,6 +405,15 @@ function Terrain.intersect_region(region)
    return Terrain._get_terrain_tiles():intersect_region(region)
 end
 
+function Terrain.clip_cube(cube)
+   return Terrain.clip_region(Region3(cube))
+end
+
+function Terrain.clip_region(region)
+   -- faster than intersecting and subtracting
+   return _physics:clip_region(region, _radiant.physics.Physics.CLIP_TERRAIN)
+end
+
 function Terrain.contains_point(point)
    return Terrain._get_terrain_tiles():contains_point(point)
 end
