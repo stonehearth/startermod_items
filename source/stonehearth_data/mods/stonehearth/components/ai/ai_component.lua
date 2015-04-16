@@ -326,20 +326,6 @@ function AIComponent:stop()
    end
 end
 
-function AIComponent:get_current_exec_frame_state()
-   if not self._execution_frame then
-      return nil
-   end
-   local active_unit = self._execution_frame._active_unit
-   if active_unit then
-      self._log:error('%s', active_unit:get_action().name)
-   end
-   if not active_unit or active_unit:get_action().name == 'idle top' then
-      return 'thinking'  -- guh?
-   end
-   return active_unit:get_state()
-end
-
 function AIComponent:start()
    assert(not self._dead)
    assert(not self._thread)

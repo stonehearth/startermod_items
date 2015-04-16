@@ -131,6 +131,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._slow_start_timers = {}
    self._think_progress_cb = nil
    self._state = STOPPED
+   self._rerun_unit = nil
    self._ai_component = entity:get_component('stonehearth:ai')
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
@@ -155,6 +156,22 @@ end
 
 function ExecutionFrame:get_id()
    return self._id
+end
+
+function ExecutionFrame:get_top_state()
+   local runstack = self._thread:get_thread_data('stonehearth:run_stack')
+   local bottom_frame = runstack[1]
+   if bottom_frame then
+      local active_unit = bottom_frame._active_unit
+      if active_unit then
+         local action = active_unit:get_action()
+         if action.name ~= 'idle top' then
+            return active_unit:get_state()
+         end
+      end
+   end
+   -- if any of that up there failed to return an expected result, assume we're thinking
+   return THINKING
 end
 
 function ExecutionFrame:_unknown_transition(msg)
@@ -380,6 +397,7 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
             timer:destroy()
          end
       end
+      self._slow_start_timers = {}
       return
    end
 
@@ -424,44 +442,28 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    
    -- see which units we can restart and clone the state for them
 
-   -- First, see if we can find a unit that just ran.  There's a good chance it'll be able to
-   -- run again!
-   local rerun_unit
-   for _, unit in pairs(self._execution_units) do
-      if self:_is_strictly_better_than_active(unit) then
-         if unit._did_run then
-            rerun_unit = unit
-            -- We do NOT want to break here.  It's possible (because of unwinding/interruptions)
-            -- that more than one unit has a 'did run' bit set, so we take this opportunity
-            -- to clear all our bits.  Honestly?  There might be other ways for more than one
-            -- EU of a given EF to have the did_run flag set....
-         end
-      end
-      unit._did_run = false
-   end
-
    local rethinking_units = {}
-   if rerun_unit then
-      self._log:spam('adding rerun unit %s', rerun_unit:get_name())      
-      rethinking_units[rerun_unit] = self:_clone_entity_state('new speculation for unit')
+   if self._rerun_unit and self._rerun_unit:get_state() ~= DEAD and self:_is_strictly_better_than_active(self._rerun_unit) then
+      self._log:spam('adding rerun unit %s', self._rerun_unit:get_name())      
+      rethinking_units[self._rerun_unit] = self:_clone_entity_state('new speculation for unit')
    else
       self._log:spam('no rerun unit found')
    end
 
    -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
-   -- Anbody not rethinking right now gets added to the 'leftovers' :-)
-   local leftovers = {}
+   -- Anbody not rethinking right now gets added to the slow_rethink_units.
+   local slow_rethink_units = {}
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
          local new_state = self:_clone_entity_state('new speculation for unit')
-         if rerun_unit then
-            if rerun_unit:get_priority() < unit:get_priority() then
+         if self._rerun_unit then
+            if self._rerun_unit:get_priority() < unit:get_priority() then
                -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
                -- we can easily starve important tasks from running.
                self._log:spam('fast start unit %s', unit:get_name())
                rethinking_units[unit] = new_state
-            elseif rerun_unit ~= unit then
-               table.insert(leftovers, { unit = unit, state = new_state })
+            elseif self._rerun_unit ~= unit then
+               table.insert(slow_rethink_units, { unit = unit, state = new_state })
             end
          else
             -- No re-run units, so just enqueue.
@@ -470,9 +472,9 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       end
    end
 
-   -- Sort the leftovers, first by priority, then by number of times run.  This will
-   -- ensure that higher-priority leftovers get to think first.
-   table.sort(leftovers, function(l, r)
+   -- Sort the slow_rethink_units, first by priority, then by number of times run.  This will
+   -- ensure that higher-priority slow_rethink_units get to think first.
+   table.sort(slow_rethink_units, function(l, r)
          if l.unit:get_priority() > r.unit:get_priority() then
             return true
          elseif l.unit:get_priority() < r.unit:get_priority() then
@@ -484,20 +486,21 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
    -- Launch all our slow starts.  SLOWSTART_MAX_UNITS defines how many units per callback we should
    -- process, while SLOWSTART_TIMEOUTS defines the wait times for each callback.
-   if #leftovers > 0 then
+   if #slow_rethink_units > 0 then
       local local_args = self._args
-      local num_left = #leftovers
+      local num_left = #slow_rethink_units
 
       local i = 1
       local units_start = 1
       while num_left > 0 do
          if self._slow_start_timers[i] then
             self._slow_start_timers[i]:destroy()
+            self._slow_start_timers[i] = nil
          end
 
          local num_units_used = SLOWSTART_MAX_UNITS[i]
-         if num_units_used + units_start - 1 > #leftovers then
-            num_units_used = #leftovers - units_start + 1
+         if num_units_used + units_start - 1 > #slow_rethink_units then
+            num_units_used = #slow_rethink_units - units_start + 1
          end
 
          self._log:spam('deferring %s units for %s ms', num_units_used, SLOWSTART_TIMEOUTS[i])
@@ -505,7 +508,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
          -- Sigh, don't bind to the variable outside the lexical body....
          local local_units_start = units_start
          self._slow_start_timers[i] = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
-               self:_do_slow_thinking(local_args, leftovers, local_units_start, num_units_used)
+               self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used)
             end)
 
          num_left = num_left - num_units_used
@@ -1014,6 +1017,7 @@ function ExecutionFrame:_run_from_started()
       end
    until finished
 
+   self._rerun_unit = self._active_unit
    self._active_unit = nil
    self:_set_state(FINISHED)
 end
@@ -1534,10 +1538,6 @@ end
 
 function ExecutionFrame:get_state()
    return self._state
-end
-
-function ExecutionFrame:get_top_state()
-   return self._ai_component:get_current_exec_frame_state()
 end
 
 function ExecutionFrame:_set_state(state)

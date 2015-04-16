@@ -47,7 +47,6 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._action_index = action_index
    self._execution_frames = {}
    self._think_output_types = self._action.think_output or self._action.args
-   self._did_run = false
    self._num_runs = 0
      
    self._ai_interface = { ___execution_unit = self }   
@@ -287,7 +286,6 @@ function ExecutionUnitV2:_run()
    end
 
    self:_update_stats(0, 1)
-   self._did_run = true
    self._num_runs = self._num_runs + 1
    if self._state == 'ready' then
       return self:_run_from_ready()
