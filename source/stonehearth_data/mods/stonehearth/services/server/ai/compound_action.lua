@@ -13,6 +13,7 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    self._action = action_ctor(entity, injecting_entity)
    self.name = self._action.name
    self.does = self._action.does
+   self.realtime = self._action.realtime or false
    self.priority = self._action.priority
    self.weight = self._action.weight
    self.name = self._action.name

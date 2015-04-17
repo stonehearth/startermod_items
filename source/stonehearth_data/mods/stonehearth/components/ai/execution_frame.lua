@@ -457,12 +457,14 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       if self:_is_strictly_better_than_active(unit) then
          local new_state = self:_clone_entity_state('new speculation for unit')
          if self._rerun_unit then
-            if self._rerun_unit:get_priority() < unit:get_priority() then
+            if self._rerun_unit ~= unit and ((self._rerun_unit:get_priority() < unit:get_priority()) or unit:get_action().realtime) then
                -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
-               -- we can easily starve important tasks from running.
+               -- we can easily starve important tasks from running.  Likewise, realtime tasks must be allowed to
+               -- think, otherwise reacting to real-time events (e.g. combat) becomes borked.
                self._log:spam('fast start unit %s', unit:get_name())
                rethinking_units[unit] = new_state
             elseif self._rerun_unit ~= unit then
+               self._log:spam('slow start unit %s', unit:get_name())
                table.insert(slow_rethink_units, { unit = unit, state = new_state })
             end
          else
