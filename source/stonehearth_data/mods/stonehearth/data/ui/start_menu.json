@@ -4,16 +4,16 @@
       "description" : "General information about your town, how your hearthlings are feeling, and the wealth you've accumulated!",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/town.png",
-      "hotkey" : "i",
+      "hotkey" : "t",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:banner_grab"
    },   
    "citizen_manager" : {
-      "name" : "Hearthlings",
-      "description" : "Manage your settlers and promote them to new jobs.",
+      "name" : "Citizens",
+      "description" : "Manage your hearthlings and promote them to new jobs.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/citizens.png",
-      "hotkey" : "5",
+      "hotkey" : "c",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
@@ -23,7 +23,6 @@
       "description" : "Harvest resources or mine into the earth.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/harvest.png",
-      "hotkey" : "1",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup",
       "items" : {
@@ -56,14 +55,6 @@
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/clear.png",
             "sticky" : true
-         },
-         "mining_ui" : {
-            "name" : "Mine",
-            "description" : "Mine out tunnels and caves",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
-            "sticky" : true,
-            "hotkey" : "m"
          },
          "mine_block" : {
             "name" : "Mine Block",
@@ -120,7 +111,8 @@
             "required_job_text" : "Requires a shepherd",            
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_pasture.png",
-            "sticky" : true
+            "sticky" : true,
+            "hotkey" : "shift+p"
          }
       }
    },      
@@ -135,7 +127,7 @@
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
          "building_templates" : {
-            "name" : "Build from a Template",
+            "name" : "Place Building",
             "description" : "Choose to construct a building from a pre-designed template",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/templates.png",
@@ -143,15 +135,15 @@
             "hotkey" : "b"
          },
          "custom_building" : {
-            "name" : "Design a Custom Building",
+            "name" : "Design Building",
             "description" : "Design your own one-of-a-kind building",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
             "sticky" : true,
-            "hotkey" : "b"
+            "hotkey" : "shift+b"
          },
          "place_item" : {
-            "name" : "Place an Item",
+            "name" : "Place Item",
             "description" : "Place items like furniture and decoration",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/place_item.png",
@@ -159,7 +151,7 @@
             "hotkey" : "p"
          },
          "build_ladder" : {
-            "name" : "Construct a Ladder",
+            "name" : "Construct Ladder",
             "description" : "Build a ladder to access hard to reach places",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/build_ladder.png",
@@ -183,7 +175,7 @@
             "description" : "Organize your troops into groups",
             "class" : "dock",
             "icon" : "/stonehearth/ui/game/start_menu/images/manage_parties.png",
-            "hotkey" : "",
+            "hotkey" : "v",
             "game_mode" : "normal",
             "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
             "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
@@ -202,7 +194,7 @@
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/loot.png",
             "sticky" : true,
-            "hotkey" : "g"
+            "hotkey" : "shift+l"
          }         
       }
    },   
