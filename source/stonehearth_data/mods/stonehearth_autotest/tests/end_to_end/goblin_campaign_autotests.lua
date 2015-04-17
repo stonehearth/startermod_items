@@ -16,7 +16,7 @@ function goblin_campaign_autotests.wolf_escape_test(autotest)
 
 
    local banner = radiant.entities.create_entity('stonehearth:camp_standard', { owner = 'player_1' })
-   radiant.terrain.place_entity(banner, Point3(-20, 1, -20), { force_iconic = false })
+   radiant.terrain.place_entity(banner, Point3(-40, 1, -40), { force_iconic = false })
    stonehearth.town:get_town('player_1')
                      :set_banner(banner)
 
