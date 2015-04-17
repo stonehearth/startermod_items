@@ -158,7 +158,14 @@ function ExecutionFrame:get_id()
    return self._id
 end
 
-function ExecutionFrame:get_top_state()
+function ExecutionFrame:_is_top_idle()
+   if self._active_unit then
+      return self._active_unit:get_action().name == 'idle top'
+   end
+   return false
+end
+
+function ExecutionFrame:get_top_idle_state()
    local runstack = self._thread:get_thread_data('stonehearth:run_stack')
    local bottom_frame = runstack[1]
    if bottom_frame then
@@ -388,14 +395,14 @@ function ExecutionFrame:_destroy_slow_timers()
 end
 
 function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units)
-   -- Check top state to see if anybody (not idle!) is running, in which case bail.
-   -- Then, make sure we're in a thinkable state, too.
-   local top_state = self:get_top_state()
-   if not (top_state == 'thinking' or top_state == 'starting_thinking') or 
-      not (self._state == 'thinking' or self._state == 'starting_thinking') then
+   -- If top is running (something other than idle), or we're not top and we're running, then don't bother
+   -- thinking.
+   local top_state = self:get_top_idle_state()
+   if not (top_state == 'thinking' or top_state == 'starting_thinking') or
+      (not self:_is_top_idle() and not (self._state == 'thinking' or self._state == 'starting_thinking')) then
       -- We might not have a logger, if we're dead....
       if self._log then
-         self._log:spam('slow aborted')
+         self._log:spam('slow aborted (%s, %s)', top_state, self._state)
       end
 
       -- Abort all our timers, just in case.
