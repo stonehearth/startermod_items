@@ -4,6 +4,7 @@
 
    "encounters" : {
       "undead at night" : "file(encounters/nighttime_undead.json)",
+      "generate nightly undead" : "file(encounters/generate_nightly_undead.json)",
       "undead raid" : "file(encounters/undead_raid.json)"
    }
 }

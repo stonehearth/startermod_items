@@ -34,7 +34,7 @@ function HydrologyService:initialize()
    else
    end
 
-   if radiant.util.get_config('enable_water', false) then
+   if radiant.util.get_config('enable_water', true) then
       if self._sv.water_tick then
          self._sv.water_tick:bind(function()
                self:_on_tick()

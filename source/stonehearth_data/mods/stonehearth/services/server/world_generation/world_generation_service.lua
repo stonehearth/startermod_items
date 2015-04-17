@@ -99,7 +99,7 @@ function WorldGenerationService:set_blueprint(blueprint)
          full_feature_map = Array2D(full_elevation_map.width, full_elevation_map.height)
 
          -- determine which features will be placed in which cells
-         if radiant.util.get_config('enable_water', false) then
+         if radiant.util.get_config('enable_water', true) then
             landscaper:mark_water_bodies(full_elevation_map, full_feature_map)
          end
          landscaper:mark_trees(full_elevation_map, full_feature_map)

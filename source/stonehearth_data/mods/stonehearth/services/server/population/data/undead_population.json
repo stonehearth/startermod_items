@@ -28,7 +28,7 @@
             ]
          },
          "female" : {
-            "uri" : "stonehearth:monsters:undead:skeleton_female",
+            "uri" : ["stonehearth:monsters:undead:skeleton_female"],
             "given_names" : [
                "Kate",
                "Amy",
@@ -55,7 +55,7 @@
       },
       "zombie" : {
          "male" : {
-            "uri" : "stonehearth:monsters:undead:zombie",
+            "uri" : ["stonehearth:monsters:undead:zombie"],
             "given_names" : [
                "Moulder",
                "Ed",
@@ -71,7 +71,7 @@
             ]
          },
          "female" : {
-            "uri" : "stonehearth:monsters:undead:zombie_female",
+            "uri" : ["stonehearth:monsters:undead:zombie_female"],
             "given_names" : [
                "Twine",
                "Losse",
