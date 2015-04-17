@@ -380,6 +380,13 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
+function ExecutionFrame:_destroy_slow_timers()
+   for _, timer in pairs(self._slow_start_timers) do
+      timer:destroy()
+   end
+   self._slow_start_timers = {}
+end
+
 function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units)
    -- Check top state to see if anybody (not idle!) is running, in which case bail.
    -- Then, make sure we're in a thinkable state, too.
@@ -392,12 +399,7 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
       end
 
       -- Abort all our timers, just in case.
-      for _, timer in pairs(self._slow_start_timers) do
-         if timer then
-            timer:destroy()
-         end
-      end
-      self._slow_start_timers = {}
+      self:_destroy_slow_timers()
       return
    end
 
@@ -488,6 +490,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
    -- Launch all our slow starts.  SLOWSTART_MAX_UNITS defines how many units per callback we should
    -- process, while SLOWSTART_TIMEOUTS defines the wait times for each callback.
+   self:_destroy_slow_timers()
    if #slow_rethink_units > 0 then
       local local_args = self._args
       local num_left = #slow_rethink_units
@@ -495,11 +498,6 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       local i = 1
       local units_start = 1
       while num_left > 0 do
-         if self._slow_start_timers[i] then
-            self._slow_start_timers[i]:destroy()
-            self._slow_start_timers[i] = nil
-         end
-
          local num_units_used = SLOWSTART_MAX_UNITS[i]
          if num_units_used + units_start - 1 > #slow_rethink_units then
             num_units_used = #slow_rethink_units - units_start + 1
@@ -509,9 +507,10 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
          -- Sigh, don't bind to the variable outside the lexical body....
          local local_units_start = units_start
-         self._slow_start_timers[i] = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
+         local new_timer = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
                self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used)
             end)
+         table.insert(self._slow_start_timers, new_timer)
 
          num_left = num_left - num_units_used
          units_start = units_start + num_units_used
