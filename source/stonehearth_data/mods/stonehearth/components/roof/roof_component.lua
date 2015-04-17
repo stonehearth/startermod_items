@@ -67,13 +67,13 @@ function Roof:cover_region2(brush, region2)
    checks('self', 'string', 'Region2')
 
    self._sv.brush = brush
-   self._sv.nine_grid_region = region2
+   self._sv._nine_grid_region = region2
    self.__saved_variables:mark_changed()
 end
 
 function Roof:create_voxel_brush()
    local brush = self._sv.brush
-   local region = self._sv.nine_grid_region
+   local region = self._sv._nine_grid_region
    local slope = self._sv.nine_grid_slope
    local max_height = self._sv.nine_grid_max_height
    local y_offset = self._sv.nine_grid_y_offset
@@ -139,7 +139,7 @@ function Roof:apply_nine_grid_options(options)
       for name, val in pairs(options) do
          if NINE_GRID_OPTION_TYPES[name] == 'number' then
             self._sv[name] = tonumber(val)
-         else
+         elseif NINE_GRID_OPTION_TYPES[name] ~= nil then
             self._sv[name] = val
          end
       end
@@ -151,7 +151,7 @@ end
 function Roof:save_to_template()
    local result = {
       brush = self._sv.brush,
-      nine_grid_region = self._sv.nine_grid_region,
+      nine_grid_region = self._sv._nine_grid_region,
       nine_grid_slope = self._sv.nine_grid_slope,
       nine_grid_gradiant = self._sv.nine_grid_gradiant,
       nine_grid_max_height = self._sv.nine_grid_max_height,      
@@ -164,16 +164,16 @@ function Roof:load_from_template(data, options, entity_map)
    self._sv.nine_grid_slope = data.nine_grid_slope
    self._sv.nine_grid_gradiant = data.nine_grid_gradiant
    self._sv.nine_grid_max_height = data.nine_grid_max_height
-   self._sv.nine_grid_region = Region2()
-   self._sv.nine_grid_region:load(data.nine_grid_region)
+   self._sv._nine_grid_region = Region2()
+   self._sv._nine_grid_region:load(data.nine_grid_region)
    self:apply_nine_grid_options(data)
 end
 
 function Roof:rotate_structure(degrees)
    build_util.rotate_structure(self._entity, degrees)
 
-   if self._sv.nine_grid_region then
-      local cursor = self._sv.nine_grid_region
+   if self._sv._nine_grid_region then
+      local cursor = self._sv._nine_grid_region
       local origin = Point2(0.5, 0.5)
       cursor:translate(-origin)
       cursor:rotate(degrees)
@@ -196,7 +196,7 @@ function Roof:clone_from(entity)
       local into = self._sv
       local from = entity:get_component('stonehearth:construction_data')._sv
 
-      into.nine_grid_region = from.nine_grid_region and Region2(from.nine_grid_region) or nil
+      into._nine_grid_region = from._nine_grid_region and Region2(from._nine_grid_region) or nil
       into.nine_grid_slope = from.nine_grid_slope
       into.nine_grid_gradiant = from.nine_grid_gradiant
       into.nine_grid_max_height = from.nine_grid_max_height

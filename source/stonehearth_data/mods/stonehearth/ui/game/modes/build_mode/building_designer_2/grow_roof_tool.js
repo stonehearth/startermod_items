@@ -29,9 +29,14 @@ var GrowRoofTool;
          var self = this;
          var brushes = self.buildingDesigner.getBuildBrushes();
 
-         var click = function(brush) {
-            // Re/activate the floor tool with the new material.
-            self.buildingDesigner.activateTool(self.buildTool);
+         var click = function(brush) {            
+            var blueprint = self.buildingDesigner.getBlueprint();
+            if (blueprint) {
+               App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
+            } else {
+               // Re/activate the floor tool with the new material.
+               self.buildingDesigner.activateTool(self.buildTool);               
+            }            
          };
 
          var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
@@ -73,17 +78,6 @@ var GrowRoofTool;
                   }
                });
 
-               // shape buttons
-               tab.find('.brush').click(function() {
-                  var blueprint = self.buildingDesigner.getBlueprint();
-                  if (blueprint) {
-                     var brush = $(this).attr('brush');
-                     if (brush) {
-                        App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
-                     }
-                  }
-               });
-
                // roof slope buttons
                tab.find('.roofDiagramButton').click(function() {
                   // update the options for future roofs
@@ -108,6 +102,38 @@ var GrowRoofTool;
             });
       },
 
+      copyMaterials: function(blueprint) {
+         var self = this;
+         var roof = blueprint['stonehearth:roof'];
+         if (roof) {
+            if (roof.brush) {
+               self._materialHelper.selectBrush(roof.brush);
+            }
+            if (roof.nine_grid_gradiant) {
+               this.options.nine_grid_gradiant = roof.nine_grid_gradiant;
+            }
+            if (roof.nine_grid_max_height) {
+               this.options.nine_grid_max_height = roof.nine_grid_max_height;
+            }
+            if (roof.nine_grid_slope) {
+               this.options.nine_grid_slope = roof.nine_grid_slope;
+            }
+            self._updateControlState();
+            App.stonehearthClient.setGrowRoofOptions(self.options);
+            return;
+         }
+      },
+
+      _updateControlState: function() {
+         $('.roofDiagramButton').removeClass('active');
+         $.each(this.options.nine_grid_gradiant || [], function(_, dir) {
+            $('.roofDiagramButton[gradient="' + dir + '"]').addClass('active');
+         });
+
+         $('#inputMaxRoofHeight').val(this.options.nine_grid_max_height || 4);
+         $('#inputMaxRoofSlope').val(this.options.nine_grid_slope || 1);
+      },
+
       restoreState: function(state) {
          var self = this;
 
@@ -118,15 +144,7 @@ var GrowRoofTool;
             nine_grid_max_height: 4,
             nine_grid_slope: 1
          };
-         $('.roofDiagramButton').removeClass('active');
-         $.each(this.options.nine_grid_gradiant || [], function(_, dir) {
-            $('.roofDiagramButton[gradient="' + dir + '"]').addClass('active');
-         });
-
-         $('#inputMaxRoofHeight').val(this.options.nine_grid_max_height || 4);
-         $('#inputMaxRoofSlope').val(this.options.nine_grid_slope || 1);
-
-         App.stonehearthClient.setGrowRoofOptions(self.options);
+         self._updateControlState();
       }
    });
 })();
