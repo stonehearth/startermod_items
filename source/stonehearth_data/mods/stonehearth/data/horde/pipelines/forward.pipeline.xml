@@ -51,6 +51,10 @@
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
+      <Stage id="Emissive">
+         <DrawGeometry context="EMISSIVE" forceLodLevel="0"/>
+      </Stage>
+
       <Stage id="Selected_Fast">
          <DrawSelected context="SELECTED_FAST" />
       </Stage>

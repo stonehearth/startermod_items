@@ -133,6 +133,11 @@
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
+      <Stage id="Emissive">
+         <SwitchTarget target="Final" />
+         <DrawGeometry context="EMISSIVE" forceLodLevel="0"/>
+      </Stage>
+
       <!-- This is active iff composite is inactive. -->
       <Stage id="FSAA">
          <SwitchTarget target="EdgeTex" />
