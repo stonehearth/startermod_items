@@ -283,9 +283,8 @@ function Building:grow_local_box_to_roof(entity, local_box)
    local overhead = radiant.terrain.get_entities_in_cube(clipper, function(e)
          return build_util.get_building_for(e) == self._entity
       end)
-   
-   for _, entry in pairs(overhead) do
-      local roof = entry.entity
+
+   for _, roof in pairs(overhead) do
       local roof_region = roof:get_component('destination'):get_region():get()
 
       local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
