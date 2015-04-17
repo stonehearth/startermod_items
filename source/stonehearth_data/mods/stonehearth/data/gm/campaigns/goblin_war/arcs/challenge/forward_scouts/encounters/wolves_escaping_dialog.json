@@ -10,7 +10,7 @@
       "nodes" : {
          "msg1" : {
             "bulletin" : {
-               "title" : "The wolves explode joyfully of the cages",
+               "title" : "The wolves explode joyfully from the cages",
                "dialog_title" : "Escaping Wolves",
                "portrait" : "file(images/wolf.png)",
                "message" : "Yip! Yip! AWOOOOOO!!!!!!!",

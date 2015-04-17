@@ -95,26 +95,31 @@ end
 function Arc:_trigger_edge(edge_name, parent_node)
    self._log:info('triggering edge "%s"', edge_name)
 
-   local parent_ctx = parent_node:get_ctx()
-   local running_encounters = self._sv.running_encounters
-   local name, encounter = self._sv.encounters:elect_node(function(name, node)
-         local in_edge = node:get_in_edge()
-         if in_edge ~= edge_name then
-            self._log:debug('skipping encounter "%s" (in edge "%s" doesn\'t match)', name, in_edge)
-            return false
-         end
-         local unique = node:get_is_unique()
-         if unique and running_encounters[name] ~= nil then
-            self._log:debug('skipping encounter "%s" (already running)', name)
-            return false
-         end
-         if not node:can_start(parent_ctx) then
-            self._log:debug('skipping encounter "%s" (cannot start)', name)
-            return false
-         end
-         self._log:debug('found candidate encounter "%s"', name)
-         return true
-      end)
+   --Call debug hook, in case that has anything to say about what name/encuonter should be
+   local name, encounter = stonehearth.game_master:call_debug_hook('trigger_arc_edge', self, edge_name, parent_node)
+   
+      if not name then 
+      local parent_ctx = parent_node:get_ctx()
+      local running_encounters = self._sv.running_encounters
+      name, encounter = self._sv.encounters:elect_node(function(name, node)
+            local in_edge = node:get_in_edge()
+            if in_edge ~= edge_name then
+               self._log:debug('skipping encounter "%s" (in edge "%s" doesn\'t match)', name, in_edge)
+               return false
+            end
+            local unique = node:get_is_unique()
+            if unique and running_encounters[name] ~= nil then
+               self._log:debug('skipping encounter "%s" (already running)', name)
+               return false
+            end
+            if not node:can_start(parent_ctx) then
+               self._log:debug('skipping encounter "%s" (cannot start)', name)
+               return false
+            end
+            self._log:debug('found candidate encounter "%s"', name)
+            return true
+         end)
+   end
 
    if not encounter then
       self._log:info('could not find encounter for edge named "%s".  bailing.', edge_name)

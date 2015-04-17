@@ -19,6 +19,13 @@ end
 -- `filter_fn`
 --
 function NodeList:elect_node(filter_fn)
+   -- If we have a debug hook, call that and exit early
+   local node_name, node = stonehearth.game_master:call_debug_hook('elect_node', self._sv.name, self._sv.nodelist)
+   if node_name then
+      return node_name, node
+   end
+
+   --return to normal function
    local name = self:_run_election(filter_fn)
    if not name then
       return

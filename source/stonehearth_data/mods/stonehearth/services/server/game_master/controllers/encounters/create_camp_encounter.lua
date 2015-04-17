@@ -103,6 +103,9 @@ function CreateCamp:_create_camp(location)
    
    -- camp created!  move onto the next encounter in the arc.
    ctx.arc:trigger_next_encounter(ctx)   
+
+   -- Debug event! If someone is listening when the camp is created (autotests) let them know
+   radiant.events.trigger_async(self._sv.encounter_name, 'stonehearth:create_camp_complete', {}) 
 end
 
 function CreateCamp:_add_piece(piece, visible_rgn)
