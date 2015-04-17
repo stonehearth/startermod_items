@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 local build_util = require 'stonehearth.lib.build_util'
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
-local BRICK_SLAB = 'stonehearth:build:voxel_brushes:voxel:stone:brick_tiled'
+local BRICK_SLAB = 'stonehearth:build:brushes:pattern:brick_tiled'
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 local lrbt_cases = {}

@@ -692,16 +692,19 @@ end
 --    @param building - the building to pop the roof onto
 --    @param roof_brush - what kind of roof to make
 
-function BuildService:grow_roof_command(session, response, building, roof_brush, options)
+function BuildService:grow_roof_command(session, response, root_wall, roof_brush, roof_options)
    local roof
    local success = self:do_command('grow_roof', response, function()
-         roof = self:grow_roof(building, roof_brush, options)
+         roof = self:grow_roof(root_wall, roof_brush, roof_options)
       end)
 
    self:_resolve_and_select_blueprint(success, response, roof)
 end
 
-function BuildService:grow_roof(building, roof_brush, options)
+function BuildService:grow_roof(root_wall, roof_brush, roof_options)
+   local world_origin, region2 = build_util.calculate_roof_shape_around_walls(root_wall, roof_brush, roof_options)
+   local building = build_util.get_building_for(root_wall)
+   
    local structures = building:get_component('stonehearth:building')
                               :get_all_structures()
 
@@ -710,18 +713,10 @@ function BuildService:grow_roof(building, roof_brush, options)
       return
    end
 
-   -- compute the xz cross-section of the roof by growing the floor
-   -- region by 2 voxels in every direction
-   local region2 = building:get_component('stonehearth:building')
-                              :calculate_floor_region()
-                              :inflated(Point2(2, 2))
-
-   -- now make the roof!
-   local height = constants.STOREY_HEIGHT
-   local roof_location = Point3(0, height - 1, 0)
-   local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', roof_location, function(roof_entity)
+   local origin = world_origin - radiant.entities.get_world_grid_location(building)
+   local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', origin, function(roof_entity)
          roof_entity:add_component('stonehearth:roof')
-                        :apply_nine_grid_options(options)
+                        :apply_nine_grid_options(roof_options)
                         :cover_region2(roof_brush, region2)
       end)
 

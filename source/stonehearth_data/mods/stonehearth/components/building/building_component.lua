@@ -277,7 +277,14 @@ function Building:grow_local_box_to_roof(entity, local_box)
    local p0, p1 = local_box.min, local_box.max
 
    local shape = Region3(local_box)
-   for _, entry in pairs(self._sv.structures[ROOF]) do
+   -- iterate over all the entities that are "above" us
+   local clipper = Cube3(local_box.min, local_box.max)
+   clipper.max.y = INFINITE
+   local overhead = radiant.terrain.get_entities_in_cube(clipper, function(e)
+         return build_util.get_building_for(e) == self._entity
+      end)
+   
+   for _, entry in pairs(overhead) do
       local roof = entry.entity
       local roof_region = roof:get_component('destination'):get_region():get()
 

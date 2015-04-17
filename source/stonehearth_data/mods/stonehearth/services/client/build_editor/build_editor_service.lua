@@ -3,6 +3,7 @@ local build_util = require 'lib.build_util'
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
 local GrowWallsEditor = require 'services.client.build_editor.grow_walls_editor'
+local GrowRoofEditor = require 'services.client.build_editor.grow_roof_editor'
 local RoadEditor = require 'services.client.build_editor.road_editor'
 local StructureEraser = require 'services.client.build_editor.structure_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
@@ -137,7 +138,10 @@ function BuildEditorService:set_grow_roof_options(session, response, options)
    return true
 end
 
-function BuildEditorService:grow_roof(session, response, roof_uri)
+function BuildEditorService:grow_roof(session, response, roof_brush)
+   GrowRoofEditor(self._build_service)
+         :go(response, roof_brush, self._grow_roof_options)
+   --[[
    local has_roof_fn = function(building)
       for _, child in building:get_component('entity_container'):each_child() do
          if child:get_component('stonehearth:roof') then   
@@ -170,6 +174,7 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
             response:reject('failed')
          end)
       :go()   
+      ]]
 end
 
 return BuildEditorService

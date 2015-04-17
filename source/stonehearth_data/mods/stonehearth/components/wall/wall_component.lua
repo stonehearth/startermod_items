@@ -132,6 +132,10 @@ function Wall:get_normal_coord()
    return self._normal_coord
 end
 
+function Wall:get_normal()
+   return self._sv.normal
+end
+
 function Wall:compute_fixture_placement(fixture_entity, location)
    local t, n = self._tangent_coord, self._normal_coord
    local start_pt, end_pt = self._start_pt, self._end_pt
@@ -310,6 +314,12 @@ function Wall:connect_to(column_a, column_b, normal)
    self._sv.column_b = column_b
    self.__saved_variables:mark_changed()
 
+   column_a:get_component('stonehearth:column')
+               :connect_to(self._entity)
+
+   column_b:get_component('stonehearth:column')
+               :connect_to(self._entity)
+               
    self:_compute_wall_measurements()
    radiant.entities.move_to(self._entity, self._position)
    return self
