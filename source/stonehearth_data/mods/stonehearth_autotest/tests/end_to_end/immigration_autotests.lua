@@ -8,6 +8,16 @@ function immigration_tests.get_one_citizen(autotest)
    local cluster = autotest.env:create_entity_cluster(0, 0, 10, 10, 'stonehearth:food:berries:berry_basket')
    local stockpile = autotest.env:create_stockpile(0, 0, {size = {x=10, y=10}})
 
+   local cluster = autotest.env:create_entity_cluster(0, 10, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local stockpile = autotest.env:create_stockpile(0, 10, {size = {x=10, y=10}})
+
+   local cluster = autotest.env:create_entity_cluster(-10, 10, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local stockpile = autotest.env:create_stockpile(-10, 10, {size = {x=10, y=10}})
+
+   local cluster = autotest.env:create_entity_cluster(10, 10, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local stockpile = autotest.env:create_stockpile(10, 10, {size = {x=10, y=10}})
+
+
    autotest:sleep(10*1000)
 
    --Fire the scenario

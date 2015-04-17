@@ -3,6 +3,7 @@ local CompoundActionFactory = class()
 
 function CompoundActionFactory:__init(action)
    assert(action)
+   self.realtime = action.realtime or false
    self.does = action.does
    self.version = action.version
    self.args = action.args

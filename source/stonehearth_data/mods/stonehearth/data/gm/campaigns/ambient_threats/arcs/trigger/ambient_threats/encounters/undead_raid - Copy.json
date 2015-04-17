@@ -27,8 +27,8 @@
                "from_population" : {
                   "role" : "zombie",
                   "location" : { "x": 0, "z": 0 },
-                  "min" : 1,
-                  "max" : 4,
+                  "min" : 10,
+                  "max" : 12,
                   "range" : 20
                },
 
@@ -40,8 +40,8 @@
                "from_population" : {
                   "role" : "skeleton",
                   "location" : { "x": 3, "z": 3 },
-                  "min" : 0,
-                  "max" : 3,
+                  "min" : 12,
+                  "max" : 15,
                   "range" : 20
                },
 

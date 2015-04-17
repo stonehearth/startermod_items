@@ -32,7 +32,7 @@ function Task:__init(task_group, activity)
    self._effects = {}
    self._priority = 1
    self._max_workers = INFINITE
-   self._complete_count = 0
+   self._fed_workers = 0
    self._currently_feeding = false
    self._notify_completed_cbs = {} --called when task is completed
    --TODO: add a set of callbacks for failure state
@@ -311,6 +311,7 @@ function Task:_feed_worker(worker)
       worker:get_component('stonehearth:ai')
                :add_custom_action(self._action_ctor)
    end
+   self._fed_workers = self._fed_workers + 1
 end
 
 -- remove our action from all the workers which need to be unfed.  we defer
@@ -326,6 +327,7 @@ function Task:_process_deferred_unfed_workers()
       end
       local worker = self._workers_pending_unfeed[worker_id]
       self._workers_pending_unfeed[worker_id] = nil
+      self._fed_workers = self._fed_workers - 1
       if worker:is_valid() then
          self._log:detail('removing run task action from %s', worker)
          worker:get_component('stonehearth:ai'):remove_custom_action(self._action_ctor)
@@ -525,10 +527,6 @@ function Task:__action_try_start_thinking(action)
    if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s pending to be removed.  cannot start_thinking!', entity)
       return false;
-   end
-
-   if not self:check_worker_against_task_affinity(entity) then
-      return false
    end
 
    -- actions that are already running (or we've just told to run) are of course

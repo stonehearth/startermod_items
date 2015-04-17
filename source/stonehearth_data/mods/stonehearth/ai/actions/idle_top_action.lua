@@ -1,5 +1,6 @@
 local IdleTop = class()
 
+IdleTop.realtime = true
 IdleTop.name = 'idle top'
 IdleTop.does = 'stonehearth:top'
 IdleTop.args = {}
