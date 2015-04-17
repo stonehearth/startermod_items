@@ -175,7 +175,6 @@
             "description" : "Organize your troops into groups",
             "class" : "dock",
             "icon" : "/stonehearth/ui/game/start_menu/images/manage_parties.png",
-            "hotkey" : "v",
             "game_mode" : "normal",
             "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
             "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
