@@ -16,6 +16,7 @@ GetMeleeRange.think_output = {
 GetMeleeRange.version = 2
 GetMeleeRange.priority = 1
 GetMeleeRange.weight = 1
+GetMeleeRange.realtime = true
 
 function GetMeleeRange:start_thinking(ai, entity, args)
    local weapon = stonehearth.combat:get_melee_weapon(entity)

@@ -6,10 +6,12 @@ local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 local Quaternion = _radiant.csg.Quaternion
+local NineGridBrush = _radiant.voxel.NineGridBrush
 
 local build_util = {}
 
 local roation_eps = 0.01
+local INFINITE = 1000000
 
 local SAVED_COMPONENTS = {
    ['stonehearth:wall'] = true,
@@ -588,6 +590,220 @@ function build_util.grow_walls_around(floor, visitor_fn)
    end
 end
 
+local function convert_point_for_edge_loop(pt, bounds)
+   checks('Point3', '?Rect2')
+   if bounds then
+      if bounds.min.x == INFINITE then
+         bounds.min.x = pt.x
+         bounds.min.y = pt.z
+         bounds.max.x = pt.x
+         bounds.max.y = pt.z
+      else
+         bounds.min.x = math.min(bounds.min.x, pt.x)
+         bounds.min.y = math.min(bounds.min.y, pt.z)
+         bounds.max.x = math.max(bounds.max.x, pt.x)
+         bounds.max.y = math.max(bounds.max.y, pt.z)
+      end
+   end
+   return { x = pt.x, y = pt.z }
+end
+
+function build_util.create_edge_loop_for_wall(wall, edges, walls, bounds)
+   local id = wall:get_id()
+   if walls[id] then
+      return
+   end   
+   walls[id] = wall
+   local wc = wall:get_component('stonehearth:wall')
+   if wc then
+      local col_a, col_b = wc:get_columns()
+      if col_a then
+         local pos_a = radiant.entities.get_world_grid_location(col_a)
+         local pos_b = radiant.entities.get_world_grid_location(col_b)
+         local normal = wc:get_normal()
+         local edge = {
+            min     = convert_point_for_edge_loop(pos_a, bounds),
+            max     = convert_point_for_edge_loop(pos_b, bounds),
+            normal  = convert_point_for_edge_loop(normal),
+         }
+         if edge.normal.x < 0 then
+            edge.min.x = edge.min.x + 1
+            edge.max.x = edge.max.x + 1
+         end
+         if edge.normal.y < 0 then
+            edge.min.y = edge.min.y + 1
+            edge.max.y = edge.max.y + 1
+         end
+         assert(edge.min.x <= edge.max.x and edge.min.y <= edge.max.y)
+         table.insert(edges, edge)
+      end
+      local columns = { wc:get_columns() }
+      for _, col in pairs(columns) do
+         local connected_walls = col:get_component('stonehearth:column')
+                                       :get_connected_walls()
+         for _, connected_wall in pairs(connected_walls) do
+            build_util.create_edge_loop_for_wall(connected_wall, edges, walls, bounds)
+         end
+      end
+   end
+end
+
+function build_util.edge_loop_to_region2(edges, bounds)   
+   local function accumulate_region(region, volume)
+      -- xor volume into region
+      local sub_region = region:intersect_cube(volume)
+      local add_region = Region2(volume) - sub_region
+      region:add_region(add_region)
+      region:subtract_region(sub_region)
+   end
+
+   local all_regions = {
+      Region2(),     -- left
+      Region2(),     -- right
+      Region2(),     -- bottom
+      Region2(),     -- top
+   }
+   local cursor = Point2()
+
+   -- edges are of the form:
+   -- {
+   --    { min = { 1, 1 }, max = { 2, 1}, normal = { 0, 1 }}
+   --     ...
+   -- }
+   local normals = {
+      { x = -1, y =  0 },
+      { x =  1, y =  0 },
+      { x =  0, y = -1 },
+      { x =  0, y =  1 },
+   }
+   for i, normal in pairs(normals) do
+      local accum_region = all_regions[i]
+      for _, edge in pairs(edges) do
+         -- create a volume for this edge in the opposite direction of the normal
+         if normal.x == 0 and edge.normal.x == 0 or
+            normal.y == 0 and edge.normal.y == 0 then
+
+            local volume = Rect2(Point2(edge.min.x, edge.min.y),
+                                 Point2(edge.max.x, edge.max.y));
+
+            if normal.x == -1 then
+               volume.max.x = bounds.max.x
+            elseif normal.x == 1 then
+               volume.min.x = bounds.min.x
+            elseif normal.y == -1 then
+               volume.max.y = bounds.max.y
+            elseif normal.y == 1 then
+               volume.min.y = bounds.min.y
+            end
+            assert(volume.min.x <= volume.max.x and volume.min.y <= volume.max.y)
+
+            accumulate_region(accum_region, volume)
+         end
+      end
+   end
+
+   local region2 = Region2(bounds)
+   for _, region in pairs(all_regions) do
+      region2 = region2:intersect_region(region)
+   end
+   return region2
+end
+
+function build_util.calculate_roof_shape(region2, roof_brush, options)
+   local slope = options.nine_grid_slope
+   local y_offset = options.nine_grid_y_offset
+   local gradiant = options.nine_grid_gradiant
+   local max_height = options.nine_grid_max_height
+
+   local brush = _radiant.voxel.create_nine_grid_brush(roof_brush)
+                                 :set_grid_shape(region2)
+                                 :set_slope(slope or 1)
+
+   if max_height then
+      brush:set_max_height(max_height)
+   end
+   if y_offset then
+      brush:set_y_offset(y_offset)
+   end
+   if gradiant then
+      local flags = 0
+      for _, f in ipairs(gradiant) do
+         if f == "front" then
+            flags = flags + NineGridBrush.Front
+         elseif f == "back" then
+            flags = flags + NineGridBrush.Back
+         elseif f == "left" then
+            flags = flags + NineGridBrush.Left
+         elseif f == "right" then
+            flags = flags + NineGridBrush.Right
+         end
+      end
+      brush:set_gradiant_flags(flags)
+   end
+
+   --[[
+   if construction_data.grid9_tile_mode then
+      brush:set_grid9_tile_mode(construction_data.grid9_tile_mode)
+   end
+   if construction_data.grid9_slope_mode then
+      brush:set_grid9_tile_mode(construction_data.grid9_slope_mode)
+   end
+   ]]
+
+   brush:set_clip_whitespace(true)
+
+   return brush:paint_once()
+end
+
+function build_util.calculate_roof_shape_around_walls(root_wall, roof_brush, options)
+   local last_edge_count, new_edge_count = 0, 0
+   local edges, walls = {}, {}
+   local bounds = Rect2(Point2(INFINITE, INFINITE), Point2(INFINITE, INFINITE))
+   local region2 = Region2()
+
+   local root_wall_origin = radiant.entities.get_world_grid_location(root_wall)
+   local height = root_wall_origin.y + constants.STOREY_HEIGHT - 1
+
+   local root_wall_blueprint = build_util.get_blueprint_for(root_wall)
+   build_util.create_edge_loop_for_wall(root_wall_blueprint, edges, walls, bounds)
+
+   local world_region2
+   repeat
+      world_region2 = build_util.edge_loop_to_region2(edges, bounds)
+      -- great!  this is the region 2.  now we need to see if there are any walls
+      -- inside this region which weren't added to the loop.
+      local query_region = Region3()
+      for rect in world_region2:each_cube() do
+         radiant.log.write('', 0, 'rect is %s', rect)
+         assert(rect.min.x <= rect.max.x)
+         assert(rect.min.y <= rect.max.y)
+         local c = Cube3(Point3(rect.min.x, height - 1, rect.min.y),
+                         Point3(rect.max.x, height,     rect.max.y))
+         query_region:add_unique_cube(c)
+      end
+      local new_walls = radiant.terrain.get_entities_in_region(query_region, function(entity)
+            return build_util.is_blueprint(entity, 'stonehearth:wall')
+         end)
+
+      last_edge_count = #edges
+      for _, wall in pairs(new_walls) do
+         build_util.create_edge_loop_for_wall(wall, edges, walls, bounds)
+      end
+      new_edge_count = #edges
+   until last_edge_count == new_edge_count
+
+   local world_region2_bounds = world_region2:get_bounds()
+ 
+   local region_origin = world_region2_bounds.min
+   local region2 = world_region2:translated(-region_origin)
+   local world_origin = Point3(region_origin.x,
+                               height + 1,
+                               region_origin.y)
+
+   local region2 = region2:inflated(Point2(2, 2))
+                  
+   return world_origin, region2
+end
 
 function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
    local fabricator_component = fabricator:get_component(fabricator_component_name)

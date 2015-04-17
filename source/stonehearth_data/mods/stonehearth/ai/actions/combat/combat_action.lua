@@ -8,6 +8,7 @@ Combat.does = 'stonehearth:top'
 Combat.args = {}
 Combat.version = 2
 Combat.priority = constants.priorities.top.COMBAT
+Combat.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Combat)

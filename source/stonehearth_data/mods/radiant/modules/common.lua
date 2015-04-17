@@ -250,6 +250,8 @@ local NATIVE_CHECKS = {
    Region3Boxed   = _radiant.om.Region3Boxed,
    Point2         = _radiant.csg.Point2,
    Point3         = _radiant.csg.Point3,
+   Rect2          = _radiant.csg.Rect2,
+   Cube3          = _radiant.csg.Cube3,
    Region3        = _radiant.csg.Region3,
    Region2        = _radiant.csg.Region2,
 }

@@ -10,8 +10,6 @@ function GrowWallsEditor:__init(build_service)
    log:debug('created')
 
    self._build_service = build_service
-   self._structure_editor = StructureEditor()
-   self._log = radiant.log.create_logger('builder')
 
    self._preview_walls = {}
    self._preview_columns = {}

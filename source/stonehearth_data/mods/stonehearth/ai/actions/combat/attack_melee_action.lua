@@ -10,6 +10,7 @@ AttackMelee.args = {
 AttackMelee.version = 2
 AttackMelee.priority = 1
 AttackMelee.weight = 1
+AttackMelee.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(AttackMelee)

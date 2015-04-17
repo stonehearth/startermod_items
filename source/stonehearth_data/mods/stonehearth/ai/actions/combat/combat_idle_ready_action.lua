@@ -11,6 +11,7 @@ CombatIdleReady.args = {
 CombatIdleReady.version = 2
 CombatIdleReady.priority = 1
 CombatIdleReady.weight = 1
+CombatIdleReady.realtime = true
 
 function CombatIdleReady:run(ai, entity, args)
    ai:execute('stonehearth:turn_to_face_entity', { entity = args.enemy })

@@ -16,12 +16,13 @@ $.widget( "stonehearth.stonehearthMenu", {
       }
    },
 
-   hideMenu: function(menuItem) {
+   hideMenu: function() {
       //this.menu.find('.menuItemGroup').hide();
       this.showMenu(null);
       if (this.options.hide) {
          this.options.hide();
       }
+      this._currentOpenMenu = null;
    },
 
    getMenu: function() {
@@ -35,7 +36,6 @@ $.widget( "stonehearth.stonehearthMenu", {
          }
       });
 
-     
       var nodeData;
 
       if (id) {
@@ -77,6 +77,10 @@ $.widget( "stonehearth.stonehearthMenu", {
    },
    */
 
+   getOpenMenu: function() {
+      return this._currentOpenMenu;
+   },
+
    getGameMode: function() {
       if (this._currentOpenMenu) {
          return this._dataToMenuItemMap[this._currentOpenMenu].game_mode
@@ -92,6 +96,7 @@ $.widget( "stonehearth.stonehearthMenu", {
 
    _create: function() {
       var self = this;
+      App.startMenu = this;
 
       this._dataToMenuItemMap = {};
       this.menu = $('<div>').addClass('stonehearthMenu');
