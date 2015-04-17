@@ -73,6 +73,22 @@ var DrawWallTool;
                                                  columnClick);
       },
 
+      copyMaterials: function(blueprint) {
+         var self = this;
+         var wall = blueprint['stonehearth:wall'];
+         if (wall) {
+            self._wallMaterial.selectBrush(wall.brush);
+            if (wall.column_a) {
+               self._columnMaterial.selectBrush(wall.column_a['stonehearth:column'].brush);
+            }
+            return;
+         }
+         var column = blueprint['stonehearth:column'];
+         if (column) {
+            self._columnMaterial.selectBrush(column.brush);
+         }
+      },
+
       restoreState: function(state) {
          this._wallMaterial.restoreState(state);
          this._columnMaterial.restoreState(state);

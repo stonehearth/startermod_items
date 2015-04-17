@@ -1,3 +1,5 @@
+local log = radiant.log.create_logger('score')
+
 --[[
    Keep track of the scores relevant to different players
 
@@ -71,7 +73,7 @@ function ScoreService:get_score_for_entity(entity)
    if score_for_item and score_for_item.value_in_gold then
       return score_for_item.value_in_gold
    else
-      return 3
+      return 1
    end
 end
 
@@ -83,6 +85,12 @@ function ScoreService:_calculate_net_worth()
       local aggregate_score_data = self:_get_aggregate_score_for_player(player)
       for score_category, data in pairs(aggregate_score_data) do
          score_data:set_score_type(score_category, data)
+         
+         --Logging
+         log:detail('Score Category: %s', score_category)
+         for sub_category, score in pairs(data) do
+            log:detail('%s - %s', sub_category, score)
+         end
       end
    end
 end

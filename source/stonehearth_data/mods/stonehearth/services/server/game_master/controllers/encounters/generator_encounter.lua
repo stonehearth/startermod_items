@@ -30,7 +30,7 @@ function GeneratorEncounter:start(ctx, info)
    self._sv.spawn_edge = info.spawn_edge
 
    if info.source_entity then
-      local entity = ctx[info.source_entity]
+      local entity = ctx:get(info.source_entity)
       if radiant.util.is_a(entity, Entity) and entity:is_valid() then
          self._sv.source_entity = entity
          self:_start_source_listener()

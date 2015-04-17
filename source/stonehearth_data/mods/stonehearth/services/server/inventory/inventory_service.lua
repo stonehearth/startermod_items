@@ -130,7 +130,7 @@ function InventoryService:_get_score_for_stockpile(entity)
       local item_value = stonehearth.score:get_score_for_entity(item)
       total_score = total_score + item_value
    end
-   return total_score
+   return total_score / 10
 end
 
 return InventoryService

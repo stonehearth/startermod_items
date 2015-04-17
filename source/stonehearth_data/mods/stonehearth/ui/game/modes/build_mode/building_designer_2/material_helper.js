@@ -33,7 +33,7 @@ var MaterialHelper = SimpleClass.extend({
       });
    },
 
-   _selectBrush: function(brush, skipSave) {
+   selectBrush: function(brush, skipSave) {
       var container = this._container;
       var category
 
@@ -78,12 +78,12 @@ var MaterialHelper = SimpleClass.extend({
             brushes: {}
          }         
       }
-      this._selectBrush(this._state.brush, true);
+      this.selectBrush(this._state.brush, true);
    },
 
    getSelectedBrush : function() {
       if (!this._state.brush) {
-         this._selectBrush();
+         this.selectBrush();
       }
       return this._state.brush;
    },
@@ -153,7 +153,7 @@ var MaterialHelper = SimpleClass.extend({
          self._container.find('.' + self._materialClass).removeClass('selected');
          $(this).addClass('selected');
 
-         self._selectBrush(brush);
+         self.selectBrush(brush);
          self._clickHandler(brush);
       });
 
@@ -169,7 +169,7 @@ var MaterialHelper = SimpleClass.extend({
                   brush = self._container.find('.brush[category=' + category + ']').attr('brush');
                }
             }
-            self._selectBrush(brush);
+            self.selectBrush(brush);
             self._clickHandler(brush);
          });
       }
