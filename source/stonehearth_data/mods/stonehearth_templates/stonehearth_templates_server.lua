@@ -52,7 +52,7 @@ function StonehearthTemplateBuilder:print_walls()
       local offset = radiant.entities.get_world_grid_location(wall) - origin;
       local normal = wall:get_component('stonehearth:construction_data')
                               :get_normal()
-      radiant.log.write('', 0, '%2d) wall bounds: %32s  normal: %16s  area:%3d', i, bounds:translated(offset), normal, bounds:get_area())
+      radiant.log.write('', 0, '%2d) wall bounds: %32s  normal: %16s  area:%3d', i, bounds, normal, bounds:get_area())
    end
 end
 
@@ -143,35 +143,35 @@ function StonehearthTemplateBuilder:grow_walls(column_uri, wall_uri)
    local _, entry = next(floors)
    local floor = entry.entity
    
-   stonehearth.build:grow_walls(floor, column_uri, wall_uri)
+   return stonehearth.build:grow_walls(floor, column_uri, wall_uri)
 end
 
-function StonehearthTemplateBuilder:grow_roof(roof_uri, options)
-   stonehearth.build:grow_roof(self._building, roof_uri, options)
+function StonehearthTemplateBuilder:grow_roof(walls, roof_uri, options)
+   stonehearth.build:grow_roof(walls, roof_uri, options)
 end
 
 -- builds a small house
 --
 function StonehearthTemplateBuilder:_build_tiny_cottage()
    self:add_floor(0, 0, 7, 6, WOODEN_FLOOR_DIAGONAL)
-   self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(WOODEN_ROOF, {
+   local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
+   self:grow_roof(walls, WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })
 
    self:print_walls()  
-   self:place_portal_on_wall('((0, 0, -5) - (1, 6, 1))', 'stonehearth:portals:wooden_window_frame', -2, 2)      
-   self:place_portal_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:portals:wooden_door', 3, 0)
-   self:place_item_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:decoration:wooden_wall_lantern', 3, 6)
+   self:place_portal_on_wall(1, 'stonehearth:portals:wooden_window_frame', -2, 2)
+   self:place_portal_on_wall(2, 'stonehearth:portals:wooden_door', 3, 0)
+   self:place_item_on_wall(2, 'stonehearth:decoration:wooden_wall_lantern', 3, 6)
    self:place_item_on_floor('stonehearth:furniture:not_much_of_a_bed', 5, 3, 0)
 end
 
 function StonehearthTemplateBuilder:_build_cottage_for_two()
    self:add_floor(0, 0, 11, 6, WOODEN_FLOOR_DIAGONAL)      
    self:add_floor(3, -4, 8, 0, WOODEN_FLOOR_DIAGONAL)      
-   self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(WOODEN_ROOF, {
+   local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
+   self:grow_roof(walls, WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })
@@ -190,8 +190,8 @@ end
 function StonehearthTemplateBuilder:_build_dining_hall()
    self:add_floor(0, 0, 15, 8, WOODEN_FLOOR_DIAGONAL)
    self:add_floor(3, -2, 12, 0, WOODEN_FLOOR_DIAGONAL)
-   self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(WOODEN_ROOF, {
+   local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
+   self:grow_roof(walls, WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right', 'front', 'back' },
          nine_grid_max_height = 4,
       })
@@ -231,8 +231,8 @@ end
 function StonehearthTemplateBuilder:_build_sleeping_hall()
    self:add_floor(0, 0, 19, 10, WOODEN_FLOOR_DIAGONAL)
    self:add_floor(3, -2, 12, 0, WOODEN_FLOOR_DIAGONAL)
-   self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(WOODEN_ROOF, {
+   local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
+   self:grow_roof(walls, WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right', 'front', 'back' },
          nine_grid_max_height = 4,
       })
