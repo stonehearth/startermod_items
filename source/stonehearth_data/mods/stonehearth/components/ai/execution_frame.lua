@@ -395,6 +395,10 @@ function ExecutionFrame:_destroy_slow_timers()
 end
 
 function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units)
+   if self._state == DEAD then
+      return
+   end
+
    -- If top is running (something other than idle), or we're not top and we're running, then don't bother
    -- thinking.
    local top_state = self:get_top_idle_state()
