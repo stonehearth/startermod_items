@@ -162,8 +162,10 @@ function MiningZoneComponent:_on_region_changed()
    -- sure we absolutely have the minimal region.  not having the smallest
    -- region possible will have cascading performance problems down the
    -- line.
-   self._sv.region:modify(function(cursor)      
+   self._sv.region:modify(function(cursor)
+         cursor:set_tag(0)
          cursor:force_optimize_by_merge('mining zone region changed')
+         log:debug('mining zone contains %d cubes', cursor:get_num_rects())
       end)
    self.__saved_variables:mark_changed()
 

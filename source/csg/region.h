@@ -121,9 +121,11 @@ private:
    bool ContainsAtMostOneTag() const;
    std::map<int, std::unique_ptr<Region<S, C>>> SplitByTag() const;
    S GetOctTreeCubeSize(Cube const& bounds) const;
-   void OptimizeOneTagByOctTree(S minCubeSize);
-   void OptimizeOctTreeImpl(Cube const& bounds, S partitionSize, S minCubeSize);
-   void OptimizeOneTagByMerge();
+   void OptimizeTagByOctTree(S minCubeSize);
+   void OptimizeTagByOctTree(Cube const& bounds, S partitionSize, S minCubeSize);
+   void OptimizeTagByMerge();
+   void OptimizeTagByDefragmentation();
+   void OptimizeByDefragmentationInternal(const char* reason);
 
 public:
    template <class T> void SaveValue(T* msg) const {
@@ -142,6 +144,8 @@ public:
    void OptimizeByOctTree(const char* reason, S minCubeSize);
    void OptimizeByMerge(const char* reason);
    void ForceOptimizeByMerge(const char* reason);
+   void OptimizeByDefragmentation(const char* reason);
+   void ForceOptimizeByDefragmentation(const char* reason);
 
 public:
 #if defined(REGION_COUNT_OPTIMIZE_COMBINES)

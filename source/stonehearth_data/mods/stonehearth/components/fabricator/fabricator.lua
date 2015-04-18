@@ -652,6 +652,10 @@ function Fabricator:_update_mining_region()
       return
    end
 
+   -- patterned roads and floors may be highly fragmented, so consolidate the region if needed
+   world_region:set_tag(0)
+   world_region:optimize_by_defragmentation('Fabricator:_update_mining_region')
+
    -- The mining service will handle all existing mining region overlap merging for us.
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
@@ -706,6 +710,11 @@ function Fabricator:_update_total_mining_region()
             cursor:clear()
             return
          end
+
+         -- patterned roads and floors may be highly fragmented, so consolidate the region if needed
+         world_region:set_tag(0)
+         world_region:optimize_by_defragmentation('Fabricator:_update_total_mining_region')
+
          cursor:copy_region(world_region)
       end)
 end
