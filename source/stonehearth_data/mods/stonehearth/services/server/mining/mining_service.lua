@@ -14,13 +14,6 @@ MiningService = class()
 local MAX_REACH_UP = 3
 local MAX_REACH_DOWN = 1
 
-local SIDE_DIRECTIONS = {
-    Point3.unit_x,
-   -Point3.unit_x,
-    Point3.unit_z,
-   -Point3.unit_z
-}
-
 function MiningService:initialize()
    self._enable_insta_mine = radiant.util.get_config('enable_insta_mine', false)
 
@@ -255,47 +248,39 @@ end
 
 -- Return all the locations that can reach the block at point.
 function MiningService:get_adjacent_for_destination_block(point)
-   local top_blocked = radiant.terrain.is_terrain(point + Point3.unit_y)
-   local region = Region3()
+   -- create a cube that bounds the adjacent region
+   local adjacent_bounds = Cube3(point):inflated(Point3(1, 0, 1))
+   adjacent_bounds.min.y = point.y - MAX_REACH_UP
+   adjacent_bounds.max.y = point.y + MAX_REACH_DOWN + 1
 
-   local add_xz_column = function(region, adjacent_point, top_blocked)
-      local side_blocked = radiant.terrain.is_terrain(adjacent_point)
-      local dy_min, dy_max
+   -- terrain intersection is expensive, so make one call to grab the working terrain region
+   local terrain_region = radiant.terrain.intersect_cube(adjacent_bounds)
+   terrain_region:set_tag(0)
 
-      if side_blocked then
-         -- we know dy == 0 is blocked, so use 1 to avoid retesting below
-         dy_min = 1
+   local adjacent_region = Region3()
+   local top_blocked = terrain_region:contains(point + Point3.unit_y)
+
+   for _, direction in ipairs(csg_lib.XZ_DIRECTIONS) do
+      local adjacent_point = point + direction
+      local cube = Cube3(adjacent_point)
+
+      if not top_blocked then
+         cube.max.y = adjacent_bounds.max.y
+      end
+
+      local side_blocked = terrain_region:contains(adjacent_point)
+      if not side_blocked then
+         cube.min.y = adjacent_bounds.min.y
       else
-         -- we can strike up on the point if the side is not blocked
-         dy_min = -MAX_REACH_UP
+         cube.min.y = point.y + 1
       end
 
-      if top_blocked then
-         -- can't strike down on the point
-         dy_max = 0
-      else
-         -- we can strike down on the point if the top is not blocked
-         dy_max = MAX_REACH_DOWN
-      end
-
-      local temp_y = adjacent_point.y
-      local y_min = temp_y + dy_min
-      local y_max = temp_y + dy_max
-      local test_point = Point3(adjacent_point)
-
-      for y = y_min, y_max do
-         test_point.y = y
-         if not radiant.terrain.is_terrain(test_point) then
-            region:add_point(test_point)
-         end
-      end
+      adjacent_region:add_unique_cube(cube)
    end
 
-   for _, direction in ipairs(SIDE_DIRECTIONS) do
-      add_xz_column(region, point + direction, top_blocked)
-   end
+   adjacent_region:subtract_region(terrain_region)
 
-   return region
+   return adjacent_region
 end
 
 function MiningService:_transform_cubes_in_region(region, cube_transform)

@@ -9,15 +9,6 @@ local TraceCategories = _radiant.dm.TraceCategories
 
 HydrologyService = class()
 
-local DIRECTIONS = {
-   Point3.unit_x,
-  -Point3.unit_x,
-   Point3.unit_z,
-  -Point3.unit_z,
-   Point3.unit_y,
-  -Point3.unit_y
-}
-
 function HydrologyService:initialize()
    -- prevent oscillation by making sure we can flow to under the merge threshold
    assert(constants.hydrology.MIN_FLOW_RATE <= constants.hydrology.MERGE_ELEVATION_THRESHOLD)
@@ -173,7 +164,7 @@ end
 function HydrologyService:_link_channels(entity, point, modified_container_region)
    local channel_manager = self:get_channel_manager()
 
-   for _, direction in ipairs(DIRECTIONS) do
+   for _, direction in ipairs(csg_lib.XYZ_DIRECTIONS) do
       local vertical = direction.y ~= 0
       local adjacent_point = point + direction
       -- don't process points that are solid

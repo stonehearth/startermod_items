@@ -11,28 +11,12 @@ local MAX_REACH_DOWN = 1
 local MAX_REACH_UP = 3
 local MAX_DESTINATION_DELTA_Y = 3
 
-local DIRECTIONS = {
-    Point3.unit_y,
-   -Point3.unit_y,
-    Point3.unit_x,
-   -Point3.unit_x,
-    Point3.unit_z,
-   -Point3.unit_z
-}
-
 local NON_TOP_DIRECTIONS = {
     Point3.unit_x,
    -Point3.unit_x,
     Point3.unit_z,
    -Point3.unit_z,
    -Point3.unit_y
-}
-
-local SIDE_DIRECTIONS = {
-    Point3.unit_x,
-   -Point3.unit_x,
-    Point3.unit_z,
-   -Point3.unit_z
 }
 
 function MiningZoneComponent:__init()
@@ -443,7 +427,7 @@ function MiningZoneComponent:_add_unsupported_blocks(destination_region, zone_lo
    -- count the number of exposed faces for each block
    local block_data = {}
    for point in unsupported_region:each_point() do
-      local num_exposed_faces = count_open_faces_for_block(point, SIDE_DIRECTIONS, 3)
+      local num_exposed_faces = count_open_faces_for_block(point, csg_lib.XZ_DIRECTIONS, 3)
       local entry = { num_exposed_faces = num_exposed_faces, point = point }
       table.insert(block_data, entry)
    end
@@ -465,7 +449,7 @@ end
 
 function MiningZoneComponent:_add_all_exposed_blocks(destination_region, zone_location, working_region)
    for cube in working_region:each_cube() do
-      for _, direction in ipairs(DIRECTIONS) do
+      for _, direction in ipairs(csg_lib.XYZ_DIRECTIONS) do
          local face_region = Region3(csg_lib.get_face(cube, direction))
          face_region:translate(direction)
          radiant.terrain.clip_region(face_region)
