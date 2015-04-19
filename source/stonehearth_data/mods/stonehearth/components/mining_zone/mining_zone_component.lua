@@ -339,8 +339,10 @@ end
 
 function MiningZoneComponent:_add_top_facing_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
    local up = Point3.unit_y
+   local down = -up
    local top_blocks = Region3()
    local other_blocks = Region3()
+   local destination_blocks
 
    for cube in working_region:each_cube() do
       if cube.max.y >= working_bounds.max.y - MAX_DESTINATION_DELTA_Y then
@@ -358,7 +360,12 @@ function MiningZoneComponent:_add_top_facing_blocks(destination_region, zone_loc
    -- This skips the check that a block must be level with its neighbors before being mined,
    -- because all the blocks in this set are already on the top of the mining region.
    -- Roads and floors will both take this optimization.
-   local destination_blocks, unsupported_blocks = self:_derive_destination_blocks(top_blocks)
+   destination_blocks = top_blocks
+   destination_blocks:translate(up)
+   destination_blocks = radiant.terrain.clip_region(destination_blocks)
+   destination_blocks:translate(down)
+
+   local unsupported_blocks = self:_remove_unsupported_blocks(destination_blocks, false)
    destination_blocks:translate(-zone_location)
    destination_region:add_region(destination_blocks)
    unsupported_region:add_region(unsupported_blocks)
@@ -371,7 +378,13 @@ function MiningZoneComponent:_add_top_facing_blocks(destination_region, zone_loc
    local terrain_region = radiant.terrain.intersect_cube(working_bounds)
    terrain_region:set_tag(0)
    local custom_clip_region = terrain_region:inflated(Point3(1, 0, 1))
-   destination_blocks, unsupported_blocks = self:_derive_destination_blocks(other_blocks, custom_clip_region)
+
+   destination_blocks = other_blocks
+   destination_blocks:translate(up)
+   destination_blocks:subtract_region(custom_clip_region)
+   destination_blocks:translate(down)
+
+   local unsupported_blocks = self:_remove_unsupported_blocks(destination_blocks, false)
    destination_blocks:translate(-zone_location)
    destination_region:add_region(destination_blocks)
    unsupported_region:add_region(unsupported_blocks)
@@ -380,7 +393,7 @@ end
 function MiningZoneComponent:_add_side_and_bottom_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
    local up = Point3.unit_y
    local down = -up
-   local candidate_blocks = Region3()
+   local destination_blocks = Region3()
 
    for _, direction in ipairs(NON_TOP_DIRECTIONS) do
       local face_region = Region3(csg_lib.get_face(working_bounds, direction))
@@ -388,39 +401,44 @@ function MiningZoneComponent:_add_side_and_bottom_blocks(destination_region, zon
       face_blocks:translate(direction)
       face_blocks = radiant.terrain.clip_region(face_blocks)
       face_blocks:translate(-direction)
-      candidate_blocks:add_region(face_blocks)
+      destination_blocks:add_region(face_blocks)
    end
 
-   local destination_blocks, unsupported_blocks = self:_derive_destination_blocks(candidate_blocks)
+   local unsupported_blocks = self:_remove_unsupported_blocks(destination_blocks)
    destination_blocks:translate(-zone_location)
    destination_region:add_region(destination_blocks)
    unsupported_region:add_region(unsupported_blocks)
 end
 
-function MiningZoneComponent:_derive_destination_blocks(candidate_blocks, custom_clip_region)
+-- removes unsupported blocks from destimation blocks and returns the unsupported region
+function MiningZoneComponent:_remove_unsupported_blocks(destination_blocks, check_top)
+   if check_top == nil then
+      check_top = true
+   end
+
    local up = Point3.unit_y
    local down = -up
-   local destination_blocks
+   local unsupported_blocks
 
-   -- project up to see if the top face is exposed
-   local projected_candidates = candidate_blocks:translated(up)
-   if custom_clip_region then
-      projected_candidates:subtract_region(custom_clip_region)
-      destination_blocks = projected_candidates
+   if check_top then
+      -- project up to see if the top face is exposed
+      unsupported_blocks = radiant.terrain.clip_region(destination_blocks:translated(up))
+      unsupported_blocks:translate(down)
    else
-      destination_blocks = radiant.terrain.clip_region(projected_candidates)
+      -- skipping a copy! DO NOT MODIFY unsupported_blocks!!!
+      unsupported_blocks = destination_blocks
    end
-   destination_blocks:translate(down)
 
    -- project down to see if the bottom face is exposed
-   local unsupported_blocks = radiant.terrain.clip_region(destination_blocks:translated(down))
+   unsupported_blocks = radiant.terrain.clip_region(unsupported_blocks:translated(down))
    unsupported_blocks:translate(up)
 
    destination_blocks:subtract_region(unsupported_blocks)
 
-   return destination_blocks, unsupported_blocks
+   return unsupported_blocks
 end
 
+-- add the leaf node blocks of the unsupported region to the destination region
 function MiningZoneComponent:_add_unsupported_blocks(destination_region, zone_location, unsupported_region)
    if unsupported_region:empty() then
       return
