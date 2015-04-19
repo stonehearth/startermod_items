@@ -82,6 +82,13 @@ public: // the static interface
    static void ProfileSampleHookFn(lua_State *L, lua_Debug *ar);
 
 private:
+   enum CpuProfilerMethod {
+      None,
+      TimeAccumulation,
+      Sampling,
+   };
+
+private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
    static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
@@ -137,7 +144,6 @@ private:
    std::unordered_map<std::string, Allocations>    alloc_map;
 
    // CPU profiling
-   bool                 enable_profile_cpu_;
    int                  _cpuProfileInstructionSamplingRate;
    int                  _cpuProfileInstructionSamplingTime;
    bool                 _cpuProfilerRunning;
@@ -154,6 +160,7 @@ private:
    unsigned int               max_profile_length_;
    std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
    std::unordered_set<rpc::LuaPromisePtr> _luaPromises;
+   CpuProfilerMethod          _cpuProfileMethod;
 };
 
 END_RADIANT_LUA_NAMESPACE
