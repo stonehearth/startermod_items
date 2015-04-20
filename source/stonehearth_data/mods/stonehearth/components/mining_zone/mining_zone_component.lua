@@ -285,30 +285,22 @@ function MiningZoneComponent:_update_destination()
    self:_update_adjacent()
 end
 
--- get the unreserved terrain region that lies inside the zone_cube
+-- get the terrain region that lies inside the zone_cube
 function MiningZoneComponent:_get_working_region(zone_cube, zone_location)
-   local reserved_region = self._destination_component:get_reserved():get()
-   local zone_region = Region3(zone_cube)
-   local zone_reserved_region = zone_region:intersect_region(reserved_region)
-
-   zone_region:subtract_region(zone_reserved_region)
-   zone_region:translate(zone_location)
-   zone_reserved_region:translate(zone_location)
-
-   local working_region = radiant.terrain.intersect_region(zone_region)
+   local working_region = radiant.terrain.intersect_cube(zone_cube:translated(zone_location))
    working_region:set_tag(0)
    working_region:optimize_by_merge('mining:_get_working_region()')
-   return working_region, zone_reserved_region
+   return working_region
 end
 
 -- this algorithm assumes a convex region, so we break the zone into cubes before running it
--- working_region and zone_reserved_region are in world coordinates
+-- working_region is in world coordinates
 -- destination_region and zone_cube are in local coordinates
 function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cube, zone_location)
    local up = Point3.unit_y
    local down = -Point3.unit_y
    local one = Point3.one
-   local working_region, zone_reserved_region = self:_get_working_region(zone_cube, zone_location)
+   local working_region = self:_get_working_region(zone_cube, zone_location)
    local working_bounds = working_region:get_bounds()
    local unsupported_region = Region3()
 
@@ -329,12 +321,6 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
       destination_region:add_region(working_region)
       working_region = nil -- don't reuse, not in world coordinates anymore
    end
-
-   -- add the reserved region back, since we excluded it from the working set analysis
-   -- point may have been mined, but not yet unreserved, so check against the terrain
-   zone_reserved_region = radiant.terrain.intersect_region(zone_reserved_region)
-   zone_reserved_region:translate(-zone_location)
-   destination_region:add_region(zone_reserved_region)
 end
 
 function MiningZoneComponent:_add_top_facing_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
