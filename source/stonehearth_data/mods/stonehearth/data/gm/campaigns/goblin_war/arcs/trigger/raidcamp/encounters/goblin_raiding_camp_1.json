@@ -12,7 +12,7 @@
       "npc_player_id" : "goblins",
       "encounter_name" : "goblin_raiding_camp_1", 
 
-      "radius" : 18,
+      "radius" : 20,
       
       "spawn_range" : {
          "min" : 160,

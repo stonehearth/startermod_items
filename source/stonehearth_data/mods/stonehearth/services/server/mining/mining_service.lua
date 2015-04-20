@@ -192,23 +192,35 @@ function MiningService:resolve_point_of_interest(from, mining_zone)
    local reachable_region = self:get_reachable_region(from - location)
    local eligible_region = reachable_region - reserved_region
    local eligible_destination_region = eligible_region:intersect_region(destination_region)
-   local max
+   local poi = nil
 
-   if eligible_destination_region:empty() then
-      return nil
-   end
+   while not eligible_destination_region:empty() do
+      local max = eligible_destination_region:get_rect(0).min
 
-   -- pick any highest point in the region
-   for cube in eligible_destination_region:each_cube() do
-      if not max or cube.max.y > max.y then
-         max = cube.max
+      -- pick any highest point in the region
+      for cube in eligible_destination_region:each_cube() do
+         if cube.max.y > max.y then
+            max = cube.max
+         end
+      end
+
+      -- subtract one to get terrain coordinates from max and convert to world coordinates
+      poi = max - Point3.one + location
+
+      -- double check that we're not mining a block directly above or below us
+      assert(poi.x ~= from.x or poi.z ~= from.z)
+
+      -- check if our current location is in the adjacent for the block
+      local poi_adjacent = self:get_adjacent_for_destination_block(poi)
+      if poi_adjacent:contains(from) then
+         break
+      else
+         -- block is not reachable from current location, try again
+         eligible_destination_region:subtract_point(poi - location)
+         poi = nil
       end
    end
 
-   -- strip one off the max to get terrain coordinates of block
-   -- then convert to world coordinates
-   local poi = max - Point3.one + location
-   assert(poi ~= from - Point3.unit_y)
    return poi
 end
 
@@ -250,12 +262,13 @@ function MiningService:get_adjacent_for_destination_block(point)
    adjacent_bounds.min.y = point.y - MAX_REACH_UP
    adjacent_bounds.max.y = point.y + MAX_REACH_DOWN + 1
 
-   -- terrain intersection is expensive, so make one call to grab the working terrain region
+   -- terrain intersection is expensive in an inner loop, so make one call to grab the working terrain region
    local terrain_region = radiant.terrain.intersect_cube(adjacent_bounds)
    terrain_region:set_tag(0)
 
    local adjacent_region = Region3()
    local top_blocked = terrain_region:contains(point + Point3.unit_y)
+   local bottom_blocked = terrain_region:contains(point - Point3.unit_y)
 
    for _, direction in ipairs(csg_lib.XZ_DIRECTIONS) do
       local adjacent_point = point + direction
@@ -265,11 +278,13 @@ function MiningService:get_adjacent_for_destination_block(point)
          cube.max.y = adjacent_bounds.max.y
       end
 
-      local side_blocked = terrain_region:contains(adjacent_point)
-      if not side_blocked then
+      if not bottom_blocked then
          cube.min.y = adjacent_bounds.min.y
       else
-         cube.min.y = point.y + 1
+         local side_blocked = terrain_region:contains(adjacent_point)
+         if not side_blocked then
+            cube.min.y = adjacent_bounds.min.y
+         end
       end
 
       adjacent_region:add_unique_cube(cube)
