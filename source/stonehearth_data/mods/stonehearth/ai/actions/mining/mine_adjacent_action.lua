@@ -42,6 +42,13 @@ function MineAdjacent:run(ai, entity, args)
 
       radiant.entities.turn_to_face(entity, self._current_block)
       ai:execute('stonehearth:run_effect', { effect = 'mine' })
+
+      -- any time we yield, check to make sure we're still in the same location
+      if radiant.entities.get_world_grid_location(entity) ~= worker_location then
+         ai:abort('entity moved and must again think before mining more blocks')
+         return
+      end
+
       local loot = mining_zone_component:mine_point(self._current_block)
       local items = radiant.entities.spawn_items(loot, worker_location, 1, 3, { owner = entity })
 

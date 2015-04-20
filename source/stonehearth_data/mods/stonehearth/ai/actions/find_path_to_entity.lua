@@ -64,7 +64,7 @@ function FindPathToEntity:_start_pathfinder(ai)
    -- If we're not thinking ahead, then we're trying to find a path from where the AI is _right_ _now_.  If we
    -- move too far while thinking, restart the pathfinder.
    if not self._is_future then
-      self._position_trace = radiant.entities.trace_location(self._entity, 'path restart')
+      self._position_trace = radiant.entities.trace_grid_location(self._entity, 'path restart')
                                                 :on_changed(function()
                                                    self:_on_position_changed(ai)
                                                 end)
