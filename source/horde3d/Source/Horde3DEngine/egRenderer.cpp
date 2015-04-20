@@ -28,6 +28,7 @@
 #include "egCom.h"
 #include <cstring>
 #include <sstream>
+#include <regex>
 #if defined(OPTIMIZE_GSLS)
 #include <glsl/glsl_optimizer.h>
 #endif
@@ -151,18 +152,27 @@ void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpu
 
       // These combos don't like const vec3 arrays in GLSL (supported in GLSL since 3.0!)
       if (strstr(gRDI->getCaps().vendor, "Intel") != nullptr) {
-         if (gRDI->getCaps().glVersion < 4.1) {
+         if (gRDI->getCaps().glVersion < 41) {
             // If we're seeing an early OGL driver, don't even bother.
             rendererCaps->HighQualityRendererSupported = false;
-         } else if (strstr(gRDI->getCaps().version, "10.18.10.3345") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3308") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3355") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3412") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3496") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3621") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.10.3540") != nullptr ||
-             strstr(gRDI->getCaps().version, "10.18.14.4156") != nullptr) {
-            rendererCaps->HighQualityRendererSupported = false;
+         } else {
+            std::cmatch cm;
+            std::regex e("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)");
+            std::regex_search(gRDI->getCaps().version, cm, e);
+
+            if (cm.size() == 5) {
+               const int lastBadDriver[] = {10, 18, 14, 4156};  // 10.18.14.4156
+               rendererCaps->HighQualityRendererSupported = false;
+               for (int i = 1; i < 5; i++) {
+                  int v = atoi(cm[i].str().c_str());
+                  if (v > lastBadDriver[i - 1]) {
+                     rendererCaps->HighQualityRendererSupported = true;
+                     break;
+                  } else if (v < lastBadDriver[i - 1]) {
+                     break;
+                  }
+               }
+            }
          }
       }
 
