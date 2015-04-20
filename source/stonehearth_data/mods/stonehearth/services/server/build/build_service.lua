@@ -679,9 +679,11 @@ end
 
 function BuildService:grow_walls(floor, column_brush, wall_brush)
    local building = build_util.get_building_for(floor)
+   local walls = nil
    build_util.grow_walls_around(floor, function(min, max, normal)
-         self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
+         walls = self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
       end)
+   return walls
 end
 
 
