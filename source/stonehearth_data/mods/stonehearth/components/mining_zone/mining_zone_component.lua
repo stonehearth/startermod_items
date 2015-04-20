@@ -307,6 +307,7 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
    self:_add_top_facing_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
    self:_add_side_and_bottom_blocks(destination_region, zone_location, working_region, working_bounds, unsupported_region)
    self:_add_unsupported_blocks(destination_region, zone_location, unsupported_region)
+   self:_remove_stepping_blocks(destination_region)
 
    if destination_region:empty() then
       -- fallback condition
@@ -463,6 +464,16 @@ function MiningZoneComponent:_add_all_exposed_blocks(destination_region, zone_lo
          destination_region:add_region(face_region)
       end
    end
+end
+
+-- remove blocks from destination region that may be needed as steps to reach higher blocks
+function MiningZoneComponent:_remove_stepping_blocks(destination_region)
+   local temp = destination_region:translated(Point3(0, -MAX_REACH_UP-1, 0))
+   -- Inflate because we mine adjacent x,z blocks not blocks directly overhead.
+   -- Technically we should inflate x and z separately to exclude diagonals, but we do this instead
+   -- for performance on complex regions and perhaps visual aesthetics
+   temp = temp:inflated(Point3(1, 0, 1))
+   destination_region:subtract_region(temp)
 end
 
 -- Note that nothing in ths component is directly listening to terrain changes yet, so we will miss minable
