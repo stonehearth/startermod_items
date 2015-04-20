@@ -33,7 +33,6 @@ App.StonehearthCitizensView = App.View.extend({
       // remember the citizen for the row that the mouse is over
       this.$().on('mouseenter', '.row', function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' }); // Mouse over SFX
-         self._activeRowCitizen = self._rowToCitizen($(this));
       });
 
       // move camera control
@@ -45,9 +44,6 @@ App.StonehearthCitizensView = App.View.extend({
          var citizen = self._rowToCitizen(row);
          
          if (citizen) {
-            radiant.call('stonehearth:camera_look_at_entity', citizen.__self);
-            radiant.call('stonehearth:select_entity', citizen.__self);
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:focus' });
          }
          
          event.stopPropagation();
@@ -66,23 +62,54 @@ App.StonehearthCitizensView = App.View.extend({
          event.stopPropagation();
       });
 
+      this.$().on('click', '.menuButton', function() {  
+         var citizen = self._rowToCitizen($(this));
+
+         // unselect the selected row, unconditionally. This prevents confusing things like the menu coming up
+         // for one citizen, and the top toolbar appearing for the 2nd.
+         self.$('.row').removeClass('selected');         
+         self.set('selectedCitizen', null);
+         self.set('activeCitizen', citizen);
+
+         var menuUp = $(this).hasClass('active');
+
+         self.$('.menuButton').removeClass('active');
+         
+         if (!menuUp) {
+            $(this).addClass('active');      
+         }
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click' });  // selecting which citizen you want SFX          
+      });
+
       // show toolbar control
       this.$().on('click', '.row', function() {  
-         var selected = $(this).hasClass('selected'); // so we can toggle!
-         self.$('.row').removeClass('selected');
-         
-         if (!selected) {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click' });  // selecting which citizen you want SFX 
-            $(this).addClass('selected');   
-         }
+         var el = $(this);
+         var citizen = self._rowToCitizen(el);
 
+         // clear all menus, unconditionally
+         self.$('.menuButton').removeClass('active');
+         
+         self.set('selectedCitizen', citizen);
+
+         var selected = el.hasClass('selected');
+         self.$('.row').removeClass('selected');
+         el.addClass('selected');   
+         
+         if (citizen) {
+            radiant.call('stonehearth:camera_look_at_entity', citizen.__self);
+            radiant.call('stonehearth:select_entity', citizen.__self);
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:focus' });
+         } else {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click' });  // selecting which citizen you want SFX 
+         }
       });
 
    },
 
    actions: {
-      doCommand: function(command) {
-         App.stonehearthClient.doCommand(this._activeRowCitizen.__self, command);
+      doCommand: function(command) {  
+         var citizen = this.get('selectedCitizen') || this.get('activeCitizen');
+         App.stonehearthClient.doCommand(citizen.__self, command);
       }
    },
 
