@@ -42,7 +42,7 @@ function ChooseLocationOutsideTown:activate()
 end
 
 function ChooseLocationOutsideTown:_try_finding_location()
-      -- choose a distance and start looking
+   -- choose a distance and start looking
 
    local d = rng:get_int(self._sv.min_range, self._sv.max_range)
    local player_banner = stonehearth.town:get_town(self._sv.player_id)
@@ -53,15 +53,17 @@ function ChooseLocationOutsideTown:_try_finding_location()
          local test_region = self._sv.target_region:translated(location)
          local intersection = radiant.terrain.intersect_region(test_region)
          if not intersection:empty() then
-            self._log:info('location has terrain overhanging it.  trying again')
+            self._log:info('location (%d, %d, %d) has terrain overhanging it.  trying again', location.x, location.y, location.z)
             self:_try_later()
+            return
          end 
 
          --Check that the region is supported by terrain (translateD makes a copy of the region, yay!)
          intersection = radiant.terrain.intersect_region(test_region:translated(-Point3.unit_y))
          if intersection:get_area() ~= test_region:get_area() then
-            self._log:info('location not flat.  trying again')
+            self._log:info('location %d, %d, %d)  not flat.  trying again', location.x, location.y, location.z)
             self:_try_later()
+            return     
          end
       end
 
