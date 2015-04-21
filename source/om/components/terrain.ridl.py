@@ -45,7 +45,7 @@ class Terrain(Component):
    """
    void SetBounds(csg::Cube3f const& bounds);
    void GrowBounds(csg::Cube3f const& cube);
-   Region3BoxedTiledPtr CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles);
+   Region3BoxedTiledPtr CreateTileAccessor(Region3BoxedPtrMap& tiles);
    void ReadConfigFile();
    void DeferredInitialize();
 
