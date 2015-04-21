@@ -270,6 +270,7 @@ local constants = {
       WETTING_VOLUME = 0.25,            -- the volume of water consumed to make a block wet
       MERGE_ELEVATION_THRESHOLD = 0.1,  -- how close the water levels have to be before allowing a standard merge
       MERGE_VOLUME_THRESHOLD = 1,       -- how much water has to flow to equalize water levels for a merge
+      EDGE_AREA_LIMIT = 64,
    },
 }
 

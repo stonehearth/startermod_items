@@ -453,7 +453,7 @@
    "start_building" : "Build!",
    "pause_building" : "Pause building",
    "save_building_template" : "Save",
-   "finished_editing" : "Finished",
+   "finished_editing" : "Finished Editing",
    "start_editing" : "Edit",
 
    "stockpiles_task_group" : "Stockpiles", 

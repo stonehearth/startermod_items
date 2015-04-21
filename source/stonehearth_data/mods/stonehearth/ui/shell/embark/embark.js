@@ -120,9 +120,9 @@ App.StonehearthEmbarkView = App.View.extend({
          self.$('#scroll').show();
 
          terrainType = i18n.t(cell.terrain_code);
-         vegetationDescription = i18n.t('vegetation_' + cell.vegetation_density);
-         wildlifeDescription = i18n.t('wildlife_' + cell.wildlife_density);
-         mineralDescription = i18n.t('mineral_' + cell.mineral_density);
+         vegetationDescription = cell.vegetation_density;
+         wildlifeDescription = cell.wildlife_density;
+         mineralDescription = cell.mineral_density;
 
          if (cell.terrain_code != this._prevTerrainCode) {
             var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)'
@@ -132,7 +132,12 @@ App.StonehearthEmbarkView = App.View.extend({
             
             this._prevTerrainCode = cell.terrain_code;
          }
+
+         self._updateTileRatings(self.$('#vegetation'), cell.vegetation_density);
+         self._updateTileRatings(self.$('#wildlife'), cell.wildlife_density);
+         self._updateTileRatings(self.$('#minerals'), cell.mineral_density);
          
+         /*
          self.$('#vegetation')
             .removeAttr('class')
             .addClass('level' + cell.vegetation_density)
@@ -147,8 +152,18 @@ App.StonehearthEmbarkView = App.View.extend({
             .removeAttr('class')
             .addClass('level' + cell.mineral_density)
             .html(mineralDescription);
+         */
       } else {
          self.$('#scroll').hide();
+      }
+   },
+
+   _updateTileRatings: function(el, rating) {
+      el.find('.bullet')
+         .removeClass('full');
+
+      for(var i = 1; i < rating + 1; i++) {
+         el.find('.' + i).addClass('full');
       }
    },
 

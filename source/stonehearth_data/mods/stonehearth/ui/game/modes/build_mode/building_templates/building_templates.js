@@ -66,8 +66,12 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
          });
 
       self.$().on('mouseleave', '#templatesList .row', function() {        
-            self.$('#buildingTemplatesDetailsPopup').hide();
-         });
+         self.$('#buildingTemplatesDetailsPopup').hide();
+      });
+
+      self.$('#customBuildingButton').click(function() {
+         $(top).trigger('stonehearth_building_designer');
+      });
    },
 
 });

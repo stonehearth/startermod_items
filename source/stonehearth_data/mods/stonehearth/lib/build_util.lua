@@ -709,13 +709,13 @@ function build_util.edge_loop_to_region2(edges, bounds)
    return region2
 end
 
-function build_util.calculate_roof_shape(region2, roof_brush, options)
+function build_util.calculate_roof_shape(region2, options)
    local slope = options.nine_grid_slope
    local y_offset = options.nine_grid_y_offset
    local gradiant = options.nine_grid_gradiant
    local max_height = options.nine_grid_max_height
 
-   local brush = _radiant.voxel.create_nine_grid_brush(roof_brush)
+   local brush = _radiant.voxel.create_nine_grid_brush(options.brush)
                                  :set_grid_shape(region2)
                                  :set_slope(slope or 1)
 
@@ -755,7 +755,7 @@ function build_util.calculate_roof_shape(region2, roof_brush, options)
    return brush:paint_once()
 end
 
-function build_util.calculate_roof_shape_around_walls(root_wall, roof_brush, options)
+function build_util.calculate_roof_shape_around_walls(root_wall, options)
    local last_edge_count, new_edge_count = 0, 0
    local edges, walls = {}, {}
    local bounds = Rect2(Point2(INFINITE, INFINITE), Point2(INFINITE, INFINITE))
