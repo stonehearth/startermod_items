@@ -302,6 +302,9 @@ private:
       std::unique_ptr<FlameGraphHud>   _flameGraphHud;
       std::function<om::DataStoreRef(int storeId)> _allocDataStoreFn;
 
+      std::string                 _asyncLoadName;
+      bool                        _asyncLoadPending;
+
       ShowDebugShapesMode         _showDebugShapesMode;
 
 };
