@@ -21,6 +21,8 @@ function MiningService:initialize()
 
    if not self._sv._initialized then
       self._sv._initialized = true
+      -- TODO: consider making mined_region a tiled region
+      self._sv._mined_region = Region3()
       self.__saved_variables:mark_changed()
    else
    end
@@ -181,6 +183,15 @@ function MiningService:merge_zones(zone1, zone2)
    radiant.entities.destroy_entity(zone2)
 end
 
+function MiningService:get_mined_region()
+   return self._sv._mined_region
+end
+
+function MiningService:_add_to_mined_region(point)
+   self._sv._mined_region:add_point(point)
+   self._sv._mined_region:optimize_by_merge('MiningService:_add_to_mined_region')
+end
+
 -- Chooses the best point to mine when standing on from.
 function MiningService:resolve_point_of_interest(from, mining_zone)
    local location = radiant.entities.get_world_grid_location(mining_zone)
@@ -325,10 +336,10 @@ function MiningService:roll_loot(block_kind)
    return uris
 end
 
--- temporary location for this function
 function MiningService:mine_point(point)
    -- TODO: terrain tiles need to be checked for optimization
    radiant.terrain.subtract_point(point)
+   self:_add_to_mined_region(point)
    self:_update_interior_region(point)
 end
 

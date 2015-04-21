@@ -210,6 +210,8 @@ function CalendarService:_queue_alarm(alarm)
    self.__saved_variables:mark_changed()
 end
 
+--TODO: if you set an alarm whose "flex time" takes the alarm to past
+--the bounds of the current day, this fn fails to ever fire that alarm
 function CalendarService:_fire_alarms(alarm)
    local now = self._sv.seconds_today
 

@@ -84,8 +84,8 @@ private:
    std::unordered_map<dm::ObjectId, dm::TracePtr> _cut_trace_map;
    int                  _clip_height;
    bool                 _enable_xray_mode;
-   std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> _xray_region_tiles;
-   om::Region3TiledPtr _xray_tiles_accessor;
+   om::Region3PtrMap    _xray_region_tiles;
+   om::Region3TiledPtr  _xray_tiles_accessor;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

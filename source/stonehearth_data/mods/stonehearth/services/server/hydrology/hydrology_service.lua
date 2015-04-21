@@ -333,7 +333,7 @@ end
 -- get_water_body. Terrain modifications want to create empty water bodies and let the channels
 -- test to fill them.
 function HydrologyService:create_water_body(location)
-   return self:_create_water_body_impl(location)
+   return self:_create_water_body_internal(location)
 end
 
 -- Optimzied path to create a water body that is already filled.
@@ -356,10 +356,10 @@ function HydrologyService:create_water_body_with_region(region, height)
          cursor:translate(-location)
       end)
 
-   return self:_create_water_body_impl(location, boxed_region, height)
+   return self:_create_water_body_internal(location, boxed_region, height)
 end
 
-function HydrologyService:_create_water_body_impl(location, boxed_region, height)
+function HydrologyService:_create_water_body_internal(location, boxed_region, height)
    if boxed_region == nil then
       boxed_region = _radiant.sim.alloc_region3()
       height = 0
@@ -367,6 +367,10 @@ function HydrologyService:_create_water_body_impl(location, boxed_region, height
 
    local entity = radiant.entities.create_entity('stonehearth:terrain:water')
    log:debug('Creating water body %s at %s', entity, location)
+
+   local destination_component = entity:add_component('destination')
+   destination_component:set_region(_radiant.sim.alloc_region3())
+   destination_component:set_adjacent(_radiant.sim.alloc_region3())
 
    local water_component = entity:add_component('stonehearth:water')
    water_component:set_region(boxed_region, height)

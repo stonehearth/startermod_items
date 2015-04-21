@@ -29,7 +29,11 @@
             "max" : 4,
             "location" : { "x": 0, "z": -0 },
             "range" : 6
-         }
+         },
+         "equipment" : {
+            "weapon" : ["stonehearth:mining_pick", "stonehearth:worker_hammer"]
+         },
+         "combat_leash_range" : 30
       },
 
       "guards" : {
@@ -46,5 +50,6 @@
             "outfit" : "stonehearth:monsters:goblins:outfits:footman"
          }
       }
+      
    }
 }
