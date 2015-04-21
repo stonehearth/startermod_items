@@ -482,7 +482,7 @@ void Region<S, C>::OptimizeByMerge(const char* reason)
       return;
    }
 
-   if (_churn < (int)count) {
+   if (_churn < (int)count/4) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
       return;
@@ -1244,6 +1244,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::OptimizeByDefragmentation(const char*); \
    template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
+   template void Cls::ForceOptimizeByDefragmentation(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
    template int Cls::GetTag(const Cls::Point& pt) const; \
    template void Cls::Translate(const Cls::Point& pt); \
