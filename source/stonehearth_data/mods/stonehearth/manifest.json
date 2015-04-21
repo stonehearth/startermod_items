@@ -919,7 +919,8 @@
       "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)",
       "abilities:thief_abilities" : "file(entities/abilities/thief_abilities.json)",
       "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)",
-      "abilities:wolf_rider_abilities" : "file(entities/abilities/wolf_rider_abilities.json)" 
+      "abilities:wolf_rider_abilities" : "file(entities/abilities/wolf_rider_abilities.json)", 
+      "abilities:undead_raid_abilities" : "file(entities/abilities/undead_raid_abilities.json)"
    },
    "functions" : {
       "save_browser_object": {
