@@ -281,7 +281,7 @@ function BuildService:_add_floor_type(session, floor_brush, box, category)
       if not merged_cd then
          merged_floor = entity
          merged_cd = merged_floor:get_component('stonehearth:construction_data')
-         merged_cd:paint_world_region(floor_brush, floor_region)
+         merged_cd:paint_on_world_region(floor_brush, floor_region)
       else
          local rgn = entity:get_component('destination')
                               :get_region()
@@ -508,7 +508,7 @@ function BuildService:_add_new_floor_to_building(building, floor_brush, floor_re
    
    local floor_ent = self:_create_blueprint(building, 'stonehearth:build:prototypes:' .. prototype, local_origin, function(floor)
          floor:add_component('stonehearth:construction_data')
-                  :paint_world_region(floor_brush, floor_region)
+                  :paint_on_world_region(floor_brush, floor_region)
       end)
                
    floor_ent:get_component('stonehearth:floor')
