@@ -163,6 +163,20 @@ function env.create_stockpile(x, z, options)
    return inventory:create_stockpile(location, size)
 end
 
+function env.create_farm(x, z, options)
+   local location
+   if radiant.util.is_a(x, Point3) then
+      location, options = x, z -- shift options down...
+   else
+      location = Point3(x, 1, z)
+   end
+
+   local size = options.size or { x = 2, y = 2}
+
+   local field = stonehearth.farming:create_new_field(env.session, location, size)
+   field:get_component('stonehearth:farmer_field'):change_default_crop(nil, nil, options.crop)
+end
+
 function env.create_trapping_grounds(x, z, options)
    options = options or {}
    
