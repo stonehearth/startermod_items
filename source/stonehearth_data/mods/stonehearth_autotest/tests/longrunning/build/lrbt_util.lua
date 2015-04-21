@@ -122,8 +122,8 @@ function lrbt_util.grow_wooden_walls(session, entity)
    return stonehearth.build:grow_walls(floor, WOODEN_COLUMN, WOODEN_WALL)
 end
 
-function lrbt_util.grow_wooden_roof(session, building)
-   return stonehearth.build:grow_roof(building, WOODEN_ROOF, {
+function lrbt_util.grow_wooden_roof(session, walls)
+   return stonehearth.build:grow_roof(walls, WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })
