@@ -1,4 +1,4 @@
-TimeTracker = class()
+local TimeTracker = class()
 
 function TimeTracker:initialize()
    self._sv._timers = {}
@@ -13,7 +13,8 @@ function TimeTracker:set_now(now)
    if not self._sv._next_timers then
       self._sv._next_timers = {}
    end
-   for i, timer in ipairs(self._sv._timers) do
+
+   for _, timer in pairs(self._sv._timers) do
       if timer:is_active() then
          if timer:get_expire_time() <= now then
             timer:fire(now)
