@@ -253,6 +253,16 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          });
    },
 
+   _onImageMapHover: function(palette, toolId) {
+      var background = 'none';
+      if (toolId) {
+         background = 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)';
+      }
+      this.$('#' + palette + ' .hoverDisplay').css({
+            'background-image' : background
+         });
+   },
+
    _addEventHandlers: function() {
       var self = this;
 
@@ -275,6 +285,21 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             self.activateTool(self.actions[toolId]);
          }
       });
+
+      this.$(".palette area").hover( function() { 
+            // update the hover display, on hover in
+            var el = $(this);
+            var toolId = el.attr('tool');
+            var palette = el.attr('palette');
+
+            self._onImageMapHover(palette, toolId);
+         }, function() { 
+            var el = $(this);
+            var palette = el.attr('palette');
+
+            // update the hover display, on hover out
+            self._onImageMapHover(palette);
+         });
 
       // building buttons
       this.$().on( 'click', '#showOverview', function() {
