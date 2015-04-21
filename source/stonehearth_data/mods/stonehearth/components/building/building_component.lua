@@ -210,11 +210,15 @@ end
 
 function Building:get_building_footprint()
    local region = Region3()
+   local origin = radiant.entities.get_world_grid_location(self._entity)
    for _, kind in ipairs(STRUCTURE_TYPES) do
       for id, entry in pairs(self._sv.structures[kind]) do
-         local rcs = entry.entity:get_component('region_collision_shape')
+         local entity = entry.entity
+         local rcs = entity:get_component('region_collision_shape')
          if rcs then
-            region:add_region(rcs:get_region():get())
+            local location = radiant.entities.get_world_grid_location(entity)
+            local offset = location - origin
+            region:add_region(rcs:get_region():get():translated(offset))
          end
       end
    end
@@ -274,54 +278,62 @@ function Building:_untrace_entity(id)
 end
 
 function Building:grow_local_box_to_roof(entity, local_box)
-   local p0, p1 = local_box.min, local_box.max
-
-   local shape = Region3(local_box)
    -- iterate over all the entities that are "above" us
+   local origin = radiant.entities.get_world_grid_location(entity)
    local clipper = Cube3(local_box.min, local_box.max)
+   clipper.min.y = local_box.max.y
    clipper.max.y = INFINITE
+   clipper:translate(origin)
+
    local overhead = radiant.terrain.get_entities_in_cube(clipper, function(e)
          return build_util.get_building_for(e) == self._entity
       end)
 
+   local p0, p1 = local_box.min + origin, local_box.max + origin
+
+   local merged_roof_overhang = Region3()
    for _, roof in pairs(overhead) do
-      local roof_region = roof:get_component('destination'):get_region():get()
+      if roof ~= entity and build_util.is_blueprint(roof) then
+         local roof_origin = radiant.entities.get_world_grid_location(roof)
+         local roof_region = roof:get_component('destination')
+                                    :get_region()
+                                       :get()
+                                          :translated(roof_origin)
 
-      local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
-                            Point3(p1.x, INFINITE, p1.z))
-      
-      -- translate the stencil into the roof's coordinate system, clip it,
-      -- then transform the result back to our coordinate system
-      local offset = radiant.entities.get_location_aligned(roof) -
-                     radiant.entities.get_location_aligned(entity)
-
-      local roof_overhang = roof_region:clipped(stencil:translated(-offset))                                       
-                                       :translated(offset)
-     
-      -- iterate through the overhang and merge shingle that are atop each
-      -- other
-      local merged_roof_overhang = Region3()
-      for shingle in roof_overhang:each_cube() do
-         local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
-                              Point3(shingle.max.x, INFINITE,      shingle.max.z))
-         merged_roof_overhang:add_cube(merged)
-      end
-
-      -- iterate through each "shingle" in the overhang, growing the shape
-      -- upwards toward the base of the shingle.
-      for shingle in merged_roof_overhang:each_cube() do
-         local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
-                           Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-         -- In specific circumstances, (L-shaped room with the vertical part of
-         -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
-         -- slopes perpendicular to the vertical part of the 'L'), we get walls
-         -- that pass through shingles more than once, and therefore cannot be added
-         -- uniquely. This trips an assert/crashes the game, so let's just add
-         -- them blindly, for now. -- klochek-rad
-         shape:add_cube(col)
+         local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
+                               Point3(p1.x, INFINITE, p1.z))
+         
+         -- clip out the part above us..
+         local roof_overhang = roof_region:clipped(stencil)
+        
+         -- iterate through the overhang and merge shingle that are atop each
+         -- other
+         for shingle in roof_overhang:each_cube() do
+            local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
+                                 Point3(shingle.max.x, INFINITE,      shingle.max.z))
+            merged_roof_overhang:add_cube(merged)
+         end
       end
    end
-   return shape
+
+   local shape = Region3(local_box:translated(origin))
+
+   -- iterate through each "shingle" in the overhang, growing the shape
+   -- upwards toward the base of the shingle.
+   for shingle in merged_roof_overhang:each_cube() do
+      local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
+                        Point3(shingle.max.x, shingle.min.y, shingle.max.z))
+      -- In specific circumstances, (L-shaped room with the vertical part of
+      -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
+      -- slopes perpendicular to the vertical part of the 'L'), we get walls
+      -- that pass through shingles more than once, and therefore cannot be added
+      -- uniquely. This trips an assert/crashes the game, so let's just add
+      -- them blindly, for now. -- klochek-rad
+      shape:add_cube(col)
+   end
+   
+   -- translate back into local coordinates before returning
+   return shape:translated(-origin)
 end
 
 -- links will be put back by the BuildingUndoManager

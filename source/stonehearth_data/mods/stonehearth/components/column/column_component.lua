@@ -32,7 +32,7 @@ function Column:layout()
    rgn:translate(origin)
 
    self._entity:get_component('stonehearth:construction_data')
-            :paint_world_region(self._sv.brush, rgn)
+            :paint_on_world_region(self._sv.brush, rgn, true)
 
    return self
 end
