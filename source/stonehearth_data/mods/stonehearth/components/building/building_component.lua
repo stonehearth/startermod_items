@@ -551,7 +551,7 @@ function Building:_recommend_patch_wall_material(origin, shape)
 end
 
 
--- fires when a child finishes construction.  building's cannot use the dependenc/inverse_dependency
+-- fires when a child finishes construction.  building's cannot use the dependency/inverse_dependency
 -- system to figure out when they're finished.  regardless of whether we're building up or tearing
 -- down, the entire building isn't finished until all of the children inside the building are
 -- finished.  manually crawl our entire entity tree to compute that, then update our contruction
@@ -691,9 +691,24 @@ function Building:_add_support_dependencies(entry)
    local footprint = build_util.get_footprint_region3(blueprint)
    footprint = radiant.entities.local_to_world(footprint, blueprint)
 
+   -- if there's a normal, also depend on the structures in that direction.
+   -- for example, this ensure that patch walls on top of roofs depend
+   -- on the little piece of roof that the hearthling needs to stand on to
+   -- build it.
+   local cd = entry.entity:get_component('stonehearth:construction_data')
+   if cd then
+      local normal = cd:get_normal()
+      if normal then
+         footprint:add_region(footprint:translated(normal))
+      end
+   end
+
    radiant.terrain.get_entities_in_region(footprint, function(e)
          if build_util.is_blueprint(e) then
-            self:_add_dependency(entry, e)
+            local building = build_util.get_building_for(e)
+            if building == self._entity then
+               self:_add_dependency(entry, e)
+            end
          end
       end)
 end
