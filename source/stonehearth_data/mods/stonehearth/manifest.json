@@ -148,6 +148,10 @@
       "weaver:spinning_wheel" : "file(jobs/weaver/weaver_spinning_wheel/weaver_spinning_wheel.json)",
       "weaver:loom" : "file(jobs/weaver/weaver_loom/weaver_loom.json)",
 
+      "cook:workbench" : "file(jobs/cook/cook_workbench)",
+      "cook:outfit" : "file(jobs/cook/cook_outfit)",
+      "cook:talisman" : "file(jobs/cook/cook_foo/cook_foo_talisman.json)",
+
       "mining_zone" : "file(entities/terrain/mining_zone/mining_zone.json)",
       "mining_zone_designation" : "file(entities/terrain/mining_zone/mining_zone_designation.json)",
 
@@ -1333,6 +1337,7 @@
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
       "class:weaver" : "file(jobs/weaver/weaver.lua)",
       "class:shepherd" : "file(jobs/shepherd/shepherd.lua)", 
+      "class:cook" : "file(jobs/cook/cook.lua)", 
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
