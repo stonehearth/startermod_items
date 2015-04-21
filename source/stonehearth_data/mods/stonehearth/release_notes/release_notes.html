@@ -1,32 +1,61 @@
 Welcome to Stonehearth! Here are the major changes in this release.
 
-<h2>64-bit Client!</h2>
+
+<h2>Water, Part 1</h2>
 <p>
-We are now shipping both 64-bit and 32-bit versions of the game. If you're running a 64-bit OS, we
-highly suggest using the 64-bit version. Choose your game version from the System tab of the Settings
-screen.
+Lakes now spawn in the world, and water behaves rationally as the terrain is deformed. There’s still a lot to do here: rivers, improvements to the simulation, swimming, and the ability to use water as a resource.
 </p>
 
-<h2>New Harvesting Commands</h2>
-The new commands are:
+<h2>Building Improvements, Part 1</h2>
+<p>
+The building system has gone through a major upgrade. This is a work-in-progress. Expect bugs and unfinished features.
+</p>
 <ul>
-  <li>Clear, to completely destroy unwanted items</li>
-  <li>Cancel Orderm to undo previously issued harvest commands</li>
-  <li>Loot, to steal items that belong to someone else. For now this means just the goblins</li>
+<li>You can now create multi-story buildings using the slab, grow-walls, and grow-roof tools!   This is especially buggy at this stage of the Alpha, but feel free to try it out.</li>
+<li>The road and building designers have been merged into a new GUI.</li>
+<li>Hearthlings are smarter about building shapes created out of slabs.</li>
+<li>Many more building patterns</li>
+<li>NOT YET IMPLEMENTED: Voxel editing tools, proper roofs for multi-story buildings.</li>
 </ul>
 
-<h2>Combat Rebalance</h2>
-<p>
-Each individual goblin is now much more of a threat, but they will come at you in fewer numbers.
-Also, there are now serveral different kinds of goblins, with different stats and behaviors.
-</p>
+<h2>Combat Improvements</h2>
+<ul>
+<li>Part 2 of the Goblin Campaign: Wolf Raiders! Send your hearthings to free the wolves from their cages before their trainer can turn them on you. </li>
+<li>Goblin Camp boss and associated minions are now appropriately armed and buffed. </li>
+<li>Wandering undead now spawn at night.</li>
+</ul>
 
-<h2>Combat Scenarios</h2>
-<p>
-The goblins now organize themselves into structured raiding camps. You'll need
-to find a way of dealing with them once they set up camp near your town.
-</p>
+<h2>UI Improvements</h2>
+<ul>
+<li>Building editor redesign. It’s now much easier to place and build buildings based on templates.</li>
+<li>New menu GUI. Reorganized the menu options to make more sense. Some hotkeys have changed.</li>
+<li>In the citizen UI. Clicking a row will not focus the camera on that Hearthling.</li>
+<li>In the embark screen, show star ratings for vegetation, wildlife, and minerals.</li>
+</ul>
 
-<h2>Shops</h2>
-Travelling merchants will visit your town every now and then. You can sell
-your excess inventory for gold, and use that gold to buy from all merchants.
+<h2>Performance Improvements</h2>
+<uL>
+<li>AI: Stonehearth can now handle many more Hearthlings thinking and working at the same time.</li>
+<li>Mining large regions and building long roads takes much less CPU time.</li>
+<li>Reduced batch-counts for 3D rendering.</li>
+</uL>
+
+
+<h2>Known Issues</h2>
+<ul>
+<li>Altered requirement equations for new citizens, net worth, food calculations.We have identified a slow memory leak introduced in Alpha 9 which makes Stonehearth use an increasingly large amount of memory the longer you play.  This will definitely be fixed before Alpha 10 ships, but is still there as of the current build.</li>
+<li>The water simulation is incomplete and is designed to error when running into an unimplemented geometry.</li>
+<li>Sometimes Hearthlings will build floor or roads before the area has been properly mined out.</li>
+<li>Hearthlings sometimes fall through the scaffolding when it's modified out from underneath them.</li>
+<li>Hearthlings sometimes build a tiny ladder in the hole for the foundation of buildings which never gets destroyed.</li>
+<li>Returning trader encounter text does not show time correctly.</li>
+<li>Immigration currently limited to 20 Hearthlings. Will raise cap with performance optimizations.</li>
+</ul>
+
+<h2>Bug Fixes</h2>
+<ul>
+<li>Hearthlings used to have difficulty mining out ceilings when already underground. They will now reserve stepping stones to allow them to reach and remove ceiling blocks.</li>
+<li>Floating trees are fixed.</li>
+<li>Enemy camps no longer spawn astride cliffs.</li>
+<li>Altered requirement equations for new citizens, net worth, food calculations.</li>
+</ul>
