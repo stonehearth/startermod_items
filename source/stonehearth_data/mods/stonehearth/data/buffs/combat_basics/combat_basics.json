@@ -6,6 +6,9 @@
    "modifiers" : {
       "courage" : {
          "add" : 100
+      },
+      "menace" : {
+         "add" : 50
       }
    } 
 } 
