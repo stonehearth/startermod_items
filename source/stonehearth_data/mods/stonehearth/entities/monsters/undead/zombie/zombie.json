@@ -33,7 +33,7 @@
          },
          "courage": {
             "type" : "basic",
-            "value" : 20
+            "value" : 50
          }
       }
    },   

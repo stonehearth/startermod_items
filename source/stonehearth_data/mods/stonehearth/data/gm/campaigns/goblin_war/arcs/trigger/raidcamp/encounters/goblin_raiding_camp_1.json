@@ -25,13 +25,15 @@
             "job" : "stonehearth:jobs:footman"
          },
 
-         "combat_leash_range" : 18,
+         "combat_leash_range" : 30,
          
          "equipment" : {
             "weapon" : ["stonehearth:weapons:giant_bone_mace", "stonehearth:weapons:giant_bone_axe"],
             "outfit" : "stonehearth:monsters:goblins:outfits:miniboss"
          },
-
+         "attributes" : {
+            "health" : 100
+         },
          "loot_drops" : {
             "num_rolls" : {
                "min" : 1,
