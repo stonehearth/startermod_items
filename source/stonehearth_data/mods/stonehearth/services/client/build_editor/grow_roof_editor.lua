@@ -15,6 +15,7 @@ end
 
 function GrowRoofEditor:destroy()
    log:debug('destroyed')
+   self._last_target = nil
    self:_destroy_preview_entities()
 end
 
@@ -25,9 +26,19 @@ function GrowRoofEditor:_destroy_preview_entities()
    end
 end
 
-function GrowRoofEditor:go(response, roof_brush, roof_options)
+function GrowRoofEditor:apply_options(roof_options)
+   self._roof_options = roof_options
+   if self._last_target then
+      local target = self._last_target
+      self._last_target = nil
+      self:_switch_to_target()
+   end
+end
+
+function GrowRoofEditor:go(response, roof_options)
    log:detail('running')
 
+   self._roof_options = roof_options
    stonehearth.selection:select_entity_tool()
       :set_cursor('stonehearth:cursors:grow_roof')
       :set_filter_fn(function(result)
@@ -54,11 +65,11 @@ function GrowRoofEditor:go(response, roof_brush, roof_options)
             return true
          end)
       :progress(function(selector, entity)
-            self:_switch_to_target(entity, roof_brush, roof_options)
+            self:_switch_to_target(entity)
          end)
       :done(function(selector, entity)
             if entity then
-               _radiant.call_obj(self._build_service, 'grow_roof_command', self._last_target, roof_brush, roof_options)
+               _radiant.call_obj(self._build_service, 'grow_roof_command', self._last_target, self._roof_options)
                   :done(function(r)
                         if r.new_selection then
                            stonehearth.selection:select_entity(r.new_selection)
@@ -76,33 +87,33 @@ function GrowRoofEditor:go(response, roof_brush, roof_options)
             log:detail('failed to select building')
             response:reject('failed')
             self:destroy()
-         end)      
+         end)
       :go()
 
    return self
 end
 
-function GrowRoofEditor:_switch_to_target(target, roof_brush, roof_options)
+function GrowRoofEditor:_switch_to_target(target)
    if target ~= self._last_target then
       self._last_target = target
       self:_destroy_preview_entities()
       if target then
-         local world_origin, region2 = build_util.calculate_roof_shape_around_walls(target, roof_brush, roof_options)
+         local world_origin, region2 = build_util.calculate_roof_shape_around_walls(target, self._roof_options)
          if region2 then
-            self:_create_preview_roof(world_origin, region2, roof_brush, roof_options)
+            self:_create_preview_roof(world_origin, region2)
          end
       end
    end
 end
 
-function GrowRoofEditor:_create_preview_roof(world_origin, region2, roof_brush, roof_options)
+function GrowRoofEditor:_create_preview_roof(world_origin, region2)
    local editor = StructureEditor()
    editor:create_blueprint('stonehearth:build:prototypes:roof', 'stonehearth:roof')
    
    local roof = editor:get_proxy_blueprint()
    roof:add_component('stonehearth:roof')
-            :apply_nine_grid_options(roof_options)
-            :cover_region2(roof_brush, region2)
+            :apply_nine_grid_options(self._roof_options)
+            :cover_region2(self._roof_options.brush, region2)
             :layout()
 
    -- sigh.  i hate that we have to do this...
