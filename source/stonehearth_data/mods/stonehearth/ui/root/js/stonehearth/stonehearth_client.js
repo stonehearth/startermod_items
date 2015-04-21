@@ -661,13 +661,13 @@ var StonehearthClient;
             };
       },
 
-      growRoof: function(roof) {
+      growRoof: function(roof, option) {
          var self = this;
 
          return function() {
             var tip = self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
 
-            return radiant.call_obj(self._build_editor, 'grow_roof', roof)
+            return radiant.call_obj(self._build_editor, 'grow_roof', roof, option)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                });

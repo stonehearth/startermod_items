@@ -692,19 +692,18 @@ end
 --    @param session - the session for the player initiating the request
 --    @param response - a response object which we'll write the result into
 --    @param building - the building to pop the roof onto
---    @param roof_brush - what kind of roof to make
 
-function BuildService:grow_roof_command(session, response, root_wall, roof_brush, roof_options)
+function BuildService:grow_roof_command(session, response, root_wall, roof_options)
    local roof
    local success = self:do_command('grow_roof', response, function()
-         roof = self:grow_roof(root_wall, roof_brush, roof_options)
+         roof = self:grow_roof(root_wall, roof_options)
       end)
 
    self:_resolve_and_select_blueprint(success, response, roof)
 end
 
-function BuildService:grow_roof(root_wall, roof_brush, roof_options)
-   local world_origin, region2 = build_util.calculate_roof_shape_around_walls(root_wall, roof_brush, roof_options)
+function BuildService:grow_roof(root_wall, roof_options)
+   local world_origin, region2 = build_util.calculate_roof_shape_around_walls(root_wall, roof_options)
    local building = build_util.get_building_for(root_wall)
    
    local structures = building:get_component('stonehearth:building')
@@ -719,7 +718,7 @@ function BuildService:grow_roof(root_wall, roof_brush, roof_options)
    local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', origin, function(roof_entity)
          roof_entity:add_component('stonehearth:roof')
                         :apply_nine_grid_options(roof_options)
-                        :cover_region2(roof_brush, region2)
+                        :cover_region2(roof_options.brush, region2)
       end)
 
    building:get_component('stonehearth:building')
