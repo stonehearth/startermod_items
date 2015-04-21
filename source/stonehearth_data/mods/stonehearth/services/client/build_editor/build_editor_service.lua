@@ -65,10 +65,6 @@ function BuildEditorService:on_selection_changed()
       self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
    end
 
-   if old_selected == selected then
-      return
-   end
-
    if old_selected and not old_selected:is_valid() then
       old_selected = nil
    end

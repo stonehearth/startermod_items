@@ -62,6 +62,10 @@
       this.set('isVisible', false);
    },
 
+   visible: function() {
+      return this.get('isVisible');
+   },
+
    invokeDestroy: function() {
       if (this.state == 'preRender') {
          Ember.run.scheduleOnce('afterRender', this, this.destroy);
