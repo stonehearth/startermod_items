@@ -18,7 +18,6 @@ local log = radiant.log.create_logger('build_editor')
 local BuildEditorService = class()
 
 function BuildEditorService:initialize()
-   self._grow_roof_options = {}
    self._sv = self.__saved_variables:get_data()
    self._sv.selected_sub_part = nil
 
@@ -134,13 +133,16 @@ function BuildEditorService:grow_walls(session, response, column_brush, wall_bru
 end
 
 function BuildEditorService:set_grow_roof_options(session, response, options)
-   self._grow_roof_options = options
+   if self._grow_roof_editor then
+      self._grow_roof_editor:apply_options(options)
+   end
    return true
 end
 
-function BuildEditorService:grow_roof(session, response, roof_brush)
-   GrowRoofEditor(self._build_service)
-         :go(response, roof_brush, self._grow_roof_options)
+function BuildEditorService:grow_roof(session, response, roof_brush, options)
+   self._grow_roof_editor = GrowRoofEditor(self._build_service)
+   self._grow_roof_editor:go(response, roof_brush, options)
+   
    --[[
    local has_roof_fn = function(building)
       for _, child in building:get_component('entity_container'):each_child() do
