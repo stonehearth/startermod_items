@@ -9,12 +9,13 @@ local INFINITE = 100000
 local OFFSCREEN = Point3(0, -INFINITE, 0)
 local UNDERGROUND = Cube3(Point3(-INFINITE, -INFINITE, -INFINITE), Point3(INFINITE, 0, INFINITE))
 local OVERGROUND  = Cube3(Point3(-INFINITE, 0, -INFINITE), Point3(INFINITE, INFINITE, INFINITE))
+local MODEL_OFFSET = Point3(0.5, 0, 0.5)
 
 local TemplateEditor = class()
 
 function TemplateEditor:__init(build_service)
    self._log = radiant.log.create_logger('builder')
-   self._build_service = build_service
+   self._build_service = build_service   
 end
 
 function TemplateEditor:_restore_template(template_name)
@@ -84,8 +85,9 @@ function TemplateEditor:go(response, template_name)
             -- it doesn't overlap with any entities which would prevent us from building
             local surface_region = Region3()
             surface_region:copy_region(self._surface_region)
+            surface_region:translate(-MODEL_OFFSET)
             surface_region:rotate(rotation)
-            surface_region:translate(location)
+            surface_region:translate(location + MODEL_OFFSET)
 
             local overlapping = radiant.terrain.get_entities_in_region(surface_region)
             for _, overlap in pairs(overlapping) do
@@ -113,7 +115,7 @@ function TemplateEditor:go(response, template_name)
             -- looks good!  let's put it here
             return true
          end)
-      :progress(function(selector, location, rotation)
+      :progress(function(selector, location, rotation)         
             if location then
                self._render_entity:set_position(location)
                self._render_entity:set_rotation(Point3(0, rotation, 0))
@@ -151,7 +153,10 @@ function TemplateEditor:destroy()
       radiant.entities.destroy_entity(self._building)
       self._building = nil
    end
-   self._render_entity = nil
+   if self._render_entity then
+      self._render_entity:destroy()
+      self._render_entity = nil
+   end
 end
 
 return TemplateEditor 

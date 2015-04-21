@@ -210,11 +210,15 @@ end
 
 function Building:get_building_footprint()
    local region = Region3()
+   local origin = radiant.entities.get_world_grid_location(self._entity)
    for _, kind in ipairs(STRUCTURE_TYPES) do
       for id, entry in pairs(self._sv.structures[kind]) do
-         local rcs = entry.entity:get_component('region_collision_shape')
+         local entity = entry.entity
+         local rcs = entity:get_component('region_collision_shape')
          if rcs then
-            region:add_region(rcs:get_region():get())
+            local location = radiant.entities.get_world_grid_location(entity)
+            local offset = location - origin
+            region:add_region(rcs:get_region():get():translated(offset))
          end
       end
    end
