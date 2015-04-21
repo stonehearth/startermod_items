@@ -183,14 +183,14 @@ end
 --    @param brush_uri - the uri of the brush used to paint the floor
 --    @param region - the region to add to the floor, in world coordinates
 --
-function ConstructionDataComponent:paint_world_region(brush_uri, world_region)
+function ConstructionDataComponent:paint_on_world_region(brush_uri, world_region, replace)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local brush = self:create_voxel_brush(brush_uri, origin)
 
    local shape = world_region:translated(-origin)
    local rgn = brush:paint_through_stencil(shape)
 
-   return self:add_local_region(rgn)
+   return self:add_local_region(rgn, replace)
 end
 
 function ConstructionDataComponent:add_world_region(world_region)
@@ -201,11 +201,15 @@ function ConstructionDataComponent:add_world_region(world_region)
    return self
 end
 
-function ConstructionDataComponent:add_local_region(rgn)
+function ConstructionDataComponent:add_local_region(rgn, replace)
    self._entity:get_component('destination')
                   :get_region()
                      :modify(function(c)                           
-                           c:add_region(rgn)
+                           if replace then
+                              c:copy_region(rgn)
+                           else
+                              c:add_region(rgn)
+                           end
                            c:optimize_by_merge('growing building structure')
                         end)         
 

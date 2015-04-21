@@ -127,9 +127,7 @@ end
 
 function Fabricator:set_teardown(teardown)
    self._teardown = teardown
-   if self._active then
-      self:_update_fabricator_region()
-   end
+   self:_update_fabricator_region()
 end
 
 function Fabricator:_initialize_existing_project(project)  
