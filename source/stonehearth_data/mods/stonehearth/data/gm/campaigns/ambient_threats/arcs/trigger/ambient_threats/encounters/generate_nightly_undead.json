@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "generator",
+
+   "in_edge"  : "nighttime_undead",
+
+   "generator_info" :  {
+      "delay" : "24h",
+      "spawn_edge" : "undead_raid"
+   }
+}

@@ -363,7 +363,7 @@ ScriptHost::ScriptHost(std::string const& site) :
    L_(nullptr),
    shut_down_(false),
    _lastHookL(nullptr),
-   enable_profile_cpu_(false),
+   _cpuProfileMethod(CpuProfilerMethod::None),
    _cpuProfilerRunning(false),
    _lastHookTimestamp(0)
 {
@@ -376,9 +376,17 @@ ScriptHost::ScriptHost(std::string const& site) :
    throw_on_lua_exceptions_ = core::Config::GetInstance().Get<bool>("lua.throw_on_lua_exceptions", false);
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
-   enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
+   bool enableCpuProfiler = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
    max_profile_length_ = (unsigned int)core::Config::GetInstance().Get<int>("lua.max_profile_length", 999999999);
-   if (enable_profile_cpu_) {
+   if (enableCpuProfiler) {
+      std::string method = core::Config::GetInstance().Get<std::string>("lua.cpu_profiler_method", "");
+      if (method == "time_accumulation") {
+         LUA_LOG(0) << "using time accmulation lua profiler";
+         _cpuProfileMethod = CpuProfilerMethod::TimeAccumulation;
+      } else {
+         LUA_LOG(0) << "using sampling lua profiler";
+         _cpuProfileMethod = CpuProfilerMethod::Sampling;
+      }
       _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_rate", 15000);
       _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1000);
    }
@@ -1336,7 +1344,7 @@ void ScriptHost::ReportCPUDump(luabind::object profTable)
 
 bool ScriptHost::ToggleCpuProfiling()
 {
-   if (!enable_profile_cpu_) {
+   if (_cpuProfileMethod == CpuProfilerMethod::None) {
       SH_LOG(1) << "cpu profiler not enabled.  set lua.enable_cpu_profiler to true";
       return false;
    }
@@ -1406,8 +1414,11 @@ bool ScriptHost::ToggleCpuProfiling()
 
 void ScriptHost::InstallProfileHook(lua_State* L)
 {
-   lua_sethook(L, ScriptHost::ProfileSampleHookFn, LUA_MASKSAMPLEPROFILE, (_cpuProfileInstructionSamplingTime * radiant::perfmon::Timer::GetHPCFrequency()) / 1000000);
-   //lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCOUNT, _cpuProfileInstructionSamplingRate);
+   if (_cpuProfileMethod == CpuProfilerMethod::TimeAccumulation) {
+      lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCOUNT, _cpuProfileInstructionSamplingRate);
+   } else if (_cpuProfileMethod == CpuProfilerMethod::Sampling) {
+      lua_sethook(L, ScriptHost::ProfileSampleHookFn, LUA_MASKSAMPLEPROFILE, (_cpuProfileInstructionSamplingTime * radiant::perfmon::Timer::GetHPCFrequency()) / 1000000);
+   }
 }
 
 void ScriptHost::RemoveProfileHook(lua_State* L)

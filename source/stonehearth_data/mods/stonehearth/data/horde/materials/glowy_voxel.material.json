@@ -11,7 +11,7 @@
       }
    },
    "shaders" : {
-      "BLOOM" : {
+      "EMISSIVE" : {
          "state" : "states/voxel/replace.state",
          "shader" : "shaders/color_only.shader"
       }

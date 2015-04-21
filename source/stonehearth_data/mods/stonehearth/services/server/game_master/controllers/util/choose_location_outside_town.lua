@@ -1,13 +1,24 @@
 local rng = _radiant.csg.get_default_rng()
 
+local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
+
 local ChooseLocationOutsideTown = class()
 
-function ChooseLocationOutsideTown:initialize(player_id, min_range, max_range, callback)
+--Choose a location outside town to create something
+--@param player_id - id of the player being targeted by the object to be spawned
+--@param min_range - minimum range at which to spawn the thing
+--@param max_range - maximum range at which to spawn the thing
+--@param callback - fn to call when we've got the region
+--@param target_region - optional, area around the target location to ensure is clear, for placing items
+function ChooseLocationOutsideTown:initialize(player_id, min_range, max_range, callback, target_region)
    checks('self', 'string', 'number', 'number', 'binding')
 
    self._sv.player_id = player_id
    self._sv.min_range = min_range
    self._sv.max_range = max_range
+   self._sv.target_region = target_region
    self._sv.callback  = callback
    self._sv.found_location = false
 end
@@ -31,11 +42,32 @@ function ChooseLocationOutsideTown:activate()
 end
 
 function ChooseLocationOutsideTown:_try_finding_location()
-      -- choose a distance and start looking
+   -- choose a distance and start looking
+
    local d = rng:get_int(self._sv.min_range, self._sv.max_range)
    local player_banner = stonehearth.town:get_town(self._sv.player_id)
                                              :get_banner()
    local success = function(location)
+      if self._sv.target_region then
+         --Check that there is no terrain above the surface of the region
+         local test_region = self._sv.target_region:translated(location)
+         local intersection = radiant.terrain.intersect_region(test_region)
+         if not intersection:empty() then
+            self._log:info('location (%d, %d, %d) has terrain overhanging it.  trying again', location.x, location.y, location.z)
+            self:_try_later()
+            return
+         end 
+
+         --Check that the region is supported by terrain (translateD makes a copy of the region, yay!)
+         intersection = radiant.terrain.intersect_region(test_region:translated(-Point3.unit_y))
+         if intersection:get_area() ~= test_region:get_area() then
+            self._log:info('location %d, %d, %d)  not flat.  trying again', location.x, location.y, location.z)
+            self:_try_later()
+            return     
+         end
+      end
+
+      --if everything is fine, succeed!
       self._log:info('found location %s', location)
       self:_finalize_location(location)
    end

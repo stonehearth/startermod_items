@@ -1,4 +1,4 @@
-TimeTracker = class()
+local TimeTracker = class()
 
 function TimeTracker:initialize()
    self._sv._timers = {}
@@ -8,8 +8,13 @@ end
 function TimeTracker:set_now(now)
    self._sv._now = now
 
-   self._sv._next_timers = {}
-   for i, timer in ipairs(self._sv._timers) do
+   -- If we're saving, then the whole Lua VM is brought down, quite likely with _next_timers 
+   -- carrying a payload.  If so, then don't clear the timers that are there.
+   if not self._sv._next_timers then
+      self._sv._next_timers = {}
+   end
+
+   for _, timer in pairs(self._sv._timers) do
       if timer:is_active() then
          if timer:get_expire_time() <= now then
             timer:fire(now)

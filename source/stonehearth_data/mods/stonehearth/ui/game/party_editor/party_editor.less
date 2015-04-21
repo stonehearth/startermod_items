@@ -13,7 +13,7 @@
       vertical-align: middle;
    }
 
-   .toolbar {
+   #toolbar {
       padding: 10px 0px;
    }
 
@@ -46,14 +46,32 @@
    }   
 }
 
-#partyEditorEditRoster {
+#partyEditorEditRoster, #partyEditor {
    position: absolute;
    left: 80px;
    top: 260px;
    width: 550px;
    height: 560px;
 
+   td:nth-child(1) {
+      white-space: nowrap;
+      width: 100%;
+   }
+
    .list {
       height: 400px;
    }
+
+   .banner {
+      display: inline-block;
+      padding-right: 6px;
+   }
+
+   .name {
+      position: relative;
+      top: -8px;
+      display: inline-block;
+   }
 }
+
+

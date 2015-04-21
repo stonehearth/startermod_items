@@ -6,7 +6,7 @@
    "out_edge" : "create_camp",
 
    "wait_for_net_worth_info" :  {
-      "threshold" : 3500,
+      "threshold" : 2000,
       "interval" : "1h"
    }
 }

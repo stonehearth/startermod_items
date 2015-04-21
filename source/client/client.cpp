@@ -121,7 +121,8 @@ Client::Client() :
    _lastSequenceNumber(0),
    _nextSysInfoPostTime(0),
    _currentUiScreen(InvalidScreen),
-    _showDebugShapesMode(ShowDebugShapesMode::None)
+   _showDebugShapesMode(ShowDebugShapesMode::None),
+   _asyncLoadPending(false)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
    _allocDataStoreFn = [this](int storeId) {
@@ -586,6 +587,11 @@ void Client::OneTimeIninitializtion()
       json::Node saveid(json::Node(f.args).get_node(0));
       return LoadGame(saveid.as<std::string>());
    });
+   core_reactor_->AddRouteV("radiant:client:load_game_async", [this](rpc::Function const& f) {
+      json::Node saveid(json::Node(f.args).get_node(0));
+      _asyncLoadName = saveid.as<std::string>();
+      _asyncLoadPending = true;
+   });
    core_reactor_->AddRouteV("radiant:client:delete_save_game", [this](rpc::Function const& f) {
       json::Node saveid(json::Node(f.args).get_node(0));
       DeleteSaveGame(saveid.as<std::string>());
@@ -935,6 +941,11 @@ void Client::setup_connections()
 void Client::mainloop()
 {
    ASSERT(browser_ != nullptr);
+
+   if (_asyncLoadPending) {
+      _asyncLoadPending = false;
+      LoadGame(_asyncLoadName);
+   }
 
    PushPerformanceCounters();
    process_messages();

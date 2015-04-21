@@ -60,6 +60,13 @@ end
 -- For example, select aggressive vs appeasement campaign?
 -- TODO: pass data into the arc so the next arc has some data about the previous arc
 function Campaign:_select_arc_of_type(target_arc_type, data)
+   -- Call debug function, if we have one, to select a specific arc that isn't the current target_arc_type
+   local arc_override = stonehearth.game_master:call_debug_hook('override_campaign_arc', self, target_arc_type, data)
+   if arc_override then
+      target_arc_type = arc_override
+   end
+
+   -- return to normal function
    local arcs_of_type = self:_create_arc_nodelist(target_arc_type)
    local name, arc = arcs_of_type:elect_node()
    if not arc then 

@@ -3,12 +3,12 @@
    "encounter_type" : "create_mission",
    "rarity" : "common",
 
-   "in_edge"  : "nighttime_undead",
+   "in_edge"  : "undead_raid",
 
    "create_mission_info" : {
       "spawn_range" : {
          "min" : 50,
-         "max" : 60
+         "max" : 160
       },
 
       "mission" : {
@@ -19,7 +19,7 @@
 
          "sighted_bulletin" : {
             "title" : "BRAAIAINANANSSSSSS!",
-            "message" : "Gonna get you!"
+            "message" : "Ouurrrrr tooowwwnnn!!!!"
          },
 
          "members" : {
@@ -27,26 +27,36 @@
                "from_population" : {
                   "role" : "zombie",
                   "location" : { "x": 0, "z": 0 },
-                  "min" : 3,
-                  "max" : 6,
+                  "min" : 1,
+                  "max" : 4,
                   "range" : 20
                },
 
                "equipment" : {
-                  "weapon" : [ "stonehearth:weapons:jagged_cleaver" ]
+                  "weapon" : [ "stonehearth:weapons:jagged_cleaver" ], 
+                  "abilities" : "stonehearth:abilities:undead_raid_abilities"
+               },
+               "attributes" : {
+                  "raid_timeout_minutes" : 360,
+                  "raid_timeout_variance_minutes" : 60
                }
             },
             "skeletons" : {
                "from_population" : {
                   "role" : "skeleton",
                   "location" : { "x": 3, "z": 3 },
-                  "min" : 2,
-                  "max" : 5,
+                  "min" : 0,
+                  "max" : 3,
                   "range" : 20
                },
 
                "equipment" : {
-                  "weapon" : [ "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ]
+                  "weapon" : [ "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+                  "abilities" : "stonehearth:abilities:undead_raid_abilities"
+               },
+               "attributes" : {
+                  "raid_timeout_minutes" : 360,
+                  "raid_timeout_variance_minutes" : 45
                }
             }            
          }

@@ -27,23 +27,28 @@ end
 function MineAdjacent:run(ai, entity, args)
    local mining_zone = args.mining_zone
    local mining_zone_component = args.mining_zone:add_component('stonehearth:mining_zone')
-   local destination_component = args.mining_zone:add_component('destination')
    local zone_location = radiant.entities.get_world_grid_location(mining_zone)
    -- the actual location of the worker, which typically stops short of moving completely to the adjacent
    local worker_location = radiant.entities.get_world_grid_location(entity)
 
    ai:unprotect_argument(args.mining_zone)
+   self._destination_component = args.mining_zone:add_component('destination')
    self._current_block = args.point_of_interest
 
    while self._current_block do
-      self._reserved_region = stonehearth.mining:get_reserved_region_for_poi(self._current_block, self._adjacent_location, mining_zone)
-      self._reserved_region:translate(-zone_location)
-      destination_component:get_reserved():modify(function(cursor)
-            cursor:add_region(self._reserved_region)
-         end)
+      local reserved_blocks = stonehearth.mining:get_reserved_region_for_poi(self._current_block, self._adjacent_location, mining_zone)
+      reserved_blocks:translate(-zone_location)
+      self:_reserve_blocks(reserved_blocks)
 
       radiant.entities.turn_to_face(entity, self._current_block)
       ai:execute('stonehearth:run_effect', { effect = 'mine' })
+
+      -- any time we yield, check to make sure we're still in the same location
+      if radiant.entities.get_world_grid_location(entity) ~= worker_location then
+         ai:abort('entity moved and must again think before mining more blocks')
+         return
+      end
+
       local loot = mining_zone_component:mine_point(self._current_block)
       local items = radiant.entities.spawn_items(loot, worker_location, 1, 3, { owner = entity })
 
@@ -53,10 +58,8 @@ function MineAdjacent:run(ai, entity, args)
       if mining_zone:is_valid() then
          -- The reserved region may include support blocks. We must release it before looking
          -- for the next block to mine so that they will be included as candidates.
-         destination_component:get_reserved():modify(function(cursor)
-               cursor:subtract_region(self._reserved_region)
-               self._reserved_region = nil
-            end)
+         self:_release_blocks()
+         
          self._current_block = stonehearth.mining:resolve_point_of_interest(self._adjacent_location, mining_zone)
          -- prevent the worker from mining the block he is currently standing on
          if self._current_block and self._current_block == worker_location - Point3.unit_y then
@@ -69,17 +72,28 @@ function MineAdjacent:run(ai, entity, args)
 end
 
 function MineAdjacent:stop(ai, entity, args)
-   if self._reserved_region and args.mining_zone:is_valid() then
-      local destination_component = args.mining_zone:add_component('destination')
+   self:_release_blocks()
 
-      destination_component:get_reserved():modify(function(cursor)
-            cursor:subtract_region(self._reserved_region)
+   self._current_block = nil
+   self._adjacent_location = nil
+   self._destination_component = nil
+end
+
+function MineAdjacent:_reserve_blocks(region)
+   self._reserved_blocks = region
+   self._destination_component:get_reserved():modify(function(cursor)
+         cursor:add_region(region)
+      end)
+end
+
+function MineAdjacent:_release_blocks()
+   if self._reserved_blocks and self._destination_component:is_valid() then
+      self._destination_component:get_reserved():modify(function(cursor)
+            cursor:subtract_region(self._reserved_blocks)
          end)
    end
 
-   self._reserved_region = nil
-   self._current_block = nil
-   self._adjacent_location = nil
+   self._reserved_blocks = nil
 end
 
 return MineAdjacent

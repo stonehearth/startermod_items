@@ -923,7 +923,8 @@
       "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)",
       "abilities:thief_abilities" : "file(entities/abilities/thief_abilities.json)",
       "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)",
-      "abilities:wolf_rider_abilities" : "file(entities/abilities/wolf_rider_abilities.json)" 
+      "abilities:wolf_rider_abilities" : "file(entities/abilities/wolf_rider_abilities.json)", 
+      "abilities:undead_raid_abilities" : "file(entities/abilities/undead_raid_abilities.json)"
    },
    "functions" : {
       "save_browser_object": {
@@ -1484,6 +1485,7 @@
    "client_components" : {
       "building" : "file(components/building/building_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
+      "roof" : "file(components/roof/roof_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",
       "fixture" : "file(components/fixture/fixture_component.lua)",

@@ -10,6 +10,10 @@ local Region3 = _radiant.csg.Region3
 --
 function Column:initialize(entity, json)
    self._entity = entity
+   if not self._sv.connected_walls then
+      self._sv.connected_walls = {}
+      self.__saved_variables:mark_changed()
+   end
 end
 
 function Column:set_brush(brush)
@@ -28,9 +32,18 @@ function Column:layout()
    rgn:translate(origin)
 
    self._entity:get_component('stonehearth:construction_data')
-            :paint_world_region(self._sv.brush, rgn)
+            :paint_on_world_region(self._sv.brush, rgn, true)
 
    return self
+end
+
+function Column:get_connected_walls(entity)
+   return self._sv.connected_walls
+end
+
+function Column:connect_to(wall)
+   self._sv.connected_walls[wall:get_id()] = wall
+   self.__saved_variables:mark_changed()
 end
 
 function Column:clone_from(entity)

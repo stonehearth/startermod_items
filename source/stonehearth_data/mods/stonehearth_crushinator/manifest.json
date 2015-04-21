@@ -1,0 +1,14 @@
+{
+   "info" : {
+      "name" : "Stonehearth Autotest: CRUSHINATOR.  Reducing Hearthlings to Tears Since 2015.",
+      "version" : 1
+   },
+
+   "server_init_script" : "file(stonehearth_crushinator_server)",
+   "client_init_script" : "file(stonehearth_crushinator_client)",
+
+   "ui" :  {
+      "skip_title" : true,
+      "homepage" : "http://radiant/stonehearth/ui/root/index.html"
+   }
+}

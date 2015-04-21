@@ -40,6 +40,13 @@
       height: 82px;
    }
 
+   .menuButton {
+      .button;
+      width: 29px;
+      height: 29px;
+      background: url(images/gui/menu_button.png);
+      display: inline-block;
+   }
    .section {
       background: #5c533c;
       border-width: 4px 4px 8px 4px;
@@ -259,6 +266,18 @@
          font-size: 15px;
          padding: 8px;
       }
+   }
+
+   .toolbar {
+      button {
+         .outlined(#c6ab6e);
+         color: #000;
+         background: #9c8451;
+         border-width: 5px 5px 9px 5px;
+         border-image: url(images/gui/button_brown.png) 5 5 9 5 repeat;
+         font-size: 15px;
+         padding: 8px;
+      }      
    }
 
    .tool {

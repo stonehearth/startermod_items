@@ -69,6 +69,7 @@ function Roof:cover_region2(brush, region2)
    self._sv.brush = brush
    self._sv._nine_grid_region = region2
    self.__saved_variables:mark_changed()
+   return self
 end
 
 function Roof:create_voxel_brush()
@@ -204,6 +205,21 @@ function Roof:clone_from(entity)
    end
 
    return self
+end
+
+-- begin editing the column pointed to by `other_column`.  basically just
+-- copy the shape and important variables in the save state
+function Roof:begin_editing(entity)
+   self._editing_region = _radiant.client.alloc_region3()
+   return self
+end
+
+-- return the 'editing region' for the column.  the editing region is a
+-- region which fully covers the shape of the structure, minus all the
+-- fixture and portals
+--
+function Roof:get_editing_reserved_region()
+   return self._editing_region
 end
 
 return Roof

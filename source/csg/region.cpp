@@ -482,7 +482,7 @@ void Region<S, C>::OptimizeByMerge(const char* reason)
       return;
    }
 
-   if (_churn < (int)count) {
+   if (_churn < (int)count/4) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
       return;
@@ -499,12 +499,12 @@ void Region<S, C>::OptimizeByMerge(const char* reason)
    std::map<int, std::unique_ptr<Region>> regions = SplitByTag();
 
    if (regions.size() == 1) {
-      OptimizeOneTagByMerge();
+      OptimizeTagByMerge();
    } else {
       Clear();
       for (auto const& i : regions) {
          Region& region = *i.second;
-         region.OptimizeOneTagByMerge();
+         region.OptimizeTagByMerge();
          AddUnique(region);
       }
    }
@@ -555,7 +555,7 @@ void Region<S, C>::OptimizeByMerge(const char* reason)
 
 // assumes all cubes have the same tag
 template <class S, int C>
-void Region<S, C>::OptimizeOneTagByMerge()
+void Region<S, C>::OptimizeTagByMerge()
 {
    if (IsEmpty()) {
       return;
@@ -712,7 +712,7 @@ void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
    }
 
    if (ContainsAtMostOneTag()) {
-      OptimizeOneTagByOctTree(minCubeSize);
+      OptimizeTagByOctTree(minCubeSize);
    } else {
       REGION_LOG(1) << "WARNING: OptimizeByOctTree contains more than one tag type and may perform poorly. Consider OptimizeByMerge instead.";
 
@@ -722,7 +722,7 @@ void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
 
       for (auto const& i : regions) {
          Region& region = *i.second;
-         region.OptimizeOneTagByOctTree(minCubeSize);
+         region.OptimizeTagByOctTree(minCubeSize);
          AddUnique(region);
       }
    }
@@ -732,7 +732,7 @@ void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
 
 // assumes all cubes have the same tag
 template <class S, int C>
-void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
+void Region<S, C>::OptimizeTagByOctTree(S minCubeSize)
 {
    if (IsEmpty()) {
       return;
@@ -748,7 +748,7 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
    S cubeSize = GetOctTreeCubeSize(bounds);
 
    if (cubeSize < minCubeSize) {
-      OptimizeOneTagByMerge();
+      OptimizeTagByMerge();
       return;
    }
 
@@ -767,10 +767,10 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
    }
 
    Cube quantizedBounds = Cube(min, max);
-   OptimizeOctTreeImpl(quantizedBounds, cubeSize, minCubeSize);
+   OptimizeTagByOctTree(quantizedBounds, cubeSize, minCubeSize);
    REGION_LOG(7) << "# cubes after optimization phase 1: " << GetCubeCount();
 
-   OptimizeOneTagByMerge();
+   OptimizeTagByMerge();
    REGION_LOG(7) << "# cubes after optimization phase 2: " << GetCubeCount();
 
    S areaAfter = GetArea();
@@ -784,7 +784,7 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
 // Subsequent calls will have regions that are actually square cubes.
 // We also explicitly pass in the bounds so we don't have to call O(n) Region::GetBounds().
 template <class S, int C>
-void Region<S, C>::OptimizeOctTreeImpl(Cube const& bounds, S partitionSize, S minCubeSize)
+void Region<S, C>::OptimizeTagByOctTree(Cube const& bounds, S partitionSize, S minCubeSize)
 {
    // merging is optimal for <= 5 rects and <= 7? cubes
    static const int optimalMergeCount[] = { 5, 5, 7 };
@@ -806,12 +806,12 @@ void Region<S, C>::OptimizeOctTreeImpl(Cube const& bounds, S partitionSize, S mi
    }
 
    if (GetCubeCount() <= optimalMergeCount[C] * 4) {
-      OptimizeOneTagByMerge();
+      OptimizeTagByMerge();
       return;
    }
 
    if (partitionSize < minCubeSize) {
-      OptimizeOneTagByMerge();
+      OptimizeTagByMerge();
       return;
    }
 
@@ -832,7 +832,7 @@ void Region<S, C>::OptimizeOctTreeImpl(Cube const& bounds, S partitionSize, S mi
       intersection = *this & childBounds;
       *this -= childBounds;
 
-      intersection.OptimizeOctTreeImpl(childBounds, childPartitionSize, minCubeSize);
+      intersection.OptimizeTagByOctTree(childBounds, childPartitionSize, minCubeSize);
 
       optimized.AddUnique(intersection);
 
@@ -853,6 +853,152 @@ void Region<S, C>::OptimizeOctTreeImpl(Cube const& bounds, S partitionSize, S mi
    }
 
    *this = optimized;
+}
+
+template <class S, int C>
+void Region<S, C>::OptimizeByDefragmentation(const char* reason)
+{
+   S averageVolume = GetArea() / GetCubeCount();
+
+   if (averageVolume > 4) {
+      REGION_LOG(7) << "ignoring optimize by defragmentation and calling optimize by merge: " << reason;
+      OptimizeByMerge(reason);
+   } else {
+      OptimizeByDefragmentationInternal(reason);
+   }
+}
+
+template <class S, int C>
+void Region<S, C>::ForceOptimizeByDefragmentation(const char* reason)
+{
+   OptimizeByDefragmentationInternal(reason);
+}
+
+template <class S, int C>
+void Region<S, C>::OptimizeByDefragmentationInternal(const char* reason)
+{
+
+   Cube bounds = GetBounds();
+   Point dimensions = bounds.GetMax() - bounds.GetMin();
+   REGION_LOG(7) << "Optimizing region" << C << " by defragmentation - size: " << dimensions;
+   REGION_LOG(7) << "# cubes before optimization: " << GetCubeCount();
+
+   std::map<int, std::unique_ptr<Region>> regions = SplitByTag();
+
+   if (regions.size() == 1) {
+      OptimizeTagByDefragmentation();
+   } else {
+      Clear();
+      for (auto const& i : regions) {
+         Region& region = *i.second;
+         region.OptimizeTagByDefragmentation();
+         AddUnique(region);
+      }
+   }
+
+   _churn = 0;
+   CHURN_LOG(7) << "resetting churn after optimize by defragmentation: " << reason;
+   REGION_LOG(7) << "# cubes after optimization: " << GetCubeCount();
+}
+
+template <class S, int C>
+struct DimensionLength {
+   int index;
+   S length;
+
+   DimensionLength(int dimensionIndex, S dimensionLength) : index(dimensionIndex), length(dimensionLength) {}
+
+   static bool IsIntegral(S x) {
+      if (std::is_integral<S>::value) {
+         return true;
+      } else {
+         double intPart;
+         return std::modf(x, &intPart) == 0.0;
+      }
+   }
+
+   static std::vector<DimensionLength<S, C>> GetDimensions(Cube<S, C> const& cube) {
+      Point<S, C> size = cube.GetSize();
+      std::vector<DimensionLength<S, C>> dimensions;
+
+      for (int i = 0; i < C; i++) {
+         if (!IsIntegral(cube.min[i]) || !IsIntegral(cube.max[i])) {
+            throw core::Exception("Unsupported bounds");
+         }
+         dimensions.emplace_back(i, size[i]);
+      }
+
+      return dimensions;
+   }
+};
+
+template <class S, int C>
+void Region<S, C>::OptimizeTagByDefragmentation()
+{
+   typedef std::shared_ptr<Region> RegionPtr;
+   typedef DimensionLength<S, C> DimensionLength;
+
+   std::vector<RegionPtr> planes;
+   RegionPtr plane = std::make_shared<Region>();
+
+   Cube bounds = GetBounds();
+   std::vector<DimensionLength> dimensions = DimensionLength::GetDimensions(bounds);
+
+   // sort the dimensions with the longest first
+   std::sort(dimensions.begin(), dimensions.end(), [](DimensionLength const& a, DimensionLength const& b) {
+      return a.length > b.length;
+   });
+   
+   int longestDimension = dimensions[0].index;
+   Point iterator = bounds.min;
+   bool done = false;
+
+   while (!done) {
+      // constuct a 1 dimensional cube that spans the longest dimension
+      Cube cube(iterator);
+      cube.max[longestDimension] = bounds.max[longestDimension];
+
+      // extract the column from the region, compact the cubes, and add to the result
+      Region intersection = Intersected(cube);
+      intersection.ForceOptimizeByMerge("OptimizeByDefragmentation");
+      plane->AddUnique(intersection);
+
+      // Increment the iterator. i = 1 because we only iterate over the two shortest dimensions.
+      // We could also iterate by collapsing the bounds along the major axis and calling EachPoint,
+      // but we want control over the order of the dimensions and when to optimize the plane.
+      for (int i = 1; i < C; i++) {
+         int index = dimensions[i].index;
+         iterator[index]++;
+
+         if (iterator[index] < bounds.max[index]) {
+            // no rollover
+            break;
+         }
+
+         // reset the counter for the current dimension
+         iterator[index] = bounds.min[index];
+
+         // optimize columns into a plane
+         plane->ForceOptimizeByMerge("OptimizeByDefragmentation");
+         planes.push_back(plane);
+         plane = std::make_shared<Region>();
+
+         if (i == C-1) {
+            done = true;
+         }
+         // increment the next dimension
+      }
+   }
+
+   Clear();
+
+   for (RegionPtr const& plane : planes) {
+      AddUnique(*plane);
+   }
+
+   if ((int)planes.size() > 1) {
+      ForceOptimizeByMerge("OptimizeByDefragmentation");
+   }
 }
 
 template <class S, int C>
@@ -1095,8 +1241,10 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
    template void Cls::OptimizeByMerge(const char*); \
+   template void Cls::OptimizeByDefragmentation(const char*); \
    template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
+   template void Cls::ForceOptimizeByDefragmentation(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
    template int Cls::GetTag(const Cls::Point& pt) const; \
    template void Cls::Translate(const Cls::Point& pt); \

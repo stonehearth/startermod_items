@@ -121,30 +121,48 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       var self = this;
 
       if (App.getGameMode() == 'build') {
-         //trace the selected entity to determine its components
-         if (self.selectedSubPartTrace) {
-            self.selectedSubPartTrace.destroy();
-            self.selectedSubPartTrace = null;
-         }
-
          if (self._selectedSubPart) {
-            self.selectedSubPartTrace = new RadiantTrace();
-            self.selectedSubPartTrace.traceUri(self._selectedSubPart, self.fabProperties)
+            var trace = new RadiantTrace();
+            trace.traceUri(self._selectedSubPart, self.fabProperties)
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-                     self.hideAllViews();
                      self._buildingDesignerView.set('uri', entity.__self);
-                     self._buildingDesignerView.show();
+                     if (self._buildingDesignerView.visible()) {
+                        self._showBuildingDesignerView('editor');
+                     } else {
+                        self._showBuildingDesignerView('overview');
+                     }
                   } else {
                      self._buildingDesignerView.hide();
                   }
+                  trace.destroy();
                })
                .fail(function(e) {
                   console.log(e);
-               });         
+                  trace.destroy();
+               });
          } else {
-            self._buildingDesignerView.set('uri', null);
+            var selected = App.stonehearthClient.getSelectedEntity();
+            if (selected) {
+               var trace = new RadiantTrace();
+               trace.traceUri(selected)
+                  .progress(function(entity) {
+                     if (entity.uri == 'stonehearth:build:prototypes:building') {
+                        self._buildingDesignerView.set('uri', entity.__self);
+                        self._showBuildingDesignerView('overview');
+                     } else {
+                        self._buildingDesignerView.set('uri', null);
+                     }
+                     trace.destroy();
+                  })
+                  .fail(function(e) {
+                     console.log(e);
+                     trace.destroy();
+                  });
+            } else {
+               self._buildingDesignerView.set('uri', null);
+            }
          }
       } else {
          self.hideAllViews();

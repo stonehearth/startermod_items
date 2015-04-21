@@ -20,8 +20,8 @@ var GrowRoofTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               var brush = self._materialHelper.getSelectedBrush();
-               return App.stonehearthClient.growRoof(brush);
+               self.options.brush = self._materialHelper.getSelectedBrush();
+               return App.stonehearthClient.growRoof(self.options);
             });
       },
 
@@ -31,13 +31,15 @@ var GrowRoofTool;
 
          var click = function(brush) {            
             var blueprint = self.buildingDesigner.getBlueprint();
+            self.options.brush = brush
+            App.stonehearthClient.setGrowRoofOptions(self.options);         
             if (blueprint) {
-               App.stonehearthClient.applyConstructionDataOptions(blueprint, { brush: brush });
+               App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
             } else {
                // Re/activate the floor tool with the new material.
                self.buildingDesigner.activateTool(self.buildTool);               
             }            
-         };
+      };
 
          var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
          root.append(tab);

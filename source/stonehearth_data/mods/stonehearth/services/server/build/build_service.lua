@@ -281,7 +281,7 @@ function BuildService:_add_floor_type(session, floor_brush, box, category)
       if not merged_cd then
          merged_floor = entity
          merged_cd = merged_floor:get_component('stonehearth:construction_data')
-         merged_cd:paint_world_region(floor_brush, floor_region)
+         merged_cd:paint_on_world_region(floor_brush, floor_region)
       else
          local rgn = entity:get_component('destination')
                               :get_region()
@@ -508,7 +508,7 @@ function BuildService:_add_new_floor_to_building(building, floor_brush, floor_re
    
    local floor_ent = self:_create_blueprint(building, 'stonehearth:build:prototypes:' .. prototype, local_origin, function(floor)
          floor:add_component('stonehearth:construction_data')
-                  :paint_world_region(floor_brush, floor_region)
+                  :paint_on_world_region(floor_brush, floor_region)
       end)
                
    floor_ent:get_component('stonehearth:floor')
@@ -679,9 +679,11 @@ end
 
 function BuildService:grow_walls(floor, column_brush, wall_brush)
    local building = build_util.get_building_for(floor)
+   local walls = nil
    build_util.grow_walls_around(floor, function(min, max, normal)
-         self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
+         walls = self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
       end)
+   return walls
 end
 
 
@@ -690,18 +692,20 @@ end
 --    @param session - the session for the player initiating the request
 --    @param response - a response object which we'll write the result into
 --    @param building - the building to pop the roof onto
---    @param roof_brush - what kind of roof to make
 
-function BuildService:grow_roof_command(session, response, building, roof_brush, options)
+function BuildService:grow_roof_command(session, response, root_wall, roof_options)
    local roof
    local success = self:do_command('grow_roof', response, function()
-         roof = self:grow_roof(building, roof_brush, options)
+         roof = self:grow_roof(root_wall, roof_options)
       end)
 
    self:_resolve_and_select_blueprint(success, response, roof)
 end
 
-function BuildService:grow_roof(building, roof_brush, options)
+function BuildService:grow_roof(root_wall, roof_options)
+   local world_origin, region2 = build_util.calculate_roof_shape_around_walls(root_wall, roof_options)
+   local building = build_util.get_building_for(root_wall)
+   
    local structures = building:get_component('stonehearth:building')
                               :get_all_structures()
 
@@ -710,19 +714,11 @@ function BuildService:grow_roof(building, roof_brush, options)
       return
    end
 
-   -- compute the xz cross-section of the roof by growing the floor
-   -- region by 2 voxels in every direction
-   local region2 = building:get_component('stonehearth:building')
-                              :calculate_floor_region()
-                              :inflated(Point2(2, 2))
-
-   -- now make the roof!
-   local height = constants.STOREY_HEIGHT
-   local roof_location = Point3(0, height - 1, 0)
-   local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', roof_location, function(roof_entity)
+   local origin = world_origin - radiant.entities.get_world_grid_location(building)
+   local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', origin, function(roof_entity)
          roof_entity:add_component('stonehearth:roof')
-                        :apply_nine_grid_options(options)
-                        :cover_region2(roof_brush, region2)
+                        :apply_nine_grid_options(roof_options)
+                        :cover_region2(roof_options.brush, region2)
       end)
 
    building:get_component('stonehearth:building')

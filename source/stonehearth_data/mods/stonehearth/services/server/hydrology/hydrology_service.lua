@@ -9,15 +9,6 @@ local TraceCategories = _radiant.dm.TraceCategories
 
 HydrologyService = class()
 
-local DIRECTIONS = {
-   Point3.unit_x,
-  -Point3.unit_x,
-   Point3.unit_z,
-  -Point3.unit_z,
-   Point3.unit_y,
-  -Point3.unit_y
-}
-
 function HydrologyService:initialize()
    -- prevent oscillation by making sure we can flow to under the merge threshold
    assert(constants.hydrology.MIN_FLOW_RATE <= constants.hydrology.MERGE_ELEVATION_THRESHOLD)
@@ -34,7 +25,7 @@ function HydrologyService:initialize()
    else
    end
 
-   if radiant.util.get_config('enable_water', false) then
+   if radiant.util.get_config('enable_water', true) then
       if self._sv.water_tick then
          self._sv.water_tick:bind(function()
                self:_on_tick()
@@ -173,7 +164,7 @@ end
 function HydrologyService:_link_channels(entity, point, modified_container_region)
    local channel_manager = self:get_channel_manager()
 
-   for _, direction in ipairs(DIRECTIONS) do
+   for _, direction in ipairs(csg_lib.XYZ_DIRECTIONS) do
       local vertical = direction.y ~= 0
       local adjacent_point = point + direction
       -- don't process points that are solid
@@ -342,7 +333,7 @@ end
 -- get_water_body. Terrain modifications want to create empty water bodies and let the channels
 -- test to fill them.
 function HydrologyService:create_water_body(location)
-   return self:_create_water_body_impl(location)
+   return self:_create_water_body_internal(location)
 end
 
 -- Optimzied path to create a water body that is already filled.
@@ -365,10 +356,10 @@ function HydrologyService:create_water_body_with_region(region, height)
          cursor:translate(-location)
       end)
 
-   return self:_create_water_body_impl(location, boxed_region, height)
+   return self:_create_water_body_internal(location, boxed_region, height)
 end
 
-function HydrologyService:_create_water_body_impl(location, boxed_region, height)
+function HydrologyService:_create_water_body_internal(location, boxed_region, height)
    if boxed_region == nil then
       boxed_region = _radiant.sim.alloc_region3()
       height = 0
@@ -376,6 +367,10 @@ function HydrologyService:_create_water_body_impl(location, boxed_region, height
 
    local entity = radiant.entities.create_entity('stonehearth:terrain:water')
    log:debug('Creating water body %s at %s', entity, location)
+
+   local destination_component = entity:add_component('destination')
+   destination_component:set_region(_radiant.sim.alloc_region3())
+   destination_component:set_adjacent(_radiant.sim.alloc_region3())
 
    local water_component = entity:add_component('stonehearth:water')
    water_component:set_region(boxed_region, height)

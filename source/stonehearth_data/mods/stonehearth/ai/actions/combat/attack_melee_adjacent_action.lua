@@ -14,6 +14,7 @@ AttackMeleeAdjacent.args = {
 AttackMeleeAdjacent.version = 2
 AttackMeleeAdjacent.priority = 1
 AttackMeleeAdjacent.weight = 1
+AttackMeleeAdjacent.realtime = true
 
 function AttackMeleeAdjacent:__init(entity)
 end

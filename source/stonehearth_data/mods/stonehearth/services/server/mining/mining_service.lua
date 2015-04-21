@@ -14,13 +14,6 @@ MiningService = class()
 local MAX_REACH_UP = 3
 local MAX_REACH_DOWN = 1
 
-local SIDE_DIRECTIONS = {
-    Point3.unit_x,
-   -Point3.unit_x,
-    Point3.unit_z,
-   -Point3.unit_z
-}
-
 function MiningService:initialize()
    self._enable_insta_mine = radiant.util.get_config('enable_insta_mine', false)
 
@@ -28,6 +21,8 @@ function MiningService:initialize()
 
    if not self._sv._initialized then
       self._sv._initialized = true
+      -- TODO: consider making mined_region a tiled region
+      self._sv._mined_region = Region3()
       self.__saved_variables:mark_changed()
    else
    end
@@ -48,9 +43,6 @@ end
 
 -- Dig an arbitary region. Region is defined in world space.
 function MiningService:dig_region(player_id, region)
-   region:optimize_by_merge('dig_region')
-   log:debug('mining designation contains %d cubes', region:get_num_rects())
-
    if self._enable_insta_mine then
       self:_insta_mine(region)
       return nil
@@ -191,6 +183,15 @@ function MiningService:merge_zones(zone1, zone2)
    radiant.entities.destroy_entity(zone2)
 end
 
+function MiningService:get_mined_region()
+   return self._sv._mined_region
+end
+
+function MiningService:_add_to_mined_region(point)
+   self._sv._mined_region:add_point(point)
+   self._sv._mined_region:optimize_by_merge('MiningService:_add_to_mined_region')
+end
+
 -- Chooses the best point to mine when standing on from.
 function MiningService:resolve_point_of_interest(from, mining_zone)
    local location = radiant.entities.get_world_grid_location(mining_zone)
@@ -202,23 +203,35 @@ function MiningService:resolve_point_of_interest(from, mining_zone)
    local reachable_region = self:get_reachable_region(from - location)
    local eligible_region = reachable_region - reserved_region
    local eligible_destination_region = eligible_region:intersect_region(destination_region)
-   local max
+   local poi = nil
 
-   if eligible_destination_region:empty() then
-      return nil
-   end
+   while not eligible_destination_region:empty() do
+      local max = eligible_destination_region:get_rect(0).min
 
-   -- pick any highest point in the region
-   for cube in eligible_destination_region:each_cube() do
-      if not max or cube.max.y > max.y then
-         max = cube.max
+      -- pick any highest point in the region
+      for cube in eligible_destination_region:each_cube() do
+         if cube.max.y > max.y then
+            max = cube.max
+         end
+      end
+
+      -- subtract one to get terrain coordinates from max and convert to world coordinates
+      poi = max - Point3.one + location
+
+      -- double check that we're not mining a block directly above or below us
+      assert(poi.x ~= from.x or poi.z ~= from.z)
+
+      -- check if our current location is in the adjacent for the block
+      local poi_adjacent = self:get_adjacent_for_destination_block(poi)
+      if poi_adjacent:contains(from) then
+         break
+      else
+         -- block is not reachable from current location, try again
+         eligible_destination_region:subtract_point(poi - location)
+         poi = nil
       end
    end
 
-   -- strip one off the max to get terrain coordinates of block
-   -- then convert to world coordinates
-   local poi = max - Point3.one + location
-   assert(poi ~= from - Point3.unit_y)
    return poi
 end
 
@@ -255,47 +268,42 @@ end
 
 -- Return all the locations that can reach the block at point.
 function MiningService:get_adjacent_for_destination_block(point)
-   local top_blocked = radiant.terrain.is_terrain(point + Point3.unit_y)
-   local region = Region3()
+   -- create a cube that bounds the adjacent region
+   local adjacent_bounds = Cube3(point):inflated(Point3(1, 0, 1))
+   adjacent_bounds.min.y = point.y - MAX_REACH_UP
+   adjacent_bounds.max.y = point.y + MAX_REACH_DOWN + 1
 
-   local add_xz_column = function(region, adjacent_point, top_blocked)
-      local side_blocked = radiant.terrain.is_terrain(adjacent_point)
-      local dy_min, dy_max
+   -- terrain intersection is expensive in an inner loop, so make one call to grab the working terrain region
+   local terrain_region = radiant.terrain.intersect_cube(adjacent_bounds)
+   terrain_region:set_tag(0)
 
-      if side_blocked then
-         -- we know dy == 0 is blocked, so use 1 to avoid retesting below
-         dy_min = 1
-      else
-         -- we can strike up on the point if the side is not blocked
-         dy_min = -MAX_REACH_UP
+   local adjacent_region = Region3()
+   local top_blocked = terrain_region:contains(point + Point3.unit_y)
+   local bottom_blocked = terrain_region:contains(point - Point3.unit_y)
+
+   for _, direction in ipairs(csg_lib.XZ_DIRECTIONS) do
+      local adjacent_point = point + direction
+      local cube = Cube3(adjacent_point)
+
+      if not top_blocked then
+         cube.max.y = adjacent_bounds.max.y
       end
 
-      if top_blocked then
-         -- can't strike down on the point
-         dy_max = 0
+      if not bottom_blocked then
+         cube.min.y = adjacent_bounds.min.y
       else
-         -- we can strike down on the point if the top is not blocked
-         dy_max = MAX_REACH_DOWN
-      end
-
-      local temp_y = adjacent_point.y
-      local y_min = temp_y + dy_min
-      local y_max = temp_y + dy_max
-      local test_point = Point3(adjacent_point)
-
-      for y = y_min, y_max do
-         test_point.y = y
-         if not radiant.terrain.is_terrain(test_point) then
-            region:add_point(test_point)
+         local side_blocked = terrain_region:contains(adjacent_point)
+         if not side_blocked then
+            cube.min.y = adjacent_bounds.min.y
          end
       end
+
+      adjacent_region:add_unique_cube(cube)
    end
 
-   for _, direction in ipairs(SIDE_DIRECTIONS) do
-      add_xz_column(region, point + direction, top_blocked)
-   end
+   adjacent_region:subtract_region(terrain_region)
 
-   return region
+   return adjacent_region
 end
 
 function MiningService:_transform_cubes_in_region(region, cube_transform)
@@ -328,10 +336,10 @@ function MiningService:roll_loot(block_kind)
    return uris
 end
 
--- temporary location for this function
 function MiningService:mine_point(point)
    -- TODO: terrain tiles need to be checked for optimization
    radiant.terrain.subtract_point(point)
+   self:_add_to_mined_region(point)
    self:_update_interior_region(point)
 end
 
