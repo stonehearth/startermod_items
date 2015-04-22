@@ -89,6 +89,7 @@ local ENTITY_STATE_META_TABLE = {
    end
 }
 
+local SLOW_START_ENABLED
 local function create_entity_state(copy_from)
    -- we hide the actual values in __values so __new_index will catch every
    -- write.
@@ -134,6 +135,11 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._rerun_unit = nil
    self._ai_component = entity:get_component('stonehearth:ai')
 
+   if SLOW_START_ENABLED == nil then
+      SLOW_START_ENABLED = radiant.util.get_config('enable_ai_slow_start', true)
+      radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED and "enabled" or "disabled")
+   end
+   
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
                           :set_prefix(prefix)
@@ -469,20 +475,29 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
          local new_state = self:_clone_entity_state('new speculation for unit')
-         if self._rerun_unit then
-            if self._rerun_unit ~= unit and ((self._rerun_unit:get_priority() < unit:get_priority()) or unit:get_action().realtime) then
+         local think_now = true
+
+         -- figure out whether this unit should think now or later.
+         if SLOW_START_ENABLED then
+            if self._rerun_unit and self._rerun_unit ~= unit then
+               -- realtime actions get to start right away
+               think_now = unit:get_action().realtime  
+               if not think_now then
                -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
                -- we can easily starve important tasks from running.  Likewise, realtime tasks must be allowed to
                -- think, otherwise reacting to real-time events (e.g. combat) becomes borked.
-               self._log:spam('fast start unit %s', unit:get_name())
-               rethinking_units[unit] = new_state
-            elseif self._rerun_unit ~= unit then
-               self._log:spam('slow start unit %s', unit:get_name())
-               table.insert(slow_rethink_units, { unit = unit, state = new_state })
+                  think_now = self._rerun_unit:get_priority() < unit:get_priority()
+               end
             end
-         else
-            -- No re-run units, so just enqueue.
+         end
+
+         -- add the unit to the `rethinking_units` or `slow_rethink_units` list
+         if think_now then
+            self._log:spam('fast start unit %s', unit:get_name())
             rethinking_units[unit] = new_state
+         else
+            self._log:spam('slow start unit %s', unit:get_name())
+            table.insert(slow_rethink_units, { unit = unit, state = new_state })
          end
       end
    end
