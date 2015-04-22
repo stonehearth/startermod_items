@@ -64,10 +64,19 @@ function ScaffoldingBuilder_TwoDim:activate()
    self._log = radiant.log.create_logger('build.scaffolding.2d')
                               :set_entity(entity)
                               :set_prefix('s2d:' .. tostring(self._sv.id) .. ' ' .. self._debug_text)
+
+   radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
+         self._sv.manager:_remove_builder(self._sv.id)
+      end)                              
 end
 
 function  ScaffoldingBuilder_TwoDim:set_teardown(teardown)
    self._sv.teardown = teardown
+   self.__saved_variables:mark_changed()
+
+   for builder, _ in pairs(self._sv.builders) do
+      builder:set_teardown(teardown)
+   end
 end
 
 function  ScaffoldingBuilder_TwoDim:set_active(active)

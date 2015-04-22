@@ -71,8 +71,8 @@ function ScaffoldingBuilder_OneDim:destroy()
 end
 
 -- interfaces for the owner of the builder
-function ScaffoldingBuilder_OneDim:set_clipper(clipbox)
-   self._sv.clipbox = clipbox
+function ScaffoldingBuilder_OneDim:set_clipper(blueprint_clipbox)
+   self._sv.blueprint_clipbox = blueprint_clipbox
 end
 
 function ScaffoldingBuilder_OneDim:set_active(active)
@@ -91,6 +91,7 @@ function ScaffoldingBuilder_OneDim:set_teardown(teardown)
    local mode = teardown and 'teardown' or 'build'
 
    if mode ~= self._sv.mode then
+      self._log:detail('teardown changed to %s', teardown)
       self._sv.mode = mode
       self.__saved_variables:mark_changed()
 
@@ -106,6 +107,7 @@ function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
                                 self._sv.entity,
                                 self._sv.origin,
                                 self._sv.blueprint_rgn,
+                                self._sv.blueprint_clipbox,
                                 self._sv.scaffolding_rgn,
                                 self._sv.normal)
 end
@@ -180,8 +182,11 @@ end
 
 function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
    local teardown = self._sv.mode == ScaffoldingBuilder_OneDim.TEAR_DOWN
-     
+
+   self._log:spam('updating scaffolding size')
+   
    if self:_building_is_finished() then
+      self._log:spam('building is finished.  erasing scaffolding region')
       self._sv.scaffolding_rgn:modify(function(cursor)
             cursor:clear()
          end)
@@ -216,7 +221,7 @@ end
 
 function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    local normal = self._sv.normal
-   local clipbox = self._sv.clipbox
+   local blueprint_clipbox = self._sv.blueprint_clipbox
    local stand_at_base = self._sv.stand_at_base
 
    local project_rgn = self._sv.project_rgn:get()
@@ -225,9 +230,9 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    -- the clip box is used to convert a 3d region to a 2d one which
    -- is flat and normal to the normal.
    self._log:spam('blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
-   if clipbox then
-      project_rgn   = project_rgn:intersect_cube(clipbox)
-      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   if blueprint_clipbox then
+      project_rgn   = project_rgn:intersect_cube(blueprint_clipbox)
+      blueprint_rgn = blueprint_rgn:intersect_cube(blueprint_clipbox)
       self._log:spam('(clipped) blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    end
 
@@ -318,11 +323,11 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
 
    -- run through the list, looking for the perfect normal
    local origin = self._sv.origin
-   local clipbox = self._sv.clipbox
+   local blueprint_clipbox = self._sv.blueprint_clipbox
 
    local blueprint_rgn = self._sv.blueprint_rgn:get()
-   if clipbox then
-      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   if blueprint_clipbox then
+      blueprint_rgn = blueprint_rgn:intersect_cube(blueprint_clipbox)
    end
 
    for _, normal in pairs(normals) do
