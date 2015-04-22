@@ -80,7 +80,10 @@ function WaterComponent:get_top_layer_elevation()
 end
 
 function WaterComponent:top_layer_in_wetting_mode()
-   local result = self:get_water_level() == self:get_top_layer_elevation()
+   self:_normalize()
+   -- don't compare water level, because we can convert a non-integer value of self._sv.height
+   -- to an integer value via precision loss
+   local result = self._sv.height == self._sv._top_layer_index
    return result
 end
 
@@ -134,6 +137,7 @@ function WaterComponent:_add_water(add_location, volume)
          if self:_allow_grow_region(add_location, edge_region) then
             volume, info = self:_grow_region(volume, add_location, top_layer, edge_region, channel_region)
          else
+            log:detail('Discarded water for %s because edge area exceeeded', self._entity)
             volume = 0
             info = {
                result = 'discarded',
@@ -248,6 +252,17 @@ function WaterComponent:_remove_water(volume)
    return volume
 end
 
+function WaterComponent:_normalize()
+   assert(self._sv.height >= self._sv._top_layer_index)
+   assert(self._sv.height <= self._sv._top_layer_index + 1)
+
+   -- don't compare water level, because we can convert a non-integer value of self._sv.height
+   -- to an integer value via precision loss
+   if self._sv.height == self._sv._top_layer_index + 1 then
+      self:_raise_layer()
+   end
+end
+
 function WaterComponent:merge_with(mergee, allow_uneven_top_layers)
    self:_merge_regions(self._entity, mergee, allow_uneven_top_layers)
 
@@ -265,6 +280,10 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
 
    local master_component = master:add_component('stonehearth:water')
    local mergee_component = mergee:add_component('stonehearth:water')
+
+   master_component:_normalize()
+   mergee_component:_normalize()
+
    local master_layer_elevation = master_component:get_top_layer_elevation()
    local mergee_layer_elevation = mergee_component:get_top_layer_elevation()
 
@@ -291,7 +310,12 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
       end
    else
       -- layers must be at same level
-      assert(master_layer_elevation == mergee_layer_elevation)
+      if master_layer_elevation ~= mergee_layer_elevation then
+         master_component:_normalize()
+         mergee_component:_normalize()
+         assert(master_layer_elevation == mergee_layer_elevation)
+      end
+
       update_layer = true
 
       -- calculate new water level before modifying regions
@@ -668,13 +692,12 @@ function WaterComponent:_remove_height(volume)
    local lower_limit = self._sv._top_layer_index
    if self._sv.height <= lower_limit then
       self:_lower_layer()
+      lower_limit = self._sv._top_layer_index
    end
 
    local top_layer = self._sv._top_layer:get()
    local layer_area = top_layer:get_area()
    assert(layer_area > 0)
-
-   lower_limit = top_layer:get_rect(0).min.y
 
    local delta = volume / layer_area
    local residual = 0
