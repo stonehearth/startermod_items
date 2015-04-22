@@ -44,11 +44,15 @@ function WaterfallComponent:set_target(target)
 end
 
 function WaterfallComponent:set_height(height)
+   if height < 0 then
+      -- will get converted to a pressure channel soon
+      height = 0
+   end
+
    if height == self._sv.height then
       return
    end
 
-   assert(height >= 0)
    self._sv.height = height
    self._sv.region:modify(function(cursor)
          cursor:clear()

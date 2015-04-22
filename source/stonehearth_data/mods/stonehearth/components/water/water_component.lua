@@ -639,10 +639,11 @@ function WaterComponent:_get_edge_region(region, channel_region)
    local world_bounds = self._root_terrain_component:get_bounds()
 
    -- perform a separable inflation to exclude diagonals
-   local inflated = region:inflated(Point3.unit_x) + region:inflated(Point3.unit_z)
+   local edge_region = region:inflated(Point3.unit_x)
+   edge_region:add_region(region:inflated(Point3.unit_z))
 
    -- subtract the interior region
-   local edge_region = inflated - region
+   edge_region:subtract_region(region)
 
    -- remove watertight region
    local watertight_region = stonehearth.hydrology:get_water_tight_region():intersect_region(edge_region)
@@ -654,7 +655,6 @@ function WaterComponent:_get_edge_region(region, channel_region)
    -- remove locations outside the world
    edge_region = edge_region:intersect_cube(world_bounds)
 
-   -- TODO: reconsider this call
    edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
