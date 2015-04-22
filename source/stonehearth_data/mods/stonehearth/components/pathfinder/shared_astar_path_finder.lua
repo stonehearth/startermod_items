@@ -160,4 +160,11 @@ function SharedAStarPathFinder:_stop_pathfinder()
    end
 end
 
+function SharedAStarPathFinder:get_progress()
+   if self._pathfinder then
+      return self._pathfinder:get_progress()
+   end
+   return 'pathfinder destroyed'
+end
+
 return SharedAStarPathFinder
