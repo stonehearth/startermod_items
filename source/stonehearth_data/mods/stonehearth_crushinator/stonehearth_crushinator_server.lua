@@ -140,10 +140,10 @@ function crushinator_tests_maul()
    local CAMERA_LOOK_AT = Point3(0, 0, 0)
    autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)]]
 
-   local stockpile = autotest_framework.env.create_stockpile(-5, -20, { size = { x = 9, y = 9 }})
-   local stockpile = autotest_framework.env.create_stockpile( 5, -20, { size = { x = 9, y = 9 }})
-   local stockpile = autotest_framework.env.create_stockpile(-5, -10, { size = { x = 9, y = 9 }})
-   local stockpile = autotest_framework.env.create_stockpile( 5, -10, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(0, -15, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(10, -15, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(0, -5, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(10, -5, { size = { x = 9, y = 9 }})
 
    local session = {
       player_id = 'player_1',
@@ -169,9 +169,6 @@ function crushinator_tests_maul()
    new_house(50, -20)
    new_house(30, -20)
    new_house(10, -20)
-   new_house(50, -50)
-   new_house(30, -50)
-   new_house(10, -50)
    new_house(-50, -20)
    new_house(-30, -20)
    new_house(-10, -20)
@@ -199,8 +196,8 @@ function crushinator_tests_maul()
    autotest_framework.env.create_person(6, -2, { job = 'farmer' })
    autotest_framework.env.create_person(6, 0, { job = 'farmer' })
 
-   new_farm(-40, -10, 10, 10, 'stonehearth:crops:tester_crop_2')
-   new_farm(40, -10, 20, 10, 'stonehearth:crops:tester_silkweed_crop')
+   new_farm(-65, -10, 40, 15, 'stonehearth:crops:tester_crop_2')
+   new_farm(80, -10, 40, 15, 'stonehearth:crops:tester_silkweed_crop')
    -- 2 carpenters
    local carp_1 = autotest_framework.env.create_person(6, -6, { job = 'carpenter', attributes = { total_level = 3 } })
    local carp_2 = autotest_framework.env.create_person(6, -4, { job = 'carpenter' })
@@ -214,8 +211,8 @@ function crushinator_tests_maul()
    local weav_2 = autotest_framework.env.create_person(6, 4, { job = 'weaver' })
 
 
-   new_trapping_grounds(-80, -40, 20, 20)
-   new_trapping_grounds(80, -40, 20, 20)
+   new_trapping_grounds(-120, -100, 80, 60)
+   new_trapping_grounds(40, -100, 80, 60)
 
 
    weaver_init(weav_1, -10, 0)
