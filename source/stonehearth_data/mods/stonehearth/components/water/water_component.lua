@@ -89,9 +89,12 @@ end
 
 -- TODO: clean up this method
 function WaterComponent:_add_water(add_location, volume)
-   log:detail('Adding %d water to %s at %s', volume, self._entity, add_location)
-
    assert(volume >= 0)
+   if volume == 0 then
+      return
+   end
+   log:detail('Adding %f water to %s at %s', volume, self._entity, add_location)
+
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local channel_region = self:_get_channel_region()
    local info = {}
@@ -236,9 +239,11 @@ function WaterComponent:_grow_region(volume, add_location, top_layer, edge_regio
 end
 
 function WaterComponent:_remove_water(volume)
-   log:detail('Removing %d water from %s', volume, self._entity)
-
    assert(volume >= 0)
+   if volume == 0 then
+      return
+   end
+   log:detail('Removing %f water from %s', volume, self._entity)
    
    while volume > 0 do
       local residual = self:_remove_height(volume)
@@ -463,7 +468,7 @@ function WaterComponent:fill_channel_from_water_region(channel)
       channel.queued_volume = channel.queued_volume + flow_volume
 
       if flow_volume > 0 then
-         log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
+         log:spam('Added %f to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
       end
    end
 end

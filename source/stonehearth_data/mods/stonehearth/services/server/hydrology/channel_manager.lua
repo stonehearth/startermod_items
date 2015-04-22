@@ -151,7 +151,7 @@ function ChannelManager:add_volume_to_channel(channel, volume, source_elevation_
    volume = volume - flow_volume
 
    if flow_volume > 0 then
-      log:spam('Added %d to channel for %s at %s', flow_volume, channel.from_entity, channel.channel_entrance)
+      log:spam('Added %f to channel for %s at %s', flow_volume, channel.from_entity, channel.channel_entrance)
    end
 
    return volume
@@ -212,12 +212,16 @@ function ChannelManager:link_waterfall_channel(from_entity, source_location, wat
          assert(channel.from_entity == from_entity)
          assert(channel.channel_entrance == channel_entrance)
 
-         -- multiple source locations are valid for the channel_entrance
+         -- Multiple source locations are valid for the channel_entrance
          if (channel.source_location ~= source_location) then
-            assert(self:_water_body_contains_point(from_entity, source_location))
+            -- Remove the channel if the source location is gone
+            if not self:_water_body_contains_point(from_entity, source_location) then
+               self:remove_channel(channel)
+               channel = nil
+            end
          end
       else
-         -- this removes both directions of the pressure channel
+         -- This removes both directions of the pressure channel
          self:remove_channel(channel)
          channel = nil
       end
@@ -255,11 +259,11 @@ function ChannelManager:link_pressure_channel(from_entity, to_entity, from_locat
 end
 
 function ChannelManager:_link_pressure_channel_unidirectional(from_entity, to_entity, from_location, to_location, subtype)
-   -- by definition the channel_entrance is the adjacent point outside of the water region
+   -- By definition, the channel_entrance is the adjacent point outside of the water region
    local channel_entrance = to_location
    local channel = self:get_channel(from_entity, channel_entrance)
 
-   -- if channel of the same type already exists, make sure it is identical, otherwise replace it
+   -- If channel of the same type already exists, make sure it is identical, otherwise replace it
    if channel then
       if channel.channel_type == 'pressure' then
          assert(channel.from_entity == from_entity)
@@ -269,10 +273,14 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, to_en
 
          -- Multiple source locations are valid for the channel_entrance
          if (channel.source_location ~= from_location) then
-            assert(self:_water_body_contains_point(from_entity, from_location))
-
             -- If the subtypes don't match, prefer the horizontal channel
             if channel.subtype ~= subtype and channel.subtype == 'vertical' then
+               self:remove_channel(channel)
+               channel = nil
+            end
+
+            -- Remove the channel if the source location is gone
+            if channel and not self:_water_body_contains_point(from_entity, from_location) then
                self:remove_channel(channel)
                channel = nil
             end
