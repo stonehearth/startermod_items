@@ -26,6 +26,7 @@ var MaterialHelper = SimpleClass.extend({
                         .append('<div class=selectBox />'); // for showing the brush when it's selected
          if (material[0] == '#') {
             brush.css({ 'background-color' : material });
+            brush.addClass('colorBrush');
          } else {
             brush.addClass(material.split(':').pop());
          }
