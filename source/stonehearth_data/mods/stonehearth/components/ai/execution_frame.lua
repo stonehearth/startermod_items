@@ -59,6 +59,8 @@ local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
 local SLOWSTART_TIMEOUTS = {250, 750}
 local SLOWSTART_MAX_UNITS = {4, INFINITE}
+local SLOW_START_ENABLED = radiant.util.get_config('enable_ai_slow_start', true)
+radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED and "enabled" or "disabled")
 
 -- only theee keys are allowed to be set.  all others are forbidden to 
 -- prevent actions from using ai.CURRENT as a private communication channel
@@ -89,7 +91,6 @@ local ENTITY_STATE_META_TABLE = {
    end
 }
 
-local SLOW_START_ENABLED
 local function create_entity_state(copy_from)
    -- we hide the actual values in __values so __new_index will catch every
    -- write.
@@ -135,11 +136,6 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._rerun_unit = nil
    self._ai_component = entity:get_component('stonehearth:ai')
 
-   if SLOW_START_ENABLED == nil then
-      SLOW_START_ENABLED = radiant.util.get_config('enable_ai_slow_start', true)
-      radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED and "enabled" or "disabled")
-   end
-   
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
                           :set_prefix(prefix)
