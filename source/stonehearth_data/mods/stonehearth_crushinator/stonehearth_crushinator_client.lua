@@ -11,14 +11,16 @@ local save_load_trigger = function()
 end
 
 radiant.events.listen_once(mod, 'radiant:new_game', function()
-      mod.__saved_variables:get_data().init = true
-      mod.__saved_variables:mark_changed()
-      save_load_trigger()
+      if radiant.util.get_config("enable_save_stress_test", true) then
+         mod.__saved_variables:get_data().run_save_load_trigger = true
+         mod.__saved_variables:mark_changed()      
+         save_load_trigger()
+      end
    end)
 
 
 radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-      if mod.__saved_variables:get_data().init then
+      if mod.__saved_variables:get_data().run_save_load_trigger then
          save_load_trigger()
       end
    end)
