@@ -262,15 +262,20 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, to_en
    -- if channel of the same type already exists, make sure it is identical, otherwise replace it
    if channel then
       if channel.channel_type == 'pressure' then
-         assert(channel.subtype == subtype)
          assert(channel.from_entity == from_entity)
          assert(channel.to_entity == to_entity)
          assert(channel.channel_entrance == to_location)
          assert(channel.channel_exit == to_location)
 
-         -- multiple source locations are valid for the channel_entrance
+         -- Multiple source locations are valid for the channel_entrance
          if (channel.source_location ~= from_location) then
             assert(self:_water_body_contains_point(from_entity, from_location))
+
+            -- If the subtypes don't match, prefer the horizontal channel
+            if channel.subtype ~= subtype and channel.subtype == 'vertical' then
+               self:remove_channel(channel)
+               channel = nil
+            end
          end
       else
          self:remove_channel(channel)

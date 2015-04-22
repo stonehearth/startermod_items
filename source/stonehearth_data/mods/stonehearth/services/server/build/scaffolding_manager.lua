@@ -65,6 +65,14 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    return builder
 end
 
+function ScaffoldingManager:_remove_builder(bid)
+   if self._sv.builders[bid] then
+      self._sv.builders[bid]:destroy()
+      self._sv.builders[bid] = nil
+   end
+   self.__saved_variables:mark_changed()
+end
+
 function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, blueprint_region, region, normal)
    checks('self', 'number', 'string', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
 
@@ -215,6 +223,7 @@ end
 
 function ScaffoldingManager:_find_scaffolding_for(rblock)
    local origin = rblock.origin
+   local normal = rblock.normal
    local region = rblock.blueprint_region:get()
 
    -- look "down" for someone who can help us out.
@@ -226,8 +235,12 @@ function ScaffoldingManager:_find_scaffolding_for(rblock)
          if not sblock then
             local fabricator, _, _ = build_util.get_fbp_for(entity)
             if fabricator then
+               -- an existing fabricator overlaps the region the rblock wants
+               -- to occupy.  if it's one of our scaffolding fabricators, merge
+               -- with it.
                for _, sblk in pairs(self._sv.scaffolding) do
-                  if sblk.fabricator == fabricator then
+                  if sblk.fabricator == fabricator and
+                     sblk.normal == rblock.normal then
                      sblock = sblk
                      break
                   end
@@ -298,7 +311,7 @@ end
 
 function ScaffoldingManager:_update_scaffolding_region(sblock)
    assert(sblock.region)
-   
+
    local merged = Region3()
    for rid, rblock in pairs(sblock.regions) do
       local r = rblock.region:get():translated(rblock.origin)

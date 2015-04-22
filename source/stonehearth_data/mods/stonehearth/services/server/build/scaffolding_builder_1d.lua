@@ -112,6 +112,7 @@ end
 
 function ScaffoldingBuilder_OneDim:_remove_scaffolding_region()
    self._sv.manager:_remove_region(self._sv.id)
+   self._sv.manager:_remove_builder(self._sv.id)
 end
 
 function ScaffoldingBuilder_OneDim:_update_status()
@@ -221,6 +222,8 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
 
+   -- the clip box is used to convert a 3d region to a 2d one which
+   -- is flat and normal to the normal.
    self._log:spam('blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    if clipbox then
       project_rgn   = project_rgn:intersect_cube(clipbox)
@@ -254,6 +257,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    end
    assert(project_top < blueprint_top)
    
+   -- if we're tearing down, we may need to drop the top by 1.
    if teardown and project_top > 0 then
       local top_row_clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
                                     Point3( INFINITE, project_top + 1,  INFINITE))
@@ -261,17 +265,33 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
          project_top = project_top - 1
       end
    end
+
+   -- snip off the unreachable upper part of the blueprint.
    local clipper = Cube3(Point3(-INFINITE, -INFINITE,       -INFINITE),
                          Point3( INFINITE, project_top + 1,  INFINITE))
-   local top_row = blueprint_rgn:clipped(clipper)
+   local reachable_blueprint = blueprint_rgn:clipped(clipper)
+
+   -- if there are holes in the blueprint (e.g. for doors or windows), we need
+   -- to make sure we plug them up.  the projection to CLIP_SOLID (below) will
+   -- take care of most of them, but we do have to make sure the very top row
+   -- is taken care of.  Consider what happens when trying to build scaffolding
+   -- 1/2 way up a peaked roof.  We'll end up with two towers of scaffolding
+   -- growing toward one another unless we close that gap.
+   local bounds = reachable_blueprint:get_bounds()
+   local start = Point3(bounds.min.x, bounds.max.y - 1, bounds.min.z)
+   local finish = bounds.max
+   local top_row = reachable_blueprint:clipped(Cube3(start, finish))
+
+   reachable_blueprint:add_cube(top_row:get_bounds())
+
 
    -- starting 1 row down and 1 row out, all the way till we find terrain
-   top_row:translate(-Point3.unit_y + normal)
+   reachable_blueprint:translate(-Point3.unit_y + normal)
 
    -- and clip out the terrain
    local origin = self._sv.origin
-   top_row:translate(origin)
-   local region = _physics:project_region(top_row, CLIP_SOLID)
+   reachable_blueprint:translate(origin)
+   local region = _physics:project_region(reachable_blueprint, CLIP_SOLID)
    region = _physics:clip_region(region, CLIP_SOLID)
    region:translate(-origin)
 

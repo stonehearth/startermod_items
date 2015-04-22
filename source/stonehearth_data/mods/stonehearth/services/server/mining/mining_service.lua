@@ -22,7 +22,7 @@ function MiningService:initialize()
    if not self._sv._initialized then
       self._sv._initialized = true
       -- TODO: consider making mined_region a tiled region
-      self._sv._mined_region = Region3()
+      self._sv._mined_region = _radiant.sim.alloc_region3()
       self.__saved_variables:mark_changed()
    else
    end
@@ -184,12 +184,16 @@ function MiningService:merge_zones(zone1, zone2)
 end
 
 function MiningService:get_mined_region()
-   return self._sv._mined_region
+   return self._sv._mined_region:get()
 end
 
 function MiningService:_add_to_mined_region(point)
-   self._sv._mined_region:add_point(point)
-   self._sv._mined_region:optimize_by_merge('MiningService:_add_to_mined_region')
+   self._sv._mined_region:modify(function(cursor)
+         cursor:add_point(point)
+         cursor:optimize_by_merge('MiningService:_add_to_mined_region')
+      end)
+   
+   self.__saved_variables:mark_changed()
 end
 
 -- Chooses the best point to mine when standing on from.

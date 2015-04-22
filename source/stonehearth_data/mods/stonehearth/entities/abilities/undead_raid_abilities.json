@@ -1,0 +1,16 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:find_point_beyond_visible",
+               "stonehearth:actions:depart_visible_area"
+            ],
+            "observers" : [
+               "stonehearth:observers:raid_timeout_observer"
+            ]
+         }
+      }
+   }
+}

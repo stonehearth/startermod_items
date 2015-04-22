@@ -473,16 +473,17 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    local water_level2 = water_component2:get_water_level()
    local elevation_delta = math.abs(water_level1 - water_level2)
 
-   -- quick and easy test. occurs a lot when merging wetted regions.
-   if elevation_delta == 0 then
-      return true
-   end
-
+   -- TODO: imrpove merging of 3.99 and 4.00 height water bodies
    -- only mergable if the top layers are at the same elevation
    local layer_elevation1 = water_component1:get_top_layer_elevation()
    local layer_elevation2 = water_component2:get_top_layer_elevation()
    if layer_elevation1 ~= layer_elevation2 then
       return false
+   end
+
+   -- must do this after elevation test because of floating point precision
+   if elevation_delta == 0 then
+      return true
    end
 
    -- if transferring a small volume of water through the channel would equalize heights, then allow merge
