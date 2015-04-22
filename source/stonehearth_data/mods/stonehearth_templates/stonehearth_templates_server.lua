@@ -146,8 +146,8 @@ function StonehearthTemplateBuilder:grow_walls(column_uri, wall_uri)
    return stonehearth.build:grow_walls(floor, column_uri, wall_uri)
 end
 
-function StonehearthTemplateBuilder:grow_roof(walls, roof_uri, options)
-   stonehearth.build:grow_roof(walls, roof_uri, options)
+function StonehearthTemplateBuilder:grow_roof(walls, options)
+   stonehearth.build:grow_roof(walls, options)
 end
 
 -- builds a small house
@@ -155,7 +155,8 @@ end
 function StonehearthTemplateBuilder:_build_tiny_cottage()
    self:add_floor(0, 0, 7, 6, WOODEN_FLOOR_DIAGONAL)
    local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(walls, WOODEN_ROOF, {
+   self:grow_roof(walls, {
+         brush = WOODEN_ROOF,
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })
@@ -171,7 +172,8 @@ function StonehearthTemplateBuilder:_build_cottage_for_two()
    self:add_floor(0, 0, 11, 6, WOODEN_FLOOR_DIAGONAL)      
    self:add_floor(3, -4, 8, 0, WOODEN_FLOOR_DIAGONAL)      
    local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(walls, WOODEN_ROOF, {
+   self:grow_roof(walls, {
+         brush = WOODEN_ROOF,
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })
@@ -191,7 +193,8 @@ function StonehearthTemplateBuilder:_build_dining_hall()
    self:add_floor(0, 0, 15, 8, WOODEN_FLOOR_DIAGONAL)
    self:add_floor(3, -2, 12, 0, WOODEN_FLOOR_DIAGONAL)
    local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(walls, WOODEN_ROOF, {
+   self:grow_roof(walls, {
+         brush = WOODEN_ROOF,
          nine_grid_gradiant = { 'left', 'right', 'front', 'back' },
          nine_grid_max_height = 4,
       })
@@ -232,7 +235,8 @@ function StonehearthTemplateBuilder:_build_sleeping_hall()
    self:add_floor(0, 0, 19, 10, WOODEN_FLOOR_DIAGONAL)
    self:add_floor(3, -2, 12, 0, WOODEN_FLOOR_DIAGONAL)
    local walls = self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
-   self:grow_roof(walls, WOODEN_ROOF, {
+   self:grow_roof(walls, {
+         brush = WOODEN_ROOF,
          nine_grid_gradiant = { 'left', 'right', 'front', 'back' },
          nine_grid_max_height = 4,
       })
