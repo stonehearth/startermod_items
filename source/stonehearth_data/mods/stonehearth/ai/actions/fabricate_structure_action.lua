@@ -19,7 +19,7 @@ return ai:create_compound_action(FabricateStructure)
                material = ai.ARGS.fabricator:get_material(ai.BACK(2).path:get_destination_point_of_interest())
             })
          :execute('stonehearth:goto_location', {
-               reason = 'building structure',
+               reason = ai.ARGS.fabricator:get_description(),
                location = ai.BACK(3).path:get_finish_point(),
                stop_when_adjacent = false,
             })

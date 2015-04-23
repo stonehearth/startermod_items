@@ -686,9 +686,17 @@ std::string AStarPathFinder::GetProgress()
       }
    }
 
+   float eta = EstimateCostToSolution();
+   std::string etaString;
+   if (eta == FLT_MAX) {
+      etaString = "infinite";
+   } else {
+      etaString = BUILD_STRING(std::setprecision(1) << std::fixed << std::setw(5) << eta);
+   }
+
    return BUILD_STRING("jid:" << std::setw(4) << GetId() << " " <<
                        "astar entity:" << std::left << std::setw(30) << ename << " " <<
-                       "eta:"    << std::setprecision(1) << std::fixed << std::setw(5) << EstimateCostToSolution() << " " <<
+                       "eta:"    << etaString << " " <<
                        "src:"    << std::setw(20) << BUILD_STRING(srcPt) << " " <<
                        "dst:"    << std::setw(30) << dstname << " " <<
                        "#dst:"   << std::setw(2)  << destinations_.size() << " " <<
