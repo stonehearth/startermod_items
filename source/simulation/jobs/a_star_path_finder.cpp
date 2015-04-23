@@ -83,7 +83,8 @@ AStarPathFinder::AStarPathFinder(std::string const& name, om::EntityPtr entity) 
    _lastIdleCheckResult(nullptr),
    _rebuildOpenHeuristics(false),
    _max_steps(INT_MAX),
-   _num_steps(0)
+   _num_steps(0),
+   closedBounds_(csg::Cube3::zero)
 {
    PF_LOG(3) << "creating pathfinder";
 
@@ -620,7 +621,7 @@ void AStarPathFinder::PopClosestOpenNode()
    if (closed_.empty()) {
       closedBounds_ = csg::Cube3(pt);
    } else {
-      closedBounds_.Grow(pt);
+      closedBounds_.Grow(csg::Cube3(pt));
    }
    closed_.emplace(pt, node);
    _openLookup.erase(pt);
