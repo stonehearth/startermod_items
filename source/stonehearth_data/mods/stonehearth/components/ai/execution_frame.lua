@@ -45,6 +45,18 @@ local debug_info_state_order = {
    [DEAD] = 9,
 }
 
+local EF_STATS = {
+
+}
+
+function ExecutionFrame._dump_and_reset_stats()
+   local stats_copy = EF_STATS
+   EF_STATS = {}
+   _host:report_cpu_dump(stats_copy, 'ef_stats')
+end
+
+radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionFrame._dump_and_reset_stats)
+
 -- the max roam distance is intentionally set really really really high to avoid
 -- creating and re-creating many, many pathfinders while doing ambient behaviors
 -- which may move the entity small distances (e.g. idle while bored) or paths
@@ -389,6 +401,22 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
+function ExecutionFrame:_record_slow_think(timeout)
+   local counts = EF_STATS[self._activity_name]
+   if not counts then
+      counts = {
+         slow = 0,
+         really_slow = 0,
+      }
+      EF_STATS[self._activity_name] = counts
+   end
+   if timeout == SLOWSTART_TIMEOUTS[1] then
+      counts.slow = counts.slow + 1
+   else
+      counts.really_slow = counts.really_slow + 1
+   end
+end
+
 function ExecutionFrame:_destroy_slow_timers()
    for _, timer in pairs(self._slow_start_timers) do
       timer:destroy()
@@ -396,7 +424,7 @@ function ExecutionFrame:_destroy_slow_timers()
    self._slow_start_timers = {}
 end
 
-function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units)
+function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units, timeout)
    if self._state == DEAD then
       return
    end
@@ -415,6 +443,8 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
       self:_destroy_slow_timers()
       return
    end
+
+   self:_record_slow_think(timeout)
 
    self._log:spam('slow start think begins %s, %s, %s', units_start, units_start + (num_units - 1), #units)
 
@@ -529,8 +559,9 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
          -- Sigh, don't bind to the variable outside the lexical body....
          local local_units_start = units_start
+         local timeout = SLOWSTART_TIMEOUTS[i]
          local new_timer = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
-               self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used)
+               self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used, timeout)
             end)
          table.insert(self._slow_start_timers, new_timer)
 

@@ -1329,14 +1329,14 @@ void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
    f.close();
 }
 
-void ScriptHost::ReportCPUDump(luabind::object profTable)
+void ScriptHost::ReportCPUDump(luabind::object profTable, std::string const& name)
 {
    char date[256];
    std::time_t t = std::time(NULL);
    if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
       *date = 0;
    }
-   std::string filename = BUILD_STRING("eu_stats_" << date << ".json");
+   std::string filename = BUILD_STRING(name << "_" << date << ".json");
    std::ofstream f(filename);
    f << LuaToJson(profTable).write_formatted();
    f.close();

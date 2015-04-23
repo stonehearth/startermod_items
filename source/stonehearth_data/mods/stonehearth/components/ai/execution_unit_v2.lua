@@ -24,7 +24,7 @@ local ObjectMonitor = require 'components.ai.object_monitor'
 function ExecutionUnitV2._dump_and_reset_stats()
    local stats_copy = EU_STATS
    EU_STATS = {}
-   _host:report_cpu_dump(stats_copy)
+   _host:report_cpu_dump(stats_copy, 'eu_stats')
 end
 
 radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionUnitV2._dump_and_reset_stats)
