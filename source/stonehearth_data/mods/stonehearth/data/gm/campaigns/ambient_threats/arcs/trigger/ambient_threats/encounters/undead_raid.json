@@ -14,9 +14,14 @@
       "mission" : {
          "npc_player_id" : "undead",
 
-         "role" : "raid_stockpiles",
+         "role" : "pillage",
          "offset" : { "x" : 0, "y" : 0, "z" : 0 },
 
+         "pillage_radius" :{
+            "min" : 0,
+            "max" : 50
+         },
+         
          "sighted_bulletin" : {
             "title" : "BRAAIAINANANSSSSSS!",
             "message" : "Ouurrrrr tooowwwnnn!!!!"
