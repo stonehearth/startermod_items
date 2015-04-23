@@ -93,7 +93,7 @@ function WaterComponent:_add_water(add_location, volume)
    if volume == 0 then
       return
    end
-   log:detail('Adding %f water to %s at %s', volume, self._entity, add_location)
+   log:detail('Adding %G water to %s at %s', volume, self._entity, add_location)
 
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local channel_region = self:_get_channel_region()
@@ -216,8 +216,8 @@ function WaterComponent:_grow_region(volume, add_location, top_layer, edge_regio
          if is_drop then
             -- establish a unidirectional link between the two water bodies using a waterfall channel
             local source_location = top_layer:get_closest_point(point)
-            local waterfall_top = point
-            channel = channel_manager:link_waterfall_channel(self._entity, source_location, waterfall_top)
+            local channel_entrance = point
+            channel = channel_manager:link_waterfall_channel(self._entity, source_location, channel_entrance)
          end
       end
 
@@ -243,7 +243,7 @@ function WaterComponent:_remove_water(volume)
    if volume == 0 then
       return
    end
-   log:detail('Removing %f water from %s', volume, self._entity)
+   log:detail('Removing %g water from %s', volume, self._entity)
    
    while volume > 0 do
       local residual = self:_remove_height(volume)
@@ -468,7 +468,7 @@ function WaterComponent:fill_channel_from_water_region(channel)
       channel.queued_volume = channel.queued_volume + flow_volume
 
       if flow_volume > 0 then
-         log:spam('Added %f to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
+         log:spam('Added %g to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
       end
    end
 end
