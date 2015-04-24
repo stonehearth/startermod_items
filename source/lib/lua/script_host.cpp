@@ -1015,7 +1015,8 @@ luabind::object ScriptHost::CastObjectToLua(dm::ObjectPtr obj)
       return luabind::object();
    }
 
-   ObjectToLuaFn cast_fn = object_cast_table_[obj->GetObjectType()];
+   dm::ObjectType t = obj->GetObjectType();
+   ObjectToLuaFn cast_fn = object_cast_table_[t];
    ASSERT(cast_fn);
    return cast_fn(L_, obj);
 }
@@ -1080,6 +1081,13 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
       om::Stonehearth::RestoreLuaComponents(this, entity);
    }
    SH_LOG(7) << "finished restoring lua components";
+
+
+   SH_LOG(7) << "removing keep alive references to datastores";
+   for (om::DataStorePtr datastore : datastores) {
+      datastore->RemoveKeepAliveReferences();
+   }
+   SH_LOG(7) << "finished removing keep alive references to datastores";
 
    Trigger("radiant:game_loaded");
 }
@@ -1207,8 +1215,8 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
          luabind::object savestate = mods->GetMod(mod_name);
 
          if (!savestate || !savestate.is_valid()) {
-            om::DataStoreRef datastore = allocDs(mods->GetStore().GetStoreId());
-            datastore.lock()->SetData(luabind::newtable(L_));
+            om::DataStorePtr datastore = allocDs();
+            datastore->SetData(luabind::newtable(L_));
             savestate = luabind::object(L_, datastore);
          }
          module = Require(script_name);

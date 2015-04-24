@@ -40,7 +40,7 @@ StoreTracePtr StoreTrace::PushStoreState()
    return shared_from_this();
 }
 
-void StoreTrace::SignalAllocated(ObjectPtr obj)
+void StoreTrace::SignalAllocated(ObjectPtr const& obj)
 {
    if (on_alloced_) {
       on_alloced_(obj);

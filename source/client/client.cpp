@@ -123,8 +123,8 @@ Client::Client() :
    _currentUiScreen(InvalidScreen)
 {
    _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
-   _allocDataStoreFn = [this](int storeId) {
-      return AllocateDatastore(storeId);
+   _allocDataStoreFn = [this]() {
+      return AllocateDatastore();
    };
 }
 
@@ -676,20 +676,43 @@ void Client::EnableDisableLifetimeTracking()
    if (!debug_track_object_lifetime_) {
       // If we're turning off, let's dump everything.
       CLIENT_LOG(1) << "-- Object lifetimes -----------------------------------";
-      auto objectmap = core::ObjectCounterBase::GetObjects();
+      core::ObjectCounterBase::ObjectMap const& objectmap = core::ObjectCounterBase::GetObjects();
+      std::type_index datastoreTypeIndex(typeid(om::DataStore));
 
-      std::map<int, std::pair<core::ObjectCounterBase*, std::type_index>> sortedMap;
-      for (const auto& pair : objectmap) {
-         sortedMap.insert(std::make_pair(pair.second.first, std::make_pair(pair.first, pair.second.second)));
+      perfmon::CounterValueType now = perfmon::Timer::GetCurrentCounterValueType();
+      std::map<perfmon::CounterValueType, std::pair<core::ObjectCounterBase const*, std::string>> sortedMap;
+      for (auto const& entry : objectmap) {
+         std::type_index const& ti = entry.first;
+         core::ObjectCounterBase::AllocationMap const& am = entry.second;
+
+         for (auto const& alloc : am.allocs) {
+            core::ObjectCounterBase const* obj = alloc.first; 
+            perfmon::CounterValueType const& time = alloc.second;
+
+            std::string name;
+            if (ti == datastoreTypeIndex) {
+               radiant::om::DataStore const* ds = dynamic_cast<radiant::om::DataStore const*>(obj);
+               if (ds) {
+                  std::string name = ds->GetControllerName();
+                  if (!name.empty()) {
+                     name += " controller";
+                  }
+               }
+            }
+            if (name.empty()) {
+               name = am.typeName;
+            }
+            sortedMap[time] = std::make_pair(obj, name);
+         }
       }
 
-      for (const auto& pair : sortedMap) {
-         void* address = (void*)pair.second.first;
-         if (pair.second.second.name() == "class radiant::om::DataStore") {
-            address = (void*)dynamic_cast<radiant::om::DataStore*>(pair.second.first);
-            ASSERT(address != nullptr);
-         }
-         CLIENT_LOG(1) << "     Age:" << (platform::get_current_time_in_ms() - pair.first) << " Kind: " << pair.second.second.name() << " Address: " << pair.second.first;
+      for (const auto& entry : sortedMap) {
+         perfmon::CounterValueType const& time = entry.first;
+         core::ObjectCounterBase const* obj = entry.second.first;
+         std::string const& name = entry.second.second;
+         int age = perfmon::CounterToMilliseconds(now - time);
+
+         CLIENT_LOG(1) << "     Age:" << age << " Kind: " << name << "   Address: " << obj;
       }
    }
    core::ObjectCounterBase::TrackObjectLifetime(debug_track_object_lifetime_);
@@ -734,9 +757,10 @@ void Client::InitializeDataObjects()
 
    // Keep track of when entities are allocated so we can wire up client side
    // lua components
-   game_store_alloc_trace_ = store_->TraceStore("wire lua components")->OnAlloced([=](dm::ObjectPtr obj) {
+   game_store_alloc_trace_ = store_->TraceStore("wire lua components")->OnAlloced([=](dm::ObjectPtr const& obj) {
+      dm::ObjectId id = obj->GetObjectId();
       if (obj->GetObjectType() == om::DataStoreObjectType) {
-         datastores_to_restore_.emplace_back(std::static_pointer_cast<om::DataStore>(obj));
+         datastores_to_restore_.emplace_back(std::make_pair(id, std::static_pointer_cast<om::DataStore>(obj)));
       }
    });
 
@@ -780,8 +804,6 @@ void Client::ShutdownDataObjectTraces()
 
 void Client::ShutdownDataObjects()
 {
-   datastoreMap_.clear();
-
    radiant_ = luabind::object();
 
    // the script host must go last, after all the luabind::objects spread out
@@ -888,6 +910,17 @@ void Client::run(int server_port)
       perfmon::BeginFrame(_perfHud != nullptr);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
       mainloop();
+
+#if defined(ENABLE_OBJECT_COUNTER)
+      static int nextAuditTime = 0;
+      int now = platform::get_current_time_in_ms();
+      if (nextAuditTime == 0 || nextAuditTime < now) {
+         if (receiver_) {
+            receiver_->Audit();
+         }
+         nextAuditTime = now + 5000;
+      }
+#endif
    }
 }
 
@@ -1568,21 +1601,9 @@ void Client::CallHttpReactor(std::string const& path, const json::Node& query, s
    return;
 }
 
-om::DataStoreRef Client::AllocateDatastore(int storeId)
+om::DataStorePtr Client::AllocateDatastore()
 {
-   om::DataStorePtr result;
-   if (storeId == store_->GetStoreId()) {
-      result = store_->AllocObject<om::DataStore>();   
-   } else {
-      result = authoringStore_->AllocObject<om::DataStore>();
-      dm::ObjectId id = result->GetObjectId();
-      datastoreMap_[id] = result;
-   }
-   return result;
-}
-
-void Client::RemoveDataStoreFromMap(dm::ObjectId id) {
-   datastoreMap_.erase(id);
+   return authoringStore_->AllocObject<om::DataStore>();
 }
 
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
@@ -1852,7 +1873,7 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    std::vector<om::DataStorePtr> datastores;
 
    CLIENT_LOG(1) << "restoring datastores...";
-   store.TraceStore("get entities")->OnAlloced([this, &datastores](dm::ObjectPtr obj) mutable {
+   store.TraceStore("get entities")->OnAlloced([this, &datastores](dm::ObjectPtr const& obj) mutable {
       dm::ObjectId id = obj->GetObjectId();
       dm::ObjectType type = obj->GetObjectType();
       if (type == om::EntityObjectType) {
@@ -1861,7 +1882,6 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
          dm::ObjectId id = ds->GetObjectId();
          datastores.emplace_back(ds);
-         datastoreMap_[id] = ds;
       }
    })->PushStoreState();   
 
@@ -1870,10 +1890,14 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    localRootEntity_ = GetAuthoringStore().FetchObject<om::Entity>(1);
    localModList_ = localRootEntity_->GetComponent<om::ModList>();
 
+   CLIENT_LOG(1) << "creating error browser...";
    CreateErrorBrowser();
+   CLIENT_LOG(1) << "initializing data object traces...";
    InitializeDataObjectTraces();
 
+   CLIENT_LOG(1) << "requiring radiant.client...";
    radiant_ = scriptHost_->Require("radiant.client");
+   CLIENT_LOG(1) << "loading script host...";
    scriptHost_->LoadGame(localModList_, _allocDataStoreFn, authoredEntities_, datastores);  
    initialUpdate_ = true;
 
@@ -1959,15 +1983,40 @@ void Client::RestoreDatastores()
 {
    // Two passes: First create all the controllers for the datastores we just
    // created
-   for (om::DataStorePtr d : datastores_to_restore_) {
-      d->RestoreController(d);
+   CLIENT_LOG(1) << "restoring datastores controllers";
+   for (auto const& entry : datastores_to_restore_) {
+      om::DataStorePtr ds = entry.second.lock();
+      if (ds) {
+         ds->RestoreController(ds, true);
+      } else {
+         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+      }
    }
+   CLIENT_LOG(1) << "finished restoring datastores controllers";
 
    // Now run through all the tables on those datastores and convert the
    // pointers-to-datastore to pointers-to-controllers
-   for (om::DataStorePtr d : datastores_to_restore_) {
-      d->RestoreControllerData();
+   CLIENT_LOG(1) << "restoring datastores controller data";
+   for (auto const& entry : datastores_to_restore_) {
+      om::DataStorePtr ds = entry.second.lock();
+      if (ds) {
+         ds->RestoreControllerData();
+      } else {
+         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+      }
    }
+
+   CLIENT_LOG(1) << "removing keep alive references to datastores";
+   for (auto const& entry : datastores_to_restore_) {
+      om::DataStorePtr ds = entry.second.lock();
+      if (ds) {
+         ds->RemoveKeepAliveReferences();
+      } else {
+         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+      }
+   }
+   CLIENT_LOG(1) << "finished restoring datastores controller data";
+
    datastores_to_restore_.clear();
 }
 

@@ -67,7 +67,7 @@ std::string StrongGameObjectToJson(std::shared_ptr<T> obj)
 }
 
 template <class T>
-bool WeakPtr_IsValid(std::weak_ptr<T> o)
+bool WeakPtr_IsValid(std::weak_ptr<T> const& o)
 {
    return !o.expired();
 }
@@ -244,7 +244,10 @@ luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name)
       ];
 }
 
-// registers both the shared_ptr and weak_ptr versions of the class methods
+// registers both the shared_ptr and weak_ptr versions of the class methods.  the
+// client version of strong game objects will always be sent into the interpreter
+// as weak_ptr's so that the client will be unable to keep those objects alive.
+// this currently happens in the json to lua converter registered in open_om.cpp)
 #define REGISTER_DUAL_CLASS_METHODS(name, method_suffix) \
    .def(name, &Strong ## method_suffix) \
    .def(name, &Weak ## method_suffix)

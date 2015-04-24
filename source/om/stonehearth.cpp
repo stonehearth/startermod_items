@@ -9,6 +9,7 @@
 #include "resources/exceptions.h"
 #include "lib/lua/script_host.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/data_store_ref_wrapper.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -64,7 +65,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, const char* name)
             // or the client).  The entity will manually delete them when being destroyed.
             om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
             datastore->SetData(luabind::newtable(L));
-            component = datastore->CreateController(om::DataStoreRef(datastore), "components", name);
+            component = datastore->CreateController(datastore, "components", name);
             if (component) {
                entity->AddLuaComponent(name, datastore);
                SetEntityForComponent(L, component, entity, luabind::newtable(L));
@@ -128,7 +129,7 @@ Stonehearth::GetComponent(lua_State* L, EntityRef e, const char* name)
          if (datastore) {
             component = datastore->GetController();
             if (!component) {
-               component = luabind::object(L, om::DataStoreRef(datastore));
+               component = luabind::object(L, om::DataStoreRefWrapper(datastore));
             }
          }
       }

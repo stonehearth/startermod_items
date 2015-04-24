@@ -17,7 +17,7 @@ BEGIN_RADIANT_LUA_NAMESPACE
 
 class ScriptHost {
 public:
-   typedef std::function<om::DataStoreRef(int storeId)> AllocDataStoreFn;
+   typedef std::function<om::DataStorePtr()> AllocDataStoreFn;
 public:
    ScriptHost(std::string const& site);
    ~ScriptHost();

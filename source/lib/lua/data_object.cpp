@@ -32,6 +32,11 @@ DataObject::DataObject(luabind::object o) :
    SetDataObject(o);
 }
 
+void DataObject::SetDataObjectChanged(DataObjectChangedCb cb) const
+{
+   _dataObjectChangedCb = cb;
+}
+
 void DataObject::SetDataObject(luabind::object o) 
 {
    DO_LOG(8) << "set data object to (new object: " << GetLuaObjectIndex(&o) << ")";
@@ -39,8 +44,10 @@ void DataObject::SetDataObject(luabind::object o)
    lua_State* L = ScriptHost::GetInterpreter(o.interpreter());
    data_object_ = luabind::object(L, o);
    DO_LOG(8) << "finished set data object (old object: " << GetLuaObjectIndex(&o) << ")";
-
    MarkDirty();
+   if (_dataObjectChangedCb) {
+      _dataObjectChangedCb();
+   }
 }
 
 luabind::object DataObject::GetDataObject() const
@@ -91,6 +98,9 @@ void DataObject::LoadValue(dm::Store const& store, dm::SerializationType  r, con
       marshall::Convert(store, flags).ToLua(msg.lua_object(), data_object_);
       dirty_ = true;
       needsRestoration_ = true;
+      if (_dataObjectChangedCb) {
+         _dataObjectChangedCb();
+      }
    }
 }
 

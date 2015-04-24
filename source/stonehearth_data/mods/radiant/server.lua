@@ -3,12 +3,12 @@ decoda_name = "radiant server"
 
 radiant = {
    is_server = true,
-   _root_entity = _radiant.sim.get_object(1)
+   _root_entity = _radiant.sim.get_entity(addr)
 }
 require 'modules.common'
 
-function radiant.get_object(addr)
-   return _radiant.sim.get_object(addr)
+function radiant.get_entity(addr)
+   return _radiant.sim.get_entity(addr)
 end
 
 function radiant.create_datastore(data)
@@ -127,7 +127,7 @@ local CONTROLLERS = {
 }
 
 radiant.events.listen(radiant, 'radiant:init', function(args)
-      radiant._root_entity = _radiant.sim.get_object(1)
+      radiant._root_entity = _radiant.sim.get_entity(1)
 
       radiant._sv = radiant.__saved_variables:get_data()
       for _, name in ipairs(CONTROLLERS) do

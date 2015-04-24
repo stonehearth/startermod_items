@@ -60,7 +60,7 @@ end
 
 -- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
 function client_entities.get_entity(id)
-   local entity = _radiant.client.get_object(id)
+   local entity = radiant.get_entity(id)
    return entity
 end
 

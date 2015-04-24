@@ -6,7 +6,7 @@ function gamestate.now()
    if not clock_ then
       if not radiant._root_entity then
          -- must be on the client.  this is so gross!
-         radiant._root_entity = _radiant.client.get_object(1)
+         radiant._root_entity = _radiant.client.get_entity(1)
       end
       if not radiant._root_entity then
          return 0

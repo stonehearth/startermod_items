@@ -14,6 +14,10 @@ public:
    DataObject();
    DataObject(luabind::object o);
 
+   typedef std::function<void()> DataObjectChangedCb;
+
+   void SetDataObjectChanged(DataObjectChangedCb cb) const;
+
    void SetDataObject(luabind::object o);
    luabind::object GetDataObject() const;
    json::Node const& GetJsonNode() const;
@@ -30,6 +34,7 @@ public:
    mutable json::Node         cached_json_;
    mutable dm::GenerationId   dirty_;
    mutable bool               needsRestoration_;
+   mutable DataObjectChangedCb _dataObjectChangedCb;
 };
 
 DECLARE_SHARED_POINTER_TYPES(DataObject)

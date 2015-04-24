@@ -589,12 +589,12 @@ function SubterraneanViewService:_get_terrain_bounds()
 end
 
 function SubterraneanViewService:_get_terrain_component()
-   local root_entity = _radiant.client.get_object(1)
+   local root_entity = radiant.get_entity(1)
    return root_entity:add_component('terrain')
 end
 
 function SubterraneanViewService:_get_root_entity_container()
-   local root_entity = _radiant.client.get_object(1)
+   local root_entity = radiant.get_entity(1)
    return root_entity:add_component('entity_container')
 end
 

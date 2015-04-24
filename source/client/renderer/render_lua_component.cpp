@@ -3,6 +3,7 @@
 #include "render_lua_component.h"
 #include "resources/res_manager.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/data_store_ref_wrapper.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -39,7 +40,7 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, core::StaticString 
             if (fn) {
                luabind::object controller = datastore->GetController();
                if (!controller) {
-                  controller = luabind::object(L, om::DataStoreRef(datastore));
+                  controller = luabind::object(L, om::DataStoreRefWrapper(datastore));
                }
                fn(component_renderer_, re, controller);
             }
