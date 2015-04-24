@@ -121,7 +121,8 @@ function RunTaskAction:start(ai, entity)
 end
 
 function RunTaskAction:run(...)
-   self._execution_frame:run(...)
+   local args = {...}
+   self._execution_frame:run(args)
    self._task:__action_completed(self)
 end
 

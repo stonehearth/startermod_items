@@ -21,13 +21,17 @@ function TeardownStructureAdjacent:start(ai, entity, args)
 end
 
 function TeardownStructureAdjacent:start_thinking(ai, entity, args)
+   self._material = args.fabricator:get_material(args.block)
+   if not self._material then
+      ai:halt(string.format('point %s is not in fabricator in teardown adjacent action', tostring(args.block)))
+      return
+   end  
+   
    local carrying = ai.CURRENT.carrying
    if not carrying then
       ai:set_think_output()
       return
    end
-
-   self._material = args.fabricator:get_material(args.block)
    if not radiant.entities.is_material(carrying, self._material) then
       return
    end

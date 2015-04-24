@@ -16,12 +16,13 @@ $.widget( "stonehearth.stonehearthMenu", {
       }
    },
 
-   hideMenu: function(menuItem) {
+   hideMenu: function() {
       //this.menu.find('.menuItemGroup').hide();
       this.showMenu(null);
       if (this.options.hide) {
          this.options.hide();
       }
+      this._currentOpenMenu = null;
    },
 
    getMenu: function() {
@@ -29,14 +30,19 @@ $.widget( "stonehearth.stonehearthMenu", {
    },
 
    showMenu: function(id) {
-      this.menu.find('.menuItemGroup').hide();
-      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());      
-      
+      this.menu.find('.menuItemGroup').each(function(_, el) {
+         if ($(el).hasClass('up')) {
+            $(el).removeClass('up').addClass('down');
+         }
+      });
+
       var nodeData;
 
       if (id) {
          var subMenu = '[parent="' + id +'"]';
-         this.menu.find(subMenu).show();
+         this.menu.find(subMenu)
+            .removeClass('down')
+            .addClass('up');
          nodeData = this._dataToMenuItemMap[id]
       }
 
@@ -71,6 +77,10 @@ $.widget( "stonehearth.stonehearthMenu", {
    },
    */
 
+   getOpenMenu: function() {
+      return this._currentOpenMenu;
+   },
+
    getGameMode: function() {
       if (this._currentOpenMenu) {
          return this._dataToMenuItemMap[this._currentOpenMenu].game_mode
@@ -86,6 +96,7 @@ $.widget( "stonehearth.stonehearthMenu", {
 
    _create: function() {
       var self = this;
+      App.startMenu = this;
 
       this._dataToMenuItemMap = {};
       this.menu = $('<div>').addClass('stonehearthMenu');
@@ -153,8 +164,6 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.menu.on( 'click', '.close', function() {
          self.showMenu(null);
       });
-
-      //this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
 
       /*
       $(document).click(function() {

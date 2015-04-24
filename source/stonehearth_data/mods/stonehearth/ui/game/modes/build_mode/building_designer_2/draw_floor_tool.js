@@ -3,8 +3,14 @@ var DrawFloorTool;
 (function () {
    DrawFloorTool = SimpleClass.extend({
 
-      toolId: 'drawFloorTool',
-      materialClass: 'floorMaterial',
+      toolId:     undefined,
+      sinkFloor:  undefined,
+
+      init: function(o) {
+         this.toolId = o.toolId;
+         this.sinkFloor = o.sinkFloor;
+         this.materialClass = o.toolId + 'Material';
+      },
 
       handlesType: function(type) {
          return type == 'floor';
@@ -20,7 +26,10 @@ var DrawFloorTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                var brush = self._materialHelper.getSelectedBrush();
-               return App.stonehearthClient.buildFloor(brush);
+               if (brush == 'eraser') {
+                  return App.stonehearthClient.eraseStructure();
+               }
+               return App.stonehearthClient.buildFloor(brush, self.sinkFloor);
             });
       },
 
@@ -42,6 +51,7 @@ var DrawFloorTool;
                                                    self.materialClass,
                                                    brushes.voxel,
                                                    brushes.pattern,
+                                                   true,
                                                    click);
       },
 

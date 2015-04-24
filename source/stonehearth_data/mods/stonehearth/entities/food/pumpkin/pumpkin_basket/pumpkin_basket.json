@@ -3,8 +3,8 @@
    "type": "entity",
    "components": {
       "item": {
-         "stacks" : 6,
-         "max_stacks" : 6,
+         "stacks" : 10,
+         "max_stacks" : 10,
          "category" : "food"
       },
       "model_variants": {

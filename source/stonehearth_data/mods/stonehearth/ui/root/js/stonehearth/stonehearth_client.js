@@ -574,9 +574,8 @@ var StonehearthClient;
             return radiant.call_obj(self._build_editor, 'place_template', template)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //self.drawTemplate(precall, template);
                })
-               .fail(function(response) {
+               .always(function(response) {
                   self.hideTip(tip);
                });
          }, precall);
@@ -598,11 +597,25 @@ var StonehearthClient;
       },
 
 
-      buildFloor : function(floorBrush) {
+      buildFloor : function(floorBrush, sinkFloor) {
          var self = this;
          return function() {
             var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
-            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush, sinkFloor)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });      
+         };
+      },
+
+      eraseStructure : function() {
+         var self = this;
+         return function() {
+            var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
+            return radiant.call_obj(self._build_editor, 'erase_structure')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -632,23 +645,6 @@ var StonehearthClient;
          };
       },
 
-      eraseStructure: function(precall) {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
-         var self = this;
-
-         var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
-
-         return this._callTool('eraseStructure', function() {
-            return radiant.call_obj(self._build_editor, 'erase_structure')
-               .done(function(response) {                  
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-               })
-               .fail(function(response) {
-                  self.hideTip(tip);
-               });
-         }, precall);
-      },
-
       buildRoad: function(roadBrush, curbBrush) {
          var self = this;
 
@@ -665,13 +661,13 @@ var StonehearthClient;
             };
       },
 
-      growRoof: function(roof) {
+      growRoof: function(roof, option) {
          var self = this;
 
          return function() {
             var tip = self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
 
-            return radiant.call_obj(self._build_editor, 'grow_roof', roof)
+            return radiant.call_obj(self._build_editor, 'grow_roof', roof, option)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                });
@@ -700,19 +696,6 @@ var StonehearthClient;
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'});
                });
          };
-      },
-
-      replaceStructure: function(old_structure, new_structure_uri) {
-         var self = this;
-         if (old_structure) {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-            radiant.call_obj(self._build_service, 'substitute_blueprint_command', old_structure.__self, new_structure_uri)
-               .done(function(o) {
-                  if (o.new_selection) {
-                     radiant.call('stonehearth:select_entity', o.new_selection);
-                  }
-               });
-         }
       },
 
       addDoodad: function(doodadUri) {

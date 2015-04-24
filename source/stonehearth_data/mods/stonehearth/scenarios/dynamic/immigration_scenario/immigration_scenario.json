@@ -26,9 +26,10 @@
       ],
       "outcome_statement" : " A __job__ would like to join __town_name__!", 
       "growth_requirements" : {
-         "food" : "50 + math.max((num_citizens-7) * 20, 0)",
+         "food" : "50 + math.max((num_citizens-7), 0) ^ 2 * 50",
          "morale" : "4.0",
-         "net_worth" : "math.max((num_citizens-2) , 1) * 300"
-      }
+         "net_worth" : "math.max((num_citizens-4) , 1) ^ 2 * 100"
+      }, 
+      "max_citizens" : 20
    }
 }

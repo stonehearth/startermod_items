@@ -12,7 +12,15 @@ RenderRegionCollisionShape::RenderRegionCollisionShape(const RenderEntity& entit
 {
    collision_shape_ = collision_shape;
 
-   renderer_guard_ = Renderer::GetInstance().OnShowDebugShapesChanged([this](bool enabled) {
+   renderer_guard_ = Renderer::GetInstance().OnShowDebugShapesChanged([this](dm::ObjectId id) {
+      bool enabled;
+      if (id <= 0) {
+         enabled = (id < 0);
+      } else {
+         om::EntityPtr entity = entity_.GetEntity();
+         enabled = (entity && entity->GetObjectId() == id);
+      }
+
       if (enabled) {
          auto collision_shape = collision_shape_.lock();
          if (collision_shape) {

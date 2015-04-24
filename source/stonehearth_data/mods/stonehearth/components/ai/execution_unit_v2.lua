@@ -24,7 +24,7 @@ local ObjectMonitor = require 'components.ai.object_monitor'
 function ExecutionUnitV2._dump_and_reset_stats()
    local stats_copy = EU_STATS
    EU_STATS = {}
-   _host:report_cpu_dump(stats_copy)
+   _host:report_cpu_dump(stats_copy, 'eu_stats')
 end
 
 radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionUnitV2._dump_and_reset_stats)
@@ -47,6 +47,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    self._action_index = action_index
    self._execution_frames = {}
    self._think_output_types = self._action.think_output or self._action.args
+   self._num_runs = 0
      
    self._ai_interface = { ___execution_unit = self }   
    local chain_function = function (fn)
@@ -65,6 +66,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('set_cost')
    chain_function('protect_argument')
    chain_function('unprotect_argument')
+   chain_function('set_debug_progress')
   
    local actions = {
       -- for filters only   
@@ -164,6 +166,7 @@ function ExecutionUnitV2:get_debug_info(depth)
             o.state = self._state
             o.name = self._action.name
             o.action = self:_get_action_debug_info(o.depth)
+            o.progress = self._debug_progress
          end)
       self:_update_debug_info_execution_frame()
    end
@@ -203,7 +206,7 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
    self:_set_args(args)
 
    if self._state == DEAD then
-      self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "start_thinking" in state "%s"', self._state)
       return
    end
 
@@ -219,7 +222,7 @@ end
 
 function ExecutionUnitV2:_set_think_output(think_output)
    if self._state == DEAD then
-      self._log:detail('ignoring "set_think_output" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "set_think_output" in state "%s"', self._state)
       return
    end
 
@@ -234,7 +237,7 @@ end
 
 function ExecutionUnitV2:_clear_think_output()
    if self:in_state(DEAD) then
-      self._log:detail('ignoring "clear_think_output" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "clear_think_output" in state "%s"', self._state)
       return
    end
 
@@ -249,7 +252,7 @@ end
 
 function ExecutionUnitV2:_stop_thinking()
    if self._state == DEAD then
-      self._log:detail('ignoring "stop_thinking" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "stop_thinking" in state "%s"', self._state)
       return
    end
 
@@ -268,7 +271,7 @@ end
 
 function ExecutionUnitV2:_start()
    if self._state == DEAD then
-      self._log:detail('ignoring "start" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "start" in state "%s"', self._state)
       return
    end
 
@@ -280,11 +283,12 @@ end
 
 function ExecutionUnitV2:_run()
    if self._state == DEAD then
-      self._log:detail('ignoring "run" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "run" in state "%s"', self._state)
       return
    end
 
    self:_update_stats(0, 1)
+   self._num_runs = self._num_runs + 1
    if self._state == 'ready' then
       return self:_run_from_ready()
    end
@@ -298,7 +302,7 @@ function ExecutionUnitV2:_stop()
    self:_destroy_object_monitor()
    
    if self._state == DEAD then
-      self._log:detail('ignoring "stop" in state "%s"', self._state)
+      self:_log_dead(radiant.log.DETAIL, 'ignoring "stop" in state "%s"', self._state)
       return
    end
 
@@ -384,7 +388,7 @@ end
 
 function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
    if self._state == DEAD then
-      self._log:debug('ignoring set_think_output in dead state')
+      self:_log_dead(radiant.log.DETAIL, 'ignoring set_think_output in dead state')
       return
    end
 
@@ -408,7 +412,7 @@ end
 
 function ExecutionUnitV2:_clear_think_output_from_thinking()
    if self._state == DEAD then
-      self._log:debug('ignoring clear_think_output in dead state')
+      self:_log_dead(radiant.log.DETAIL, 'ignoring clear_think_output in dead state')
       return
    end
    self:_set_state(THINKING)
@@ -590,7 +594,7 @@ function ExecutionUnitV2:_do_start()
          if not self:in_state(DEAD, STOPPED) then
             -- if we made it here, unsafe_interrupt() could not deliver our cb.
             -- we have no choice but to keep running!
-            radiant.log.write('stonehearth', 0, '"%s" action, failed to abort on entity destruction.' ..
+            self:_log_dead(0, '"%s" action, failed to abort on entity destruction.' ..
                                                 '  did you forget to unprotect it?', self._action.name)
          end
       end)
@@ -719,6 +723,20 @@ function ExecutionUnitV2:__set_status_text(format, ...)
    self._ai_component:set_status_text(string.format(format, ...))
 end
 
+function ExecutionUnitV2:__set_debug_progress(format, ...)
+   if format then
+      self._debug_progress = radiant.log.format(format, ...)
+      self._log:info('debug progress: ' .. self._debug_progress)
+   else
+      self._debug_progress = nil
+   end
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+            o.progress = self._debug_progress
+         end)
+   end   
+end
+
 function ExecutionUnitV2:__execute(activity_name, args)
    self._log:debug('__execute %s %s called', activity_name, stonehearth.ai:format_args(args))
    assert(self._thread:is_running())
@@ -774,7 +792,7 @@ function ExecutionUnitV2:__resume(format, ...)
    self._log:spam('__resume called (reason: %s)', reason)
 
    if self:in_state(DEAD) then
-      self._log:debug('ignoring call to resume in %s state', self._state)
+      self:_log_dead(radiant.log.DEBUG, 'ignoring call to resume in %s state', self._state)
    else
       self._thread:resume(reason)
    end
@@ -893,7 +911,7 @@ function ExecutionUnitV2:_set_state(state)
    if self._state ~= DEAD then
       self._state = state   
    else
-      self._log:debug('cannot transition to %s from DEAD.  remaining dead', state)
+      self:_log_dead(radiant.log.DEBUG, 'cannot transition to %s from DEAD.  remaining dead', state)
    end   
 
    if self._debug_info then
@@ -963,6 +981,13 @@ function ExecutionUnitV2:_update_debug_info_execution_frame()
             end
          end)
    end
+end
+
+-- When the EU dies, we reap the logger, so that it can be re-used.  We might still want
+-- to do logging, though, so here's our escape-hatch.
+function ExecutionUnitV2:_log_dead(priority, str, ...)
+   local prefix = tostring(self._entity) .. self._debug_route .. self._debug_name
+   radiant.log.write('stonehearth.ai.exec_unit', priority, prefix .. str, ...)
 end
 
 

@@ -4,6 +4,22 @@ local Region3 = _radiant.csg.Region3
 
 local csg_lib = {}
 
+csg_lib.XZ_DIRECTIONS = {
+   Point3(-1, 0, 0),
+   Point3( 1, 0, 0),
+   Point3( 0, 0,-1),
+   Point3( 0, 0, 1)
+}
+
+csg_lib.XYZ_DIRECTIONS = {
+   Point3(-1, 0, 0),
+   Point3( 1, 0, 0),
+   Point3( 0, 0,-1),
+   Point3( 0, 0, 1),
+   Point3( 0,-1, 0),
+   Point3( 0, 1, 0)
+}
+
 -- create a cube that spans p0 and p1 inclusive
 function csg_lib.create_cube(p0, p1, tag)
    assert(p0 and p1)
@@ -144,18 +160,13 @@ end
 
 function csg_lib.create_adjacent_columns(point, y_min, y_max)
    local region = Region3()
+   local cube = Cube3(point)
+   cube.min.y = y_min
+   cube.max.y = y_max
 
-   local add_xz_column = function(region, x, z, y_min, y_max)
-      region:add_cube(Cube3(
-            Point3(x,   y_min, z),
-            Point3(x+1, y_max, z+1)
-         ))
+   for _, direction in ipairs(csg_lib.XZ_DIRECTIONS) do
+      region:add_unique_cube(cube:translated(direction))
    end
-
-   add_xz_column(region, point.x-1, point.z,   y_min, y_max)
-   add_xz_column(region, point.x+1, point.z,   y_min, y_max)
-   add_xz_column(region, point.x,   point.z-1, y_min, y_max)
-   add_xz_column(region, point.x,   point.z+1, y_min, y_max)
 
    return region
 end

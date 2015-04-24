@@ -29,11 +29,14 @@ class RenderDestination : public RenderComponent {
       };
 
    private:
-      const RenderEntity*      entity_;
+      RenderEntity const&      entity_;
       om::DestinationPtr       destination_;
       H3DNodeUnique            regionDebugShape_[COUNT];
       om::DeepRegion3fGuardPtr region_trace_[COUNT];
       core::Guard              renderer_guard_;
+      core::Guard              _debugShapesEnabledGuard;
+      bool                     _visible;
+      bool                     _enabled;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

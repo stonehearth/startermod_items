@@ -1,10 +1,28 @@
 {
+   "town_menu" : {
+      "name" : "Town Info",
+      "description" : "General information about your town, how your hearthlings are feeling, and the wealth you've accumulated!",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/town.png",
+      "hotkey" : "t",
+      "game_mode" : "normal",
+      "clickSound": "stonehearth:sounds:banner_grab"
+   },   
+   "citizen_manager" : {
+      "name" : "Citizens",
+      "description" : "Manage your hearthlings and promote them to new jobs.",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/citizens.png",
+      "hotkey" : "c",
+      "game_mode" : "normal",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
+   },
    "harvest_menu" : {
       "name" : "Harvest",
       "description" : "Harvest resources or mine into the earth.",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
-      "hotkey" : "1",
+      "icon" : "/stonehearth/ui/game/start_menu/images/harvest.png",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup",
       "items" : {
@@ -12,7 +30,7 @@
             "name" : "Harvest Plants",
             "description" : "Harvest trees and plants from the surface",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
+            "icon" : "/stonehearth/ui/game/start_menu/images/harvest_cmd.png",
             "sticky" : true,
             "hotkey" : "h"
          },
@@ -38,22 +56,6 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/clear.png",
             "sticky" : true
          },
-         "loot_item" : {
-            "name" : "Loot",
-            "description" : "Steal items from another player.",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/loot.png",
-            "sticky" : true,
-            "hotkey" : "g"
-         },
-         "mining_ui" : {
-            "name" : "Mine",
-            "description" : "Mine out tunnels and caves",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
-            "sticky" : true,
-            "hotkey" : "m"
-         },
          "mine_block" : {
             "name" : "Mine Block",
             "description" : "Mine individual blocks",
@@ -64,55 +66,11 @@
          }
       }
    },
-   "build_menu" : {
-      "name" : "Build & Design",
-      "description" : "Build structures like houses and city walls.",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_build.png",
-      "hotkey" : "2",
-      "game_mode" : "build",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
-      "items" : {
-         "building_templates" : {
-            "name" : "Build from a Template",
-            "description" : "Choose to construct a building from a pre-designed template",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/building_template.png",
-            "sticky" : true,
-            "hotkey" : "b"
-         },
-         "custom_building" : {
-            "name" : "Design a Custom Building",
-            "description" : "Design your own one-of-a-kind building",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
-            "sticky" : true,
-            "hotkey" : "b"
-         },
-         "place_item" : {
-            "name" : "Place an Item",
-            "description" : "Place items like furniture and decoration",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/place_item.png",
-            "sticky" : true,
-            "hotkey" : "p"
-         },
-         "build_ladder" : {
-            "name" : "Construct a Ladder",
-            "description" : "Build a ladder to access hard to reach places",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/build_ladder.png",
-            "sticky" : true,
-            "hotkey" : "l"
-         }
-      }
-   },
    "zone_menu" : {
       "name" : "Designate Zones",
       "description" : "Designate areas of the ground for storage, farming, etc.",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/zone.png",
       "hotkey" : "4",
       "game_mode" : "zones",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
@@ -153,20 +111,74 @@
             "required_job_text" : "Requires a shepherd",            
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_pasture.png",
-            "sticky" : true
+            "sticky" : true,
+            "hotkey" : "shift+p"
          }
       }
    },      
+   "build_menu" : {
+      "name" : "Build & Design",
+      "description" : "Build structures like houses and city walls.",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/build.png",
+      "hotkey" : "2",
+      "game_mode" : "build",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
+      "items" : {
+         "building_templates" : {
+            "name" : "Place Building",
+            "description" : "Choose to construct a building from a pre-designed template",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/templates.png",
+            "sticky" : true,
+            "hotkey" : "b"
+         },
+         "custom_building" : {
+            "name" : "Design Building",
+            "description" : "Design your own one-of-a-kind building",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
+            "sticky" : true,
+            "hotkey" : "shift+b"
+         },
+         "place_item" : {
+            "name" : "Place Item",
+            "description" : "Place items like furniture and decoration",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/place_item.png",
+            "sticky" : true,
+            "hotkey" : "p"
+         },
+         "build_ladder" : {
+            "name" : "Construct Ladder",
+            "description" : "Build a ladder to access hard to reach places",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/build_ladder.png",
+            "sticky" : true,
+            "hotkey" : "l"
+         }
+      }
+   },
    "fight_menu" : {
       "name" : "Fight & Defend",
       "description" : "Manage your combat forces",
       "class" : "dock",
       "hotkey" : "6",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/fight.png",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
       "items" : {
+         "party_manager" : {
+            "name" : "Parties",
+            "description" : "Organize your troops into groups",
+            "class" : "dock",
+            "icon" : "/stonehearth/ui/game/start_menu/images/manage_parties.png",
+            "game_mode" : "normal",
+            "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+            "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
+         },
          "town_defense" : {
             "name" : "Town Defense Mode!",
             "description" : "Rally your hearthlings to defend the town!",
@@ -174,48 +186,17 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/town_defense.png",
             "sticky" : true,
             "hotkey" : "r"
-         }
+         },
+         "loot_item" : {
+            "name" : "Loot",
+            "description" : "Steal items from another player.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/loot.png",
+            "sticky" : true,
+            "hotkey" : "shift+l"
+         }         
       }
    },   
-   "town_menu" : {
-      "name" : "Town Info",
-      "description" : "General information about your town, how your hearthlings are feeling, and the wealth you've accumulated!",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/town_banner.png",
-      "hotkey" : "i",
-      "game_mode" : "normal",
-      "clickSound": "stonehearth:sounds:banner_grab"
-   },   
-   "citizen_manager" : {
-      "name" : "Hearthlings",
-      "description" : "Manage your settlers and promote them to new jobs.",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/manage_citizens.png",
-      "hotkey" : "5",
-      "game_mode" : "normal",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
-   },
-   "workshop_manager" : {
-      "name" : "Workshops",
-      "description" : "Manage your workshops",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/manage_workshops.png",
-      "hotkey" : "",
-      "game_mode" : "normal",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
-   },
-   "party_manager" : {
-      "name" : "Parties",
-      "description" : "Organize your troops into groups",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/manage_parties.png",
-      "hotkey" : "",
-      "game_mode" : "normal",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
-   },
    "bulletin_manager" : {
       "name" : "Bulletins",
       "description" : "Important notifications about the world and your town",

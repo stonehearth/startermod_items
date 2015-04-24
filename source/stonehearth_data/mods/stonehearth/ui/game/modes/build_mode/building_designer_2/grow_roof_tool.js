@@ -20,8 +20,8 @@ var GrowRoofTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               var brush = self._materialHelper.getSelectedBrush();
-               return App.stonehearthClient.growRoof(brush);
+               self.options.brush = self._materialHelper.getSelectedBrush();
+               return App.stonehearthClient.growRoof(self.options);
             });
       },
 
@@ -29,10 +29,17 @@ var GrowRoofTool;
          var self = this;
          var brushes = self.buildingDesigner.getBuildBrushes();
 
-         var click = function(brush) {
-            // Re/activate the floor tool with the new material.
-            self.buildingDesigner.activateTool(self.buildTool);
-         };
+         var click = function(brush) {            
+            var blueprint = self.buildingDesigner.getBlueprint();
+            self.options.brush = brush
+            App.stonehearthClient.setGrowRoofOptions(self.options);         
+            if (blueprint) {
+               App.stonehearthClient.applyConstructionDataOptions(blueprint, self.options);
+            } else {
+               // Re/activate the floor tool with the new material.
+               self.buildingDesigner.activateTool(self.buildTool);               
+            }            
+      };
 
          var tab = $('<div>', { id:self.toolId, class: 'tabPage'} );
          root.append(tab);
@@ -43,6 +50,7 @@ var GrowRoofTool;
                                                    self.materialClass,
                                                    brushes.roof,
                                                    null,
+                                                   false,
                                                    click);
 
          $.get('/stonehearth/ui/game/modes/build_mode/building_designer_2/roof_shape_template.html')
@@ -96,6 +104,38 @@ var GrowRoofTool;
             });
       },
 
+      copyMaterials: function(blueprint) {
+         var self = this;
+         var roof = blueprint['stonehearth:roof'];
+         if (roof) {
+            if (roof.brush) {
+               self._materialHelper.selectBrush(roof.brush);
+            }
+            if (roof.nine_grid_gradiant) {
+               this.options.nine_grid_gradiant = roof.nine_grid_gradiant;
+            }
+            if (roof.nine_grid_max_height) {
+               this.options.nine_grid_max_height = roof.nine_grid_max_height;
+            }
+            if (roof.nine_grid_slope) {
+               this.options.nine_grid_slope = roof.nine_grid_slope;
+            }
+            self._updateControlState();
+            App.stonehearthClient.setGrowRoofOptions(self.options);
+            return;
+         }
+      },
+
+      _updateControlState: function() {
+         $('.roofDiagramButton').removeClass('active');
+         $.each(this.options.nine_grid_gradiant || [], function(_, dir) {
+            $('.roofDiagramButton[gradient="' + dir + '"]').addClass('active');
+         });
+
+         $('#inputMaxRoofHeight').val(this.options.nine_grid_max_height || 4);
+         $('#inputMaxRoofSlope').val(this.options.nine_grid_slope || 1);
+      },
+
       restoreState: function(state) {
          var self = this;
 
@@ -106,15 +146,7 @@ var GrowRoofTool;
             nine_grid_max_height: 4,
             nine_grid_slope: 1
          };
-         $('.roofDiagramButton').removeClass('active');
-         $.each(this.options.nine_grid_gradiant || [], function(_, dir) {
-            $('.roofDiagramButton[gradient="' + dir + '"]').addClass('active');
-         });
-
-         $('#inputMaxRoofHeight').val(this.options.nine_grid_max_height || 4);
-         $('#inputMaxRoofSlope').val(this.options.nine_grid_slope || 1);
-
-         App.stonehearthClient.setGrowRoofOptions(self.options);
+         self._updateControlState();
       }
    });
 })();

@@ -3,6 +3,7 @@ local build_util = require 'lib.build_util'
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
 local GrowWallsEditor = require 'services.client.build_editor.grow_walls_editor'
+local GrowRoofEditor = require 'services.client.build_editor.grow_roof_editor'
 local RoadEditor = require 'services.client.build_editor.road_editor'
 local StructureEraser = require 'services.client.build_editor.structure_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
@@ -17,7 +18,6 @@ local log = radiant.log.create_logger('build_editor')
 local BuildEditorService = class()
 
 function BuildEditorService:initialize()
-   self._grow_roof_options = {}
    self._sv = self.__saved_variables:get_data()
    self._sv.selected_sub_part = nil
 
@@ -51,6 +51,11 @@ function BuildEditorService:on_selection_changed()
                end
             end
          end
+      else
+         local bc = maybe_selected:get_component('stonehearth:building')
+         if bc then
+            building_entity = maybe_selected
+         end
       end
    end
 
@@ -58,10 +63,6 @@ function BuildEditorService:on_selection_changed()
       self._sel_changed_listener:destroy()
       stonehearth.selection:select_entity(building_entity)
       self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
-   end
-
-   if old_selected == selected then
-      return
    end
 
    if old_selected and not old_selected:is_valid() then
@@ -97,9 +98,9 @@ function BuildEditorService:place_new_wall(session, response, column_brush, wall
          :go(column_brush, wall_brush, response)
 end
 
-function BuildEditorService:place_new_floor(session, response, brush)
+function BuildEditorService:place_new_floor(session, response, brush, sink_floor)
    FloorEditor(self._build_service)
-         :go(response, brush, { sink_floor = true })
+         :go(response, brush, { sink_floor = sink_floor })
 end
 
 function BuildEditorService:place_new_slab(session, response, slab_shape)
@@ -112,9 +113,9 @@ function BuildEditorService:erase_structure(session, response, brush_shape)
          :go(response)
 end
 
-function BuildEditorService:place_new_road(session, response, road_brush_shape, curb_brush_shape)
+function BuildEditorService:place_new_road(session, response, road_brush_shape)
    RoadEditor(self._build_service)
-         :go(response, road_brush_shape, curb_brush_shape)
+         :go(response, road_brush_shape)
 end
 
 function BuildEditorService:place_template(session, response, template_name)
@@ -128,11 +129,17 @@ function BuildEditorService:grow_walls(session, response, column_brush, wall_bru
 end
 
 function BuildEditorService:set_grow_roof_options(session, response, options)
-   self._grow_roof_options = options
+   if self._grow_roof_editor then
+      self._grow_roof_editor:apply_options(options)
+   end
    return true
 end
 
-function BuildEditorService:grow_roof(session, response, roof_uri)
+function BuildEditorService:grow_roof(session, response, roof_brush, options)
+   self._grow_roof_editor = GrowRoofEditor(self._build_service)
+   self._grow_roof_editor:go(response, roof_brush, options)
+   
+   --[[
    local has_roof_fn = function(building)
       for _, child in building:get_component('entity_container'):each_child() do
          if child:get_component('stonehearth:roof') then   
@@ -165,6 +172,7 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
             response:reject('failed')
          end)
       :go()   
+      ]]
 end
 
 return BuildEditorService

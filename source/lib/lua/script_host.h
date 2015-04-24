@@ -79,6 +79,14 @@ public: // the static interface
    static void ReportLuaStackException(lua_State* L, std::string const& error, std::string const& traceback) { return GetScriptHost(L)->ReportLuaStackException(error, traceback); }
    static bool CoerseToBool(luabind::object const& o);
    static void ProfileHookFn(lua_State *L, lua_Debug *ar);
+   static void ProfileSampleHookFn(lua_State *L, lua_Debug *ar);
+
+private:
+   enum CpuProfilerMethod {
+      None,
+      TimeAccumulation,
+      Sampling,
+   };
 
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
@@ -96,6 +104,7 @@ private:
    luabind::object GetModuleList() const;
    JSONNode LuaToJsonImpl(luabind::object obj);
    void ProfileHook(lua_State *L, lua_Debug *ar);
+   void ProfileSampleHook(lua_State *L, lua_Debug *ar);
    void DumpFusedFrames(perfmon::FusedFrames& fusedFrames);
 
 private:
@@ -105,7 +114,7 @@ private:
    bool WriteObject(const char* modname, const char* objectName, luabind::object o);
    luabind::object ReadObject(const char* modname, const char* objectName);
    luabind::object EnumObjects(const char* modname, const char* path);
-   void ReportCPUDump(luabind::object profTable);
+   void ReportCPUDump(luabind::object profTable, std::string const& name);
    
    typedef std::unordered_map<std::string, luabind::object> ModuleMap;
 
@@ -135,8 +144,8 @@ private:
    std::unordered_map<std::string, Allocations>    alloc_map;
 
    // CPU profiling
-   bool                 enable_profile_cpu_;
    int                  _cpuProfileInstructionSamplingRate;
+   int                  _cpuProfileInstructionSamplingTime;
    bool                 _cpuProfilerRunning;
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
@@ -151,6 +160,7 @@ private:
    unsigned int               max_profile_length_;
    std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
    std::unordered_set<rpc::LuaPromisePtr> _luaPromises;
+   CpuProfilerMethod          _cpuProfileMethod;
 };
 
 END_RADIANT_LUA_NAMESPACE

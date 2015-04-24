@@ -88,7 +88,7 @@ void PathFinderDst::ClipAdjacentToTerrain()
       if (!om::IsInWorld(dstEntity)) {
          PF_LOG(5) << *dstEntity << " is not in world.  Cannot use as destination in pathfinder!";
       } else {
-         world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(srcEntity, dstEntity);
+         world_space_adjacent_region_ = MovementHelper(log_levels_.simulation.pathfinder.astar).GetRegionAdjacentToEntity(srcEntity, dstEntity);
          pathfinder_.WatchWorldRegion(world_space_adjacent_region_);
          PF_LOG(7) << "world space region for " << *dstEntity << " is " << world_space_adjacent_region_ << "(bounds:" << world_space_adjacent_region_.GetBounds() << ")";
 

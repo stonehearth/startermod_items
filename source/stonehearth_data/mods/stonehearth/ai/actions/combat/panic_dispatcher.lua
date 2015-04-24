@@ -7,6 +7,7 @@ PanicDispatcher.does = 'stonehearth:combat'
 PanicDispatcher.args = {}
 PanicDispatcher.version = 2
 PanicDispatcher.priority = constants.priorities.combat.PANIC
+PanicDispatcher.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PanicDispatcher)

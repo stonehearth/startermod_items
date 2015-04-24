@@ -25,7 +25,7 @@
          },
          "speed": {
             "type" : "basic",
-            "value" : 30
+            "value" : 20
          },
          "menace": {
             "type" : "basic",
@@ -33,7 +33,7 @@
          },
          "courage": {
             "type" : "basic",
-            "value" : 20
+            "value" : 50
          }
       }
    },   

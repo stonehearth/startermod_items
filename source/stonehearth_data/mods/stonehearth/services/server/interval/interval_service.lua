@@ -12,13 +12,13 @@ IntervalService = class()
 
 function IntervalService:initialize()
    self._sv = self.__saved_variables:get_data()
-   self._sv.spawn_timers = {}
 
    if not self._sv._initialized then
       --Do this on first load
       self._sv._initialized = true
+      self._sv.spawn_timers = {}
       self:_load_data()
-
+      
       --Start disabled by default, none of the scenarios will run
       self._sv.enabled = false
 
@@ -57,7 +57,7 @@ end
 -- Start all the spawn timers at the same time
 function IntervalService:_start_all_spawn_timers()
    for scenario_name, scenario_data in pairs(self._sv._data.scenarios) do 
-      scenario_data.next_spawn_time = self:_start_spawn_timer(scenario_data.time_till_first_occurance, scenario_name, scenario_data.occurance_interval)
+      self:_start_spawn_timer(scenario_data.time_till_first_occurance, scenario_name, scenario_data.occurance_interval)
    end
    self.__saved_variables:mark_changed()
 end
@@ -71,11 +71,9 @@ function IntervalService:_start_spawn_timer(curr_duration, scenario_name, next_i
    self._sv.spawn_timers[scenario_name] = stonehearth.calendar:set_timer(curr_duration, function()
       self:_spawn_callback(scenario_name, next_interval)
    end)
-   return self._sv.spawn_timers[scenario_name]:get_expire_time()
 end
 
 function IntervalService:_spawn_callback(scenario_name, next_interval)
-   self._sv._data.scenarios[scenario_name].next_spawn_time = nil
    if self._sv.spawn_timers[scenario_name] then
       self._sv.spawn_timers[scenario_name]:destroy()
       self._sv.spawn_timers[scenario_name] = nil
@@ -103,7 +101,6 @@ function IntervalService:_stop_all_spawn_timers()
          spawn_timer:destroy()
          spawn_timer = nil
       end
-      self._sv._data.scenarios[scenario_name].next_spawn_time = nil
    end
    self.__saved_variables:mark_changed()
 end
@@ -120,7 +117,6 @@ end
 -- @param next_interval - time until we next run the scenario
 function IntervalService:_spawn(scenario_name, next_interval)
    local next_run = self:_start_spawn_timer(next_interval, scenario_name, next_interval)
-   self._sv._data.scenarios[scenario_name].next_spawn_time = next_run
    if self._sv._data.scenarios[scenario_name].enabled then
       stonehearth.dynamic_scenario:force_spawn_scenario(scenario_name)
    end

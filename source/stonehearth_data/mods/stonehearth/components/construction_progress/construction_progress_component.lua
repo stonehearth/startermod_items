@@ -169,8 +169,6 @@ function ConstructionProgress:load_from_template(template, options, entity_map)
 end
 
 function ConstructionProgress:finish_restoring_template()
-   self:_restore_listeners()
-   
    -- this is a weird place to put the fabricator back on, but let's go for it.   
    if self._sv._fabricator_component_name == 'stonehearth:fabricator' then
       stonehearth.build:add_fabricator(self._entity)

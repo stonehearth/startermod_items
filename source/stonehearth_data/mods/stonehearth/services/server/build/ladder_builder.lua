@@ -4,12 +4,14 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
 local LadderBuilder = class()
-local log = radiant.log.create_logger('ladder_builder')
 
-function LadderBuilder:initialize(manager, owner, base, normal, removeable)
+function LadderBuilder:initialize(manager, id, owner, base, normal, removeable)
+   self._sv.id = id
    self._sv.climb_to = {}
 
    local ladder = radiant.entities.create_entity('stonehearth:build:prototypes:ladder', { owner = owner })
+   ladder:set_debug_text('builder id:' .. tostring(id))
+   
    self._ladder_dtor_trace = ladder:trace('ladder dtor')
                                        :on_destroyed(function()
                                              self._sv.manager:_destroy_builder(self._sv.base, self)
@@ -45,6 +47,15 @@ function LadderBuilder:restore()
       end)
 end
 
+function LadderBuilder:activate()
+   self._log = radiant.log.create_logger('build.ladder')
+                              :set_prefix('lbid:' .. tostring(self._sv.id))
+end
+
+function LadderBuilder:get_id()
+   return self._sv.id
+end
+
 function LadderBuilder:_install_traces()
    self._vpr_trace = self._vpr_component:trace_region('ladder builder')
                                              :on_changed(function()
@@ -75,14 +86,14 @@ end
 function LadderBuilder:add_point(to)
    assert(self._sv.ladder:is_valid())
 
-   log:debug('adding point %s to ladder', to)
+   self._log:debug('adding point %s to ladder', to)
    table.insert(self._sv.climb_to, to)
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
 
 function LadderBuilder:remove_point(to)
-   log:debug('removing point %s from ladder', to)
+   self._log:debug('removing point %s from ladder', to)
 
    local c = #self._sv.climb_to
    local climb_to = self._sv.climb_to
@@ -145,7 +156,7 @@ function LadderBuilder:_update_ladder_tasks()
 
    local delta = desired_height - completed_height
 
-   log:debug('ladder wants to be %d high and is currently %d (delta: %d)', desired_height, completed_height, delta)
+   self._log:debug('ladder wants to be %d high and is currently %d (delta: %d)', desired_height, completed_height, delta)
 
    if delta > 0 then
       self:_stop_teardown_task()
@@ -200,12 +211,12 @@ end
 
 function LadderBuilder:_stop_build_tasks()
    if self._build_up_task then
-      log:debug('stopping build up task')
+      self._log:debug('stopping build up task')
       self._build_up_task:destroy()
       self._build_up_task = nil
    end
    if self._build_down_task then
-      log:debug('stopping build down task')
+      self._log:debug('stopping build down task')
       self._build_down_task:destroy()
       self._build_down_task = nil
    end
@@ -213,7 +224,7 @@ end
 
 function LadderBuilder:_stop_teardown_task()
    if self._teardown_task then
-      log:debug('stopping teardown task')
+      self._log:debug('stopping teardown task')
       self._teardown_task:destroy()
       self._teardown_task = nil
    end
@@ -222,7 +233,7 @@ end
 function LadderBuilder:_start_build_tasks()
    local town = stonehearth.town:get_town('player_1') -- xxx: ug!  need 1 build service per player >_<
    if not self._build_up_task then
-      log:debug('starting build up task')
+      self._log:debug('starting build up task')
       self._build_up_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:build_ladder', {
                                                 ladder = self._sv.ladder,
                                                 builder = self,
@@ -235,7 +246,7 @@ function LadderBuilder:_start_build_tasks()
                          :start()
       end
    if not self._build_down_task then
-      log:debug('starting down up task')
+      self._log:debug('starting down up task')
       self._build_down_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:build_ladder_down', {
                                                 ladder = self._sv.ladder,
                                                 builder = self,
@@ -251,7 +262,7 @@ end
 
 function LadderBuilder:_start_teardown_task()
    if not self._teardown_task then
-      log:debug('starting tear down task')
+      self._log:debug('starting tear down task')
       local town = stonehearth.town:get_town('player_1') -- xxx: ug!  need 1 build service per player >_<
       if town then
          self._teardown_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_ladder', {

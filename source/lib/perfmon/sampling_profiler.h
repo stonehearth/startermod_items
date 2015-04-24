@@ -27,6 +27,7 @@ public:
 
    StackFrame* AddStackFrame(const char* name, unsigned int fnDefLine);
 
+   void ComputeTotalTime(CounterValueType time);
    void FinalizeCollection(res::ResourceManager2& resMan);
    void CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const;
    void CollectBottomUpStats(FunctionAtLineTimes &stats, FunctionNameStack& stack, int remainingDepth) const;
@@ -59,6 +60,8 @@ private:
    std::vector<StackFrame>    _callers;
    std::vector<LineCount >    _lines;
    unsigned int               _callCount;
+
+   friend class SamplingProfiler;
 };
 
 typedef std::unordered_map<core::StaticString, StackFrame::SmallFrame, core::StaticString::Hash> FusedFrames;
@@ -75,6 +78,7 @@ public:
    void FinalizeCollection(res::ResourceManager2& resMan);
    void CollectStats(FunctionTimes& stats) const;
    void CollectBottomUpStats(FunctionAtLineTimes &stats, int maxDepth) const;
+   void ComputeTotalTime();
 
 private:
    struct StackEntry {

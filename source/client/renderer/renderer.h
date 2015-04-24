@@ -164,10 +164,9 @@ class Renderer
       core::Guard OnServerTick(std::function<void(int)> const& fn);
       core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn);
       core::Guard OnRenderFrameFinished(std::function<void(FrameStartInfo const&)> const& fn);
-      core::Guard OnShowDebugShapesChanged(std::function<void(bool)> const& fn);
+      core::Guard OnShowDebugShapesChanged(std::function<void(dm::ObjectId)> const& fn);
 
-      bool ShowDebugShapes();
-      void SetShowDebugShapes(bool show_debug_shapes);
+      void SetShowDebugShapes(dm::ObjectId id);
 
       void UpdateUITexture(csg::Point2 const& size, csg::Region2 const& rgn, const uint32* buff);
 
@@ -284,7 +283,6 @@ class Renderer
 
       std::shared_ptr<RenderEntity> rootRenderObject_;
       H3DNode           debugShapes_;
-      bool              show_debug_shapes_;
 
       RenderEntityMap   entities_[NUM_STORES]; // by store id
       SelectionLookup   selectionLookup_;
@@ -302,7 +300,7 @@ class Renderer
       lua::ScriptHost*  scriptHost_;
 
       core::BufferedSlot<csg::Rect2>      screen_resize_slot_;
-      core::BufferedSlot<bool>            show_debug_shapes_changed_slot_;
+      core::BufferedSlot<dm::ObjectId>    show_debug_shapes_changed_slot_;
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_finished_slot_;

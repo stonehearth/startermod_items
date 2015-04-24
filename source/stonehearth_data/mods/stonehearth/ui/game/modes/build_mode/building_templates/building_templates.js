@@ -37,10 +37,8 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       var self = this
 
       self.$().on('click', '#templatesList .row', function() {        
-         self.$('#templatesList .row').removeClass('selected');
          var row = $(this);
 
-         row.addClass('selected');
          self._selectedTemplate = row.attr('template');
          App.stonehearthClient.drawTemplate(null, self._selectedTemplate);
       });
@@ -53,7 +51,7 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
 
             var costView = self._getClosestEmberView(self.$('#buildingCost'));
             if (template) {
-               costView.set('cost', template.cost);   
+               //costView.set('cost', template.cost);   
             } else {
                console.error('could not find template: ' + templateName);
             }
@@ -68,8 +66,12 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
          });
 
       self.$().on('mouseleave', '#templatesList .row', function() {        
-            self.$('#buildingTemplatesDetailsPopup').hide();
-         });
+         self.$('#buildingTemplatesDetailsPopup').hide();
+      });
+
+      self.$('#customBuildingButton').click(function() {
+         $(top).trigger('stonehearth_building_designer');
+      });
    },
 
 });

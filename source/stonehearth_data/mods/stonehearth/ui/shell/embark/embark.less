@@ -46,13 +46,54 @@
          padding-top: 20px;
       }
 
+      .bullet {
+         width: 37px;
+         height: 37px;
+         display: inline-block;
+      }
+
+      #vegetation  {
+         .bullet {
+            background-image: url(images/veg_empty.png);   
+         }
+
+         .bullet.full {
+            background-image: url(images/veg.png);     
+         }
+      }
+
+      #wildlife  {
+         .bullet {
+            background-image: url(images/wildlife_empty.png);   
+         }
+
+         .bullet.full {
+            background-image: url(images/wildlife.png);     
+         }
+      }
+
+      #minerals  {
+         .bullet {
+            background-image: url(images/minerals_empty.png);   
+         }
+
+         .bullet.full {
+            background-image: url(images/minerals.png);     
+         }
+      }
+
       #terrainStats {
          width: 428px;
          padding-top: 20px;
 
+         td.title {
+            font-family: @controlFontFamily;
+            font-size: 26px;
+         }
+
          td {
             padding-top: 8px;
-            width: 50%;
+            padding-right: 16px;
          }
 
          td:nth-of-type(2) {

@@ -15,6 +15,7 @@
                "Edwyne",
                "Fostan",
                "Geoff",
+               "Rok",
                "Stefan",
                "Heath",
                "Jeren",
@@ -59,7 +60,16 @@
                "Rowan",
                "Ike",
                "Backster",
-               "Liam"
+               "Liam",
+               "Lane",
+               "Elio",
+               "Niall",
+               "Doran",
+               "Tadan",
+               "Arwyn",
+               "Pyat",
+               "Saebert",
+               "Sledd"
             ]
          },
          "female" : {
@@ -70,6 +80,11 @@
                "stonehearth:female_3"
             ],
             "given_names" : [
+               "Twila",
+               "Cici",
+               "Frie",
+               "Sam",
+               "Chel",
                "Nia",
                "Petra",
                "Yui",
@@ -79,6 +94,8 @@
                "Beth",
                "Caye",
                "Devona",
+               "Yuffa",
+               "Azlynn",
                "Eyla",
                "Fiona",
                "Gem",
@@ -100,6 +117,8 @@
                "Autumn",
                "Senn",
                "Raven",
+               "Leona",
+               "Lisy",
                "Vio",
                "Jess",
                "Marianne", 
@@ -114,6 +133,7 @@
                "Silene",
                "Lily",
                "Amelia",
+               "Lia",
                "Kali",
                "Maggie",
                "Iris",
@@ -131,6 +151,10 @@
                "Runa",
                "Micah",
                "Soar",
+               "Ursella",
+               "Leefi",
+               "Manna",
+               "Greyla",
                "Meghaan"
             ]
          }, 
@@ -138,10 +162,12 @@
             "Burlyhands",
             "Farstrider",
             "Gwarin",
+            "Elliott",
             "Boltoose",
             "Freywind",
             "Carvad",
             "Edessa",
+            "Papp",
             "Nonac",
             "Keloch",
             "Brightwell",
@@ -199,9 +225,12 @@
          "North",
          "South",
          "East",
-         "West"
+         "West",
+         "Rocking"
       ], 
       "town_name" : [
+         "Threed",
+         "Twinmills",
          "Zinfen",
          "Rose",
          "Orchard",

@@ -2,7 +2,7 @@
    "type" : "encounter",
    "encounter_type" : "wait_for_time_of_day",
 
-   "in_edge"  : "___start",
+   "in_edge"  : "start",
    "out_edge" : "nighttime_undead",
 
    "wait_for_time_of_day_info" :  {

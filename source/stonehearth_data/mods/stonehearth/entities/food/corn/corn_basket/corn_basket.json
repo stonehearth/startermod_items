@@ -4,8 +4,8 @@
    "components": {
       "item": {
          "category" : "food",
-         "stacks" : 3,
-         "maxStacks" : 3
+         "stacks" : 10,
+         "maxStacks" : 10
       },
       "model_variants": {
          "default": {

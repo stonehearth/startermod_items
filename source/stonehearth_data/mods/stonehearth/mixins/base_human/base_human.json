@@ -223,8 +223,8 @@
             "equation" : "spirit * 10 + stamina_adjustment"
          },
          "menace": {
-            "type" : "basic",
-            "value" : 10
+            "type" : "derived",
+            "equation" : "muscle"
          },
          "max_health": {
             "type" : "derived", 

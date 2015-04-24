@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 local build_util = require 'stonehearth.lib.build_util'
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
-local BRICK_SLAB = 'stonehearth:build:voxel_brushes:voxel:stone:brick_tiled'
+local BRICK_SLAB = 'stonehearth:build:brushes:pattern:brick_tiled'
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 local lrbt_cases = {}
@@ -12,7 +12,7 @@ local lrbt_cases = {}
 function lrbt_cases.simple_floor(autotest, session)
    return {
       function()
-         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 4)))
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 9, 0), Point3(4, 10, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
       end
    }

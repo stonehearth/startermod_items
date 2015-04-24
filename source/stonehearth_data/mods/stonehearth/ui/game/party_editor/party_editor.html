@@ -16,7 +16,7 @@
                </tbody>
             </table>         
          </div>
-         <div class="toolbar">
+         <div id="toolbar">
             <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>
                   {{i18n stonehearth:add_party_member}}
@@ -42,11 +42,11 @@
 
 <script type="text/x-handlebars" data-template-name="partyMemberRow">
    <td>
-      <div class="name">
-         <img class="banner button" {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/>
-         {{view.model.unit_info.name}}
-      </div>
-      <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
+      <div class="banner"><img {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/></div>
+      <div class="name">   
+         {{view.model.unit_info.name}}<br>
+         <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
+      </div>   
    </td>
    <td>
       <a {{bind-attr id=command.name}} href="#" {{action "removePartyMember" view.model target="view"}} class='uisounds'>
@@ -70,7 +70,7 @@
                </tbody>
             </table>         
          </div>
-         <div class="toolbar">
+         <div edit="toolbar">
             <a href="#" {{action "close" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>
                   {{i18n stonehearth:done_adding_members}}
@@ -84,13 +84,13 @@
 
 <script type="text/x-handlebars" data-template-name="partyEditorEditRosterRow">
    <td>
-      <div class="name">
-         <img class="banner button" {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/>
-         {{view.model.unit_info.name}}
+      <div class="banner"><img {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/></div>
+      <div class="name">   
+         {{view.model.unit_info.name}}<br>
+         <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
       </div>
-      <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
    </td>
-   <td><a href="#" class="moveCameraButton">
+   <td>
       <nobr>
       {{#if view.model.stonehearth:party_member.party }}
          {{ view.model.stonehearth:party_member.party.name }}
@@ -98,7 +98,7 @@
          {{i18n stonehearth:not_in_party}}
       {{/if}}
       </nobr>
-   </a></td>
+   </td>
    <td>
       {{#if view.in_current_party }}
          <a {{bind-attr id=command.name}} href="#" {{action "removePartyMember" view.model target="view"}} class='uisounds'>

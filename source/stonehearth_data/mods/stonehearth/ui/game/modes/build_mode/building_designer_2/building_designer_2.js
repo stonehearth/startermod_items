@@ -34,7 +34,8 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(new PlaceFloorDecoTool({ category: 'furniture',  toolId: 'placeFurnitureTool'}));
       this.newTool(new PlaceFixtureTool({ category: 'doors',   toolId: 'drawDoorTool',   materialClass: 'doorMaterials'}));
       this.newTool(new PlaceFixtureTool({ category: 'windows', toolId: 'drawWindowTool', materialClass: 'windowMaterials'}));
-      this.newTool(new DrawFloorTool);
+      this.newTool(new DrawFloorTool({ toolId: 'drawFloorTool', sinkFloor:true }));
+      this.newTool(new DrawFloorTool({ toolId: 'growFloorTool', sinkFloor:false }));
       this.newTool(new DrawWallTool);
       this.newTool(new GrowWallsTool);
       this.newTool(new GrowRoofTool);
@@ -56,6 +57,11 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
          self.$('.palette').hide();
          self.$('#' + palette).show();
       });
-      this.$('#toolPaletteBuild').click();
-   }
+      this.$('#toolPaletteBuild').click();     
+   },
+
+   showEditor: function() {
+      this._super();
+      //this.$('[tool=drawFloorTool]').click();
+   },
 });

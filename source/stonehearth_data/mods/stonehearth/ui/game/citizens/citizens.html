@@ -2,30 +2,45 @@
 <div id="citizensManagement" class="gui managerWindow citizenTable">
    <div class="window">
       <div class="title">{{ view.title }} <div class="closeButton"></div></div>
+      <div class="toolbar" id="topToolbar">
+         {{#each command in view.selectedCitizen.stonehearth:commands.commands}}
+            <a {{bind-attr id=command.name}} href="#" {{action "doCommand" command target="view"}} class='uisounds'>
+               <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>
+                  {{command.tooltip}}
+               </button>
+            </a>
+         {{/each}}
+      </div>
       <div class="list">
          <table>
             <tbody>
             {{#each view.model.citizensArray}}
-               <tr class="row" {{bind-attr job=this.stonehearth:job.job_uri.alias id=this.__id}}>
+               <tr>
                   <td>
-                     <div class="name">
-                        <img class="banner button" {{bind-attr src=this.stonehearth:job.job_uri.bannerIcon}}/>
-                        {{this.unit_info.name}}
-                     </div>
-                     <div class="job">{{this.stonehearth:job.job_uri.name}}</div>
-                     <div class="toolbar">
-                        {{#each command in stonehearth:commands.commands}}
-                           <a {{bind-attr id=command.name}} href="#" {{action "doCommand" command target="view"}} class='uisounds'>
-                              <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>
-                                 {{command.tooltip}}
-                              </button>
-                           </a>
-                        {{/each}}
-
+                     <div class="menuButton" {{bind-attr id=this.__id}}>
+                        <div class="toolbar">
+                           {{#each command in stonehearth:commands.commands}}
+                              <a {{bind-attr id=command.name}} href="#" {{action "doCommand" command target="view"}} class='uisounds'>
+                                 <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>
+                                    {{command.tooltip}}
+                                 </button>
+                              </a>
+                           {{/each}}
+                        </div>                     
                      </div>
                   </td>
-                  <td><a href="#" class="moveCameraButton">{{this.stonehearth:ai.status_text}}</a></td>
-                  <!-- <td><img class="moveCameraButton button"/></td> -->
+                  <td class="row" {{bind-attr job=this.stonehearth:job.job_uri.alias id=this.__id}}>
+
+                     <img class="banner button" {{bind-attr src=this.stonehearth:job.job_uri.bannerIcon}}/>
+                     
+                     <div class="name">
+                        {{this.unit_info.name}}<br>
+                        <div class="job">{{this.stonehearth:job.job_uri.name}}</div>
+                     </div>
+                     <div class="activity">
+                        {{this.stonehearth:ai.status_text}}
+                     </td>
+                  </td>
                </tr>
             {{/each}}
             </tbody>

@@ -155,10 +155,54 @@ public:
          }
       }
 
-      // Now normalize the accumualted normals.
+      // Now "normalize" the accumualted normals to make sure all coordinates are
+      // -1, 0, or 1
       for (EdgePoint<S, C>* point : points) {
          point->FixAccumulatedNormal();
       }
+   }
+
+   void MergeAdjacentEdges() {
+      uint merged = 1;
+      uint c = (uint)edges.size();
+
+      // Maintain the invariant that no edges can be merged with any of the previous
+      // edges
+      while (merged < c) {
+         ASSERT(merged >= 0);
+
+         uint candidate = merged;
+         Edge<S, C>& tester = edges[candidate];
+
+         for (uint i = 0; i < merged; i++) {
+            Edge<S, C>& edge = edges[i];
+            bool combined = false;
+            if (edge.normal == tester.normal) {
+               if (edge.min == tester.max) {
+                  edge.min = tester.min;
+                  combined = true;
+               } else if (edge.max == tester.min) {
+                  edge.max = tester.max;
+                  combined = true;
+               }
+               if (combined) {
+                  // first of all, we don't need candidate anymore.  kill it
+                  edges[candidate] = edges[--c];
+
+                  // next, we've potentially ruined our invariant by modifying
+                  // a edge in the merged list.  the ith node becomes the new
+                  // candidate!
+                  --merged;
+                  std::swap(edges[merged], edges[i]);
+                  break;
+               }
+            }
+         }
+         if (candidate == merged) {
+            ++merged;
+         }
+      }
+      edges.resize(c);
    }
 
    std::vector<Edge<S, C>> const& GetEdges() const { return edges; }

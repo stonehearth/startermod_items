@@ -1,0 +1,36 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 10,
+         "max_stacks" : 10,
+         "category" : "food"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(carrot_basket.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Basket of Carrots",
+         "description": "Lined up in neat rows.",
+         "icon" : "file(carrot_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource vegetable food_container carrot"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:carrot_serving",
+         "stacks_per_serving": 6
+      }
+   }
+}

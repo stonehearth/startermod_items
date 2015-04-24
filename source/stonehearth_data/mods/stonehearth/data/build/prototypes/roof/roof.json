@@ -10,6 +10,10 @@
       "stonehearth:roof" : {
       },
 
+      "region_collision_shape" : {
+         "region_collision_type" : "platform"
+      },
+
       "stonehearth:construction_data" : {
          "type": "roof",
          "use_nine_grid" : true,

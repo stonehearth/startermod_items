@@ -14,7 +14,7 @@
       "radius" : 10,
       
       "spawn_range" : {
-         "min" : 160,
+         "min" : 80,
          "max" : 180
       },
 

@@ -1,5 +1,5 @@
 var MaterialHelper = SimpleClass.extend({
-   init : function(tab, buildingDesigner, tabTitle, materialClass, colors, patterns, clickHandler) {
+   init : function(tab, buildingDesigner, tabTitle, materialClass, colors, patterns, addEraser, clickHandler) {
       var self = this;
 
       self._tabTitle = tabTitle;
@@ -11,7 +11,7 @@ var MaterialHelper = SimpleClass.extend({
 
       tab.append(self._container)
 
-      self._addMaterialPalette(colors, patterns);
+      self._addMaterialPalette(colors, patterns, addEraser);
    },
 
    _buildMaterialPalette : function(palette, category, brushes) {
@@ -26,6 +26,7 @@ var MaterialHelper = SimpleClass.extend({
                         .append('<div class=selectBox />'); // for showing the brush when it's selected
          if (material[0] == '#') {
             brush.css({ 'background-color' : material });
+            brush.addClass('colorBrush');
          } else {
             brush.addClass(material.split(':').pop());
          }
@@ -33,38 +34,42 @@ var MaterialHelper = SimpleClass.extend({
       });
    },
 
-   _selectBrush: function(brush, skipSave) {
+   selectBrush: function(brush, skipSave) {
       var container = this._container;
-      var selectedMaterial;
+      var category
 
-      if (brush) {
-         selectedMaterial = $(container.find('.brush[brush="' + brush + '"]')[0]);
-         // if the brush doesn't exist, someone changed the backing
-         // store.  pick the default
-         if (!selectedMaterial[0]) {
-            brush = undefined;
+      container.find('.button').removeClass('selected');
+      container.find('.brush').removeClass('selected');     // remove the selected box from all brushes
+      container.find('.materialSubTab').hide();             // hide all sub palettes
+
+      if (brush == 'eraser') {
+         category = 'eraser';
+      } else {
+         var selectedMaterial;
+         if (brush) {
+            selectedMaterial = $(container.find('.brush[brush="' + brush + '"]')[0]);
+            // if the brush doesn't exist, someone changed the backing
+            // store.  pick the default
+            if (!selectedMaterial[0]) {
+               brush = undefined;
+            }
          }
+         if (!brush) {
+            selectedMaterial = $(container.find('.brush')[0]);
+            brush = selectedMaterial.attr('brush');
+         }
+         category = selectedMaterial.attr('category');
+         selectedMaterial.addClass('selected');                // select the selected brush
+         selectedMaterial.closest('.materialSubTab').show();   // show the one with the selected brush
       }
-      if (!brush) {
-         selectedMaterial = $(container.find('.brush')[0]);
-         brush = selectedMaterial.attr('brush');
-      }
-      var category = selectedMaterial.attr('category');
+
+      container.find('.button[category=' + category + ']').addClass('selected');
 
       this._state.brush = brush
       this._state.brushes[category] = brush
       if (!skipSave) {
          this._buildingDesigner.saveKey(this._materialClass, this._state);
       }
-
-      container.find('.button').removeClass('selected');
-      container.find('.button[category=' + category + ']').addClass('selected');
-
-      container.find('.brush').removeClass('selected');           // remove the selected box from all brushes
-      selectedMaterial.addClass('selected');                // select the selected brush
-
-      container.find('.materialSubTab').hide();                   // hide all sub palettes
-      selectedMaterial.closest('.materialSubTab').show();   // show the one with the selected brush
    },
 
    restoreState: function(state) {
@@ -74,12 +79,12 @@ var MaterialHelper = SimpleClass.extend({
             brushes: {}
          }         
       }
-      this._selectBrush(this._state.brush, true);
+      this.selectBrush(this._state.brush, true);
    },
 
    getSelectedBrush : function() {
       if (!this._state.brush) {
-         this._selectBrush();
+         this.selectBrush();
       }
       return this._state.brush;
    },
@@ -94,8 +99,8 @@ var MaterialHelper = SimpleClass.extend({
          var category = material.replace(' ', '_').replace(':', '_');
 
          if (toolbar) {
-            if (!toolbar.find('img[category="' + category + '"]')[0]) {
-               toolbar.append($('<img>')
+            if (!toolbar.find('div[category="' + category + '"]')[0]) {
+               toolbar.append($('<div>')
                                  .addClass('button')
                                  .addClass(category)
                                  .attr('category', category)
@@ -106,8 +111,8 @@ var MaterialHelper = SimpleClass.extend({
          var palette = self._container.find('.brushPalette[category="' + category + '"]');
          if (palette.length == 0) {
             var subtab = $('<div>', { id:material.category, class: 'materialSubTab' });
-            subtab.html($('<h2>')
-                     .text(category + ' ' + self._tabTitle))
+            subtab.html($('<h1>')
+                     .text(i18n.t(category) + ' ' + self._tabTitle))
 
             var downSection = $('<div>', { class:'downSection' })
             palette = $('<div>').addClass('brushPalette')
@@ -120,7 +125,7 @@ var MaterialHelper = SimpleClass.extend({
       });
    },
 
-   _addMaterialPalette: function(colors, patterns) {     
+   _addMaterialPalette: function(colors, patterns, addEraser) {
       var self = this;      
       var toolbar;
 
@@ -128,6 +133,15 @@ var MaterialHelper = SimpleClass.extend({
       var toolbar = $('<div>').attr('id', 'materialToolbar')
                               .addClass('downSection');
 
+      if (addEraser) {
+         toolbar.append($('<div>')
+                  .addClass('button')
+                  .addClass('eraser')
+                  .attr('category', 'eraser')
+                  .append('<div class=selectBox />')
+               );
+      }
+      self._container.append('<h1>' + self._tabTitle + ' ' + i18n.t('building_designer_material') + '</h1>');
       self._container.append(toolbar);
 
       // add the tabs...
@@ -140,18 +154,23 @@ var MaterialHelper = SimpleClass.extend({
          self._container.find('.' + self._materialClass).removeClass('selected');
          $(this).addClass('selected');
 
-         self._selectBrush(brush);
+         self.selectBrush(brush);
          self._clickHandler(brush);
       });
 
       if (toolbar) {
          toolbar.on('click', '.button', function() {
+            var brush;
             var category = $(this).attr('category');
-            var brush = self._state.brushes[category];
-            if (!brush) {
-               brush = self._container.find('.brush[category=' + category + ']').attr('brush');
+            if (category == 'eraser') {
+               brush = 'eraser'
+            } else {
+               brush = self._state.brushes[category];
+               if (!brush) {
+                  brush = self._container.find('.brush[category=' + category + ']').attr('brush');
+               }
             }
-            self._selectBrush(brush);
+            self.selectBrush(brush);
             self._clickHandler(brush);
          });
       }

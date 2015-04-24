@@ -19,6 +19,16 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    blueprint_components: {
       'unit_info': {},
       'stonehearth:floor' : {},
+      'stonehearth:wall' : {
+         'column_a' : {
+            'stonehearth:column' : {}      
+         },
+         'column_b' : {
+            'stonehearth:column' : {}      
+         },
+      },
+      'stonehearth:column' : {},
+      'stonehearth:roof' : {},
       'stonehearth:construction_data' : {},
       'stonehearth:construction_progress' : {
          'building_entity' : {
@@ -78,19 +88,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       // undo/redoo tool
       this.$('#undoTool').click(function() {
          App.stonehearthClient.undo();
-      });
-
-      // move this to the floor eraser tab or something...
-      var doEraseStructure = function() {
-         App.stonehearthClient.eraseStructure(
-            self.activateElement('#eraseStructureTool'))
-            .fail(self._deactivateTool('#eraseStructureTool'))
-            .done(function() {
-               doEraseStructure();
-            });
-      };
-      this.$('#eraseStructureTool').click(function() {
-         doEraseStructure();
       });
 
       if (self._buildBrushes) {
@@ -195,7 +192,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       var popTool = function() {
          self._removeTool(stackDepth);
          if (self._lastTool()[1] == null) {
-            self.$('.toolButton').removeClass('active');
+            self._updateImageMap('buildPalette', null);
          }
       }
 
@@ -247,8 +244,22 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    },
 
    _updateImageMap: function(palette, toolId) {
+      var background = 'none';
+      if (toolId) {
+         background = 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)';
+      }
       this.$('#' + palette + ' .selectionDisplay').css({
-            'background-image' : 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)'
+            'background-image' : background
+         });
+   },
+
+   _onImageMapHover: function(palette, toolId) {
+      var background = 'none';
+      if (toolId) {
+         background = 'url(/stonehearth/ui/game/modes/build_mode/building_designer_2/images/palettes/' + toolId + '.png)';
+      }
+      this.$('#' + palette + ' .hoverDisplay').css({
+            'background-image' : background
          });
    },
 
@@ -274,6 +285,21 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             self.activateTool(self.actions[toolId]);
          }
       });
+
+      this.$(".palette area").hover( function() { 
+            // update the hover display, on hover in
+            var el = $(this);
+            var toolId = el.attr('tool');
+            var palette = el.attr('palette');
+
+            self._onImageMapHover(palette, toolId);
+         }, function() { 
+            var el = $(this);
+            var palette = el.attr('palette');
+
+            // update the hover display, on hover out
+            self._onImageMapHover(palette);
+         });
 
       // building buttons
       this.$().on( 'click', '#showOverview', function() {
@@ -353,6 +379,11 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             });
          }
       });
+
+      this.$().on( 'input', '#overview #name', function() {
+         var building = self.get('building');
+         radiant.call('stonehearth:set_display_name', building.__self, $(this).val());
+      });      
    },
 
    _restoreUiState: function() {
@@ -450,6 +481,9 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             if (tool.handlesType && tool.handlesType(type)) {
                self.$('.tabPage').hide();
                self.$('#' + tool.toolId).show();
+               if (tool.copyMaterials) {
+                  tool.copyMaterials(blueprint_entity)
+               }
                self.showEditor();
             }
          });

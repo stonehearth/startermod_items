@@ -1,0 +1,86 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(carrot_crop_4.qb)"
+            ]  
+         },
+         "carrot_1": {
+            "models": [
+               "file(carrot_crop_1.qb)"
+            ]
+         },
+         "carrot_2": {
+            "models": [
+               "file(carrot_crop_2.qb)"
+            ]
+         },
+         "carrot_3": {
+            "models": [
+               "file(carrot_crop_3.qb)"
+            ]
+         },
+         "carrot_4": {
+            "models": [
+               "file(carrot_crop_4.qb)"
+            ]
+         }, 
+         "carrot_12": {
+            "models": [
+               "file(carrot_crop_12.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Carrot", 
+         "description": "Fast-growning, but pretty bland on its own.",
+         "icon" : "file(icon.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "carrot_4": "stonehearth:carrot_basket", 
+            "carrot_12": ""
+         },
+         "harvest_threshhold" : "carrot_4",
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json"
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "5h",
+         "growth_stages" : [
+            {
+               "model_name" : "carrot_1",
+               "name": "Carrot Seedling", 
+               "description": "A unrealized carrot."
+            },
+            {
+               "model_name" : "carrot_2",
+               "name": "Carrot Sprout", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "carrot_3",
+               "name": "Baby Carrot", 
+               "description": "Small. Bitter."
+            },
+            {
+               "model_name" : "carrot_4",
+               "name": "Ripe Carrot", 
+               "description": "Delicious!"
+            }, {}, {}, {}, {}, {}, {}, {},
+            {
+               "model_name" : "carrot_12",
+               "name": "Rotten Carrot", 
+               "description": "Moldy and disgusting."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop carrot"
+      }
+   }
+}

@@ -7,9 +7,12 @@
    "decline" : "Decline",
    "back" : "Back",
    "next" : "Next",
-   "hotkey" : "hot key: ",
+   "hotkey" : "key: ",
    "remove" : "Remove",
    "close" : "Close",
+
+   "wood_resource" : "Wood",
+   "stone_resource" : "Stone",
 
    "title_screen_exit": "exit",
    "title_screen_settings": "settings",
@@ -326,6 +329,7 @@
    "doodad_tip_description" : "Right click to exit",
    "draw_template_title" : "Click to build template", 
    "draw_template_description": "Rotate with , and . keys",
+   "template_default_name": "My new building template",
    "build_road_tip_title" : "Click and drag to build road", 
    "build_road_tip_description" : "Right click to exit", 
    "start_building_confirm_title" : "Really start building?",
@@ -449,7 +453,7 @@
    "start_building" : "Build!",
    "pause_building" : "Pause building",
    "save_building_template" : "Save",
-   "finished_editing" : "Edit",
+   "finished_editing" : "Finished Editing",
    "start_editing" : "Edit",
 
    "stockpiles_task_group" : "Stockpiles", 

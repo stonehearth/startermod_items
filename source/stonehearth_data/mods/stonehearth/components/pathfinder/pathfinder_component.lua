@@ -6,6 +6,32 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local PathFinder = class()
+local PathFinderDestructor = class()
+
+radiant.mixin(PathFinderDestructor, radiant.lib.Destructor)
+
+function PathFinderDestructor:__init(pathfinder, id, solved_cb, exhausted_cb)
+   self._id = id
+   self._solved_cb = solved_cb
+   self._exhausted_cb = exhausted_cb
+   self._pathfinder = pathfinder
+end
+
+function PathFinderDestructor:get_progress()
+   if self._pathfinder then
+      return self._pathfinder:get_progress()
+   end
+   return 'shared pathfinder destroyed'
+end
+
+function PathFinderDestructor:destroy()
+   if self._pathfinder then
+      self._pathfinder:remove_destination(self._id, self._solved_cb, self._exhausted_cb)
+      self._pathfinder = nil
+   end
+end
+
+
 local FILTER_RESULT_CACHES = {}
 
 -- called to initialize the component on creation and loading.
@@ -34,9 +60,8 @@ function PathFinder:find_path_to_entity(location, item, solved_cb, exhausted_cb)
 
    local id = item:get_id()
    pf:add_destination(item, solved_cb, exhausted_cb)
-   return radiant.lib.Destructor(function()
-         return pf:remove_destination(id, solved_cb, exhausted_cb)
-      end)
+
+   return PathFinderDestructor(pf, id, solved_cb, exhausted_cb)
 end
 
 function PathFinder:clear_filter_fn_cache_entry(filter_fn)

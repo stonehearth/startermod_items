@@ -5,11 +5,11 @@ local Point3 = _radiant.csg.Point3
 
 local lrbt_util = {}
 
-local WOODEN_WALL    = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
+local WOODEN_WALL    = stonehearth.constants.construction.DEAFULT_WOOD_WALL_BRUSH
 local WOODEN_ROOF    = stonehearth.constants.construction.DEAFULT_WOOD_ROOF_BRUSH
 local WOODEN_FLOOR   = stonehearth.constants.construction.DEAFULT_WOOD_FLOOR_BRUSH
-local STONE_FLOOR    = stonehearth.constants.construction.DEAFULT_WOOD_STONE_BRUSH
 local WOODEN_COLUMN  = stonehearth.constants.construction.DEAFULT_WOOD_COLUMN_BRUSH
+local STONE_FLOOR    = stonehearth.constants.construction.DEAFULT_STONE_FLOOR_BRUSH
 
 function lrbt_util.create_workers(autotest, x, y)
    local workers = {}
@@ -122,8 +122,9 @@ function lrbt_util.grow_wooden_walls(session, entity)
    return stonehearth.build:grow_walls(floor, WOODEN_COLUMN, WOODEN_WALL)
 end
 
-function lrbt_util.grow_wooden_roof(session, building)
-   return stonehearth.build:grow_roof(building, WOODEN_ROOF, {
+function lrbt_util.grow_wooden_roof(session, walls)
+   return stonehearth.build:grow_roof(walls, {
+         brush = WOODEN_ROOF,
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })

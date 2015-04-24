@@ -1,26 +1,38 @@
 { 
    "voxel" : {
       "wood resource" : [
-         "#958455",
          "#A59465",
-         "#332B1F",
-         "#4E442F",
+         "#958455",
+         "#86764A",
+
+         "#C0BBA8",
+         "#A59F8B",
+         "#928C76",
+         
          "#65573A",
+         "#4E442F",
+         "#403521",
+
+         "#927923",
+         "#786322",
+         "#6E5B21",
+         
+         "#5A3d2D",
          "#412B1F",
          "#302118",
+
+         "#332B1F",
          "#5A3D2D",
-         "#A59F8B",
-         "#6E5B21",
-         "#C0BBA8",
-         "#806B27",
-         "#927923",
-         "#786322"
+         "#806B27"
       ],
       "stone resource" : [
+         "#172F4A",
          "#2C3339",
          "#244E7D",
+         "#224165",
          "#604B42",
-         "#644F46"
+         "#644F46",
+         "#69534A"
       ]
    },
 
@@ -51,8 +63,7 @@
          "stonehearth:build:brushes:roof:wooden_peaked_roof"
       ],
       "stone resource" : [
-         "stonehearth:build:brushes:roof:blue_slate_peaked_roof",
-         "stonehearth:build:brushes:roof:castle_roof"
+         "stonehearth:build:brushes:roof:blue_slate_peaked_roof"
       ]
    },
 
@@ -61,12 +72,12 @@
          "#332B1F"
       ],
       "stone resource" : [
-         "#244E7D"
+         "#644F46"
       ]
    },
 
    "doors": {
-      "wood door" : [
+      "wood resource" : [
          "stonehearth:portals:wooden_door",
          "stonehearth:portals:wooden_double_door",
          "stonehearth:portals:wooden_door_2"
@@ -74,7 +85,7 @@
    },
 
    "windows": {
-      "wood window" : [
+      "wood resource" : [
          "stonehearth:portals:wooden_window_frame",
          "stonehearth:portals:wooden_diamond_window"
       ]

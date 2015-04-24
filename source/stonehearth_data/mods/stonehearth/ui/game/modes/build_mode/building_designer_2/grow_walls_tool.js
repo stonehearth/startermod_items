@@ -51,6 +51,7 @@ var GrowWallsTool;
                                                  self.wallMaterialClass,
                                                  brushes.wall,
                                                  null,
+                                                 false,
                                                  click);
 
          self._columnMaterial = new MaterialHelper(tab,
@@ -59,6 +60,7 @@ var GrowWallsTool;
                                                  self.columnMaterialClass,
                                                  brushes.column,
                                                  null,
+                                                 false,
                                                  click);
       },
 

@@ -143,6 +143,8 @@ function Building:add_structure(entity)
          self._sv.structures[structure_type][id] = {
             entity = entity,
             structure = structure,
+            dependencies = {},
+            inverse_dependencies = {},
          }
          self:_trace_entity(entity)
          structure:layout()
@@ -155,26 +157,32 @@ end
 function Building:_remove_structure(entity)
    local id = entity:get_id()
    local layout_roof = false
+   local entry
+
+   self._log:detail('removing structure %s', entity)
 
    -- remove the entity from our structure map.  it appears only once, we just have
    -- to find the right table in our list...
-   for _, structure_type in pairs(STRUCTURE_TYPES) do
-      local trace
-      local structure = entity:get_component(structure_type)
-      if structure then
-         self._sv.structures[structure_type][id] = nil
-         self.__saved_variables:mark_changed()
+   for structure_type, structures in pairs(self._sv.structures) do
+      entry = structures[id]
+      if entry then
+         structures[id] = nil
          if structure_type == ROOF then
             layout_roof = true
          end
+
+         -- fake a finish since the entity is about to go away
+         if self._sv.active then
+            self:_on_child_finished(entry)
+         end
          break
-      end      
+      end
    end
 
    -- if there are any traces for this entity, nuke them now, too.
    self:_untrace_entity(id)
 
-   if layout_roof then
+   if not self._sv.active and layout_roof then
       self:layout_roof()
    end
 end
@@ -191,7 +199,7 @@ function Building:_trace_entity_container()
    local ec = self._entity:add_component('entity_container')
    self._ec_trace = ec:trace_children('auto-destroy building')
                         :on_removed(function()
-                              if ec:is_valid() and ec:num_children() == 1 then
+                              if ec:is_valid() and ec:num_children() == 0 then
                                  local teardown = self._entity:get_component('stonehearth:construction_progress'):get_teardown()
                                  if teardown then
                                     radiant.entities.destroy_entity(self._entity)
@@ -202,19 +210,24 @@ end
 
 function Building:get_building_footprint()
    local region = Region3()
+   local origin = radiant.entities.get_world_grid_location(self._entity)
    for _, kind in ipairs(STRUCTURE_TYPES) do
       for id, entry in pairs(self._sv.structures[kind]) do
-         local rcs = entry.entity:get_component('region_collision_shape')
+         local entity = entry.entity
+         local rcs = entity:get_component('region_collision_shape')
          if rcs then
-            region:add_region(rcs:get_region():get())
+            local location = radiant.entities.get_world_grid_location(entity)
+            local offset = location - origin
+            region:add_region(rcs:get_region():get():translated(offset))
          end
       end
    end
    return region
 end
 
-function Building:set_active(enabled)
-   if enabled then
+function Building:set_active(active)
+   self._sv.active = active
+   if active then
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
    end
@@ -228,7 +241,8 @@ function Building:_trace_entity(entity, loading)
       end)
 
    self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function(e)
-         self:_on_child_finished(e)
+         local entry = self:_get_entry_for_structure(e.entity)
+         self:_on_child_finished(entry)
       end)
 
    --[[
@@ -264,48 +278,62 @@ function Building:_untrace_entity(id)
 end
 
 function Building:grow_local_box_to_roof(entity, local_box)
-   local p0, p1 = local_box.min, local_box.max
+   -- iterate over all the entities that are "above" us
+   local origin = radiant.entities.get_world_grid_location(entity)
+   local clipper = Cube3(local_box.min, local_box.max)
+   clipper.min.y = local_box.max.y
+   clipper.max.y = INFINITE
+   clipper:translate(origin)
 
-   local shape = Region3(local_box)
-   for _, entry in pairs(self._sv.structures[ROOF]) do
-      local roof = entry.entity
-      local roof_region = roof:get_component('destination'):get_region():get()
+   local overhead = radiant.terrain.get_entities_in_cube(clipper, function(e)
+         return build_util.get_building_for(e) == self._entity
+      end)
 
-      local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
-                            Point3(p1.x, INFINITE, p1.z))
-      
-      -- translate the stencil into the roof's coordinate system, clip it,
-      -- then transform the result back to our coordinate system
-      local offset = radiant.entities.get_location_aligned(roof) -
-                     radiant.entities.get_location_aligned(entity)
+   local p0, p1 = local_box.min + origin, local_box.max + origin
 
-      local roof_overhang = roof_region:clipped(stencil:translated(-offset))                                       
-                                       :translated(offset)
-     
-      -- iterate through the overhang and merge shingle that are atop each
-      -- other
-      local merged_roof_overhang = Region3()
-      for shingle in roof_overhang:each_cube() do
-         local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
-                              Point3(shingle.max.x, INFINITE,      shingle.max.z))
-         merged_roof_overhang:add_cube(merged)
-      end
+   local merged_roof_overhang = Region3()
+   for _, roof in pairs(overhead) do
+      if roof ~= entity and build_util.is_blueprint(roof) then
+         local roof_origin = radiant.entities.get_world_grid_location(roof)
+         local roof_region = roof:get_component('destination')
+                                    :get_region()
+                                       :get()
+                                          :translated(roof_origin)
 
-      -- iterate through each "shingle" in the overhang, growing the shape
-      -- upwards toward the base of the shingle.
-      for shingle in merged_roof_overhang:each_cube() do
-         local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
-                           Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-         -- In specific circumstances, (L-shaped room with the vertical part of
-         -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
-         -- slopes perpendicular to the vertical part of the 'L'), we get walls
-         -- that pass through shingles more than once, and therefore cannot be added
-         -- uniquely. This trips an assert/crashes the game, so let's just add
-         -- them blindly, for now. -- klochek-rad
-         shape:add_cube(col)
+         local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
+                               Point3(p1.x, INFINITE, p1.z))
+         
+         -- clip out the part above us..
+         local roof_overhang = roof_region:clipped(stencil)
+        
+         -- iterate through the overhang and merge shingle that are atop each
+         -- other
+         for shingle in roof_overhang:each_cube() do
+            local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
+                                 Point3(shingle.max.x, INFINITE,      shingle.max.z))
+            merged_roof_overhang:add_cube(merged)
+         end
       end
    end
-   return shape
+
+   local shape = Region3(local_box:translated(origin))
+
+   -- iterate through each "shingle" in the overhang, growing the shape
+   -- upwards toward the base of the shingle.
+   for shingle in merged_roof_overhang:each_cube() do
+      local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
+                        Point3(shingle.max.x, shingle.min.y, shingle.max.z))
+      -- In specific circumstances, (L-shaped room with the vertical part of
+      -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
+      -- slopes perpendicular to the vertical part of the 'L'), we get walls
+      -- that pass through shingles more than once, and therefore cannot be added
+      -- uniquely. This trips an assert/crashes the game, so let's just add
+      -- them blindly, for now. -- klochek-rad
+      shape:add_cube(col)
+   end
+   
+   -- translate back into local coordinates before returning
+   return shape:translated(-origin)
 end
 
 -- links will be put back by the BuildingUndoManager
@@ -523,25 +551,30 @@ function Building:_recommend_patch_wall_material(origin, shape)
 end
 
 
--- fires when a child finishes construction.  building's cannot use the dependenc/inverse_dependncy
+-- fires when a child finishes construction.  building's cannot use the dependency/inverse_dependency
 -- system to figure out when they're finished.  regardless of whether we're building up or tearing
 -- down, the entire building isn't finished until all of the children inside the building are
 -- finished.  manually crawl our entire entity tree to compute that, then update our contruction
 -- progress component
 --
-function Building:_on_child_finished(changed)
-   local entry = self:_get_entry_for_structure(changed.entity)
+function Building:_on_child_finished(entry)
    assert(entry)
 
-   self._log:detail('got finish changed notification from %s', entry.entity)
-   if entry.inverse_dependencies then
-      for id, entity in pairs(entry.inverse_dependencies) do
-         self._log:detail(' -- notifying %s', entity)
-         radiant.events.trigger_async(entity, 'stonehearth:construction:dependencies_finished_changed')
-      end
+   local teardown = self._entity:get_component('stonehearth:construction_progress')
+                                    :get_teardown()
+
+   -- if we're building, we need to notify everyone who depends on us that it might be
+   -- ok for them to start.  if we're tearing down, notify everyone we depend on.
+   -- use sync triggers, since the entity might be going away soon!
+   self._log:detail('structure %s is finished.  sending notifications', entry.entity)
+   local to_notify = teardown and entry.dependencies or entry.inverse_dependencies
+
+   for id, entity in pairs(to_notify) do
+      self._log:detail(' -- notifying %s', entity)
+      radiant.events.trigger(entity, 'stonehearth:construction:dependencies_finished_changed')
    end
 
-   radiant.events.trigger_async(self._entity, 'stonehearth:construction:structure_finished_changed')
+   radiant.events.trigger(self._entity, 'stonehearth:construction:structure_finished_changed')
    self:_update_building_finished()
 end
 
@@ -623,20 +656,27 @@ function Building:finish_restoring_template()
    end
 end
 
-function Building:can_start_building(entity)
+function Building:can_start_blueprint(entity, teardown)
+   checks('self', 'Entity', 'boolean')
+
    local entry = self:_get_entry_for_structure(entity)
    if not entry then
       return false
    end
    assert(entry.dependencies)
+   assert(entry.inverse_dependencies)
 
-   self._log:detail('checking to see if %s @ %s can start', entity, radiant.entities.get_location_aligned(entity))
-   for id, dependency in pairs(entry.dependencies) do
-      if not build_util.blueprint_is_finished(dependency) then
+   local dependencies = teardown and entry.inverse_dependencies or entry.dependencies
+
+   self._log:detail('checking to see if %s @ %s can start (teardown:%s)', entity, radiant.entities.get_location_aligned(entity), teardown)
+   for id, dependency in pairs(dependencies) do
+      if not dependency:is_valid() then
+         self._log:detail('   - dependency has been destroyed.  must be finished!');
+      elseif not build_util.blueprint_is_finished(dependency) then
          self._log:detail('   - %s @ %s not finished!  no', dependency, radiant.entities.get_location_aligned(dependency))
          return false
       else
-         self._log:detail('   - %s @ %s finished!', dependency, radiant.entities.get_location_aligned(dependency))         
+         self._log:detail('   - %s @ %s finished!', dependency, radiant.entities.get_location_aligned(dependency))
       end
    end
    self._log:detail('yay!!')
@@ -644,65 +684,93 @@ function Building:can_start_building(entity)
 end
 
 
-function Building:_get_support_dependncies(blueprint)
+function Building:_add_support_dependencies(entry)
    -- all blueprints must have everything supporting it finished before
    -- starting.
+   local blueprint = entry.entity
    local footprint = build_util.get_footprint_region3(blueprint)
    footprint = radiant.entities.local_to_world(footprint, blueprint)
 
-   return radiant.terrain.get_entities_in_region(footprint, function(e)
-         return build_util.is_blueprint(e)
+   -- if there's a normal, also depend on the structures in that direction.
+   -- for example, this ensure that patch walls on top of roofs depend
+   -- on the little piece of roof that the hearthling needs to stand on to
+   -- build it.
+   local cd = entry.entity:get_component('stonehearth:construction_data')
+   if cd then
+      local normal = cd:get_normal()
+      if normal then
+         footprint:add_region(footprint:translated(normal))
+      end
+   end
+
+   radiant.terrain.get_entities_in_region(footprint, function(e)
+         if build_util.is_blueprint(e) then
+            local building = build_util.get_building_for(e)
+            if building == self._entity then
+               self:_add_dependency(entry, e)
+            end
+         end
       end)
 end
 
+function Building:_add_dependency(entry, dependency)
+   -- wire both the dependency and the inverse dependency
+   local id = dependency:get_id()
+   local inverse_dependency = entry.entity
+   entry.dependencies[id] = dependency
+
+   for _, structures in pairs(self._sv.structures) do
+      local ientry = structures[id]
+      if ientry then
+         ientry.inverse_dependencies[inverse_dependency:get_id()] = inverse_dependency
+         break
+      end
+   end
+end
+
 function Building:_compute_dependencies()
-   local function init_dependencies(entry)
-      assert(not entry.dependencies)
-      assert(not entry.inverse_dependencies)
-      entry.dependencies = self:_get_support_dependncies(entry.entity)
-      entry.inverse_dependencies = {}  
+   if self._sv.compute_dependencies_finished then
+      return
    end
 
-   -- these guys are easy
-   for _, kind in pairs({ FLOOR, ROOF, COLUMN }) do
+   -- these guys are easy.  note that FIXTURE_FABRICATORS have
+   -- no region, so they are omitted.
+   for _, kind in pairs({ FLOOR, ROOF, COLUMN, WALL }) do
       for _, entry in pairs(self._sv.structures[kind]) do
-         init_dependencies(entry)
+         self:_add_support_dependencies(entry)
       end
    end
 
    -- these guys, not so much
    for _, entry in pairs(self._sv.structures[WALL]) do
-      init_dependencies(entry)
-
       -- walls depend on their connected columns
       local wall = entry.entity
       local wc = wall:get_component(WALL)
       local col_a, col_b = wc:get_columns()
       if col_a then
-         entry.dependencies[col_a:get_id()] = col_a
+         self:_add_dependency(entry, col_a)
       end
       if col_b then
-         entry.dependencies[col_b:get_id()] = col_b
+         self:_add_dependency(entry, col_b)
       end
       -- patch walls depend on roof
       if wc:is_patch_wall() then
          for _, e in pairs(self._sv.structures[ROOF]) do
-            local roof = e.entity
-            entry.dependencies[roof:get_id()] = roof
+            self:_add_dependency(entry, e.entity)
          end
       end
    end
-   for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do
-      -- don't call init_dependencies, since we have no region
-      entry.dependencies = {}
-      entry.inverse_dependencies = {}  
 
+   for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do
       local fixture = entry.entity
       local parent = fixture:get_component('mob')
                                  :get_parent()
                                  
-      entry.dependencies[parent:get_id()] = parent
+      self:_add_dependency(entry, parent)
    end
+   
+   self._sv.compute_dependencies_finished = true
+   self.__saved_variables:mark_changed()
 end
 
 function Building:_compute_inverse_dependencies()

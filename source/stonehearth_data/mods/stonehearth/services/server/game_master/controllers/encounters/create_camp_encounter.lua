@@ -6,6 +6,7 @@ local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local Region3 = _radiant.csg.Region3
 
 local log = radiant.log.create_logger('game_master')
 
@@ -29,9 +30,19 @@ function CreateCamp:start(ctx, info)
    self._sv.encounter_name = info.encounter_name
    self._sv.ctx[self._sv.encounter_name] = {}
    self._sv._info = info
+
+   --create shape of the camp, based on params, as a region
+   --create 1x1 cube
+   local cube = Cube3(Point3.zero, Point3.one)
+   --inflate by size of radius
+   cube = cube:inflated(Point3(info.radius, 0, info.radius))
+   self._sv.camp_region = Region3(cube)
+
+   --Create a controller to find the location, pass params
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
-                                                 radiant.bind(self, '_create_camp'))
+                                                 radiant.bind(self, '_create_camp'), 
+                                                 self._sv.camp_region)
 end
 
 function CreateCamp:stop()
@@ -52,20 +63,23 @@ function CreateCamp:_create_camp(location)
    self._population = stonehearth.population:get_population(info.npc_player_id)
 
    -- carve a hole in the ground for the camp to sit in
-   local size = 20
-   local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
-   local cube2 = cube:translated(Point3.unit_y)
+   --local size = 20 --TODO: this should actually come from Radius
+   --local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
+   --local cube2 = cube:translated(Point3.unit_y)
 
+   local surface_region = self._sv.camp_region:translated(location)
    -- nuke all the entities around the camp
-   local entities = radiant.terrain.get_entities_in_cube(cube2)
+   local entities = radiant.terrain.get_entities_in_region(surface_region)
    for id, entity in pairs(entities) do
       if id ~= 1 then
          radiant.entities.destroy_entity(entity)
       end
    end
    
+   local terrain_region = surface_region:translated(-Point3.unit_y)
+
    -- carve out the grass around the camp
-   radiant.terrain.subtract_cube(cube)
+   radiant.terrain.subtract_region(terrain_region)
 
    -- create the boss entity
    if info.boss then
@@ -103,6 +117,9 @@ function CreateCamp:_create_camp(location)
    
    -- camp created!  move onto the next encounter in the arc.
    ctx.arc:trigger_next_encounter(ctx)   
+
+   -- Debug event! If someone is listening when the camp is created (autotests) let them know
+   radiant.events.trigger_async(self._sv.encounter_name, 'stonehearth:create_camp_complete', {}) 
 end
 
 function CreateCamp:_add_piece(piece, visible_rgn)

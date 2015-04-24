@@ -210,16 +210,18 @@ function CalendarService:_queue_alarm(alarm)
    self.__saved_variables:mark_changed()
 end
 
+--TODO: if you set an alarm whose "flex time" takes the alarm to past
+--the bounds of the current day, this fn fails to ever fire that alarm
 function CalendarService:_fire_alarms(alarm)
    local now = self._sv.seconds_today
 
    while #self._sv._future_alarms > 0 do
       local alarm = self._sv._future_alarms[1]
-      if alarm:get_expire_time() > now then
+      if alarm and alarm:get_expire_time() > now then
          break
       end
       table.remove(self._sv._future_alarms, 1)
-      if not alarm:is_dead() then
+      if alarm and not alarm:is_dead() then
          alarm:fire()
          table.insert(self._sv._past_alarms, alarm)
       end
