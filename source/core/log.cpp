@@ -17,6 +17,29 @@ namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
 
+__declspec(thread) char Indent::_buf[1024];
+__declspec(thread) int Indent::_indent;
+
+Indent::Indent() {
+   if (_indent < sizeof(_buf) - 4) {
+      _buf[_indent] = ' ';
+      _buf[_indent + 1] = ' ';
+      _buf[_indent + 2] = ' ';
+      _buf[_indent + 3] = '\0';
+   }
+   _indent += 3;
+}
+
+Indent::~Indent() {
+   _indent = _indent >= 3 ? _indent - 3 : 0;
+   _buf[_indent] = '\0';
+}
+
+const char* Indent::GetIndent()
+{
+   return _buf;
+}
+
 radiant::log::LogCategories log_levels_;
 uint32 default_log_level_;
 std::unordered_map<std::string, radiant::log::LogLevel> log_level_names_;
