@@ -118,6 +118,9 @@ function new_house(x, y)
    return house
 end
 
+function new_shepherd_pasture(x, z, x_size, z_size)
+	return autotest_framework.env.create_shepherd_pasture(x, z, x_size, z_size)
+end
 
 function new_farm(crop_x, crop_y, size_x, size_y, crop_type)
    autotest_framework.env.create_farm(crop_x, crop_y, { size = { x = size_x, y = size_y }, crop = crop_type})
@@ -157,7 +160,9 @@ function crushinator_tests_maul()
    stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop_2')
    stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_silkweed_crop')
 
-   new_mine(Point3(-60, -16, 40), Point3(-40, 10, 60))
+   new_mine(Point3(-60, -8, 40), Point3(-40, 10, 60))
+
+   new_shepherd_pasture(90, 20, 30, 30)
 
    autotest_framework.env.create_entity_cluster(8, 0, 5, 5, 'stonehearth:resources:fiber:silkweed_bundle')
    autotest_framework.env.create_entity_cluster(8, 8, 7, 7, 'stonehearth:resources:wood:oak_log')
@@ -185,7 +190,7 @@ function crushinator_tests_maul()
    --new_template(autotest, 50, 20, "Dining Hall")
 
    local road
-   road = new_road(Point2(0, 33), Point2(70, 35))
+   road = new_road(Point2(30, 33), Point2(70, 35))
    road = new_road(Point2(70, 5), Point2(73, 35))
    road = new_road(Point2(39, 5), Point2(73, 8))
    stonehearth.build:set_active(build_util.get_building_for(road), true)
@@ -243,6 +248,10 @@ function crushinator_tests_maul()
    -- 2 trappers
    local tr_1 = autotest_framework.env.create_person(8, -4, { job = 'trapper' })
    local tr_2 = autotest_framework.env.create_person(8, -2, { job = 'trapper' })
+
+   -- 2 shepherds
+   local tr_1 = autotest_framework.env.create_person(10, -4, { job = 'shepherd' })
+   local tr_2 = autotest_framework.env.create_person(10, -2, { job = 'shepherd' })
 end
 
 return mod
