@@ -24,8 +24,9 @@ function ConstructionProgress:initialize(entity, json)
 end
 
 function ConstructionProgress:destroy()
-   self._log:debug('destroying construction_progress for %s', self._entity)
-   self:unlink()   
+   if self._log then
+      self._log:debug('destroying construction_progress for %s', self._entity)
+   end
 end
 
 function ConstructionProgress:clone_from(other)
