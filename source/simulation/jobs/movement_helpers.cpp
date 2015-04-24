@@ -72,7 +72,11 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& src
          csg::Region3f region = phys::LocalToWorld(adjacent->Get(), dstEntity);
          MH_LOG(9) << "adjacent region world bounds: " << region.GetBounds();
          return region;
+      } else {
+         MH_LOG(9) << *dstEntity << " has no adjacent";
       }
+   } else {
+      MH_LOG(9) << *dstEntity << " has no destination";
    }
 
    // If we have a solid region collision shape, try that one, too!
@@ -84,10 +88,12 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& src
          MH_LOG(9) << "computed rcs adjacent world region bounds: " << region.GetBounds();
          return region;
       }
+   } else {
+      MH_LOG(9) << *dstEntity << " has no solid region collision shape";      
    }
 
    // Otherwise, just compute it based on the entity location
-   MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
+   MH_LOG(7) << *dstEntity << "iterating through points adjacent to item";
    static csg::Point3f defaultAdjacentPoints[] = {
       csg::Point3f(-1, 0,  0),
       csg::Point3f( 1, 0,  0),

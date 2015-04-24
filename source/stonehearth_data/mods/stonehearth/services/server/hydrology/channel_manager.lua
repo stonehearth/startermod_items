@@ -44,6 +44,9 @@ function ChannelManager:get_channel(from_entity, channel_entrance)
 end
 
 function ChannelManager:get_channels(from_entity)
+   if not from_entity:is_valid() then
+      local foo = 1 -- CHECKCHECK
+   end
    local channels = self._sv._channels[from_entity:get_id()]
    return channels
 end
@@ -108,6 +111,7 @@ function ChannelManager:_destroy_channel(channel)
    if channel.channel_entity then
       radiant.entities.destroy_entity(channel.channel_entity)
    end
+   channel.destroyed = true
 end
 
 function ChannelManager:each_channel(callback_fn)
@@ -151,7 +155,7 @@ function ChannelManager:add_volume_to_channel(channel, volume, source_elevation_
    volume = volume - flow_volume
 
    if flow_volume > 0 then
-      log:spam('Added %d to channel for %s at %s', flow_volume, channel.from_entity, channel.channel_entrance)
+      log:spam('Added %g to channel for %s at %s', flow_volume, channel.from_entity, channel.channel_entrance)
    end
 
    return volume
@@ -198,12 +202,12 @@ function ChannelManager:calculate_flow_rate(from_elevation, to_elevation)
    return flow_rate
 end
 
-function ChannelManager:link_waterfall_channel(from_entity, source_location, waterfall_top)
-   log:debug('Linking waterfall channel from %s with source_location %s, waterfall_top %s',
-             from_entity, source_location, waterfall_top)
+function ChannelManager:link_waterfall_channel(from_entity, source_location, channel_entrance)
+   log:debug('Linking waterfall channel from %s with source_location %s, channel_entrance %s',
+             from_entity, source_location, channel_entrance)
 
-   local subtype = waterfall_top == source_location and 'vertical' or nil
-   local channel_entrance = waterfall_top
+   -- vertical waterfalls have their channel_entrance at the source_location
+   local subtype = source_location.y ~= channel_entrance.y and 'vertical' or nil
    local channel = self:get_channel(from_entity, channel_entrance)
 
    if channel then
@@ -212,12 +216,16 @@ function ChannelManager:link_waterfall_channel(from_entity, source_location, wat
          assert(channel.from_entity == from_entity)
          assert(channel.channel_entrance == channel_entrance)
 
-         -- multiple source locations are valid for the channel_entrance
+         -- Multiple source locations are valid for the channel_entrance
          if (channel.source_location ~= source_location) then
-            assert(self:_water_body_contains_point(from_entity, source_location))
+            -- Remove the channel if the source location is gone
+            if not self:_water_body_contains_point(from_entity, source_location) then
+               self:remove_channel(channel)
+               channel = nil
+            end
          end
       else
-         -- this removes both directions of the pressure channel
+         -- This removes both directions of the pressure channel
          self:remove_channel(channel)
          channel = nil
       end
@@ -231,7 +239,7 @@ function ChannelManager:link_waterfall_channel(from_entity, source_location, wat
       else
          -- TODO: the channel_exit isn't particularly useful for a waterfall as it may change
          -- depending on what entity is the target when the watertight region for the waterfall column changes
-         local waterfall = self:_create_waterfall(from_entity, to_entity, channel_entrance, channel_exit)
+         local waterfall = self:_create_waterfall(from_entity, to_entity, source_location, channel_entrance, channel_exit)
          channel = self:add_channel(from_entity, to_entity, source_location, channel_entrance, channel_exit, 'waterfall', subtype, waterfall)
       end
    end
@@ -255,22 +263,31 @@ function ChannelManager:link_pressure_channel(from_entity, to_entity, from_locat
 end
 
 function ChannelManager:_link_pressure_channel_unidirectional(from_entity, to_entity, from_location, to_location, subtype)
-   -- by definition the channel_entrance is the adjacent point outside of the water region
+   -- By definition, the channel_entrance is the adjacent point outside of the water region
    local channel_entrance = to_location
    local channel = self:get_channel(from_entity, channel_entrance)
 
-   -- if channel of the same type already exists, make sure it is identical, otherwise replace it
+   -- If channel of the same type already exists, make sure it is identical, otherwise replace it
    if channel then
       if channel.channel_type == 'pressure' then
-         assert(channel.subtype == subtype)
          assert(channel.from_entity == from_entity)
          assert(channel.to_entity == to_entity)
          assert(channel.channel_entrance == to_location)
          assert(channel.channel_exit == to_location)
 
-         -- multiple source locations are valid for the channel_entrance
+         -- Multiple source locations are valid for the channel_entrance
          if (channel.source_location ~= from_location) then
-            assert(self:_water_body_contains_point(from_entity, from_location))
+            -- If the subtypes don't match, prefer the horizontal channel
+            if channel.subtype ~= subtype and channel.subtype == 'vertical' then
+               self:remove_channel(channel)
+               channel = nil
+            end
+
+            -- Remove the channel if the source location is gone
+            if channel and not self:_water_body_contains_point(from_entity, from_location) then
+               self:remove_channel(channel)
+               channel = nil
+            end
          end
       else
          self:remove_channel(channel)
@@ -288,26 +305,23 @@ function ChannelManager:convert_to_pressure_channel(channel)
    assert(channel.channel_type == 'waterfall')
    log:info('Converting waterfall to pressure channel')
 
-   local from_location = channel.source_location
-   local to_location = channel.subtype == 'vertical' and channel.channel_entrance or channel.channel_entrance - Point3.unit_y
-
    -- automatically removes old channel
-   local channel = self:link_pressure_channel(channel.from_entity, channel.to_entity, from_location, to_location, channel.subtype)
+   local new_channel = self:link_pressure_channel(channel.from_entity, channel.to_entity, channel.source_location, channel.channel_entrance)
+   assert(channel.destroyed)
 
-   return channel
+   return new_channel
 end
 
 function ChannelManager:convert_to_waterfall_channel(channel)
    assert(channel.channel_type == 'pressure')
    log:info('Converting pressure to waterfall channel')
 
-   local source_location = channel.source_location
-   local waterfall_top = channel.subtype == 'vertical' and channel.source_location or channel.channel_entrance
-
    -- automatically removes old channel
-   local channel = self:link_waterfall_channel(channel.from_entity, source_location, waterfall_top, channel.subtype)
+   local new_channel = self:link_waterfall_channel(channel.from_entity, channel.source_location, channel.channel_entrance)
+   assert(channel.destroyed)
+   assert(channel.paired_channel.destroyed)
 
-   return channel
+   return new_channel
 end
 
 function ChannelManager:_get_waterfall_target(channel_entrance)
@@ -324,12 +338,12 @@ function ChannelManager:_get_waterfall_target(channel_entrance)
    return to_entity, channel_exit
 end
 
-function ChannelManager:_create_waterfall(from_entity, to_entity, waterfall_top, waterfall_bottom)
+function ChannelManager:_create_waterfall(from_entity, to_entity, source_location, channel_entrance, channel_exit)
    local waterfall = radiant.entities.create_entity('stonehearth:terrain:waterfall')
    local waterfall_component = waterfall:add_component('stonehearth:waterfall')
 
-   radiant.terrain.place_entity_at_exact_location(waterfall, waterfall_top)
-   waterfall_component:set_height(waterfall_top.y - waterfall_bottom.y)
+   radiant.terrain.place_entity_at_exact_location(waterfall, channel_entrance)
+   waterfall_component:set_top_elevation(source_location.y)   -- source_location, not the channel_entrance
    waterfall_component:set_source(from_entity)
    waterfall_component:set_target(to_entity)
    return waterfall

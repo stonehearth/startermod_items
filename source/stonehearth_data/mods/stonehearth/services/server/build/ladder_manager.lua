@@ -23,7 +23,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
       -- not create it until the destination becomes reachable, but that's a project
       -- for another day (probably must be done before mining can be called "finished")
       log:detail('ignoring request: destination is not a valid rung position')
-      return radiant.create_controller('radiant:destructor', radiant.bind('radiant.nop'))
+      return radiant.create_controller('stonehearth:build:ladder_builder:destructor')
    end
    
    log:detail('computing ladder base')
@@ -40,8 +40,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
    log:detail('adding %s to ladder builder (lbid:%d)', to, ladder_builder:get_id())
    ladder_builder:add_point(to)
 
-   return radiant.create_controller('radiant:destructor',
-                                    radiant.bind(ladder_builder, 'remove_point', to))
+   return radiant.create_controller('stonehearth:build:ladder_builder:destructor', ladder_builder, to)
 end
 
 function LadderManager:remove_ladder(base)

@@ -48,6 +48,18 @@ function Log.is_enabled(category, level)
    return level <= Log.get_log_level(category)
 end
 
+function Log.format(format, ...)
+   local args = {...}
+   for i=1,#args do
+      local arg = args[i]
+      local t = type(arg)
+      if t ~= 'string' and t ~= 'number' then
+         args[i] = tostring(arg)
+      end
+   end
+   return string.format(format, unpack(args))   
+end
+
 function Log.write(category, level, format, ...)
    Log.write_(category, level, format, ...)
    return true
@@ -140,16 +152,9 @@ function Log.create_logger(sub_category)
          end,
 
       write = function(self, level, format, ...)
-            local args = {...}
-            for i=1,#args do
-               local arg = args[i]
-               local t = type(arg)
-               if t ~= 'string' and t ~= 'number' then
-                  args[i] = tostring(arg)
-               end
-            end
+            local formatted = Log.format(format, ...)
             local prefix = compute_log_prefix(self._prefix, self._entity)
-            _host:log(self._category, level, prefix .. string.format(format, unpack(args)))
+            _host:log(self._category, level, prefix .. formatted)
          end,
 
       get_log_level = function(self)

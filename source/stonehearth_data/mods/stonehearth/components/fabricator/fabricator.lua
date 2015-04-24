@@ -116,6 +116,12 @@ function Fabricator:destroy()
    end
 end
 
+function Fabricator:get_description()
+   local name = tostring(self._entity)
+   local count = self._fabricator_dst:get_adjacent():get():get_area()
+   return string.format('%s (%d adjacent blocks)', name, count)
+end
+
 function Fabricator:set_scaffolding(scaffolding)
    self._scaffolding = scaffolding
 end

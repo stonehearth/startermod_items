@@ -1355,6 +1355,7 @@
       "build:ladder_manager" : "file(services/server/build/ladder_manager.lua)",
       "build:scaffolding_manager" : "file(services/server/build/scaffolding_manager.lua)",
       "build:ladder_builder" : "file(services/server/build/ladder_builder.lua)",
+      "build:ladder_builder:destructor" : "file(services/server/build/ladder_builder_destructor.lua)",
       "build:scaffolding_builder_1d" : "file(services/server/build/scaffolding_builder_1d.lua)",
       "build:scaffolding_builder_2d" : "file(services/server/build/scaffolding_builder_2d.lua)",
 
@@ -1406,6 +1407,7 @@
       "game_master:encounters:destroy_entity" : "file(services/server/game_master/controllers/encounters/destroy_entity_encounter.lua)", 
       "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
+      "game_master:missions:pillage" : "file(services/server/game_master/controllers/missions/pillage_mission.lua)",
 
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",

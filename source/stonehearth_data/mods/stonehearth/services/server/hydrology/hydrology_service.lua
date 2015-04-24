@@ -112,7 +112,6 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
          local location = radiant.entities.get_world_grid_location(entity)
          local water_component = entity:add_component('stonehearth:water')
-         local added_region = Region3()
          local volume_added = 0
 
          -- TODO: Include the top boundary for analysis. This can occur when a subsection section
@@ -133,17 +132,16 @@ function HydrologyService:_on_terrain_changed(delta_region)
                   local channel
 
                   if point.y == source_location.y then
-                     -- TODO: don't do add or link if on top layer
                      -- add point to the water region
-                     added_region:clear()
-                     added_region:add_point(point - location)
-                     water_component:add_to_region(added_region)
+                     log:debug('%s removed from watertight region. Adding to %s', point, entity)
+                     water_component:add_to_region(Region3(Cube3(point - location)))
                      volume_added = volume_added + 1
 
                      -- check adjacent blocks for channels and transients
                      self:_link_channels(entity, point, modified_container_region)
                   else
-                     channel = channel_manager:link_waterfall_channel(entity, source_location, source_location)
+                     log:debug('%s removed from watertight region. Creating waterfall channel from %s', point, entity)
+                     channel = channel_manager:link_waterfall_channel(entity, source_location, point)
                   end
 
                   -- TODO: consider calling add_volume_to_channel here
@@ -203,13 +201,12 @@ function HydrologyService:_link_channels(entity, point, modified_container_regio
 
                   if transient then
                      -- add to transient list
-                     -- CHECKCHECK
                      assert(false) -- TODO: not yet implemented
                   else
                      -- drop, create waterfall channel
                      assert(direction.y ~= 1) -- TODO: not yet implemented
-                     local waterfall_top = vertical and point or adjacent_point
-                     channel = channel_manager:link_waterfall_channel(entity, point, waterfall_top)
+                     local channel_entrance = vertical and below_adjacent_point or adjacent_point
+                     channel = channel_manager:link_waterfall_channel(entity, point, channel_entrance)
                   end
                end
             end
@@ -414,8 +411,8 @@ function HydrologyService:destroy_water_body(entity)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = nil
-   self._sv._channel_manager:deallocate_channels(entity)
    self._sv._channel_manager:remove_channels_to_entity(entity)
+   self._sv._channel_manager:deallocate_channels(entity)
    radiant.entities.destroy_entity(entity)
 
    self.__saved_variables:mark_changed()
@@ -445,11 +442,11 @@ function HydrologyService:add_water(volume, location, entity)
          -- add the remaining water to the master
          return self:add_water(volume, location, master)
       else
-         log:spam('could not add water because: %s', info.reason)
+         log:detail('could not add water because: %s', info.reason)
       end
    end
 
-   return volume
+   return volume, info
 end
 
 -- must specify either location or entity
@@ -473,16 +470,17 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    local water_level2 = water_component2:get_water_level()
    local elevation_delta = math.abs(water_level1 - water_level2)
 
-   -- quick and easy test. occurs a lot when merging wetted regions.
-   if elevation_delta == 0 then
-      return true
-   end
-
+   -- TODO: imrpove merging of 3.99 and 4.00 height water bodies
    -- only mergable if the top layers are at the same elevation
    local layer_elevation1 = water_component1:get_top_layer_elevation()
    local layer_elevation2 = water_component2:get_top_layer_elevation()
    if layer_elevation1 ~= layer_elevation2 then
       return false
+   end
+
+   -- must do this after elevation test because of floating point precision
+   if elevation_delta == 0 then
+      return true
    end
 
    -- if transferring a small volume of water through the channel would equalize heights, then allow merge
@@ -505,6 +503,9 @@ end
 function HydrologyService:merge_water_bodies(entity1, entity2, allow_uneven_top_layers)
    if allow_uneven_top_layers == nil then
       allow_uneven_top_layers = false
+   end
+   if entity1 == entity2 then
+      local foo = 1 -- CHECKCHECK
    end
    assert(entity1 ~= entity2)
    local master, mergee = self:_order_entities(entity1, entity2)

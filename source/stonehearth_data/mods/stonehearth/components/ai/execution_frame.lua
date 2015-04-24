@@ -45,6 +45,18 @@ local debug_info_state_order = {
    [DEAD] = 9,
 }
 
+local EF_STATS = {
+
+}
+
+function ExecutionFrame._dump_and_reset_stats()
+   local stats_copy = EF_STATS
+   EF_STATS = {}
+   _host:report_cpu_dump(stats_copy, 'ef_stats')
+end
+
+radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionFrame._dump_and_reset_stats)
+
 -- the max roam distance is intentionally set really really really high to avoid
 -- creating and re-creating many, many pathfinders while doing ambient behaviors
 -- which may move the entity small distances (e.g. idle while bored) or paths
@@ -59,6 +71,8 @@ local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
 local SLOWSTART_TIMEOUTS = {250, 750}
 local SLOWSTART_MAX_UNITS = {4, INFINITE}
+local SLOW_START_ENABLED = radiant.util.get_config('enable_ai_slow_start', true)
+radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED and "enabled" or "disabled")
 
 -- only theee keys are allowed to be set.  all others are forbidden to 
 -- prevent actions from using ai.CURRENT as a private communication channel
@@ -387,6 +401,22 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
+function ExecutionFrame:_record_slow_think(timeout)
+   local counts = EF_STATS[self._activity_name]
+   if not counts then
+      counts = {
+         slow = 0,
+         really_slow = 0,
+      }
+      EF_STATS[self._activity_name] = counts
+   end
+   if timeout == SLOWSTART_TIMEOUTS[1] then
+      counts.slow = counts.slow + 1
+   else
+      counts.really_slow = counts.really_slow + 1
+   end
+end
+
 function ExecutionFrame:_destroy_slow_timers()
    for _, timer in pairs(self._slow_start_timers) do
       timer:destroy()
@@ -394,7 +424,7 @@ function ExecutionFrame:_destroy_slow_timers()
    self._slow_start_timers = {}
 end
 
-function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units)
+function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units, timeout)
    if self._state == DEAD then
       return
    end
@@ -413,6 +443,8 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
       self:_destroy_slow_timers()
       return
    end
+
+   self:_record_slow_think(timeout)
 
    self._log:spam('slow start think begins %s, %s, %s', units_start, units_start + (num_units - 1), #units)
 
@@ -469,20 +501,29 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
          local new_state = self:_clone_entity_state('new speculation for unit')
-         if self._rerun_unit then
-            if self._rerun_unit ~= unit and ((self._rerun_unit:get_priority() < unit:get_priority()) or unit:get_action().realtime) then
+         local think_now = true
+
+         -- figure out whether this unit should think now or later.
+         if SLOW_START_ENABLED then
+            if self._rerun_unit and self._rerun_unit ~= unit then
+               -- realtime actions get to start right away
+               think_now = unit:get_action().realtime  
+               if not think_now then
                -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
                -- we can easily starve important tasks from running.  Likewise, realtime tasks must be allowed to
                -- think, otherwise reacting to real-time events (e.g. combat) becomes borked.
-               self._log:spam('fast start unit %s', unit:get_name())
-               rethinking_units[unit] = new_state
-            elseif self._rerun_unit ~= unit then
-               self._log:spam('slow start unit %s', unit:get_name())
-               table.insert(slow_rethink_units, { unit = unit, state = new_state })
+                  think_now = self._rerun_unit:get_priority() < unit:get_priority()
+               end
             end
-         else
-            -- No re-run units, so just enqueue.
+         end
+
+         -- add the unit to the `rethinking_units` or `slow_rethink_units` list
+         if think_now then
+            self._log:spam('fast start unit %s', unit:get_name())
             rethinking_units[unit] = new_state
+         else
+            self._log:spam('slow start unit %s', unit:get_name())
+            table.insert(slow_rethink_units, { unit = unit, state = new_state })
          end
       end
    end
@@ -518,8 +559,9 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
          -- Sigh, don't bind to the variable outside the lexical body....
          local local_units_start = units_start
+         local timeout = SLOWSTART_TIMEOUTS[i]
          local new_timer = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
-               self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used)
+               self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used, timeout)
             end)
          table.insert(self._slow_start_timers, new_timer)
 

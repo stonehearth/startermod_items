@@ -103,9 +103,12 @@ local constants = {
       },
 
       combat = {
-         IDLE = 1,
-         ACTIVE = 10,
-         PANIC = 20,
+         IDLE                       = 1,
+         PARTY_AGGRESSIVE_FORMATION = 2,
+         ACTIVE                     = 10,
+         PARTY_PASSIVE_FORMATION    = 15,
+         PARTY_TASK                 = 16,
+         PANIC                      = 20,
       },
 
       urgent = {
@@ -151,7 +154,7 @@ local constants = {
    
    -- Constants related to constructing buildings
    construction = {
-      STOREY_HEIGHT = 6,
+      STOREY_HEIGHT = 3,
       MAX_WALL_SPAN = 16,
       floor_category = {
          FLOOR = 'floor',
@@ -201,7 +204,6 @@ local constants = {
       ALERT  = 900,         
       SLEEPY = 100,
       HUNGRY = 50,
-      PARTY_FORMATION = 10,
    },
 
    --Constants that contribute to the scoare

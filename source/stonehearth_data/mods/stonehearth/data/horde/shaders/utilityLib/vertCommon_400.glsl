@@ -33,7 +33,10 @@ vec4 calcWorldPos( const vec4 pos )
 #endif
 
 #ifdef DRAW_SKINNED
-  tr = tr * bones[int(boneIndex)];
+  // A certain driver vendor that shall remain nameless will do a pure virtual call if you try to put
+  // the int cast right in the array lookup.
+  int idx = int(boneIndex);
+  tr *= bones[idx];
 #endif
 
   return tr * vec4(pos.xyz * modelScale, 1.0);
@@ -53,7 +56,10 @@ vec3 calcWorldVec( const vec3 vec )
 #endif
 
 #ifdef DRAW_SKINNED
-  tr = tr * bones[int(boneIndex)];
+  // A certain driver vendor that shall remain nameless will do a pure virtual call if you try to put
+  // the int cast right in the array lookup.
+  int idx = int(boneIndex);
+  tr *= bones[idx];
 #endif
 
   return (tr * vec4(vec, 0)).xyz;

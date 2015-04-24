@@ -92,6 +92,15 @@ function create_wooden_floor(session, cube)
    return stonehearth.build:add_floor(session, WOODEN_FLOOR, cube)
 end
 
+function new_template(template_name, x, y)
+   local session = {
+      player_id = 'player_1',
+   }
+	local t = stonehearth.build:build_template_command(session, nil, template_name, Point3(x, 10, y), Point3(0, 10, 0), 0).building
+   stonehearth.build:set_active(t, true)
+   return t
+end
+
 function new_house(x, y)
    local session = {
       player_id = 'player_1',
@@ -109,10 +118,6 @@ function new_house(x, y)
    return house
 end
 
-
-function new_template(x, y, template_name)
-   -- TODO...  More realistic than tiny houses.
-end
 
 function new_farm(crop_x, crop_y, size_x, size_y, crop_type)
    autotest_framework.env.create_farm(crop_x, crop_y, { size = { x = size_x, y = size_y }, crop = crop_type})
@@ -140,10 +145,10 @@ function crushinator_tests_maul()
    local CAMERA_LOOK_AT = Point3(0, 0, 0)
    autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)]]
 
-   local stockpile = autotest_framework.env.create_stockpile(-5, -20, { size = { x = 9, y = 9 }})
-   local stockpile = autotest_framework.env.create_stockpile( 5, -20, { size = { x = 9, y = 9 }})
-   local stockpile = autotest_framework.env.create_stockpile(-5, -10, { size = { x = 9, y = 9 }})
-   local stockpile = autotest_framework.env.create_stockpile( 5, -10, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(0, -15, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(10, -15, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(0, -5, { size = { x = 9, y = 9 }})
+   local stockpile = autotest_framework.env.create_stockpile(10, -5, { size = { x = 9, y = 9 }})
 
    local session = {
       player_id = 'player_1',
@@ -160,21 +165,21 @@ function crushinator_tests_maul()
    autotest_framework.env.create_entity_cluster(-8, 8, 7, 7, 'stonehearth:resources:stone:hunk_of_stone')
    autotest_framework.env.create_entity_cluster(-8, -8, 2, 2, 'stonehearth:food:berries:berry_basket')
 
-   new_house(50, 50)
-   new_house(30, 50)
-   new_house(10, 50)
-   new_house(50, 20)
-   new_house(30, 20)
-   new_house(10, 20)
+
+   new_template('tiny cottage', 50, 46)
+   new_template('tiny cottage', 30, 46)
+   new_template('tiny cottage', 10, 46)
+   new_template('tiny cottage', 60, 16)
+   new_template('tiny cottage', 40, 16)
+
+
+   --[[new_house(10, 20)
    new_house(50, -20)
    new_house(30, -20)
    new_house(10, -20)
-   new_house(50, -50)
-   new_house(30, -50)
-   new_house(10, -50)
    new_house(-50, -20)
    new_house(-30, -20)
-   new_house(-10, -20)
+   new_house(-10, -20)]]
    --new_template(autotest, 50, 50, "Tiny Cottage")
    --new_template(autotest, 10, 50, "Shared Sleeping Quarters")
    --new_template(autotest, 50, 20, "Dining Hall")
@@ -199,8 +204,8 @@ function crushinator_tests_maul()
    autotest_framework.env.create_person(6, -2, { job = 'farmer' })
    autotest_framework.env.create_person(6, 0, { job = 'farmer' })
 
-   new_farm(-40, -10, 10, 10, 'stonehearth:crops:tester_crop_2')
-   new_farm(40, -10, 20, 10, 'stonehearth:crops:tester_silkweed_crop')
+   new_farm(-65, -10, 40, 15, 'stonehearth:crops:tester_crop_2')
+   new_farm(80, -10, 40, 15, 'stonehearth:crops:tester_silkweed_crop')
    -- 2 carpenters
    local carp_1 = autotest_framework.env.create_person(6, -6, { job = 'carpenter', attributes = { total_level = 3 } })
    local carp_2 = autotest_framework.env.create_person(6, -4, { job = 'carpenter' })
@@ -214,8 +219,8 @@ function crushinator_tests_maul()
    local weav_2 = autotest_framework.env.create_person(6, 4, { job = 'weaver' })
 
 
-   new_trapping_grounds(-80, -40, 20, 20)
-   new_trapping_grounds(80, -40, 20, 20)
+   new_trapping_grounds(-120, -100, 80, 60)
+   new_trapping_grounds(40, -100, 80, 60)
 
 
    weaver_init(weav_1, -10, 0)

@@ -80,15 +80,21 @@ function WaterComponent:get_top_layer_elevation()
 end
 
 function WaterComponent:top_layer_in_wetting_mode()
-   local result = self:get_water_level() == self:get_top_layer_elevation()
+   self:_normalize()
+   -- don't compare water level, because we can convert a non-integer value of self._sv.height
+   -- to an integer value via precision loss
+   local result = self._sv.height == self._sv._top_layer_index
    return result
 end
 
 -- TODO: clean up this method
 function WaterComponent:_add_water(add_location, volume)
-   log:detail('Adding %d water to %s at %s', volume, self._entity, add_location)
-
    assert(volume >= 0)
+   if volume == 0 then
+      return
+   end
+   log:detail('Adding %G water to %s at %s', volume, self._entity, add_location)
+
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local channel_region = self:_get_channel_region()
    local info = {}
@@ -134,6 +140,7 @@ function WaterComponent:_add_water(add_location, volume)
          if self:_allow_grow_region(add_location, edge_region) then
             volume, info = self:_grow_region(volume, add_location, top_layer, edge_region, channel_region)
          else
+            log:detail('Discarded water for %s because edge area exceeeded', self._entity)
             volume = 0
             info = {
                result = 'discarded',
@@ -209,8 +216,8 @@ function WaterComponent:_grow_region(volume, add_location, top_layer, edge_regio
          if is_drop then
             -- establish a unidirectional link between the two water bodies using a waterfall channel
             local source_location = top_layer:get_closest_point(point)
-            local waterfall_top = point
-            channel = channel_manager:link_waterfall_channel(self._entity, source_location, waterfall_top)
+            local channel_entrance = point
+            channel = channel_manager:link_waterfall_channel(self._entity, source_location, channel_entrance)
          end
       end
 
@@ -232,9 +239,11 @@ function WaterComponent:_grow_region(volume, add_location, top_layer, edge_regio
 end
 
 function WaterComponent:_remove_water(volume)
-   log:detail('Removing %d water from %s', volume, self._entity)
-
    assert(volume >= 0)
+   if volume == 0 then
+      return
+   end
+   log:detail('Removing %g water from %s', volume, self._entity)
    
    while volume > 0 do
       local residual = self:_remove_height(volume)
@@ -246,6 +255,17 @@ function WaterComponent:_remove_water(volume)
    end
 
    return volume
+end
+
+function WaterComponent:_normalize()
+   assert(self._sv.height >= self._sv._top_layer_index)
+   assert(self._sv.height <= self._sv._top_layer_index + 1)
+
+   -- don't compare water level, because we can convert a non-integer value of self._sv.height
+   -- to an integer value via precision loss
+   if self._sv.height == self._sv._top_layer_index + 1 then
+      self:_raise_layer()
+   end
 end
 
 function WaterComponent:merge_with(mergee, allow_uneven_top_layers)
@@ -265,6 +285,10 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
 
    local master_component = master:add_component('stonehearth:water')
    local mergee_component = mergee:add_component('stonehearth:water')
+
+   master_component:_normalize()
+   mergee_component:_normalize()
+
    local master_layer_elevation = master_component:get_top_layer_elevation()
    local mergee_layer_elevation = mergee_component:get_top_layer_elevation()
 
@@ -291,7 +315,12 @@ function WaterComponent:_merge_regions(master, mergee, allow_uneven_top_layers)
       end
    else
       -- layers must be at same level
-      assert(master_layer_elevation == mergee_layer_elevation)
+      if master_layer_elevation ~= mergee_layer_elevation then
+         master_component:_normalize()
+         mergee_component:_normalize()
+         assert(master_layer_elevation == mergee_layer_elevation)
+      end
+
       update_layer = true
 
       -- calculate new water level before modifying regions
@@ -439,7 +468,7 @@ function WaterComponent:fill_channel_from_water_region(channel)
       channel.queued_volume = channel.queued_volume + flow_volume
 
       if flow_volume > 0 then
-         log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
+         log:spam('Added %g to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
       end
    end
 end
@@ -610,10 +639,11 @@ function WaterComponent:_get_edge_region(region, channel_region)
    local world_bounds = self._root_terrain_component:get_bounds()
 
    -- perform a separable inflation to exclude diagonals
-   local inflated = region:inflated(Point3.unit_x) + region:inflated(Point3.unit_z)
+   local edge_region = region:inflated(Point3.unit_x)
+   edge_region:add_region(region:inflated(Point3.unit_z))
 
    -- subtract the interior region
-   local edge_region = inflated - region
+   edge_region:subtract_region(region)
 
    -- remove watertight region
    local watertight_region = stonehearth.hydrology:get_water_tight_region():intersect_region(edge_region)
@@ -625,7 +655,6 @@ function WaterComponent:_get_edge_region(region, channel_region)
    -- remove locations outside the world
    edge_region = edge_region:intersect_cube(world_bounds)
 
-   -- TODO: reconsider this call
    edge_region:optimize_by_merge('water:_get_edge_region()')
 
    return edge_region
@@ -668,13 +697,12 @@ function WaterComponent:_remove_height(volume)
    local lower_limit = self._sv._top_layer_index
    if self._sv.height <= lower_limit then
       self:_lower_layer()
+      lower_limit = self._sv._top_layer_index
    end
 
    local top_layer = self._sv._top_layer:get()
    local layer_area = top_layer:get_area()
    assert(layer_area > 0)
-
-   lower_limit = top_layer:get_rect(0).min.y
 
    local delta = volume / layer_area
    local residual = 0
