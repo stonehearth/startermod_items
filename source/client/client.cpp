@@ -216,8 +216,9 @@ void Client::OneTimeIninitializtion()
                // Sweet.  No reload is in progress.  First save the game.  What that's done, load
                // the game we just saved.  The ->Always() blocks null out the promise pointers.
                // Always is always (ha!) called after Done or Reject.
-
-               _reloadSavePromise = SaveGame(SHIFT_F5_SAVE_KEY, json::Node());
+               json::Node metadata;
+               metadata.set("name", "Shift+F5 Save");
+               _reloadSavePromise = SaveGame(SHIFT_F5_SAVE_KEY, metadata);
 
                _reloadSavePromise->Done([this](json::Node const&n) {
                                     ASSERT(!_reloadLoadPromise);
@@ -235,7 +236,14 @@ void Client::OneTimeIninitializtion()
             ReloadBrowser();
          }
       };
-      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame(HOTKEY_SAVE_KEY, json::Node()); };
+      
+      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) {
+         json::Node metadata;
+         metadata.set("name", "F6 Save");
+
+         SaveGame(HOTKEY_SAVE_KEY, metadata);
+      };
+
       _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame(HOTKEY_SAVE_KEY); };
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
