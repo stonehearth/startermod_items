@@ -274,6 +274,7 @@
 
       "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
       "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 
+      "crops:carrot_crop"   : "file(entities/crops/carrot_crop)",
       "crops:corn_crop"   : "file(entities/crops/corn_crop)",
       "crops:turnip_crop" : "file(entities/crops/turnip_crop)",
       "crops:pumpkin_crop" : "file(entities/crops/pumpkin_crop)",
@@ -299,6 +300,10 @@
 
       "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
+
+      "carrot_serving" : "file(entities/plants/carrot/carrot_serving)",
+      "carrot_basket" : "file(entities/plants/carrot/carrot_basket)",
+
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
       

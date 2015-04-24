@@ -8,6 +8,10 @@
          "quantity" : 10
       },
       {
+         "crop_type" : "stonehearth:crops:carrot_crop",
+         "quantity" : 10
+      },
+      {
          "crop_type" : "stonehearth:crops:corn_crop",
          "quantity" : 5
       },
