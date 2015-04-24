@@ -90,6 +90,11 @@ function util.is_a(var, cls)
    return t == cls
 end
 
+function util.is_datastore(datastore)
+   return radiant.util.is_a(datastore, _radiant.om.DataStore) or
+          radiant.util.is_a(datastore, _radiant.om.DataStoreRefWrapper)
+end
+
 function util.get_config(str, default)
    -- The stack offset for the helper functions is 3...
    --    1: __get_current_module_name
