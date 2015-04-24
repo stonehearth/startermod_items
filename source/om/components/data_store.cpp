@@ -5,6 +5,7 @@
 #include "lib/lua/register.h"
 #include "simulation/simulation.h"
 #include "client/client.h"
+#include "om/components/data_store_ref_wrapper.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -308,12 +309,20 @@ void DataStore::RestoreControllerDataRecursive(luabind::object o, luabind::objec
          continue;
       }
 
+      om::DataStorePtr dsObj;
       boost::optional<om::DataStorePtr> ds = luabind::object_cast_nothrow<om::DataStorePtr>(*i);
-      if (!ds) {
-         DS_LOG(7) << "table key '" << key << "' is not a datastore.  ignoring";
-         continue;
+      if (ds) {
+         dsObj = ds.get();
+      } else {
+         boost::optional<om::DataStoreRefWrapper> dr = luabind::object_cast_nothrow<om::DataStoreRefWrapper>(*i);
+         if (dr) {
+            dsObj = dr.get().lock();
+         }
       }
-      om::DataStorePtr dsObj = ds.get();
+      if (!dsObj) {
+         DS_LOG(7) << "table key '" << key << "' is not a datastore.  ignoring";
+         continue;         
+      }
       if (!dsObj) {
          DS_LOG(7) << "table key '" << key << "' an orphended datastore.  ignoring";
          continue;
