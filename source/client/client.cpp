@@ -2027,39 +2027,39 @@ void Client::RestoreDatastores()
 {
    // Two passes: First create all the controllers for the datastores we just
    // created
-   CLIENT_LOG(1) << "restoring datastores controllers";
+   CLIENT_LOG(7) << "restoring datastores controllers";
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
          ds->RestoreController(ds, true);
       } else {
-         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+         CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
    }
-   CLIENT_LOG(1) << "finished restoring datastores controllers";
+   CLIENT_LOG(7) << "finished restoring datastores controllers";
 
    // Now run through all the tables on those datastores and convert the
    // pointers-to-datastore to pointers-to-controllers
-   CLIENT_LOG(1) << "restoring datastores controller data";
+   CLIENT_LOG(7) << "restoring datastores controller data";
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
          ds->RestoreControllerData();
       } else {
-         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+         CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
    }
 
-   CLIENT_LOG(1) << "removing keep alive references to datastores";
+   CLIENT_LOG(7) << "removing keep alive references to datastores";
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
          ds->RemoveKeepAliveReferences();
       } else {
-         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+         CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
    }
-   CLIENT_LOG(1) << "finished restoring datastores controller data";
+   CLIENT_LOG(7) << "finished restoring datastores controller data";
 
    datastores_to_restore_.clear();
 }
@@ -2085,7 +2085,7 @@ void Client::ReportSysInfo()
       node.set("OsVersion", platform::SysInfo::GetOSVersion());
       node.set("OsArch", core::System::IsPlatform64Bit() ? "x64" : "x32");
 
-      CLIENT_LOG(1) << "reporting sysinfo";
+      CLIENT_LOG(3) << "reporting sysinfo";
 
       // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
       analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
