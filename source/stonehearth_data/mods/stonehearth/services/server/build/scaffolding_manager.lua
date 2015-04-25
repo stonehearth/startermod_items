@@ -58,7 +58,7 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    
    local rid = self:_get_next_id()
 
-   log:detail('creating builder rid:%d', rid)
+   log:detail('creating %s for %s (rid:%d)', builder_type, requestor, rid)
    local builder = radiant.create_controller(builder_type, self, rid, requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
    
    self._sv.builders[rid] = builder
