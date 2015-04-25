@@ -70,10 +70,13 @@ end
 function FabricatorComponent:set_active(enabled)
    self._log:info('setting active to %s', tostring(enabled))
    
-   self._fabricator:set_active(enabled)
-   
-   self._sv.active = enabled
-   self.__saved_variables:mark_changed()
+   if self._sv.active ~= enabled then
+      self._sv.active = enabled
+      self.__saved_variables:mark_changed()
+
+      self:_add_scaffolding()
+      self._fabricator:set_active(enabled)
+   end
 end
 
 function FabricatorComponent:set_teardown(enabled)
@@ -82,6 +85,28 @@ function FabricatorComponent:set_teardown(enabled)
    self._sv.teardown = enabled
    self._fabricator:set_teardown(enabled)
    self.__saved_variables:mark_changed()  
+end
+
+function FabricatorComponent:_add_scaffolding()
+   if self._sv.scaffolding then
+      return
+   end
+   local blueprint = self._sv.blueprint
+   if blueprint:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+      return
+   end
+   local project = self._sv.project
+
+   local ci = blueprint:get_component('stonehearth:construction_data')
+   local normal = ci:get_normal()
+   local project_rgn = project:get_component('destination'):get_region()
+   local blueprint_rgn = blueprint:get_component('destination'):get_region()
+   local stand_at_base = ci:get_project_adjacent_to_base()
+
+   local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+   self._fabricator:set_scaffolding(scaffolding)
+   self._sv.scaffolding = scaffolding
+   self.__saved_variables:mark_changed()
 end
 
 function FabricatorComponent:start_project(blueprint)
@@ -95,18 +120,6 @@ function FabricatorComponent:start_project(blueprint)
    -- so the pathfinder can find it's way to regions which need to be constructed
    local project = self._fabricator:get_project()
 
-   -- add scaffolding!
-   local ci = blueprint:get_component('stonehearth:construction_data')
-   local normal = ci:get_normal()
-   local project_rgn = project:get_component('destination'):get_region()
-   local blueprint_rgn = blueprint:get_component('destination'):get_region()
-   local stand_at_base = ci:get_project_adjacent_to_base()
-   if blueprint:get_uri() ~= 'stonehearth:build:prototypes:scaffolding' then
-      local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
-      self._fabricator:set_scaffolding(scaffolding)
-      self._sv.scaffolding = scaffolding
-   end
-   
    -- remember the blueprint and project
    self._sv.project = project
    self._sv.blueprint = blueprint
