@@ -3,6 +3,8 @@
 
 #include "radiant_macros.h"
 #include "namespace.h"
+#include "lib/perfmon/perfmon.h"
+#include "lib/perfmon/timer.h"
 
 #include <map>
 #include <unordered_map>
@@ -54,28 +56,26 @@ class ObjectCounterBase
 public:
    ObjectCounterBase() {}
    virtual ~ObjectCounterBase() {}
-   typedef std::unordered_map<std::type_index, int> CounterMap;
 
 public:
-   typedef std::function<bool(std::type_index const&, int)> ForEachObjectCountCb;
-   typedef std::unordered_map<ObjectCounterBase *, std::pair<int, std::type_index>> ObjectMap;
+   struct AllocationMap {
+      AllocationMap(std::type_info const& t) : typeName(t.name()) { }
 
-   static CounterMap GetObjectCounts();
-   static ObjectMap GetObjects();
-   static void ForEachObjectDeltaCount(CounterMap const& checkpoint, ForEachObjectCountCb cb);
-   static void ForEachObjectCount(ForEachObjectCountCb cb);
+      std::string typeName;
+      std::unordered_map<ObjectCounterBase *, perfmon::CounterValueType> allocs;
+   };
+   typedef std::unordered_map<std::type_index, AllocationMap> ObjectMap;
+
+   static ObjectMap const& GetObjects();
    static void TrackObjectLifetime(bool enable);
 
 protected:
    static void IncrementObjectCount(ObjectCounterBase* that, std::type_info const& t);
    static void DecrementObjectCount(ObjectCounterBase* that, std::type_info const& t);
-   static int GetObjectCount(std::type_info const& t);
 
 private:
    static tbb::spin_mutex __lock;
-   static CounterMap __counters;
    static ObjectMap __objects;
-   static bool __track_objects;
 };
 
 /*

@@ -151,7 +151,7 @@ protected: // Internal interface for Objects only
    static Store& GetStore(int id);
    void RegisterObject(Object& obj);
    void UnregisterObject(const Object& obj);
-   void OnAllocObject(std::shared_ptr<Object> obj);
+   void OnAllocObject(std::shared_ptr<Object> const& obj);
 
 private:
    template <typename TraceType> void ForEachTrace(ObjectId id, std::function<void(typename TraceType&)> cb);

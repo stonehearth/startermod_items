@@ -136,7 +136,7 @@ end
 -- the object instance that created the bulletin that may also process callbacks
 -- must be a savable object
 function Bulletin:set_callback_instance(callback_instance)
-   assert(self:_is_savable_object(callback_instance))
+   assert(radiant.is_controller(callback_instance))
 
    self._sv.callback_instance = callback_instance
    self.__saved_variables:mark_changed()
@@ -156,13 +156,6 @@ end
 
 function Bulletin:get_creation_time()
    return self._sv.creation_time
-end
-
-function Bulletin:_is_savable_object(object)
-   return object and 
-          object.__saved_variables and
-          object.__saved_variables.get_type_name and
-          object.__saved_variables:get_type_name() == 'class radiant::om::DataStore'
 end
 
 return Bulletin

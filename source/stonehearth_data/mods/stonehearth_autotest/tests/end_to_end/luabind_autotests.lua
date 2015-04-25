@@ -4,7 +4,7 @@ local luabind_tests = {}
 function luabind_tests.equality(autotest)
    local e0 = autotest.env:create_entity(0, 0, 'stonehearth:resources:wood:oak_log')
    local f = autotest.env:create_entity(0, 0, 'stonehearth:resources:wood:oak_log')
-   local e1 = radiant.get_object(e0:get_id())
+   local e1 = radiant.get_entity(e0:get_id())
    local e2 = e1
 
    local function test_equality(a, b)

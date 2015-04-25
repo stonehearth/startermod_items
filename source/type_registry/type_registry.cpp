@@ -6,6 +6,7 @@
 #include "om/region.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
+#include "om/components/data_store_ref_wrapper.h"
 #include "csg/region.h"
 #include "csg/ray.h"
 #include "csg/color.h"
@@ -73,7 +74,6 @@ using namespace radiant;
    OBJECT_TYPE(om::EntityRef,                om::Entity::DmType,                    RegisterGameObjectType) \
    OBJECT_TYPE(om::EffectPtr,                om::Effect::DmType,                    RegisterGameObjectType) \
    OBJECT_TYPE(om::SensorRef,                om::Sensor::DmType,                    RegisterGameObjectType) \
-   OBJECT_TYPE(om::DataStoreRef,             om::DataStore::DmType,                 RegisterGameObjectType) \
    OBJECT_TYPE(om::ModelLayerPtr,            om::ModelLayer::DmType,                RegisterGameObjectType) \
    OBJECT_TYPE(om::ErrorBrowserPtr,          om::ErrorBrowser::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::Region2BoxedPtr,          om::Region2Boxed::DmType,              RegisterGameObjectType) \
@@ -207,9 +207,71 @@ void RegisterNotImplementedType()
    ALL_OBJECT_TYPES
 #undef OBJECT_TYPE
 
+DECLARE_TYPEINFO(om::DataStorePtr, om::DataStore::DmType)
+DECLARE_TYPEINFO(om::DataStoreRefWrapper, 10000)
+
 void TypeRegistry::Initialize()
 {
 #define OBJECT_TYPE(T, ID, REG) REG<T>();
    ALL_OBJECT_TYPES
 #undef OBJECT_TYPE
+
+   // Treat datastores differently from other objects.  On the server we have either cpp managed or
+   // unmanaged datastores.  Cpp managed datastores are kept alive only by C++ objects.  They are exposed
+   // to lua as om::DataStoreRefWrapper, which is a lightweight wrapper around om::DataStoreRef to prevent
+   // luabind from doing type cohersion.  The moment the last cpp reference goes away, all the lua references
+   // become invalid.  Unmanaged datastores are just om::DataStorePtr's everywhere, so they stick around
+   // until the last cpp reference goes away and the last lua reference get's GC'ed.
+   //
+   // Regardless of all that, we want to exposed ALL datastores on the client as om::DataStoreRef's, since
+   // their lifetime is strictly determined by the lifetime of the corresponding object on the server.
+   //
+   // This leads to the following rules:
+   //   1) When saving to disk, make sure we preserve the type going in.
+   //   2) When remoting over the network, make sure we convert the type to an om::DataStoreRef
+   //
+   // You could argue this methodology should apply to ALL std::shared_ptr<> objects on the server and
+   // not just DataStore's, but let's try it out with DataStore's first and see how it goes.  If we're
+   // seeing big leaks of other shared_ptr based server objects and DataStore's go well, definitely convert
+   // everything over.  -- tony
+   //
+   typeinfo::RegisterType<om::DataStorePtr>()
+      .SetLuaToProtobuf([](dm::Store const& store, luabind::object const& lua, Protocol::Value* msg, int flags) {
+         om::DataStorePtr obj = luabind::object_cast<om::DataStorePtr>(lua);
+         msg->set_type_id(typeinfo::Type<om::DataStorePtr>::id);
+         msg->SetExtension(Protocol::Ref::ref_object_id, obj ? obj->GetObjectId() : 0);
+      })
+      .SetProtobufToLua([](dm::Store const& store, Protocol::Value const& msg, luabind::object& lua, int flags) {
+         typeinfo::TypeId typeId = msg.type_id();
+         dm::ObjectId objectId = msg.GetExtension(Protocol::Ref::ref_object_id);
+         ASSERT(typeId == typeinfo::Type<om::DataStorePtr>::id);
+
+         om::DataStorePtr obj = store.FetchObject<om::DataStore>(objectId);
+         if ((flags & marshall::Convert::Flags::REMOTE) != 0) {
+            // Remoting!  That's case #2 in the big comment above.  Regardless of how it lives on the
+            // server, convert the DataStore to a DataStoreRef.
+            lua = luabind::object(store.GetInterpreter(), om::DataStoreRefWrapper(obj));
+         } else {
+            // Reestoring from disk!  That's case #1 above.  Preserve the type, which is om::DataStorePtr.
+            lua = luabind::object(store.GetInterpreter(), obj);
+         }
+      });
+
+   typeinfo::RegisterType<om::DataStoreRefWrapper>()
+      .SetLuaToProtobuf([](dm::Store const& store, luabind::object const& lua, Protocol::Value* msg, int flags) {
+         om::DataStoreRefWrapper ref = luabind::object_cast<om::DataStoreRefWrapper>(lua);
+         om::DataStorePtr obj = ref.lock();
+         msg->set_type_id(typeinfo::Type<om::DataStoreRefWrapper>::id);
+         msg->SetExtension(Protocol::Ref::ref_object_id, obj ? obj->GetObjectId() : 0);
+      })
+      .SetProtobufToLua([](dm::Store const& store, Protocol::Value const& msg, luabind::object& lua, int flags) {
+         typeinfo::TypeId typeId = msg.type_id();
+         dm::ObjectId objectId = msg.GetExtension(Protocol::Ref::ref_object_id);
+         ASSERT(typeId == typeinfo::Type<om::DataStoreRefWrapper>::id);
+
+         // Read the big comment above... Cases #1 and #2 are the same: we need a ref here.  So get one!
+         om::DataStorePtr obj = store.FetchObject<om::DataStore>(objectId);
+         lua = luabind::object(store.GetInterpreter(), om::DataStoreRefWrapper(obj));
+      });
+
 }

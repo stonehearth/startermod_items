@@ -100,7 +100,7 @@ function BuildUndoManager:undo()
                -- if the object we just loaded is a DataStore, hold onto it so
                -- we can restore the pointers to any controllers it references
                -- later
-               if radiant.util.is_a(o.obj, _radiant.om.DataStore) then
+               if radiant.util.is_datastore(o.obj) then
                   table.insert(datastores, o.obj)
                   o.obj:mark_changed()
                end
@@ -173,7 +173,7 @@ function BuildUndoManager:_mark_changed(obj)
    local id = obj:get_id()
    -- if the object is a datastore, the id we want to save is actually
    -- the contains (theoretically opaque), DataObject contained inside it!
-   if radiant.util.is_a(obj, _radiant.om.DataStore) then    
+   if radiant.util.is_datastore(obj) then    
       id = obj:get_data_object_id()
    end
    self._changed_objects[id] = obj

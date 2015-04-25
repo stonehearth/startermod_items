@@ -213,53 +213,69 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
 
 void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut) 
 {
-   if (_cutToICut.find(cut->GetObjectId()) != _cutToICut.end()) {
+   dm::ObjectId id = cut->GetObjectId();
+   if (_cutToICut.find(id) != _cutToICut.end()) {
       return;
    }
-   _cutToICut[cut->GetObjectId()] = csg::ToInt(cut->Get());
+   T_LOG(5) << "adding cut for region " << id;
+
+   _cutToICut[id] = csg::ToInt(cut->Get());
 
    auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
    om::Region3fBoxedRef cutRef = cut;
-   _cut_trace_map[cut->GetObjectId()] = trace;
+   _cut_trace_map[id] = trace;
 
-   trace->OnChanged([cutRef, this](csg::Region3f const& region) {
+   trace->OnChanged([cutRef, id, this](csg::Region3f const& region) {
       auto cut = cutRef.lock();
 
+      T_LOG(5) << "cut for region " << id << " changed (bounds:" << region.GetBounds() << ")";
       if (!cut) {
+         T_LOG(5) << "but cut region has been freed!  ignoring";
          return;
       }
-      dm::ObjectId objId = cut->GetObjectId();
 
       // Update the cut map to the new region.
-      EachTileIn(_cutToICut[objId].GetBounds(), [this, objId](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-         tile->RemoveCut(objId);
+      EachTileIn(_cutToICut[id].GetBounds(), [this, id](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->RemoveCut(id);
          MarkDirty(cursor);
       });
 
       // Now, update the stored region, and find the new overlapping tiles.
-      _cutToICut[objId] = csg::ToInt(region);
-      csg::Region3 const* iRegion = &_cutToICut[objId];
-      EachTileIn(iRegion->GetBounds(), [this, objId, iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-         tile->AddCut(objId, iRegion);
+      _cutToICut[id] = csg::ToInt(region);
+      csg::Region3 const* iRegion = &_cutToICut[id];
+      EachTileIn(iRegion->GetBounds(), [this, id, iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->AddCut(id, iRegion);
          MarkDirty(cursor);
       });
 
-   })->PushObjectState();
+   })
+   ->OnDestroyed([id, this]() {
+      T_LOG(5) << "cut region " << id << "  destroyed!  removing cut";
+      RemoveCut(id);
+   })
+   ->PushObjectState();
 }
 
 void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
 {
-   dm::ObjectId objId = cut->GetObjectId();
-   if (_cutToICut.find(objId) == _cutToICut.end()) {
+   dm::ObjectId id = cut->GetObjectId();
+   RemoveCut(id);
+}
+
+void RenderTerrain::RemoveCut(dm::ObjectId id)
+{
+   if (_cutToICut.find(id) == _cutToICut.end()) {
       return;
    }
 
-   _cut_trace_map.erase(cut->GetObjectId());
-   EachTileIn(_cutToICut[objId].GetBounds(), [this, objId](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-      tile->RemoveCut(objId);
+   T_LOG(5) << "removing cut for region " << id;
+
+   _cut_trace_map.erase(id);
+   EachTileIn(_cutToICut[id].GetBounds(), [this, id](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+      tile->RemoveCut(id);
       MarkDirty(cursor);
    });
-   _cutToICut.erase(objId);
+   _cutToICut.erase(id);
 }
 
 void RenderTerrain::SetClipHeight(int height)

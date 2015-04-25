@@ -94,7 +94,7 @@ void Simulation::OneTimeIninitializtion()
    game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
-   _allocDataStoreFn = [this](int storeId) {
+   _allocDataStoreFn = [this]() {
       return AllocDatastore();
    };
 
@@ -289,7 +289,7 @@ void Simulation::InitializeDataObjectTraces()
    store_->AddTracer(object_model_traces_, dm::OBJECT_MODEL_TRACES);
    store_->AddTracer(pathfinder_traces_, dm::PATHFINDER_TRACES);
 
-   store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr obj) {
+   store_trace_ = store_->TraceStore("sim")->OnAlloced([=](dm::ObjectPtr const& obj) {
       dm::ObjectId id = obj->GetObjectId();
       dm::ObjectType type = obj->GetObjectType();
       if (type == om::EntityObjectType) {
@@ -300,11 +300,13 @@ void Simulation::InitializeDataObjectTraces()
    })->PushStoreState();   
 }
 
-om::DataStoreRef Simulation::AllocDatastore()
+om::DataStorePtr Simulation::AllocDatastore()
 {
    auto datastore = GetStore().AllocObject<om::DataStore>();
    dm::ObjectId id = datastore->GetObjectId();
+#if defined(ENABLE_OBJECT_COUNTER)
    datastoreMap_[id] = datastore;
+#endif
    return datastore;
 }
 
@@ -371,13 +373,6 @@ void Simulation::ShutdownGameObjects()
    jobs_.clear();
    tasks_.clear();
    freeMotionTasks_.clear();
-
-   // Likewise, remove the datastore datastructure before destroying the datastores, so
-   // that lua code that touches the datastore map on datastore destruction doesn't blow us up.
-   {
-      std::unordered_map<dm::ObjectId, om::DataStorePtr> keepAlive = datastoreMap_;
-      datastoreMap_.clear();
-   }
 
    SIM_LOG(1) << "All entities and datastores have been destroyed.";
 
@@ -600,11 +595,6 @@ om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    return i != entityMap_.end() ? i->second : nullptr;
-}
-
-void Simulation::RemoveDataStoreFromMap(dm::ObjectId id)
-{
-   datastoreMap_.erase(id);
 }
 
 void Simulation::DestroyEntity(dm::ObjectId id)
@@ -939,27 +929,40 @@ void Simulation::Idle()
 {
 #if defined(ENABLE_OBJECT_COUNTER)
    static int nextAuditTime = 0;
-   static core::ObjectCounterBase::CounterMap current_checkpoint, last_checkpoint;
 
    int now = platform::get_current_time_in_ms();
    if (nextAuditTime == 0 || nextAuditTime < now) {
-      int c = 20;
+      std::unordered_map<std::string, int> counts;
+      for (auto const& entry : core::ObjectCounterBase::GetObjects()) {
+         std::type_index const& objType = entry.first;
+         core::ObjectCounterBase::AllocationMap const& am = entry.second;
+
+         if (objType == typeid(om::DataStore)) {
+            for (auto const& alloc : am.allocs) {
+               om::DataStore const* ds = static_cast<om::DataStore const*>(alloc.first);
+               std::string const& controllerName = ds->GetControllerName();
+               if (!controllerName.empty()) {
+                  counts[controllerName + std::string(" controller")] += 1;
+               } else {
+                  counts[std::string(objType.name())] += 1;
+               }
+            }
+         } else {
+            counts[std::string(objType.name())] += am.allocs.size();
+         }
+      };
+      typedef std::pair<std::string, int> NameCount;
+      std::vector<NameCount> sortedCounts;
+      for (auto const& entry : counts) {
+         sortedCounts.push_back(entry);
+      }
+      std::sort(sortedCounts.begin(), sortedCounts.end(), [](NameCount const& lhs, NameCount const& rhs) {
+         return lhs.second > rhs.second;
+      });
       SIM_LOG(0) << "== Object Count Audit at " << now << " ============================";
-      core::ObjectCounterBase::ForEachObjectCount([&c](std::type_index const& ti, int count) {
-         SIM_LOG(0) << "     " << std::setw(10) << count << " " << ti.name();
-         return --c > 0;
-      });
-      // It would probably be more useful to wire up the taking of the checkpoint to a hotkey
-      // so we can see how things change over a very long interval, but I am too busy (*cough*
-      // lazy *cough*) to do that right now.  -- tony
-      SIM_LOG(0) << "-- Deltas -----------------------------------";
-      c = 20;
-      last_checkpoint = current_checkpoint;
-      current_checkpoint = core::ObjectCounterBase::GetObjectCounts();
-      core::ObjectCounterBase::ForEachObjectDeltaCount(last_checkpoint, [&c](std::type_index const& ti, int count) {
-         SIM_LOG(0) << "     " << std::setw(10) << count << " " << ti.name() << " (total:" << current_checkpoint[ti] << ")";
-         return --c > 0;
-      });
+      for (auto const& entry : sortedCounts) {
+         SIM_LOG(0) << "     " << std::setw(10) << entry.second << " " << entry.first;
+      }
 
       SIM_LOG(0) << "-- Traces -----------------------------------";
       int total = 0;
@@ -970,6 +973,35 @@ void Simulation::Idle()
          total += count;
       }
       SIM_LOG(0) << "     " << std::setw(10) << total << " : "  << "TOTAL";
+
+      SIM_LOG(0) << "-- Datastores -----------------------------------";
+      {
+         std::unordered_map<std::string, std::unordered_map<int, int>> counts;
+         auto i = datastoreMap_.begin(), end = datastoreMap_.end();
+         while (i != end) {
+            int c = i->second.use_count();
+            if (c > 0) {
+               std::string controllerName = i->second.lock()->GetControllerName();
+               if (controllerName.empty()) {
+                  controllerName = "unnamed";
+               }
+               ++counts[controllerName][c];
+               ++i;
+            } else {
+               i = datastoreMap_.erase(i);
+            }
+         };
+
+         for (auto const& entry : counts) {
+            std::string const& name = entry.first;
+            for (auto const& e : entry.second) {
+               int useCount = e.first;
+               int total = e.second;
+               SIM_LOG(1) << "     " << std::setw(40) << name << " useCount:" << useCount << "   total:" << total;
+            }
+         }
+      }
+
       nextAuditTime = now + 5000;
    }
 #endif
@@ -1084,6 +1116,16 @@ void Simulation::Load()
    // Re-initialize the game
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / load_saveid_ / "server_state.bin").string();
 
+#if defined(ENABLE_OBJECT_COUNTER)
+   store_->TraceStore("sim")->OnAlloced([this](dm::ObjectPtr const& obj) mutable {
+      if (obj->GetObjectType() == om::DataStoreObjectType) {
+         dm::ObjectId id = obj->GetObjectId();
+         om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
+         datastoreMap_[ds->GetObjectId()] = ds;
+      }
+   })->PushStoreState();
+#endif
+
    bool success = store_->Load(filename, error, objects, [this](int progress) {
       json::Node result;
       result.set("progress", progress);
@@ -1132,6 +1174,35 @@ void Simulation::Load()
    platform::SysInfo::LogMemoryStatistics("Finished Loading Simulation", 0);
 }
 
+#if defined(ENABLE_OBJECT_COUNTER)
+void Simulation::AuditDatastores(const char* reason)
+{
+   std::unordered_map<std::string, std::unordered_map<int, int>> counts;
+   for (auto const& entry : datastoreMap_) {
+      int c = entry.second.use_count();
+      if (c > 0) {
+         std::string controllerName = entry.second.lock()->GetControllerName();
+         if (controllerName.empty()) {
+            controllerName = "unnamed";
+         }
+         ++counts[controllerName][c];
+         if (controllerName == "radiant:controllers:timer") {
+            // DebugBreak();
+         }
+      }
+   };
+   SIM_LOG(1) << "== Datastore Use Count Audit (" << reason << ") ============================";
+   for (auto const& entry : counts) {
+      std::string const& name = entry.first;
+      for (auto const& e : entry.second) {
+         int useCount = e.first;
+         int total = e.second;
+         SIM_LOG(1) << "     " << std::setw(40) << name << " useCount:" << useCount << "   total:" << total;
+      }
+   }
+}
+#endif
+
 void Simulation::FinishLoadingGame()
 {
    radiant_ = scriptHost_->Require("radiant.server");
@@ -1169,17 +1240,20 @@ void Simulation::FinishLoadingGame()
    });
 
    std::vector<om::DataStorePtr> datastores;
-   store_->TraceStore("sim")->OnAlloced([&datastores, this](dm::ObjectPtr obj) mutable {
+   store_->TraceStore("sim")->OnAlloced([&datastores, this](dm::ObjectPtr const& obj) mutable {
       if (obj->GetObjectType() == om::DataStoreObjectType) {
 
          dm::ObjectId id = obj->GetObjectId();
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
          datastores.emplace_back(ds);
+#if defined(ENABLE_OBJECT_COUNTER)
          datastoreMap_[ds->GetObjectId()] = ds;
+#endif
       }
    })->PushStoreState();
 
    scriptHost_->LoadGame(modList_, _allocDataStoreFn, entityMap_, datastores);
+   datastores.clear();
 }
 
 void Simulation::Reset()

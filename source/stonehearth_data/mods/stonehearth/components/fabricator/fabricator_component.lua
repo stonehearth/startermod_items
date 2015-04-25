@@ -38,7 +38,8 @@ function FabricatorComponent:_restore()
    self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
                                  self._entity,
                                  self._sv.blueprint,
-                                 self._sv.project)
+                                 self._sv.project,
+                                 self._sv.total_mining_region)
    self._fabricator:set_scaffolding(self._sv.scaffolding)
    self._fabricator:set_teardown(self._sv.teardown)
    self._fabricator:set_active(self._sv.active)

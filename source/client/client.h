@@ -57,8 +57,7 @@ class Client : public core::Singleton<Client> {
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
       void DestroyAuthoringEntity(dm::ObjectId id);
 
-      om::DataStoreRef AllocateDatastore(int storeId);
-      void RemoveDataStoreFromMap(dm::ObjectId id);
+      om::DataStorePtr AllocateDatastore();
       dm::Store& GetStore() { return *store_; }
       dm::Store& GetAuthoringStore() { return *authoringStore_; }
       phys::OctTree& GetOctTree() const { return *octtree_; }
@@ -212,7 +211,6 @@ private:
       std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
       om::EntityPtr                    localRootEntity_;
       om::ModListPtr                   localModList_;
-      std::unordered_map<dm::ObjectId, om::DataStorePtr> datastoreMap_;
 
       // local collision tests...
       std::unique_ptr<phys::OctTree>     octtree_;
@@ -281,7 +279,7 @@ private:
       int                         networkUpdatesCount_;
       int                         networkUpdatesExpected_;
       bool                        debug_track_object_lifetime_;
-      std::vector<om::DataStorePtr>  datastores_to_restore_;
+      std::vector<std::pair<dm::ObjectId, om::DataStoreRef>>  datastores_to_restore_;
       std::vector<dm::TracePtr>   lua_component_traces_;
 
       rpc::ReactorDeferredPtr     load_progress_deferred_;
@@ -300,13 +298,11 @@ private:
       std::string                 loadError_;
       std::unique_ptr<PerfHud>         _perfHud;
       std::unique_ptr<FlameGraphHud>   _flameGraphHud;
-      std::function<om::DataStoreRef(int storeId)> _allocDataStoreFn;
-
+      std::function<om::DataStorePtr()> _allocDataStoreFn;
       std::string                 _asyncLoadName;
       bool                        _asyncLoadPending;
 
       ShowDebugShapesMode         _showDebugShapesMode;
-
 };
 
 END_RADIANT_CLIENT_NAMESPACE

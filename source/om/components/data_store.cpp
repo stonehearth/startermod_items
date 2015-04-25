@@ -1,9 +1,11 @@
 #include "radiant.h"
 #include "om/components/data_store.ridl.h"
+#include "om/components/data_store_ref_wrapper.h"
 #include "resources/res_manager.h"
 #include "lib/lua/register.h"
 #include "simulation/simulation.h"
 #include "client/client.h"
+#include "om/components/data_store_ref_wrapper.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -26,12 +28,9 @@ int DataStore::LuaDestructorHook(lua_State* L) {
       if (luabind::type(self) == LUA_TTABLE) {
          luabind::object saved_variables = self["__saved_variables"];
          if (luabind::type(saved_variables) == LUA_TUSERDATA) {
-            boost::optional<DataStoreRef> o = luabind::object_cast_nothrow<DataStoreRef>(saved_variables);
-            if (o) {
-               DataStorePtr ds = o->lock();
-               if (ds) {
-                  ds->Destroy();
-               }
+            boost::optional<DataStorePtr> ds = luabind::object_cast_nothrow<DataStorePtr>(saved_variables);
+            if (ds) {
+               (*ds)->Destroy();
             }
          }
       }
@@ -46,12 +45,22 @@ std::ostream& operator<<(std::ostream& os, DataStore const& o)
    return (os << "[DataStore]");
 }
 
-DataStore::DataStore()
+DataStore::DataStore() :
+   _isCppManaged(false)
 {
+   (*data_object_).SetDataObjectChanged([this]() {
+      if (_weakTable.is_valid()) {
+         luabind::object c = _weakTable["controller"];
+         if (luabind::type(c) == LUA_TTABLE) {
+            c["_sv"] = GetData();
+         }
+      }
+   });
 }
 
 DataStore::~DataStore()
 {
+   DS_LOG(9) << "destroying datastore";
 }
 
 luabind::object DataStore::GetData() const
@@ -86,11 +95,104 @@ void DataStore::SerializeToJson(json::Node& node) const
    node.set("__controller", *controller_name_);
 }
 
-void DataStore::RestoreController(DataStoreRef self)
+static const char* components[] = {
+      "stonehearth:ai",
+      "stonehearth:observers",
+      "stonehearth:commands",
+      "stonehearth:thought_bubble",
+      "stonehearth:center_of_attention_spot",
+      "stonehearth:material",
+      "stonehearth:resource_node",
+      "stonehearth:renewable_resource_node",
+      "stonehearth:stockpile",
+      "stonehearth:mining_zone",
+      "stonehearth:trapping_grounds",
+      "stonehearth:bait_trap",
+      "stonehearth:pet",
+      "stonehearth:pet_owner",
+      "stonehearth:water",
+      "stonehearth:waterfall",
+      "stonehearth:door",
+      "stonehearth:lamp",
+      "stonehearth:workshop",
+      "stonehearth:crafter" ,
+      "stonehearth:promotion_talisman",
+      "stonehearth:job",
+      "stonehearth:iconic_form",
+      "stonehearth:entity_forms",
+      "stonehearth:ghost_form",
+      "stonehearth:firepit",
+      "stonehearth:lease",
+      "stonehearth:lease_holder",
+      "stonehearth:sensor_ai_injector" ,
+      "stonehearth:posture" ,
+      "stonehearth:leash" ,
+      "stonehearth:equipment",
+      "stonehearth:equipment_piece",
+      "stonehearth:attributes",
+      "stonehearth:score",
+      "stonehearth:buffs",
+      "stonehearth:fabricator",
+      "stonehearth:fixture_fabricator",
+      "stonehearth:scaffolding_fabricator",
+      "stonehearth:portal",
+      "stonehearth:fixture",
+      "stonehearth:no_construction_zone",
+      "stonehearth:construction_data",
+      "stonehearth:construction_progress",
+      "stonehearth:construction_project",
+      "stonehearth:personality",
+      "stonehearth:backpack",
+      "stonehearth:carry_block",
+      "stonehearth:farmer_field",
+      "stonehearth:shepherd_pasture",
+      "stonehearth:shepherded_animal",
+      "stonehearth:growing",
+      "stonehearth:crop",
+      "stonehearth:dirt_plot",
+      "stonehearth:target_tables",
+      "stonehearth:combat_state",
+      "stonehearth:building",
+      "stonehearth:floor",
+      "stonehearth:column",
+      "stonehearth:wall",
+      "stonehearth:roof",
+      "stonehearth:pathfinder",
+      "stonehearth:ladder",
+      "stonehearth:stacks_model_renderer",
+      "stonehearth:party_member",
+      "stonehearth:loot_drops",
+};
+
+// This is a REALLY crappy way to do this.  We should store this bit when we save,
+// but that would break compatibility with Alpha 9.  Do this for now, and remove it
+// when porting to develop
+bool DataStore::GetIsCppManaged() const
 {
-   if (_controllerObject.is_valid()) {
+   for (int i = 0; i < ARRAY_SIZE(components); i++) {
+      if (strcmp(components[i], (*controller_name_).c_str()) == 0) {
+         return true;
+      }
+   }
+   return false;
+}
+
+void DataStore::RemoveKeepAliveReferences()
+{
+   if (_isCppManaged) {
+      DS_LOG(9) << "preserving keep alive reference to controller of cpp managed datastore";
       return;
    }
+   DS_LOG(9) << "clearing keep alive reference";
+   _controllerKeepAliveObject = luabind::object();
+}
+
+void DataStore::RestoreController(DataStorePtr self, bool isCppManaged)
+{
+   if (_weakTable.is_valid()) {
+      return;
+   }
+   _isCppManaged = isCppManaged || GetIsCppManaged();
 
    lua_State* L = GetData().interpreter();
    lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
@@ -100,45 +202,50 @@ void DataStore::RestoreController(DataStoreRef self)
       try {
          luabind::object ctor = scriptHost->RequireScript(uri);
          if (ctor) {
-            DS_LOG(3) << "restored controller for script " << uri;
-            _controllerObject = ctor();
-            if (_controllerObject) {
-               _controllerObject["__saved_variables"] = self;
-               _controllerObject["_sv"] = GetData();
+            luabind::object controller = ctor();
+            if (controller) {
+               luabind::object saved_variables;
+
+               // this keeps the controller alive until some external reference
+               // gets a chance to point to it.
+               _controllerKeepAliveObject = controller;
+
+               if (_isCppManaged) {
+                  DS_LOG(9) << "restoring controller " << uri << " (weak)";
+                  saved_variables = luabind::object(L, om::DataStoreRefWrapper(self));
+               } else {
+                  DS_LOG(9) << "restoring controller " << uri << " (strong)";
+                  saved_variables = luabind::object(L, self);
+               }
+               SetController(controller);
+               controller["__saved_variables"] = saved_variables;
+               controller["_sv"] = GetData();
                PatchLuaDestructor();
             }
+         }
+         if (_weakTable.is_valid()) {
+            DS_LOG(9) << "after creating controller, weak value is " << (luabind::object(_weakTable["controller"]).is_valid() ? luabind::type(_weakTable["controller"]) : -1);
          }
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(L, e);
       }
    }
-
-   // Whenever the data object changes, write the root value back into
-   // _sv of the controller.  This won't help anyone who caches _sv values
-   // in their code (e.g. local foo = self._sv.foo), but it at least makes
-   // it so client-side code doesn't have to repeatedly call :get()
-   // on the datastore to make sure they have the most up-to-date copy
-
-   _dataObjTrace = data_object_.TraceChanges("update _sv", dm::OBJECT_MODEL_TRACES)
-                              ->OnModified([this]() {
-                                 if (_controllerObject.is_valid()) {
-                                    _controllerObject["_sv"] = GetData();
-                                 }
-                              });
 }
 
 // Monkey patch destroy to automatically destroy the datastore
 void DataStore::PatchLuaDestructor()
 {
-   ASSERT(_controllerObject);
+   ASSERT(_weakTable);
    ASSERT(!_controllerDestructor);
 
-   lua_State* L = _controllerObject.interpreter();
+   lua_State* L = _weakTable.interpreter();
    luabind::object destroy_fn;
 
    // Check the controller metatable.
+   luabind::object controller = _weakTable["controller"];
+
    luabind::object hook_fn = lua::GetPointerToCFunction(L, &LuaDestructorHook);
-   luabind::object mt = luabind::getmetatable(_controllerObject);
+   luabind::object mt = luabind::getmetatable(controller);
    if (mt) {
       destroy_fn = mt["destroy"];
       if (luabind::type(destroy_fn) == LUA_TFUNCTION) {
@@ -149,13 +256,13 @@ void DataStore::PatchLuaDestructor()
 
    // Check the controller itself.
    if (!_controllerDestructor) {
-      destroy_fn = _controllerObject["destroy"];
+      destroy_fn = controller["destroy"];
       if (luabind::type(destroy_fn) == LUA_TFUNCTION) {
          ASSERT(destroy_fn != hook_fn);
          _controllerDestructor = destroy_fn;
       }
    }
-   _controllerObject["destroy"] = hook_fn;
+   controller["destroy"] = hook_fn;
 }
 
 void DataStore::RestoreControllerData()
@@ -202,20 +309,27 @@ void DataStore::RestoreControllerDataRecursive(luabind::object o, luabind::objec
          continue;
       }
 
-      boost::optional<om::DataStoreRef> ds = luabind::object_cast_nothrow<om::DataStoreRef>(*i);
-      if (!ds) {
-         DS_LOG(7) << "table key '" << key << "' is not a datastore.  ignoring";
-         continue;
+      om::DataStorePtr dsObj;
+      boost::optional<om::DataStorePtr> ds = luabind::object_cast_nothrow<om::DataStorePtr>(*i);
+      if (ds) {
+         dsObj = ds.get();
+      } else {
+         boost::optional<om::DataStoreRefWrapper> dr = luabind::object_cast_nothrow<om::DataStoreRefWrapper>(*i);
+         if (dr) {
+            dsObj = dr.get().lock();
+         }
       }
-      om::DataStoreRef datastore = ds.get();
-      om::DataStorePtr dsObj = datastore.lock();
+      if (!dsObj) {
+         DS_LOG(7) << "table key '" << key << "' is not a datastore.  ignoring";
+         continue;         
+      }
       if (!dsObj) {
          DS_LOG(7) << "table key '" << key << "' an orphended datastore.  ignoring";
          continue;
       }
       luabind::object controller = dsObj->GetController();
       if (!controller) {
-         DS_LOG(7) << "table key '" << key << "' datastore has no controller.  ignoring";
+         DS_LOG(7) << "table key '" << key << "' datastore " << dsObj->GetObjectId() << " has no controller.  ignoring";
          continue;
       }
       DS_LOG(7) << "restoring '" << key << "' datastore";
@@ -253,18 +367,27 @@ DataStore::GetControllerUri()
 
 luabind::object DataStore::GetController() const
 {
-   return _controllerObject;
+   if (!_weakTable.is_valid()) {
+      DS_LOG(9) << "weak table is invalid in GetController().  returning LUA_TNIL";
+      return luabind::object();
+   }
+   luabind::object controller = _weakTable["controller"];
+   DS_LOG(9) << "keep alive controller is " << (_controllerKeepAliveObject.is_valid() ? luabind::type(_controllerKeepAliveObject) : -1) << " in GetController()";
+   DS_LOG(9) << "weak value is " << (luabind::object(_weakTable["controller"]).is_valid() ? luabind::type(_weakTable["controller"]) : -1);
+   DS_LOG(9) << "returning controller " << (controller.is_valid() ? luabind::type(controller) : -1 )<< " in GetController()";
+   return controller;
 }
 
 void DataStore::CallLuaDestructor()
 {
    DS_LOG(3) << " calling lua destructor";
 
-   if (_controllerObject && _controllerDestructor) {
+   luabind::object controller = GetController();
+   if (controller && _controllerDestructor) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(_controllerDestructor.interpreter());  
       try {
          luabind::object destructor(cb_thread, _controllerDestructor);
-         destructor(_controllerObject);
+         destructor(controller);
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
       }
@@ -273,33 +396,48 @@ void DataStore::CallLuaDestructor()
 
 void DataStore::Destroy()
 {
-   if (_controllerObject) {
-      lua_State* L = _controllerObject.interpreter();
+   if (_weakTable) {
+      lua_State* L = _weakTable.interpreter();
       ASSERT(L);
       CallLuaDestructor();
-   }
-
-   dm::ObjectId id = GetObjectId();
-   if (IsServer()) {
-      simulation::Simulation::GetInstance().RemoveDataStoreFromMap(id);
-   } else {
-      client::Client::GetInstance().RemoveDataStoreFromMap(id);
    }
 }
 
 void DataStore::SetController(luabind::object controller)
 {
    ASSERT(controller.is_valid());
-   _controllerObject = controller;
+
+   // Stick our reference to our own controller in a weak table to avoid cycles
+   // (our controller may be keeping a reference on us in __saved_variables!)
+   if (!_weakTable.is_valid()) {
+      lua_State* L = controller.interpreter();
+      _weakTable = luabind::newtable(L);
+      if (strcmp(log::GetCurrentThreadName(), "server") == 0) {
+         luabind::object metatable = luabind::newtable(L);
+         metatable["__mode"] = "v";
+         luabind::setmetatable(_weakTable, metatable);
+         DS_LOG(9) << "creating weak table.";
+      }
+   }
+   _weakTable["controller"] = controller;
+   DS_LOG(9) << "in set controller, controller value is " 
+             << (controller.is_valid() ? luabind::type(controller) : -1) 
+             << ", weak value is " 
+             << (luabind::object(_weakTable["controller"]).is_valid() ? luabind::type(_weakTable["controller"]) : -1);
 }
 
-luabind::object DataStore::CreateController(DataStoreRef self, std::string const& type, std::string const& name)
+luabind::object DataStore::CreateController(DataStorePtr self, std::string const& type, std::string const& name)
 {
    controller_type_ = type;
    controller_name_ = name;
 
+   // Ordering is important here to make sure the controller doesn't get
+   // reaped by the GC before we can return a reference to it.
    RestoreController(self);
-   return _controllerObject;
+   luabind::object controller = GetController();
+   RemoveKeepAliveReferences();
+
+   return controller;
 }
 
 void DataStore::OnLoadObject(dm::SerializationType r)

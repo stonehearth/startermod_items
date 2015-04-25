@@ -47,28 +47,30 @@ om::EntityRef Sim_CreateEntity(lua_State* L, const char* uri)
    return entity;
 }
 
-luabind::object Sim_GetObject(lua_State* L, object id)
+luabind::object Sim_GetEntity(lua_State* L, object id)
 {
-   dm::ObjectPtr obj;
+   om::EntityPtr obj;
+   luabind::object lua_obj;
 
    int id_type = type(id);
    if (id_type == LUA_TNUMBER) {
-      dm::ObjectId object_id = object_cast<int>(id);
-      obj = Simulation::GetInstance().GetStore().FetchObject<dm::Object>(object_id);
+      om::EntityId object_id = object_cast<int>(id);
+      obj = Simulation::GetInstance().GetStore().FetchObject<om::Entity>(object_id);
    } else if (id_type == LUA_TSTRING) {
       const char* addr = object_cast<const char*>(id);
-      obj = Simulation::GetInstance().GetStore().FetchObject<dm::Object>(addr);
+      obj = Simulation::GetInstance().GetStore().FetchObject<om::Entity>(addr);
    }
-   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
-   luabind::object lua_obj = host->CastObjectToLua(obj);
+   if (obj) {
+      lua_obj = luabind::object(L, om::EntityRef(obj));
+   }
    return lua_obj;
 }
 
-om::DataStoreRef Sim_AllocDataStore(lua_State* L)
+om::DataStorePtr Sim_AllocDataStore(lua_State* L)
 {
    // Return the weak ptr version.
-   om::DataStoreRef datastore = Simulation::GetInstance().AllocDatastore();
-   datastore.lock()->SetData(newtable(L));
+   om::DataStorePtr datastore = Simulation::GetInstance().AllocDatastore();
+   datastore->SetData(newtable(L));
 
    return datastore;
 }
@@ -325,7 +327,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             def("get_version",               &Sim_GetVersion),
             def("create_entity",             &Sim_CreateEntity),
-            def("get_object",                &Sim_GetObject),
+            def("get_entity",                &Sim_GetEntity),
             def("destroy_entity",            &Sim_DestroyEntity),
             def("alloc_number_map",          &Sim_AllocObject<dm::NumberMap>),
             def("alloc_region3",             &Sim_AllocObject<om::Region3fBoxed>),

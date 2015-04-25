@@ -20,6 +20,7 @@ public:
    void ProcessRemove(tesseract::protocol::RemoveObjects const& update, std::function<void(dm::ObjectPtr)> const& onDestroyCb);
 
    void Shutdown();
+   void Audit();
 
 private:
    typedef std::unordered_map<ObjectId, ObjectPtr> ObjectMap;

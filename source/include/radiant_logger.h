@@ -41,6 +41,18 @@
 
 namespace radiant {
    namespace log {
+      class Indent {
+      public:
+         Indent();
+         ~Indent();
+
+         static const char* GetIndent();
+
+      private:
+         static __declspec(thread) char _buf[1024];
+         static __declspec(thread) int _indent;
+      };
+
       enum LogLevel {
          ERROR = 1,
          WARNING = 3,
@@ -84,14 +96,13 @@ namespace radiant {
 // you're looking for.
 #define LOG_(x)  BOOST_LOG_SEV(__radiant_log_source, x)
 
-// Used to write unconditionally to the log for critical messages.  Use
-// extremely sparingly.
-#define LOG_CRITICAL() LOG(core.system, 0)
-
 // Another unconditional logger.  Don't use this unless you've already
 // verified the level against some authority!
 #define LOG_CATEGORY_(level, prefix) \
-   LOG_(level) << " | " << std::setfill(' ') << std::setw(6) << radiant::log::GetCurrentThreadName() << " | " << std::setw(2) << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
+   LOG_(level) << " | " << std::setfill(' ') << std::setw(6) << radiant::log::GetCurrentThreadName() \
+               << " | " << std::setw(2) << level \
+               << " | " << std::setfill(' ') << std::setw(32) << prefix \
+               << " | " << ::radiant::log::Indent::GetIndent()
 
 // Check to see if the specified log level is enabled
 #define LOG_IS_ENABLED(category, level)   (LOG_LEVEL(category) >= level)
@@ -99,7 +110,8 @@ namespace radiant {
 // LOG_CATEGORY writes to the log using a very specialized category string.
 // Useful when you want the log to contain context which might change each
 // time you execute the log line (e.g. the id of the current object).
-#define LOG_CATEGORY(category, level, prefix) if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, BUILD_STRING(prefix))
+#define LOG_CATEGORY(category, level, prefix) \
+   if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, BUILD_STRING(#category << " " << prefix))
 
 // LOG writes to the log if the log level at the specified category is
 // greater or equal to the level passed in the macro.  Yes, this means
@@ -107,6 +119,10 @@ namespace radiant {
 #define LOG(category, level)  LOG_CATEGORY(category, level, #category)
 
 #define LOG_I(ilevel, level, prefix) if (level <= ilevel) LOG_CATEGORY_(level, BUILD_STRING(prefix))
+
+// Used to write unconditionally to the log for critical messages.  Use
+// extremely sparingly.
+#define LOG_CRITICAL() LOG(core.system, 0)
 
 // Extern variables used by the macros.  Do not reference these directly!
 extern struct radiant::log::LogCategories log_levels_;

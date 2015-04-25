@@ -1,5 +1,4 @@
 local Entity = _radiant.om.Entity
-local DataStore = _radiant.om.DataStore
 
 local ExecutionUnitV2 = radiant.class()
 
@@ -695,7 +694,7 @@ function ExecutionUnitV2:_enable_argument_protection(object_monitor, obj, protec
       protected_obj = obj
    elseif radiant.util.is_instance(obj) then
       local datastore = obj.__saved_variables
-      if radiant.util.is_a(datastore, DataStore) and datastore:is_valid() then
+      if radiant.util.is_datastore(datastore) and datastore:is_valid() then
          protected_obj = datastore
       end
    end

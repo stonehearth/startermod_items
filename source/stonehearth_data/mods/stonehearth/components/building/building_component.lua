@@ -308,6 +308,7 @@ function Building:grow_local_box_to_roof(entity, local_box)
         
          -- iterate through the overhang and merge shingle that are atop each
          -- other
+         roof_overhang:force_optimize_by_defragmentation('grow local box to roof')
          for shingle in roof_overhang:each_cube() do
             local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
                                  Point3(shingle.max.x, INFINITE,      shingle.max.z))
@@ -318,19 +319,18 @@ function Building:grow_local_box_to_roof(entity, local_box)
 
    local shape = Region3(local_box:translated(origin))
 
-   -- iterate through each "shingle" in the overhang, growing the shape
-   -- upwards toward the base of the shingle.
-   for shingle in merged_roof_overhang:each_cube() do
-      local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
-                        Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-      -- In specific circumstances, (L-shaped room with the vertical part of
-      -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
-      -- slopes perpendicular to the vertical part of the 'L'), we get walls
-      -- that pass through shingles more than once, and therefore cannot be added
-      -- uniquely. This trips an assert/crashes the game, so let's just add
-      -- them blindly, for now. -- klochek-rad
-      shape:add_cube(col)
-   end
+   -- add the shape between the top of the wall and the bottom of the merged overhang
+   -- to the local box.
+   local merged_bounds = merged_roof_overhang:get_bounds()
+   local x0 = math.max(merged_bounds.min.x, p0.x)
+   local x1 = math.min(merged_bounds.max.x, p1.x)
+   local z0 = math.max(merged_bounds.min.z, p0.z)
+   local z1 = math.min(merged_bounds.max.z, p1.z)
+   if x1 > x0 and z1 > z0 then
+      local grow_bounds = Cube3(Point3(x0, p1.y, z0), Point3(x1, INFINITE, z1))
+      local grow_region = Region3(grow_bounds) - merged_roof_overhang
+      shape:add_region(grow_region)
+   end   
    
    -- translate back into local coordinates before returning
    return shape:translated(-origin)
