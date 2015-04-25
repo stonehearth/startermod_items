@@ -7,7 +7,6 @@ WaitForGlobalAttackCooldown.does = 'stonehearth:combat:wait_for_global_attack_co
 WaitForGlobalAttackCooldown.args = {}
 WaitForGlobalAttackCooldown.version = 2
 WaitForGlobalAttackCooldown.priority = 1
-WaitForGlobalAttackCooldown.realtime = true
 
 local epsilon = 0.000001
 

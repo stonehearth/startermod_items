@@ -9,7 +9,6 @@ EngageAndAttack.args = {
 }
 EngageAndAttack.version = 2
 EngageAndAttack.priority = 1
-EngageAndAttack.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(EngageAndAttack)

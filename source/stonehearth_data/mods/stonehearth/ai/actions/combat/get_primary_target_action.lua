@@ -11,7 +11,6 @@ GetPrimaryTarget.think_output = {
 }
 GetPrimaryTarget.version = 2
 GetPrimaryTarget.priority = 1
-GetPrimaryTarget.realtime = true
 
 function GetPrimaryTarget:start_thinking(ai, entity, args)
    if self:_check_for_primary_target(ai, entity) then
