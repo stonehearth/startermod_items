@@ -292,6 +292,15 @@ function build_util.get_building_for(entity)
    end
 end
 
+function build_util.get_building_envelope_for(entity)
+   local building = build_util.get_building_for(entity)
+   if building then
+      local envelope = building:get_component('stonehearth:building')
+                                    :get_building_envelope()
+      return envelope, building
+   end
+end
+
 function build_util.get_blueprint_for(entity)
    local fabricator, blueprint, project = build_util.get_fbp_for(entity)
    return blueprint
