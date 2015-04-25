@@ -10,7 +10,6 @@ local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
 local TraceCategories = _radiant.dm.TraceCategories
 
-local log = radiant.log.create_logger('scaffolding_builder')
 local INFINITE = 1000000
 
 local ScaffoldingBuilder_TwoDim = class()
