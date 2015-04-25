@@ -102,7 +102,7 @@ function ScaffoldingBuilder_TwoDim:_update_status()
 end
 
 function ScaffoldingBuilder_TwoDim:_create_builders()
-   local footprint = self:_get_footprint(self._sv.blueprint_rgn)
+   local footprint = self:_get_footprint()
    local edges = footprint:get_edge_list()
    
    for edge in edges:each_edge() do
@@ -135,10 +135,12 @@ function ScaffoldingBuilder_TwoDim:get_scaffolding_region()
    return nil
 end
 
-function ScaffoldingBuilder_TwoDim:_get_footprint(blueprint_rgn)
+function ScaffoldingBuilder_TwoDim:_get_footprint()
    -- calculate the local footprint of the floor.
+   local blueprint_rgn = self._sv.blueprint_rgn:get()
+
    local footprint = Region2()
-   for cube in blueprint_rgn:get():each_cube() do
+   for cube in blueprint_rgn:each_cube() do
       local rect = Rect2(Point2(cube.min.x, cube.min.z),
                          Point2(cube.max.x, cube.max.z))
       footprint:add_cube(rect)

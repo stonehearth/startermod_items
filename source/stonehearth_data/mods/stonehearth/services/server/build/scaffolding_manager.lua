@@ -227,6 +227,11 @@ function ScaffoldingManager:_process_changed_scaffolding()
 end
 
 function ScaffoldingManager:_find_scaffolding_for(rblock)
+   -- we know the scaffolding will eventually want to cover  the entire blueprint,
+   -- so use the blueprint_region to search for an sblock to merge with (especially
+   -- since the actual requested scaffolding region is most likely empty at this
+   -- point.  the bottom row of the project is usually trivially reachable at the
+   -- time scaffolding is requested)
    local origin = rblock.origin
    local normal = rblock.normal
    local region = rblock.blueprint_region:get()
@@ -378,7 +383,7 @@ function ScaffoldingManager:_compute_ladder_top(rblock)
    -- start at the origin of the entity
    local climb_to = rblock.origin
 
--- move over to the edge of the region we need to support
+   -- move over to the edge of the region we need to support
    local blueprint_region = rblock.blueprint_region:get()
    if rblock.blueprint_clip_box then
       blueprint_region = blueprint_region:clipped(rblock.blueprint_clip_box)

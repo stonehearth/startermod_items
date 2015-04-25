@@ -40,7 +40,7 @@ local X_NORMALS = {
 
 function Building:initialize(entity, json)
    self._entity = entity
-   self._log = radiant.log.create_logger('build')
+   self._log = radiant.log.create_logger('build.building')
                               :set_prefix('building')
                               :set_entity(entity)
 
@@ -91,6 +91,21 @@ function Building:get_floors(floor_type)
       end
    end
    return result
+end
+
+
+function Building:each_dependency(blueprint)
+   checks('self', 'Entity')
+   assert(build_util.is_blueprint(blueprint), string.format('%s is not a blueprint', tostring(blueprint)))
+
+   local entry = self:_get_entry_for_structure(blueprint)
+   assert(entry, string.format('blueprint %s is not in building', tostring(blueprint)))
+
+   local id, entity
+   return function()
+      id, entity = next(entry.dependencies, id)
+      return id, entity
+   end
 end
 
 function Building:calculate_floor_region()
