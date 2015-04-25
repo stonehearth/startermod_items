@@ -98,7 +98,7 @@ namespace radiant {
 
 // Another unconditional logger.  Don't use this unless you've already
 // verified the level against some authority!
-#define LOG_CATEGORY_(level, prefix) \
+#define LOG_FORMATTED_(level, prefix) \
    LOG_(level) << " | " << std::setfill(' ') << std::setw(6) << radiant::log::GetCurrentThreadName() \
                << " | " << std::setw(2) << level \
                << " | " << std::setfill(' ') << std::setw(32) << prefix \
@@ -111,14 +111,15 @@ namespace radiant {
 // Useful when you want the log to contain context which might change each
 // time you execute the log line (e.g. the id of the current object).
 #define LOG_CATEGORY(category, level, prefix) \
-   if (LOG_IS_ENABLED(category, level)) LOG_CATEGORY_(level, BUILD_STRING(#category << " " << prefix))
+   if (LOG_IS_ENABLED(category, level)) LOG_FORMATTED_(level, BUILD_STRING(#category << " " << prefix))
 
 // LOG writes to the log if the log level at the specified category is
 // greater or equal to the level passed in the macro.  Yes, this means
 // LOG(xxx, 0) is logged unconditionally. Don't abuse it!
-#define LOG(category, level)  LOG_CATEGORY(category, level, #category)
+#define LOG(category, level)  \
+   if (LOG_IS_ENABLED(category, level)) LOG_FORMATTED_(level, #category)
 
-#define LOG_I(ilevel, level, prefix) if (level <= ilevel) LOG_CATEGORY_(level, BUILD_STRING(prefix))
+#define LOG_I(ilevel, level, prefix) if (level <= ilevel) LOG_FORMATTED_(level, BUILD_STRING(prefix))
 
 // Used to write unconditionally to the log for critical messages.  Use
 // extremely sparingly.
