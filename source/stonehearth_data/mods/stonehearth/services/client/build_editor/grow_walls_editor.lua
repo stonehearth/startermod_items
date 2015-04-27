@@ -145,7 +145,7 @@ function GrowWallsEditor:_create_preview_wall(column_a, column_b, normal, wall_b
    local wall = editor:get_proxy_blueprint()
    wall:add_component('stonehearth:wall')
             :set_brush(wall_brush)
-            :connect_to(column_a, column_b, normal)
+            :connect_to_columns(column_a, column_b, normal)
             :layout()
 
    wall:add_component('stonehearth:construction_data')

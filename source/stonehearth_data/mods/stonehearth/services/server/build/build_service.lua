@@ -170,7 +170,7 @@ function BuildService:repaint_column_command(session, response, blueprint, colum
 end
 
 function BuildService:_resolve_and_select_blueprint(success, response, blueprint)
-   if success then
+   if success and blueprint then
       local fab = blueprint:get_component('stonehearth:construction_progress')
                               :get_fabricator_entity()
       response:resolve({
@@ -703,17 +703,20 @@ function BuildService:grow_roof_command(session, response, root_wall, roof_optio
 end
 
 function BuildService:grow_roof(root_wall, roof_options)
-   local world_origin, region2 = build_util.calculate_roof_shape_around_walls(root_wall, roof_options)
    local building = build_util.get_building_for(root_wall)
-   
-   local structures = building:get_component('stonehearth:building')
-                              :get_all_structures()
 
-   if next(structures['stonehearth:roof']) then
-      self._log:info('already have roof in building %s.  not growing.', building)
+   -- compute the roof shape
+   local world_origin, region2, walls = build_util.calculate_roof_shape_around_walls(root_wall, roof_options)
+
+   -- make sure we can grow a roof here.  firstly, if any of the walls in the loop
+   -- already have a roof, bail.
+   local success, result1 = build_util.can_grow_roof_around_walls(walls)
+   if not success then
       return
    end
+   local columns = result1
 
+   -- create the roof.
    local origin = world_origin - radiant.entities.get_world_grid_location(building)
    local roof = self:_create_blueprint(building, 'stonehearth:build:prototypes:roof', origin, function(roof_entity)
          roof_entity:add_component('stonehearth:roof')
@@ -721,6 +724,17 @@ function BuildService:grow_roof(root_wall, roof_options)
                         :cover_region2(roof_options.brush, region2)
       end)
 
+   -- connect all the walls and columns to the roof...
+   for _, wall in pairs(walls) do
+      wall:get_component('stonehearth:wall')
+               :connect_to_roof(roof)
+   end
+   for _, column in pairs(columns) do
+      column:get_component('stonehearth:column')
+               :connect_to_roof(roof)
+   end
+
+   -- layout to make sure the modified walls and columns reach the roof
    building:get_component('stonehearth:building')
                :layout_roof(roof)
 
@@ -806,7 +820,7 @@ end
 function BuildService:_create_wall(building, column_a, column_b, normal, wall_brush)
    return self:_create_blueprint(building, 'stonehearth:build:prototypes:wall', Point3.zero, function(wall)      
          wall:add_component('stonehearth:wall')
-                  :connect_to(column_a, column_b, normal)
+                  :connect_to_columns(column_a, column_b, normal)
                   :set_brush(wall_brush)
                   :layout()
 

@@ -41,7 +41,17 @@ function Column:get_connected_walls(entity)
    return self._sv.connected_walls
 end
 
-function Column:connect_to(wall)
+function Column:connect_to_roof(roof)
+   assert(not self._sv.roof)
+   self._sv.roof = roof
+   self.__saved_variables:mark_changed()
+end
+
+function Column:get_roof(roof)
+   return self._sv.roof
+end
+
+function Column:connect_to_wall(wall)
    self._sv.connected_walls[wall:get_id()] = wall
    self.__saved_variables:mark_changed()
 end
@@ -82,21 +92,27 @@ function Column:_compute_column_shape()
    if not cp then
       return Region3(box)
    end
-   
-   local building = cp:get_building_entity()
-   return building:get_component('stonehearth:building')
-                     :grow_local_box_to_roof(self._entity, box)
+
+   local roof = self._sv.roof   
+   if roof then
+      return build_util.grow_local_box_to_roof(roof, self._entity, box)
+   end
+   return Region3(box)
 end
 
 
 function Column:save_to_template()
    return {
-      brush = self._sv.brush
+      brush = self._sv.brush,
+      roof = build_util.pack_entity(self._sv.roof),
+      connected_walls = build_util.pack_entity_table(self._sv.connected_walls),
    }
 end
 
 function Column:load_from_template(data, options, entity_map)
    self._sv.brush = data.brush
+   self._sv.roof  = build_util.unpack_entity(data.roof, entity_map)
+   self._sv.connected_walls = build_util.unpack_entity_table(data.connected_walls, entity_map)
 end
 
 function Column:rotate_structure(degrees)
