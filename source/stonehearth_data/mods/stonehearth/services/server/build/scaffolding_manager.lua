@@ -331,11 +331,44 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
 
    local merged = Region3()
    for rid, rblock in pairs(sblock.regions) do
+      -- the rblock region is in the coordinate space of the entity.  we're trying to build
+      -- a region in world coordinate space, so move it over.
       local r = rblock.region:get():translated(rblock.origin)
+      log:detail('    adding region bounds %s to merged region for rid:%d', r:get_bounds(), rblock.rid)
+      log:detail('    current:')
+      for cube in r:each_cube() do
+         log:spam('        adding cube:%s', cube)
+      end
+
+      log:detail('    current:')
+      for cube in merged:each_cube() do
+         log:spam('        current cube:%s', cube)
+      end
+      local current_area = merged:get_area()
+      local missing_region = r - merged
+      local missing_area = missing_region:get_area()
+
+      log:detail('    missing:')
+      for cube in missing_region:each_cube() do
+         log:spam('        missing cube:%s', cube)
+      end
+
       merged:add_region(r)
+      log:detail('    merged:')
+      for cube in merged:each_cube() do
+         log:spam('        post-merge cube:%s', cube)
+      end
+      log:spam('        missing + current == new_current?   %.2f + %.2f = %.2f', current_area, missing_area, merged:get_area())
    end   
+
+   log:detail('sid:%d world merged scaffolding region bounds is %s, area %d', sid, merged:get_bounds(), merged:get_area())
+   merged:force_optimize_by_defragmentation('..')
+   for cube in merged:each_cube() do
+      log:spam('  cube:%s', cube)
+   end
+
    merged:translate(-sblock.origin)
-   log:detail('sid:%d merged scaffolding region bounds is %s', sid, merged:get_bounds())
+   log:detail('sid:%d local merged scaffolding region bounds is %s, origin %s, area %d', sid, merged:get_bounds(), sblock.origin, merged:get_area())
 
    sblock.region:modify(function(cursor)
          cursor:copy_region(merged)
