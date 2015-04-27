@@ -84,6 +84,7 @@ namespace proto = ::radiant::tesseract::protocol;
 
 static const std::regex call_path_regex__("/r/call/?");
 const char *HOTKEY_SAVE_KEY = "hotkey_save";
+const char *SHIFT_F5_SAVE_KEY = "shift_f5_save";
 
 static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
 static int POST_SYSINFO_INTERVAL_MS = 5 * 60 * 1000;  // every 5 minutes
@@ -210,19 +211,19 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F4] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
       _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) {
          if (kb.shift) {
-
             if (!_reloadSavePromise && !_reloadLoadPromise) {
 
                // Sweet.  No reload is in progress.  First save the game.  What that's done, load
                // the game we just saved.  The ->Always() blocks null out the promise pointers.
                // Always is always (ha!) called after Done or Reject.
-
-               _reloadSavePromise = SaveGame(HOTKEY_SAVE_KEY, json::Node());
+               json::Node metadata;
+               metadata.set("name", "Shift+F5 Save");
+               _reloadSavePromise = SaveGame(SHIFT_F5_SAVE_KEY, metadata);
 
                _reloadSavePromise->Done([this](json::Node const&n) {
                                     ASSERT(!_reloadLoadPromise);
 
-                                    _reloadLoadPromise = LoadGame(HOTKEY_SAVE_KEY);
+                                    _reloadLoadPromise = LoadGame(SHIFT_F5_SAVE_KEY);
                                     _reloadLoadPromise->Always([this]() {
                                        _reloadLoadPromise = nullptr;
                                     });
@@ -235,7 +236,14 @@ void Client::OneTimeIninitializtion()
             ReloadBrowser();
          }
       };
-      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame(HOTKEY_SAVE_KEY, json::Node()); };
+      
+      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) {
+         json::Node metadata;
+         metadata.set("name", "F6 Save");
+
+         SaveGame(HOTKEY_SAVE_KEY, metadata);
+      };
+
       _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame(HOTKEY_SAVE_KEY); };
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
       _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
@@ -2019,39 +2027,39 @@ void Client::RestoreDatastores()
 {
    // Two passes: First create all the controllers for the datastores we just
    // created
-   CLIENT_LOG(1) << "restoring datastores controllers";
+   CLIENT_LOG(7) << "restoring datastores controllers";
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
          ds->RestoreController(ds, true);
       } else {
-         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+         CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
    }
-   CLIENT_LOG(1) << "finished restoring datastores controllers";
+   CLIENT_LOG(7) << "finished restoring datastores controllers";
 
    // Now run through all the tables on those datastores and convert the
    // pointers-to-datastore to pointers-to-controllers
-   CLIENT_LOG(1) << "restoring datastores controller data";
+   CLIENT_LOG(7) << "restoring datastores controller data";
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
          ds->RestoreControllerData();
       } else {
-         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+         CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
    }
 
-   CLIENT_LOG(1) << "removing keep alive references to datastores";
+   CLIENT_LOG(7) << "removing keep alive references to datastores";
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
          ds->RemoveKeepAliveReferences();
       } else {
-         CLIENT_LOG(1) << "datastore id:" << entry.first << " did not surive the journey";
+         CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
    }
-   CLIENT_LOG(1) << "finished restoring datastores controller data";
+   CLIENT_LOG(7) << "finished restoring datastores controller data";
 
    datastores_to_restore_.clear();
 }
@@ -2077,7 +2085,7 @@ void Client::ReportSysInfo()
       node.set("OsVersion", platform::SysInfo::GetOSVersion());
       node.set("OsArch", core::System::IsPlatform64Bit() ? "x64" : "x32");
 
-      CLIENT_LOG(1) << "reporting sysinfo";
+      CLIENT_LOG(3) << "reporting sysinfo";
 
       // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
       analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");

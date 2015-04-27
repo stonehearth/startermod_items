@@ -799,7 +799,7 @@ luabind::object ScriptHost::RequireScript(std::string const& path)
 void ScriptHost::Log(const char* category, int level, const char* str)
 {
    if (category && str) {
-      LOG_CATEGORY_(level, BUILD_STRING("mod " << category)) << str;
+      LOG_FORMATTED_(level, "mod " << category) << str;
    }
 }
 

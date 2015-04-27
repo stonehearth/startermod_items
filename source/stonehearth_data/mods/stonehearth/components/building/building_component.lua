@@ -40,7 +40,7 @@ local X_NORMALS = {
 
 function Building:initialize(entity, json)
    self._entity = entity
-   self._log = radiant.log.create_logger('build')
+   self._log = radiant.log.create_logger('build.building')
                               :set_prefix('building')
                               :set_entity(entity)
 
@@ -91,6 +91,21 @@ function Building:get_floors(floor_type)
       end
    end
    return result
+end
+
+
+function Building:each_dependency(blueprint)
+   checks('self', 'Entity')
+   assert(build_util.is_blueprint(blueprint), string.format('%s is not a blueprint', tostring(blueprint)))
+
+   local entry = self:_get_entry_for_structure(blueprint)
+   assert(entry, string.format('blueprint %s is not in building', tostring(blueprint)))
+
+   local id, entity
+   return function()
+      id, entity = next(entry.dependencies, id)
+      return id, entity
+   end
 end
 
 function Building:calculate_floor_region()
@@ -208,8 +223,14 @@ function Building:_trace_entity_container()
                            end)
 end
 
-function Building:get_building_footprint()
-   local region = Region3()
+-- the building envelope is a Region3 that's the sum of the Region3's of all
+-- the building blueprints.
+function Building:get_building_envelope()
+   if self._cached_envelope then
+      return self._cached_envelope
+   end
+   
+   local envelope = Region3()
    local origin = radiant.entities.get_world_grid_location(self._entity)
    for _, kind in ipairs(STRUCTURE_TYPES) do
       for id, entry in pairs(self._sv.structures[kind]) do
@@ -218,11 +239,14 @@ function Building:get_building_footprint()
          if rcs then
             local location = radiant.entities.get_world_grid_location(entity)
             local offset = location - origin
-            region:add_region(rcs:get_region():get():translated(offset))
+            envelope:add_region(rcs:get_region():get():translated(offset))
          end
       end
    end
-   return region
+   if self._sv.active then
+      self._cached_envelope = envelope
+   end
+   return envelope
 end
 
 function Building:set_active(active)
@@ -230,6 +254,8 @@ function Building:set_active(active)
    if active then
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
+   else
+      self._cached_envelope = nil
    end
 end
 
@@ -308,6 +334,7 @@ function Building:grow_local_box_to_roof(entity, local_box)
         
          -- iterate through the overhang and merge shingle that are atop each
          -- other
+         roof_overhang:force_optimize_by_defragmentation('grow local box to roof')
          for shingle in roof_overhang:each_cube() do
             local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
                                  Point3(shingle.max.x, INFINITE,      shingle.max.z))
@@ -318,19 +345,18 @@ function Building:grow_local_box_to_roof(entity, local_box)
 
    local shape = Region3(local_box:translated(origin))
 
-   -- iterate through each "shingle" in the overhang, growing the shape
-   -- upwards toward the base of the shingle.
-   for shingle in merged_roof_overhang:each_cube() do
-      local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
-                        Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-      -- In specific circumstances, (L-shaped room with the vertical part of
-      -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
-      -- slopes perpendicular to the vertical part of the 'L'), we get walls
-      -- that pass through shingles more than once, and therefore cannot be added
-      -- uniquely. This trips an assert/crashes the game, so let's just add
-      -- them blindly, for now. -- klochek-rad
-      shape:add_cube(col)
-   end
+   -- add the shape between the top of the wall and the bottom of the merged overhang
+   -- to the local box.
+   local merged_bounds = merged_roof_overhang:get_bounds()
+   local x0 = math.max(merged_bounds.min.x, p0.x)
+   local x1 = math.min(merged_bounds.max.x, p1.x)
+   local z0 = math.max(merged_bounds.min.z, p0.z)
+   local z1 = math.min(merged_bounds.max.z, p1.z)
+   if x1 > x0 and z1 > z0 then
+      local grow_bounds = Cube3(Point3(x0, p1.y, z0), Point3(x1, INFINITE, z1))
+      local grow_region = Region3(grow_bounds) - merged_roof_overhang
+      shape:add_region(grow_region)
+   end   
    
    -- translate back into local coordinates before returning
    return shape:translated(-origin)
@@ -732,7 +758,13 @@ function Building:_compute_dependencies()
    if self._sv.compute_dependencies_finished then
       return
    end
+   self:_compute_common_dependencies()
+   self:_compute_wall_dependencies()
+   self:_compute_floor_dependencies()
+   self:_compute_fixture_dependencies()
+end
 
+function Building:_compute_common_dependencies()
    -- these guys are easy.  note that FIXTURE_FABRICATORS have
    -- no region, so they are omitted.
    for _, kind in pairs({ FLOOR, ROOF, COLUMN, WALL }) do
@@ -740,8 +772,38 @@ function Building:_compute_dependencies()
          self:_add_support_dependencies(entry)
       end
    end
+end
 
-   -- these guys, not so much
+function Building:_compute_floor_dependencies()
+   for _, entry in pairs(self._sv.structures[FLOOR]) do
+      -- if there's nothing already supporting the floor, add a dependency
+      -- on the walls all around it.  this happens when people use the
+      -- slab tool to build balconies hanging off walls.    
+      if radiant.empty(entry.dependencies) then
+         local floor = entry.entity
+         local floor_origin = radiant.entities.get_world_grid_location(floor)
+         local query_region = floor:get_component('destination')
+                                       :get_region()
+                                          :get()
+                                             :inflated(Point3(1, 0, 1))
+         for _, wall_entry in pairs(self._sv.structures[WALL]) do
+            local wall = wall_entry.entity
+            local wall_origin = radiant.entities.get_world_grid_location(wall)
+            local offset = wall_origin - floor_origin
+            local wall_region = wall:get_component('destination')
+                                       :get_region()
+                                          :get()
+                                             :translated(offset)
+            if query_region:intersects_region(wall_region) then
+               self._log:info('adding connected wall %s dependency to floating floor %s', wall, floor)
+               self:_add_dependency(entry, wall)
+            end
+         end
+      end
+   end
+end
+
+function Building:_compute_wall_dependencies()
    for _, entry in pairs(self._sv.structures[WALL]) do
       -- walls depend on their connected columns
       local wall = entry.entity
@@ -753,6 +815,7 @@ function Building:_compute_dependencies()
       if col_b then
          self:_add_dependency(entry, col_b)
       end
+
       -- patch walls depend on roof
       if wc:is_patch_wall() then
          for _, e in pairs(self._sv.structures[ROOF]) do
@@ -760,7 +823,9 @@ function Building:_compute_dependencies()
          end
       end
    end
+end
 
+function Building:_compute_fixture_dependencies()
    for _, entry in pairs(self._sv.structures[FIXTURE_FABRICATOR]) do
       local fixture = entry.entity
       local parent = fixture:get_component('mob')

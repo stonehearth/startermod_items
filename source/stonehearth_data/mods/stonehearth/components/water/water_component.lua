@@ -102,7 +102,7 @@ function WaterComponent:_add_water(add_location, volume)
    if self._sv.region:get():empty() then
       local region = Region3()
       region:add_point(add_location - entity_location)
-      self:_add_to_layer(region)
+      self:_add_to_top_layer(region)
       volume = self:_subtract_wetting_volume(volume)
    end
 
@@ -115,8 +115,8 @@ function WaterComponent:_add_water(add_location, volume)
       if top_layer:empty() then
          log:debug('Top layer for %s is empty/blocked. Water body may not be able to expand up. Unable to add water.', self._entity)
          info = {
-            result = 'bounded',
-            reason = 'top layer empty'
+            result = 'unused',
+            reason = 'top layer empty, probably bounded'
          }
          break
       end
@@ -130,7 +130,7 @@ function WaterComponent:_add_water(add_location, volume)
          if residual == volume then
             log:info('Could not raise water level for %s', self._entity)
             info = {
-               result = 'bounded',
+               result = 'unused',
                reason = 'could not raise water level'
             }
             break
@@ -218,22 +218,29 @@ function WaterComponent:_grow_region(volume, add_location, top_layer, edge_regio
             local source_location = top_layer:get_closest_point(point)
             local channel_entrance = point
             channel = channel_manager:link_waterfall_channel(self._entity, source_location, channel_entrance)
+            if not channel then
+               info = {
+                  result = 'unused',
+                  reason = 'unsupported waterfall'
+               }
+            end
+         else
+            -- make this location wet
+            log:debug('Wetting %s for %s', point, self._entity)
+            add_region:add_point(point)
+            volume = self:_subtract_wetting_volume(volume)
          end
       end
 
       if channel then
          volume = self:_add_water_to_channel(channel, volume)
          channel_region:add_point(point)
-      else
-         -- make this location wet
-         add_region:add_point(point)
-         volume = self:_subtract_wetting_volume(volume)
       end
    end
 
    add_region:optimize_by_merge('water:_grow_region')
    add_region:translate(-entity_location)
-   self:_add_to_layer(add_region)
+   self:_add_to_top_layer(add_region)
 
    return volume, info
 end
@@ -443,7 +450,6 @@ function WaterComponent:_add_water_to_channels(volume)
 end
 
 -- push water into the channels until we max out their capacity
--- TODO: tell hydrology service to mark saved variables as changed after this
 function WaterComponent:fill_channel_from_water_region(channel)
    local channel_manager = stonehearth.hydrology:get_channel_manager()
    local source_elevation = channel.source_location.y
@@ -471,6 +477,8 @@ function WaterComponent:fill_channel_from_water_region(channel)
          log:spam('Added %g to channel for %s at %s', flow_volume, self._entity, channel.channel_entrance)
       end
    end
+
+   -- TODO: tell channel manager to mark saved variables as changed after this
 end
 
 function WaterComponent:update_channel_types()
@@ -491,12 +499,11 @@ function WaterComponent:update_channel_types()
       if channel.subtype == 'vertical' then
          -- TODO: support case when to_entity is higher than from_entity
          local source_water_level = self:get_water_level()
-         -- recall that vertical waterfall channels have their from_location inside the water body
          if source_water_level <= source_elevation then
             -- waterfall dried up and should be removed
             local location = radiant.entities.get_world_grid_location(self._entity)
             self:_remove_from_region(channel.source_location - location)
-            channel_manager:remove_channel(channel)
+            assert(channel.destroyed) -- a new channel will be created in its place if an alternate source location is found
             channel = nil
          end
       end
@@ -554,6 +561,15 @@ function WaterComponent:_get_channel_region()
       end)
 
    region:optimize_by_merge('water:_get_channel_region()')
+
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      local location = radiant.entities.get_world_grid_location(self._entity)
+      assert(not region:contains(location)) -- in case the water region is empty
+      local local_region = region:translated(-location)
+      local intersection = self._sv.region:get():intersect_region(local_region)
+      assert(intersection:empty())
+   end
+
    return region
 end
 
@@ -587,22 +603,24 @@ function WaterComponent:add_to_region(region)
    if bounds.max.y - 1 == self._sv._top_layer_index then
       self:_recalculate_top_layer()
    end
+
+   self.__saved_variables:mark_changed()
 end
 
 -- region in local coordinates
-function WaterComponent:_add_to_layer(region)
+function WaterComponent:_add_to_top_layer(region)
    if region:empty() then
       return
    end
 
    self._sv.region:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge('water:_add_to_layer() (region)')
+         cursor:optimize_by_merge('water:_add_to_top_layer() (region)')
       end)
 
    self._sv._top_layer:modify(function(cursor)
          cursor:add_region(region)
-         cursor:optimize_by_merge('water:_add_to_layer() (top layer)')
+         cursor:optimize_by_merge('water:_add_to_top_layer() (top layer)')
       end)
 
    self:_update_destination()
@@ -611,15 +629,75 @@ function WaterComponent:_add_to_layer(region)
 end
 
 -- point in local coordinates
+-- This may cause the location of the entity to change and the regions to translate if the origin is removed!
 function WaterComponent:_remove_from_region(point)
+   local channel_manager = stonehearth.hydrology:get_channel_manager()
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      channel_manager:check_all_channels()
+   end
+
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   local world_point = point + location
+   log:debug('removing %s from %s', world_point, self._entity)
+
    self._sv.region:modify(function(cursor)
          cursor:subtract_point(point)
          -- optimize_by_merge doesn't usually help for single subtractions
       end)
 
+   local top_layer_changed = self._sv._top_layer:get():contains(point)
    self._sv._top_layer:modify(function(cursor)
          cursor:subtract_point(point)
       end)
+
+   if point == Point3.zero then
+      self:_move_to_new_origin()
+      -- either invalidate or update cached values
+      location = nil
+      point = nil
+   end
+
+   -- must call this after point is removed
+   channel_manager:update_channels_on_source_location_removed(world_point, self._entity)
+
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      channel_manager:check_all_channels()
+   end
+
+   if top_layer_changed then
+      self:_update_destination()
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
+function WaterComponent:_move_to_new_origin()
+   local region = self._sv.region:get()
+   if region:empty() then
+      return
+   end
+
+   -- Region is in local coordinates of the old_origin so the new origin returned is also in the 
+   -- old coordinate system.
+   local offset = stonehearth.hydrology:select_origin_for_region(region)
+   local old_origin = radiant.entities.get_world_grid_location(self._entity)
+   local new_origin = old_origin + offset
+
+   log:debug('Moving %s from %s to %s', self._entity, old_origin, new_origin)
+
+   self._sv.region:modify(function(cursor)
+         -- actually just -offset, but show the transformation for clarity
+         cursor:translate(old_origin - new_origin)
+      end)
+
+   self._sv._top_layer:modify(function(cursor)
+         -- actually just -offset, but show the transformation for clarity
+         cursor:translate(old_origin - new_origin)
+      end)
+
+   radiant.terrain.place_entity_at_exact_location(self._entity, new_origin)
+
+   self:_update_destination()
 
    self.__saved_variables:mark_changed()
 end
@@ -627,7 +705,6 @@ end
 function WaterComponent:_update_destination()
    local destination_component = self._entity:add_component('destination')
    destination_component:get_region():modify(function(cursor)
-         cursor:clear()
          cursor:copy_region(self._sv._top_layer:get())
       end)
 
@@ -639,6 +716,7 @@ function WaterComponent:_get_edge_region(region, channel_region)
    local world_bounds = self._root_terrain_component:get_bounds()
 
    -- perform a separable inflation to exclude diagonals
+   -- TODO: consider using csg::GetAdjacent here
    local edge_region = region:inflated(Point3.unit_x)
    edge_region:add_region(region:inflated(Point3.unit_z))
 
@@ -755,8 +833,7 @@ function WaterComponent:_raise_layer()
       end)
 
    self._sv._top_layer:modify(function(cursor)
-         cursor:clear()
-         cursor:add_region(raised_layer)
+         cursor:copy_region(raised_layer)
       end)
 
    self._sv._top_layer_index = new_layer_index
@@ -794,8 +871,7 @@ function WaterComponent:_lower_layer()
       end)
 
    self._sv._top_layer:modify(function(cursor)
-         cursor:clear()
-         cursor:add_region(lowered_layer)
+         cursor:copy_region(lowered_layer)
       end)
 
    self._sv._top_layer_index = new_layer_index
@@ -819,6 +895,19 @@ function WaterComponent:_lower_layer()
 
       -- reparent channels on top layer to child
       channel_manager:reparent_channels(orphaned_channels, child)
+
+      -- source_locations for channels may have disappeared
+      -- CHECKCHECK -- what if have a vertical channel that's dumping water into us?
+      -- that waterfall channel needs to get recreated
+      for _, channel in pairs(orphaned_channels) do
+         if not residual_top_layer:contains(channel.source_location) then
+            channel_manager:find_new_channel_source(channel)
+         end
+      end
+
+      if stonehearth.hydrology.enable_paranoid_assertions then
+         channel_manager:check_all_channels()
+      end
 
       log:debug('Top layer from %s becoming new entity %s', self._entity, child)
    else
@@ -858,21 +947,22 @@ function WaterComponent:_recalculate_top_layer()
    local layer = self:_get_layer(self._sv._top_layer_index)
 
    self._sv._top_layer:modify(function(cursor)
-         cursor:clear()
-         cursor:add_region(layer)
+         cursor:copy_region(layer)
       end)
+
+   self:_update_destination()
 
    self.__saved_variables:mark_changed()
 end
 
-function WaterComponent:_get_layer(elevation)
+function WaterComponent:_get_layer(index)
    local region = self._sv.region:get()
    local bounds = region:get_bounds()
-   bounds.min.y = elevation
-   bounds.max.y = elevation + 1
+   bounds.min.y = index
+   bounds.max.y = index + 1
 
    local layer = region:intersect_cube(bounds)
-   layer:optimize_by_merge('water:_get_layer() (elevation:' .. tostring(elevation) .. ')')
+   layer:optimize_by_merge('water:_get_layer()')
    return layer
 end
 

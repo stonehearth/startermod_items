@@ -7,7 +7,6 @@ SetGlobalAttackCooldown.does = 'stonehearth:combat:set_global_attack_cooldown'
 SetGlobalAttackCooldown.args = {}
 SetGlobalAttackCooldown.version = 2
 SetGlobalAttackCooldown.priority = 1
-SetGlobalAttackCooldown.realtime = true
 
 function SetGlobalAttackCooldown:__init()
    self._global_attack_recovery_cooldown = radiant.util.get_config('global_attack_recovery_cooldown', 1000)

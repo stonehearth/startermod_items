@@ -5,7 +5,6 @@ HitStun.does = 'stonehearth:compelled_behavior'
 HitStun.args = {}
 HitStun.version = 2
 HitStun.priority = stonehearth.constants.priorities.compelled_behavior.HIT_STUN
-HitStun.realtime = true
 
 function HitStun:start_thinking(ai, entity, args)
    self._ai = ai

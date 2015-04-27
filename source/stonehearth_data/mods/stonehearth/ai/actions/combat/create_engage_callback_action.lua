@@ -15,7 +15,6 @@ CreateEngageCallback.think_output = {
 CreateEngageCallback.version = 2
 CreateEngageCallback.priority = 1
 CreateEngageCallback.weight = 1
-CreateEngageCallback.realtime = true
 
 function CreateEngageCallback:start_thinking(ai, entity, args)
    local target = args.target

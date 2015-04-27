@@ -38,17 +38,21 @@ end
 
 function ChannelManager:get_channel(from_entity, channel_entrance)
    local channels = self:get_channels(from_entity)
-   local key = self:_point_to_key(channel_entrance)
+   local key = channel_entrance:key_value()
    local channel = channels[key]   
    return channel
 end
 
 function ChannelManager:get_channels(from_entity)
-   if not from_entity:is_valid() then
-      local foo = 1 -- CHECKCHECK
-   end
    local channels = self._sv._channels[from_entity:get_id()]
    return channels
+end
+
+function ChannelManager:assert_no_channels_at(point)
+   local key = point:key_value()
+   for id, channels in pairs(self._sv._channels) do
+      assert(not channels[key])
+   end
 end
 
 -- from_entity, to_entity
@@ -60,6 +64,20 @@ function ChannelManager:add_channel(from_entity, to_entity, source_location, cha
    log:debug('Adding %s channel from %s to %s with source_location %s, channel_entrance %s, channel_exit %s',
              channel_type, from_entity, to_entity, source_location, channel_entrance, channel_exit)
 
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      local from_entity_location = radiant.entities.get_world_grid_location(from_entity)
+      local from_water_component = from_entity:add_component('stonehearth:water')
+      local from_water_region = from_water_component:get_region():get():translated(from_entity_location)
+      -- also check if source_location equals from_entity_location in case the water region is empty
+      if not from_water_region:contains(source_location) and source_location ~= from_entity_location then
+         -- this condition is sometimes ok, but flag it anyway so we understand how we got here
+         local foo = 1
+      end
+      assert(from_water_region:contains(source_location) or source_location == from_entity_location)
+      assert(not from_water_region:contains(channel_entrance))
+      assert(not from_water_region:contains(channel_exit))
+   end
+
    local channel = {
       from_entity = from_entity,
       to_entity = to_entity,
@@ -69,10 +87,11 @@ function ChannelManager:add_channel(from_entity, to_entity, source_location, cha
       channel_type = channel_type,
       subtype = subtype,
       channel_entity = channel_entity,
-      queued_volume = 0
+      queued_volume = 0,
+      destroyed = false
    }
 
-   local key = self:_point_to_key(channel_entrance)
+   local key = channel_entrance:key_value()
    local channels = self:get_channels(from_entity)
    channels[key] = channel
 
@@ -97,7 +116,7 @@ end
 
 function ChannelManager:_remove_unidirectional_channel(channel)
    local channels = self:get_channels(channel.from_entity)
-   local key = self:_point_to_key(channel.channel_entrance)
+   local key = channel.channel_entrance:key_value()
 
    log:debug('Removing %s channel from %s at %s', channel.channel_type, channel.from_entity, channel.channel_entrance)
 
@@ -112,6 +131,7 @@ function ChannelManager:_destroy_channel(channel)
       radiant.entities.destroy_entity(channel.channel_entity)
    end
    channel.destroyed = true
+   self.__saved_variables:mark_changed()
 end
 
 function ChannelManager:each_channel(callback_fn)
@@ -157,6 +177,8 @@ function ChannelManager:add_volume_to_channel(channel, volume, source_elevation_
    if flow_volume > 0 then
       log:spam('Added %g to channel for %s at %s', flow_volume, channel.from_entity, channel.channel_entrance)
    end
+
+   self.__saved_variables:mark_changed()
 
    return volume
 end
@@ -211,31 +233,31 @@ function ChannelManager:link_waterfall_channel(from_entity, source_location, cha
    local channel = self:get_channel(from_entity, channel_entrance)
 
    if channel then
-      if channel.channel_type == 'waterfall' then
-         assert(channel.subtype == subtype)
-         assert(channel.from_entity == from_entity)
-         assert(channel.channel_entrance == channel_entrance)
+      -- if channel.channel_type == 'waterfall' then
+      --    assert(channel.subtype == subtype)
+      --    assert(channel.from_entity == from_entity)
+      --    assert(channel.channel_entrance == channel_entrance)
 
-         -- Multiple source locations are valid for the channel_entrance
-         if (channel.source_location ~= source_location) then
-            -- Remove the channel if the source location is gone
-            if not self:_water_body_contains_point(from_entity, source_location) then
-               self:remove_channel(channel)
-               channel = nil
-            end
-         end
-      else
+      --    -- Multiple source locations are valid for the channel_entrance
+      --    if (channel.source_location ~= source_location) then
+      --       -- Remove the channel if the source location is gone
+      --       if not self:_water_body_contains_point(from_entity, source_location) then
+      --          self:remove_channel(channel)
+      --          channel = nil
+      --       end
+      --    end
+      -- else
          -- This removes both directions of the pressure channel
          self:remove_channel(channel)
          channel = nil
-      end
+      -- end
    end
 
    if not channel then
       local to_entity, channel_exit = self:_get_waterfall_target(channel_entrance)
 
       if to_entity == from_entity then
-         log:error('undefined behavior: from_entity == to_entity for waterfall channel')
+         log:info('from_entity == to_entity for waterfall channel. ignoring.')
       else
          -- TODO: the channel_exit isn't particularly useful for a waterfall as it may change
          -- depending on what entity is the target when the watertight region for the waterfall column changes
@@ -269,30 +291,30 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, to_en
 
    -- If channel of the same type already exists, make sure it is identical, otherwise replace it
    if channel then
-      if channel.channel_type == 'pressure' then
-         assert(channel.from_entity == from_entity)
-         assert(channel.to_entity == to_entity)
-         assert(channel.channel_entrance == to_location)
-         assert(channel.channel_exit == to_location)
+      -- if channel.channel_type == 'pressure' then
+      --    assert(channel.from_entity == from_entity)
+      --    assert(channel.to_entity == to_entity)
+      --    assert(channel.channel_entrance == to_location)
+      --    assert(channel.channel_exit == to_location)
 
-         -- Multiple source locations are valid for the channel_entrance
-         if (channel.source_location ~= from_location) then
-            -- If the subtypes don't match, prefer the horizontal channel
-            if channel.subtype ~= subtype and channel.subtype == 'vertical' then
-               self:remove_channel(channel)
-               channel = nil
-            end
+      --    -- Multiple source locations are valid for the channel_entrance
+      --    if (channel.source_location ~= from_location) then
+      --       -- If the subtypes don't match, prefer the horizontal channel
+      --       if channel.subtype ~= subtype and channel.subtype == 'vertical' then
+      --          self:remove_channel(channel)
+      --          channel = nil
+      --       end
 
-            -- Remove the channel if the source location is gone
-            if channel and not self:_water_body_contains_point(from_entity, from_location) then
-               self:remove_channel(channel)
-               channel = nil
-            end
-         end
-      else
+      --       -- Remove the channel if the source location is gone
+      --       if channel and not self:_water_body_contains_point(from_entity, from_location) then
+      --          self:remove_channel(channel)
+      --          channel = nil
+      --       end
+      --    end
+      -- else
          self:remove_channel(channel)
          channel = nil
-      end
+      -- end
    end
 
    if not channel then
@@ -305,9 +327,13 @@ function ChannelManager:convert_to_pressure_channel(channel)
    assert(channel.channel_type == 'waterfall')
    log:info('Converting waterfall to pressure channel')
 
-   -- automatically removes old channel
+   -- TODO: the channel_entrance might not be in the to_entity...
    local new_channel = self:link_pressure_channel(channel.from_entity, channel.to_entity, channel.source_location, channel.channel_entrance)
    assert(channel.destroyed)
+
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      self:check_all_channels()
+   end
 
    return new_channel
 end
@@ -316,10 +342,45 @@ function ChannelManager:convert_to_waterfall_channel(channel)
    assert(channel.channel_type == 'pressure')
    log:info('Converting pressure to waterfall channel')
 
-   -- automatically removes old channel
    local new_channel = self:link_waterfall_channel(channel.from_entity, channel.source_location, channel.channel_entrance)
    assert(channel.destroyed)
    assert(channel.paired_channel.destroyed)
+
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      self:check_all_channels()
+   end
+
+   return new_channel
+end
+
+function ChannelManager:find_new_channel_source(channel)
+   local from_entity_location = radiant.entities.get_world_grid_location(channel.from_entity)
+   local from_water_component = channel.from_entity:add_component('stonehearth:water')
+   local old_source_location = channel.source_location
+
+   log:debug('looking for new source_location for channel with old source_location of %s', old_source_location)
+
+   assert(not from_water_component:get_region():get():contains(old_source_location - from_entity_location))
+
+   local new_source_location = stonehearth.hydrology:get_best_source_location(channel.from_entity, channel.channel_entrance)
+   local new_channel = nil
+
+   if new_source_location then
+      if channel.channel_type == 'waterfall' then
+         new_channel = self:link_waterfall_channel(channel.from_entity, new_source_location, channel.channel_entrance)
+      elseif channel.channel_type == 'pressure' then
+         new_channel = self:link_pressure_channel(channel.from_entity, channel.to_entity, new_source_location, channel.channel_entrance)
+      else
+         assert(false)
+      end
+   else
+      self:remove_channel(channel)
+   end
+
+   assert(channel.destroyed)
+   if channel.paired_channel then
+      assert(channel.paired_channel.destroyed)
+   end
 
    return new_channel
 end
@@ -350,7 +411,6 @@ function ChannelManager:_create_waterfall(from_entity, to_entity, source_locatio
 end
 
 function ChannelManager:merge_channels(master, mergee)
-   local master_channels = self:get_channels(master)
    local mergee_channels = self:get_channels(mergee)
 
    -- reparent all mergee channels to master
@@ -369,30 +429,87 @@ function ChannelManager:merge_channels(master, mergee)
          self:remove_channel(channel)
       end
    end)
+
+   if stonehearth.hydrology.enable_paranoid_assertions then
+      self:check_all_channels()
+   end
 end
 
 function ChannelManager:reparent_channels(channels, new_parent)
+   for _, channel in pairs(channels) do
+      self:reparent_channel(channel, new_parent)
+   end
+end
+
+function ChannelManager:reparent_channel(channel, new_parent)
+   if channel.to_entity == new_parent then
+      -- channel would go to itself, so just remove it
+      self:remove_channel(channel)
+      return
+   end
+
+   local key = channel.channel_entrance:key_value()
+   local old_parent = channel.from_entity
+   local old_parent_channels = self:get_channels(old_parent)
    local new_parent_channels = self:get_channels(new_parent)
 
+   if new_parent_channels[key] then
+      log:warning('New parent already has a channel at %s', key)
+      self:remove_channel(channel)
+      return
+   end
+
+   old_parent_channels[key] = nil
+   new_parent_channels[key] = channel
+
+   -- assign from_entity and to_entity last so that remove_channel is clean
+   channel.from_entity = new_parent
+
+   if channel.paired_channel then
+      channel.paired_channel.to_entity = new_parent
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
+function ChannelManager:update_channels_on_source_location_removed(point, from_entity)
+   -- TODO: waterfall targets should be checked, but this is probably ok for now
+   local channels = self:get_channels(from_entity)
+
    for _, channel in pairs(channels) do
-      if channel.to_entity == new_parent then
-         -- channel would go to itself, so just remove it
-         self:remove_channel(channel)
-      else
-         local old_parent = channel.from_entity
-         channel.from_entity = new_parent
-
-         local key = self:_point_to_key(channel.channel_entrance)
-
-         if new_parent_channels[key] == nil then
-            new_parent_channels[key] = channel
-         else
-            log:warning('New parent already has a channel at %s', key)
-         end
-
-         local old_parent_channels = self:get_channels(old_parent)
-         old_parent_channels[key] = nil
+      if channel.source_location == point then
+         self:find_new_channel_source(channel)
       end
+   end
+end
+
+function ChannelManager:check_all_channels()
+   self:each_channel(function(channel)
+         self:check_channel_integrity(channel)
+      end)
+end
+
+function ChannelManager:check_channel_integrity(channel)
+   assert(not channel.destroyed)
+   local from_entity_location = radiant.entities.get_world_grid_location(channel.from_entity)
+   local from_entity_region = channel.from_entity:add_component('stonehearth:water'):get_region():get():translated(from_entity_location)
+   assert(from_entity_region:contains(channel.source_location) or channel.source_location == from_entity_location)
+   assert(not from_entity_region:contains(channel.channel_entrance))
+   assert(not from_entity_region:contains(channel.channel_exit))
+
+   if channel.channel_type == 'pressure' then
+      local to_entity_location = radiant.entities.get_world_grid_location(channel.to_entity)
+      local to_entity_region = channel.to_entity:add_component('stonehearth:water'):get_region():get():translated(to_entity_location)
+      assert(to_entity_region:contains(channel.channel_entrance) or channel.channel_entrance == to_entity_location)
+      assert(to_entity_region:contains(channel.channel_exit) or channel.channel_exit == to_entity_location)
+   end
+
+   local paired_channel = channel.paired_channel
+   if paired_channel then
+      assert(channel.from_entity == paired_channel.to_entity)
+      assert(channel.to_entity == paired_channel.from_entity)
+      assert(channel.channel_entrance == paired_channel.source_location)
+      assert(channel.source_location == paired_channel.channel_entrance)
    end
 end
 
@@ -402,6 +519,8 @@ function ChannelManager:fill_channels_to_capacity()
          local water_component = channel.from_entity:add_component('stonehearth:water')
          water_component:fill_channel_from_water_region(channel)
       end)
+
+   self.__saved_variables:mark_changed()
 end
 
 function ChannelManager:empty_channels()
@@ -468,10 +587,6 @@ function ChannelManager:_water_body_contains_point(entity, point)
    local water_component = entity:add_component('stonehearth:water')
    local result = water_component:get_region():get():contains(point - location)
    return result
-end
-
-function ChannelManager:_point_to_key(point)
-   return string.format('%d,%d,%d', point.x, point.y, point.z)
 end
 
 return ChannelManager

@@ -11,7 +11,6 @@ PanicWatcher.think_output = {
 }
 PanicWatcher.version = 2
 PanicWatcher.priority = 1
-PanicWatcher.realtime = true
 
 function PanicWatcher:start_thinking(ai, entity, args)
    self._entity = entity

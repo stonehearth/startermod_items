@@ -41,7 +41,7 @@ else
 end
 
 -- this is the component which manages the fabricator entity.
-function Fabricator:__init(name, entity, blueprint, project)
+function Fabricator:__init(name, entity, blueprint, project, total_mining_region)
    self.name = name
 
    self._log = radiant.log.create_logger('build.fabricator')
@@ -60,7 +60,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
    self._mining_zones = {}
    self._mining_traces = {}
-   self._total_mining_region = _radiant.sim.alloc_region3()
+   self._total_mining_region = total_mining_region or _radiant.sim.alloc_region3()
 
    self._traces = {}
    self._active = false
