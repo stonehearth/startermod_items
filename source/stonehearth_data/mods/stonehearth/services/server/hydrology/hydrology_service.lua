@@ -15,6 +15,8 @@ function HydrologyService:initialize()
    assert(constants.hydrology.MIN_FLOW_RATE <= constants.hydrology.MERGE_VOLUME_THRESHOLD)
    assert(constants.hydrology.MIN_FLOW_RATE >= constants.hydrology.STOP_FLOW_THRESHOLD)
 
+   self.enable_paranoid_assertions = radiant.util.get_config('water.enable_paranoid_assertions', false)
+
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
@@ -75,6 +77,31 @@ function HydrologyService:_destroy_terrain_delta_trace()
    end
 end
 
+function HydrologyService:_get_water_bodies_descending()
+   local temp = {}
+
+   for id, entity in pairs(self._sv._water_bodies) do
+      local water_level = entity:add_component('stonehearth:water'):get_water_level()
+      local entry = { entity = entity, water_level = water_level, id = entity:get_id() }
+      table.insert(temp, entry)
+   end
+
+   table.sort(temp, function(a, b)
+      if a.water_level ~= b.water_level then
+         return a.water_level < b.water_level
+      end
+      return a.id < b.id
+   end)
+
+   local water_bodies = {}
+
+   for _, entry in ipairs(temp) do
+      table.insert(water_bodies, entry.entity)
+   end
+
+   return water_bodies
+end
+
 function HydrologyService:_on_terrain_changed(delta_region)
    local inflated_delta_bounds = self:_get_inflated_delta_bounds(delta_region)
    if not inflated_delta_bounds then
@@ -82,16 +109,11 @@ function HydrologyService:_on_terrain_changed(delta_region)
    end
 
    local channel_manager = self:get_channel_manager()
-   local processed_container_points = {}
-   local water_bodies = {}
+   local blocks_to_link = {}
+   local added_volumes = {}
+   local water_bodies = self:_get_water_bodies_descending()
 
-   -- copy the collection since we may add to it
-   for id, entity in pairs(self._sv._water_bodies) do
-      water_bodies[id] = entity
-   end
-
-   -- TODO: consider processing entities by highest water level first
-   for id, entity in pairs(water_bodies) do
+   for _, entity in ipairs(water_bodies) do
       -- fast-ish rejection test to see if the delta region modifies the water region or its container
       if self:_bounds_intersects_water_body(inflated_delta_bounds, entity) then
          local modified_water_region = self:_get_affected_water_region(delta_region, entity)
@@ -112,7 +134,6 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
          local location = radiant.entities.get_world_grid_location(entity)
          local water_component = entity:add_component('stonehearth:water')
-         local volume_added = 0
 
          -- TODO: Include the top boundary for analysis. This can occur when a subsection section
          -- of the water body has a ceiling.
@@ -123,55 +144,92 @@ function HydrologyService:_on_terrain_changed(delta_region)
                                            water_component:top_layer_in_wetting_mode()
 
             if not point_in_wetting_layer then
-               local point_key = self:_point_to_key(point)
-               local processed = processed_container_points[point_key] ~= nil
+               local point_key = point:key_value()
+               -- all container points that have been added to water bodies will be in this map
+               local processed = blocks_to_link[point_key] ~= nil
 
                -- check that block was in fact removed
                if not processed and not self._water_tight_region:contains_point(point) then
-                  local source_location = self:_get_best_source_location(entity, point)
+                  local source_location = self:get_best_source_location(entity, point)
+                  assert(source_location)
                   local channel
 
                   if point.y == source_location.y then
                      -- add point to the water region
                      log:debug('%s removed from watertight region. Adding to %s', point, entity)
+
+                     if stonehearth.hydrology.enable_paranoid_assertions then
+                        assert(not self:get_water_body(point))
+                        channel_manager:assert_no_channels_at(point)
+                     end
+
                      water_component:add_to_region(Region3(Cube3(point - location)))
-                     volume_added = volume_added + 1
-
-                     -- check adjacent blocks for channels and transients
-                     self:_link_channels(entity, point, modified_container_region)
-                  else
-                     log:debug('%s removed from watertight region. Creating waterfall channel from %s', point, entity)
-                     channel = channel_manager:link_waterfall_channel(entity, source_location, point)
+                     self:_increment_added_volumes(added_volumes, entity)
+                     self:_add_block_to_link(blocks_to_link, point, entity)
+                  elseif point.y == source_location.y - 1 then
+                     -- bottom of the container
+                     log:debug('%s removed from watertight region and adding point above to link list for %s', point, entity)
+                     -- we didn't add the containter point to the water region, so add the water region point for linking
+                     self:_add_block_to_link(blocks_to_link, point + Point3.unit_y, entity)
+                  elseif point.y == source_location.y + 1 then
+                     -- top of the container
+                     assert(false, 'not implemented')
                   end
-
-                  -- TODO: consider calling add_volume_to_channel here
-
-                  processed_container_points[point_key] = point
+                  -- TODO: consider calling add_volume_to_channel later
+                  
                end
             end
          end
-
-         water_component:_remove_water(volume_added)
-
          -- TODO: remove channels that are no longer adjacent to the entity
       end
+   end
+
+   -- For each block in list, check adjacent blocks for channels and transients
+   self:_link_blocks(blocks_to_link)
+
+   -- We added volume in new blocks to the region, so remove volume in water to keep the total volume
+   -- the same and lower the water level. Do this after linking channels because blocks_to_link is
+   -- holding references to entities that may split.
+   self:_remove_added_volumes(added_volumes)
+end
+
+function HydrologyService:_add_block_to_link(blocks_to_link, block, entity)
+   local block_key = block:key_value()
+   local entry = { block = block, entity = entity }
+   blocks_to_link[block_key] = entry
+end
+
+function HydrologyService:_link_blocks(blocks_to_link)
+   for _, entry in pairs(blocks_to_link) do
+      self:_link_channels_for_block(entry.block, entry.entity)
+   end
+end
+
+function HydrologyService:_increment_added_volumes(added_volumes, entity)
+   local id = entity:get_id()
+   local volume = added_volumes[id] or 0
+   volume = volume + 1
+   added_volumes[id] = volume
+end
+
+function HydrologyService:_remove_added_volumes(added_volumes)
+   for id, volume in pairs(added_volumes) do
+      local entity = radiant.entities.get_entity(id)
+      local water_component = entity:add_component('stonehearth:water')
+      water_component:_remove_water(volume)
    end
 end
 
 -- can be faster
-function HydrologyService:_link_channels(entity, point, modified_container_region)
+function HydrologyService:_link_channels_for_block(point, entity)
    local channel_manager = self:get_channel_manager()
 
    for _, direction in ipairs(csg_lib.XYZ_DIRECTIONS) do
       local vertical = direction.y ~= 0
       local adjacent_point = point + direction
-      -- don't process points that are solid
       local adjacent_is_solid = self._water_tight_region:contains_point(adjacent_point)
-      -- don't process container points that are part of this water body
-      -- the outer code will do handle this
-      local adjacent_in_modified_container_region = modified_container_region:contains(adjacent_point)
 
-      if not adjacent_is_solid and not adjacent_in_modified_container_region then
+      if not adjacent_is_solid then
          local adjacent_entity = self:get_water_body(adjacent_point)
          local channel
 
@@ -200,11 +258,11 @@ function HydrologyService:_link_channels(entity, point, modified_container_regio
                   local transient = below_adjacent_entity and below_adjacent_water_level >= point.y
 
                   if transient then
-                     -- add to transient list
-                     assert(false) -- TODO: not yet implemented
+                     -- TODO: add to transient list
+                     assert(false, 'not implemented')
                   else
                      -- drop, create waterfall channel
-                     assert(direction.y ~= 1) -- TODO: not yet implemented
+                     assert(direction.y ~= 1, 'not implemented') -- TODO: not yet implemented
                      local channel_entrance = vertical and below_adjacent_point or adjacent_point
                      channel = channel_manager:link_waterfall_channel(entity, point, channel_entrance)
                   end
@@ -217,7 +275,7 @@ function HydrologyService:_link_channels(entity, point, modified_container_regio
 end
 
 -- can be faster if necessary
-function HydrologyService:_get_best_source_location(entity, point)
+function HydrologyService:get_best_source_location(entity, point)
    local entity_location = radiant.entities.get_world_grid_location(entity)
    local water_component = entity:add_component('stonehearth:water')
    local water_region = water_component:get_region():get()
@@ -243,7 +301,7 @@ function HydrologyService:_get_best_source_location(entity, point)
 
    if not source_location then
       -- point is not adjacent to entity
-      assert(false)
+      return nil
    end
 
    -- back to world coordinates
@@ -337,19 +395,11 @@ end
 -- Does not check that region is contained by a watertight boundary.
 -- Know what you are doing before calling this.
 function HydrologyService:create_water_body_with_region(region, height)
-   local bounds = region:get_bounds()
-   local bottom_slice = Cube3(bounds)
-   bottom_slice.max.y = bottom_slice.min.y + 1
-
-   -- location needs to be at the bottom of the region, preferably towards the center
-   local footprint = region:intersect_cube(bottom_slice)
-   local centroid = _radiant.csg.get_region_centroid(footprint):to_closest_int()
-   -- concave shapes may have centroids outside the region
-   local location = footprint:get_closest_point(centroid)
-
    local boxed_region = _radiant.sim.alloc_region3()
+   local location = self:select_origin_for_region(region)
+   
    boxed_region:modify(function(cursor)
-         cursor:add_region(region)
+         cursor:copy_region(region)
          cursor:translate(-location)
       end)
 
@@ -382,23 +432,39 @@ function HydrologyService:_create_water_body_internal(location, boxed_region, he
    return entity
 end
 
+function HydrologyService:select_origin_for_region(region)
+   local bounds = region:get_bounds()
+   local bottom_slice = Cube3(bounds)
+   bottom_slice.max.y = bottom_slice.min.y + 1
+
+   -- origin needs to be at the bottom of the region, preferably towards the center
+   local footprint = region:intersect_cube(bottom_slice)
+   local centroid = _radiant.csg.get_region_centroid(footprint):to_closest_int()
+   -- concave shapes may have centroids outside the region
+   local origin = footprint:get_closest_point(centroid)
+   return origin
+end
+
 -- O(n) on the number of cubes in all water bodies
 -- can be much faster by caching bounds of water bodies
 function HydrologyService:get_water_body(location)
    for id, entity in pairs(self._sv._water_bodies) do
       local entity_location = radiant.entities.get_world_grid_location(entity)
-
-      -- perform this test in case the water body doesn't have any water yet
-      if entity_location == location then
-         return entity
-      end
-
       local local_location = location - entity_location
       local water_component = entity:add_component('stonehearth:water')
       local region = water_component:get_region():get()
 
       -- cache the region bounds as a quick rejection test if this becomes slow
       if region:contains(local_location) then
+         return entity
+      end
+   end
+
+   -- TODO: are we sure we want to do this?
+   -- if no water bodies contain the location, check for empty water bodies with origins at the location
+   for id, entity in pairs(self._sv._water_bodies) do
+      local entity_location = radiant.entities.get_world_grid_location(entity)
+      if entity_location == location then
          return entity
       end
    end
@@ -470,6 +536,11 @@ function HydrologyService:can_merge_water_bodies(entity1, entity2)
    local water_level2 = water_component2:get_water_level()
    local elevation_delta = math.abs(water_level1 - water_level2)
 
+   -- TODO: consider if these need to get cleaned up if they stay empty
+   if water_component1:get_region():get():empty() or water_component2:get_region():get():empty() then
+      return false
+   end
+
    -- TODO: imrpove merging of 3.99 and 4.00 height water bodies
    -- only mergable if the top layers are at the same elevation
    local layer_elevation1 = water_component1:get_top_layer_elevation()
@@ -503,9 +574,6 @@ end
 function HydrologyService:merge_water_bodies(entity1, entity2, allow_uneven_top_layers)
    if allow_uneven_top_layers == nil then
       allow_uneven_top_layers = false
-   end
-   if entity1 == entity2 then
-      local foo = 1 -- CHECKCHECK
    end
    assert(entity1 ~= entity2)
    local master, mergee = self:_order_entities(entity1, entity2)
@@ -660,10 +728,6 @@ function HydrologyService:_update_performance_counters()
          num_channels = num_channels + 1
       end)
    radiant.set_performance_counter('num_channels', num_channels)
-end
-
-function HydrologyService:_point_to_key(point)
-   return string.format('%d,%d,%d', point.x, point.y, point.z)
 end
 
 return HydrologyService
