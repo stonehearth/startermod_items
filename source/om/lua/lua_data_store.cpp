@@ -127,6 +127,18 @@ StrongDataStore_CreateController(DataStorePtr ds, std::string const& name)
    return controller;
 }
 
+static void
+StrongDataStore_Restore(DataStoreRef data_store)
+{
+   auto ds = data_store.lock();
+   if (ds) {
+      ds->RestoreController(ds);
+      ds->RestoreControllerData();
+      ds->RemoveKeepAliveReferences();
+   }
+}
+
+
 // -- weak versions --
 
 bool WeakDataStore_IsValid(DataStoreRefWrapper ds)
@@ -229,6 +241,12 @@ WeakDataStore_TraceGameObjectAsync(DataStoreRefWrapper ds, const char* reason)
    return lua::StrongTraceGameObject<DataStore>(ds.lock(), reason, dm::LUA_ASYNC_TRACES);
 }
 
+static void
+WeakDataStore_Restore(DataStoreRefWrapper ds)
+{
+   return StrongDataStore_Restore(ds.lock());
+}
+
 scope LuaDataStore::RegisterLuaTypes(lua_State* L)
 {
    // This is pretty unfortunate.  We need to register the same interface twice: once for
@@ -252,6 +270,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("modify_data",    StrongDataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     StrongDataStore_Trace)
          .def("trace_data",     StrongDataStore_TraceAsync)
+         .def("restore",        StrongDataStore_Restore)
          .def("set_controller", StrongDataStore_SetController)
          .def("create_controller", StrongDataStore_CreateController)
          .def("destroy",        StrongDataStore_Destroy)
@@ -279,6 +298,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("modify_data",    WeakDataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     WeakDataStore_Trace)
          .def("trace_data",     WeakDataStore_TraceAsync)
+         .def("restore",        WeakDataStore_Restore)
          .def("set_controller", WeakDataStore_SetController)
          .def("create_controller", WeakDataStore_CreateController)
          .def("destroy",        WeakDataStore_Destroy)
