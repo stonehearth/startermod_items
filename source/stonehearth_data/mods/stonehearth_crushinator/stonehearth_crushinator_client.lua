@@ -2,7 +2,7 @@ mod = {
 }
 
 local save_load_trigger = function()
-   radiant.set_realtime_timer(10 * 1000, function()
+   radiant.set_realtime_timer(60 * 1000, function()
          _radiant.call('radiant:client:save_game', '_crushinator',  { name = 'Crushinator save.'})
             :done(function()
                   _radiant.call('radiant:client:load_game_async', '_crushinator')

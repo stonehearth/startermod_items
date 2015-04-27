@@ -30,7 +30,7 @@ function BuildUndoManager:begin_transaction(desc)
 end
 
 function BuildUndoManager:end_transaction(desc)
-   log:detail('end_transaction for "%s"', desc)
+   log:detail('flushing chaned objects for transaction "%s"', desc)   
 
    self._tracer:flush()
    self._tracer:stop()
@@ -65,6 +65,8 @@ function BuildUndoManager:end_transaction(desc)
    self._changed_objects = {}
    self._added_entities = {}
    self._unlinked_entities = {}
+
+   log:detail('end_transaction for "%s"', desc)
 end
 
 function BuildUndoManager:undo()
@@ -122,13 +124,14 @@ function BuildUndoManager:undo()
       end
 
       -- remove all the entities created by the last operation
-   for _, o in pairs(entry.added_entities) do         
+      for _, o in pairs(entry.added_entities) do         
          radiant.entities.destroy_entity(o.entity)
       end
    end
 end
 
 function BuildUndoManager:unlink_entity(entity)
+   assert(self._in_transaction)
    if not self._in_transaction then
       log:error('unlinking entity outside of transaction!  clearing undo stack.')
       self:clear()
@@ -170,6 +173,8 @@ function BuildUndoManager:unlink_entity(entity)
 end
 
 function BuildUndoManager:_mark_changed(obj)
+   assert(self._in_transaction)
+
    local id = obj:get_id()
    -- if the object is a datastore, the id we want to save is actually
    -- the contains (theoretically opaque), DataObject contained inside it!
@@ -226,7 +231,8 @@ function BuildUndoManager:_trace_entity(entity)
                            if entity:is_valid() then
                               local region = component:get_region()
                               if region then
-                                 log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
+                                 log:detail('%s region %d for entity %s changed (component:%d bounds:%s area:%d)',
+                                             name, component:get_id(), entity, region:get_id(), r:get_bounds(), r:get_area())
                                  self:_mark_changed(region)
                               end
                            end
@@ -241,8 +247,11 @@ function BuildUndoManager:_trace_entity(entity)
                            self:_trace_entity(e)
                         end)
                      :on_removed(function(id)
-                           log:detail('child %d added to entity %s', id, entity)
-                           self:_untrace_entity(id)
+                           log:detail('child %d removed from entity %s', id, entity)
+                           -- keep this entity traced.  otherwise there are bizarre races
+                           -- when we modify something after it gets removed (it all depends
+                           -- on the order that self._tracer decides to push the changes!)
+                           --self:_trace_entity(id)
                         end)
                      :push_object_state()
    end

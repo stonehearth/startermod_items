@@ -29,9 +29,10 @@ end
 function GrowRoofEditor:apply_options(roof_options)
    self._roof_options = roof_options
    if self._last_target then
+      assert(self._last_target:get_id() == self._cached_id)
       local target = self._last_target
       self._last_target = nil
-      self:_switch_to_target()
+      self:_switch_to_target(target)
    end
 end
 
@@ -60,6 +61,11 @@ function GrowRoofEditor:go(response, roof_options)
             local wall = blueprint:get_component('stonehearth:wall')
             if not wall then
                -- only grow around floor
+               return false
+            end
+
+            -- give it a trial run.  if we fail, bail entirely.
+            if not self:_compute_roof_region(entity) then
                return false
             end
             return true
@@ -93,31 +99,69 @@ function GrowRoofEditor:go(response, roof_options)
    return self
 end
 
+
+function GrowRoofEditor:_compute_roof_region(target)
+   checks('self', '?Entity')
+   
+   local id = target:get_id()
+   if id == self._cached_id then
+      return self._cached_region2 ~= nil
+   end
+
+   self._cached_id = id
+   self._cached_origin = nil
+   self._cached_region2 = nil
+
+   local world_origin, region2, walls = build_util.calculate_roof_shape_around_walls(target, self._roof_options)
+   if not world_origin then
+      return false
+   end
+   if not build_util.can_grow_roof_around_walls(walls) then
+      return false
+   end
+   self._cached_origin = world_origin
+   self._cached_region2 = region2
+   self._cached_id = id
+   return true
+end
+
 function GrowRoofEditor:_switch_to_target(target)
+   checks('self', '?Entity')
+
    if target ~= self._last_target then
       self._last_target = target
       self:_destroy_preview_entities()
       if target then
-         local world_origin, region2 = build_util.calculate_roof_shape_around_walls(target, self._roof_options)
-         if region2 then
-            self:_create_preview_roof(world_origin, region2)
+         local id = target:get_id()
+         if self._cached_id ~= id then
+            if not self:_compute_roof_region(target) then
+               return
+            end
          end
+         self:_create_preview_roof(target)
       end
    end
 end
 
-function GrowRoofEditor:_create_preview_roof(world_origin, region2)
+function GrowRoofEditor:_create_preview_roof(target)
+   checks('self', '?Entity')
+   
+   assert(not self._preview_roof)
+   assert(self._cached_id == target:get_id())
+   assert(self._cached_origin)
+   assert(self._cached_region2)
+
    local editor = StructureEditor()
    editor:create_blueprint('stonehearth:build:prototypes:roof', 'stonehearth:roof')
    
    local roof = editor:get_proxy_blueprint()
    roof:add_component('stonehearth:roof')
             :apply_nine_grid_options(self._roof_options)
-            :cover_region2(self._roof_options.brush, region2)
+            :cover_region2(self._roof_options.brush, self._cached_region2)
             :layout()
 
    -- sigh.  i hate that we have to do this...
-   editor:move_to(world_origin)
+   editor:move_to(self._cached_origin)
 
    self._preview_roof = editor
 end
