@@ -63,6 +63,10 @@ void LightNode::registerForNodeTracking()
             continue;
          }
 
+         if (!n->isRenderable()) {
+            continue;
+         }
+
          const int nodeType = n->getType();
          if (nodeType == SceneNodeTypes::Camera || nodeType == SceneNodeTypes::Group ||
             nodeType == SceneNodeTypes::HudElement || nodeType == SceneNodeTypes::Joint ||
