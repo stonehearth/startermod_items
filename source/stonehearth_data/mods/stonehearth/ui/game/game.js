@@ -1,10 +1,8 @@
 $(document).ready(function(){
-      $(top).bind('keyup', function(e){
-         if (e.keyCode == 9)  { // tab
-            //xxx, bring this back when we can distinguish between tab and alt+tab
-            //App.gameView.$().toggle();
-            //App.debugView.$().toggle();
-         }
+      // hide the gui on alt+z
+      $(document).bind('keydown', 'alt+z', function() {
+         App.gameView.$().toggle();
+         App.debugView.$().toggle();
       });
 });
 
