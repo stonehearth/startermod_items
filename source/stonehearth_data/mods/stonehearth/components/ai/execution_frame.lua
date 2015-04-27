@@ -425,33 +425,24 @@ function ExecutionFrame:_destroy_slow_timers()
 end
 
 function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_units, timeout)
+   -- If this frame is dead, return.
    if self._state == DEAD then
       return
    end
 
-   -- If top is running (something other than idle), or we're not top and we're running, then don't bother
-   -- thinking.
-   local top_state = self:get_top_idle_state()
-   if not (top_state == 'thinking' or top_state == 'starting_thinking') or
-      (not self:_is_top_idle() and not (self._state == 'thinking' or self._state == 'starting_thinking')) then
-      -- We might not have a logger, if we're dead....
-      if self._log then
-         self._log:spam('slow aborted (%s, %s)', top_state, self._state)
-      end
-
-      -- Abort all our timers, just in case.
-      self:_destroy_slow_timers()
-      return
-   end
-
-   self:_record_slow_think(timeout)
-
-   self._log:spam('slow start think begins %s, %s, %s', units_start, units_start + (num_units - 1), #units)
+   -- If this frame is thinking, then we should think all units.
+   local self_is_thinking = self._state == THINKING or self._state == STARTING_THINKING
 
    for i = units_start,units_start + (num_units - 1) do
       local u = units[i]
-      self._log:spam('slow start thinking on %s', u.unit:get_name())
-      u.unit:_start_thinking(local_args, u.state)
+
+      local should_think = self_is_thinking or not self._active_unit or self:_is_strictly_better_than_active(u.unit)
+      if should_think then
+         -- If this frame is running/getting ready to run, only think units with > priority than currently active.
+         self._log:spam('slow start thinking on %s', u.unit:get_name())
+         u.unit:_start_thinking(local_args, u.state)
+         --self:_record_slow_think(timeout)
+      end
    end
 end
 
@@ -803,6 +794,7 @@ function ExecutionFrame:_stop_thinking_from_thinking()
    for _, unit in pairs(self._execution_units) do
       unit:_stop_thinking()
    end
+   self:_destroy_slow_timers()
    self:_set_state(STOPPED)
 end
 
@@ -813,6 +805,7 @@ function ExecutionFrame:_stop_thinking_from_ready()
       unit:_stop_thinking()
    end
    self:_set_active_unit(nil)
+   self:_destroy_slow_timers()
    self:_set_state(STOPPED)
 end
 
@@ -1082,6 +1075,7 @@ function ExecutionFrame:_stop_from_started()
       unit:_stop()
    end
    self:_set_active_unit(nil)
+   self:_destroy_slow_timers()
    self:_set_state(STOPPED)
 end
 
@@ -1090,6 +1084,7 @@ function ExecutionFrame:_stop_from_thinking()
    for _, unit in pairs(self._execution_units) do
       unit:_stop_thinking()
    end
+   self:_destroy_slow_timers()
    self:_set_state(STOPPED)
 end
 
@@ -1111,6 +1106,7 @@ function ExecutionFrame:_stop_from_running()
    for _, unit in pairs(self._execution_units) do
       unit:_stop()
    end
+   self:_destroy_slow_timers()
    self:_set_state(STOPPED)
 end
    
@@ -1121,6 +1117,7 @@ function ExecutionFrame:_stop_from_finished()
       self._log:detail('stopping execution unit "%s"', unit:get_name())
       unit:_stop(true)
    end
+   self:_destroy_slow_timers()
    self:_set_state(STOPPED)
 end
 
