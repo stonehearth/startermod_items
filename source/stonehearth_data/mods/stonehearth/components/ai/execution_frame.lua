@@ -69,8 +69,9 @@ local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
-local SLOWSTART_TIMEOUTS = {250, 750}
-local SLOWSTART_MAX_UNITS = {4, INFINITE}
+local FAST_START_MAX_UNITS = 3
+local SLOWSTART_TIMEOUTS = {500, 1500}
+local SLOWSTART_MAX_UNITS = {3, INFINITE}
 local SLOW_START_ENABLED = radiant.util.get_config('enable_ai_slow_start', true)
 radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED and "enabled" or "disabled")
 
@@ -519,6 +520,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    
    -- see which units we can restart and clone the state for them
 
+   local num_think_now = 0
    local fast_rethink_units = {}
    local slow_rethink_units = {}
    self._log:spam('partitioning units into fast and slow start sets (using slow start:%s)', self._slow_start_enabled)
@@ -526,56 +528,65 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    if self._rerun_unit and self._rerun_unit:get_state() ~= DEAD and self:_is_strictly_better_than_active(self._rerun_unit) then
       self._log:spam('adding rerun unit %s to fast_rethink_units', self._rerun_unit:get_name())      
       fast_rethink_units[self._rerun_unit] = self:_clone_entity_state('new speculation for unit')
+      num_think_now = 1
    else
       self._log:spam('no rerun unit found')
    end
 
-   -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
-   -- Anbody not rethinking right now gets added to the slow_rethink_units.
+   local sorted_units = {}
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
-         local new_state = self:_clone_entity_state('new speculation for unit')
-         local think_now = true
-
-         -- figure out whether this unit should think now or later.
-         if self._slow_start_enabled then
-            if self._rerun_unit and self._rerun_unit ~= unit then
-               -- realtime actions get to start right away, regardless of whether or not this is
-               -- a slow-start frame.
-               think_now = unit:get_action().realtime
-               if not think_now then
-                  -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
-                  -- we can easily starve important tasks from running.  Likewise, realtime tasks must be allowed to
-                  -- think, otherwise reacting to real-time events (e.g. combat) becomes borked.
-                  think_now = self._rerun_unit:get_priority() < unit:get_priority()
-               end
-            end
-         end
-
-         -- add the unit to the `fast_rethink_units` or `slow_rethink_units` list
-         if think_now then
-            self._log:spam('fast start unit %s', unit:get_name())
-            fast_rethink_units[unit] = new_state
-         else
-            self._log:spam('slow start unit %s', unit:get_name())
-            table.insert(slow_rethink_units, { unit = unit, state = new_state })
-         end
+         table.insert(sorted_units, unit)
       end
    end
 
-   self:_record_fast_think(rethinking_units)
-
-   -- Sort the slow_rethink_units, first by priority, then by number of times run.  This will
+   -- Sort all of our possible units, first by priority, then by number of times run.  This will
    -- ensure that higher-priority slow_rethink_units get to think first.
-   table.sort(slow_rethink_units, function(l, r)
-         if l.unit:get_priority() > r.unit:get_priority() then
+   table.sort(sorted_units, function(l, r)
+         if l:get_priority() > r:get_priority() then
             return true
-         elseif l.unit:get_priority() < r.unit:get_priority() then
+         elseif l:get_priority() < r:get_priority() then
             return false
          end
-         return l.unit._num_runs > r.unit._num_runs
+         return l._cost < r._cost
       end)
 
+   -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
+   -- Anbody not rethinking right now gets added to the slow_rethink_units.
+   for _, unit in pairs(sorted_units) do
+      local new_state = self:_clone_entity_state('new speculation for unit')
+      local think_now = true
+
+      -- figure out whether this unit should think now or later.
+      if self._slow_start_enabled then
+         -- realtime actions get to start right away, regardless of whether or not this is
+         -- a slow-start frame.
+         if not unit:get_action().realtime then
+            -- If we're not realtime, make sure we have room in the fast start queue!
+            if num_think_now < FAST_START_MAX_UNITS then
+               -- If we have room, then just make sure this unit is not lower priority than the rerun unit,
+               -- if the rerun unit exists.
+               if self._rerun_unit and self._rerun_unit ~= unit then
+                  think_now = self._rerun_unit:get_priority() < unit:get_priority()
+               end
+            else
+               think_now = false
+            end
+         end
+      end
+
+      -- add the unit to the `fast_rethink_units` or `slow_rethink_units` list
+      if think_now then
+         self._log:spam('fast start unit %s', unit:get_name())
+         fast_rethink_units[unit] = new_state
+         num_think_now = num_think_now + 1
+      else
+         self._log:spam('slow start unit %s', unit:get_name())
+         table.insert(slow_rethink_units, { unit = unit, state = new_state })
+      end
+   end
+
+   self:_record_fast_think(fast_rethink_units)
 
    -- Launch all our slow starts.  SLOWSTART_MAX_UNITS defines how many units per callback we should
    -- process, while SLOWSTART_TIMEOUTS defines the wait times for each callback.
