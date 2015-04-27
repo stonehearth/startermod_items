@@ -122,8 +122,18 @@ function lrbt_util.grow_wooden_walls(session, entity)
    return stonehearth.build:grow_walls(floor, WOODEN_COLUMN, WOODEN_WALL)
 end
 
-function lrbt_util.grow_wooden_roof(session, walls)
-   return stonehearth.build:grow_roof(walls, {
+function lrbt_util.grow_wooden_roof(session, arg1)
+   local root_wall
+   if arg1:get_component('stonehearth:wall') then
+      root_wall = arg1
+   elseif arg1:get_component('stonehearth:building') then
+      local structures = arg1:get_component('stonehearth:building')
+                                 :get_all_structures()
+      local _, entry = next(structures['stonehearth:wall'])
+      root_wall = entry.entity
+   end
+
+   return stonehearth.build:grow_roof(root_wall, {
          brush = WOODEN_ROOF,
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,

@@ -116,19 +116,23 @@ function Renderer:_update_region_debug_shape(id, origin, region, r, g, b)
 end
 
 function Renderer:_update_sm_debug_shapes(smd)
+   local current_shapes = {}
    for rid, rblock in pairs(smd.regions) do
       local r = _radiant.csg.get_default_rng():get_int(1, 255)
       local g = _radiant.csg.get_default_rng():get_int(1, 255)
       local b = _radiant.csg.get_default_rng():get_int(1, 255)
-      self:_update_region_debug_shape(rid, rblock.origin, rblock.region, r, g, b)
+      current_shapes[rid] = true
+      --self:_update_region_debug_shape(rid, rblock.origin, rblock.region, r, g, b)
    end
    for sid, sblock in pairs(smd.scaffolding) do
       local r = _radiant.csg.get_default_rng():get_int(1, 255)
       local g = _radiant.csg.get_default_rng():get_int(1, 255)
       local b = _radiant.csg.get_default_rng():get_int(1, 255)
+      current_shapes[sid] = true
+      self:_update_region_debug_shape(sid, sblock.origin, sblock.region, r, g, b)
    end
    for id, shape in pairs(self._debug_shapes) do
-      if not smd.regions[id] and not smd.scaffolding[id] then
+      if not current_shapes[id] then
          self._debug_shapes[id]:destroy()
          self._debug_shapes[id] = nil
          self._debug_shape_traces[id]:destroy()
