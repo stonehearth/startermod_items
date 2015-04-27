@@ -415,6 +415,10 @@ function HydrologyService:_create_water_body_internal(location, boxed_region, he
    local entity = radiant.entities.create_entity('stonehearth:terrain:water')
    log:debug('Creating water body %s at %s', entity, location)
 
+   local rcs_component = entity:add_component('region_collision_shape')
+   rcs_component:set_region(boxed_region)
+   rcs_component:set_region_collision_type( _radiant.om.RegionCollisionShape.NONE)
+
    local destination_component = entity:add_component('destination')
    destination_component:set_region(_radiant.sim.alloc_region3())
    destination_component:set_adjacent(_radiant.sim.alloc_region3())
@@ -425,6 +429,7 @@ function HydrologyService:_create_water_body_internal(location, boxed_region, he
    local id = entity:get_id()
    self._sv._water_bodies[id] = entity
    self._sv._channel_manager:allocate_channels(entity)
+
    radiant.terrain.place_entity_at_exact_location(entity, location)
 
    self.__saved_variables:mark_changed()

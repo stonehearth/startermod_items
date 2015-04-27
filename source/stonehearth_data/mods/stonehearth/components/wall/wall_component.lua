@@ -298,6 +298,16 @@ function Wall:layout()
    return self
 end
 
+function Wall:connect_to_roof(roof)
+   assert(not self._sv.roof)
+   self._sv.roof = roof
+   self.__saved_variables:mark_changed()
+end
+
+function Wall:get_roof(roof)
+   return self._sv.roof
+end
+
 -- reshapes the wall to connect to `column_a` and `column_b` pointing in the direction
 -- of `normal`.  this automatically orients the wall in the correct direction, meaning
 -- the actual wall position will either be near `column_a` or `column_b`, depending.
@@ -306,7 +316,7 @@ end
 --    @param column_b - the other column to attach the wall to
 --    @param normal - a Point3 pointing "outside" of the wall
 -- 
-function Wall:connect_to(column_a, column_b, normal)
+function Wall:connect_to_columns(column_a, column_b, normal)
    self._sv.normal = normal
    self._sv.pos_a = radiant.entities.get_location_aligned(column_a)
    self._sv.pos_b = radiant.entities.get_location_aligned(column_b)
@@ -315,10 +325,10 @@ function Wall:connect_to(column_a, column_b, normal)
    self.__saved_variables:mark_changed()
 
    column_a:get_component('stonehearth:column')
-               :connect_to(self._entity)
+               :connect_to_wall(self._entity)
 
    column_b:get_component('stonehearth:column')
-               :connect_to(self._entity)
+               :connect_to_wall(self._entity)
                
    self:_compute_wall_measurements()
    radiant.entities.move_to(self._entity, self._position)
@@ -420,8 +430,12 @@ function Wall:_compute_wall_shape(building)
       return Region3()
    end
 
-   return building:get_component('stonehearth:building')
-                     :grow_local_box_to_roof(self._entity, box)
+   local roof = self._sv.roof   
+   if roof then
+      return build_util.grow_local_box_to_roof(roof, self._entity, box)
+   end
+
+   return Region3(box)
 end
 
 
@@ -431,6 +445,9 @@ function Wall:save_to_template()
       pos_a = self._sv.pos_a,
       pos_b = self._sv.pos_b,
       brush = self._sv.brush,
+      roof = build_util.pack_entity(self._sv.roof),
+      column_a = build_util.pack_entity(self._sv.column_a),
+      column_b = build_util.pack_entity(self._sv.column_b),
       patch_wall_region = self._sv.patch_wall_region,
    }
 end
@@ -446,6 +463,10 @@ function Wall:load_from_template(data, options, entity_map)
    end
    self._sv.pos_a = Point3(data.pos_a.x, data.pos_a.y, data.pos_a.z)
    self._sv.pos_b = Point3(data.pos_b.x, data.pos_b.y, data.pos_b.z)
+   self._sv.roof  = build_util.unpack_entity(data.roof, entity_map)
+   self._sv.column_a  = build_util.unpack_entity(data.column_a, entity_map)
+   self._sv.column_b  = build_util.unpack_entity(data.column_b, entity_map)
+
    self.__saved_variables:mark_changed()
    self:_compute_wall_measurements()
 end

@@ -724,52 +724,6 @@ function build_util.edge_loop_to_region2(edges, bounds)
    return region2
 end
 
-function build_util.calculate_roof_shape(region2, options)
-   local slope = options.nine_grid_slope
-   local y_offset = options.nine_grid_y_offset
-   local gradiant = options.nine_grid_gradiant
-   local max_height = options.nine_grid_max_height
-
-   local brush = _radiant.voxel.create_nine_grid_brush(options.brush)
-                                 :set_grid_shape(region2)
-                                 :set_slope(slope or 1)
-
-   if max_height then
-      brush:set_max_height(max_height)
-   end
-   if y_offset then
-      brush:set_y_offset(y_offset)
-   end
-   if gradiant then
-      local flags = 0
-      for _, f in ipairs(gradiant) do
-         if f == "front" then
-            flags = flags + NineGridBrush.Front
-         elseif f == "back" then
-            flags = flags + NineGridBrush.Back
-         elseif f == "left" then
-            flags = flags + NineGridBrush.Left
-         elseif f == "right" then
-            flags = flags + NineGridBrush.Right
-         end
-      end
-      brush:set_gradiant_flags(flags)
-   end
-
-   --[[
-   if construction_data.grid9_tile_mode then
-      brush:set_grid9_tile_mode(construction_data.grid9_tile_mode)
-   end
-   if construction_data.grid9_slope_mode then
-      brush:set_grid9_tile_mode(construction_data.grid9_slope_mode)
-   end
-   ]]
-
-   brush:set_clip_whitespace(true)
-
-   return brush:paint_once()
-end
-
 function build_util.calculate_roof_shape_around_walls(root_wall, options)
    local last_edge_count, new_edge_count = 0, 0
    local edges, walls = {}, {}
@@ -789,7 +743,6 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
       -- inside this region which weren't added to the loop.
       local query_region = Region3()
       for rect in world_region2:each_cube() do
-         radiant.log.write('', 0, 'rect is %s', rect)
          assert(rect.min.x <= rect.max.x)
          assert(rect.min.y <= rect.max.y)
          local c = Cube3(Point3(rect.min.x, height - 1, rect.min.y),
@@ -817,7 +770,88 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
 
    local region2 = region2:inflated(Point2(2, 2))
                   
-   return world_origin, region2
+   return world_origin, region2, walls
+end
+
+
+function build_util.can_grow_roof_around_walls(walls)
+   local columns = {}
+   for _, wall in pairs(walls) do
+      local wc = wall:get_component('stonehearth:wall')
+      local roof = wc:get_roof()
+      if roof then
+         return false, 'stonehearth:build:error:already_connected', wall
+      end
+
+      for _, column in pairs({ wc:get_columns() }) do
+         local id = column:get_id()
+         if not columns[id] then
+            columns[id] = column
+            roof = column:get_component('stonehearth:column')
+                              :get_roof()
+            if roof then
+               return false, 'stonehearth:build:error:already_connected', column
+            end
+         end
+      end
+   end
+   return true, columns
+end
+
+function build_util.grow_local_box_to_roof(roof, entity, local_box)
+   checks('Entity', 'Entity', 'Cube3')
+
+
+   local roof_origin = radiant.entities.get_world_grid_location(roof)
+   local roof_region = roof:get_component('destination')
+                              :get_region()
+                                 :get()
+                                    :translated(roof_origin)
+
+   local origin = radiant.entities.get_world_grid_location(entity)
+   assert(origin)
+
+
+   local clipper = Cube3(local_box.min, local_box.max)
+   clipper.min.y = local_box.max.y
+   clipper.max.y = INFINITE
+   clipper:translate(origin)
+
+   local p0, p1 = local_box.min + origin, local_box.max + origin
+   local stencil = Cube3(Point3(p0.x, p1.y, p0.z),
+                         Point3(p1.x, INFINITE, p1.z))
+   
+   -- clip out the part above us..
+   local roof_overhang = roof_region:clipped(stencil)
+  
+   -- iterate through the overhang and merge shingle that are atop each
+   -- other
+   local merged_roof_overhang = Region3()
+
+   roof_overhang:force_optimize_by_defragmentation('grow local box to roof')
+   for shingle in roof_overhang:each_cube() do
+      local merged = Cube3(Point3(shingle.min.x, shingle.min.y, shingle.min.z),
+                           Point3(shingle.max.x, INFINITE,      shingle.max.z))
+      merged_roof_overhang:add_cube(merged)
+   end
+
+   local shape = Region3(local_box:translated(origin))
+
+   -- add the shape between the top of the wall and the bottom of the merged overhang
+   -- to the local box.
+   local merged_bounds = merged_roof_overhang:get_bounds()
+   local x0 = math.max(merged_bounds.min.x, p0.x)
+   local x1 = math.min(merged_bounds.max.x, p1.x)
+   local z0 = math.max(merged_bounds.min.z, p0.z)
+   local z1 = math.min(merged_bounds.max.z, p1.z)
+   if x1 > x0 and z1 > z0 then
+      local grow_bounds = Cube3(Point3(x0, p1.y, z0), Point3(x1, INFINITE, z1))
+      local grow_region = Region3(grow_bounds) - merged_roof_overhang
+      shape:add_region(grow_region)
+   end   
+   
+   -- translate back into local coordinates before returning
+   return shape:translated(-origin)
 end
 
 function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
