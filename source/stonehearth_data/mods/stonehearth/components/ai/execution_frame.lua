@@ -533,6 +533,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       self._log:spam('no rerun unit found')
    end
 
+   -- Don't even bother examining units which are not strictly better than any active we might have.
    local sorted_units = {}
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
@@ -540,7 +541,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       end
    end
 
-   -- Sort all of our possible units, first by priority, then by number of times run.  This will
+   -- Sort all of our possible units, first by priority, then by cost.  This will
    -- ensure that higher-priority slow_rethink_units get to think first.
    table.sort(sorted_units, function(l, r)
          if l:get_priority() > r:get_priority() then
