@@ -789,7 +789,6 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
       -- inside this region which weren't added to the loop.
       local query_region = Region3()
       for rect in world_region2:each_cube() do
-         radiant.log.write('', 0, 'rect is %s', rect)
          assert(rect.min.x <= rect.max.x)
          assert(rect.min.y <= rect.max.y)
          local c = Cube3(Point3(rect.min.x, height - 1, rect.min.y),
