@@ -7,7 +7,6 @@ DefendDispatcher.does = 'stonehearth:combat'
 DefendDispatcher.args = {}
 DefendDispatcher.version = 2
 DefendDispatcher.priority = constants.priorities.combat.ACTIVE
-DefendDispatcher.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(DefendDispatcher)

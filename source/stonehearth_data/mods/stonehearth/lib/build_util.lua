@@ -275,6 +275,12 @@ end
 
 
 function build_util.get_building_for(entity)
+   checks('Entity')
+
+   if entity:get_component('stonehearth:building') then
+      return entity
+   end
+
    if entity and entity:is_valid() then
       local _, blueprint, _ = build_util.get_fbp_for(entity)
       if blueprint then
@@ -283,6 +289,15 @@ function build_util.get_building_for(entity)
             return cp:get_building_entity()
          end
       end
+   end
+end
+
+function build_util.get_building_envelope_for(entity)
+   local building = build_util.get_building_for(entity)
+   if building then
+      local envelope = building:get_component('stonehearth:building')
+                                    :get_building_envelope()
+      return envelope, building
    end
 end
 
@@ -841,6 +856,50 @@ function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricat
       building:get_component('stonehearth:building')
                   :add_structure(blueprint)
    end
+end
+
+
+-- removes all regions from entities `entity` depends on from `region`
+--
+local function clip_dependant_regions_from_recursive(building, blueprint, blueprint_origin, region, visited)
+   checks('Entity', 'Entity', 'Point3', 'Region3', 'table')
+   
+   local id = blueprint:get_id()
+   if visited[id] then
+      return
+   end
+   blueprint[id] = true
+
+   local bc = building:get_component('stonehearth:building')
+   
+   for _, dep in bc:each_dependency(blueprint) do
+      local dep_origin = radiant.entities.get_world_grid_location(dep)
+      local offset = dep_origin - blueprint_origin
+      local dep_region = dep:get_component('destination')
+                              :get_region()
+                                 :get()
+                                    :translated(offset)
+      region:subtract_region(dep_region)
+
+      clip_dependant_regions_from_recursive(building, dep, dep_origin, region, visited)
+   end
+end
+
+-- removes all regions from entities `entity` depends on from `region`
+--
+function build_util.clip_dependant_regions_from(entity, region)
+   checks('Entity', 'Region3')
+
+   local blueprint = build_util.get_blueprint_for(entity)
+   if not blueprint then
+      return
+   end
+   local building = build_util.get_building_for(entity)
+   if not building then
+      return
+   end
+   local origin = radiant.entities.get_world_grid_location(blueprint)
+   clip_dependant_regions_from_recursive(building, blueprint, origin, region, {})
 end
 
 return build_util

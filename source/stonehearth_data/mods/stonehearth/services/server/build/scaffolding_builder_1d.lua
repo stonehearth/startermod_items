@@ -62,6 +62,15 @@ function ScaffoldingBuilder_OneDim:activate()
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
       end)
+
+   if self._sv.active then
+      self:_trace_blueprint_and_project()
+      
+      -- for performance reasons, we don't update our regions synchronously.  this creates a race
+      -- where our region may be out of date when the application is closed by the user (or crashes!).
+      -- so if we're restoring while active, unconditionally mark us as dirty.
+      self:_mark_dirty()
+   end
 end
 
 function ScaffoldingBuilder_OneDim:destroy()
@@ -300,7 +309,17 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    region = _physics:clip_region(region, CLIP_SOLID)
    region:translate(-origin)
 
-   -- finally, copy into the cursor
+   -- finally, make sure we don't build scaffolding on top of things which
+   -- have been built in the past.  for example, if we're a slab connected
+   -- to a wall to form a balcony, don't build scaffolding for the edge
+   -- which is connected to the wall.  building scaffolding for things which
+   -- must be built in the future is ok.  otherwise we wouldn't be able to
+   -- complete the wall that the slab is attached to!  this makes scaffolding
+   -- somewhat magical from a collision perspective, but oh well!  people
+   -- can already walk right through it, so why not other building parts, too?
+   build_util.clip_dependant_regions_from(self._sv.entity, region)
+
+   -- copy into the cursor in one big :modify() at the end
    self._sv.scaffolding_rgn:modify(function(cursor)
          cursor:copy_region(region)
       end)

@@ -10,7 +10,6 @@ Flee.args = {
 Flee.version = 2
 Flee.priority = 1
 Flee.weight = 10
-Flee.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Flee)

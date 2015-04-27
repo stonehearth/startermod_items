@@ -7,7 +7,6 @@ CombatIdleDispatcher.does = 'stonehearth:combat'
 CombatIdleDispatcher.args = {}
 CombatIdleDispatcher.version = 2
 CombatIdleDispatcher.priority = constants.priorities.combat.IDLE
-CombatIdleDispatcher.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(CombatIdleDispatcher)

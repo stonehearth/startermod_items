@@ -35,7 +35,7 @@ function TemplateEditor:_restore_template(template_name)
       -- all the points which need to be unblocked above the service.  the other includes all the
       -- points that must be solid below the surface (to support the building)
       local bc = self._building:get_component('stonehearth:building')
-      local footprint = bc:get_building_footprint()
+      local footprint = bc:get_building_envelope()
 
       self._surface_region = Region3(footprint)
       self._surface_region:subtract_cube(UNDERGROUND)

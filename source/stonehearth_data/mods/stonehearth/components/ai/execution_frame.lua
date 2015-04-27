@@ -147,6 +147,8 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._state = STOPPED
    self._rerun_unit = nil
    self._ai_component = entity:get_component('stonehearth:ai')
+   self._slow_start_enabled = SLOW_START_ENABLED and
+                              stonehearth.constants.ai.SLOW_START_ACTIVITIES[activity_name] or false
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
@@ -517,40 +519,43 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    
    -- see which units we can restart and clone the state for them
 
-   local rethinking_units = {}
+   local fast_rethink_units = {}
+   local slow_rethink_units = {}
+   self._log:spam('partitioning units into fast and slow start sets (using slow start:%s)', self._slow_start_enabled)
+
    if self._rerun_unit and self._rerun_unit:get_state() ~= DEAD and self:_is_strictly_better_than_active(self._rerun_unit) then
-      self._log:spam('adding rerun unit %s', self._rerun_unit:get_name())      
-      rethinking_units[self._rerun_unit] = self:_clone_entity_state('new speculation for unit')
+      self._log:spam('adding rerun unit %s to fast_rethink_units', self._rerun_unit:get_name())      
+      fast_rethink_units[self._rerun_unit] = self:_clone_entity_state('new speculation for unit')
    else
       self._log:spam('no rerun unit found')
    end
 
    -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
    -- Anbody not rethinking right now gets added to the slow_rethink_units.
-   local slow_rethink_units = {}
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
          local new_state = self:_clone_entity_state('new speculation for unit')
          local think_now = true
 
          -- figure out whether this unit should think now or later.
-         if SLOW_START_ENABLED then
+         if self._slow_start_enabled then
             if self._rerun_unit and self._rerun_unit ~= unit then
-               -- realtime actions get to start right away
-               think_now = unit:get_action().realtime  
+               -- realtime actions get to start right away, regardless of whether or not this is
+               -- a slow-start frame.
+               think_now = unit:get_action().realtime
                if not think_now then
-               -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
-               -- we can easily starve important tasks from running.  Likewise, realtime tasks must be allowed to
-               -- think, otherwise reacting to real-time events (e.g. combat) becomes borked.
+                  -- Higher-priority units than our re-run unit MUST be allowed to run ASAP.  Otherwise,
+                  -- we can easily starve important tasks from running.  Likewise, realtime tasks must be allowed to
+                  -- think, otherwise reacting to real-time events (e.g. combat) becomes borked.
                   think_now = self._rerun_unit:get_priority() < unit:get_priority()
                end
             end
          end
 
-         -- add the unit to the `rethinking_units` or `slow_rethink_units` list
+         -- add the unit to the `fast_rethink_units` or `slow_rethink_units` list
          if think_now then
             self._log:spam('fast start unit %s', unit:get_name())
-            rethinking_units[unit] = new_state
+            fast_rethink_units[unit] = new_state
          else
             self._log:spam('slow start unit %s', unit:get_name())
             table.insert(slow_rethink_units, { unit = unit, state = new_state })
@@ -612,7 +617,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    local current_state = self._state  
    local current_active_unit = self._active_unit
 
-   for unit, entity_state in pairs(rethinking_units) do
+   for unit, entity_state in pairs(fast_rethink_units) do
       self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
                         unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
       assert(unit._state == 'stopped' or unit._state == 'thinking' or unit._state == 'ready')
@@ -858,7 +863,7 @@ function ExecutionFrame:_stop_thinking_from_started()
       if unit == self._active_unit then
          -- nothing to do!
       elseif not self:_is_strictly_better_than_active(unit) then
-         self._log:debug('%s is running, so calling stop_thinking on %s.', self._active_unit:get_name(), unit:get_name())
+         self._log:debug('%s is active unit, so calling stop_thinking on %s.', self._active_unit:get_name(), unit:get_name())
          unit:_stop_thinking() -- this guy has no prayer...  just stop
       else
          self._log:debug('letting %s continue thinking while %s is running.', unit:get_name(), self._active_unit:get_name())
