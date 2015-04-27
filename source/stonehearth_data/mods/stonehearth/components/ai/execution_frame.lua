@@ -401,22 +401,61 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
-function ExecutionFrame:_record_slow_think(timeout)
-   local counts = EF_STATS[self._activity_name]
-   if not counts then
-      counts = {
-         slow = 0,
-         really_slow = 0,
-      }
-      EF_STATS[self._activity_name] = counts
+
+if radiant.util.get_config('enable_ef_stats', false) then
+   function ExecutionFrame:_record_fast_think(units)
+      local counts = EF_STATS[self._activity_name]
+      if not counts then
+         counts = {
+            fast = {},
+            slow = {},
+            really_slow = {},
+         }
+         EF_STATS[self._activity_name] = counts
+      end
+
+      local unit_count = 0
+      for _, __ in pairs(units) do
+         unit_count = unit_count + 1
+      end
+
+      if unit_count > 10 then
+         local data = {}
+         for unit, _ in pairs(units) do
+            table.insert(data, unit:get_action().name .. ':' .. unit:get_priority())
+         end
+         table.insert(counts.fast, data)
+      end
    end
-   if timeout == SLOWSTART_TIMEOUTS[1] then
-      counts.slow = counts.slow + 1
-   else
-      counts.really_slow = counts.really_slow + 1
+
+   function ExecutionFrame:_record_slow_think(timeout, unit)
+      local countlist = EF_STATS[self._activity_name]
+      if not countlist then
+         countlist = {
+            fast = {},
+            slow = {},
+            really_slow = {},
+         }
+         EF_STATS[self._activity_name] = countlist
+      end
+      local counts = countlist.slow
+      if timeout == SLOWSTART_TIMEOUTS[2] then
+         counts = countlist.really_slow
+      end
+
+      local count = counts[unit:get_action().name]
+      if not count then
+         counts[unit:get_action().name] = 1
+      else
+         counts[unit:get_action().name] = count + 1
+      end
+   end
+else
+   function ExecutionFrame:_record_slow_think(timeout, unit)
+   end
+   function ExecutionFrame:_record_fast_think(units)
    end
 end
-
 function ExecutionFrame:_destroy_slow_timers()
    for _, timer in pairs(self._slow_start_timers) do
       timer:destroy()
@@ -441,7 +480,7 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
          -- If this frame is running/getting ready to run, only think units with > priority than currently active.
          self._log:spam('slow start thinking on %s', u.unit:get_name())
          u.unit:_start_thinking(local_args, u.state)
-         --self:_record_slow_think(timeout)
+         self:_record_slow_think(timeout, u.unit)
       end
    end
 end
@@ -518,6 +557,8 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
          end
       end
    end
+
+   self:_record_fast_think(rethinking_units)
 
    -- Sort the slow_rethink_units, first by priority, then by number of times run.  This will
    -- ensure that higher-priority slow_rethink_units get to think first.
