@@ -52,19 +52,28 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
          radiant.exit(1)
       end
 
-      autotest_framework.set_finish_cb(function(errorcode)
-            radiant.exit(errorcode)
-         end)
-
+      local run_forever = false
+      
       autotest_framework.env.set_world_generator_script(world.world_generator)
-
-      radiant.set_realtime_timer(3000, function()
+      
+      local function run_autotests()
          if group then
             local all_groups = world
             autotest_framework.run_group(all_groups, group)
          elseif script then
             autotest_framework.run_script(script, options['function'])
          end
+      end
+      autotest_framework.set_finish_cb(function(errorcode)
+            if errorcode ~= 0 or not run_forever then
+               radiant.exit(errorcode)
+            end
+            radiant.set_realtime_timer(0, function()
+                  run_autotests()
+               end)
+         end)
+      radiant.set_realtime_timer(3000, function()
+         run_autotests()
       end)
    end)
 
