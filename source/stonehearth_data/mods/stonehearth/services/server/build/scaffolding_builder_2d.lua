@@ -10,7 +10,6 @@ local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
 local TraceCategories = _radiant.dm.TraceCategories
 
-local log = radiant.log.create_logger('scaffolding_builder')
 local INFINITE = 1000000
 
 local ScaffoldingBuilder_TwoDim = class()
@@ -64,10 +63,19 @@ function ScaffoldingBuilder_TwoDim:activate()
    self._log = radiant.log.create_logger('build.scaffolding.2d')
                               :set_entity(entity)
                               :set_prefix('s2d:' .. tostring(self._sv.id) .. ' ' .. self._debug_text)
+
+   radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
+         self._sv.manager:_remove_builder(self._sv.id)
+      end)                              
 end
 
 function  ScaffoldingBuilder_TwoDim:set_teardown(teardown)
    self._sv.teardown = teardown
+   self.__saved_variables:mark_changed()
+
+   for builder, _ in pairs(self._sv.builders) do
+      builder:set_teardown(teardown)
+   end
 end
 
 function  ScaffoldingBuilder_TwoDim:set_active(active)
@@ -94,7 +102,7 @@ function ScaffoldingBuilder_TwoDim:_update_status()
 end
 
 function ScaffoldingBuilder_TwoDim:_create_builders()
-   local footprint = self:_get_footprint(self._sv.blueprint_rgn)
+   local footprint = self:_get_footprint()
    local edges = footprint:get_edge_list()
    
    for edge in edges:each_edge() do
@@ -127,10 +135,12 @@ function ScaffoldingBuilder_TwoDim:get_scaffolding_region()
    return nil
 end
 
-function ScaffoldingBuilder_TwoDim:_get_footprint(blueprint_rgn)
+function ScaffoldingBuilder_TwoDim:_get_footprint()
    -- calculate the local footprint of the floor.
+   local blueprint_rgn = self._sv.blueprint_rgn:get()
+
    local footprint = Region2()
-   for cube in blueprint_rgn:get():each_cube() do
+   for cube in blueprint_rgn:each_cube() do
       local rect = Rect2(Point2(cube.min.x, cube.min.z),
                          Point2(cube.max.x, cube.max.z))
       footprint:add_cube(rect)

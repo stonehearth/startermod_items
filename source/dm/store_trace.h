@@ -8,7 +8,7 @@ BEGIN_RADIANT_DM_NAMESPACE
 class StoreTrace : public std::enable_shared_from_this<StoreTrace>
 {
 public:
-   typedef std::function<void(ObjectPtr)> AllocedCb;
+   typedef std::function<void(ObjectPtr const&)> AllocedCb;
    typedef std::function<void(Object const*)> RegisteredCb;
    typedef std::function<void(ObjectId)> ModifiedCb;
    typedef std::function<void(ObjectId, bool dynamic)> DestroyedCb;
@@ -24,7 +24,7 @@ public:
 
 protected:
    friend Store;
-   void SignalAllocated(ObjectPtr obj);
+   void SignalAllocated(ObjectPtr const& obj);
    void SignalRegistered(Object const* obj);
    void SignalModified(ObjectId id);
    void SignalDestroyed(ObjectId id, bool dynamic);

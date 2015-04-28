@@ -1,5 +1,4 @@
 local Entity = _radiant.om.Entity
-local DataStore = _radiant.om.DataStore
 
 local ExecutionUnitV2 = radiant.class()
 
@@ -24,7 +23,7 @@ local ObjectMonitor = require 'components.ai.object_monitor'
 function ExecutionUnitV2._dump_and_reset_stats()
    local stats_copy = EU_STATS
    EU_STATS = {}
-   _host:report_cpu_dump(stats_copy)
+   _host:report_cpu_dump(stats_copy, 'eu_stats')
 end
 
 radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionUnitV2._dump_and_reset_stats)
@@ -66,6 +65,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('set_cost')
    chain_function('protect_argument')
    chain_function('unprotect_argument')
+   chain_function('set_debug_progress')
   
    local actions = {
       -- for filters only   
@@ -165,6 +165,7 @@ function ExecutionUnitV2:get_debug_info(depth)
             o.state = self._state
             o.name = self._action.name
             o.action = self:_get_action_debug_info(o.depth)
+            o.progress = self._debug_progress
          end)
       self:_update_debug_info_execution_frame()
    end
@@ -693,7 +694,7 @@ function ExecutionUnitV2:_enable_argument_protection(object_monitor, obj, protec
       protected_obj = obj
    elseif radiant.util.is_instance(obj) then
       local datastore = obj.__saved_variables
-      if radiant.util.is_a(datastore, DataStore) and datastore:is_valid() then
+      if radiant.util.is_datastore(datastore) and datastore:is_valid() then
          protected_obj = datastore
       end
    end
@@ -719,6 +720,20 @@ end
 
 function ExecutionUnitV2:__set_status_text(format, ...)
    self._ai_component:set_status_text(string.format(format, ...))
+end
+
+function ExecutionUnitV2:__set_debug_progress(format, ...)
+   if format then
+      self._debug_progress = radiant.log.format(format, ...)
+      self._log:info('debug progress: ' .. self._debug_progress)
+   else
+      self._debug_progress = nil
+   end
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+            o.progress = self._debug_progress
+         end)
+   end   
 end
 
 function ExecutionUnitV2:__execute(activity_name, args)

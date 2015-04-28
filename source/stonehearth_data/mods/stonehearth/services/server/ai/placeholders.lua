@@ -96,6 +96,18 @@ local BACK = {
    end
 }
 
+local NOT = {
+   eval = function (p, compound_action)
+      return function(b)
+         assert(type(b) == 'boolean')
+         return not b
+      end
+   end,
+   tostring = function()
+      return 'ENTITY'
+   end
+}
+
 local CURRENT = {
    eval = function (p, compound_action)
       return compound_action:_get_current_entity_state()
@@ -118,6 +130,7 @@ return {
    ARGS = create_placeholder(ARGS),
    PREV = create_placeholder(PREV),
    BACK = create_placeholder(BACK),
+   NOT = create_placeholder(NOT),
    CURRENT = create_placeholder(CURRENT),
    ENTITY = create_placeholder(ENTITY),
    INVALID_PLACEHOLDER = INVALID_PLACEHOLDER,

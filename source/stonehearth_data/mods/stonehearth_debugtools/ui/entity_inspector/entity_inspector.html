@@ -48,11 +48,20 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="executionFrame">
+   <div class="row" {{bind-attr row_id="id"}}>
+      {{{view.model.id}}} 
+      <span id="state" {{bind-attr class="view.model.state"}} {{bind-attr style="view.styleOverride"}}>{{{view.model.activity.name}}} </span>
+   </div>
+
    {{#each unit in view.model.execution_units}}
       {{#view "stonehearthExecutionUnit" uriBinding="unit" }}
          <div class="row" {{bind-attr row_id="id"}}>
-            <span id="state" {{bind-attr class="view.model.state"}} {{bind-attr style="view.styleOverride"}}> {{{view.model.action.name}}} </span>
-            <span id="activity" class="activity"> - {{{view.model.action.does}}} </span>
+            {{{view.model.id}}} 
+            <span id="state" {{bind-attr class="view.model.state"}} {{bind-attr style="view.styleOverride"}}>{{{view.model.action.name}}} </span>
+            <span id="activity" class="activity"> - {{{view.model.action.does}}} </span> <br>
+            {{#if view.model.progress }}
+            {{{view.model.id}}} <span {{bind-attr style="view.styleOverride"}}>{{{view.model.progress}}}</span>
+            {{/if}}
          </div> 
          {{#each frame in view.model.action.execution_frames}}
             {{ view "stonehearthExecutionFrame" uriBinding="frame" }}

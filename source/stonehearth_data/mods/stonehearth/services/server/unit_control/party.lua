@@ -29,34 +29,25 @@ function Party:initialize(unit_controller, player_id, id, ord)
    self._sv.leash_range = 10
    self._sv.player_id = player_id
    self._party_tasks = {}
-
-   self:restore()
 end
 
-function Party:restore()
+function Party:activate()
    local player_id = self._sv.unit_controller:get_player_id()
    local scheduler = stonehearth.tasks:create_scheduler(player_id)   
 
-   self._party_tg = scheduler:create_task_group('stonehearth:party', {})
+   self._party_tg = scheduler:create_task_group('stonehearth:combat', {})
    for _, entry in pairs(self._sv.members) do
       self._party_tg:add_worker(entry.entity)
    end
 
    self._party_priorities = stonehearth.constants.priorities.party
 
-   self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
-                                                :set_priority(self._party_priorities.HOLD_FORMATION)
-                                                :start()
-
    self._town = stonehearth.town:get_town(self._sv.player_id)
    self:_create_listeners()
+   self:_update_party()
 end
 
 function Party:destroy()
-   if self._hold_formation_task then
-      self._hold_formation_task:destroy()
-      self._hold_formation_task = nil
-   end
    if self._party_tg then
       self._party_tg:destroy()
       self._party_tg = nil
@@ -176,6 +167,8 @@ end
 
 function Party:add_task(activity, args)
    local task = self._party_tg:create_task(activity, args)
+                              :set_priority(stonehearth.constants.priorities.combat.PARTY_TASK)
+
    table.insert(self._party_tasks, task)
    return task
 end
@@ -186,29 +179,66 @@ function Party:_get_next_id()
    return id
 end
 
-function Party:place_banner(type, location, rotation)
-   location = radiant.terrain.get_standable_point(location)
+function Party:_change_banner(type, location, movement_type)
+   checks('self', 'string', 'Point3', 'string')
    self._sv.banners[type] = {
       type = type,
       location = location,
+      movement_type = movement_type,
    }
-   self.__saved_variables:mark_changed()
-   self:_update_leashes()
+   self.__saved_variables:mark_changed()   
+   self:_update_party()
+end
 
-   radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
-         type = type,
-         location = location,
-      })
+function Party:place_banner(type, location, rotation)
+   -- legacy banner stuff
+   self:_change_banner(type, location, 'passive')
+end
+
+function Party:attack_move_to(location)
+   self:_change_banner(Party.ATTACK, location, 'aggressive')
 end
 
 function Party:remove_banner(type)
    self._sv.banners[type] = nil
    self.__saved_variables:mark_changed()
-   self:_update_leashes()
+   self:_update_party()
 
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = type
       })
+end
+
+function Party:_update_party()
+   self:_update_tasks()
+   self:_update_leashes()
+end
+
+function Party:_update_tasks()
+   if self._movement_task then
+      self._movement_task:destroy()
+      self._movement_task = nil
+   end
+
+   local banner = self:get_active_banner()   
+   if banner then
+      local priority = 1
+      local activity = 'stonehearth:party:move_to_banner'
+      local args = {
+         party = self,
+         location = banner.location,
+      }
+
+      if banner.movement_type == 'passive' then
+         priority = stonehearth.constants.priorities.combat.PARTY_PASSIVE_FORMATION
+      else
+         priority = stonehearth.constants.priorities.combat.PARTY_AGGRESSIVE_FORMATION
+      end
+      radiant.log.write('', 0, 'priority is %d', priority)
+      self._movement_task = self._party_tg:create_task(activity, args)
+                                                   :set_priority(priority)
+                                                   :start()
+   end
 end
 
 function Party:_update_leashes()
@@ -220,7 +250,7 @@ function Party:_update_leashes()
          entry.leash:destroy()
          entry.leash = nil
       end
-      if banner then
+      if banner and banner.movement_type == 'passive' then
          cs:set_attack_leash(banner.location, self._sv.leash_range)
       else
          cs:remove_attack_leash()
@@ -235,7 +265,7 @@ function Party:_create_listeners()
 end
 
 function Party:_check_town_defense_mode()
-   self:_update_leashes()
+   self:_update_party()
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = 'defend'
       })   

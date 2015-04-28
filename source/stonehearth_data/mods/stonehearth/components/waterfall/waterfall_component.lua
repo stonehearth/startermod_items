@@ -32,33 +32,70 @@ function WaterfallComponent:destroy()
 end
 
 function WaterfallComponent:set_source(source)
+   if self._sv.source == source then
+      return
+   end
+
    self._sv.source = source
    self.__saved_variables:mark_changed()
 end
 
 function WaterfallComponent:set_target(target)
+   if self._sv.target == target then
+      return
+   end
+
    self._sv.target = target
    self.__saved_variables:mark_changed()
 
    self:_trace_target()
 end
 
-function WaterfallComponent:set_height(height)
-   if height == self._sv.height then
+-- world coordinates
+function WaterfallComponent:set_top_elevation(top_elevation)
+   if self._sv.top_elevation == top_elevation then
       return
    end
 
-   assert(height >= 0)
-   self._sv.height = height
+   self._sv.top_elevation = top_elevation
+   self:_update_region()
+   self.__saved_variables:mark_changed()
+end
+
+-- world coordinates
+function WaterfallComponent:set_bottom_elevation(bottom_elevation)
+   if self._sv.bottom_elevation == bottom_elevation then
+      return
+   end
+
+   self._sv.bottom_elevation = bottom_elevation
+   self:_update_region()
+   self.__saved_variables:mark_changed()
+end
+
+function WaterfallComponent:_update_region()
+   local cube = nil
+
+   if self._sv.top_elevation and self._sv.bottom_elevation then
+      local location = radiant.entities.get_world_grid_location(self._entity)
+      local top = self._sv.top_elevation - location.y
+      local bottom = self._sv.bottom_elevation - location.y
+
+      if bottom > top then
+         bottom = top
+      end
+
+      cube = Cube3(Point3.zero)
+      cube.max.y = top
+      cube.min.y = bottom
+   end
+
    self._sv.region:modify(function(cursor)
          cursor:clear()
-         cursor:add_cube(
-            Cube3(
-               -- note that the location of the waterfall entity is at the TOP of the region
-               Point3(0, -height, 0),
-               Point3(1, 0, 1)
-            )
-         )
+
+         if cube then
+            cursor:add_cube(cube)
+         end
       end)
    self.__saved_variables:mark_changed()
 end
@@ -103,10 +140,8 @@ function WaterfallComponent:_update()
    end
 
    local target_water_component = target:add_component('stonehearth:water')
-   local water_level = target_water_component:get_water_level()
-   local waterfall_location = radiant.entities.get_world_grid_location(self._entity)
-   local height = waterfall_location.y - water_level
-   self:set_height(height)
+   local target_water_level = target_water_component:get_water_level()
+   self:set_bottom_elevation(target_water_level)
 end
 
 return WaterfallComponent

@@ -10,7 +10,6 @@ Cower.args = {
 Cower.version = 2
 Cower.priority = 1
 Cower.weight = 2
-Cower.realtime = true
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Cower)

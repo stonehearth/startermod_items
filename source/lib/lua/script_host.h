@@ -17,7 +17,7 @@ BEGIN_RADIANT_LUA_NAMESPACE
 
 class ScriptHost {
 public:
-   typedef std::function<om::DataStoreRef(int storeId)> AllocDataStoreFn;
+   typedef std::function<om::DataStorePtr()> AllocDataStoreFn;
 public:
    ScriptHost(std::string const& site);
    ~ScriptHost();
@@ -114,7 +114,7 @@ private:
    bool WriteObject(const char* modname, const char* objectName, luabind::object o);
    luabind::object ReadObject(const char* modname, const char* objectName);
    luabind::object EnumObjects(const char* modname, const char* path);
-   void ReportCPUDump(luabind::object profTable);
+   void ReportCPUDump(luabind::object profTable, std::string const& name);
    
    typedef std::unordered_map<std::string, luabind::object> ModuleMap;
 

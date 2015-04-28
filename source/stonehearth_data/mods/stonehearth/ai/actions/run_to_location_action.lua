@@ -20,7 +20,7 @@ return ai:create_compound_action(RunToLocation)
             location = ai.ARGS.location,
             options = {
                debug_text = ai.ARGS.reason,
-               add_item_destination = ai.ARGS.stop_when_adjacent,
+               add_item_destination = ai.NOT(ai.ARGS.stop_when_adjacent),
             }
          })
          :execute('stonehearth:goto_entity', {

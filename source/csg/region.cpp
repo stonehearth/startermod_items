@@ -1011,8 +1011,7 @@ Cube<S, C> Region<S, C>::GetBounds() const
    Cube bounds = cubes_[0];
    int i, c = (int)cubes_.size();
    for (i = 1; i < c; i++) {
-      bounds.Grow(cubes_[i].GetMin());
-      bounds.Grow(cubes_[i].GetMax());
+      bounds.Grow(cubes_[i]);
    }
    return bounds;
 }

@@ -103,9 +103,12 @@ local constants = {
       },
 
       combat = {
-         IDLE = 1,
-         ACTIVE = 10,
-         PANIC = 20,
+         IDLE                       = 1,
+         PARTY_AGGRESSIVE_FORMATION = 2,
+         ACTIVE                     = 10,
+         PARTY_PASSIVE_FORMATION    = 15,
+         PARTY_TASK                 = 16,
+         PANIC                      = 20,
       },
 
       urgent = {
@@ -201,7 +204,6 @@ local constants = {
       ALERT  = 900,         
       SLEEPY = 100,
       HUNGRY = 50,
-      PARTY_FORMATION = 10,
    },
 
    --Constants that contribute to the scoare
@@ -272,6 +274,17 @@ local constants = {
       MERGE_VOLUME_THRESHOLD = 1,       -- how much water has to flow to equalize water levels for a merge
       EDGE_AREA_LIMIT = 64,
    },
+
+   ai = {
+      -- the following activities will 'slow start', meaning the execution unit which was chosen
+      -- previously will get the first crack at running before the others are allowed to go.  this
+      -- applies to every execution unit run by the frame at this level.
+      SLOW_START_ACTIVITIES = {
+         ['stonehearth:simple_labor'] = true,
+         ['stonehearth:mining'] = true,
+         ['stonehearth:farm'] = true,
+      }
+   }
 }
 
 constants.construction.DEAFULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]

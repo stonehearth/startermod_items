@@ -18,7 +18,7 @@ public:
 
 public: // Streamer Object Interafce 
    template <typename T> void TraceObject(T const* obj);
-   void OnAlloced(ObjectPtr object);
+   void OnAlloced(ObjectPtr const& object);
    void OnModified(Object const* obj);
    void OnDestroyed(ObjectId obj, bool dynamic);
 

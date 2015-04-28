@@ -187,6 +187,10 @@ function env.create_trapping_grounds(x, z, options)
    return stonehearth.trapping:create_trapping_grounds(player_id, location, size)
 end
 
+function env.create_shepherd_pasture(x, z, x_size, z_size)
+   return stonehearth.shepherd:create_new_pasture(env.session, Point3(x, 1, z), {x = x_size, z = z_size})
+end
+
 function env.equip_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
    radiant.entities.equip_item(entity, weapon)

@@ -9,7 +9,6 @@ DefendMelee.args = {}
 DefendMelee.version = 2
 DefendMelee.priority = 2
 DefendMelee.weight = 1
-DefendMelee.realtime = true
 
 function DefendMelee:__init(entity)
 end

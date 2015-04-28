@@ -4,6 +4,7 @@
 #define RADIANT_LOG_CATEGORIES \
    ADD_CATEGORY(browser) \
    ADD_CATEGORY(test) \
+   ADD_CATEGORY(typeinfo) \
    ADD_CATEGORY(network) \
    ADD_CATEGORY(deferred) \
    BEGIN_GROUP(client) \

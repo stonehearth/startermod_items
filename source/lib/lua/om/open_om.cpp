@@ -3,6 +3,7 @@
 #include "open.h"
 #include "om/all_objects.h"
 #include "om/all_components.h"
+#include "om/components/data_store_ref_wrapper.h"
 #include "lib/lua/script_host.h"
 #include "om/lua/lua_om.h"
 
@@ -16,6 +17,12 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
       if (node.type() == JSON_STRING) {
          dm::ObjectPtr obj = store.FetchObject<dm::Object>(node.as_string());
          if (obj) {
+
+            // See the comments in type_registry.cpp about DataStores for the method to this madness...
+            if (obj->GetObjectType() == om::DataStore::DmType) {
+               return object(L, om::DataStoreRefWrapper(std::static_pointer_cast<om::DataStore>(obj)));  
+            }
+
 #define OM_OBJECT(Cls, lower) \
             case Cls ## ObjectType: \
                return object(L, std::weak_ptr<Cls>(std::static_pointer_cast<Cls>(obj)));

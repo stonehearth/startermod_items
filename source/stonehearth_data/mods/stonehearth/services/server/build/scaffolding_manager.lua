@@ -57,6 +57,8 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    checks('self', 'string', 'Entity', 'Region3Boxed', 'Region3Boxed', '?Point3', 'boolean')
    
    local rid = self:_get_next_id()
+
+   log:detail('creating %s for %s (rid:%d)', builder_type, requestor, rid)
    local builder = radiant.create_controller(builder_type, self, rid, requestor, blueprint_rgn, project_rgn, normal, stand_at_base)
    
    self._sv.builders[rid] = builder
@@ -65,8 +67,16 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
    return builder
 end
 
-function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, blueprint_region, region, normal)
-   checks('self', 'number', 'string', 'Entity', 'Point3', 'Region3Boxed', 'Region3Boxed', 'Point3')
+function ScaffoldingManager:_remove_builder(bid)
+   if self._sv.builders[bid] then
+      self._sv.builders[bid]:destroy()
+      self._sv.builders[bid] = nil
+   end
+   self.__saved_variables:mark_changed()
+end
+
+function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, blueprint_region, blueprint_clip_box, region, normal)
+   checks('self', 'number', 'string', 'Entity', 'Point3', 'Region3Boxed', '?Cube3', 'Region3Boxed', 'Point3')
 
    assert(not self._sv.regions[rid])
 
@@ -78,9 +88,10 @@ function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, bluepri
       normal = normal,
       debug_text = debug_text,
       blueprint_region = blueprint_region,
+      blueprint_clip_box = blueprint_clip_box,
    }
    self._sv.regions[rid] = rblock
-   log:detail('adding region rid:%-4d origin:%s dbg:%s blueprint_region:%s', rid, origin, debug_text, blueprint_region:get():get_bounds())
+   log:detail('adding region rid:%d origin:%s dbg:%s blueprint-bounds:%s clip_box:%s', rid, origin, debug_text, blueprint_region:get():get_bounds(), tostring(blueprint_clip_box))
    self:_trace_rblock_region(rblock)
 end
 
@@ -94,6 +105,7 @@ function ScaffoldingManager:_remove_region(rid)
       self._sv.regions[rid] = nil
 
       if self._rblock_region_traces[rid] then
+         log:spam('destroying rblock rid:%d region trace', rblock.rid)
          self._rblock_region_traces[rid]:destroy()
          self._rblock_region_traces[rid] = nil
       end
@@ -126,6 +138,7 @@ function ScaffoldingManager:_trace_rblock_region(rblock)
    assert(rblock)
    assert(not self._rblock_region_traces[rblock.rid])
 
+   log:spam('tracing rblock rid:%d region', rblock.rid)
    local trace = rblock.region:trace('watch scaffolding rblock regions')
                                  :on_changed(function()
                                        self:_mark_rblock_region_changed(rblock)
@@ -214,8 +227,18 @@ function ScaffoldingManager:_process_changed_scaffolding()
 end
 
 function ScaffoldingManager:_find_scaffolding_for(rblock)
+   -- we know the scaffolding will eventually want to cover  the entire blueprint,
+   -- so use the blueprint_region to search for an sblock to merge with (especially
+   -- since the actual requested scaffolding region is most likely empty at this
+   -- point.  the bottom row of the project is usually trivially reachable at the
+   -- time scaffolding is requested)
    local origin = rblock.origin
+   local normal = rblock.normal
    local region = rblock.blueprint_region:get()
+
+   if rblock.blueprint_clip_box then
+      region = region:clipped(rblock.blueprint_clip_box)
+   end
 
    -- look "down" for someone who can help us out.
    local zone = region:translated(origin + rblock.normal)
@@ -226,8 +249,12 @@ function ScaffoldingManager:_find_scaffolding_for(rblock)
          if not sblock then
             local fabricator, _, _ = build_util.get_fbp_for(entity)
             if fabricator then
+               -- an existing fabricator overlaps the region the rblock wants
+               -- to occupy.  if it's one of our scaffolding fabricators, merge
+               -- with it.
                for _, sblk in pairs(self._sv.scaffolding) do
-                  if sblk.fabricator == fabricator then
+                  if sblk.fabricator == fabricator and
+                     sblk.normal == rblock.normal then
                      sblock = sblk
                      break
                   end
@@ -297,34 +324,76 @@ function ScaffoldingManager:_create_scaffolding_for(rblock)
 end
 
 function ScaffoldingManager:_update_scaffolding_region(sblock)
+   local sid = sblock.sid
    assert(sblock.region)
-   
+
+   log:detail('updating scaffolding region for sblock sid:%d', sid)
+
    local merged = Region3()
    for rid, rblock in pairs(sblock.regions) do
+      -- the rblock region is in the coordinate space of the entity.  we're trying to build
+      -- a region in world coordinate space, so move it over.
       local r = rblock.region:get():translated(rblock.origin)
+      log:detail('    adding region bounds %s to merged region for rid:%d', r:get_bounds(), rblock.rid)
+      log:detail('    current:')
+      for cube in r:each_cube() do
+         log:spam('        adding cube:%s', cube)
+      end
+
+      log:detail('    current:')
+      for cube in merged:each_cube() do
+         log:spam('        current cube:%s', cube)
+      end
+      local current_area = merged:get_area()
+      local missing_region = r - merged
+      local missing_area = missing_region:get_area()
+
+      log:detail('    missing:')
+      for cube in missing_region:each_cube() do
+         log:spam('        missing cube:%s', cube)
+      end
+
       merged:add_region(r)
+      log:detail('    merged:')
+      for cube in merged:each_cube() do
+         log:spam('        post-merge cube:%s', cube)
+      end
+      log:spam('        missing + current == new_current?   %.2f + %.2f = %.2f', current_area, missing_area, merged:get_area())
    end   
+
+   log:detail('sid:%d world merged scaffolding region bounds is %s, area %d', sid, merged:get_bounds(), merged:get_area())
+   merged:force_optimize_by_defragmentation('..')
+   for cube in merged:each_cube() do
+      log:spam('  cube:%s', cube)
+   end
+
    merged:translate(-sblock.origin)
+   log:detail('sid:%d local merged scaffolding region bounds is %s, origin %s, area %d', sid, merged:get_bounds(), sblock.origin, merged:get_area())
 
    sblock.region:modify(function(cursor)
          cursor:copy_region(merged)
       end)
 
    local new_ladder_builders = {}
-   for rid, rblock in pairs(sblock.regions) do
-      local climb_to = self:_compute_ladder_top(rblock)
-      if climb_to then
-         log:detail('creating ladder to %s for rid:%d', climb_to, rid)
-         local ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
-                                                 climb_to,
-                                                 rblock.normal)
-         new_ladder_builders[rblock.rid] = ladder_builder
+   if not merged:empty() then
+      for rid, rblock in pairs(sblock.regions) do
+         local climb_to = self:_compute_ladder_top(rblock)
+         if climb_to then
+            local ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
+                                                    climb_to,
+                                                    rblock.normal)
+            new_ladder_builders[rblock.rid] = ladder_builder
+            log:detail('created ladder lbid:%d to %s for sid:%d rid:%d', ladder_builder:get_id(), climb_to, sid, rid)
+         end
       end
    end
+   
    for rid, ladder_builder in pairs(sblock.ladder_builders) do
+      log:detail('removing old ladder builder lbid:%d from sid:%d', ladder_builder:get_id(), sid)
       ladder_builder:destroy()
    end
    sblock.ladder_builders = new_ladder_builders
+   log:spam('sblock sid:%d now has %d ladder builders', sid, radiant.size(sblock.ladder_builders))
 end
 
 function ScaffoldingManager:_compute_ladder_top(rblock)
@@ -348,9 +417,12 @@ function ScaffoldingManager:_compute_ladder_top(rblock)
    local climb_to = rblock.origin
 
    -- move over to the edge of the region we need to support
-   local region_min = rblock.blueprint_region
-                                 :get()
-                                    :get_bounds().min
+   local blueprint_region = rblock.blueprint_region:get()
+   if rblock.blueprint_clip_box then
+      blueprint_region = blueprint_region:clipped(rblock.blueprint_clip_box)
+   end
+
+   local region_min = blueprint_region:get_bounds().min
    climb_to = climb_to + region_min
 
    -- mover over again by twice the normal.  once is where the scaffolding

@@ -54,10 +54,9 @@ public:
    Simulation();
    ~Simulation();
 
-   om::DataStoreRef Simulation::AllocDatastore();
+   om::DataStorePtr Simulation::AllocDatastore();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
-   void RemoveDataStoreFromMap(dm::ObjectId id);
    void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
    /* New object model stuff goes here */
@@ -142,6 +141,9 @@ private:
    void LogJobPerfCounters(perfmon::Frame* frame);
    std::string GetProgressForJob(core::StaticString name) const;
    void ForEachPathFinder(std::function<void(PathFinderPtr const&)> cb);
+#if defined(ENABLE_OBJECT_COUNTER)
+   void AuditDatastores(const char* reason);
+#endif
 
 private:
    struct FreeMotionTaskMapEntry {
@@ -174,7 +176,9 @@ private:
 
    luabind::object                              radiant_;
    std::unordered_map<dm::ObjectId, om::EntityPtr>        entityMap_;
-   std::unordered_map<dm::ObjectId, om::DataStorePtr>     datastoreMap_;
+#if defined(ENABLE_OBJECT_COUNTER)
+   std::unordered_map<dm::ObjectId, om::DataStoreRef>     datastoreMap_;
+#endif
 
    rpc::SessionPtr             session_;
    rpc::CoreReactorPtr         core_reactor_;
@@ -221,7 +225,7 @@ private:
    boost::filesystem::path             load_saveid_;
    std::vector<std::function<void()>>  _bottomLoopFns;
    int                                 _sequenceNumber;
-   std::function<om::DataStoreRef(int storeId)> _allocDataStoreFn;
+   std::function<om::DataStorePtr()>   _allocDataStoreFn;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

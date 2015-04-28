@@ -19,9 +19,10 @@ class DataStore(dm.Record):
    luabind::object GetController() const;
    luabind::object GetData() const;
    void SetData(luabind::object o);
-   void RestoreController(DataStoreRef self);
+   void RestoreController(DataStorePtr self, bool isCppManaged = false);
    void RestoreControllerData();
-   luabind::object CreateController(DataStoreRef self, std::string const& type, std::string const& alias);
+   void RemoveKeepAliveReferences();
+   luabind::object CreateController(DataStorePtr self, std::string const& type, std::string const& alias);
    void SetController(luabind::object controller);
    void OnLoadObject(dm::SerializationType r) override;
    dm::Boxed<lua::DataObject> const& GetDataObjectBox() const;
@@ -36,9 +37,12 @@ class DataStore(dm.Record):
    """
    void RestoreControllerDataRecursive(luabind::object o, luabind::object& visited);
    std::string GetControllerUri();
-   luabind::object _controllerObject;
+   bool GetIsCppManaged() const;
+   luabind::object _weakTable;
+   luabind::object _controllerKeepAliveObject;
    luabind::object _controllerDestructor;
    bool _needsRestoration;
+   bool _isCppManaged;
    dm::TracePtr _dataObjTrace;
    """
 

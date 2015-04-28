@@ -148,6 +148,10 @@
       "weaver:spinning_wheel" : "file(jobs/weaver/weaver_spinning_wheel/weaver_spinning_wheel.json)",
       "weaver:loom" : "file(jobs/weaver/weaver_loom/weaver_loom.json)",
 
+      "cook:workbench" : "file(jobs/cook/cook_workbench)",
+      "cook:outfit" : "file(jobs/cook/cook_outfit)",
+      "cook:talisman" : "file(jobs/cook/cook_foo/cook_foo_talisman.json)",
+
       "mining_zone" : "file(entities/terrain/mining_zone/mining_zone.json)",
       "mining_zone_designation" : "file(entities/terrain/mining_zone/mining_zone_designation.json)",
 
@@ -270,6 +274,7 @@
 
       "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
       "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 
+      "crops:carrot_crop"   : "file(entities/crops/carrot_crop)",
       "crops:corn_crop"   : "file(entities/crops/corn_crop)",
       "crops:turnip_crop" : "file(entities/crops/turnip_crop)",
       "crops:pumpkin_crop" : "file(entities/crops/pumpkin_crop)",
@@ -295,6 +300,10 @@
 
       "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
+
+      "carrot_serving" : "file(entities/plants/carrot/carrot_serving)",
+      "carrot_basket" : "file(entities/plants/carrot/carrot_basket)",
+
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
       
@@ -1333,6 +1342,7 @@
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
       "class:weaver" : "file(jobs/weaver/weaver.lua)",
       "class:shepherd" : "file(jobs/shepherd/shepherd.lua)", 
+      "class:cook" : "file(jobs/cook/cook.lua)", 
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
@@ -1344,6 +1354,7 @@
       "build:ladder_manager" : "file(services/server/build/ladder_manager.lua)",
       "build:scaffolding_manager" : "file(services/server/build/scaffolding_manager.lua)",
       "build:ladder_builder" : "file(services/server/build/ladder_builder.lua)",
+      "build:ladder_builder:destructor" : "file(services/server/build/ladder_builder_destructor.lua)",
       "build:scaffolding_builder_1d" : "file(services/server/build/scaffolding_builder_1d.lua)",
       "build:scaffolding_builder_2d" : "file(services/server/build/scaffolding_builder_2d.lua)",
 
@@ -1395,6 +1406,7 @@
       "game_master:encounters:destroy_entity" : "file(services/server/game_master/controllers/encounters/destroy_entity_encounter.lua)", 
       "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
+      "game_master:missions:pillage" : "file(services/server/game_master/controllers/missions/pillage_mission.lua)",
 
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",

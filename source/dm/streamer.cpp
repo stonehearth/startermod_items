@@ -117,7 +117,7 @@ void Streamer::QueueDestroyedObjects()
    }
 }
 
-void Streamer::OnAlloced(ObjectPtr obj)
+void Streamer::OnAlloced(ObjectPtr const& obj)
 {
    ObjectId id = obj->GetObjectId();
    STREAMER_LOG(5) << "adding object " << id << " to alloced set.";

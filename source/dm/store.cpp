@@ -369,7 +369,9 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
    // xxx: should probably just pass the save state into the ctor...
    ASSERT(traces_.empty());
    ASSERT(tracers_.empty());
+#if !defined(ENABLE_OBJECT_COUNTER)
    ASSERT(store_traces_.empty());
+#endif
    ASSERT(objects_.empty());
    ASSERT(dynamicObjects_.empty());
    ASSERT(nextObjectId_ == 1);
@@ -528,7 +530,7 @@ GenerationId Store::GetCurrentGenerationId()
    return nextGenerationId_;
 }
 
-void Store::OnAllocObject(std::shared_ptr<Object> obj)
+void Store::OnAllocObject(std::shared_ptr<Object> const& obj)
 {
    ASSERT(obj->IsValid());
 
@@ -541,7 +543,7 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
    }
 
    // Fire the OnAlloced callback on all our store traces.
-   stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [&obj](StoreTracePtr trace) {
       trace->SignalAllocated(obj);
    });
 }

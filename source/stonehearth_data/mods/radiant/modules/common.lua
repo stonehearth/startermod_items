@@ -114,7 +114,7 @@ end
 
 function radiant.is_controller(c)
    return radiant.util.is_instance(c) and
-          radiant.util.is_a(c.__saved_variables, _radiant.om.DataStore)
+          radiant.util.is_datastore(c.__saved_variables)
 end
 
 -- a nop function.  useful for creating bindings which do nothing.

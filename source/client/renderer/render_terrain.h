@@ -44,7 +44,8 @@ private:
    void UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location);
    void Update();
    void ScheduleUpdate();
-
+   void RemoveCut(dm::ObjectId id);
+   
    RenderTerrainLayer& GetLayer(csg::Point3 const& location);
    bool LayerIsVisible(csg::Point3 const& location) const;
    void SetLayerVisible(RenderTerrainLayer& layer, bool visible);

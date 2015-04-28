@@ -62,6 +62,15 @@ function ScaffoldingBuilder_OneDim:activate()
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
          self:_remove_scaffolding_region()
       end)
+
+   if self._sv.active then
+      self:_trace_blueprint_and_project()
+
+      -- for performance reasons, we don't update our regions synchronously.  this creates a race
+      -- where our region may be out of date when the application is closed by the user (or crashes!).
+      -- so if we're restoring while active, unconditionally mark us as dirty.
+      self:_mark_dirty()
+   end
 end
 
 function ScaffoldingBuilder_OneDim:destroy()
@@ -71,8 +80,8 @@ function ScaffoldingBuilder_OneDim:destroy()
 end
 
 -- interfaces for the owner of the builder
-function ScaffoldingBuilder_OneDim:set_clipper(clipbox)
-   self._sv.clipbox = clipbox
+function ScaffoldingBuilder_OneDim:set_clipper(blueprint_clipbox)
+   self._sv.blueprint_clipbox = blueprint_clipbox
 end
 
 function ScaffoldingBuilder_OneDim:set_active(active)
@@ -91,6 +100,7 @@ function ScaffoldingBuilder_OneDim:set_teardown(teardown)
    local mode = teardown and 'teardown' or 'build'
 
    if mode ~= self._sv.mode then
+      self._log:detail('teardown changed to %s', teardown)
       self._sv.mode = mode
       self.__saved_variables:mark_changed()
 
@@ -106,12 +116,14 @@ function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
                                 self._sv.entity,
                                 self._sv.origin,
                                 self._sv.blueprint_rgn,
+                                self._sv.blueprint_clipbox,
                                 self._sv.scaffolding_rgn,
                                 self._sv.normal)
 end
 
 function ScaffoldingBuilder_OneDim:_remove_scaffolding_region()
    self._sv.manager:_remove_region(self._sv.id)
+   self._sv.manager:_remove_builder(self._sv.id)
 end
 
 function ScaffoldingBuilder_OneDim:_update_status()
@@ -179,8 +191,11 @@ end
 
 function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
    local teardown = self._sv.mode == ScaffoldingBuilder_OneDim.TEAR_DOWN
-     
+
+   self._log:spam('updating scaffolding size')
+   
    if self:_building_is_finished() then
+      self._log:spam('building is finished.  erasing scaffolding region')
       self._sv.scaffolding_rgn:modify(function(cursor)
             cursor:clear()
          end)
@@ -215,16 +230,18 @@ end
 
 function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    local normal = self._sv.normal
-   local clipbox = self._sv.clipbox
+   local blueprint_clipbox = self._sv.blueprint_clipbox
    local stand_at_base = self._sv.stand_at_base
 
    local project_rgn = self._sv.project_rgn:get()
    local blueprint_rgn = self._sv.blueprint_rgn:get()
 
+   -- the clip box is used to convert a 3d region to a 2d one which
+   -- is flat and normal to the normal.
    self._log:spam('blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
-   if clipbox then
-      project_rgn   = project_rgn:intersect_cube(clipbox)
-      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   if blueprint_clipbox then
+      project_rgn   = project_rgn:intersect_cube(blueprint_clipbox)
+      blueprint_rgn = blueprint_rgn:intersect_cube(blueprint_clipbox)
       self._log:spam('(clipped) blueprint:%s  project:%s', blueprint_rgn:get_bounds(), project_rgn:get_bounds())
    end
 
@@ -254,6 +271,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    end
    assert(project_top < blueprint_top)
    
+   -- if we're tearing down, we may need to drop the top by 1.
    if teardown and project_top > 0 then
       local top_row_clipper = Cube3(Point3(-INFINITE, project_top,     -INFINITE),
                                     Point3( INFINITE, project_top + 1,  INFINITE))
@@ -261,21 +279,48 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
          project_top = project_top - 1
       end
    end
+
+   -- snip off the unreachable upper part of the blueprint.
    local clipper = Cube3(Point3(-INFINITE, -INFINITE,       -INFINITE),
                          Point3( INFINITE, project_top + 1,  INFINITE))
-   local top_row = blueprint_rgn:clipped(clipper)
+   local reachable_blueprint = blueprint_rgn:clipped(clipper)
+
+
+   -- if there are holes in the blueprint (e.g. for doors or windows), we need
+   -- to make sure we plug them up.  the projection to CLIP_SOLID (below) will
+   -- take care of most of them, but we do have to make sure the very top row
+   -- is taken care of.  Consider what happens when trying to build scaffolding
+   -- 1/2 way up a peaked roof.  We'll end up with two towers of scaffolding
+   -- growing toward one another unless we close that gap.
+   local bounds = reachable_blueprint:get_bounds()
+   local start = Point3(bounds.min.x, bounds.max.y - 1, bounds.min.z)
+   local finish = bounds.max
+   local top_row = reachable_blueprint:clipped(Cube3(start, finish))
+
+   reachable_blueprint:add_cube(top_row:get_bounds())
+
 
    -- starting 1 row down and 1 row out, all the way till we find terrain
-   top_row:translate(-Point3.unit_y + normal)
+   reachable_blueprint:translate(-Point3.unit_y + normal)
 
    -- and clip out the terrain
    local origin = self._sv.origin
-   top_row:translate(origin)
-   local region = _physics:project_region(top_row, CLIP_SOLID)
+   reachable_blueprint:translate(origin)
+   local region = _physics:project_region(reachable_blueprint, CLIP_SOLID)
    region = _physics:clip_region(region, CLIP_SOLID)
    region:translate(-origin)
 
-   -- finally, copy into the cursor
+   -- finally, make sure we don't build scaffolding on top of things which
+   -- have been built in the past.  for example, if we're a slab connected
+   -- to a wall to form a balcony, don't build scaffolding for the edge
+   -- which is connected to the wall.  building scaffolding for things which
+   -- must be built in the future is ok.  otherwise we wouldn't be able to
+   -- complete the wall that the slab is attached to!  this makes scaffolding
+   -- somewhat magical from a collision perspective, but oh well!  people
+   -- can already walk right through it, so why not other building parts, too?
+   build_util.clip_dependant_regions_from(self._sv.entity, origin, region)
+
+   -- copy into the cursor in one big :modify() at the end
    self._sv.scaffolding_rgn:modify(function(cursor)
          cursor:copy_region(region)
       end)
@@ -298,11 +343,11 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
 
    -- run through the list, looking for the perfect normal
    local origin = self._sv.origin
-   local clipbox = self._sv.clipbox
+   local blueprint_clipbox = self._sv.blueprint_clipbox
 
    local blueprint_rgn = self._sv.blueprint_rgn:get()
-   if clipbox then
-      blueprint_rgn = blueprint_rgn:intersect_cube(clipbox)
+   if blueprint_clipbox then
+      blueprint_rgn = blueprint_rgn:intersect_cube(blueprint_clipbox)
    end
 
    for _, normal in pairs(normals) do

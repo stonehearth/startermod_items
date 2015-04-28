@@ -69,7 +69,6 @@ function ValleyShapes:__init(rng)
    self.shape_height = 3
 
    self._shape_buffer = Array2D(self.shape_width, self.shape_height)
-   local foo = 1
 end
 
 function ValleyShapes:get_random_shape(zero_value, one_value)

@@ -206,6 +206,7 @@ public:
 	Matrix4f const& getAbsTrans() const { return _absTrans; }
 	const BoundingBox &getBBox() const { return _bBox; }
    void updateBBox(const BoundingBox& bbox);
+   bool isRenderable() const { return _renderable; }
 
 	std::string const& getAttachmentString() { return _attachment; }
 	void setAttachmentString( const char* attachmentData ) { _attachment = attachmentData; }

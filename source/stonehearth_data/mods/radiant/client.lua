@@ -7,8 +7,8 @@ radiant = {
 
 require 'modules.common'
 
-function radiant.get_object(addr)
-   return _radiant.client.get_object(addr)
+function radiant.get_entity(addr)
+   return _radiant.client.get_entity(addr)
 end
 
 function radiant.create_datastore(data)

@@ -41,7 +41,7 @@ else
 end
 
 -- this is the component which manages the fabricator entity.
-function Fabricator:__init(name, entity, blueprint, project)
+function Fabricator:__init(name, entity, blueprint, project, total_mining_region)
    self.name = name
 
    self._log = radiant.log.create_logger('build.fabricator')
@@ -60,7 +60,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
    self._mining_zones = {}
    self._mining_traces = {}
-   self._total_mining_region = _radiant.sim.alloc_region3()
+   self._total_mining_region = total_mining_region or _radiant.sim.alloc_region3()
 
    self._traces = {}
    self._active = false
@@ -114,6 +114,12 @@ function Fabricator:destroy()
       radiant.entities.destroy_entity(self._project)
       self._project = nil
    end
+end
+
+function Fabricator:get_description()
+   local name = tostring(self._entity)
+   local count = self._fabricator_dst:get_adjacent():get():get_area()
+   return string.format('%s (%d adjacent blocks)', name, count)
 end
 
 function Fabricator:set_scaffolding(scaffolding)

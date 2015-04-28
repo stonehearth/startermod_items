@@ -75,8 +75,8 @@ luabind::object LuaObjectRouter::LookupObjectFromStore(Function const& fn)
       LOR_LOG(9) << "object is not datastore.  aborting";
       return luabind::object();
    }
-   om::DataStoreRef db = std::dynamic_pointer_cast<om::DataStore>(o);
-   luabind::object obj = db.lock()->GetController();
+   om::DataStorePtr db = std::dynamic_pointer_cast<om::DataStore>(o);
+   luabind::object obj = db->GetController();
    if (!obj.is_valid()) {
       LOR_LOG(9) << "object controller is not valid.  aborting.";
    }

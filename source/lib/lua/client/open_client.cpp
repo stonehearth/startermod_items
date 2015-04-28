@@ -31,27 +31,26 @@ using namespace luabind;
 
 namespace fs = boost::filesystem;
 
-luabind::object Client_GetObject(lua_State* L, object id)
+luabind::object Client_GetEntity(lua_State* L, object id)
 {
    Client &client = Client::GetInstance();
-   dm::ObjectPtr obj;
+   om::EntityPtr entity;
    luabind::object lua_obj;
 
    int id_type = type(id);
 
    if (id_type == LUA_TNUMBER) {
       dm::ObjectId object_id = object_cast<int>(id);
-      obj = client.GetStore().FetchObject<dm::Object>(object_id);
+      entity = client.GetStore().FetchObject<om::Entity>(object_id);
    } else if (id_type == LUA_TSTRING) {
       const char* addr = object_cast<const char*>(id);
-      obj = client.GetStore().FetchObject<dm::Object>(addr);
-      if (!obj) {
-         obj = client.GetAuthoringStore().FetchObject<dm::Object>(addr);
+      entity = client.GetStore().FetchObject<om::Entity>(addr);
+      if (!entity) {
+         entity = client.GetAuthoringStore().FetchObject<om::Entity>(addr);
       }
    }
-   if (obj) {
-      lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
-      lua_obj = host->CastObjectToLua(obj);
+   if (entity) {
+      lua_obj = luabind::object(L, om::EntityRef(entity));
    }
    return lua_obj;
 }
@@ -62,9 +61,7 @@ luabind::object Client_GetAuthoringRootEntity(lua_State* L)
    dm::ObjectPtr obj = client.GetAuthoringStore().FetchObject<dm::Object>(1);
    ASSERT(obj);
 
-   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
-   luabind::object lua_obj = host->CastObjectToLua(obj);
-   return lua_obj;
+   return luabind::object(L, om::EntityRef(std::static_pointer_cast<om::Entity>(obj)));
 }
 
 void Client_SelectEntity(lua_State* L, luabind::object o)
@@ -454,11 +451,11 @@ std::shared_ptr<T> Client_AllocObject()
    return Client::GetInstance().GetAuthoringStore().AllocObject<T>();
 }
 
-om::DataStoreRef Client_CreateDataStore(lua_State* L)
+om::DataStorePtr Client_CreateDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
-   om::DataStoreRef db = Client::GetInstance().AllocateDatastore(Client::GetInstance().GetAuthoringStore().GetStoreId());
-   db.lock()->SetData(newtable(L));
+   om::DataStorePtr db = Client::GetInstance().AllocateDatastore();
+   db->SetData(newtable(L));
    return db;
 }
 
@@ -577,7 +574,7 @@ void lua::client::open(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("client") [
-            def("get_object",                      &Client_GetObject),
+            def("get_entity",                      &Client_GetEntity),
             def("select_entity",                   &Client_SelectEntity),
             def("hilight_entity",                  &Client_HilightEntity),
             def("get_authoring_root_entity",       &Client_GetAuthoringRootEntity),
