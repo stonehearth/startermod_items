@@ -605,22 +605,35 @@ function build_util.grow_walls_around(floor, visitor_fn)
    end
 end
 
-local function convert_point_for_edge_loop(pt, bounds)
-   checks('Point3', '?Rect2')
+local function convert_point_for_edge_loop(column, bounds)
+   checks('Entity', '?Rect2')
+
+   local pt = radiant.entities.get_world_grid_location(column)
+   local normal = column:get_component('stonehearth:column')
+                           :get_accumulated_normal()
+
+   local point = { x = pt.x, y = pt.z }
+   if normal.x > 0 then
+      point.x = point.x + 1
+   end
+   if normal.z > 0 then
+      point.y = point.y + 1
+   end
+
    if bounds then
       if bounds.min.x == INFINITE then
-         bounds.min.x = pt.x
-         bounds.min.y = pt.z
-         bounds.max.x = pt.x
-         bounds.max.y = pt.z
+         bounds.min.x = point.x
+         bounds.min.y = point.y
+         bounds.max.x = point.x
+         bounds.max.y = point.y
       else
-         bounds.min.x = math.min(bounds.min.x, pt.x)
-         bounds.min.y = math.min(bounds.min.y, pt.z)
-         bounds.max.x = math.max(bounds.max.x, pt.x)
-         bounds.max.y = math.max(bounds.max.y, pt.z)
+         bounds.min.x = math.min(bounds.min.x, point.x)
+         bounds.min.y = math.min(bounds.min.y, point.y)
+         bounds.max.x = math.max(bounds.max.x, point.x)
+         bounds.max.y = math.max(bounds.max.y, point.y)
       end
    end
-   return { x = pt.x, y = pt.z }
+   return point
 end
 
 function build_util.create_edge_loop_for_wall(wall, edges, walls, bounds)
@@ -633,22 +646,12 @@ function build_util.create_edge_loop_for_wall(wall, edges, walls, bounds)
    if wc then
       local col_a, col_b = wc:get_columns()
       if col_a then
-         local pos_a = radiant.entities.get_world_grid_location(col_a)
-         local pos_b = radiant.entities.get_world_grid_location(col_b)
          local normal = wc:get_normal()
          local edge = {
-            min     = convert_point_for_edge_loop(pos_a, bounds),
-            max     = convert_point_for_edge_loop(pos_b, bounds),
-            normal  = convert_point_for_edge_loop(normal),
+            min     = convert_point_for_edge_loop(col_a, bounds),
+            max     = convert_point_for_edge_loop(col_b, bounds),
+            normal  = { x = normal.x, y = normal.y }
          }
-         if edge.normal.x < 0 then
-            edge.min.x = edge.min.x + 1
-            edge.max.x = edge.max.x + 1
-         end
-         if edge.normal.y < 0 then
-            edge.min.y = edge.min.y + 1
-            edge.max.y = edge.max.y + 1
-         end
          assert(edge.min.x <= edge.max.x and edge.min.y <= edge.max.y)
          table.insert(edges, edge)
       end
@@ -731,9 +734,11 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
    local region2 = Region2()
 
    local root_wall_origin = radiant.entities.get_world_grid_location(root_wall)
-   local height = root_wall_origin.y + constants.STOREY_HEIGHT - 1
+   local height = root_wall_origin.y + constants.STOREY_HEIGHT
 
    local root_wall_blueprint = build_util.get_blueprint_for(root_wall)
+   local root_building = build_util.get_building_for(root_wall_blueprint)
+
    build_util.create_edge_loop_for_wall(root_wall_blueprint, edges, walls, bounds)
 
    local world_region2
@@ -761,14 +766,47 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
    until last_edge_count == new_edge_count
 
    local world_region2_bounds = world_region2:get_bounds()
- 
+
+   -- stencil out parts of the region which overlap existing blueprints.  this lets
+   -- us grow the "rest" of the roof on a lower storey after having authored all the
+   -- upper stories (e.g. a church with a steeple)
+   local to_remove = Region2()
+   radiant.log.write('', 0, 'wr2 bounds %s', world_region2:get_bounds())
+   for rect in world_region2:each_cube() do
+      local query_cube = Cube3(Point3(rect.min.x, height,     rect.min.y),
+                               Point3(rect.max.x, height + 1, rect.max.y))
+      radiant.terrain.get_entities_in_cube(query_cube, function(entity)
+            if not build_util.is_blueprint(entity) then
+               return
+            end
+            if build_util.get_building_for(entity) == root_building then
+               local entity_origin = radiant.entities.get_world_grid_location(entity)
+               local rgn = entity:get_component('destination')
+                                    :get_region()
+                                       :get()
+                                          :translated(entity_origin)
+               radiant.log.write('', 0, 'checking %s %s ', entity, rgn:get_bounds())
+               for c in rgn:each_cube() do
+                  if c.min.y <= height and c.max.y > height then
+                     local rect = Rect2(Point2(c.min.x, c.min.z),
+                                        Point2(c.max.x, c.max.z))
+                     radiant.log.write('', 0, 'removing rect %s %s', rect, entity)
+                     to_remove:add_cube(rect)
+                  end
+               end
+            end
+         end)
+   end
+   world_region2:subtract_region(to_remove)
+
+   -- return the origin, local region, and all the walls we're growing around
    local region_origin = world_region2_bounds.min
    local region2 = world_region2:translated(-region_origin)
    local world_origin = Point3(region_origin.x,
-                               height + 1,
+                               height,
                                region_origin.y)
 
-   local region2 = region2:inflated(Point2(2, 2))
+   local region2 = region2:inflated(Point2(1, 1))
                   
    return world_origin, region2, walls
 end
