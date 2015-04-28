@@ -95,6 +95,8 @@ local function _run_thread(fn)
          :set_thread_main(function()
                fn()
                _finish_cb(0)
+               _main_thread = nil
+               _current_test_instance = nil
             end)
             
    _main_thread:start()
@@ -116,6 +118,8 @@ function autotest_framework.fail(format, ...)
       _current_test_instance:terminate()
       _current_test_instance = nil
    end
+   _main_thread = nil
+   _current_test_instance = nil
 end
 
 -- run a grouop of test scripts.  it's up to the client to ensure  that the world has been setup correctly

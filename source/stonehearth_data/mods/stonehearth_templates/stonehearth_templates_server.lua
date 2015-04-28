@@ -147,7 +147,8 @@ function StonehearthTemplateBuilder:grow_walls(column_uri, wall_uri)
 end
 
 function StonehearthTemplateBuilder:grow_roof(walls, options)
-   stonehearth.build:grow_roof(walls, options)
+   local _, root_wall = next(walls)
+   stonehearth.build:grow_roof(root_wall, options)
 end
 
 -- builds a small house
