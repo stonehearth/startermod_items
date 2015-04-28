@@ -32,7 +32,7 @@
          "food": "stonehearth:food:berries:berry_serving"
       },
       "stonehearth:net_worth" : {
-         "value_in_gold" : 4,
+         "value_in_gold" : 2,
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   
