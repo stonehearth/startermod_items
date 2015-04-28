@@ -1407,7 +1407,7 @@
       "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
       "game_master:missions:pillage" : "file(services/server/game_master/controllers/missions/pillage_mission.lua)",
-
+      "game_master:encounters:random_out_edge" : "file(services/server/game_master/controllers/encounters/random_out_edge_encounter.lua)", 
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
       "unit_control:party" : "file(services/server/unit_control/party.lua)",

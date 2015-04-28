@@ -18,13 +18,13 @@ function EmbarkTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
 
    local tree = self:place_tree(-12, -12)
-   local tree = self:place_tree(12, -10)
-   local tree = self:place_tree(-12, -8)
+   local tree = self:place_tree(10, -10)
+   local tree = self:place_tree(-10, -8)
    local tree = self:place_tree(12, -6)
-   local tree = self:place_tree(-12, -4)
-   local tree = self:place_tree(12, -2)
+   local tree = self:place_tree(-10, -4)
+   local tree = self:place_tree(8, -2)
    local tree = self:place_tree(-12, 0)
-   local tree = self:place_tree(12, 2)
+   local tree = self:place_tree(8, 2)
 
    local critter1 = self:place_item('stonehearth:red_fox', 2, 2)
 
@@ -74,6 +74,12 @@ function EmbarkTest:__init()
    local session = {
       player_id = player_id,
    }
+
+   -- send in the goblins!!
+   radiant.set_realtime_timer(500, function()
+      stonehearth.game_master:start()
+   end)
+
 
    --stonehearth.farming:add_crop_type(session, 'stonehearth:crops:silkweed_crop')
 

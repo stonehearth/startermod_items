@@ -26,6 +26,7 @@ function NewGameCallHandler:set_game_options(session, response, options)
    interval_service:enable(true)
    if not options.enable_enemies then
       stonehearth.game_master:enable_campaign_type('combat', false)
+      stonehearth.game_master:enable_campaign_type('ambient_threats', false)
    end
    return true
 end
