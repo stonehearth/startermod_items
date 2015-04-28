@@ -1,6 +1,9 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
+local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 
 local csg_lib = {}
 
@@ -172,6 +175,13 @@ function csg_lib.create_adjacent_columns(point, y_min, y_max)
 end
 
 function csg_lib.get_contiguous_regions(parent_region)
+   local PointClass, RegionClass
+   if radiant.util.is_a(parent_region, Region3) then
+      PointClass, RegionClass = Point3, Region3
+   else
+      PointClass, RegionClass = Point2, Region2
+   end
+
    local sub_regions = {}
 
    for cube in parent_region:each_cube() do
@@ -179,7 +189,7 @@ function csg_lib.get_contiguous_regions(parent_region)
 
       for index, sub_region in ipairs(sub_regions) do
          -- create a list of regions adjacent to this cube
-         if csg_lib._cube_touches_region(cube, sub_region) then
+         if csg_lib._cube_touches_region(cube, sub_region, PointClass) then
             table.insert(indicies, index)
          end
       end
@@ -188,7 +198,7 @@ function csg_lib.get_contiguous_regions(parent_region)
 
       if not first_index then
          -- cube wasn't adjacent to any existing region, so create a new one
-         local new_sub_region = Region3(cube)
+         local new_sub_region = RegionClass(cube)
          table.insert(sub_regions, new_sub_region)
       else
          -- get the dominant region that will absorb the other regions
@@ -215,18 +225,22 @@ function csg_lib.get_contiguous_regions(parent_region)
    return sub_regions
 end
 
-function csg_lib._cube_touches_region(cube, region)
-   local x_inflated = cube:inflated(Point3.unit_x)
+function csg_lib._cube_touches_region(cube, region, PointClass)
+   assert(PointClass) -- Must be Point2 or Point3
+
+   local x_inflated = cube:inflated(PointClass.unit_x)
    if region:intersects_cube(x_inflated) then
       return true
    end
 
-   local z_inflated = cube:inflated(Point3.unit_z)
-   if region:intersects_cube(z_inflated) then
-      return true
+   if PointClass == Point3 then
+      local z_inflated = cube:inflated(PointClass.unit_z)
+      if region:intersects_cube(z_inflated) then
+         return true
+      end
    end
 
-   local y_inflated = cube:inflated(Point3.unit_y)
+   local y_inflated = cube:inflated(PointClass.unit_y)
    if region:intersects_cube(y_inflated) then
       return true
    end

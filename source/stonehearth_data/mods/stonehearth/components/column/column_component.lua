@@ -41,6 +41,16 @@ function Column:get_connected_walls(entity)
    return self._sv.connected_walls
 end
 
+function Column:get_accumulated_normal()
+   local normal = Point3(0, 0, 0)
+   for _, wall in pairs(self._sv.connected_walls) do
+      local wall_normal = wall:get_component('stonehearth:wall')
+                                 :get_normal()
+      normal = normal + wall_normal
+   end
+   return normal
+end
+
 function Column:connect_to_roof(roof)
    assert(not self._sv.roof)
    self._sv.roof = roof

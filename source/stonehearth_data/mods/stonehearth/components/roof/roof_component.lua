@@ -1,3 +1,4 @@
+local csg_lib = require 'lib.csg.csg_lib'
 local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
@@ -47,8 +48,7 @@ end
 -- roof.
 --
 function Roof:layout()
-   local collsion_shape = self:create_voxel_brush()
-                              :paint_once()
+   local collsion_shape = self:_compute_collision_shape()                              
 
    self._entity:get_component('destination')
                   :get_region()
@@ -72,7 +72,7 @@ function Roof:cover_region2(brush, region2)
    return self
 end
 
-function Roof:create_voxel_brush()
+function Roof:_compute_collision_shape()
    local brush = self._sv.brush
    local region = self._sv._nine_grid_region
    local slope = self._sv.nine_grid_slope
@@ -92,7 +92,6 @@ function Roof:create_voxel_brush()
    ]]
 
    local brush = _radiant.voxel.create_nine_grid_brush(brush)
-                                 :set_grid_shape(region)
                                  :set_slope(slope or 1)
 
    if max_height then
@@ -115,6 +114,7 @@ function Roof:create_voxel_brush()
          end
       end
       brush:set_gradiant_flags(flags)
+            :set_clip_whitespace(true)
    end
 
    --[[
@@ -126,9 +126,20 @@ function Roof:create_voxel_brush()
    end
    ]]
 
-   brush:set_clip_whitespace(true)
+   -- break the roof up into multiple, non-overlapping regions
+   -- before computing the shape.  this ensures that things that don't
+   -- look connected aren't.  you could argue we should divide this into
+   -- multiple roof entities, but that's harder than doing this (and this
+   -- is a strict improvement, so let's try it) -- tony
+   local shape = Region3()
+   local regions = csg_lib.get_contiguous_regions(region)
+   for _, region in pairs(regions) do
+      local s = brush:set_grid_shape(region)
+                     :paint_once()
+      shape:add_region(s)
+   end
 
-   return brush
+   return shape
 end
 
 -- changes properties in the construction data component.
