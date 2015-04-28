@@ -4,6 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "undead_raid",
+   "out_edge" : "wait_for_dawn",
 
    "create_mission_info" : {
       "spawn_range" : {
@@ -13,6 +14,7 @@
 
       "mission" : {
          "npc_player_id" : "undead",
+         "encounter_name" : "undead_raid", 
 
          "role" : "pillage",
          "offset" : { "x" : 0, "y" : 0, "z" : 0 },
@@ -37,12 +39,7 @@
                },
 
                "equipment" : {
-                  "weapon" : [ "stonehearth:weapons:jagged_cleaver" ], 
-                  "abilities" : "stonehearth:abilities:undead_raid_abilities"
-               },
-               "attributes" : {
-                  "raid_timeout_minutes" : 360,
-                  "raid_timeout_variance_minutes" : 60
+                  "weapon" : [ "stonehearth:weapons:jagged_cleaver" ]
                }
             },
             "skeletons" : {
@@ -55,12 +52,7 @@
                },
 
                "equipment" : {
-                  "weapon" : [ "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
-                  "abilities" : "stonehearth:abilities:undead_raid_abilities"
-               },
-               "attributes" : {
-                  "raid_timeout_minutes" : 360,
-                  "raid_timeout_variance_minutes" : 45
+                  "weapon" : [ "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ]
                }
             }            
          }

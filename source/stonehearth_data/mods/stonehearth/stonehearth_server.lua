@@ -30,6 +30,7 @@ local service_creation_order = {
    'analytics',
    'mining',
    'hydrology',
+   'swimming',
    'town_patrol',
    'bulletin_board',
    'linear_combat',

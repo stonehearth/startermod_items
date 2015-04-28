@@ -13,6 +13,8 @@
       },
 
       "mission" : {
+         "encounter_name" : "create_wolf_riders", 
+
          "role" : "raid_stockpiles",
          "offset" : { "x" : 0, "y" : 0, "z" : 0 },
 

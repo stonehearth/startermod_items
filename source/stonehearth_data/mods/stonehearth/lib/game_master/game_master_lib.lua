@@ -183,4 +183,37 @@ function game_master_lib.create_citizens(population, info, origin, ctx)
    return citizens
 end
 
+-- Add entities to the context so that they can be found later. 
+-- Takes a table of all the entities, sorted into tables by their type. If there's only 
+-- one of a type, the that item is directly assigned to the type
+-- By the end, ctx, enc_name.entities, and {zombies: {...}, skeletons : {...}} should contain something
+-- like ctx.enc_name.entities.zombies[1] = zombie_entity_1
+-- @param ctx: context we want to add the entities
+-- @param prefix_path: something like, encounter_name.citizens or encounter_name.entities
+-- @param entities: table of all the entities that are passed in, like {zombies : {}, skeletons : {}}
+function game_master_lib.register_entities(ctx, prefix_path, entities)
+   local ctx_citizens = ctx
+   for i in string.gmatch(prefix_path, "[^.]+") do
+      if not ctx_citizens[i] then
+         ctx_citizens[i] = {}
+      end 
+      ctx_citizens = ctx_citizens[i]
+   end
+
+   for type, targets in pairs(entities) do
+      local arr = {}
+      for id, target in pairs(targets) do 
+         table.insert(arr, target)
+      end
+      --If there was just one target, then assign to the type
+      --If there were more, assign a table to the type
+      local num_targets = #arr
+      if num_targets == 1 then
+         ctx_citizens[type] = arr[1]
+      elseif num_targets > 1 then
+         ctx_citizens[type] = arr
+      end
+   end 
+end
+
 return game_master_lib

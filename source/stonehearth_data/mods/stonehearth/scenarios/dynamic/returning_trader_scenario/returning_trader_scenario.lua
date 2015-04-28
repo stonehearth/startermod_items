@@ -20,6 +20,7 @@ local rng = _radiant.csg.get_default_rng()
 -- The returning trader will only spawn if there is at least one carpenter in the population
 -- and if the score is above a certain threshhold
 function ReturningTrader:can_spawn()
+   
    local score_data = stonehearth.score:get_scores_for_player(self._sv._player_id):get_score_data()
    local score_threshold = self._trade_data.score_threshold
    local curr_score = 0
@@ -42,6 +43,7 @@ function ReturningTrader:can_spawn()
 
    --There were no carpenters, return false
    return false
+
 end
 
 function ReturningTrader:initialize()
@@ -180,8 +182,8 @@ function ReturningTrader:_make_message(message_composite)
    message_composite = string.gsub(message_composite, '__crop_name__', crop_name)
 
    local hours_remaing = 0
-   if self._timer then
-      hours_remaing = stonehearth.calendar:get_remaining_time(self._timer, 'h')
+   if self._sv.timer then
+      hours_remaing = stonehearth.calendar:get_remaining_time(self._sv.timer, 'h')
       hours_remaing = math.floor(hours_remaing)
       message_composite = string.gsub(message_composite, '__hour_counter__',  hours_remaing)
    end
