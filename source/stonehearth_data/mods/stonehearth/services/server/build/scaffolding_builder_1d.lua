@@ -65,7 +65,7 @@ function ScaffoldingBuilder_OneDim:activate()
 
    if self._sv.active then
       self:_trace_blueprint_and_project()
-      
+
       -- for performance reasons, we don't update our regions synchronously.  this creates a race
       -- where our region may be out of date when the application is closed by the user (or crashes!).
       -- so if we're restoring while active, unconditionally mark us as dirty.
@@ -285,6 +285,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
                          Point3( INFINITE, project_top + 1,  INFINITE))
    local reachable_blueprint = blueprint_rgn:clipped(clipper)
 
+
    -- if there are holes in the blueprint (e.g. for doors or windows), we need
    -- to make sure we plug them up.  the projection to CLIP_SOLID (below) will
    -- take care of most of them, but we do have to make sure the very top row
@@ -317,7 +318,7 @@ function ScaffoldingBuilder_OneDim:_cover_project_region(teardown)
    -- complete the wall that the slab is attached to!  this makes scaffolding
    -- somewhat magical from a collision perspective, but oh well!  people
    -- can already walk right through it, so why not other building parts, too?
-   build_util.clip_dependant_regions_from(self._sv.entity, region)
+   build_util.clip_dependant_regions_from(self._sv.entity, origin, region)
 
    -- copy into the cursor in one big :modify() at the end
    self._sv.scaffolding_rgn:modify(function(cursor)

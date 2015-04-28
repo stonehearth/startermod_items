@@ -331,11 +331,14 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
 
    local merged = Region3()
    for rid, rblock in pairs(sblock.regions) do
+      -- the rblock region is in the coordinate space of the entity.  we're trying to build
+      -- a region in world coordinate space, so move it over.
       local r = rblock.region:get():translated(rblock.origin)
       merged:add_region(r)
    end   
+
+   log:detail('sid:%d world merged scaffolding region bounds is %s, area %d', sid, merged:get_bounds(), merged:get_area())
    merged:translate(-sblock.origin)
-   log:detail('sid:%d merged scaffolding region bounds is %s', sid, merged:get_bounds())
 
    sblock.region:modify(function(cursor)
          cursor:copy_region(merged)

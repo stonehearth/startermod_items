@@ -895,7 +895,7 @@ end
 
 -- removes all regions from entities `entity` depends on from `region`
 --
-local function clip_dependant_regions_from_recursive(building, blueprint, blueprint_origin, region, visited)
+local function clip_dependant_regions_from_recursive(building, blueprint, region_origin, region, visited)
    checks('Entity', 'Entity', 'Point3', 'Region3', 'table')
    
    local id = blueprint:get_id()
@@ -908,21 +908,21 @@ local function clip_dependant_regions_from_recursive(building, blueprint, bluepr
    
    for _, dep in bc:each_dependency(blueprint) do
       local dep_origin = radiant.entities.get_world_grid_location(dep)
-      local offset = dep_origin - blueprint_origin
+      local offset = dep_origin - region_origin
       local dep_region = dep:get_component('destination')
                               :get_region()
                                  :get()
                                     :translated(offset)
       region:subtract_region(dep_region)
 
-      clip_dependant_regions_from_recursive(building, dep, dep_origin, region, visited)
+      clip_dependant_regions_from_recursive(building, dep, region_origin, region, visited)
    end
 end
 
 -- removes all regions from entities `entity` depends on from `region`
 --
-function build_util.clip_dependant_regions_from(entity, region)
-   checks('Entity', 'Region3')
+function build_util.clip_dependant_regions_from(entity, region_origin, region)
+   checks('Entity', 'Point3', 'Region3')
 
    local blueprint = build_util.get_blueprint_for(entity)
    if not blueprint then
@@ -932,8 +932,7 @@ function build_util.clip_dependant_regions_from(entity, region)
    if not building then
       return
    end
-   local origin = radiant.entities.get_world_grid_location(blueprint)
-   clip_dependant_regions_from_recursive(building, blueprint, origin, region, {})
+   clip_dependant_regions_from_recursive(building, blueprint, region_origin, region, {})
 end
 
 return build_util

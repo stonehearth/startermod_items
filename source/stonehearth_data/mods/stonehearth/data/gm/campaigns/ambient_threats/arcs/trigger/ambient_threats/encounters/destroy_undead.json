@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "destroy_entity",
+
+   "in_edge"  : "destroy_undead",
+
+   "destroy_entity_info" :  {
+      "target_entities" : ["undead_raid.citizens.zombies", "undead_raid.citizens.skeletons"], 
+      "effect" : "/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json", 
+      "continue_always" : true
+   }
+}
