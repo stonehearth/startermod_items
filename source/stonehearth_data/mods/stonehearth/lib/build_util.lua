@@ -768,9 +768,7 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
    until last_edge_count == new_edge_count
 
    local world_region2_bounds = world_region2:get_bounds()
-
-   world_region2 = world_region2:inflated(Point2(1, 1))
-
+      
    -- stencil out parts of the region which overlap existing blueprints.  this lets
    -- us grow the "rest" of the roof on a lower storey after having authored all the
    -- upper stories (e.g. a church with a steeple)

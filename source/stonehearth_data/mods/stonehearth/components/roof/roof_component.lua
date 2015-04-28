@@ -134,6 +134,7 @@ function Roof:_compute_collision_shape()
    local shape = Region3()
    local regions = csg_lib.get_contiguous_regions(region)
    for _, region in pairs(regions) do
+      region = region:inflated(Point2(1, 1))
       local s = brush:set_grid_shape(region)
                      :paint_once()
       shape:add_region(s)
