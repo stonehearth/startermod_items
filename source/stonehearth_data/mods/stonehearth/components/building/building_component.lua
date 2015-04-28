@@ -717,16 +717,17 @@ end
 
 function Building:_compute_floor_dependencies()
    for _, entry in pairs(self._sv.structures[FLOOR]) do
+      local floor = entry.entity
       -- if there's nothing already supporting the floor, add a dependency
       -- on the walls all around it.  this happens when people use the
       -- slab tool to build balconies hanging off walls.    
       if radiant.empty(entry.dependencies) then
-         local floor = entry.entity
          local floor_origin = radiant.entities.get_world_grid_location(floor)
          local query_region = floor:get_component('destination')
                                        :get_region()
                                           :get()
                                              :inflated(Point3(1, 0, 1))
+                                                :translated(Point3(0, -1, 0))
          for _, wall_entry in pairs(self._sv.structures[WALL]) do
             local wall = wall_entry.entity
             local wall_origin = radiant.entities.get_world_grid_location(wall)
@@ -740,6 +741,15 @@ function Building:_compute_floor_dependencies()
                self:_add_dependency(entry, wall)
             end
          end
+      end
+      -- everything connected to the floor depends on the floor.
+      local connected = floor:get_component('stonehearth:floor')
+                                 :get_connected()
+
+      for _, entity in pairs(connected) do
+         local centry = self:_get_entry_for_structure(entity)
+         assert(centry)
+         self:_add_dependency(centry, floor)
       end
    end
 end
