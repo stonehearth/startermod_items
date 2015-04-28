@@ -679,9 +679,19 @@ end
 
 function BuildService:grow_walls(floor, column_brush, wall_brush)
    local building = build_util.get_building_for(floor)
-   local walls = nil
+   local walls = {}
+   local fc = floor:get_component('stonehearth:floor')
+
    build_util.grow_walls_around(floor, function(min, max, normal)
-         walls = self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
+         local wall = self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
+         walls[wall:get_id()] = wall
+
+         fc:connect_to(wall)
+         local columns = { wall:get_component('stonehearth:wall')
+                                 :get_columns() }
+         for _, column in pairs(columns) do
+            fc:connect_to(column)
+         end
       end)
    return walls
 end
@@ -703,6 +713,7 @@ function BuildService:grow_roof_command(session, response, root_wall, roof_optio
 end
 
 function BuildService:grow_roof(root_wall, roof_options)
+   checks('self', 'Entity', 'table')
    local building = build_util.get_building_for(root_wall)
 
    -- compute the roof shape

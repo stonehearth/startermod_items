@@ -14,6 +14,9 @@ function Floor:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
    self._sv.category = constants.floor_category.FLOOR
+   if not self._sv.connected_to then
+      self._sv.connected_to = {}
+   end
 end
 
 function Floor:destroy()
@@ -30,6 +33,15 @@ end
 
 function Floor:layout()
    -- nothing to do...
+end
+
+function Floor:get_connected()
+   return self._sv.connected_to
+end
+
+function Floor:connect_to(blueprint)
+   self._sv.connected_to[blueprint:get_id()] = blueprint
+   self.__saved_variables:mark_changed()
 end
 
 function Floor:set_category(category)
@@ -71,11 +83,13 @@ function Floor:clone_from(entity)
 end
 
 function Floor:save_to_template()
-   return {}
+   return {
+      connected_to = build_util.pack_entity_table(self._sv.connected_to),
+   }
 end
 
 function Floor:load_from_template(data, options, entity_map)
-   -- nothing to do!   
+   self._sv.connected_to = build_util.unpack_entity_table(data.connected_to, entity_map)
 end
 
 function Floor:rotate_structure(degrees)
