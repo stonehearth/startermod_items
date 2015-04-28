@@ -21,12 +21,21 @@ function Mission:_create_party(ctx, info)
    -- xxx: "enemy" here should be "npc"
    local party = stonehearth.unit_control:get_controller(npc_player_id)
                                              :create_party()
-   for name, info in pairs(info.members) do
-      local members = game_master_lib.create_citizens(population, info, origin + offset, ctx)
-      for id, member in pairs(members) do
-         party:add_member(member)
+
+   --Stick all the citizens into a table sorted by type, and add them to the party
+   local citizens_by_type = {}
+   if info.members then
+      for type, info in pairs(info.members) do
+         local members = game_master_lib.create_citizens(population, info, origin + offset, ctx)
+         citizens_by_type[type] = members
+         for id, member in pairs(members) do
+            party:add_member(member)
+         end
       end
+      --Add them to the ctx
+      game_master_lib.register_entities(ctx, info.encounter_name .. '.citizens', citizens_by_type)
    end
+   
    return party
 end
 

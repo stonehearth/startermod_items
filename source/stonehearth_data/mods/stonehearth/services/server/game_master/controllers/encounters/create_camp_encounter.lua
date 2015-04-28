@@ -150,33 +150,19 @@ function CreateCamp:_add_piece(piece, visible_rgn)
       end
    end
 
-   -- add all the people.
-   local ctx_citizens = {}
-   ctx[self._sv.encounter_name].citizens = ctx_citizens
-   
-   if piece.info.citizens then      
-      for name, info in pairs(piece.info.citizens) do
+   --Go through and create all the citizens. Put them in a table so we can neatly 
+   --add them all to the context, all at once
+   local citizens_by_type = {}
+   if piece.info.citizens then
+      for type, info in pairs(piece.info.citizens) do 
          local citizens = game_master_lib.create_citizens(self._population, info, origin, ctx)
-         local citizen_count = 0
-         for id, citizen in pairs(citizens) do
-            citizen_count = citizen_count + 1
-         end 
+         citizens_by_type[type] = citizens
          for id, citizen in pairs(citizens) do
             self:_add_entity_to_visible_rgn(citizen, visible_rgn)
-            
-            if citizen_count > 1 then
-               local arr = ctx_citizens[name]
-               if not arr then
-                  arr = {}
-                  ctx_citizens[name] = arr
-               end
-               table.insert(arr, citizen)
-            else
-               -- just use the name
-               ctx_citizens[name] = citizen
-            end
-         end        
+         end
       end
+      --This fn adds everyone to the ctx in a mechanism like ctx.enc_name.citizens.type
+      game_master_lib.register_entities(ctx, self._sv.encounter_name .. '.citizens', citizens_by_type)
    end
 
    -- if there's a script associated with the mod, give it a chance to customize the camp

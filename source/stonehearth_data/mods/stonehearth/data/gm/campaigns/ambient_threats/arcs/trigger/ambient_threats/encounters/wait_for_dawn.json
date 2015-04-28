@@ -2,10 +2,10 @@
    "type" : "encounter",
    "encounter_type" : "wait_for_time_of_day",
 
-   "in_edge"  : "wait_for_night",
-   "out_edge" : "nighttime_undead",
+   "in_edge"  : "wait_for_dawn",
+   "out_edge" : "destroy_undead",
 
    "wait_for_time_of_day_info" :  {
-      "time" : "22:00+1h30m"
+      "time" : "6:00"
    }
 }
