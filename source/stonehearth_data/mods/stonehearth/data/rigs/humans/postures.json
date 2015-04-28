@@ -19,5 +19,11 @@
    },
    "stonehearth:have_shield" : {
       "combat_1h_idle" : "combat_1h_shield_idle"
+   },
+   "stonehearth:swimming" : {
+      "idle_breathe" : "idle_swim",
+      "idle_sway" : "idle_swim",
+      "idle_look_around" : "idle_swim",
+      "run" : "run_swim"
    }
 }
