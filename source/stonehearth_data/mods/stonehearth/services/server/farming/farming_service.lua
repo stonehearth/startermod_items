@@ -230,7 +230,7 @@ function FarmingService:_get_score_for_farm(entity)
          end
       end
    end
-   return aggregate_score
+   return aggregate_score / 10
 end
 
 return FarmingService
