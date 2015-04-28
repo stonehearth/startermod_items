@@ -1,3 +1,5 @@
+local csg_lib = require 'lib.csg.csg_lib'
+
 local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -767,11 +769,12 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
 
    local world_region2_bounds = world_region2:get_bounds()
 
+   world_region2 = world_region2:inflated(Point2(1, 1))
+
    -- stencil out parts of the region which overlap existing blueprints.  this lets
    -- us grow the "rest" of the roof on a lower storey after having authored all the
    -- upper stories (e.g. a church with a steeple)
    local to_remove = Region2()
-   radiant.log.write('', 0, 'wr2 bounds %s', world_region2:get_bounds())
    for rect in world_region2:each_cube() do
       local query_cube = Cube3(Point3(rect.min.x, height,     rect.min.y),
                                Point3(rect.max.x, height + 1, rect.max.y))
@@ -785,12 +788,10 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
                                     :get_region()
                                        :get()
                                           :translated(entity_origin)
-               radiant.log.write('', 0, 'checking %s %s ', entity, rgn:get_bounds())
                for c in rgn:each_cube() do
                   if c.min.y <= height and c.max.y > height then
                      local rect = Rect2(Point2(c.min.x, c.min.z),
                                         Point2(c.max.x, c.max.z))
-                     radiant.log.write('', 0, 'removing rect %s %s', rect, entity)
                      to_remove:add_cube(rect)
                   end
                end
@@ -805,9 +806,7 @@ function build_util.calculate_roof_shape_around_walls(root_wall, options)
    local world_origin = Point3(region_origin.x,
                                height,
                                region_origin.y)
-
-   local region2 = region2:inflated(Point2(1, 1))
-                  
+                 
    return world_origin, region2, walls
 end
 

@@ -12,8 +12,6 @@ const Point3f Point3f::unitX(1, 0, 0);
 const Point3f Point3f::unitY(0, 1, 0);
 const Point3f Point3f::unitZ(0, 0, 1);
 
-const Point2f Point2f::zero(0, 0);
-const Point2f Point2f::one(1, 1);
 
 const Point3 Point3::zero(0, 0, 0);
 const Point3 Point3::one(1, 1, 1);
@@ -23,6 +21,13 @@ const Point3 Point3::unitZ(0, 0, 1);
 
 const Point2 Point2::zero(0, 0);
 const Point2 Point2::one(1, 1);
+const Point2 Point2::unitX(1, 0);
+const Point2 Point2::unitY(0, 1);
+
+const Point2f Point2f::zero(0, 0);
+const Point2f Point2f::one(1, 1);
+const Point2f Point2f::unitX(1, 0);
+const Point2f Point2f::unitY(0, 1);
 
 const Point1 Point1::zero(0);
 const Point1 Point1::one(1);
