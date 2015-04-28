@@ -551,12 +551,12 @@ function Task:__action_try_start(action, worker)
 
    if self._state ~= STARTED then
       self._log:detail('task is not currently running.  cannot start! (state:%s)', self._state)
-      return false;
+      return false
    end
 
    if self._workers_pending_unfeed[entity:get_id()] then
       self._log:detail('task worker %s is pending to be removed.  cannot start!', entity)
-      return false;
+      return false
    end
 
    if not self:check_worker_against_task_affinity(worker) then

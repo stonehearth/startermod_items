@@ -86,7 +86,7 @@ function RunTaskAction:get_debug_info(depth)
             o.depth = depth + 1
             o.name = self._activity.name
             o.args = stonehearth.ai:format_args(self._activity.args)
-            o.does = self.does
+            o.does = self.does .. ' (RunTaskAction)'
             o.priority = self.priority
             if self._execution_frame then
                o.execution_frames = { self._execution_frame:get_debug_info(o.depth) }

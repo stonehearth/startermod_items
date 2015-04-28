@@ -160,7 +160,7 @@ function crushinator_tests_maul()
    stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop_2')
    stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_silkweed_crop')
 
-   new_mine(Point3(-60, -8, 40), Point3(-40, 10, 60))
+   new_mine(Point3(-60, 0, 40), Point3(-40, 10, 60))
 
    new_shepherd_pasture(90, 20, 30, 30)
 
