@@ -25,6 +25,19 @@
             "info" : "file(create_scout_camp/wolf_cage.json)",
             "position" : {"x": 5, "y" : 5},
             "rotation" : 0
+         }, 
+         "campfire" : {
+            "info" : "file(create_camp/campfire.json)",
+            "position" : { "x": -2, "y": -2 }
+         },
+         "stockpile" : {
+            "position" : { "x": -2, "y": 4 },
+            "info" : "file(create_camp/stockpile.json)"
+         },
+         "goblin_tent_1" : {
+            "info" : "file(create_camp/goblin_tent.json)",
+            "position" : { "x": 5, "y": -5 },
+            "rotation" : -90
          }
       }
    }

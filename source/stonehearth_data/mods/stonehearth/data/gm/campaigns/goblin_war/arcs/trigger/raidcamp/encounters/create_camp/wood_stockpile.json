@@ -4,7 +4,9 @@
    "script" : "file(stockpile.lua)",
    "script_info" : {
       "npc_player_id" : "goblins",
-      "stockpile_size" : { "w" : 4, "h" : 4 }
+      "stockpile_size" : { "w" : 4, "h" : 4 }, 
+      "encounter_name" : "goblin_raiding_camp_1",
+      "entity_name" : "wood_stockpile"
    }
 
 }

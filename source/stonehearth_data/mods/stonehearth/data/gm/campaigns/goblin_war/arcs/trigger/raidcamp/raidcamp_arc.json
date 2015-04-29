@@ -15,6 +15,7 @@
 
       "wait for next shakedown" : "file(encounters/wait_for_next_shakedown.json)",
       "wait for boss death" : "file(encounters/wait_for_boss_death.json)",
-      "finish arc on boss death" : "file(encounters/finish_arc_on_boss_death.json)"
+      "boss_death_dialog" : "file(encounters/boss_death_dialog.json)", 
+      "destroy_stockpiles" : "file(encounters/destroy_stockpiles.json)"
    }
 }
