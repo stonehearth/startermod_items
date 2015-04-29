@@ -103,7 +103,7 @@ function InventoryService:_register_score_functions()
          local total_score = 0
          for id, item in pairs(items) do
             if radiant.entities.is_material(item, 'food_container') or radiant.entities.is_material(item, 'food') then
-               local item_value = stonehearth.score:get_score_for_entity(entity)
+               local item_value = stonehearth.score:get_score_for_entity(item)
                agg_score_bag.edibles = agg_score_bag.edibles + item_value
             end
          end

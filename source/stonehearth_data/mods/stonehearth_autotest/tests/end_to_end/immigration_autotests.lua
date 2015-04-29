@@ -5,16 +5,16 @@ function immigration_tests.get_one_citizen(autotest)
 
    --Have enough supplies to pass the criteria
    --50 food, > 4.0 morale, 100 net worth
-   local cluster = autotest.env:create_entity_cluster(0, 0, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local cluster = autotest.env:create_entity_cluster(0, 0, 10, 10, 'stonehearth:food:corn:corn_basket')
    local stockpile = autotest.env:create_stockpile(0, 0, {size = {x=10, y=10}})
 
-   local cluster = autotest.env:create_entity_cluster(0, 10, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local cluster = autotest.env:create_entity_cluster(0, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
    local stockpile = autotest.env:create_stockpile(0, 10, {size = {x=10, y=10}})
 
-   local cluster = autotest.env:create_entity_cluster(-10, 10, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local cluster = autotest.env:create_entity_cluster(-10, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
    local stockpile = autotest.env:create_stockpile(-10, 10, {size = {x=10, y=10}})
 
-   local cluster = autotest.env:create_entity_cluster(10, 10, 10, 10, 'stonehearth:food:berries:berry_basket')
+   local cluster = autotest.env:create_entity_cluster(10, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
    local stockpile = autotest.env:create_stockpile(10, 10, {size = {x=10, y=10}})
 
 

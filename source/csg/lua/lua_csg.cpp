@@ -57,5 +57,7 @@ void csg::RegisterLuaTypes(lua_State* L)
    Point3f["unit_z"] = csg::Point3f::unitZ;
    Point2f["zero"] = csg::Point2f::zero;
    Point2f["one"] = csg::Point2f::one;
+   Point2f["unit_x"] = csg::Point2f::unitX;
+   Point2f["unit_y"] = csg::Point2f::unitY;
    Color3["is_color"] = lua::GetPointerToCFunction(L, &Color3_IsColor);
 }

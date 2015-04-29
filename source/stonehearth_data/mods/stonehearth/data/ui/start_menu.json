@@ -27,8 +27,8 @@
       "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup",
       "items" : {
          "harvest" : {
-            "name" : "Harvest Plants",
-            "description" : "Harvest trees and plants from the surface",
+            "name" : "Gather",
+            "description" : "Gather trees, plants, and stones from the surface of the land",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/harvest_cmd.png",
             "sticky" : true,

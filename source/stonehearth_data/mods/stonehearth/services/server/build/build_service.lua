@@ -680,7 +680,16 @@ end
 function BuildService:grow_walls(floor, column_brush, wall_brush)
    local building = build_util.get_building_for(floor)
    local walls = {}
+
+   -- sometimes floor is a fabricator
+   floor = build_util.get_blueprint_for(floor)
+   if not floor then
+      return
+   end
    local fc = floor:get_component('stonehearth:floor')
+   if not fc then
+      return
+   end
 
    build_util.grow_walls_around(floor, function(min, max, normal)
          local wall = self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)

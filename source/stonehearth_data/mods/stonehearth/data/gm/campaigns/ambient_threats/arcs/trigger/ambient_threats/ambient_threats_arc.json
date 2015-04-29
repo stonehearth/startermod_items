@@ -6,6 +6,7 @@
       "wait_for_day_two" : "file(encounters/wait_for_day_two.json)", 
       "undead at night" : "file(encounters/nighttime_undead.json)",
       "generate nightly undead" : "file(encounters/generate_nightly_undead.json)",
+      "randomize_spawn" : "file(encounters/randomize_spawn.json)", 
       "undead raid" : "file(encounters/undead_raid.json)",
       "wait_for_dawn" : "file(encounters/wait_for_dawn.json)", 
       "destroy_undead" : "file(encounters/destroy_undead.json)"

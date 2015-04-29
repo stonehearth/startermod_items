@@ -256,6 +256,8 @@ public:
 
    static const Point zero;
    static const Point one;
+   static const Point unitX;
+   static const Point unitY;
 
    struct Hash { 
       inline size_t operator()(Point<S, 2> const& p) const {
