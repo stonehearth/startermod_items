@@ -251,6 +251,11 @@ function XZRegionSelector:_cleanup()
       self._z_ruler:destroy()
       self._z_ruler = nil
    end
+
+   if self._intersection_node then
+      self._intersection_node:destroy()
+      self._intersection_node = nil
+   end
 end
 
 function XZRegionSelector:destroy()
@@ -289,13 +294,6 @@ function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
          local entity = result.entity
 
-         --[[ this works!  yay!  not good enough!!
-         if not entity then
-            -- oh, there's no entity?  maybe this is the thing we're looking for
-            -- (temp... don't submit!)
-            return true
-         end
-         ]]
          if result.node_name == INTERSECTION_NODE_NAME then
             -- we hit the intersection node created by the user to catch points floating
             -- in air.  use this brick
