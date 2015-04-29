@@ -14,7 +14,7 @@
 
       "mission" : {
          "npc_player_id" : "undead",
-         "encounter_name" : "undead_raid", 
+         "ctx_entity_registration_path" : "undead_raid.raiders",
 
          "role" : "pillage",
          "offset" : { "x" : 0, "y" : 0, "z" : 0 },

@@ -17,6 +17,7 @@
                "title" : "A goblin raiding party approaches!",
                "message" : "Gonna get you!"
             },
+            "register_members_under" : "stuff_to_kill_at_destory", 
             
             "members" : {
                "maurauders" : {
