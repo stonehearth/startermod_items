@@ -37,7 +37,7 @@ function BattleArenaTest:load_team(info)
          for name, info in pairs(info.members) do
             local citizens = game_master_lib.create_citizens(population, info, offset)
             if info.player_id == 'player_1' then
-               for id, citizen in pairs(citizens) do
+               for i, citizen in ipairs(citizens) do
                   radiant.entities.turn_to(citizen, 180)
                end
             end

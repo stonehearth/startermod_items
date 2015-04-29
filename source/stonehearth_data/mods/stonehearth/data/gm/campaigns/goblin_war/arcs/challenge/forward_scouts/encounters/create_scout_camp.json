@@ -9,7 +9,7 @@
 
    "create_camp_info" : {
       "npc_player_id" : "goblins",
-      "encounter_name" : "create_scout_camp",
+      "ctx_entity_registration_path" : "create_scout_camp",
 
       "radius" : 10,
       

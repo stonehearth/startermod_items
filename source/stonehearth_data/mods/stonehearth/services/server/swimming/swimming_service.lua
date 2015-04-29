@@ -32,6 +32,7 @@ function SwimmingService:_create_entity_traces()
                -- doesn't walk / swim
                return
             end
+            self._swimming_state[id] = false
             self:_trace_entity(id, entity)
          end)
       :on_removed(function(id)
@@ -77,12 +78,13 @@ function SwimmingService:_update(id, entity)
 
    if swimming ~= self._swimming_state[id] then
       self._swimming_state[id] = swimming
-      local posture_component = entity:add_component('stonehearth:posture')
 
       if swimming then
-         posture_component:set_posture('stonehearth:swimming')
+         radiant.entities.set_posture(entity, 'stonehearth:swimming')
+         radiant.entities.add_buff(entity, 'stonehearth:buffs:swimming')
       else
-         posture_component:unset_posture('stonehearth:swimming')
+         radiant.entities.unset_posture(entity, 'stonehearth:swimming')
+         radiant.entities.remove_buff(entity, 'stonehearth:buffs:swimming')
       end
    end
 end
@@ -102,9 +104,14 @@ function SwimmingService:_is_swimming(entity)
    local swimming = false
 
    for id, entity in pairs(intersected_entities) do
-      if entity:get_component('stonehearth:water') then
-         swimming = true
-         break
+      local water_component = entity:get_component('stonehearth:water')
+      if water_component then
+         local water_level = water_component:get_water_level()
+         local swim_level = location.y + entity_height * 0.5
+         if water_level > swim_level then
+            swimming = true
+            break
+         end
       end
    end
 

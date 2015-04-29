@@ -9,8 +9,6 @@ function BuildTest:__init()
    self:create_world()
 
    self:place_citizen(2, 2)
-   if true then return end
-   
    self:place_citizen(2, 6)
    self:place_citizen(2, 10)
    self:place_citizen(2, 14)

@@ -101,12 +101,14 @@ function Mission:_create_party(ctx, info)
       for type, info in pairs(info.members) do
          local members = game_master_lib.create_citizens(population, info, origin + offset, ctx)
          citizens_by_type[type] = members
-         for id, member in pairs(members) do
+         for i, member in ipairs(members) do
             party:add_member(member)
          end
       end
-      --Add them to the ctx
-      game_master_lib.register_entities(ctx, info.encounter_name .. '.citizens', citizens_by_type)
+      -- if the user cares, register all the citizens
+      if info.ctx_entity_registration_path then  
+         game_master_lib.register_entities(ctx, info.ctx_entity_registration_path, citizens_by_type)
+      end
    end
    
    return party

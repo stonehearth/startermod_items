@@ -18,6 +18,7 @@ class RaycastResult
          csg::Point3f         normal;
          csg::Point3f         brick;
          om::EntityRef        entity;
+         std::string          node_name;
       };
 
    public:
@@ -28,7 +29,7 @@ class RaycastResult
       std::vector<Result> const& GetResults() const;
       csg::Ray3 const& GetRay() const;
 
-      void AddResult(csg::Point3f const &intersection, csg::Point3f const& normal, csg::Point3 const& brick, om::EntityRef entity);
+      void AddResult(csg::Point3f const &intersection, csg::Point3f const& normal, csg::Point3 const& brick, om::EntityRef entity, const char* node_name);
 
    private:
       std::vector<Result>  _results;

@@ -6,7 +6,7 @@
    "out_edge" : "finish_arc_on_boss_death",
 
    "wait_for_event_info" :  {
-      "source" : "goblin_raiding_camp_1.npc_boss_entity",
+      "source" : "goblin_raiding_camp_1.boss",
       "event"  : "radiant:entity:pre_destroy"
    }
 }

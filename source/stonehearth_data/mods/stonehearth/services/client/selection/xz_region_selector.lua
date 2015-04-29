@@ -14,6 +14,9 @@ local log = radiant.log.create_logger('xz_region_selector')
 
 local DEFAULT_BOX_COLOR = Color4(192, 192, 192, 255)
 
+local INTERSECTION_NODE_NAME = 'xz region selector intersection node'
+local MAX_RESONABLE_DRAG_DISTANCE = 512
+local MODEL_OFFSET = Point3(-0.5, 0, -0.5)
 local TERRAIN_NODES = 1
 
 function XZRegionSelector:__init()
@@ -248,6 +251,11 @@ function XZRegionSelector:_cleanup()
       self._z_ruler:destroy()
       self._z_ruler = nil
    end
+
+   if self._intersection_node then
+      self._intersection_node:destroy()
+      self._intersection_node = nil
+   end
 end
 
 function XZRegionSelector:destroy()
@@ -285,6 +293,12 @@ end
 function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
          local entity = result.entity
+
+         if result.node_name == INTERSECTION_NODE_NAME then
+            -- we hit the intersection node created by the user to catch points floating
+            -- in air.  use this brick
+            return true
+         end
 
          -- The only case entity should be null is when allowing self-selection of the cursor.
          if self._allow_select_cursor and not entity then
@@ -550,6 +564,20 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
 end
 
 function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
+   -- make a new entity that we can use to find the position of the mouse
+   -- at the same height that we started.
+   if not self._intersection_node then
+      local y = self._p0.y
+      local d = MAX_RESONABLE_DRAG_DISTANCE
+      local min = self._p0 - Point3(d, 0, d)
+      local max = self._p0 + Point3(d, 1, d)
+      local region = Region3(Cube3(min, max))
+      self._intersection_node = _radiant.client.create_voxel_node(H3DRootNode, region, '', MODEL_OFFSET)
+                                                   :set_name(INTERSECTION_NODE_NAME)
+                                                   :set_visible(false)
+                                                   :set_can_query(true)
+   end
+
    if stonehearth.selection.user_cancelled(event) then
       self._action = 'reject'
       return 'stop'

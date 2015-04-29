@@ -47,7 +47,7 @@ class Pipeline : public core::Singleton<Pipeline> {
 
       void CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing=false);
       void CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing=false);
-      void CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m);
+      void CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m, bool noInstancing=true);
 
       void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
 

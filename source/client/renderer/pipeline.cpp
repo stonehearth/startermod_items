@@ -458,17 +458,17 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
 void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing)
 {
    if (!GetSharedGeometry(key, geo)) {
-      CreateGeometryFromMesh(geo, m);
+      CreateGeometryFromMesh(geo, m, noInstancing);
       SetSharedGeometry(key, geo);
    }
 }
 
-void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m)
+void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m, bool noInstancing)
 {
    geo.vertexIndices[1] = (int)m.vertices.size();
    geo.indexIndicies[1] = (int)m.indices.size();
    geo.levelCount = 1;
-   geo.noInstancing = true;
+   geo.noInstancing = noInstancing;
 
    ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
 }
