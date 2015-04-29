@@ -41,13 +41,14 @@ csg::Ray3 const& RaycastResult::GetRay() const
    return _ray;
 }
 
-void RaycastResult::AddResult(csg::Point3f const &intersection, csg::Point3f const& normal, csg::Point3 const& brick, om::EntityRef entity)
+void RaycastResult::AddResult(csg::Point3f const &intersection, csg::Point3f const& normal, csg::Point3 const& brick, om::EntityRef entity, const char* node_name)
 {
    Result r;
    r.intersection = intersection;
    r.normal = normal;
    r.brick = csg::ToFloat(brick);
    r.entity = entity;
+   r.node_name = node_name;
    _results.emplace_back(r);
 }
 

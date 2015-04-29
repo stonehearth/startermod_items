@@ -296,9 +296,10 @@ void LuaRenderer::RegisterType(lua_State* L)
             namespace_("scene") [
                lua::RegisterType_NoTypeInfo<RaycastResult::Result>("RaycastResultEntry")
                   .def_readwrite("intersection", &RaycastResult::Result::intersection)
-                  .def_readwrite("normal", &RaycastResult::Result::normal)
-                  .def_readwrite("brick",  &RaycastResult::Result::brick)
-                  .def_readwrite("entity", &RaycastResult::Result::entity)
+                  .def_readwrite("normal",       &RaycastResult::Result::normal)
+                  .def_readwrite("brick",        &RaycastResult::Result::brick)
+                  .def_readwrite("entity",       &RaycastResult::Result::entity)
+                  .def_readwrite("node_name",    &RaycastResult::Result::node_name)
                ,
                lua::RegisterType_NoTypeInfo<RaycastResult>("RaycastResult")
                   .def("get_result_count",       &RaycastResult::GetNumResults)
