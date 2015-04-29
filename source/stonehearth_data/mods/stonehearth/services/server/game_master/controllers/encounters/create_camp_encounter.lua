@@ -78,7 +78,7 @@ function CreateCamp:_create_camp(location)
 
    -- carve out the grass around the camp
    radiant.terrain.subtract_region(terrain_region)
-
+   location.y = location.y - Point3.unit_y.y
    -- create the boss entity
    if info.boss then
       local members = game_master_lib.create_citizens(self._population,
