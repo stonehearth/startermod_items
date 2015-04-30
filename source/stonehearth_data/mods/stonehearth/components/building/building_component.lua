@@ -58,6 +58,7 @@ function Building:initialize(entity, json)
    self:_trace_entity_container()
    self._traces = {}
    self._cp_listeners = {}
+   self._cached_envelope = {}
 end
 
 function Building:destroy()
@@ -225,9 +226,11 @@ end
 
 -- the building envelope is a Region3 that's the sum of the Region3's of all
 -- the building blueprints.
-function Building:get_building_envelope()
-   if self._cached_envelope then
-      return self._cached_envelope
+function Building:get_building_envelope(kind, ignoring_blueprint)
+   checks('self', 'string', '?Entity')
+
+   if self._cached_envelope[kind] then
+      return self._cached_envelope[kind]
    end
    
    local envelope = Region3()
@@ -235,16 +238,27 @@ function Building:get_building_envelope()
    for _, kind in ipairs(STRUCTURE_TYPES) do
       for id, entry in pairs(self._sv.structures[kind]) do
          local entity = entry.entity
-         local rcs = entity:get_component('region_collision_shape')
-         if rcs then
-            local location = radiant.entities.get_world_grid_location(entity)
-            local offset = location - origin
-            envelope:add_region(rcs:get_region():get():translated(offset))
+         if entity ~= ignoring_blueprint then
+            local component
+            if kind == 'project' then
+               component = entity:get_component('region_collision_shape')
+            else
+               component = entity:get_component('destination')
+            end
+            if component then
+               local rgn = component:get_region()
+               if rgn then
+                  local location = radiant.entities.get_world_grid_location(entity)
+                  local offset = location - origin               
+                  envelope:add_region(rgn:get()
+                                           :translated(offset))
+               end
+            end
          end
       end
    end
    if self._sv.active then
-      self._cached_envelope = envelope
+      self._cached_envelope[kind] = envelope
    end
    return envelope
 end
@@ -255,7 +269,7 @@ function Building:set_active(active)
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
    else
-      self._cached_envelope = nil
+      self._cached_envelope = {}
    end
 end
 
