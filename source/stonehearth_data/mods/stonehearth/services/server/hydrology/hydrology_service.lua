@@ -395,6 +395,7 @@ end
 -- Does not check that region is contained by a watertight boundary.
 -- Know what you are doing before calling this.
 function HydrologyService:create_water_body_with_region(region, height)
+   assert(not region:empty())
    local boxed_region = _radiant.sim.alloc_region3()
    local location = self:select_origin_for_region(region)
    
@@ -438,6 +439,10 @@ function HydrologyService:_create_water_body_internal(location, boxed_region, he
 end
 
 function HydrologyService:select_origin_for_region(region)
+   if region:empty() then
+      return nil
+   end
+
    local bounds = region:get_bounds()
    local bottom_slice = Cube3(bounds)
    bottom_slice.max.y = bottom_slice.min.y + 1
