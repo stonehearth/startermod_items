@@ -685,21 +685,27 @@ function WaterComponent:_move_to_new_origin()
 
    -- Region is in local coordinates of the old_origin so the new origin returned is also in the 
    -- old coordinate system.
-   local offset = stonehearth.hydrology:select_origin_for_region(region)
+   local delta = stonehearth.hydrology:select_origin_for_region(region)
    local old_origin = radiant.entities.get_world_grid_location(self._entity)
-   local new_origin = old_origin + offset
+   local new_origin = old_origin + delta
+   -- offset is actually just -delta, but be explicit for clarity
+   -- (to world coordinates then back to local coordinates in the new coordiante system)
+   local offset = old_origin - new_origin
 
    log:debug('Moving %s from %s to %s', self._entity, old_origin, new_origin)
 
    self._sv.region:modify(function(cursor)
-         -- actually just -offset, but show the transformation for clarity
-         cursor:translate(old_origin - new_origin)
+         cursor:translate(offset)
       end)
 
    self._sv._top_layer:modify(function(cursor)
-         -- actually just -offset, but show the transformation for clarity
-         cursor:translate(old_origin - new_origin)
+         cursor:translate(offset)
       end)
+
+   if offset.y ~= 0 then
+      self._sv.height = self._sv.height + offset.y
+      self._sv._top_layer_index = self._sv._top_layer_index + offset.y
+   end
 
    radiant.terrain.place_entity_at_exact_location(self._entity, new_origin)
 
