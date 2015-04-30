@@ -12,7 +12,7 @@ local StaticScenarioService = class()
 function StaticScenarioService:initialize()
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
-   self._terrain_component = radiant._root_entity:add_component('terrain')
+   self._terrain_component = radiant.terrain.get_terrain_component()
    self._terrain_info = TerrainInfo() -- TODO: this should be passed into create_new_game, but it's not serializable yet
 
    self._sv = self.__saved_variables:get_data()

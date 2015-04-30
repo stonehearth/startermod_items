@@ -50,11 +50,15 @@ public:     // public methods
    void SetModifiedCb(ModifiedCb modified_cb);
 
    bool IsEmpty() const;
+   int NumTiles() const;
+   int NumCubes() const;
    csg::Point3 GetTileSize() const;
+
    TileType FindTile(csg::Point3 const& index) const;  // returns nulltr if not found
    TileType GetTile(csg::Point3 const& index);         // creates tile if not found
    void Clear();
    void ClearTile(csg::Point3 const& index);
+
    IndexSet const& GetChangedSet() const { return _changedSet; }
    void ClearChangedSet();
    void OptimizeChangedTiles(const char* reason);
@@ -71,10 +75,9 @@ public:     // public methods
    csg::Region3f IntersectCube(csg::Cube3f const& cube) const;
    csg::Region3f IntersectRegion(csg::Region3f const& region) const;
 
-   bool ContainsPoint(csg::Point3f const& point) const;
-
-   int NumTiles() const;
-   int NumCubes() const;
+   bool Contains(csg::Point3f const& point) const;
+   bool IntersectsCube(csg::Cube3f const& cube) const;
+   bool IntersectsRegion(csg::Region3f const& region) const;
 
 private:
    void TriggerModified(csg::Region3f const& region);

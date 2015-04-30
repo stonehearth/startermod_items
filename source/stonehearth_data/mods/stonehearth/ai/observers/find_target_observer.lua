@@ -156,6 +156,7 @@ function FindTargetObserver:_check_for_target()
       assert(self._task:is_active())
 
       if target == self._target then
+         self._log:info('already have task attacking %s.', target)
          -- same target, let the existing task run
          return
       end
@@ -167,6 +168,7 @@ function FindTargetObserver:_check_for_target()
 
       self._task:destroy()
       self._task = nil
+      self._log:info('destroying task to attack %s.', self._target)
    end
 
    self:_attack_target(target)

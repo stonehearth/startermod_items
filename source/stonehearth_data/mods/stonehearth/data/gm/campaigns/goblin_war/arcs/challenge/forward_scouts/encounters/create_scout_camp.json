@@ -9,7 +9,7 @@
 
    "create_camp_info" : {
       "npc_player_id" : "goblins",
-      "encounter_name" : "create_scout_camp",
+      "ctx_entity_registration_path" : "create_scout_camp",
 
       "radius" : 10,
       
@@ -25,6 +25,19 @@
             "info" : "file(create_scout_camp/wolf_cage.json)",
             "position" : {"x": 5, "y" : 5},
             "rotation" : 0
+         }, 
+         "campfire" : {
+            "info" : "file(create_scout_camp/campfire.json)",
+            "position" : { "x": -5, "y": -5 }
+         },
+         "stockpile" : {
+            "position" : { "x": -6, "y": 4 },
+            "info" : "file(create_scout_camp/stockpile.json)"
+         },
+         "goblin_tent_1" : {
+            "info" : "file(create_scout_camp/goblin_tent.json)",
+            "position" : { "x": 5, "y": -5 },
+            "rotation" : -90
          }
       }
    }

@@ -241,7 +241,7 @@ function ChannelManager:link_waterfall_channel(from_entity, source_location, cha
       --    -- Multiple source locations are valid for the channel_entrance
       --    if (channel.source_location ~= source_location) then
       --       -- Remove the channel if the source location is gone
-      --       if not self:_water_body_contains_point(from_entity, source_location) then
+      --       if not self:_water_body_contains(from_entity, source_location) then
       --          self:remove_channel(channel)
       --          channel = nil
       --       end
@@ -306,7 +306,7 @@ function ChannelManager:_link_pressure_channel_unidirectional(from_entity, to_en
       --       end
 
       --       -- Remove the channel if the source location is gone
-      --       if channel and not self:_water_body_contains_point(from_entity, from_location) then
+      --       if channel and not self:_water_body_contains(from_entity, from_location) then
       --          self:remove_channel(channel)
       --          channel = nil
       --       end
@@ -582,7 +582,7 @@ function ChannelManager:sort_channels_ascending(channels)
    return sorted_channels
 end
 
-function ChannelManager:_water_body_contains_point(entity, point)
+function ChannelManager:_water_body_contains(entity, point)
    local location = radiant.entities.get_world_grid_location(entity)
    local water_component = entity:add_component('stonehearth:water')
    local result = water_component:get_region():get():contains(point - location)

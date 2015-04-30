@@ -1,6 +1,7 @@
 local i18n = require 'lib.i18n.i18n'()
 local rng = _radiant.csg.get_default_rng()
 
+local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 
 local game_master_lib = {}
@@ -74,8 +75,19 @@ function game_master_lib.create_entity(info, player_id)
    return entity
 end
 
---If the citizen should be created from scratch, from the population, do that
---Otherwise, the citizen should exist already in the ctx, and should be reused from there
+-- If the citizen should be created from scratch, from the population, do that
+-- Otherwise, the citizen should exist already in the ctx, and should be reused from there
+--
+-- SUPER IMPORTANT NOTE SUPER IMPORTANT NOTE SUPER IMPORTANT NOTE SUPER IMPORTANT NOTE 
+--
+-- Citizens are stored in a ARRAY, not an OBJECT keyed by id.  Otherwise it would be
+-- very difficult to refer to them via path in .json files (e.g. the first wolf in a
+-- map needs to be blah.blah.wolves[1], not blah.blah.wolves[1235135])
+--
+-- Lots of code depends on this!
+--
+-- SUPER IMPORTANT NOTE SUPER IMPORTANT NOTE SUPER IMPORTANT NOTE SUPER IMPORTANT NOTE 
+
 local function _create_or_load_citizens(population, info, origin, ctx)
    local citizens = {}
 
@@ -86,13 +98,13 @@ local function _create_or_load_citizens(population, info, origin, ctx)
       
       for i = 1, num do
          local citizen = population:create_new_citizen(info.from_population.role)
-         citizens[citizen:get_id()] = citizen
+         table.insert(citizens, citizen)
       end
    elseif info.from_ctx and ctx then
       --Retrieve the citizen from the context. Can only create 1 citizen from context per block
       local entity = ctx:get(info.from_ctx)
       if entity and entity:is_valid() then
-         citizens[entity:get_id()] = entity
+         table.insert(citizens, entity)
       end
    end
    return citizens
@@ -112,7 +124,7 @@ end
 function game_master_lib.create_citizens(population, info, origin, ctx)
    local citizens = _create_or_load_citizens(population, info, origin, ctx)
   
-   for id, citizen in pairs(citizens) do
+   for i, citizen in ipairs(citizens) do
       -- info.job: promote the citizen to the proper job
       if info.job then
          citizen:add_component('stonehearth:job')
@@ -190,7 +202,10 @@ end
 -- like ctx.enc_name.entities.zombies[1] = zombie_entity_1
 -- @param ctx: context we want to add the entities
 -- @param prefix_path: something like, encounter_name.citizens or encounter_name.entities
--- @param entities: table of all the entities that are passed in, like {zombies : {}, skeletons : {}}
+-- @param entities: table of all the entities that are passed in, like 
+--                  {zombies : { e1, e2, e3 }, skeletons : { e1 }}, or { e1, e2, e3}
+--                  { foo : { a : { e1, e2 },  b : { e3, c: { e4, e5 } } } }
+--
 function game_master_lib.register_entities(ctx, prefix_path, entities)
    local ctx_citizens = ctx
    for i in string.gmatch(prefix_path, "[^.]+") do
@@ -200,20 +215,24 @@ function game_master_lib.register_entities(ctx, prefix_path, entities)
       ctx_citizens = ctx_citizens[i]
    end
 
-   for type, targets in pairs(entities) do
-      local arr = {}
-      for id, target in pairs(targets) do 
-         table.insert(arr, target)
+   local function register_entities_recursive(ctx, entities)
+      assert(type(entities) == 'table')
+
+      for key, value in pairs(entities) do
+         if type(value) == 'table' then
+            if #value == 1 then 
+               ctx[key] = value[1]
+            else
+               ctx[key] = {}
+               register_entities_recursive(ctx[key], value)
+            end
+         else
+            assert(radiant.util.is_a(value, Entity))
+            ctx[key] = value
+         end
       end
-      --If there was just one target, then assign to the type
-      --If there were more, assign a table to the type
-      local num_targets = #arr
-      if num_targets == 1 then
-         ctx_citizens[type] = arr[1]
-      elseif num_targets > 1 then
-         ctx_citizens[type] = arr
-      end
-   end 
+   end
+   register_entities_recursive(ctx_citizens, entities)
 end
 
 return game_master_lib
