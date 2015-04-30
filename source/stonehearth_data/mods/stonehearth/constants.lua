@@ -287,16 +287,16 @@ local constants = {
    }
 }
 
-constants.construction.DEAFULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
-constants.construction.DEAFULT_WOOD_WALL_BRUSH   = constants.construction.brushes.wall['wood resource'][1]
-constants.construction.DEAFULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
-constants.construction.DEAFULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
-constants.construction.DEAFULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
-constants.construction.DEAFULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
-constants.construction.DEAFULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
-constants.construction.DEAFULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
-constants.construction.DEAFULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]
-constants.construction.DEAFULT_STONE_PATTERN_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
+constants.construction.DEFAULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
+constants.construction.DEFAULT_WOOD_WALL_BRUSH   = constants.construction.brushes.wall['wood resource'][1]
+constants.construction.DEFAULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
+constants.construction.DEFAULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
+constants.construction.DEFAULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
+constants.construction.DEFAULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
+constants.construction.DEFAULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
+constants.construction.DEFAULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
+constants.construction.DEFAULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]
+constants.construction.DEFAULT_STONE_PATTERN_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
 
 return constants
    

@@ -506,7 +506,7 @@ end
 
 function Building:_recommend_patch_wall_material(origin, shape)
    local closest_d
-   local recommended = constants.DEAFULT_WOOD_WALL_BRUSH
+   local recommended = constants.DEFAULT_WOOD_WALL_BRUSH
    local bounds = shape:get_bounds()
 
    for _, entry in pairs(self._sv.structures[WALL]) do
