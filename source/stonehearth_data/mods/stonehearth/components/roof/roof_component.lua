@@ -140,6 +140,17 @@ function Roof:_compute_collision_shape()
       shape:add_region(s)
    end
 
+   -- now subtract off other overlapping structures
+   local building = build_util.get_building_for(self._entity)
+   local envelope = building:get_component('stonehearth:building')
+                              :get_building_envelope('blueprint', self._entity)
+   local offset = radiant.entities.get_world_grid_location(building) - 
+                  radiant.entities.get_world_grid_location(self._entity)
+
+   local local_envelope = envelope:translated(offset)
+
+   shape:subtract_region(local_envelope)
+
    return shape
 end
 
