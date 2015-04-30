@@ -9,7 +9,7 @@ local Terrain = {}
 
 function Terrain.set_config_file(config_file, is_server)
    if is_server then
-      Terrain._get_terrain_component():set_config_file_name(config_file)
+      Terrain.get_terrain_component():set_config_file_name(config_file)
    end
    Terrain._initialize_block_types(config_file)
 end
@@ -113,7 +113,7 @@ end
 
 -- returns the Point3 of the highest terrain voxel at (x, z)
 function Terrain.get_point_on_terrain(pt)
-   return Terrain._get_terrain_component():get_point_on_terrain(pt)
+   return Terrain.get_terrain_component():get_point_on_terrain(pt)
 end
 
 function Terrain.in_bounds(pt)   
@@ -121,7 +121,7 @@ function Terrain.in_bounds(pt)
    -- defined.  we'll add in some extra padding on the top representing the
    -- sky.  otherwise, the point directly above the highest mountain in the world
    -- would be classified as "out of bounds"
-   local bounds = Terrain._get_terrain_component():get_bounds()
+   local bounds = Terrain.get_terrain_component():get_bounds()
    bounds.max.y = INFINITE
    return bounds:contains(pt:to_closest_int())
 end
@@ -414,11 +414,11 @@ function Terrain.clip_region(region)
    return _physics:clip_region(region, _radiant.physics.Physics.CLIP_TERRAIN)
 end
 
-function Terrain.contains_point(point)
-   return Terrain._get_terrain_tiles():contains_point(point)
+function Terrain.contains(point)
+   return Terrain._get_terrain_tiles():contains(point)
 end
 
-function Terrain._get_terrain_component()
+function Terrain.get_terrain_component()
    return radiant._root_entity:add_component('terrain')
 end
 
@@ -427,7 +427,7 @@ function Terrain.clear()
 end
 
 function Terrain._get_terrain_tiles()
-   local terrain_component = Terrain._get_terrain_component()
+   local terrain_component = Terrain.get_terrain_component()
    return terrain_component:get_tiles()
 end
 

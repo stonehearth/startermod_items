@@ -16,9 +16,6 @@ std::ostream& ::operator<<(std::ostream& out, TiledRegion<ContainerType, TileTyp
 template <>
 class TiledRegionAdapter<Region3BoxedPtrMap>
 {
-public:     // types
-	typedef om::Region3Boxed RegionType;
-
 public:
 	TiledRegionAdapter(Region3BoxedPtrMap& container) : _container(container) { }
 	~TiledRegionAdapter() { }
@@ -78,9 +75,6 @@ private:
 template <>
 class TiledRegionAdapter<Region3PtrMap>
 {
-public:     // types
-	typedef csg::Region3 RegionType;
-
 public:
 	TiledRegionAdapter(Region3PtrMap& container) : _container(container) { }
 	~TiledRegionAdapter() { }
@@ -243,8 +237,8 @@ template <typename ContainerType, typename TileType>
 csg::Region3f TiledRegion<ContainerType, TileType>::IntersectRegion(csg::Region3f const& region3f) const
 {
    csg::Region3 region3 = csg::ToInt(region3f);   // we expect the region to be simple relative to the stored tiles
-   csg::Region3f result;
    csg::Cube3 chunks = csg::GetChunkIndexSlow(csg::ToInt(region3.GetBounds()), _tileSize);
+   csg::Region3f result;
 
    for (csg::Point3 const& index : csg::EachPoint(chunks)) {
       TileType tile = _tilemap.FindTile(index);
@@ -259,11 +253,35 @@ csg::Region3f TiledRegion<ContainerType, TileType>::IntersectRegion(csg::Region3
 }
 
 template <typename ContainerType, typename TileType>
-bool TiledRegion<ContainerType, TileType>::ContainsPoint(csg::Point3f const& point3f) const
+bool TiledRegion<ContainerType, TileType>::Contains(csg::Point3f const& point3f) const
 {
-   csg::Region3f intersection = IntersectPoint(point3f);
-   bool contains = !intersection.IsEmpty();
-   return contains;
+   return IntersectsCube(point3f);
+}
+
+template <typename ContainerType, typename TileType>
+bool TiledRegion<ContainerType, TileType>::IntersectsCube(csg::Cube3f const& cube3f) const
+{
+   return IntersectsRegion(cube3f);
+}
+
+// consider refactoring with IntersectRegion
+template <typename ContainerType, typename TileType>
+bool TiledRegion<ContainerType, TileType>::IntersectsRegion(csg::Region3f const& region3f) const
+{
+   csg::Region3 region3 = csg::ToInt(region3f);
+   csg::Cube3 chunks = csg::GetChunkIndexSlow(csg::ToInt(region3.GetBounds()), _tileSize);
+
+   for (csg::Point3 const& index : csg::EachPoint(chunks)) {
+      TileType tile = _tilemap.FindTile(index);
+      if (tile) {
+         csg::Region3 const& tile_region = _tilemap.GetTileRegion(tile);
+         if (tile_region.Intersects(region3)) {
+            return true;
+         }
+      }
+   }
+
+   return false;
 }
 
 template <typename ContainerType, typename TileType>
