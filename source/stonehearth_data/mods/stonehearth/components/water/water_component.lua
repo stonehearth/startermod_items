@@ -25,7 +25,7 @@ function WaterComponent:initialize(entity, json)
       self:_restore()
    end
 
-   self._root_terrain_component = radiant._root_entity:add_component('terrain')
+   self._terrain_component = radiant.terrain.get_terrain_component()
 end
 
 function WaterComponent:_restore()
@@ -137,7 +137,7 @@ function WaterComponent:_add_water(add_location, volume)
          end
          volume = residual
       else
-         if self:_allow_grow_region(add_location, edge_region) then
+         if self:_allow_grow_region(edge_region) then
             volume, info = self:_grow_region(volume, add_location, top_layer, edge_region, channel_region)
          else
             log:detail('Discarded water for %s because edge area exceeeded', self._entity)
@@ -159,15 +159,21 @@ function WaterComponent:_add_water(add_location, volume)
    return volume, info
 end
 
-function WaterComponent:_allow_grow_region(add_location, edge_region)
-   if edge_region:get_area() <= constants.hydrology.EDGE_AREA_LIMIT then
+function WaterComponent:_allow_grow_region(edge_region)
+   -- We use the edge region circumference as the metric so that bounded growth (channelling) works,
+   -- but is limited when there are no boundaries.
+   local edge_area = edge_region:get_area()
+
+   if edge_area < constants.hydrology.DEFAULT_EDGE_AREA_LIMIT then
       return true
    end
 
-   -- player created mining regions are allowed to grow unbounded
-   local mined_region = stonehearth.mining:get_mined_region()
-   if mined_region:contains(add_location) then
-      return true
+   if edge_area < constants.hydrology.PLAYER_EDGE_AREA_LIMIT then
+      -- player created mining regions are allowed to grow much larger
+      local mined_region = stonehearth.mining:get_mined_region()
+      if mined_region:intersects_region(edge_region) then
+         return true
+      end
    end
 
    return false
@@ -679,21 +685,27 @@ function WaterComponent:_move_to_new_origin()
 
    -- Region is in local coordinates of the old_origin so the new origin returned is also in the 
    -- old coordinate system.
-   local offset = stonehearth.hydrology:select_origin_for_region(region)
+   local delta = stonehearth.hydrology:select_origin_for_region(region)
    local old_origin = radiant.entities.get_world_grid_location(self._entity)
-   local new_origin = old_origin + offset
+   local new_origin = old_origin + delta
+   -- offset is actually just -delta, but be explicit for clarity
+   -- (to world coordinates then back to local coordinates in the new coordiante system)
+   local offset = old_origin - new_origin
 
    log:debug('Moving %s from %s to %s', self._entity, old_origin, new_origin)
 
    self._sv.region:modify(function(cursor)
-         -- actually just -offset, but show the transformation for clarity
-         cursor:translate(old_origin - new_origin)
+         cursor:translate(offset)
       end)
 
    self._sv._top_layer:modify(function(cursor)
-         -- actually just -offset, but show the transformation for clarity
-         cursor:translate(old_origin - new_origin)
+         cursor:translate(offset)
       end)
+
+   if offset.y ~= 0 then
+      self._sv.height = self._sv.height + offset.y
+      self._sv._top_layer_index = self._sv._top_layer_index + offset.y
+   end
 
    radiant.terrain.place_entity_at_exact_location(self._entity, new_origin)
 
@@ -713,7 +725,7 @@ end
 
 -- return value and parameters all in world coordinates
 function WaterComponent:_get_edge_region(region, channel_region)
-   local world_bounds = self._root_terrain_component:get_bounds()
+   local world_bounds = self._terrain_component:get_bounds()
 
    -- perform a separable inflation to exclude diagonals
    -- TODO: consider using csg::GetAdjacent here
@@ -967,7 +979,7 @@ function WaterComponent:_get_layer(index)
 end
 
 function WaterComponent:_is_blocked(point)
-   local result = stonehearth.hydrology:get_water_tight_region():contains_point(point)
+   local result = stonehearth.hydrology:get_water_tight_region():contains(point)
    return result
 end
 

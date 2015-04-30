@@ -21,15 +21,15 @@ function MiningService:initialize()
 
    if not self._sv._initialized then
       self._sv._initialized = true
-      -- TODO: consider making mined_region a tiled region
-      self._sv._mined_region = _radiant.sim.alloc_region3()
       self.__saved_variables:mark_changed()
    else
    end
 
    self:_init_loot_tables()
 
-   self._interior_tiles = radiant._root_entity:add_component('terrain'):get_interior_tiles()
+   local terrain_component = radiant.terrain.get_terrain_component()
+   self._interior_tiles = terrain_component:get_interior_tiles()
+   self._mined_region = terrain_component:get_mined_region()
 end
 
 function MiningService:destroy()
@@ -184,16 +184,12 @@ function MiningService:merge_zones(zone1, zone2)
 end
 
 function MiningService:get_mined_region()
-   return self._sv._mined_region:get()
+   return self._mined_region
 end
 
 function MiningService:_add_to_mined_region(point)
-   self._sv._mined_region:modify(function(cursor)
-         cursor:add_point(point)
-         cursor:optimize_by_merge('MiningService:_add_to_mined_region')
-      end)
-   
-   self.__saved_variables:mark_changed()
+   self._mined_region:add_point(point)
+   self._mined_region:optimize_changed_tiles('MiningService:_add_to_mined_region')
 end
 
 -- Chooses the best point to mine when standing on from.

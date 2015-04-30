@@ -1,11 +1,18 @@
-local Point3 = _radiant.csg.Point3
-local Cube3 = _radiant.csg.Cube3
-local Region3 = _radiant.csg.Region3
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 
 local csg_lib = {}
+
+csg_lib.XY_DIRECTIONS = {
+   Point2(-1, 0),
+   Point2( 1, 0),
+   Point2( 0,-1),
+   Point2( 0, 1)
+}
 
 csg_lib.XZ_DIRECTIONS = {
    Point3(-1, 0, 0),
@@ -23,13 +30,15 @@ csg_lib.XYZ_DIRECTIONS = {
    Point3( 0, 1, 0)
 }
 
+local DIMENSIONS = { 'x', 'y', 'z' }
+
 -- create a cube that spans p0 and p1 inclusive
 function csg_lib.create_cube(p0, p1, tag)
    assert(p0 and p1)
    local min, max = Point3(p0), Point3(p1)
    tag = tag or 0
 
-   for _, d in ipairs({ 'x', 'y', 'z'}) do
+   for _, d in ipairs(DIMENSIONS) do
       if min[d] > max[d] then
          min[d], max[d] = max[d], min[d]
       end
@@ -37,8 +46,6 @@ function csg_lib.create_cube(p0, p1, tag)
 
    return Cube3(min, max + Point3.one, tag)
 end
-
-local DIMENSIONS = { 'x', 'y', 'z'}
 
 function csg_lib.get_face(cube, normal)
    local dim = nil
