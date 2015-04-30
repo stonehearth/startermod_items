@@ -129,13 +129,13 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
    }
 
    Region3BoxedTiledPtr tiles = GetTiles();
-   bool blocked = tiles->ContainsPoint(point);
+   bool blocked = tiles->Contains(point);
    csg::Point3f direction = blocked ? csg::Point3f::unitY : -csg::Point3f::unitY;
 
    while (bounds.Contains(point)) {
       // if we started blocked, keep going up until open
       // if we started open, keep going down until blocked
-      if (tiles->ContainsPoint(point) != blocked) {
+      if (tiles->Contains(point) != blocked) {
          break;
       }
       point += direction;
@@ -174,6 +174,14 @@ Region3BoxedTiledPtr Terrain::GetInteriorTiles()
       interior_tile_accessor_ = CreateTileAccessor(interior_tiles_);
    }
    return interior_tile_accessor_;
+}
+
+Region3BoxedTiledPtr Terrain::GetMinedRegion()
+{
+   if (!mined_region_accessor_) {
+      mined_region_accessor_ = CreateTileAccessor(mined_region_tiles_);
+   }
+   return mined_region_accessor_;
 }
 
 csg::Point3 const& Terrain::GetTileSize() const

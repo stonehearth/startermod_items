@@ -3,7 +3,7 @@
    "encounter_type" : "wait_for_event",
 
    "in_edge"  : "wait_for_cage_destruction",
-   "out_edge" : "wolves_escaping_dialog",
+   "out_edge" : ["destroy_goblin_stockpiles", "wolves_escaping_dialog"],
 
    "wait_for_event_info" :  {
       "source" : "create_scout_camp.entities.wolf_cage",

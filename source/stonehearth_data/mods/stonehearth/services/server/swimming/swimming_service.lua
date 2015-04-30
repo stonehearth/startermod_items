@@ -127,8 +127,7 @@ function SwimmingService:_create_mob_height_table()
 end
 
 function SwimmingService:_get_root_entity_container()
-   local root_entity = radiant.get_entity(1)
-   return root_entity:add_component('entity_container')
+   return radiant._root_entity:add_component('entity_container')
 end
 
 return SwimmingService

@@ -168,7 +168,9 @@ end
 
 -- Remember that the terrain tiles most likely have not been added at this point
 function SubterraneanViewService:_deferred_initialize()
-   self._interior_tiles = self:_get_terrain_component():get_interior_tiles()
+   local terrain_component = radiant.terrain.get_terrain_component()
+
+   self._interior_tiles = terrain_component:get_interior_tiles()
    self._xray_tiles = _radiant.renderer.get_xray_tiles()
    self._tile_size = self._interior_tiles:get_tile_size()
 
@@ -206,7 +208,7 @@ function SubterraneanViewService:_destroy_render_frame_trace()
 end
 
 function SubterraneanViewService:_create_interior_region_traces()
-   local terrain_component = self:_get_terrain_component()
+   local terrain_component = radiant.terrain.get_terrain_component()
 
    self._interior_region_map_trace = terrain_component:trace_interior_tiles('subterranean view', TraceCategories.SYNC_TRACE)
       :on_added(function(index, region3i_boxed)
@@ -529,7 +531,7 @@ end
 
 function SubterraneanViewService:_is_xray_visible(entity)
    local location = radiant.entities.get_world_grid_location(entity)
-   local visible = location and self._interior_tiles:contains_point(location)
+   local visible = location and self._interior_tiles:contains(location)
    return visible
 end
 
@@ -584,18 +586,13 @@ function SubterraneanViewService:_get_world_floor()
 end
 
 function SubterraneanViewService:_get_terrain_bounds()
-   local bounds = self:_get_terrain_component():get_bounds()
+   local terrain_component = radiant.terrain.get_terrain_component()
+   local bounds = terrain_component:get_bounds()
    return bounds
 end
 
-function SubterraneanViewService:_get_terrain_component()
-   local root_entity = radiant.get_entity(1)
-   return root_entity:add_component('terrain')
-end
-
 function SubterraneanViewService:_get_root_entity_container()
-   local root_entity = radiant.get_entity(1)
-   return root_entity:add_component('entity_container')
+   return radiant._root_entity:add_component('entity_container')
 end
 
 -- visits all the children and attached items

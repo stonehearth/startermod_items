@@ -21,7 +21,7 @@ function TerrainService:initialize()
       self._sv._convex_hull = {}
    end
 
-   self._terrain_component = radiant._root_entity:add_component('terrain')
+   self._terrain_component = radiant.terrain.get_terrain_component()
 
    -- the radius of the sight sensor in the json files should match this value
    self._sight_radius = radiant.util.get_config('sight_radius', 64)

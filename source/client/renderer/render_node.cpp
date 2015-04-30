@@ -95,7 +95,7 @@ RenderNodePtr RenderNode::SetName(const char *name)
 {
    h3dSetNodeParamStr(_node, H3DNodeParams::NameStr, name);
    if (_meshNode) {
-      h3dSetNodeParamStr(_meshNode, H3DNodeParams::NameStr, BUILD_STRING(name << " mesh").c_str());
+      h3dSetNodeParamStr(_meshNode, H3DNodeParams::NameStr, name);
    }
    return shared_from_this();
 }

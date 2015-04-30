@@ -14,6 +14,7 @@
       "wait_for_cage_destruction" : "file(encounters/wait_for_cage_kill.json)", 
       "wolves_escaping_dialog" : "file(encounters/wolves_escaping_dialog.json)",
       "refugees_hint" : "file(encounters/refugees_hint.json)",
-      "mysterious_orc_hint" : "file(encounters/mysterious_orc_hint.json)"
+      "mysterious_orc_hint" : "file(encounters/mysterious_orc_hint.json)",
+      "destroy_stockpiles" : "file(encounters/destroy_goblin_stockpiles.json)"
    }
 }

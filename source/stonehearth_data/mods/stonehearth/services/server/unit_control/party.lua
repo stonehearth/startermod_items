@@ -229,8 +229,9 @@ function Party:_update_tasks()
          location = banner.location,
       }
 
+      --PASSIVE IS BROKEN! TODO: FIGURE OUT WHY! TILL THEN, EVERYONE IS AGGRESSIVE
       if banner.movement_type == 'passive' then
-         priority = stonehearth.constants.priorities.combat.PARTY_PASSIVE_FORMATION
+         priority = stonehearth.constants.priorities.combat.PARTY_AGGRESSIVE_FORMATION
       else
          priority = stonehearth.constants.priorities.combat.PARTY_AGGRESSIVE_FORMATION
       end

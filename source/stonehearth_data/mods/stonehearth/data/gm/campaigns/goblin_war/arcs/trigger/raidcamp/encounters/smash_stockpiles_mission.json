@@ -17,6 +17,7 @@
                "title" : "A goblin raiding party approaches!",
                "message" : "Gonna get you!"
             },
+            "register_members_under" : "stuff_to_kill_at_destory", 
             
             "members" : {
                "maurauders" : {
@@ -24,7 +25,7 @@
                      "job" : "stonehearth:jobs:footman",
                      "min" : 2,
                      "max" : 5,
-                     "location" : { "x": 0, "z": 0 },
+                     "location" : { "x": 3, "z": 3 },
                      "range" : 6
                   },
                   

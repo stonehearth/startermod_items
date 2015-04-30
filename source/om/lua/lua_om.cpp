@@ -59,6 +59,12 @@ static void ModifyBoxed(BoxedType& boxed, luabind::object unsafe_cb)
 }
 
 template <typename T>
+static void TiledRegion_AddPoint(std::shared_ptr<T> tiled_region, csg::Point3f const& point)
+{
+   tiled_region->AddPoint(point);
+}
+
+template <typename T>
 static csg::Point3f TiledRegion_GetTileSize(std::shared_ptr<T> tiled_region)
 {
    return csg::ToFloat(tiled_region->GetTileSize());
@@ -89,6 +95,7 @@ static scope RegisterTiledRegion(const char* name)
       .def("is_empty",               &TiledRegion::IsEmpty)
       .def("clear",                  &TiledRegion::Clear)
       .def("add_point",              &TiledRegion::AddPoint)
+      .def("add_point",              &TiledRegion_AddPoint<TiledRegion>)
       .def("add_cube",               &TiledRegion::AddCube)
       .def("add_region",             &TiledRegion::AddRegion)
       .def("subtract_point",         &TiledRegion::SubtractPoint)
@@ -97,7 +104,9 @@ static scope RegisterTiledRegion(const char* name)
       .def("intersect_point",        &TiledRegion::IntersectPoint)
       .def("intersect_cube",         &TiledRegion::IntersectCube)
       .def("intersect_region",       &TiledRegion::IntersectRegion)
-      .def("contains_point",         &TiledRegion::ContainsPoint)
+      .def("contains",               &TiledRegion::Contains)
+      .def("intersects_cube",        &TiledRegion::IntersectsCube)
+      .def("intersects_region",      &TiledRegion::IntersectsRegion)
       .def("get_tile_size",          &TiledRegion_GetTileSize<TiledRegion>)
       .def("get_tile",               &TiledRegion_GetTile<TiledRegion>)
       .def("find_tile",              &TiledRegion_FindTile<TiledRegion>)

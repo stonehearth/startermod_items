@@ -3,15 +3,15 @@
    "encounter_type" : "dialog_tree",
    "rarity" : "common",
 
-   "in_edge"  : "finish_arc_on_boss_death",
+   "in_edge"  : "boss_death_dialog",
 
    "dialog_tree_info" : {
       "start_node" : "msg1",
       "nodes" : {
          "msg1" : {
             "bulletin" : {
-               "title" : "%name(goblin_raiding_camp_1.npc_boss_entity) is Defeated!",
-               "dialog_title" : "%name(goblin_raiding_camp_1.npc_boss_entity)",
+               "title" : "%name(goblin_raiding_camp_1.boss) is Defeated!",
+               "dialog_title" : "%name(goblin_raiding_camp_1.boss)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : "Ow...it hurts...",
                "choices" : {
@@ -23,8 +23,8 @@
          },
          "msg2" : {
             "bulletin" : {
-               "title" : "%name(goblin_raiding_camp_1.npc_boss_entity) is Defeated!",
-               "dialog_title" : "%name(goblin_raiding_camp_1.npc_boss_entity)",
+               "title" : "%name(goblin_raiding_camp_1.boss) is Defeated!",
+               "dialog_title" : "%name(goblin_raiding_camp_1.boss)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : "Tell my sheep... me loves her always...",
                "choices" : {
@@ -36,13 +36,12 @@
          },
          "msg3" : {
             "bulletin" : {
-               "title" : "%name(goblin_raiding_camp_1.npc_boss_entity) is Defeated!",
-               "dialog_title" : "%name(goblin_raiding_camp_1.npc_boss_entity)",
+               "title" : "%name(goblin_raiding_camp_1.boss) is Defeated!",
+               "dialog_title" : "%name(goblin_raiding_camp_1.boss)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : "You no win. Ogo... coming. Soothsayer say... Ogo... crush everyone...",
                "choices" : {
                   "stonehearth:ok" : {
-                     "out_edge" : "arc:finish"
                   }
                }               
             }

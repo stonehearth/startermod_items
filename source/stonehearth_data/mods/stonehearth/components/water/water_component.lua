@@ -25,7 +25,7 @@ function WaterComponent:initialize(entity, json)
       self:_restore()
    end
 
-   self._root_terrain_component = radiant._root_entity:add_component('terrain')
+   self._terrain_component = radiant.terrain.get_terrain_component()
 end
 
 function WaterComponent:_restore()
@@ -137,7 +137,7 @@ function WaterComponent:_add_water(add_location, volume)
          end
          volume = residual
       else
-         if self:_allow_grow_region(add_location, edge_region) then
+         if self:_allow_grow_region(edge_region) then
             volume, info = self:_grow_region(volume, add_location, top_layer, edge_region, channel_region)
          else
             log:detail('Discarded water for %s because edge area exceeeded', self._entity)
@@ -159,15 +159,21 @@ function WaterComponent:_add_water(add_location, volume)
    return volume, info
 end
 
-function WaterComponent:_allow_grow_region(add_location, edge_region)
-   if edge_region:get_area() <= constants.hydrology.EDGE_AREA_LIMIT then
+function WaterComponent:_allow_grow_region(edge_region)
+   -- We use the edge region circumference as the metric so that bounded growth (channelling) works,
+   -- but is limited when there are no boundaries.
+   local edge_area = edge_region:get_area()
+
+   if edge_area < constants.hydrology.DEFAULT_EDGE_AREA_LIMIT then
       return true
    end
 
-   -- player created mining regions are allowed to grow unbounded
-   local mined_region = stonehearth.mining:get_mined_region()
-   if mined_region:contains(add_location) then
-      return true
+   if edge_area < constants.hydrology.PLAYER_EDGE_AREA_LIMIT then
+      -- player created mining regions are allowed to grow much larger
+      local mined_region = stonehearth.mining:get_mined_region()
+      if mined_region:intersects_region(edge_region) then
+         return true
+      end
    end
 
    return false
@@ -713,7 +719,7 @@ end
 
 -- return value and parameters all in world coordinates
 function WaterComponent:_get_edge_region(region, channel_region)
-   local world_bounds = self._root_terrain_component:get_bounds()
+   local world_bounds = self._terrain_component:get_bounds()
 
    -- perform a separable inflation to exclude diagonals
    -- TODO: consider using csg::GetAdjacent here
@@ -967,7 +973,7 @@ function WaterComponent:_get_layer(index)
 end
 
 function WaterComponent:_is_blocked(point)
-   local result = stonehearth.hydrology:get_water_tight_region():contains_point(point)
+   local result = stonehearth.hydrology:get_water_tight_region():contains(point)
    return result
 end
 
