@@ -1,0 +1,55 @@
+<script type="text/x-handlebars" data-template-name="bugBase">
+   <div id='bugbase' class='button'></div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="fileBugNoKey">
+   <div id='filebug' class='gui'>
+      <div class='window'>
+         <div class="title">File Bug</div>
+         <p>
+            Could not find your Redmine API Key.  Log into Redmine and go to your
+            My account page.  In the right hand column is a section titled
+            "API access key".  Click the "Show" link and copy the access key
+            into your user_settings.json file.  It should look something line:
+
+            <pre>
+   {
+      ...
+      "redmine_api_access_key" :
+      "a119b117c91c164d2327a0877a83f0c0d1213192",
+      ...
+   }
+            </pre>
+
+            Reload the game when finished and to try again.
+         </p>         
+      </div>
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="fileBug">
+   <div id='filebug' class='gui'>
+      <div class='window'>
+         <div class="title">File Bug</div>
+            <p>
+               <div class='label'>Summary</div>
+               <input id='summary' onclick="this.select()" type='text' />
+            </p>
+            <p>
+               <div class='label'>Description</div>
+               <textarea cols="100" rows="15" id="description"></textarea>
+            </p>
+            <p>
+               <input type="checkbox" id="take_screenshot">
+               <label for="take_screenshot">Include Screenshot</label>
+               <br>
+               <input type="checkbox" id="include_lua_error">
+               <label for="include_lua_error">Include Most Recent Lua Backtrace</label>
+               <br>
+            </p>
+            <button id='cancel'>Cancel</button>
+            <button id='submit'>Submit</button>
+         </div>
+      </div>
+   </div>
+</script>

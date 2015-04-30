@@ -1,0 +1,18 @@
+{
+   "info" :{
+      "name" : "Stonehearth BugBase",
+      "version" : 1
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/ui/bugbase/bugbase.html)"
+      ],
+      "js" : [
+         "file(/ui/bugbase/bugbase.js)"
+      ],
+      "less" : [
+         "file(/ui/bugbase/bugbase.less)"
+      ]
+   }
+}
