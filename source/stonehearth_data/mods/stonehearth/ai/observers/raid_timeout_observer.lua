@@ -41,7 +41,7 @@ end
 --Note: the party seems to be using the stonehearth:urgent task group (make this clearer?)
 function RaidTimeoutObserver:_on_timer_expire()
    local task = self._entity:add_component('stonehearth:ai')
-                              :get_task_group('stonehearth:urgent')
+                              :get_task_group('stonehearth:unit_control')
                                  :create_task('stonehearth:depart_visible_area')
                                     :set_priority(stonehearth.constants.priorities.party.DEPART_WORLD)
                                     :start()

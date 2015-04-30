@@ -9,12 +9,12 @@ function SettlementTest:__init()
    self:create_world()
 
    -- build the player camp
-   --[[
+   ---[[
    self:place_citizen(4, 4, 'footman')
    self:place_citizen(4, 7, 'footman')
    self:place_citizen(10, 7, 'footman')
    self:place_citizen(13, 7, 'footman')
-   ]]
+   --]]
    self:place_citizen(7, 4)
    self:place_citizen(7, 7)
 

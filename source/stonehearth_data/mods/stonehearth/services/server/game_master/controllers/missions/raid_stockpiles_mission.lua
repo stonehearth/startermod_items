@@ -85,10 +85,13 @@ function RaidStockpilesMission:_update_party_orders()
    if raid_stockpile then
       local friendly_stockpiles = stonehearth.inventory:get_inventory(ctx.npc_player_id)
                                                             :get_all_stockpiles()
-      if friendly_stockpiles and next(friendly_stockpiles) then
-         self:_raid_stockpile(raid_stockpile, friendly_stockpiles)
-         return
-      end
+      self:_raid_stockpile(raid_stockpile, friendly_stockpiles)
+
+      --This means that if there are player stockpiles, but no friendly stockpiles, 
+      --the thieves won't know what to do, and may wander aimlessly. The marauders, 
+      --however, will raid the stockpiles. If there are no player stockpiles, 
+      --we will currently pick a random point, hopefully attacking along the way.
+      return
    end
    self:_pick_random_spot(ctx)
 end
@@ -109,17 +112,23 @@ function RaidStockpilesMission:_raid_stockpile(raid_stockpile, friendly_stockpil
    local party = self._sv.party
    party:place_banner(party.ATTACK, location, 0)
    party:cancel_tasks()
-   for _, stockpile in pairs(friendly_stockpiles) do
-      party:add_task('stonehearth:steal_items_in_stockpile', {
-                  from_stockpile = raid_stockpile,
-                  to_stockpile = stockpile,
-               })
-               :start()
-      party:add_task('stonehearth:destroy_items_in_stockpile', {
-                  stockpile = raid_stockpile,
-               })
-               :start()
+   
+   --raid player stockpiles if there are friendly stockpiles
+   if friendly_stockpiles and next(friendly_stockpiles) then
+      for _, stockpile in pairs(friendly_stockpiles) do
+         party:add_task('stonehearth:steal_items_in_stockpile', {
+                     from_stockpile = raid_stockpile,
+                     to_stockpile = stockpile,
+                  })
+                  :start()
+      end
    end
+   --smash player stockpiles regardless
+   party:add_task('stonehearth:destroy_items_in_stockpile', {
+            stockpile = raid_stockpile,
+         })
+         :start()
+
 end
 
 function RaidStockpilesMission:_check_stockpile(e)

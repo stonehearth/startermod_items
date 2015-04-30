@@ -6,7 +6,11 @@
 
    "destroy_entity_info" :  {
       "target_entities" : ["undead_raid.raiders"], 
-      "effect" : "/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json", 
+      "effect" : "/stonehearth/data/effects/fire_effect", 
+      "random_delay" : {
+            "min" : 60, 
+            "max" : 150 
+      },
       "continue_always" : true
    }
 }

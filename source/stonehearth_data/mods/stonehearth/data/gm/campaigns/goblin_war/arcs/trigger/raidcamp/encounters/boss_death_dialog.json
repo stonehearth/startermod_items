@@ -3,7 +3,7 @@
    "encounter_type" : "dialog_tree",
    "rarity" : "common",
 
-   "in_edge"  : "finish_arc_on_boss_death",
+   "in_edge"  : "boss_death_dialog",
 
    "dialog_tree_info" : {
       "start_node" : "msg1",
@@ -42,7 +42,6 @@
                "message" : "You no win. Ogo... coming. Soothsayer say... Ogo... crush everyone...",
                "choices" : {
                   "stonehearth:ok" : {
-                     "out_edge" : "arc:finish"
                   }
                }               
             }

@@ -15,7 +15,7 @@
             "members" : {
                "thief" : {
                   "from_population" : {
-                     "location" : { "x": -1, "z": -1 },   
+                     "location" : { "x": -3, "z": -3 },   
                      "job" : "stonehearth:jobs:footman"
                   },
                   
