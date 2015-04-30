@@ -184,6 +184,7 @@ class Client : public core::Singleton<Client> {
       rpc::ReactorDeferredPtr StartPerformanceCounterPush();
       void PushPerformanceCounters();
       void ReportSysInfo();
+      void PostRedmineIssues(rpc::ReactorDeferredPtr response, json::Node const& issues, bool takeScreenshot);
 
 private:
       /*

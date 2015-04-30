@@ -17,30 +17,30 @@ input[type=text] {
    color: #fff;
 }
 
-   input[type=text].search {
-      background-image: url(images/input/search.png), url(images/input/text.png);
-      background-position: right center, left top;
-      background-repeat: no-repeat, repeat-x;
-   }
+input[type=text].search {
+   background-image: url(images/input/search.png), url(images/input/text.png);
+   background-position: right center, left top;
+   background-repeat: no-repeat, repeat-x;
+}
 
-   input[type=text].namefield {
-      background: none;
-      border: 2px solid rgba(0, 0, 0, 0);
-      font-size: 26px;
-      color: #fff;
-      text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000;
-      width: auto;
-      text-align: center;
-   }
+input[type=text].namefield {
+   background: none;
+   border: 2px solid rgba(0, 0, 0, 0);
+   font-size: 26px;
+   color: #fff;
+   text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000;
+   width: auto;
+   text-align: center;
+}
 
-      input[type=text].namefield:hover, input[type=text].namefield:focus {
-      background: rgba(0,0,0,0.3);
-      background-clip: padding-box;
-      font-family: 'Lemiesz Ex';
-      border-color: #000;
-      //border-width: 16px;
-      //border-image: url(images/input/namefield-edit-hover.png) 16 16 16 16 repeat;
-   }
+input[type=text].namefield:hover, input[type=text].namefield:focus {
+   background: rgba(0,0,0,0.3);
+   background-clip: padding-box;
+   font-family: 'Lemiesz Ex';
+   border-color: #000;
+   //border-width: 16px;
+   //border-image: url(images/input/namefield-edit-hover.png) 16 16 16 16 repeat;
+}
 
 
 label + p,
@@ -86,6 +86,19 @@ input[type=number] {
    border: none;
    padding: 0px;
    overflow: visible;
+}
+
+
+textarea {
+   .blackBorder;
+   border: 2px solid #000;
+   background: #1c1b1b;
+   padding: 6px;
+   width: 200px;
+   outline: none;
+   font-family: @baseFontFamily;
+   font-size: 14px;
+   color: #fff;
 }
 
 label {
