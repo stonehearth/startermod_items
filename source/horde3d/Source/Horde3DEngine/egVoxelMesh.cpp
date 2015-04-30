@@ -215,6 +215,8 @@ void VoxelMeshNode::onAttach( SceneNode &parentNode )
 	while( node->getType() != SceneNodeTypes::VoxelModel ) node = node->getParent();
 	_parentModel = (VoxelModelNode *)node;
 	_parentModel->markNodeListDirty();
+   _instanceKey.scale = _parentModel->getModelScale();
+   _instanceKey.updateHash();
 }
 
 
