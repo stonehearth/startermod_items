@@ -15,11 +15,14 @@ class Terrain(Component):
    water_tight_region_delta = dm.Boxed(csg.Region3f(), get=None, set=None)
    get_water_tight_region = ridl.Method(Region3TiledPtr())
 
+   mined_region_tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='mined_region_tile', add=None, remove=None, get=None, contains=None, num=None)
+
    is_empty = ridl.Method(c.bool())
    get_bounds = ridl.Method(csg.Cube3f())
    add_tile = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
    get_tiles = ridl.Method(Region3BoxedTiledPtr())
    get_interior_tiles = ridl.Method(Region3BoxedTiledPtr())
+   get_mined_region = ridl.Method(Region3BoxedTiledPtr())
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref))
    get_terrain_ring_tesselator = ridl.Method(TerrainRingTesselatorPtr()).const
 
@@ -51,6 +54,7 @@ class Terrain(Component):
 
    Region3BoxedTiledPtr tile_accessor_;
    Region3BoxedTiledPtr interior_tile_accessor_;
+   Region3BoxedTiledPtr mined_region_accessor_;
    TerrainRingTesselatorPtr terrainRingTesselator_;
 
    Region3PtrMap water_tight_region_tiles_;

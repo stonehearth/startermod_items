@@ -61,7 +61,7 @@ function HydrologyService:get_water_tight_region()
 end
 
 function HydrologyService:_trace_terrain_delta()
-   local terrain_component = radiant._root_entity:add_component('terrain')
+   local terrain_component = radiant.terrain.get_terrain_component()
    self._water_tight_region = terrain_component:get_water_tight_region()
    self._delta_trace = terrain_component:trace_water_tight_region_delta('hydrology service', TraceCategories.SYNC_TRACE)
       :on_changed(function(delta_region)
@@ -120,7 +120,7 @@ function HydrologyService:_on_terrain_changed(delta_region)
 
          for point in modified_water_region:each_point() do
             -- check that block was in fact added
-            if self._water_tight_region:contains_point(point) then
+            if self._water_tight_region:contains(point) then
                -- Someone placed a watertight block in the water. Just mimic the displacement for now.
                -- TODO: remove affected channels
                -- TODO: update top layer
@@ -149,7 +149,7 @@ function HydrologyService:_on_terrain_changed(delta_region)
                local processed = blocks_to_link[point_key] ~= nil
 
                -- check that block was in fact removed
-               if not processed and not self._water_tight_region:contains_point(point) then
+               if not processed and not self._water_tight_region:contains(point) then
                   local source_location = self:get_best_source_location(entity, point)
                   assert(source_location)
                   local channel
@@ -227,7 +227,7 @@ function HydrologyService:_link_channels_for_block(point, entity)
    for _, direction in ipairs(csg_lib.XYZ_DIRECTIONS) do
       local vertical = direction.y ~= 0
       local adjacent_point = point + direction
-      local adjacent_is_solid = self._water_tight_region:contains_point(adjacent_point)
+      local adjacent_is_solid = self._water_tight_region:contains(adjacent_point)
 
       if not adjacent_is_solid then
          local adjacent_entity = self:get_water_body(adjacent_point)
@@ -244,7 +244,7 @@ function HydrologyService:_link_channels_for_block(point, entity)
                local below_adjacent_point = adjacent_point - Point3.unit_y
 
                -- if supported or above, create entity and add pressure channel
-               if self._water_tight_region:contains_point(below_adjacent_point) then
+               if self._water_tight_region:contains(below_adjacent_point) then
                   adjacent_entity = self:create_water_body(adjacent_point)
                   channel = channel_manager:link_pressure_channel(entity, adjacent_entity, point, adjacent_point)
                else
