@@ -388,7 +388,7 @@ private:
 
 typedef SceneNodeTpl *(*NodeTypeParsingFunc)( std::map< std::string, std::string > &attribs );
 typedef SceneNode *(*NodeTypeFactoryFunc)( const SceneNodeTpl &tpl );
-typedef void (*NodeTypeRenderFunc)(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+typedef void (*NodeTypeRenderFunc)(SceneId sceneId, std::string const& shaderContext, bool debugView,
                                     const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                     int occSet, int lodLevel );
 
