@@ -1,0 +1,16 @@
+{
+	"shaders" : {
+		"DIRECTIONAL_LIGHTING_WATER" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/water_lighting.shader"
+		},
+		"OMNI_LIGHTING_NO_SHADOW_WATER" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/water_lighting.shader"
+		},
+		"WATER_WRITE_ALPHA_ONLY" : {
+			"state" : "states/voxel/write_alpha_only.state",
+			"shader" : "shaders/color_only.shader"
+		}
+	}
+}

@@ -10,7 +10,7 @@ function WaterfallRenderer:initialize(render_entity, datastore)
    self._datastore = datastore
    self._entity = self._render_entity:get_entity()
    self._parent_node = self._render_entity:get_node()
-   self._edge_color = Color4(28, 191, 255, 192)
+   self._edge_color = Color4(28, 191, 255, 0)
    self._face_color = Color4(28, 191, 255, 192)
 
    self._datastore_trace = self._datastore:trace_data('rendering waterfall')
@@ -63,7 +63,7 @@ function WaterfallRenderer:_update()
    region:optimize_by_merge('water renderer')
    region:translate(-location)
 
-   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, region, self._edge_color, self._face_color, 'materials/transparent.material.json')
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, region, self._edge_color, self._face_color, 'materials/water.material.json')
 end
 
 return WaterfallRenderer
