@@ -194,17 +194,17 @@ public:
 	                   MaterialResource *matRes, int flags );
 	void clearOverlays();
 	
-	static void drawMeshes(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawMeshes(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawVoxelMeshes_Instances(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawVoxelMeshes_Instances(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-	static void drawParticles(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void drawParticles(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-   static void drawHudElements(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+   static void drawHudElements(SceneId sceneId, std::string const& shaderContext, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
-   static void drawInstanceNode(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+   static void drawInstanceNode(SceneId sceneId, std::string const& shaderContext, bool debugView,
       const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 
    void render( CameraNode *camNode, PipelineResource *pRes );
@@ -253,17 +253,17 @@ protected:
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, std::string const& shaderContext );
 	void drawQuad();
-   void drawLodGeometry(SceneId sceneId, std::string const& shaderContext, std::string const& theClass,
+   void drawLodGeometry(SceneId sceneId, std::string const& shaderContext,
                          RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
-   void drawGeometry(SceneId sceneId, std::string const& shaderContext, std::string const& theClass,
+   void drawGeometry(SceneId sceneId, std::string const& shaderContext,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags );
    void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights);
-	void doForwardLightPass(SceneId sceneId, std::string const& shaderContext, std::string const& theClass,
+	void doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource* deferredMaterial);
 	
-	void drawRenderables(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+	void drawRenderables(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static uint32 acquireInstanceAttributeBuffer();
    static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);

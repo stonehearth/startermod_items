@@ -25,6 +25,7 @@ App.FileBugView = App.View.extend({
 
    init: function(o) {
       var self = this
+      this._traces = {}
       this._super();
       radiant.call('radiant:get_config', 'redmine_api_access_key')
          .done(function(o) {
@@ -34,6 +35,15 @@ App.FileBugView = App.View.extend({
                self.rerender();
             }
          })
+      radiant.call('radiant:client:get_error_browser')
+         .done(function(obj) {
+            self._installTrace('client_errors', obj.error_browser);
+         })
+      radiant.call('radiant:server:get_error_browser')
+         .done(function (obj) {
+            self._installTrace('server_errors', obj.error_browser);
+         })
+
    },
 
    didInsertElement: function() {
@@ -51,12 +61,24 @@ App.FileBugView = App.View.extend({
          var screenshot = self.$("#take_screenshot").is(':checked');
          var include_lua_error = self.$("#include_lua_error").is(':checked');
 
+         var subject = self.$("#summary").val();
+         var description = self.$("#description").val();
+         if (include_lua_error && self._firstError) {
+            description = description + "\n\n";
+            description = description + '**Backtrace**\n';
+            description = description + '\n' + 
+                                        '~~~\n' +
+                                        self._firstError.summary + '\n' +
+                                        self._firstError.backtrace + '\n'
+                                        '~~~\n';
+         }
+
          var issues = {
             key: self.get('redmine_api_access_key'),
             issue: {
                project_id:    STONEHEARTH_PROJECT_ID,
-               subject:       self.$("#summary").val(),
-               description:   self.$("#description").val(),
+               subject:       subject,
+               description:   description,
             }
          }
 
@@ -76,7 +98,24 @@ App.FileBugView = App.View.extend({
                self.$('#submit').removeClass('disabled')               
             })
       });
-   }
+   },
+
+   _installTrace: function(name, object) {
+      var self = this;
+
+      if (this._traces[name]) {
+         this._traces[name].destroy();
+      }
+      var trace = new RadiantTrace();
+      trace.traceUri(object, { 'entries' : [] })
+         .progress(function(data) {
+            if (!self._firstError) {
+               self._firstError = data.entries[0];
+            }
+         });         
+      this._traces[name] = trace;
+   },
+
 
 });
 
