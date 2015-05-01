@@ -1,0 +1,5 @@
+ColorWriteMask = A;
+CullMode = Back;
+ZWriteEnable = false;
+ZEnable = true;
+BlendMode = Add;

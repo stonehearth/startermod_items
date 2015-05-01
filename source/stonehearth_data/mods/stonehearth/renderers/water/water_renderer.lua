@@ -10,7 +10,7 @@ function WaterRenderer:initialize(render_entity, datastore)
    self._datastore = datastore
    self._entity = self._render_entity:get_entity()
    self._parent_node = self._render_entity:get_node()
-   self._edge_color = Color4(28, 191, 255, 192)
+   self._edge_color = Color4(28, 191, 255, 0)
    self._face_color = Color4(28, 191, 255, 192)
 
    self._datastore_trace = self._datastore:trace_data('rendering water')
@@ -57,6 +57,7 @@ function WaterRenderer:_update()
 
    working_region = stonehearth.subterranean_view:intersect_region_with_visible_volume(working_region)
    working_region:optimize_by_merge('water renderer')
+   working_region:optimize_by_merge('water renderer')
    working_region:translate(-location)
 
    local render_region = Region3()
@@ -67,7 +68,7 @@ function WaterRenderer:_update()
       render_region:add_cube(cube)
    end
 
-   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color, 'materials/transparent.material.json')
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color, 'materials/water.material.json')
 end
 
 return WaterRenderer

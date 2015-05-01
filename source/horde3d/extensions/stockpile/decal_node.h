@@ -26,7 +26,7 @@ public:
 
 	static Horde3D::SceneNodeTpl *parsingFunc(std::map< std::string, std::string > &attribs);
 	static Horde3D::SceneNode *factoryFunc(const Horde3D::SceneNodeTpl &nodeTpl);
-	static void renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+	static void renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, bool debugView,
 		                    const Horde3D::Frustum *frust1, const Horde3D::Frustum *frust2,
                           Horde3D::RenderingOrder::List order, int occSet, int lodLevel);
 

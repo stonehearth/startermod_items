@@ -409,7 +409,7 @@ bool CubemitterNode::hasFinished()
 	return true;
 }
 
-void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
 	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
