@@ -74,14 +74,24 @@ function MiningCallHandler:designate_mining_zone(session, response, aligned)
       -- or we wouldn't be asked to resolve.
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
-            assert(q0[d] == get_cell_min(q0[d], xz_cell_size))
+            if q0[d] ~= get_cell_min(q0[d], xz_cell_size) then
+               -- validated point does not span the cell, bail
+               return nil, nil
+            end
+
             q1[d] = aligned_floor(q1[d]+1, xz_cell_size) - 1
+
             if q1[d] < q0[d] then
                return nil, nil
             end
          else
-            assert(q0[d] == get_cell_max(q0[d], xz_cell_size))
+            if q0[d] ~= get_cell_max(q0[d], xz_cell_size) then
+               -- validated point does not span the cell, bail
+               return nil, nil
+            end
+
             q1[d] = aligned_ceil(q1[d], xz_cell_size)
+
             if q0[d] < q1[d] then
                return nil, nil
             end
