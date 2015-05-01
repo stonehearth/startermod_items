@@ -69,7 +69,10 @@
                "Arwyn",
                "Pyat",
                "Saebert",
-               "Sledd"
+               "Sledd",
+               "Sanin",
+               "Tibber",
+               "Cecil"
             ]
          },
          "female" : {
@@ -80,10 +83,13 @@
                "stonehearth:female_3"
             ],
             "given_names" : [
+               "Sanini",
                "Twila",
                "Cici",
                "Frie",
                "Sam",
+               "Tulip",
+               "Cecily",
                "Chel",
                "Nia",
                "Petra",
@@ -155,7 +161,8 @@
                "Leefi",
                "Manna",
                "Greyla",
-               "Meghaan"
+               "Meghaan",
+               "Lolli"
             ]
          }, 
          "surnames" : [
@@ -226,7 +233,11 @@
          "South",
          "East",
          "West",
-         "Rocking"
+         "Rocking",
+         "Bridge",
+         "Fair",
+         "Cedar",
+         "Great"
       ], 
       "town_name" : [
          "Threed",
@@ -235,6 +246,7 @@
          "Rose",
          "Orchard",
          "Asp",
+         "Flint",
          "Knight",
          "Hedge",
          "Green",
@@ -257,6 +269,8 @@
          "Silver",
          "Cherry",
          "Flower",
+         "Willow",
+         "Granite",
          "Donner", 
          "Scylla",
          "Charibdis", 
@@ -289,7 +303,9 @@
          "shire", 
          "ville", 
          "side", 
-         "rock", 
+         "rock",
+         "stead",
+         "lad",
          " Valley", 
          " Vale", 
          " Crossing", 
