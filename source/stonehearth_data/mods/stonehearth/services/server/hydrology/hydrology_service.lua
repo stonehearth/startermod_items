@@ -24,8 +24,17 @@ function HydrologyService:initialize()
       self._sv._channel_manager = radiant.create_controller('stonehearth:channel_manager')
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
+
+      self:_deferred_initialize()
    else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_deferred_initialize()
+         end)
    end
+end
+
+function HydrologyService:_deferred_initialize()
+   self:_trace_terrain_delta()
 
    if radiant.util.get_config('enable_water', true) then
       if self._sv.water_tick then
@@ -38,8 +47,6 @@ function HydrologyService:initialize()
             end)
          end
    end
-
-   self:_trace_terrain_delta()
 end
 
 function HydrologyService:destroy()
