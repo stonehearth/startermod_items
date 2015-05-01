@@ -2266,7 +2266,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
    }
 }
 
-void Renderer::doForwardLightPass(SceneId sceneId, std::string const& shaderContext,
+void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly)
 {
    Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
@@ -2327,7 +2327,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& shaderCont
             glEnable(GL_SCISSOR_TEST);
          }
 
-         drawGeometry(sceneId, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+         drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
       } else {
          if (curLight->_shadowMapBuffer) {
             if (curLight->_directional && curLight->_shadowMapBuffer) {
@@ -2341,7 +2341,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& shaderCont
                   glEnable(GL_SCISSOR_TEST);
                }
 
-               drawGeometry(sceneId, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+               drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
             } else {
                // Omni lights require a pass/binding for each side of the cubemap into which they render.
                for (int i = 0; i < 6; i++) {
@@ -2361,7 +2361,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& shaderCont
                }
 
                // Luckily, we only need one pass to actually apply the shadowing.
-               drawGeometry(sceneId, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+               drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
             }
          }
       }

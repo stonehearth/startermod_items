@@ -286,7 +286,7 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DoForwardLightLoop ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
 			params.resize( 4 );
-			params[0].setString( node1.getAttribute( "context", "" ) );
+			params[0].setString( node1.getAttribute( "suffix", "FORWARD" ) );
 			params[1].setBool( _stricmp( node1.getAttribute( "noShadows", "false" ), "true" ) == 0 );
 			params[2].setInt( order );
          params[3].setBool( _stricmp( node1.getAttribute( "selectedOnly", "false"), "true" ) == 0 );
