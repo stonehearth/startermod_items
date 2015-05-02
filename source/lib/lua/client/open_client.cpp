@@ -135,15 +135,17 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
          ResourceCacheKey key;
          key.AddElement("origin", origin);
          key.AddElement("matrix", matrix);
-            
-         csg::Region3 model = voxel::QubicleBrush(matrix)
-                                       .SetOffsetMode(voxel::QubicleBrush::Matrix)
-                                       .PaintOnce();
 
-         csg::Mesh mesh;
-         csg::RegionToMesh(model, mesh, -origin, true);
          GeometryInfo geo;
-         Pipeline::GetInstance().CreateSharedGeometryFromMesh(geo, key, mesh);
+         if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {
+            csg::Region3 model = voxel::QubicleBrush(matrix)
+                                          .SetOffsetMode(voxel::QubicleBrush::Matrix)
+                                          .PaintOnce();
+
+            csg::Mesh mesh;
+            csg::RegionToMesh(model, mesh, -origin, true);
+            Pipeline::GetInstance().CreateSharedGeometryFromMesh(geo, key, mesh);
+         }
          node = RenderNode::CreateVoxelModelNode(parent, geo);
       }
    }

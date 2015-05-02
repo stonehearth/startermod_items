@@ -23,12 +23,12 @@
       </Stage>
 
       <Stage id="Depth">
-         <DrawGeometry context="DEPTH" class="~Translucent" forceLodLevel="-2"/>
+         <DrawGeometry context="DEPTH" forceLodLevel="-2"/>
       </Stage>
 
       <Stage id="Light">
          <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
-         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+         <DoForwardLightLoop noShadows="false"/>
          <UnbindBuffers />
       </Stage>
 
@@ -39,7 +39,7 @@
 
       <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
-         <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
+         <DrawGeometry context="FOG" noShadows="true" frustum_start="0.7"/>
          <UnbindBuffers />
       </Stage>
 

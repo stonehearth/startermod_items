@@ -272,7 +272,8 @@ local constants = {
       WETTING_VOLUME = 0.25,            -- the volume of water consumed to make a block wet
       MERGE_ELEVATION_THRESHOLD = 0.1,  -- how close the water levels have to be before allowing a standard merge
       MERGE_VOLUME_THRESHOLD = 1,       -- how much water has to flow to equalize water levels for a merge
-      EDGE_AREA_LIMIT = 64,
+      DEFAULT_EDGE_AREA_LIMIT = 64,     -- how large a water body can grow on a flat plain
+      PLAYER_EDGE_AREA_LIMIT = 256,     -- how large a water body can grow in a region mined by the player
    },
 
    ai = {
@@ -282,21 +283,20 @@ local constants = {
       SLOW_START_ACTIVITIES = {
          ['stonehearth:simple_labor'] = true,
          ['stonehearth:mining'] = true,
-         ['stonehearth:farm'] = true,
       }
    }
 }
 
-constants.construction.DEAFULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
-constants.construction.DEAFULT_WOOD_WALL_BRUSH   = constants.construction.brushes.wall['wood resource'][1]
-constants.construction.DEAFULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
-constants.construction.DEAFULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
-constants.construction.DEAFULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
-constants.construction.DEAFULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
-constants.construction.DEAFULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
-constants.construction.DEAFULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
-constants.construction.DEAFULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]
-constants.construction.DEAFULT_STONE_PATTERN_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
+constants.construction.DEFAULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
+constants.construction.DEFAULT_WOOD_WALL_BRUSH   = constants.construction.brushes.wall['wood resource'][1]
+constants.construction.DEFAULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
+constants.construction.DEFAULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
+constants.construction.DEFAULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
+constants.construction.DEFAULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
+constants.construction.DEFAULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
+constants.construction.DEFAULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
+constants.construction.DEFAULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]
+constants.construction.DEFAULT_STONE_PATTERN_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
 
 return constants
    

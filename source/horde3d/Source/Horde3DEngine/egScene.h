@@ -36,20 +36,23 @@ class InstanceKey {
 public:
    Resource* geoResource;
    MaterialResource* matResource;
+   float scale;
    size_t hash;
 
    InstanceKey() {
       geoResource = nullptr;
       matResource = nullptr;
+      scale = 1.0;
    }
 
    void updateHash() {
-      hash = (uint32)(((uintptr_t)(geoResource) ^ (uintptr_t)(matResource)) >> 2);
+      hash = (uint32)(((uintptr_t)(geoResource) ^ (uintptr_t)(matResource)) >> 2) ^ (uint32)(101 * scale);
    }
 
    bool operator==(const InstanceKey& other) const {
       return geoResource == other.geoResource &&
-         matResource == other.matResource;
+         matResource == other.matResource &&
+         scale == other.scale;
    }
    bool operator!=(const InstanceKey& other) const {
       return !(other == *this);
@@ -385,7 +388,7 @@ private:
 
 typedef SceneNodeTpl *(*NodeTypeParsingFunc)( std::map< std::string, std::string > &attribs );
 typedef SceneNode *(*NodeTypeFactoryFunc)( const SceneNodeTpl &tpl );
-typedef void (*NodeTypeRenderFunc)(SceneId sceneId, std::string const& shaderContext, std::string const& theClass, bool debugView,
+typedef void (*NodeTypeRenderFunc)(SceneId sceneId, std::string const& shaderContext, bool debugView,
                                     const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                     int occSet, int lodLevel );
 

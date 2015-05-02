@@ -1432,6 +1432,9 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
    RaycastResult result(csg::Ray3(origin, direction));
 
    CastRay(origin, direction, userFlags, [this, &result](csg::Point3f const& intersection, csg::Point3f const& normal, H3DNode node) {
+      // get the name of the node we hit
+      const char *node_name = h3dGetNodeParamStr(node, H3DNodeParams::NameStr);
+
       // find the entity for the node that the ray hit.  walk up the hierarchy of nodes
       // until we find one that has an Entity associated with it.
       om::EntityRef entity;
@@ -1460,7 +1463,7 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
       // as they are < 0.5.
       // For side intersections, normal.y will be zero.
       brick.y = (int)std::floor(intersection.y - (normal.y * 0.1));
-      result.AddResult(intersection, normal, brick, entity);
+      result.AddResult(intersection, normal, brick, entity, node_name);
    });
 
    return result;

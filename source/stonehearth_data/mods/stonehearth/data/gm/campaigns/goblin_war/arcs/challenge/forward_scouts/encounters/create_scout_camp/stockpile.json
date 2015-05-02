@@ -1,13 +1,13 @@
 {
    "type" : "camp_piece",
 
-   "script" : "file(stockpile.lua)",
+   "script" : "file(scout_stockpile.lua)",
    "script_info" : {
       "npc_player_id" : "goblins",
       "stockpile_contents" : "stonehearth:resources:wood:oak_log",
       "stockpile_size" : { "w" : 4, "h" : 4 }, 
       "npc_player_id" : "goblins", 
-      "encounter_name" : "goblin_raiding_camp_1",
+      "ctx_entity_registration_path" : "create_scout_camp",
       "entity_name" : "general_stockpile"
    }
 

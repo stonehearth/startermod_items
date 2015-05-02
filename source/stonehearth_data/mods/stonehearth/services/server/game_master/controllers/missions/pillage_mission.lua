@@ -8,7 +8,8 @@ radiant.mixin(PillageMission, Mission)
 
 function PillageMission:activate()
    Mission.activate(self)
-   if self._sv.party then
+   local party = self._sv.party
+   if party then
       self._arrive_listener = radiant.events.listen(party, 'stonehearth:party:arrived_at_banner', function()
             self:_change_pillage_location()
          end)

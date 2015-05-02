@@ -27,8 +27,6 @@ function CreateCamp:start(ctx, info)
 
    ctx.npc_player_id = info.npc_player_id
    self._sv.ctx = ctx
-   self._sv.encounter_name = info.encounter_name
-   self._sv.ctx[self._sv.encounter_name] = {}
    self._sv._info = info
 
    --create shape of the camp, based on params, as a region
@@ -80,15 +78,21 @@ function CreateCamp:_create_camp(location)
 
    -- carve out the grass around the camp
    radiant.terrain.subtract_region(terrain_region)
-
+   location.y = location.y - Point3.unit_y.y
    -- create the boss entity
    if info.boss then
-      local members = game_master_lib.create_citizens(
-         self._population, info.boss, ctx.enemy_location, ctx)
-      --This is a bit weird. There's just one boss, really. Last boss gets it
-      --TODO: if this becomes a problem later, we can fix it them
-      for k, boss in pairs(members) do
-         ctx[self._sv.encounter_name].npc_boss_entity = boss
+      local members = game_master_lib.create_citizens(self._population,
+                                                      info.boss,
+                                                      ctx.enemy_location,
+                                                      ctx)
+      local ctx_entity_registration_path = self._sv._info.ctx_entity_registration_path
+      if ctx_entity_registration_path then
+         --This is a bit weird. There's just one boss, really. Last boss gets it
+         --TODO: if this becomes a problem later, we can fix it them
+         local boss_entity = members[1]
+         if boss_entity then
+            game_master_lib.register_entities(ctx, ctx_entity_registration_path, { boss = boss_entity })
+         end
       end
    end
 
@@ -119,7 +123,7 @@ function CreateCamp:_create_camp(location)
    ctx.arc:trigger_next_encounter(ctx)   
 
    -- Debug event! If someone is listening when the camp is created (autotests) let them know
-   radiant.events.trigger_async(self._sv.encounter_name, 'stonehearth:create_camp_complete', {}) 
+   radiant.events.trigger_async(ctx.encounter_name, 'stonehearth:create_camp_complete', {}) 
 end
 
 function CreateCamp:_add_piece(piece, visible_rgn)
@@ -132,9 +136,10 @@ function CreateCamp:_add_piece(piece, visible_rgn)
 
    local player_id = info.npc_player_id
    local origin = ctx.enemy_location + Point3(x, 0, z)
+   local ctx_entity_registration_path = self._sv._info.ctx_entity_registration_path
    
    -- add all the entities.
-   ctx[self._sv.encounter_name].entities = {}
+   local entities = {}
    if piece.info.entities then
       for name, info in pairs(piece.info.entities) do
          local entity = game_master_lib.create_entity(info, player_id)
@@ -146,9 +151,13 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          self:_add_entity_to_visible_rgn(entity, visible_rgn)
 
          --Add this entity to the ctx
-         ctx[self._sv.encounter_name].entities[name] = entity
+         entities[name] = entity
       end
    end
+   if ctx_entity_registration_path then
+      game_master_lib.register_entities(ctx, ctx_entity_registration_path .. '.entities', entities)
+   end
+
 
    --Go through and create all the citizens. Put them in a table so we can neatly 
    --add them all to the context, all at once
@@ -157,12 +166,14 @@ function CreateCamp:_add_piece(piece, visible_rgn)
       for type, info in pairs(piece.info.citizens) do 
          local citizens = game_master_lib.create_citizens(self._population, info, origin, ctx)
          citizens_by_type[type] = citizens
-         for id, citizen in pairs(citizens) do
+         for i, citizen in ipairs(citizens) do
             self:_add_entity_to_visible_rgn(citizen, visible_rgn)
          end
       end
-      --This fn adds everyone to the ctx in a mechanism like ctx.enc_name.citizens.type
-      game_master_lib.register_entities(ctx, self._sv.encounter_name .. '.citizens', citizens_by_type)
+      if ctx_entity_registration_path then
+         --This fn adds everyone to the ctx in a mechanism like ctx.enc_name.citizens.type
+         game_master_lib.register_entities(ctx, ctx_entity_registration_path .. '.citizens', citizens_by_type)
+      end
    end
 
    -- if there's a script associated with the mod, give it a chance to customize the camp

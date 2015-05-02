@@ -294,11 +294,12 @@ function build_util.get_building_for(entity)
    end
 end
 
-function build_util.get_building_envelope_for(entity)
+function build_util.get_building_envelope_for(entity, kind, ignoring_blueprint)
+   checks('Entity', 'string', '?Entity')
    local building = build_util.get_building_for(entity)
    if building then
       local envelope = building:get_component('stonehearth:building')
-                                    :get_building_envelope()
+                                    :get_building_envelope(kind, ignoring_blueprint)
       return envelope, building
    end
 end
@@ -927,7 +928,6 @@ function build_util.bind_fabricator_to_blueprint(blueprint, fabricator, fabricat
    end
 end
 
-
 -- removes all regions from entities `entity` depends on from `region`
 --
 local function clip_dependant_regions_from_recursive(building, blueprint, region_origin, region, visited)
@@ -968,6 +968,24 @@ function build_util.clip_dependant_regions_from(entity, region_origin, region)
       return
    end
    clip_dependant_regions_from_recursive(building, blueprint, region_origin, region, {})
+end
+
+function build_util.get_blueprint_world_region(blueprint, origin)
+   checks('Entity', '?Point3')
+   assert(build_util.is_blueprint(blueprint))
+
+   if not origin then
+      origin = radiant.get_world_grid_location(blueprint)
+   end
+   local dst = blueprint:get_component('destination')
+   if not dst then
+      return
+   end
+   local rgn = dst:get_region()
+   if not rgn then
+      return
+   end
+   return rgn:get():translated(origin)
 end
 
 return build_util

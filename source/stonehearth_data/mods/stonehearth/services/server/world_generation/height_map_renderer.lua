@@ -12,7 +12,7 @@ local HeightMapRenderer = class()
 function HeightMapRenderer:__init(terrain_info)
    self._terrain_info = terrain_info
    self._tile_size = self._terrain_info.tile_size
-   self._terrain_component = radiant._root_entity:add_component('terrain')
+   self._terrain_component = radiant.terrain.get_terrain_component()
 
    self._block_types = radiant.terrain.get_block_types()
 

@@ -166,8 +166,9 @@
             contentType: 'application/json',
             data: JSON.stringify(args)
          }).fail(function(data) {
-            radiant.report_error('low level call ' + url + ' failed.', data);
-            deferred.reject(data);
+            var error = JSON.parse(data.responseText);
+            radiant.report_error('low level call ' + url + ' failed.', error);
+            deferred.reject(error);
          }).done(function(data) {
             if (data.type == 'radiant_call_deferred') {
                self._pendingCalls[data.call_id] = deferred;

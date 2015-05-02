@@ -27,7 +27,7 @@ function roads_autotests.follow_road(autotest)
 
    -- create a zig-zag road.
    local road
-   local brush = stonehearth.constants.construction.DEAFULT_STONE_PATTERN_BRUSH
+   local brush = stonehearth.constants.construction.DEFAULT_STONE_PATTERN_BRUSH
    stonehearth.build:do_command('add_road', nil, function()
          road = stonehearth.build:add_road(session, brush, Cube3(Point3(-20, 9, -20), Point3(0, 10, -18)))
       end)

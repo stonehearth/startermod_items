@@ -43,6 +43,7 @@
 #include "core/config.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include <png.h>
+#include <png.h>
 
 using namespace Horde3D;
 using namespace std;
@@ -763,6 +764,16 @@ bool h3dutWritePNGImage(FILE *fp, const unsigned char *pixels, int width, int he
    png_init_io(png_ptr, fp);
 
    /* This is the hard way */
+   
+   /*
+    * crank up zlib compression
+    */
+#if !defined(Z_BEST_COMPRESSION)
+    // This #define is in some zlib header stuck in the bowels of the libpng
+    // module.
+#   define Z_BEST_COMPRESSION 9
+#endif
+   png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
 
    /* Set the image information here.  Width and height are up to 2^31,
     * bit_depth is one of 1, 2, 4, 8, or 16, but valid values also depend on

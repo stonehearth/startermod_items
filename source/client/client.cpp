@@ -76,6 +76,10 @@
 #include "clock.h"
 #include "renderer/renderer.h"
 #include "libjson.h"
+#include "Poco/Net/HTTPClientSession.h"
+#include "Poco/Net/HTTPRequest.h"
+#include "Poco/Net/HTTPResponse.h"
+#include "Poco/URI.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -85,6 +89,9 @@ namespace proto = ::radiant::tesseract::protocol;
 static const std::regex call_path_regex__("/r/call/?");
 const char *HOTKEY_SAVE_KEY = "hotkey_save";
 const char *SHIFT_F5_SAVE_KEY = "shift_f5_save";
+
+static const std::string REDMINE_HOST = "104.197.61.23";
+static const int REDMINE_PORT = 80;
 
 static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
 static int POST_SYSINFO_INTERVAL_MS = 5 * 60 * 1000;  // every 5 minutes
@@ -309,6 +316,20 @@ void Client::OneTimeIninitializtion()
    core_reactor_->SetRemoteRouter(protobuf_router_);
 
    // core functionality exposed by the client...
+   core_reactor_->AddRoute("radiant:post_redmine_issues", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("filing bug");
+      json::Node const& issues = f.args[0];
+      json::Node const& options = f.args[1];
+      bool screenshot = options.get<bool>("screenshot", true);
+
+      json::Node result;
+      if (PostRedmineIssues(issues, screenshot, result)) {
+         d->Resolve(result);
+      } else {
+         d->Reject(result);
+      }
+      return d;
+   });
    core_reactor_->AddRoute("radiant:get_modules", [this](rpc::Function const& f) {
       return GetModules(f);
    });
@@ -2126,3 +2147,81 @@ void Client::SetCurrentUIScreen(UIScreen screen, bool reloadRequested)
    }
 }
 
+bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Node& result)
+{
+   std::string screenshotUploadToken;
+
+   if (takeScreenshot) {
+      fs::path sspath = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR / "bug_screenshot.png";
+      fs::remove_all(sspath);
+      h3dutScreenshot(sspath.string().c_str(), 0);
+      std::string payload = io::read_contents(std::ifstream(sspath.string(), std::ifstream::in | std::ifstream::binary));
+      //fs::remove_all(sspath);
+
+      if (!PostRedmineUpload(issues.get<std::string>("key", ""), payload, result)) {
+         return false;
+      }
+
+      json::Node upload;
+      upload.set("token", result.get("upload.token", ""));
+      upload.set("filename", "screenshot.png");
+      upload.set("content_type", "image/png");
+
+      json::Node uploadsArray(JSON_ARRAY);
+      uploadsArray.add(upload);
+      issues.set("uploads", uploadsArray);
+   }
+
+   CLIENT_LOG(1) << "PostRedmineIssues: " << issues.write_formatted();
+   std::string payload = issues.write();
+
+   std::string uri = BUILD_STRING("http://" << REDMINE_HOST << "/issues.json");
+   Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, uri, Poco::Net::HTTPMessage::HTTP_1_1);
+   request.setContentType("application/json");
+   request.setContentLength(payload.size());
+
+   Poco::Net::HTTPClientSession session(REDMINE_HOST, REDMINE_PORT);
+   std::ostream& request_stream = session.sendRequest(request);
+   request_stream << payload;
+
+   Poco::Net::HTTPResponse response;
+   std::istream& response_stream = session.receiveResponse(response);
+
+   std::istreambuf_iterator<char> eos;
+   std::string s(std::istreambuf_iterator<char>(response_stream), eos);
+   CLIENT_LOG(1) << "PostRedmineIssues response: " << s;
+   boost::algorithm::replace_all(s, "\\\"", "\"");
+   result = libjson::parse(s);
+
+   int status = response.getStatus();
+   return status == Poco::Net::HTTPResponse::HTTP_CREATED;
+}
+
+bool Client::PostRedmineUpload(std::string const& apiKey, std::string const& payload, json::Node& result)
+{
+   std::string uri = BUILD_STRING("http://" << REDMINE_HOST << "/uploads.json");
+   Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, uri, Poco::Net::HTTPMessage::HTTP_1_1);
+   request.set("X-Redmine-API-Key", apiKey.c_str());
+   request.setContentType("application/octet-stream");
+   request.setContentLength(payload.size());
+
+   std::ostringstream os;
+   request.write(os);
+   CLIENT_LOG(1) << "PostRedmineUpload: " << os.str();
+
+   Poco::Net::HTTPClientSession session(REDMINE_HOST, REDMINE_PORT);
+   std::ostream& request_stream = session.sendRequest(request);
+   request_stream << payload;
+
+   Poco::Net::HTTPResponse response;
+   std::istream& response_stream = session.receiveResponse(response);
+
+   std::istreambuf_iterator<char> eos;
+   std::string s(std::istreambuf_iterator<char>(response_stream), eos);
+   CLIENT_LOG(1) << "PostRedmineUpload response: " << s;
+   boost::algorithm::replace_all(s, "\\\"", "\"");
+   result = libjson::parse(s);
+
+   int status = response.getStatus();
+   return status == Poco::Net::HTTPResponse::HTTP_CREATED;
+}

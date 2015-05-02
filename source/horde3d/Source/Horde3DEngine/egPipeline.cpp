@@ -212,14 +212,13 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 7 );
+			params.resize( 6 );
 			params[0].setString( node1.getAttribute( "context" ) );
-			params[1].setString( node1.getAttribute( "class", "" ) );
-			params[2].setInt( order );
-			params[3].setInt( 0 );
-         params[4].setFloat(frustStart);
-         params[5].setFloat(frustEnd);
-         params[6].setInt(lodLevel);
+			params[1].setInt( order );
+			params[2].setInt( 0 );
+         params[3].setFloat(frustStart);
+         params[4].setFloat(frustEnd);
+         params[5].setInt(lodLevel);
 		}
 		else if( strcmp( node1.getName(), "DrawSelected" ) == 0 )
 		{
@@ -234,14 +233,13 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 7 );			
+			params.resize( 6 );			
 			params[0].setString( node1.getAttribute( "context" ) );
-			params[1].setString( node1.getAttribute( "class", "" ) );
-			params[2].setInt( order );
-			params[3].setInt( SceneNodeFlags::Selected );
-         params[4].setFloat(0.0);
-         params[5].setFloat(1.0);
-         params[6].setInt(lodLevel);
+			params[1].setInt( order );
+			params[2].setInt( SceneNodeFlags::Selected );
+         params[3].setFloat(0.0);
+         params[4].setFloat(1.0);
+         params[5].setInt(lodLevel);
 		}
 		else if( strcmp( node1.getName(), "DrawProjections" ) == 0 )
 		{
@@ -286,12 +284,11 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DoForwardLightLoop ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 5 );
-			params[0].setString( node1.getAttribute( "context", "" ) );
-			params[1].setString( node1.getAttribute( "class", "" ) );
-			params[2].setBool( _stricmp( node1.getAttribute( "noShadows", "false" ), "true" ) == 0 );
-			params[3].setInt( order );
-         params[4].setBool( _stricmp( node1.getAttribute( "selectedOnly", "false"), "true" ) == 0 );
+			params.resize( 4 );
+			params[0].setString( node1.getAttribute( "suffix", "FORWARD" ) );
+			params[1].setBool( _stricmp( node1.getAttribute( "noShadows", "false" ), "true" ) == 0 );
+			params[2].setInt( order );
+         params[3].setBool( _stricmp( node1.getAttribute( "selectedOnly", "false"), "true" ) == 0 );
 		}
 		else if( strcmp( node1.getName(), "DoDeferredLightLoop" ) == 0 )
 		{
