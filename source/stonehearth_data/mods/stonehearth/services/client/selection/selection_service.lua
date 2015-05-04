@@ -288,7 +288,7 @@ end
 
 function SelectionService:_on_mouse_input(e)
    if e:up(1) and not e.dragging then
-      local selected     
+      local selected
       local results = _radiant.client.query_scene(e.x, e.y)
       for r in results:each_result() do 
          local re = _radiant.client.get_render_entity(r.entity)
@@ -298,10 +298,10 @@ function SelectionService:_on_mouse_input(e)
          end
       end
       self:select_entity(selected)
-      return true
    end
 
-   return false
+   local event_consumed = e and (e:down(1) or e:up(1))
+   return event_consumed
 end
 
 -- asks the simulation for all pathfinders whose open sets intersect the

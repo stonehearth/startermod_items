@@ -86,7 +86,6 @@ function StructureEraser:_install_correct_tool(mouse)
    local tool_name, hover_entity = self:_choose_tool(mouse)
    if tool_name ~= self._current_tool_name then
       self:_switch_tool(tool_name, hover_entity)
-      return true
    end
    return false
 end
@@ -103,7 +102,7 @@ function StructureEraser:_add_tool_selection_capture()
                                        :on_mouse_event(function(event)
                                              if stonehearth.selection.user_cancelled(event) then
                                                 self:reject({ error = 'selection cancelled'})
-                                                return
+                                                return false
                                              end                                          
                                              return self:_install_correct_tool(event)
                                           end)
@@ -163,17 +162,17 @@ function StructureEraser:_start_erase_fixture_tool(hover_entity)
                   :fail(function(r)
                         self:reject(r)
                      end)
-               return
+               return false
             end
          end
       end
+      return false
    end
 
    local cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:erase_fixture')
    return stonehearth.input:capture_input()
                                  :on_mouse_event(function(event)
-                                       erase_fixture_tool(event)
-                                       return true
+                                       return erase_fixture_tool(event)
                                     end)
                                  :on_destroyed(function()
                                        cursor_obj:destroy()
