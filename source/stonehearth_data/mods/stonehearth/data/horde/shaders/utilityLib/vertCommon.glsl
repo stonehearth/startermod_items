@@ -30,15 +30,17 @@ vec4 calcWorldPos( const vec4 pos )
 #else	
 	mat4 tr = worldMat;
 #endif
-
+    mat4 final;
 #ifdef DRAW_SKINNED
 	// A certain driver vendor that shall remain nameless will do a pure virtual call if you try to put
 	// the int cast right in the array lookup.
 	int idx = int(boneIndex);
-	tr *= bones[idx];
+	final = tr * bones[idx];
+#else
+	final = tr;
 #endif
 
-	return tr * vec4(pos.xyz * modelScale, 1.0);
+	return final * vec4(pos.xyz * modelScale, 1.0);
 }
 
 
@@ -54,15 +56,17 @@ vec3 calcWorldVec( const vec3 vec )
 #else
 	mat4 tr = worldMat;
 #endif
-
+	mat4 final;
 #ifdef DRAW_SKINNED
 	// A certain driver vendor that shall remain nameless will do a pure virtual call if you try to put
 	// the int cast right in the array lookup.
 	int idx = int(boneIndex);
-	tr *= bones[idx];
+	final = tr * bones[idx];
+#else
+	final = tr;
 #endif
 
-	return (tr * vec4(vec, 0)).xyz;
+	return (final * vec4(vec, 0.0)).xyz;
 }
 
 float getWorldScale()
