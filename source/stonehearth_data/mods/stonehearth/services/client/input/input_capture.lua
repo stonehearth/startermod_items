@@ -11,6 +11,11 @@ function InputCapture:destroy()
 end
 
 -- set the mouse event handler
+function InputCapture:on_input(cb)
+  self._input_cb = cb
+  return self
+end
+
 function InputCapture:on_mouse_event(cb)
   self._mouse_cb = cb
   return self
@@ -34,7 +39,11 @@ function InputCapture:_is_destroyed()
 end
 
 -- dispatch the event to one of our registered handlers
-function InputCapture:_dispatch(e)  
+function InputCapture:_dispatch(e)
+  if self._input_cb then
+    return self._input_cb(e)
+  end
+
   if e.type == _radiant.client.Input.MOUSE then
     if self._mouse_cb then
       return self._mouse_cb(e.mouse)

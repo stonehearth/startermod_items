@@ -242,10 +242,11 @@ App.ApplicationRoute = Ember.Route.extend({
         });
     },
 
-    openModal: function(modalName) {
+    openModal: function(modalName, model) {
       return this.render(modalName, {
         into: 'application',
-        outlet: 'modal'
+        outlet: 'modal',
+        model: model,
       });
     },
     closeModal: function() {

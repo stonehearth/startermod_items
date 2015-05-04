@@ -95,11 +95,6 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                end
             end
 
-            local rcs = entity:get_component('region_collision_shape')
-            if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
-               return stonehearth.selection.FILTER_IGNORE
-            end
-
             if radiant.terrain.is_blocked(placement_test_entity, location) then
                -- if the space occupied by the cursor is blocked, we definitely can't
                -- place the item there
@@ -145,6 +140,12 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                -- directly underneath us.  just place right away!
                return true
             end
+
+            -- Uncomment when needed to ignore mining zones, water, etc.
+            -- local rcs = entity:get_component('region_collision_shape')
+            -- if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
+            --    return stonehearth.selection.FILTER_IGNORE
+            -- end
 
             return stonehearth.selection.FILTER_IGNORE
          end)
