@@ -12,8 +12,6 @@
       
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
       
-      <RenderTarget id="WaterTemp" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
-
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" scale="0.125" format="RGBA8"/>
       
       <RenderTarget id="BloomTemp" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
@@ -29,9 +27,6 @@
       <Stage id="Init">
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0" />
-
-         <SwitchTarget target="WaterTemp" />
-         <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="0" />
 
          <SwitchTarget target="Final" />
          <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="-1"/>
@@ -136,14 +131,6 @@
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
          <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />
-
-         <SwitchTarget target="WaterTemp" />
-         <DoForwardLightLoop noShadows="true" order="BACK_TO_FRONT" suffix="WATER" />
-         <DrawGeometry context="WATER_WRITE_ALPHA_ONLY" />
-         <SwitchTarget target="Final" />
-         <BindBuffer sampler="buf0" sourceRT="WaterTemp" />
-         <DrawQuad material="materials/fullscreen_quad.material.json" context="BLEND" />
-         <UnbindBuffers />
       </Stage>
 
       <Stage id="Emissive">
