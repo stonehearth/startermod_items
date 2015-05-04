@@ -2269,7 +2269,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly)
 {
-   Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+   Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, order,
       SceneNodeFlags::NoDraw, 0, true, false);
 
    std::vector<LightNode*> prioritizedLights;

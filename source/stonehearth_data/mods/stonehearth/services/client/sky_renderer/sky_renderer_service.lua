@@ -179,6 +179,18 @@ function SkyRenderer:_update_sky_colors(seconds)
    local startCol = self:_find_value(seconds, sky_start_colors)
    local endCol = self:_find_value(seconds, sky_end_colors)
 
+   -- Holy carp (salmon, etc.), this looks like a hack, and it is, but let me justify :)
+   -- For the highq renderer, we're relying on semi-physical semi-real math to light
+   -- the water properly, so lighting the water Just Works with any # of lights.  It also 
+   -- requires extra passes, back 2 front sorting, render targets, etc., stuff that we 
+   -- want to avoid on the lowq renderer.  Given that the lowq renderer supports multiple
+   -- directional light sources, we still get the effect of the moon and sun sources being
+   -- enabled at the same time, which means we can't just write a shader that pretends that
+   -- there's only ever one directional global light source.  We need the concept of 'ambient light'
+   -- for the lowq renderer, and here it is!  That way, if modders start messing with day/night
+   -- lengths, we still get correct 'lighting' for the water.
+   h3dSetGlobalUniform('lowq_waterAmbientLightScale', endCol:length())
+
    _radiant.renderer.sky.set_sky_colors(startCol, endCol)
 end
 
