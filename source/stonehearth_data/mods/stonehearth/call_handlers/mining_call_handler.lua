@@ -136,7 +136,7 @@ function MiningCallHandler:designate_mining_zone(session, response, aligned)
          mode = self:_infer_mode(box)
       end
       local region = self:_get_dig_region(box, mode)
-      local render_node = _radiant.client.create_region_outline_node(H3DRootNode, region, edge_color, face_color, 'materials/transparent.material.json')
+      local render_node = _radiant.client.create_region_outline_node(H3DRootNode, region, edge_color, face_color, 'materials/transparent.material.json', true)
       return render_node
    end
 
