@@ -889,15 +889,13 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
    return fab_component
 end
 
-function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal, rotation, always_show_ghost)
-   if always_show_ghost == nil then
-      always_show_ghost = false
-   end
-
+function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal, rotation)
    if not build_util.is_blueprint(parent_entity) then
       self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_or_uri, parent_entity)
       return
    end
+
+   local always_show_ghost = build_util.blueprint_is_finished(parent_entity)
 
    if not normal then
       normal = parent_entity:get_component('stonehearth:construction_data')

@@ -2267,7 +2267,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 }
 
 void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
-                                  bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly)
+                                  bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel)
 {
    Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, order,
       SceneNodeFlags::NoDraw, 0, true, false);
@@ -2327,7 +2327,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
             glEnable(GL_SCISSOR_TEST);
          }
 
-         drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+         drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, lodLevel, lightFrus);
       } else {
          if (curLight->_shadowMapBuffer) {
             if (curLight->_directional && curLight->_shadowMapBuffer) {
@@ -2341,7 +2341,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
                   glEnable(GL_SCISSOR_TEST);
                }
 
-               drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+               drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, lodLevel, lightFrus);
             } else {
                // Omni lights require a pass/binding for each side of the cubemap into which they render.
                for (int i = 0; i < 6; i++) {
@@ -2361,7 +2361,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
                }
 
                // Luckily, we only need one pass to actually apply the shadowing.
-               drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+               drawGeometry(sceneId, curLight->_lightingContext + "_" + contextSuffix, order, 0, occSet, 0.0, 1.0, lodLevel, lightFrus);
             }
          }
       }
@@ -3468,7 +3468,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 			case PipelineCommands::DoForwardLightLoop:
 				doForwardLightPass(sceneId, pc.params[0].getString(), 
                pc.params[1].getBool() || !drawShadows, (RenderingOrder::List)pc.params[2].getInt(),
-                               _curCamera->_occSet, pc.params[3].getBool() );
+                               _curCamera->_occSet, pc.params[3].getBool(), pc.params[4].getInt() );
 				break;
 
 			case PipelineCommands::DoDeferredLightLoop:

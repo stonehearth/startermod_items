@@ -1,4 +1,4 @@
-App.StonehearthTitleScreenView = App.View.extend({
+App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
    templateName: 'stonehearthTitleScreen',
    i18nNamespace: 'stonehearth',
    components: {},
@@ -149,7 +149,14 @@ App.StonehearthTitleScreenView = App.View.extend({
       },
 
       loadGame: function() {
-         this.get('parentView').addView(App.StonehearthLoadView);
+         this.triggerAction({
+            action:'openModal',
+            actionContext: ['save',
+               {
+                  allowSaves: false,
+               }
+            ]            
+         });
       },
 
       // xxx, holy cow refactor this together with the usual flow

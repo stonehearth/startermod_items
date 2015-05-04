@@ -135,6 +135,21 @@ public:
    }
 };
 
+class AccelerationData
+{
+public:
+   ValueEmitter<float>* over_lifetime_x;
+   ValueEmitter<float>* over_lifetime_y;
+   ValueEmitter<float>* over_lifetime_z;
+
+   AccelerationData()
+   {
+      over_lifetime_x = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_y = new ConstantValueEmitter<float>(0.0f);
+      over_lifetime_z = new ConstantValueEmitter<float>(0.0f);
+   }
+};
+
 class LifetimeData 
 {
 public:
@@ -169,6 +184,7 @@ public:
    ScaleData scale;
    RotationData rotation;
    VelocityData velocity;
+   AccelerationData acceleration;
 };
 }
 
@@ -195,6 +211,7 @@ struct CubeData
    Vec4f currentColor, startColor;
 
    Vec3f position;
+   Vec3f integratedVelocity;
    Vec3f direction;
 
    // Values that change over time, with respect to the individual particle.
@@ -210,6 +227,10 @@ struct CubeData
    ValueEmitter<float> *velocity_x;
    ValueEmitter<float> *velocity_y;
    ValueEmitter<float> *velocity_z;
+
+   ValueEmitter<float> *acceleration_x;
+   ValueEmitter<float> *acceleration_y;
+   ValueEmitter<float> *acceleration_z;
 
    ValueEmitter<float> *scale;
    ValueEmitter<float> *speed;
