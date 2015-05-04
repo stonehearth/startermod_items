@@ -30,9 +30,6 @@ end
 function DmService:_init_pace_keepers()
    self._sv._pace_keepers = {}
 
-   local combat_pacekeeper = radiant.create_controller('stonehearth:combat_pace_keeper')
-   self._sv._pace_keepers['combat'] = radiant.create_controller('stonehearth:pace_keeper', combat_pacekeeper)
-
    local pop_pacekeeper = radiant.create_controller('stonehearth:population_pace_keeper')
    self._sv._pace_keepers['population'] = radiant.create_controller('stonehearth:pace_keeper', pop_pacekeeper)
 
