@@ -112,7 +112,7 @@ function ChooseLocationOutsideTown:_try_finding_location_thread()
 
    -- start at a random point
    local convex_hull = stonehearth.terrain:get_player_perimeter('civ')
-   if convex_hull then
+   if convex_hull and #convex_hull > 0 then
       local starting_point = convex_hull[rng:get_int(1, #convex_hull)]
       visit_point(starting_point, true)
    else
