@@ -228,6 +228,10 @@ void VoxelMeshNode::onDetach( SceneNode &/*parentNode*/ )
 
 void VoxelMeshNode::onPostUpdate()
 {
+   if (_parentModel && _instanceKey.scale != _parentModel->getModelScale()) {
+      _instanceKey.scale = _parentModel->getModelScale();
+      _instanceKey.updateHash();
+   }
 }
 
 
