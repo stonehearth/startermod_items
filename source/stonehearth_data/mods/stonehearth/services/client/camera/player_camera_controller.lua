@@ -1,4 +1,4 @@
-local Vec3 = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 local log = radiant.log.create_logger('camera')
@@ -12,8 +12,8 @@ local PlayerCameraController = class()
 
 function PlayerCameraController:initialize()
    self._sv.camera_disabled = false
-   self._sv.position = Vec3(0, 120, 190)
-   self._sv.lookat = Vec3(0, -125, -340)
+   self._sv.position = Point3(0, 120, 190)
+   self._sv.lookat = Point3(0, -125, -340)
    self._sv.lookat:normalize()
 
    self:restore()
@@ -21,8 +21,8 @@ end
 
 
 function PlayerCameraController:restore()
-   self._continuous_delta = Vec3(0, 0, 0)
-   self._impulse_delta = Vec3(0, 0, 0)
+   self._continuous_delta = Point3(0, 0, 0)
+   self._impulse_delta = Point3(0, 0, 0)
 
    self._mouse_data = {
       x = 0,
@@ -39,13 +39,13 @@ function PlayerCameraController:restore()
    self._drag_cursor = nil
    self._orbiting = false
    self._dragging = false
-   self._drag_start = Vec3(0, 0, 0)
-   self._drag_origin = Vec3(0, 0, 0)
+   self._drag_start = Point3(0, 0, 0)
+   self._drag_origin = Point3(0, 0, 0)
 
    self._min_zoom = 10
    self._max_zoom = 300
 
-   self._input_capture = _radiant.client.capture_input()
+   self._input_capture = stonehearth.input:capture_input()
 
    self._input_capture:on_input(function(e)
       if not self._sv.camera_disabled then
@@ -121,7 +121,7 @@ function PlayerCameraController:_orbit(target, x_deg, y_deg, min_x, max_x)
     return
   end
 
-  local new_position = Vec3(origin_vec.x, origin_vec.y, origin_vec.z)
+  local new_position = Point3(origin_vec.x, origin_vec.y, origin_vec.z)
   origin_vec:normalize()
 
   local x_ang = math.acos(origin_vec.y) / deg_to_rad
@@ -133,7 +133,7 @@ function PlayerCameraController:_orbit(target, x_deg, y_deg, min_x, max_x)
   end
 
   local left = stonehearth.camera:get_left()
-  local y_rot = Quat(Vec3(0, 1, 0), y_deg * deg_to_rad)
+  local y_rot = Quat(Point3(0, 1, 0), y_deg * deg_to_rad)
   local x_rot = Quat(left, x_deg * deg_to_rad)
 
   new_position = x_rot:rotate(new_position)
@@ -142,7 +142,7 @@ function PlayerCameraController:_orbit(target, x_deg, y_deg, min_x, max_x)
   -- We take the orbiter to have a higher 'priority' than scrolling, so
   -- don't scroll when we orbit.
   local position = new_position + target
-  self._continuous_delta = Vec3(0, 0, 0)
+  self._continuous_delta = Point3(0, 0, 0)
 
   -- We call the camera-service directly here to set position, because we want to
   -- snap to the new position; no interpolation whatsoever--just go there!
@@ -346,14 +346,14 @@ function PlayerCameraController:_process_keys()
 end
 
 function PlayerCameraController:_calculate_keyboard_pan()
-  local left = Vec3(0, 0, 0)
-  local forward = Vec3(0, 0, 0)
+  local left = Point3(0, 0, 0)
+  local forward = Point3(0, 0, 0)
   local x_scale = 0
   local y_scale = 0
   local speed = stonehearth.camera:get_position().y -- surprisingly this feels good with no modifiers!
   
   if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_A) or 
-    _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_LEFT) then
+     _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_LEFT) then
      x_scale = -speed
   elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_D) or
          _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_RIGHT) then
@@ -409,7 +409,7 @@ function PlayerCameraController:_drag(x, y)
 
   local drag_delta = (self._drag_start - drag_end)
   local next_pos = self._drag_origin + drag_delta
-  local proj_pos = Vec3(self._sv.position.x, 0.0, self._sv.position.z)
+  local proj_pos = Point3(self._sv.position.x, 0.0, self._sv.position.z)
   if drag_end:distance_to(proj_pos) < 900 then
     self._sv.position = next_pos
   end
@@ -439,20 +439,25 @@ end
 
 
 function PlayerCameraController:update(frame_time)
-   self:_process_mouse()
-   self:_process_keys()
+   if stonehearth.input:ui_has_capture() then
+      self._impulse_delta = Point3(0, 0, 0)
+      self._continuous_delta = Point3(0, 0, 0)
+   else
+      self:_process_mouse()
+      self:_process_keys()
+   end
 
-   local scaled_continuous_delta = Vec3(self._continuous_delta)
+   local scaled_continuous_delta = Point3(self._continuous_delta)
    scaled_continuous_delta:scale(frame_time / 1000.0)
 
    self._sv.position = self._sv.position + (scaled_continuous_delta) + self._impulse_delta
    self.__saved_variables:mark_changed()
 
-   self._impulse_delta = Vec3(0, 0, 0)
+   self._impulse_delta = Point3(0, 0, 0)
 
    local lerp_pos = stonehearth.camera:get_position():lerp(self._sv.position, smoothness * frame_time)
    local rot = Quat()
-   rot:look_at(Vec3(0, 0, 0), self._sv.lookat)
+   rot:look_at(Point3(0, 0, 0), self._sv.lookat)
    rot:normalize()
 
    return lerp_pos, rot
