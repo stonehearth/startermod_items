@@ -185,9 +185,10 @@ RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L,
                                   csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
                                   csg::Color4 const& face_color,
-                                  std::string const& material)
+                                  std::string const& material,
+                                  bool enablePolygonOffset)
 {
-   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, region, edge_color, face_color, material);
+   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, region, edge_color, face_color, material, enablePolygonOffset);
 }
 
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
