@@ -89,6 +89,15 @@ cubemitter::VelocityData parseVelocity(Node& n)
    return result;
 }
 
+cubemitter::AccelerationData parseAcceleration(Node& n)
+{
+   cubemitter::AccelerationData result;
+   result.over_lifetime_x = parseChannel(n, "over_lifetime_x", 0.0f);
+   result.over_lifetime_y = parseChannel(n, "over_lifetime_y", 0.0f);
+   result.over_lifetime_z = parseChannel(n, "over_lifetime_z", 0.0f);
+   return result;
+}
+
 cubemitter::ColorData parseColor(Node& n)
 {
    cubemitter::ColorData result;
@@ -139,6 +148,11 @@ cubemitter::ParticleData parseParticle(Node& n)
    if (n.has("velocity"))
    {
       result.velocity = parseVelocity(n.get_node("velocity"));
+   }
+
+   if (n.has("acceleration"))
+   {
+      result.acceleration = parseAcceleration(n.get_node("acceleration"));
    }
    return result;
 }
@@ -258,6 +272,9 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
       _cubes[i].velocity_x = nullptr;
       _cubes[i].velocity_y = nullptr;
       _cubes[i].velocity_z = nullptr;
+      _cubes[i].acceleration_x = nullptr;
+      _cubes[i].acceleration_y = nullptr;
+      _cubes[i].acceleration_z = nullptr;
    }
 }
 
@@ -313,6 +330,16 @@ CubemitterNode::~CubemitterNode()
       }
       if (c.velocity_z) {
          delete c.velocity_z;
+      }
+
+      if (c.acceleration_x) {
+         delete c.acceleration_x;
+      }
+      if (c.acceleration_y) {
+         delete c.acceleration_y;
+      }
+      if (c.acceleration_z) {
+         delete c.acceleration_z;
       }
    }
 
@@ -423,44 +450,7 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
       if( emitter->_maxCubes == 0 ) continue;
-		
-		// Occlusion culling
-		uint32 queryObj = 0;
-		if( occSet >= 0 )
-		{
-			if( occSet > (int)emitter->_occQueries.size() - 1 )
-			{
-				emitter->_occQueries.resize( occSet + 1, 0 );
-				emitter->_lastVisited.resize( occSet + 1, 0 );
-			}
-			if( emitter->_occQueries[occSet] == 0 )
-			{
-				queryObj = gRDI->createOcclusionQuery();
-				emitter->_occQueries[occSet] = queryObj;
-				emitter->_lastVisited[occSet] = 0;
-			}
-			else
-			{
-				if( emitter->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-				{
-					emitter->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
-					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min(),
-					                       emitter->getBBox().max() ) > 0 &&
-						gRDI->getQueryResult( emitter->_occQueries[occSet] ) < 1 )
-					{
-						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min(),
-							emitter->getBBox().max(), emitter->_occQueries[occSet] );
-                  emitter->_wasVisible = false;
-						continue;
-					}
-					else
-						queryObj = emitter->_occQueries[occSet];
-				}
-			}
-		}
-		
 		// Set material
 		if( curMatRes != emitter->_materialRes )
 		{
@@ -470,9 +460,6 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
 			curMatRes = emitter->_materialRes;
 		}
 
-	   if( queryObj )
-		   gRDI->beginQuery( queryObj );
-
       if (gRDI->getCaps().hasInstancing) {
          emitter->renderWithInstancing();
       } else {
@@ -480,14 +467,7 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
       }
       
       emitter->_wasVisible = true;
-
-		if( queryObj )
-			gRDI->endQuery( queryObj );
 	}
-
-   // Draw occlusion proxies
-	if( occSet >= 0 )
-		Modules::renderer().drawOccProxies( 0 );
 	
 	gRDI->setVertexLayout( 0 );
 }
@@ -621,6 +601,8 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    Matrix4f m = _absTrans;
    d.position = m.getTrans();
 
+   d.integratedVelocity = Vec3f(0, 0, 0);
+
    if (data.emission.origin.surfaceKind == cubemitter::OriginData::SurfaceKind::RECTANGLE)
    {
       float randWidth = rng.GetReal(-data.emission.origin.width / 2.0f, data.emission.origin.width / 2.0f);
@@ -714,6 +696,23 @@ void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
    d.velocity_y = data.particle.velocity.over_lifetime_y->clone();
    d.velocity_z = data.particle.velocity.over_lifetime_z->clone();
 
+   if (d.acceleration_x != nullptr)
+   {
+      delete d.acceleration_x;
+   }
+   if (d.acceleration_y != nullptr)
+   {
+      delete d.acceleration_y;
+   }
+   if (d.acceleration_z != nullptr)
+   {
+      delete d.acceleration_z;
+   }
+
+   d.acceleration_x = data.particle.acceleration.over_lifetime_x->clone();
+   d.acceleration_y = data.particle.acceleration.over_lifetime_y->clone();
+   d.acceleration_z = data.particle.acceleration.over_lifetime_z->clone();
+
    ca.matrix = Matrix4f::TransMat(d.position.x, d.position.y, d.position.z);
    ca.matrix.scale(d.startScale, d.startScale, d.startScale);
    ca.color = d.currentColor;
@@ -730,10 +729,14 @@ void CubemitterNode::updateCube(CubeData& d, CubeAttribute& ca)
 
    float fr = 1.0f - (d.currentLife / d.maxLife);
 
+   d.integratedVelocity.x += (d.acceleration_x->nextValue(fr) * _timeDelta);
+   d.integratedVelocity.y += (d.acceleration_y->nextValue(fr) * _timeDelta);
+   d.integratedVelocity.z += (d.acceleration_z->nextValue(fr) * _timeDelta);
+
    d.position += d.direction * d.currentSpeed * _timeDelta;
-   d.position.x += d.velocity_x->nextValue(fr) * _timeDelta;
-   d.position.y += d.velocity_y->nextValue(fr) * _timeDelta;
-   d.position.z += d.velocity_z->nextValue(fr) * _timeDelta;
+   d.position.x += (d.velocity_x->nextValue(fr) * _timeDelta) + d.integratedVelocity.x;
+   d.position.y += (d.velocity_y->nextValue(fr) * _timeDelta) + d.integratedVelocity.y;
+   d.position.z += (d.velocity_z->nextValue(fr) * _timeDelta) + d.integratedVelocity.z;
 
    d.currentLife -= _timeDelta;
    d.currentColor.x = d.color_r->nextValue(fr);

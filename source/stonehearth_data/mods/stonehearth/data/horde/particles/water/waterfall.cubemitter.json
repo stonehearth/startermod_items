@@ -1,0 +1,50 @@
+{
+    "name": "waterfall",
+    "duration": 20,
+    "particle": {
+        "speed": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [0]
+            },
+            "over_lifetime": {
+                "kind": "CONSTANT",
+                "values": [
+                    [0]
+                ]
+            }
+        },
+        "lifetime": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [1.1, 1.2]
+            }
+        },
+        "acceleration": {
+            "over_lifetime_y": {
+                "kind": "CONSTANT",
+                "values": [ -0.3 ]
+            }
+        },
+        "velocity": {
+            "over_lifetime_z": {
+                "kind": "CONSTANT",
+                "values": [5.0]
+            }
+        }
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [20]
+        },
+        "origin": {
+            "surface": "RECTANGLE",
+            "values": [3.0, 3.0 ]
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [0]
+        }
+    }
+}
