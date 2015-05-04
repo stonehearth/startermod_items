@@ -29,6 +29,8 @@
          
          "actions" : [
             "stonehearth:actions:death",
+            "stonehearth:actions:wait_for_attribute_above",
+            "stonehearth:actions:wait_for_attribute_below",
             "stonehearth:actions:die_generic",
             "stonehearth:actions:run_death_effect",
             "stonehearth:actions:destroy_entity",
