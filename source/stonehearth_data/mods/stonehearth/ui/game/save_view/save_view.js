@@ -40,8 +40,8 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
 
       // sort by creation time
       vals.sort(function(a, b){
-         var keyA = a.timestamp ? a.timestamp : a.key;
-         var keyB = b.timestamp ? b.timestamp : b.key;
+         var keyA = a.gameinfo.timestamp ? a.gameinfo.timestamp : a.key;
+         var keyB = b.gameinfo.timestamp ? b.gameinfo.timestamp : b.key;
          // Compare the 2 keys
          if(keyA < keyB) return 1;
          if(keyA > keyB) return -1;
