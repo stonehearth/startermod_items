@@ -9,13 +9,13 @@ function SwimmingService:initialize()
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
+      self._sv.swimming_state = {}
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
    end
 
    self._location_traces = {}
-   self._swimming_state = {}
    self:_create_mob_height_table()
    self:_create_entity_traces()
 end
@@ -32,7 +32,9 @@ function SwimmingService:_create_entity_traces()
                -- doesn't walk / swim
                return
             end
-            self._swimming_state[id] = false
+            if self._sv.swimming_state[id] == nil then
+               self._sv.swimming_state[id] = false
+            end
             self:_trace_entity(id, entity)
          end)
       :on_removed(function(id)
@@ -49,12 +51,17 @@ function SwimmingService:_trace_entity(id, entity)
 
    self._location_traces[id] = radiant.entities.trace_grid_location(entity, 'swimming')
       :on_changed(function()
-            self:_update(id, entity)
+            self:_update(entity)
          end)
       :push_object_state()
 end
 
 function SwimmingService:_destroy_entity_trace(id)
+   local entity = radiant.entities.get_entity(id)
+   if entity and entity:is_valid() then
+      self:_set_swimming(entity, false)
+   end
+
    local trace = self._location_traces[id]
    if trace then
       trace:destroy()
@@ -73,11 +80,19 @@ function SwimmingService:_destroy_entity_traces()
    end
 end
 
-function SwimmingService:_update(id, entity)
+function SwimmingService:_update(entity)
    local swimming = self:_is_swimming(entity)
+   self:_set_swimming(entity, swimming)
+end
 
-   if swimming ~= self._swimming_state[id] then
-      self._swimming_state[id] = swimming
+function SwimmingService:_set_swimming(entity, swimming)
+   if not entity or not entity:is_valid() then
+      return
+   end
+   local id = entity:get_id()
+
+   if swimming ~= self._sv.swimming_state[id] then
+      self._sv.swimming_state[id] = swimming
 
       if swimming then
          radiant.entities.set_posture(entity, 'stonehearth:swimming')
@@ -90,6 +105,10 @@ function SwimmingService:_update(id, entity)
 end
 
 function SwimmingService:_is_swimming(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+
    local location = radiant.entities.get_world_grid_location(entity)
    local mob_collision_type = entity:add_component('mob'):get_mob_collision_type()
    local entity_height = self._mob_heights[mob_collision_type]

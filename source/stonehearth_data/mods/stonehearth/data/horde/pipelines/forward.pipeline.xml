@@ -49,6 +49,8 @@
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
          <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />
+
+         <DrawGeometry context="WATER_LOWQ" order="BACK_TO_FRONT" />
       </Stage>
 
       <Stage id="Emissive">

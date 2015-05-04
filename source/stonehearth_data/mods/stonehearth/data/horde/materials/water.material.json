@@ -11,6 +11,11 @@
 		"WATER_WRITE_ALPHA_ONLY" : {
 			"state" : "states/voxel/write_alpha_only.state",
 			"shader" : "shaders/color_only.shader"
+		},
+
+		"WATER_LOWQ" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/water_lowq.shader"
 		}
 	}
 }
