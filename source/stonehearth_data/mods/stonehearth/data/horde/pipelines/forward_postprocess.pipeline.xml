@@ -130,13 +130,6 @@
       </Stage>
 
       <Stage id="Translucent">
-         <SwitchTarget target="Final" />
-         <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
-         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
-         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
-         <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
-         <DrawGeometry context="DEBUG_SHAPES" />
-
          <SwitchTarget target="WaterTemp" />
          <DoForwardLightLoop noShadows="true" order="BACK_TO_FRONT" suffix="WATER" forceLodLevel="0"/>
          <DrawGeometry context="WATER_WRITE_ALPHA_ONLY" />
@@ -144,6 +137,13 @@
          <BindBuffer sampler="buf0" sourceRT="WaterTemp" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="BLEND" />
          <UnbindBuffers />
+
+         <SwitchTarget target="Final" />
+         <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
+         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
+         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
+         <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
+         <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
       <Stage id="Emissive">
