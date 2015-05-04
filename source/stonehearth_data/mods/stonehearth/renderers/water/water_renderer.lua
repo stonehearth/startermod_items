@@ -57,7 +57,6 @@ function WaterRenderer:_update()
 
    working_region = stonehearth.subterranean_view:intersect_region_with_visible_volume(working_region)
    working_region:optimize_by_merge('water renderer')
-   working_region:optimize_by_merge('water renderer')
    working_region:translate(-location)
 
    local render_region = Region3()

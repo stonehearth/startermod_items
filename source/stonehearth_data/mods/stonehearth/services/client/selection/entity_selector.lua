@@ -127,7 +127,7 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
 
    if stonehearth.selection.user_cancelled(event) then
       self:reject({ error = 'cancelled via right click'})
-      return
+      return true
    end
 
    local entity = self:_get_selected_entity(mouse_pos.x, mouse_pos.y)
@@ -147,6 +147,9 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
    if entity and event and event:up(1) then
       self:resolve(entity)
    end
+
+   local event_consumed = event and (event:down(1) or event:up(1))
+   return event_consumed
 end
 
 -- run the location selector.   should be called after the selector
@@ -161,8 +164,7 @@ function EntitySelector:go()
    -- the entity that we're supposed to create whenever the user clicks.
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
-                                 self:_on_mouse_event(e, e)
-                                 return true
+                                 return self:_on_mouse_event(e, e)
                               end)
 
    self._last_cursor_uri = self._cursor_uri

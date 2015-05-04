@@ -69,8 +69,8 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
          )
    end
 
-   -- return true to prevent the mouse event from propogating to the UI
-   return true
+   local event_consumed = e and (e:down(1) or e:up(1))
+   return event_consumed
 end
 
 function CastAoeCallHandler:server_cast_aoe(session, response, entity_id, spell, location)
@@ -90,8 +90,9 @@ function CastAoeCallHandler:_on_keyboard_event(e, response)
    if e.key == _radiant.client.KeyboardInput.KEY_ESC and e.down then
       self:_cleanup()
       response:resolve({ result = false })
+      return true
    end
-   return true
+   return false
 end
 
 -- destroy our capture object to release the mouse back to the client.  
