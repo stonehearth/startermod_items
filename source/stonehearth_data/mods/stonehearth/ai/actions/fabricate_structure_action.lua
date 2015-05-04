@@ -1,5 +1,5 @@
 local Point3 = _radiant.csg.Point3
-local Fabricator = require 'components.fabricator.fabricator'
+local Fabricator = require 'components.fabricator.fabricator_component'
 
 local FabricateStructure = class()
 FabricateStructure.name = 'fabricate structure'
