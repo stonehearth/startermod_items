@@ -72,7 +72,7 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
    actions: {
       saveGame: function(saveid) {
          var self = this;
-         var d = new DaPte();
+         var d = new Date();
          var gameDate = App.gameView.getDate().date 
          var gameTime = App.gameView.getDate().time;
 
