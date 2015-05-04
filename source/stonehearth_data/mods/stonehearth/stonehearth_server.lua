@@ -160,4 +160,10 @@ radiant.events.listen(stonehearth, 'radiant:init', function()
          end)
    end)
 
+radiant.events.listen(stonehearth, 'radiant:new_game', function()
+      -- stop the calendar service until the user has a chance to
+      -- work their way into the actual game.
+      stonehearth.calendar:stop()
+   end)
+
 return stonehearth

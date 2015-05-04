@@ -51,8 +51,22 @@ function CalendarService:initialize()
          self._sv.date[unit] = self._constants.start[unit]
          self._sv.start_time[unit] = self._constants.start[unit]
       end
-      self:_update_seconds_today()
    end
+end
+
+-- Starts the passage of time.  Used to make sure day 1 doesn't begin until the
+-- user has had a chance to pick his location on the map
+--
+function CalendarService:start()
+   self._sv.start_game_tick = radiant.gamestate.now()
+   self:_update_seconds_today()
+end
+
+function CalendarService:stop()
+   assert(radiant.empty(self._sv._past_alarms))
+   assert(radiant.empty(self._sv._future_alarms))
+   self:_on_event_loop({ now = 0 })
+   self._sv.start_game_tick = nil
 end
 
 -- Returns the remaining time based on the period passed in 'm' for minute, 'h' for hour, 'd' for day, 
@@ -250,6 +264,11 @@ end
 
 -- recompute the game calendar based on the time
 function CalendarService:_on_event_loop(e)
+   local start_tick = self._sv.start_game_tick
+   if start_tick == nil then
+      -- not running yet.  see CalendarService:start()
+      return
+   end
    local last_hour = self._sv.date.hour 
    local elapased = e.now - self._sv.start_game_tick
 
