@@ -4,11 +4,15 @@
 
 App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
 
-   init: function() {
+   _doInit: function() {
       this._super();
       this._getSaves();
       this._getAutoSaveSetting();
-   },
+   }.on('init'),
+
+   _foo: function() {
+      console.log(this.get(model));
+   }.on('didInsertElement'),
 
    // grab all the saves from the server
    _getSaves: function() {
@@ -68,7 +72,7 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
    actions: {
       saveGame: function(saveid) {
          var self = this;
-         var d = new Date();
+         var d = new DaPte();
          var gameDate = App.gameView.getDate().date 
          var gameTime = App.gameView.getDate().time;
 
@@ -151,11 +155,13 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
    didInsertElement: function() {
       this._super();
+      /*
       this.$('#saveView').position({
             my: 'center center',
             at: 'center center-150',
             of: '#modalOverlay'
          });
+      */
    },
 
    // when a controller op is in progress (saving, etc), disable the buttons

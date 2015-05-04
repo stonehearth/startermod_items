@@ -4,7 +4,7 @@
       "description" : "General information about your town, how your hearthlings are feeling, and the wealth you've accumulated!",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/town.png",
-      "hotkey" : "t",
+      "hotkey" : "i",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:banner_grab"
    },   
