@@ -51,6 +51,7 @@ function CalendarService:initialize()
          self._sv.date[unit] = self._constants.start[unit]
          self._sv.start_time[unit] = self._constants.start[unit]
       end
+      self:_update_seconds_today()
    end
 end
 
