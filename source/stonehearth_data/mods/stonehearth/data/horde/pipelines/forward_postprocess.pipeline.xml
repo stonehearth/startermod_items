@@ -138,7 +138,7 @@
          <DrawGeometry context="DEBUG_SHAPES" />
 
          <SwitchTarget target="WaterTemp" />
-         <DoForwardLightLoop noShadows="true" order="BACK_TO_FRONT" suffix="WATER" />
+         <DoForwardLightLoop noShadows="true" order="BACK_TO_FRONT" suffix="WATER" forceLodLevel="0"/>
          <DrawGeometry context="WATER_WRITE_ALPHA_ONLY" />
          <SwitchTarget target="Final" />
          <BindBuffer sampler="buf0" sourceRT="WaterTemp" />

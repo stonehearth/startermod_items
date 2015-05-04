@@ -50,7 +50,7 @@
          <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />
 
-         <DrawGeometry context="WATER_LOWQ" order="BACK_TO_FRONT" />
+         <DrawGeometry context="WATER_LOWQ" order="BACK_TO_FRONT" forceLodLevel="0"/>
       </Stage>
 
       <Stage id="Emissive">
