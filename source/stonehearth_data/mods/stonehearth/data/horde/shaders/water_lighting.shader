@@ -40,5 +40,5 @@ void main() {
    // reasonable, too.
    float lightIntensity = length(lightAmbientColor.rg);
    float intensity = min(1.0, (lightIntensity * max(0.0, angleBias + dot(tsbNormal, lightDir.xyz))));
-   gl_FragColor = vec4(outColor.rgb * intensity, 0);
+   gl_FragColor = vec4(outColor.rgb * intensity, 0.0);
 }

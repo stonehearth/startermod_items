@@ -28,7 +28,7 @@
 
       <Stage id="Light">
          <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
-         <DoForwardLightLoop noShadows="false"/>
+         <DoForwardLightLoop noShadows="false" forceLodLevel="0"/>
          <UnbindBuffers />
       </Stage>
 

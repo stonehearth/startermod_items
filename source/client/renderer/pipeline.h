@@ -34,7 +34,7 @@ class Pipeline : public core::Singleton<Pipeline> {
       RenderNodePtr CreateDesignationNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color, int useCoarseCollisionBox=1);
       RenderNodePtr CreateStockpileNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNodePtr CreateSelectionNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
-      RenderNodePtr CreateRegionOutlineNode(H3DNode parent, csg::Region3f const& region, csg::Color4 const& edge_color, csg::Color4 const& face_color, std::string const& material);
+      RenderNodePtr CreateRegionOutlineNode(H3DNode parent, csg::Region3f const& region, csg::Color4 const& edge_color, csg::Color4 const& face_color, std::string const& material, bool enablePolygonOffset);
       RenderNodePtr CreateRenderNodeFromMesh(H3DNode parent, csg::Mesh const& m);
 
       H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);

@@ -261,7 +261,8 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
                                   csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
                                   csg::Color4 const& face_color,
-                                  std::string const& material)
+                                  std::string const& material,
+                                  bool enablePolygonOffset)
 {
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
    csg::RegionTools3f tools;
@@ -294,7 +295,10 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
          ->SetMaterial(material);
 
       h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
-      EnablePolygonOffset(face_node->GetNode());
+      
+      if (enablePolygonOffset) {
+         EnablePolygonOffset(face_node->GetNode());
+      }
 
       group_node->AddChild(face_node);
    }

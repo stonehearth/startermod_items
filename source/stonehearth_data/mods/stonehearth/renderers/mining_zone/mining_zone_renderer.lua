@@ -71,7 +71,8 @@ function MiningZoneRenderer:_update()
                                                                    region,
                                                                    self._edge_color,
                                                                    self._face_color,
-                                                                   'materials/transparent.material.json')
+                                                                   'materials/transparent.material.json',
+                                                                   true)
 
    stonehearth.selection:set_selectable(self._entity, data.selectable)
 end
