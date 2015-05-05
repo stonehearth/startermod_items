@@ -96,12 +96,12 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       this._sellPalette = this.$('#sellList').stonehearthItemPalette({
          cssClass: 'shopItem',
          itemAdded: function(itemEl, itemData) {
-            itemEl.attr('cost', itemData.cost);
+            itemEl.attr('cost', itemData.resale );
             itemEl.attr('num', itemData.num);
 
             $('<div>')
                .addClass('cost')
-               .html(itemData.cost + 'g')
+               .html(itemData.resale + 'g')
                .appendTo(itemEl);
 
          },
