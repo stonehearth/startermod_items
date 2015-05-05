@@ -10,6 +10,8 @@ function MouseEvent:__init(o)
    self.mouse = {
       x = o.x or 0,
       y = o.y or 0,
+      dx = 0,
+      dy = 0,
       wheel = o.wheel or 0,
       up = function(_, idx) return self:_check_button(idx, o.up) end,
       down = function(_, idx) return self:_check_button(idx, o.down) end,

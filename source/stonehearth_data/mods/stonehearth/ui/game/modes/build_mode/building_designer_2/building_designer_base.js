@@ -266,16 +266,8 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    _addEventHandlers: function() {
       var self = this;
 
-      // tab buttons and pages
-      this.$(".palette area").click(function() {
-         // update the image map
-         var el = $(this);
-         var toolId = el.attr('tool');
-         var palette = el.attr('palette');
-
-         //self._updateImageMap(palette, toolId);
-
-         var tab = self.$('#' + toolId);
+      var activateTool = function(toolId) {
+         var tab = self.$('#' + toolId + '[class=tabPage]');
 
          // show the correct tab page
          self.$('.tabPage').hide();
@@ -283,7 +275,21 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          
          if (self.actions[toolId]) {
             self.activateTool(self.actions[toolId]);
-         }
+         }         
+      }
+
+      // voxel editing tools
+      this.$("#voxelsPalette img").click(function() {
+         var toolId = $(this).attr('id');
+         activateTool(toolId);
+      });
+
+      // tab buttons and pages
+      this.$(".palette area").click(function() {
+         // update the image map
+         var el = $(this);
+         var toolId = el.attr('tool');
+         activateTool(toolId);
       });
 
       this.$(".palette area").hover( function() { 

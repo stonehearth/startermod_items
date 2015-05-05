@@ -226,6 +226,7 @@ private:
    std::vector<std::function<void()>>  _bottomLoopFns;
    int                                 _sequenceNumber;
    std::function<om::DataStorePtr()>   _allocDataStoreFn;
+   bool                                _profileLongFrames;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

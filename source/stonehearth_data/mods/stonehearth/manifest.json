@@ -1633,6 +1633,7 @@
          "file(ui/game/modes/build_mode/building_designer_2/grow_roof_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/place_floor_deco_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/draw_road_tool.js)",
+         "file(ui/game/modes/build_mode/building_designer_2/draw_voxel_tool.js)",
          "file(ui/game/modes/build_mode/mine/mine.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
