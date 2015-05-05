@@ -584,7 +584,9 @@ end
 function MiningZoneComponent:_create_mining_task()
    local town = stonehearth.town:get_town(self._entity)
    
-   self:_destroy_mining_task()
+   if self._mining_task then
+      return
+   end
 
    if self._sv.region:get():empty() then
       return

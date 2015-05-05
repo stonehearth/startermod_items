@@ -265,7 +265,11 @@ function Shop:sell_item(uri, quantity)
          -- _get_item_cost needs an entity, so we can't call it until we have one
          -- (e.g. if uri is an iconic entity, we can't get the cost intil we have the actual
          -- iconic_entity to get it's iconic_form component to get back to the real entity!)
-         item_cost = self:_get_item_cost(entity)
+         local tracking_data = self._sv.sellable_items:get_tracking_data()
+         local entity_key = entity:get_uri()
+         assert(tracking_data, 'sure as heck better having tracking data for sale item %s', entity_key)
+         item_cost = tracking_data[entity_key].resale
+         
       end
       radiant.entities.destroy_entity(entity)
       total_gold = total_gold + item_cost
