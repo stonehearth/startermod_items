@@ -242,8 +242,8 @@ function crushinator_tests_maul()
    local mas_1 = autotest_framework.env.create_person(8, 0, { job = 'mason' })
    local mas_2 = autotest_framework.env.create_person(8, 2, { job = 'mason' })
    
-   mason_init(mas_1, -20, 0)
-   mason_init(mas_2, -20, 10)
+   mason_init(mas_2, -30, 10)
+   mason_init(mas_1, -30, 20)
 
    -- 2 trappers
    local tr_1 = autotest_framework.env.create_person(8, -4, { job = 'trapper' })
