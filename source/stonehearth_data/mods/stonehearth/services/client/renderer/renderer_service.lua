@@ -104,7 +104,7 @@ function Renderer:_update_region_debug_shape(id, origin, region, r, g, b)
          self._debug_shapes[id]:destroy()
       end
       local model = region:get():translated(origin)
-      self._debug_shapes[id] = _radiant.client.create_region_outline_node(H3DRootNode, model, edge_color, face_color, 'materials/transparent.material.json')   
+      self._debug_shapes[id] = _radiant.client.create_region_outline_node(H3DRootNode, model, edge_color, face_color, 'materials/transparent.material.json')
    end
 
    if self._debug_shape_traces[id] then

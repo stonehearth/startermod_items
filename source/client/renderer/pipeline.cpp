@@ -76,8 +76,8 @@ void h3dRemoveNodeChecked(H3DNode node)
 static void EnablePolygonOffset(H3DNode node)
 {
    h3dSetNodeParamI(node, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 1, -.01f);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -0.005f);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 1, -4.0f);
 }
 
 Pipeline::Pipeline() :
@@ -294,6 +294,7 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
          ->SetMaterial(material);
 
       h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+      
       EnablePolygonOffset(face_node->GetNode());
 
       group_node->AddChild(face_node);

@@ -95,11 +95,6 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                end
             end
 
-            local rcs = entity:get_component('region_collision_shape')
-            if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
-               return stonehearth.selection.FILTER_IGNORE
-            end
-
             if radiant.terrain.is_blocked(placement_test_entity, location) then
                -- if the space occupied by the cursor is blocked, we definitely can't
                -- place the item there
@@ -145,6 +140,12 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                -- directly underneath us.  just place right away!
                return true
             end
+
+            -- Uncomment when needed to ignore mining zones, water, etc.
+            -- local rcs = entity:get_component('region_collision_shape')
+            -- if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
+            --    return stonehearth.selection.FILTER_IGNORE
+            -- end
 
             return stonehearth.selection.FILTER_IGNORE
          end)
@@ -238,7 +239,7 @@ function PlaceItemCallHandler:place_item_on_structure(session, response, item, l
    end
    
    location = location - radiant.entities.get_world_grid_location(structure_entity)
-   stonehearth.build:add_fixture(structure_entity, item, location, normal, rotation, true)
+   stonehearth.build:add_fixture(structure_entity, item, location, normal, rotation)
 
    return true
 end
@@ -285,7 +286,7 @@ function PlaceItemCallHandler:place_item_type_on_structure(session, response, en
    local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
    assert(data, 'must send entity-forms root entity to place_item_type_on_structure')
    location = location - radiant.entities.get_world_grid_location(structure_entity)
-   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal, rotation, true)
+   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal, rotation)
    return true
 end
 

@@ -887,9 +887,6 @@
       "scenarios:caravan_shop" : "file(scenarios/dynamic/caravan_shop_scenario/caravan_shop_scenario.json)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.json)",
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
-      "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
-      "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.json)",
-      "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.json)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
       "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.json)", 
@@ -1361,7 +1358,6 @@
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
-      "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
       "population_pace_keeper" : "file(services/server/dynamic_scenario/population_pace_keeper.lua)",
       "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)",
       "generic_scenario_wrapper" : "file(services/server/dynamic_scenario/generic_scenario_wrapper/generic_scenario_wrapper.lua)",

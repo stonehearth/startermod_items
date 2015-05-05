@@ -200,6 +200,10 @@ function NewGameCallHandler:_get_starting_clip_height(starting_location)
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)
+   -- start the game master service
+   stonehearth.calendar:start()
+   stonehearth.game_master:start()
+   
    stonehearth.world_generation:set_starting_location(Point2(pt.x, pt.z))
 
    local town = stonehearth.town:get_town(session.player_id)
@@ -240,9 +244,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:resources:wood:oak_log'))
    radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:talisman'))
-
-   -- start the game master service
-   stonehearth.game_master:start()
 
    return {random_town_name = random_town_name}
 end

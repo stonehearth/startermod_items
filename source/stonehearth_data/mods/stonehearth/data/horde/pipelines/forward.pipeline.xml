@@ -44,6 +44,8 @@
       </Stage>
 
       <Stage id="Translucent">
+         <DrawGeometry context="WATER_LOWQ" order="BACK_TO_FRONT" forceLodLevel="0"/>
+
          <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
          <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>

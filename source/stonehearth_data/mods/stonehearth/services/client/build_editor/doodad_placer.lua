@@ -91,10 +91,13 @@ function DoodadPlacer:_on_mouse_event(e)
       self:destroy()
    end
 
-   if e:up(2) and not e.dragging then
+   if stonehearth.selection.user_cancelled(e) then
       self:destroy()
+      return true
    end
-   return true
+
+   local event_consumed = e and (e:down(1) or e:up(1))
+   return event_consumed
 end
 
 return DoodadPlacer

@@ -46,9 +46,23 @@ App.FileBugView = App.View.extend({
 
    },
 
+   _stifle_input: function() {
+      var visible = this.get('isVisible');
+      if (!visible) {
+         radiant.call_obj('stonehearth.input', 'capture_input_for_ui', false);
+      }
+   }.observes('isVisible'),
+
    didInsertElement: function() {
       var self = this;
 
+      this.$('.capture_ui').focusin(function() {
+         radiant.call_obj('stonehearth.input', 'capture_input_for_ui', true);
+      })
+      .focusout(function() {
+         radiant.call_obj('stonehearth.input', 'capture_input_for_ui', false);
+      })
+      
       this.$("#cancel").click(function() {
          self.hide();
       });

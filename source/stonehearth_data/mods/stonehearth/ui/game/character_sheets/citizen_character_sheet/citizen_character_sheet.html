@@ -154,18 +154,18 @@
                   <div id="entries">
                      
                      <div class="entry">
-                        <p class="date">{{firstJournalEntry.date}}</p>
-                        <p class="entryTitle">{{firstJournalEntryTitle}}</p> 
+                        <p class="date">{{view.model.firstJournalEntry.date}}</p>
+                        <p class="entryTitle">{{view.model.firstJournalEntryTitle}}</p> 
                         
                         <div>
-                        {{#if firstJournalEntryScore}}
-                           {{#if firstJournalEntryScoreIsUp}}
+                        {{#if view.model.firstJournalEntryScore}}
+                           {{#if view.model.firstJournalEntryScoreIsUp}}
                               <div class="scoreIndicator goodEntry"></div>
                            {{else}}
                               <div class="scoreIndicator badEntry"></div>
                            {{/if}}
                         {{/if}}
-                        <p>{{firstJournalEntryText}}</p>
+                        <p>{{view.model.firstJournalEntryText}}</p>
                         </div>
                      </div>
                   </div>
