@@ -263,9 +263,9 @@ uint Convert::SaveLuaTableToProtobuf(luabind::object const& obj, Protocol::LuaOb
             continue;
          }
          Protocol::LuaObject::Table::Entry *entry_msg = table_msg->add_entries();
-         CONVERT_LOG(7) << "converting table key \"" << ToString(L, key);
+         CONVERT_LOG(7) << "converting table key \"" << ToString(L, key) << "\"";
          LuaToProtobuf(key, entry_msg->mutable_key(), rootmsg, tables);
-         CONVERT_LOG(7) << "converting table value \"" << ToString(L, luabind::object(*i));
+         CONVERT_LOG(7) << "converting table value \"" << ToString(L, luabind::object(*i)) << "\"";
          LuaToProtobuf(*i, entry_msg->mutable_value(), rootmsg, tables);
       }
    }
