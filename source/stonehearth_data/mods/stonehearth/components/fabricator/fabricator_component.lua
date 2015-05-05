@@ -135,7 +135,13 @@ function FabricatorComponent:_add_scaffolding()
       return
    end
    local blueprint = self._sv.blueprint
-   if blueprint:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+   local uri = blueprint:get_uri()
+   if uri == 'stonehearth:build:prototypes:scaffolding' or 
+      uri == 'stonehearth:build:prototypes:roof' then
+      -- scaffolding for scaffolding leads down the road to madness.
+      -- roof scaffolding is VERY expensive, so for now just rely on the
+      -- fact that all roofs are connected to walls with ladders and use
+      -- those guys instead. -- tony
       return
    end
    local project = self._sv.project
