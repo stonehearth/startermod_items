@@ -12,7 +12,7 @@ attribute vec4 color;
 varying vec4 outColor;
 
 void main() {
-   outColor = vec4(color.rgb * lowq_waterAmbientLightScale, color.a);
+   outColor = vec4(color.rgb * min(1.0, lowq_waterAmbientLightScale), color.a);
    gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
