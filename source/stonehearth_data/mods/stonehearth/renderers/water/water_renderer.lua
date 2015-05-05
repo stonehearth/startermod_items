@@ -67,7 +67,7 @@ function WaterRenderer:_update()
       render_region:add_cube(cube)
    end
 
-   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color, 'materials/water.material.json', false)
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color, 'materials/water.material.json')
 end
 
 return WaterRenderer

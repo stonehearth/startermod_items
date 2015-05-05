@@ -76,8 +76,8 @@ void h3dRemoveNodeChecked(H3DNode node)
 static void EnablePolygonOffset(H3DNode node)
 {
    h3dSetNodeParamI(node, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 1, -.01f);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -0.005f);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 1, -4.0f);
 }
 
 Pipeline::Pipeline() :
@@ -261,8 +261,7 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
                                   csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
                                   csg::Color4 const& face_color,
-                                  std::string const& material,
-                                  bool enablePolygonOffset)
+                                  std::string const& material)
 {
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
    csg::RegionTools3f tools;
@@ -296,9 +295,7 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
 
       h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
       
-      if (enablePolygonOffset) {
-         EnablePolygonOffset(face_node->GetNode());
-      }
+      EnablePolygonOffset(face_node->GetNode());
 
       group_node->AddChild(face_node);
    }
