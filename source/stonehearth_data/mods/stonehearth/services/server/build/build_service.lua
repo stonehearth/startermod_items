@@ -1070,7 +1070,9 @@ end
 function BuildService:create_ladder_command(session, response, ladder_uri, location, normal)
    normal = ToPoint3(normal)
    location = ToPoint3(location)
-   self._sv.ladder_manager:request_ladder_to(session.player_id, location, normal, true)
+   self._sv.ladder_manager:request_ladder_to(session.player_id, location, normal, {
+         removable = true
+      })
    return true
 end
 
