@@ -40,6 +40,11 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(new GrowWallsTool);
       this.newTool(new GrowRoofTool);
       this.newTool(new DrawRoadTool);
+
+      this.newTool(new DrawVoxelTool({ toolId: 'voxelAdd', mode:'add' }));
+      this.newTool(new DrawVoxelTool({ toolId: 'voxelPaint', mode:'paint' }));
+      this.newTool(new DrawVoxelTool({ toolId: 'voxelRemove', mode:'erase' }));
+
       // this.newTool(new DrawSlabTool);
 
       // Make sure we call super after adding all the tools!
