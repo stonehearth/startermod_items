@@ -79,21 +79,16 @@ function LadderManager:_should_build_rung(pt)
          return true
       end
       local rcs = entity:get_component('region_collision_shape')
-      if not rcs or rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
-         log:spam('  - %s is non-opaque.  yes.', entity)
-         return true
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         log:spam('  - %s is opaque enough to support.  no.', entity)
+         return false
       end
-      log:spam('  - %s has non-NONE collision shape.  no.', entity)
-      return false
+      log:spam('  - %s has no disqualfiers.  yes.', entity)
+      return true
    end
    
    -- if the space isn't blocked, definitely build one.
    log:spam('checking all entities @ %s to see if we should build a rung.', pt);
-   if not radiant.terrain.is_blocked(pt) then
-      log:spam('  - point is not blocked.  yes.')
-      return true
-   end
-
    local entities = radiant.terrain.get_entities_at_point(pt)
    for _, entity in pairs(entities) do
       if not is_empty_enough(entity) then
