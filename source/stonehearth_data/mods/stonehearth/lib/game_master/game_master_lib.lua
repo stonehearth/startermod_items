@@ -96,10 +96,20 @@ local function _create_or_load_citizens(population, info, origin, ctx)
       local max = info.from_population.max or 1
       local num = rng:get_int(min, max)
       
+      local job = info.from_population.job
       for i = 1, num do
          local citizen = population:create_new_citizen(info.from_population.role)
+        
+         -- promote the citizen to the proper job
+         if job then
+            citizen:add_component('stonehearth:job')
+                        :promote_to(job)
+         end
+         
          table.insert(citizens, citizen)
       end
+      
+      
    elseif info.from_ctx and ctx then
       --Retrieve the citizen from the context. Can only create 1 citizen from context per block
       local entity = ctx:get(info.from_ctx)
@@ -125,12 +135,6 @@ function game_master_lib.create_citizens(population, info, origin, ctx)
    local citizens = _create_or_load_citizens(population, info, origin, ctx)
   
    for i, citizen in ipairs(citizens) do
-      -- info.job: promote the citizen to the proper job
-      if info.job then
-         citizen:add_component('stonehearth:job')
-                     :promote_to(info.job)
-      end
-
       -- info.equipment: gear up!
       if info.equipment then
          local ec = citizen:add_component('stonehearth:equipment')
