@@ -5,7 +5,7 @@ local Point3 = _radiant.csg.Point3
 
 local LadderBuilder = class()
 
-function LadderBuilder:initialize(manager, id, owner, base, normal, removeable)
+function LadderBuilder:initialize(manager, id, owner, base, normal, options)
    self._sv.id = id
    self._sv.climb_to = {}
 
@@ -17,7 +17,7 @@ function LadderBuilder:initialize(manager, id, owner, base, normal, removeable)
                                              self._sv.manager:_destroy_builder(self._sv.base, self)
                                           end)
 
-   if removeable then
+   if options.removable then
       ladder:add_component('stonehearth:commands')
                   :add_command('/stonehearth/data/commands/remove_ladder')
    end

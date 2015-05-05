@@ -6,6 +6,7 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
+local Color4 = _radiant.csg.Color4
 
 local MODEL_OFFSET = Point3(-0.5, 0, -0.5)
 
@@ -45,6 +46,7 @@ function FloorEditor:go(response, brush_uri, options)
    else
       -- at least when placing slabs, make sure there's empty space when dragging
       -- the cursor
+      selector:allow_select_cursor(false)
       selector:require_unblocked(true)
    end
 
@@ -53,11 +55,13 @@ function FloorEditor:go(response, brush_uri, options)
       :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_support_filter(options.sink_floor))
       :set_can_contain_entity_filter(stonehearth.selection.floor_can_contain)
       :use_manual_marquee(function(selector, box)
+            local group = _radiant.client.create_group_node(H3DRootNode)
+
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)
-            local node =  _radiant.client.create_voxel_node(H3DRootNode, model, 'materials/blueprint.material.json', Point3.zero)
-            node:set_position(MODEL_OFFSET)
-            node:set_polygon_offset(-5, -5)
+            self._marquee_model_node =  _radiant.client.create_voxel_node(group:get_node(), model, 'materials/blueprint.material.json', Point3.zero)
+                                                            :set_position(MODEL_OFFSET)
+                                                            :set_polygon_offset(-5, -5)
 
             if self._cut_region then
                -- Update the cut region for the floor
@@ -65,8 +69,11 @@ function FloorEditor:go(response, brush_uri, options)
                      cursor:copy_region(box_region)
                   end)
             end
+            local edge_color = Color4(0, 0, 0, 0)
+            local face_color = Color4(255, 255, 255, 128)
 
-            return node
+            self._marquee_outline_line = _radiant.client.create_region_outline_node(group:get_node(), model, edge_color, face_color, 'materials/transparent.material.json')
+            return group
          end)
       :done(function(selector, box)
             log:detail('box selected')

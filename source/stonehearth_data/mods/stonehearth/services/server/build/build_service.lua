@@ -222,9 +222,12 @@ function BuildService:_merge_blueprints(box, acceptable_merge_filter_fn)
             -- into
             local rcs = entity:get_component('region_collision_shape')
             if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-               local region = rcs:get_region():get()
-               region = radiant.entities.local_to_world(region, entity)
-               total_region:subtract_region(region)
+               local boxed_region = rcs:get_region()
+               if boxed_region then
+                  local region = boxed_region:get()
+                  region = radiant.entities.local_to_world(region, entity)
+                  total_region:subtract_region(region)
+               end
             end
             if is_blueprint then
                local dst = entity:get_component('destination')
@@ -1067,7 +1070,9 @@ end
 function BuildService:create_ladder_command(session, response, ladder_uri, location, normal)
    normal = ToPoint3(normal)
    location = ToPoint3(location)
-   self._sv.ladder_manager:request_ladder_to(session.player_id, location, normal, true)
+   self._sv.ladder_manager:request_ladder_to(session.player_id, location, normal, {
+         removable = true
+      })
    return true
 end
 
