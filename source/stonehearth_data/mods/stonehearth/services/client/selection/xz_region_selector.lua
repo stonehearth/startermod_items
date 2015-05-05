@@ -508,6 +508,10 @@ function XZRegionSelector:_limit_dimensions(q0, q1)
 end
 
 function XZRegionSelector:_on_mouse_event(event)
+   if not event then
+      return false
+   end
+   
    -- This is the action that will be taken in _update() unless specified otherwise
    self._action = 'notify'
 
@@ -527,6 +531,10 @@ function XZRegionSelector:_on_mouse_event(event)
 
    self._last_brick = brick
    self._state = next_state
+
+   -- this decision should be inside the state_transition_fn
+   local event_consumed = event:down(1) or event:up(1) or next_state == 'stop'
+   return event_consumed
 end
 
 function XZRegionSelector:_run_start_state(event, brick, normal)
@@ -811,8 +819,7 @@ function XZRegionSelector:go()
    end
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
-                                 self:_on_mouse_event(e)
-                                 return true
+                                 return self:_on_mouse_event(e)
                               end)
 
    -- TODO: want to be able to call this

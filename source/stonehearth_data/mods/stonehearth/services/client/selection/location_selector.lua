@@ -205,7 +205,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
       self._input_capture = nil
 
       self:reject({ error = 'selection cancelled '})
-      return
+      return true
    end
 
    local pt = self:_get_selected_brick(mouse_pos.x, mouse_pos.y)
@@ -224,7 +224,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
       if not self._invalid_cursor then
          self._invalid_cursor = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
       end
-      return
+      return false
    end
 
    -- At this point, the location is valid, so clean up any invalid cursor we might
@@ -249,11 +249,15 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
          self:_cleanup()
       end
    end
+
+   local event_consumed = event and (event:down(1) or event:up(1))
+   return event_consumed
 end
 
 -- handles keyboard events from the input service
 --
 function LocationSelector:_on_keyboard_event(e)
+   local event_consumed = false
    local deltaRot = 0
 
    -- period and comma rotate the cursor
@@ -271,8 +275,12 @@ function LocationSelector:_on_keyboard_event(e)
          -- remember the last rotation for the next time we bring up another
          -- LocationSelector.
          LocationSelector.last_rotation = new_rotation
+
+         event_consumed = true
       end
    end
+
+   return event_consumed
 end
 
 -- run the location selector.   should be called after the selector
@@ -299,12 +307,10 @@ function LocationSelector:go()
    -- the entity that we're supposed to create whenever the user clicks.
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
-                                 self:_on_mouse_event(e, e)
-                                 return true
+                                 return self:_on_mouse_event(e, e)
                               end)
                            :on_keyboard_event(function(e)
-                                 self:_on_keyboard_event(e)
-                                 return true
+                                 return self:_on_keyboard_event(e)
                               end)
 
    -- fake an initial event to move the cursor under the mouse
