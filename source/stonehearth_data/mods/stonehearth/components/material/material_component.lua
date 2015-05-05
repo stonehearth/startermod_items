@@ -7,6 +7,7 @@ local MaterialComponent = class()
 function MaterialComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.tags then
+      self._sv._string = json.tags
       self:set_tags(json.tags)      
    end
 end
@@ -36,6 +37,13 @@ end
 
 function MaterialComponent:get_tags()
    return self._sv.tags_string
+end
+
+-- generally, you should not be using "get_string".  if you want
+-- to see if this material matches some pattern, use `:is()` to check
+-- each tag individually.
+function MaterialComponent:get_string()
+   return self._sv._string
 end
 
 function MaterialComponent:set_tags(tag_string)

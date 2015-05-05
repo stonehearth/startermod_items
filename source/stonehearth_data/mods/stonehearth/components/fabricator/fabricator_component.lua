@@ -56,6 +56,7 @@ function FabricatorComponent:initialize(entity, json)
       self._sv.initialized = true
       self._sv.active = false
       self._sv.teardown = false
+      self._sv.material_proxies = {}
       self._sv._total_mining_region = _radiant.sim.alloc_region3()
       self.__saved_variables:mark_changed()
    end
@@ -94,6 +95,12 @@ function FabricatorComponent:destroy()
       radiant.entities.destroy_entity(self._sv.project)
       self._sv.project = nil
    end
+
+   for material, proxy in pairs(self._sv.material_proxies) do
+      radiant.entities.destroy_entity(proxy)
+      self._sv.material_proxies[material] = nil
+   end
+
 
    -- destroy all the scaffolding stuff we created.
    if self._sv.scaffolding then
@@ -199,17 +206,18 @@ function FabricatorComponent:_initialize_fabricator()
 
    local blueprint = self._sv.blueprint
    local project = self._sv.project
-   
+
    self._log:set_prefix('fab for ' .. tostring(blueprint))
 
    self._finished = false
-   self._fabricator_dst = self._entity:add_component('destination')
    self._fabricator_rcs = self._entity:add_component('region_collision_shape')
    self._blueprint_dst = blueprint:get_component('destination')
    self._blueprint_construction_data = blueprint:get_component('stonehearth:construction_data')
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
    self._mining_zones = {}
    self._mining_traces = {}
+   self._fabricate_tasks = {}
+   self._teardown_tasks = {}
    
    self._traces = {}
 
@@ -223,17 +231,6 @@ function FabricatorComponent:_initialize_fabricator()
       self:_create_new_project()
    end
 
-   local update_dst_adjacent = function()
-      self:_update_dst_adjacent()
-   end
-   local update_dst_region = function()
-      self:_update_dst_region()
-   end
-
-   table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_dst_region))
-   table.insert(self._traces, self._fabricator_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
-   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
-   
    self:_trace_blueprint_and_project()
 
    self._finished_listener = radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
@@ -254,27 +251,25 @@ function FabricatorComponent:_initialize_existing_project(project)
    self._sv.project = project
    self._project_dst = self._sv.project:get_component('destination')
 
-   self._fabricator_dst:get_reserved():modify(function(cursor)
-      cursor:clear()
-   end)
+   -- clear out all the reserved regions in all the material proxy
+   -- entities
+   for _, proxy in pairs(self._sv.material_proxies) do
+      proxy:get_component('destination')
+               :get_reserved()
+                  :modify(function(cursor)
+                        cursor:clear()
+                     end)
+   end
 end
 
 function FabricatorComponent:instabuild()
-   radiant.terrain.subtract_region(self._sv.blueprint:get())
+   radiant.terrain.subtract_region(self._sv._total_mining_region:get())
    self._project_dst:get_region():modify(function(cursor)
          cursor:copy_region(self._blueprint_dst:get_region():get())
       end)
 end
 
 function FabricatorComponent:_create_new_project()
-   -- initialize the fabricator entity.  we'll manually update the
-   -- adjacent region of the destination so we can build the project
-   -- in layers.  this helps prevent the worker from getting stuck
-   -- and just looks cooler
-   self._fabricator_dst:set_region(_radiant.sim.alloc_region3())
-            :set_reserved(_radiant.sim.alloc_region3())
-            :set_adjacent(_radiant.sim.alloc_region3())
-
    self._fabricator_rcs:set_region(_radiant.sim.alloc_region3())
                        :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
 
@@ -305,6 +300,63 @@ function FabricatorComponent:_create_new_project()
    local building = build_util.get_building_for(blueprint)
    local state = self._blueprint_construction_data:get_savestate()
    self._sv.project:add_component('stonehearth:construction_data', state)
+end
+
+function FabricatorComponent:_create_material_proxies()
+   -- create a proxy entity which will contain the destination for just the blocks made
+   -- out of a certain material.  this lets us, for example, path find only to the wooden
+   -- portions of the fabricator after finding a path to a wooden log.
+   self._log:info('creating material proxies')
+   assert(self._sv.material_proxies)
+
+   -- create the proxy if it doesn't exist
+   local function create_proxy(material)
+      if self._sv.material_proxies[material] then 
+         return
+      end
+      local proxy = radiant.entities.create_entity()
+      proxy:set_debug_text(string.format('"%s" material for %s', material, tostring(self._entity)))
+
+      self._log:info('creating material proxy %s for material %s', proxy, material)
+      local proxy_dst = proxy:add_component('destination')
+      proxy_dst:set_region(_radiant.sim.alloc_region3())
+               :set_reserved(_radiant.sim.alloc_region3())
+               :set_adjacent(_radiant.sim.alloc_region3())
+      self._sv.material_proxies[material] = proxy
+      radiant.entities.add_child(self._entity, proxy, Point3.zero)
+
+      -- update all the material proxy destination regions whenever the fabricator
+      -- region changes.
+      local update_all_dst_regions = function()
+         self:_update_all_material_proxy_regions()
+      end
+      table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_all_dst_regions))
+
+      -- update the adjacent region of this proxy whenever it's region or reserved
+      -- changes
+      local update_dst_adjacent = function()     
+         self:_update_material_proxy_adjacent(proxy)
+      end
+      table.insert(self._traces, proxy_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
+      table.insert(self._traces, proxy_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))   
+   end
+
+   local blueprint_rgn = self._blueprint_dst:get_region():get()
+
+   -- if there's a resource material specified in the construction_data component,
+   -- the entire structure should be built of that material.  only one proxy required!
+   if self._resource_material then
+      create_proxy(self._resource_material)
+      return
+   end
+
+   -- run through each cube in the blueprint and make sure we have a proxy
+   -- for that material.  the actual regions for the proxy will be filled in in
+   -- the trace callbacks.
+   for cube in blueprint_rgn:each_cube() do
+      local material = self:_tag_to_material(cube.tag)
+      create_proxy(material)
+   end
 end
 
 function FabricatorComponent:_mark_dirty()
@@ -348,14 +400,20 @@ function FabricatorComponent:get_material(world_location)
    if not rgn:contains(offset) then
       return nil
    end
-   local tag = rgn:get_tag(offset)
 
+   local tag = rgn:get_tag(offset)
+   local material = self:_tag_to_material(tag)   
+   self._log:detail('returning material "%s" for block at %s', material, offset)
+   return material
+end
+
+function FabricatorComponent:_tag_to_material(tag)
+   checks('self', 'number')
    local color = Color3(tag)
    local material = COLOR_TO_MATERIAL[tostring(color)]
    if not material then
       radiant.error("building color to material map has no entry for color %s", tostring(color))
    end
-   self._log:detail('returning material "%s" for block at %s (color:%s)', material, offset, color)
    return material
 end
 
@@ -421,6 +479,7 @@ function FabricatorComponent:add_block(material_entity, location)
          cursor:add_point(pt, color)
          cursor:optimize_by_merge('add block in project')
       end)
+
    self:release_block(location)
    return true
 end
@@ -432,28 +491,32 @@ function FabricatorComponent:find_another_block(carrying, location)
    end
    ]]
    
-   if carrying then
-      local origin = radiant.entities.get_world_grid_location(self._entity)
-      local pt = location - origin
-      
-      local adjacent = self._fabricator_dst:get_adjacent():get()
-      if adjacent:contains(pt) then
-         local poi_local = self._fabricator_dst:get_point_of_interest(pt)
-         if poi_local then
-            local block = poi_local + origin
+   if not carrying then
+      return
+   end
+   local material = carrying:get_component('stonehearth:material')
+                                 :get_string()
 
-            local material = self:get_material(block)
-            if not radiant.entities.is_material(carrying, material) then
-               return
-            end
+   local proxy = self._sv.material_proxies[material]
+   if not proxy then
+      return
+   end
+   local proxy_dst = proxy:get_component('destination')
+   local origin = radiant.entities.get_world_grid_location(proxy)
+   local pt = location - origin
+   
+   local adjacent = proxy_dst:get_adjacent():get()
+   if adjacent:contains(pt) then
+      local poi_local = proxy_dst:get_point_of_interest(pt)
+      if poi_local then
+         local block = poi_local + origin
 
-            -- make sure the next block we get is on the same level as the current
-            -- block so we don't confuse the scaffolding fabricator.  if we really
-            -- need to go to the next row, the pathfinder will take us there!
-            if block.y == location.y then
-               self:_reserve_block(block)
-               return block
-            end
+         -- make sure the next block we get is on the same level as the current
+         -- block so we don't confuse the scaffolding fabricator.  if we really
+         -- need to go to the next row, the pathfinder will take us there!
+         if block.y == location.y then
+            self:_reserve_block(proxy_dst, block)
+            return block
          end
       end
    end
@@ -469,10 +532,12 @@ function FabricatorComponent:remove_block(location)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local pt = location - origin
 
-   if not self._fabricator_dst:get_region():get():contains(pt) then
+   local proxy_dst = self:_get_proxy_dst_for_block(pt, 'region')
+   if not proxy_dst then
       self._log:warning('trying to remove unbuild portion %s of construction project', pt)
       return false
    end
+
    local project_rgn = self._project_dst:get_region():get()
    if not project_rgn:contains(pt) then
       self._log:warning('trying to remove unbuild portion %s of construction project', pt)
@@ -525,15 +590,15 @@ function FabricatorComponent:_start_project()
    -- ones that need destroying.
    if active then
       if self._should_teardown then
-         self:_destroy_fabricate_task()
-         self:_start_teardown_task()
+         self:_destroy_fabricate_tasks()
+         self:_start_teardown_tasks()
       else
-         self:_destroy_teardown_task()
-         self:_start_fabricate_task()
+         self:_destroy_teardown_tasks()
+         self:_start_fabricate_tasks()
       end
    else
-      self:_destroy_teardown_task()
-      self:_destroy_fabricate_task()
+      self:_destroy_teardown_tasks()
+      self:_destroy_fabricate_tasks()
    end
 
    if self._sv.scaffolding then
@@ -542,57 +607,70 @@ function FabricatorComponent:_start_project()
    end
 end
 
-function FabricatorComponent:_start_teardown_task()
-   if not self._teardown_task then
-      self._log:debug('starting teardown task')
-      local town = stonehearth.town:get_town(self._sv.project)
-      local max_workers = self._blueprint_construction_data:get_max_workers()
-      self._teardown_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_structure', { fabricator = self })
-                                      :set_name('fabricate ' .. tostring(self._sv.blueprint))
-                                      :set_source(self._entity)
-                                      :set_max_workers(max_workers)
-                                      :set_priority(priorities.TEARDOWN_BUILDING)
-                                      :set_affinity_timeout(10)
-                                      :start()
+function FabricatorComponent:_start_teardown_tasks()
+   for material, proxy in pairs(self._sv.material_proxies) do
+      if not self._teardown_tasks[material] then
+         self._log:debug('starting teardown task for %s', material)
+         local town = stonehearth.town:get_town(self._sv.project)
+         local max_workers = self._blueprint_construction_data:get_max_workers()
+         local task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_structure', {
+                                            fabricator = self,
+                                            material = material,
+                                         })
+                                         :set_name('fabricate ' .. tostring(self._sv.blueprint))
+                                         :set_source(self._entity)
+                                         :set_max_workers(max_workers)
+                                         :set_priority(priorities.TEARDOWN_BUILDING)
+                                         :set_affinity_timeout(10)
+                                         :start()
+         self._teardown_tasks[material] = task
+      end
    end
 end
 
-function FabricatorComponent:_destroy_teardown_task()
-   if self._teardown_task then
-      self._log:debug('destroying teardown task')
-      self._teardown_task:destroy()
-      self._teardown_task = nil
+function FabricatorComponent:_destroy_teardown_tasks()
+   for material, task in pairs(self._teardown_tasks) do
+      self._log:debug('destroying teardown task (%s)', material)
+      task:destroy()
+      self._teardown_tasks[material] = nil
    end
 end
 
-function FabricatorComponent:_start_fabricate_task()
-   if not self._fabricate_task then
-      self:_update_mining_region()
-      self._log:debug('starting fabricate task')
-      local town = stonehearth.town:get_town(self._sv.blueprint)
-      local max_workers = self._blueprint_construction_data:get_max_workers()
-      self._fabricate_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:fabricate_structure', { fabricator = self })
-                                      :set_name('fabricate ' .. tostring(self._sv.blueprint))
-                                      :set_source(self._entity)
-                                      :set_max_workers(max_workers)
-                                      :set_priority(priorities.CONSTRUCT_BUILDING)
-                                      :set_affinity_timeout(10)
-                                      :start()
+function FabricatorComponent:_start_fabricate_tasks()
+   for material, proxy in pairs(self._sv.material_proxies) do
+      if not self._fabricate_tasks[material] then
+         self._log:debug('starting fabricate task')
+         local town = stonehearth.town:get_town(self._sv.blueprint)
+         local max_workers = self._blueprint_construction_data:get_max_workers()
+         local task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:fabricate_structure', {
+                                               material = material,
+                                               fabricator = self,
+                                            })
+                                         :set_name('fabricate ' .. tostring(self._sv.blueprint))
+                                         :set_source(self._entity)
+                                         :set_max_workers(max_workers)
+                                         :set_priority(priorities.CONSTRUCT_BUILDING)
+                                         :set_affinity_timeout(10)
+                                         :start()
+         self._fabricate_tasks[material] = task                                          
+      end
+   end
+   self:_update_mining_region()
+end
+
+function FabricatorComponent:_destroy_fabricate_tasks()
+   for material, task in pairs(self._fabricate_tasks) do
+      self._log:debug('destroying fabricate task (%s)', material)
+      task:destroy()
+      self._fabricate_tasks[material] = nil
    end
 end
 
-function FabricatorComponent:_destroy_fabricate_task()
-   if self._fabricate_task then
-      self._log:debug('destroying fabricate task')
-      self._fabricate_task:destroy()
-      self._fabricate_task = nil
-   end      
-end
-
-function FabricatorComponent:_reserve_block(location)
+function FabricatorComponent:_reserve_block(proxy_dst, location)
+   checks('self', 'Destination', 'Point3')
    local pt = location - radiant.entities.get_world_grid_location(self._entity)
    self._log:debug('adding point %s to reserve region', tostring(pt))
-   self._fabricator_dst:get_reserved():modify(function(cursor)
+   proxy_dst:get_reserved():modify(function(cursor)
       cursor:add_point(pt)
    end)
    self._log:debug('finished adding point %s to reserve region', tostring(pt))
@@ -603,9 +681,15 @@ function FabricatorComponent:release_block(location)
       return
    end
 
-   local pt = location - radiant.entities.get_world_grid_location(self._entity)
+   local pt = location - radiant.entities.get_world_grid_location(self._entity)   
    self._log:debug('removing point %s from reserve region', tostring(pt))
-   self._fabricator_dst:get_reserved():modify(function(cursor)
+
+   local proxy_dst = self:_get_proxy_dst_for_block(pt, 'reserved')
+   if not proxy_dst then
+      self._log:warning('could not find proxy destination for point %s', pt)
+      return
+   end
+   proxy_dst:get_reserved():modify(function(cursor)
       cursor:subtract_point(pt)
    end)
    self._log:debug('finished removing point %s from reserve region', tostring(pt))
@@ -613,29 +697,30 @@ end
 
 function FabricatorComponent:_stop_project()
    self._log:warning('fabricator stopping all worker tasks')
-   if self._teardown_task then
-      self._teardown_task:destroy()
-      self._teardown_task = nil
-   end
-   if self._fabricate_task then
-      self._fabricate_task:destroy()
-      self._fabricate_task = nil
-   end
+
+   self:_destroy_teardown_tasks()
+   self:_destroy_fabricate_tasks()
 
    for id, mining_zone in pairs(self._mining_zones) do
       -- xxx: this is could cause some trouble... what happens if the mining zone
       -- got merged with some other mining request?  didn't we just kill that one,
       -- too?
       radiant.entities.destroy_entity(mining_zone)
-      self._mining_traces[id]:destroy()
       self._mining_zones[id] = nil
       self._mining_traces[id] = nil
    end
 end
 
-function FabricatorComponent:_update_dst_region()
+function FabricatorComponent:_update_all_material_proxy_regions()
+   self._log:info('updating all proxies')
+   for material, proxy in pairs(self._sv.material_proxies) do
+      self:_update_material_proxy_region(material, proxy)
+   end
+end
+
+function FabricatorComponent:_update_material_proxy_region(material, proxy)
    local rcs_rgn = self._fabricator_rcs:get_region():get():to_int()
-   local reserved_rgn = self._fabricator_dst:get_reserved():get()
+   local proxy_dst = proxy:get_component('destination')
    
    -- build in layers.  stencil out all but the bottom layer of the 
    -- project.  work against the destination region (not rgn - reserved).
@@ -644,7 +729,20 @@ function FabricatorComponent:_update_dst_region()
    local bottom = rcs_rgn:get_bounds().min.y
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
-   local dst_region = rcs_rgn - clipper
+   local dst_region_all_materials = rcs_rgn - clipper
+
+   local dst_region
+   if self._resource_material then
+      dst_region = dst_region_all_materials
+   else
+      dst_region = Region3()
+      for cube in dst_region_all_materials:each_cube() do
+         local cube_material = self:_tag_to_material(cube.tag)
+         if cube_material == material then
+            dst_region:add_unique_cube(cube)
+         end
+      end
+   end
    dst_region:set_tag(0)
 
    -- some projects want the worker to stand at the base of the project and
@@ -685,24 +783,28 @@ function FabricatorComponent:_update_dst_region()
                                           :get_region()
                                              :get()
       if not mining_region:empty() then
-         local offset = radiant.entities.get_world_grid_location(self._entity) -
-                        radiant.entities.get_world_grid_location(mining_zone)
+         local offset = radiant.entities.get_world_grid_location(mining_zone) -
+                        radiant.entities.get_world_grid_location(self._entity)
+                        
 
          local fab_mining_region = mining_region:translated(offset)
 
+         local a = dst_region:get_area()
          dst_region:subtract_region(fab_mining_region)
+         local b = dst_region:get_area()
       end
    end
 
    -- copy into the destination region
-   self._fabricator_dst:get_region():modify(function (cursor)
+   proxy_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
       end)
 end
 
-function FabricatorComponent:_update_dst_adjacent()
-   local dst_rgn = self._fabricator_dst:get_region():get()
-   local reserved_rgn = self._fabricator_dst:get_reserved():get()
+function FabricatorComponent:_update_material_proxy_adjacent(proxy)
+   local proxy_dst = proxy:get_component('destination')
+   local dst_rgn = proxy_dst:get_region():get()
+   local reserved_rgn = proxy_dst:get_reserved():get()
    local available = dst_rgn - reserved_rgn
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
@@ -734,7 +836,7 @@ function FabricatorComponent:_update_dst_adjacent()
    -- self:_log_region(adjacent, 'resulted in adjacent->')
    
    -- finally, copy into the adjacent region for our destination
-   self._fabricator_dst:get_adjacent():modify(function(cursor)
+   proxy_dst:get_adjacent():modify(function(cursor)
       cursor:copy_region(adjacent)
    end)
 end
@@ -769,7 +871,7 @@ function FabricatorComponent:_update_mining_region()
       local trace = mining_zone:get_component('destination')
                                     :trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
                                        :on_changed(function(region)
-                                             self:_update_dst_region()
+                                             self:_update_all_material_proxy_regions()
                                           end)
 
       self._mining_traces[id] = trace
@@ -915,12 +1017,43 @@ function FabricatorComponent:_update_fabricator_region()
    self:_mark_dirty()
 end
 
+function FabricatorComponent:get_material_proxy(material)
+   return self._sv.material_proxies[material]
+end
+
+function FabricatorComponent:_get_proxy_dst_for_block(block, which)
+   assert(which == 'region' or which == 'reserved')
+
+   -- return the destination for the proxy which contains the specified
+   -- block
+   local contains, proxy_dst
+   for _, proxy in pairs(self._sv.material_proxies) do
+      local rgn
+      proxy_dst = proxy:get_component('destination')
+      if which == 'reserved' then
+         rgn = proxy_dst:get_reserved()
+      else
+         rgn = proxy_dst:get_region()
+      end
+      contains = rgn:get()
+                     :contains(block)
+      if contains then
+         break
+      end
+   end
+   if not contains then
+      return
+   end
+   return proxy_dst
+end
+
 function FabricatorComponent:_trace_blueprint_and_project()
    local update_blueprint_region = function()
       if self._sv.active then
          self:_update_mining_region()
       end   
       self:_update_total_mining_region()
+      self:_create_material_proxies()
       self:_update_fabricator_region()
    end
    
@@ -928,7 +1061,7 @@ function FabricatorComponent:_trace_blueprint_and_project()
       self:_update_fabricator_region()
       self:_update_total_mining_region()
    end
-   
+
    local btrace = self._blueprint_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
                                      :on_changed(update_blueprint_region)
 
@@ -938,7 +1071,7 @@ function FabricatorComponent:_trace_blueprint_and_project()
    table.insert(self._traces, btrace)
    table.insert(self._traces, ptrace)
    
-   update_fabricator_region()
+   update_blueprint_region()
 end
 
 
