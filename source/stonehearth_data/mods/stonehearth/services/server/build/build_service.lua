@@ -137,6 +137,15 @@ function BuildService:add_floor_command(session, response, floor_brush, box)
    self:_resolve_and_select_blueprint(success, response, floor)
 end
 
+function BuildService:add_voxels_command(session, response, fabricator, brush, box)
+   local blueprint
+   local success = self:do_command('add_voxels', response, function()
+         blueprint = self:add_voxels(fabricator, brush, ToCube3(box))
+      end)
+
+   self:_resolve_and_select_blueprint(success, response, blueprint)
+end
+
 function BuildService:add_road_command(session, response, road_uri, box)
    local road
    local success = self:do_command('add_road', response, function()
@@ -237,6 +246,18 @@ end
 
 function BuildService:add_floor(session, floor_brush, box)
    return self:_add_floor_type(session, floor_brush, box, constants.floor_category.FLOOR)
+end
+
+function BuildService:add_voxels(fabricator, brush, box)
+   local blueprint = build_util.get_blueprint_for(fabricator)
+   if blueprint then
+      blueprint:get_component('stonehearth:construction_data')
+                  :paint_on_world_region(brush, Region3(box))
+   end
+   
+   -- clipping?
+
+   return blueprint
 end
 
 function BuildService:_add_floor_type(session, floor_brush, box, category)

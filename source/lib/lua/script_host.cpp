@@ -305,7 +305,7 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
    _lastHookTimestamp = now;
 
    if (perfmon::Timer::GetCurrentTimeMs () - _cpuProfileStart >= max_profile_length_) {
-      ToggleCpuProfiling();
+      StopCpuProfiling(true);
    }
 }
 
@@ -331,7 +331,7 @@ void ScriptHost::ProfileSampleHook(lua_State *L, lua_Debug *ar)
       selfTime = 0;
    }
    if (perfmon::Timer::GetCurrentTimeMs () - _cpuProfileStart >= max_profile_length_) {
-      ToggleCpuProfiling();
+      StopCpuProfiling(true);
    }
 }
 
@@ -1350,74 +1350,116 @@ void ScriptHost::ReportCPUDump(luabind::object profTable, std::string const& nam
    f.close();
 }
 
-bool ScriptHost::ToggleCpuProfiling()
+void ScriptHost::ReportProfileData()
 {
-   if (_cpuProfileMethod == CpuProfilerMethod::None) {
-      SH_LOG(1) << "cpu profiler not enabled.  set lua.enable_cpu_profiler to true";
-      return false;
+   Trigger("radiant:report_cpu_profile");
+   int bottomUpDepth = 2;
+
+   perfmon::FunctionTimes stats;
+   perfmon::FunctionAtLineTimes bottomUpStats;
+   res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
+
+   perfmon::FusedFrames fusedFrames;
+   for (auto& entry : _profilers) {
+      perfmon::SamplingProfiler &sp = entry.second;
+      sp.FinalizeCollection(rm);
+      sp.CollectStats(stats);
+      sp.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
+      sp.Fuse(fusedFrames);
    }
 
-   _cpuProfilerRunning = !_cpuProfilerRunning;
-   for (lua_State* L : allThreads_) {
-      if (_cpuProfilerRunning) {
-         _lastHookTimestamp = perfmon::Timer::GetCurrentCounterValueType();
-         InstallProfileHook(L);
-      } else {
-         RemoveProfileHook(L);
-      }
+   DumpFusedFrames(fusedFrames);
+
+   int msPerSample = 0;
+   if (_profilerSampleCounts) {
+      msPerSample  = _profilerDuration / _profilerSampleCounts;
    }
-
-   if (!_cpuProfilerRunning) {
-
-      Trigger("radiant:report_cpu_profile");
-      int bottomUpDepth = 2;
-
-      perfmon::FunctionTimes stats;
-      perfmon::FunctionAtLineTimes bottomUpStats;
-      res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
-
-      perfmon::FusedFrames fusedFrames;
-      for (auto& entry : _profilers) {
-         perfmon::SamplingProfiler &sp = entry.second;
-         sp.FinalizeCollection(rm);
-         sp.CollectStats(stats);
-         sp.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
-         sp.Fuse(fusedFrames);
-      }
-
-      DumpFusedFrames(fusedFrames);
-
-      _profilers.clear();
-
-      int msPerSample = 0;
-      if (_profilerSampleCounts) {
-         msPerSample  = _profilerDuration / _profilerSampleCounts;
-      }
-      LOG(lua.code, 1) << "---- lua cpu profilers stats --------------------------------------";
+   LOG(lua.code, 1) << "---- lua cpu profilers stats --------------------------------------";
+   if (_cpuProfileMethod == _cpuProfileMethod) {
       LOG(lua.code, 1) << "   profiler_instruction_sampling_rate: " << _cpuProfileInstructionSamplingRate << " instructions";
-      LOG(lua.code, 1) << "   profiling duration:                 " << _profilerDuration / 1000 << " ms";
-      LOG(lua.code, 1) << "   samples taken:                      " << _profilerSampleCounts;
-      LOG(lua.code, 1) << "   average ms per sample interval:     " << msPerSample << " ms";
-      LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
-      perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
-         LOG(lua.code, 1) << std::setw(120) << name << " : "
-                           << std::setw(8) << duration << " us : "
-                           << std::string(rows, '#');
-      });
-
-      LOG(lua.code, 1) << "---- bottom up time (" << bottomUpDepth << " deep) -----------------------------------------------";
-      perfmon::ReportCounters<perfmon::FunctionAtLineTimes, 30>(bottomUpStats, [](std::string const& name, perfmon::CounterValueType const& duration, size_t rows) {
-         LOG(lua.code, 1) << std::setw(120) << name << " : "
-                           << std::setw(8) << duration << " us : "
-                           << std::string(rows, '#');
-      });
+   } else if (_cpuProfileMethod == Sampling) {
+      LOG(lua.code, 1) << "   profiler_instruction_sampling_time: " << _cpuProfileInstructionSamplingTime << " ms";
    }
+   LOG(lua.code, 1) << "   profiling duration:                 " << _profilerDuration / 1000 << " ms";
+   LOG(lua.code, 1) << "   samples taken:                      " << _profilerSampleCounts;
+   LOG(lua.code, 1) << "   average ms per sample interval:     " << msPerSample << " ms";
+   LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
+   perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
+      LOG(lua.code, 1) << std::setw(120) << name << " : "
+                        << std::setw(8) << duration << " us : "
+                        << std::string(rows, '#');
+   });
 
+   LOG(lua.code, 1) << "---- bottom up time (" << bottomUpDepth << " deep) -----------------------------------------------";
+   perfmon::ReportCounters<perfmon::FunctionAtLineTimes, 30>(bottomUpStats, [](std::string const& name, perfmon::CounterValueType const& duration, size_t rows) {
+      LOG(lua.code, 1) << std::setw(120) << name << " : "
+                        << std::setw(8) << duration << " us : "
+                        << std::string(rows, '#');
+   });
+
+   // The act of reporting is destructive, so we need to start over if the
+   // profiler is still running
+   ResetProfileData();
+}
+
+
+void ScriptHost::ResetProfileData()
+{
+   _profilers.clear();
    _profilerDuration = 0;
    _profilerSampleCounts = 0;
    _cpuProfileStart = perfmon::Timer::GetCurrentTimeMs();
+}
 
+bool ScriptHost::IsCpuProfilerRunning()
+{
    return _cpuProfilerRunning;
+}
+
+void ScriptHost::StopCpuProfiling(bool report)
+{
+   if (!_cpuProfilerRunning) {
+      return;
+   }
+   _cpuProfilerRunning = false;
+
+   for (lua_State* L : allThreads_) {
+      RemoveProfileHook(L);
+   }
+   if (report) {
+      ReportProfileData();
+   }
+   ResetProfileData();
+}
+
+void ScriptHost::StartCpuProfiling(CpuProfilerMethod method, int samplingTime)
+{
+   if (_cpuProfilerRunning) {
+      return;
+   }
+
+   _cpuProfileMethod = method;
+   _cpuProfilerRunning = true;
+   _cpuProfileInstructionSamplingTime = samplingTime;
+
+   if (_cpuProfileMethod == CpuProfilerMethod::Default) {
+      std::string method = core::Config::GetInstance().Get<std::string>("lua.cpu_profiler_method", "");
+      if (method == "time_accumulation") {
+         LUA_LOG(0) << "using time accmulation lua profiler";
+         _cpuProfileMethod = CpuProfilerMethod::TimeAccumulation;
+      } else {
+         LUA_LOG(0) << "using sampling lua profiler";
+         _cpuProfileMethod = CpuProfilerMethod::Sampling;
+      }
+   }
+   if (_cpuProfileInstructionSamplingTime <= 0) {
+      _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1000);
+   }
+
+   _lastHookTimestamp = perfmon::Timer::GetCurrentCounterValueType();
+   for (lua_State* L : allThreads_) {
+      InstallProfileHook(L);
+   }
 }
 
 void ScriptHost::InstallProfileHook(lua_State* L)

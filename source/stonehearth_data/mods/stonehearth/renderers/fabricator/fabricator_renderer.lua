@@ -162,7 +162,7 @@ function FabricatorRenderer:_update_region(stencil)
       self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.json')
 
       if self._show_preview_mode then
-         self._preview_render_node = _radiant.client.create_region_outline_node(self._parent_node, stencil:get(), PREVIEW_EDGE_COLOR, PREVIEW_FACE_COLOR, 'materials/build_preview.material.json', true)
+         self._preview_render_node = _radiant.client.create_region_outline_node(self._parent_node, stencil:get(), PREVIEW_EDGE_COLOR, PREVIEW_FACE_COLOR, 'materials/build_preview.material.json')
          self._preview_render_node:set_position(MODEL_OFFSET)
       end
    end

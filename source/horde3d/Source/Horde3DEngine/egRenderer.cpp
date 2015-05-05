@@ -45,9 +45,23 @@ using namespace std;
 const char *vsDefColor =
 	"uniform mat4 viewProjMat;\n"
 	"uniform mat4 worldMat;\n"
+   "uniform float modelScale;\n"
 	"attribute vec3 vertPos;\n"
+   "#ifdef DRAW_SKINNED\n"
+   "attribute float boneIndex;\n"
+   "uniform mat4 bones[48];\n"
+   "#endif\n"
+
 	"void main() {\n"
-	"	gl_Position = viewProjMat * worldMat * vec4( vertPos, 1.0 );\n"
+
+   "mat4 final;\n"
+   "#ifdef DRAW_SKINNED\n"
+	"int idx = int(boneIndex);\n"
+	"final = worldMat * bones[idx];\n"
+   "#else\n"
+ 	"final = worldMat;\n"
+   "#endif\n"
+	"gl_Position = viewProjMat * final * vec4( vertPos * modelScale, 1.0 );\n"
 	"}\n";
 
 const char *fsDefColor =
@@ -3557,7 +3571,7 @@ void Renderer::renderDebugView()
    Scene& defaultScene = Modules::sceneMan().sceneForId(0);
 
    defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                 SceneNodeFlags::NoDraw, 0, true, true, true );
+      SceneNodeFlags::NoDraw | SceneNodeFlags::NoCull, 0, true, true, true );
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
 	drawRenderables(0, "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0 );
    for (const auto& queue : defaultScene.getRenderableQueues())
@@ -3646,7 +3660,7 @@ void Renderer::renderDebugView()
 			float r = lightNode->_radius2 * tanf( degToRad( lightNode->_fov / 2 ) );
 			drawCone( lightNode->_radius2, r, lightNode->_absTrans );
 		}
-		else
+      else if (!lightNode->getParamI(LightNodeParams::DirectionalI))
 		{
 			drawSphere( lightNode->_absPos, lightNode->_radius2 );
 		}

@@ -2,6 +2,7 @@ local build_util = require 'lib.build_util'
 -- xxx: move all the proxy stuff to the client! - tony
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
+local VoxelEditor = require 'services.client.build_editor.voxel_editor'
 local GrowWallsEditor = require 'services.client.build_editor.grow_walls_editor'
 local GrowRoofEditor = require 'services.client.build_editor.grow_roof_editor'
 local RoadEditor = require 'services.client.build_editor.road_editor'
@@ -101,6 +102,11 @@ end
 function BuildEditorService:place_new_floor(session, response, brush, sink_floor)
    FloorEditor(self._build_service)
          :go(response, brush, { sink_floor = sink_floor })
+end
+
+function BuildEditorService:draw_voxels(session, response, brush, mode)
+   VoxelEditor(self._build_service)
+         :go(response, brush, mode)
 end
 
 function BuildEditorService:place_new_slab(session, response, slab_shape)

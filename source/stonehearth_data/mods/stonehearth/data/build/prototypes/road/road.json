@@ -16,7 +16,7 @@
       },
 
       "movement_modifier_shape" : {
-         "modifier" : 1.0
+         "modifier" : 0.2
       }
    }
 }

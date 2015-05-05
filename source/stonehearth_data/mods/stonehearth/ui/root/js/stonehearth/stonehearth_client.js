@@ -611,6 +611,20 @@ var StonehearthClient;
          };
       },
 
+      drawVoxels : function(brush, mode) {
+         var self = this;
+         return function() {
+            var tip = self.showTip('stonehearth:draw_voxels_tip_title', 'stonehearth:draw_voxels_tip_description', { i18n: true });
+            return radiant.call_obj(self._build_editor, 'draw_voxels', brush, mode)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });      
+         };
+      },
+
       eraseStructure : function() {
          var self = this;
          return function() {
