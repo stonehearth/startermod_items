@@ -30,6 +30,6 @@
          "morale" : "4.0",
          "net_worth" : "math.max((num_citizens-5) , 1) ^ 2 * 100"
       }, 
-      "max_citizens" : 20
+      "max_citizens" : 40
    }
 }

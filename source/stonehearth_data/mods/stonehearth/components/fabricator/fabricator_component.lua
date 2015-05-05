@@ -57,7 +57,7 @@ function FabricatorComponent:initialize(entity, json)
       self._sv.active = false
       self._sv.teardown = false
       self._sv.material_proxies = {}
-      self._sv._total_mining_region = _radiant.sim.alloc_region3()
+      self._sv.total_mining_region = _radiant.sim.alloc_region3()
       self.__saved_variables:mark_changed()
    end
    self.__saved_variables:set_controller(self)
@@ -269,7 +269,7 @@ function FabricatorComponent:_initialize_existing_project(project)
 end
 
 function FabricatorComponent:instabuild()
-   radiant.terrain.subtract_region(self._sv._total_mining_region:get())
+   radiant.terrain.subtract_region(self._sv.total_mining_region:get())
    self._project_dst:get_region():modify(function(cursor)
          cursor:copy_region(self._blueprint_dst:get_region():get())
       end)
@@ -424,7 +424,7 @@ function FabricatorComponent:_tag_to_material(tag)
 end
 
 function FabricatorComponent:get_total_mining_region()
-   return self._sv._total_mining_region
+   return self._sv.total_mining_region
 end
 
 function FabricatorComponent:add_block(material_entity, location)
@@ -907,7 +907,7 @@ function FabricatorComponent:_update_total_mining_region()
       return
    end
 
-   self._sv._total_mining_region:modify(function(cursor)
+   self._sv.total_mining_region:modify(function(cursor)
          local world_region = radiant.entities.local_to_world(self._blueprint_dst:get_region():get(), self._entity)
          world_region = radiant.terrain.intersect_region(world_region)
          if world_region:empty() then

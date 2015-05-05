@@ -175,8 +175,7 @@ function FarmerFieldComponent:_init_dirt_plot(location, x, y)
       dirt_plot_component:set_furrow(true)
    end
 
-   local grid_location = Point3(location.x, 0, location.z)
-   radiant.terrain.place_entity(field_spacer, grid_location)
+   radiant.terrain.place_entity_at_exact_location(field_spacer, location)
 
    return field_spacer
 end
