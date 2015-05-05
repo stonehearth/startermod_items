@@ -73,8 +73,8 @@ function ScoreService:get_score_for_entity(entity)
    if score_for_item and score_for_item.value_in_gold then
    
       --Special case wealth, where the value is item_score * stacks
-      local item_component = entity:add_component('item')
-      if item_component:get_category() == 'wealth' then
+      local item_component = entity:get_component('item')
+      if item_component and item_component:get_category() == 'wealth' then
          local stacks = item_component:get_stacks()
          return score_for_item.value_in_gold * stacks
       else 
