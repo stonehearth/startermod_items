@@ -39,7 +39,7 @@ end
 
 function ScaffoldingBuilder_TwoDim:destroy()
    self._log:info('destroying scaffolding builder')
-   for builder, _ in pairs(self._sv.builders) do
+   for id, builder in pairs(self._sv.builders) do
       builder:destroy()
    end
    self._sv.builders = {}
@@ -73,7 +73,7 @@ function  ScaffoldingBuilder_TwoDim:set_teardown(teardown)
    self._sv.teardown = teardown
    self.__saved_variables:mark_changed()
 
-   for builder, _ in pairs(self._sv.builders) do
+   for id, builder in pairs(self._sv.builders) do
       builder:set_teardown(teardown)
    end
 end
@@ -95,7 +95,7 @@ function ScaffoldingBuilder_TwoDim:_update_status()
    if radiant.empty(self._sv.builders) then
       self:_create_builders()
    end
-   for builder, _ in pairs(self._sv.builders) do
+   for id, builder in pairs(self._sv.builders) do
       builder:set_teardown(self._sv.teardown)
       builder:set_active(active)
    end
@@ -126,7 +126,8 @@ function ScaffoldingBuilder_TwoDim:_create_builders()
                                               self._sv.stand_at_base)
       builder:set_clipper(clipper)
 
-      self._sv.builders[builder] = true
+      local id = builder:get_id()
+      self._sv.builders[id] = builder
    end
 end
 

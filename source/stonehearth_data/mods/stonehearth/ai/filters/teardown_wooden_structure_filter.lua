@@ -1,4 +1,4 @@
-local Fabricator = require 'components.fabricator.fabricator'
+local Fabricator = require 'components.fabricator.fabricator_component'
 
 local Point3 = _radiant.csg.Point3
 
