@@ -43,7 +43,7 @@
          "base_damage_reduction" : 3
       },
       "stonehearth:net_worth" : {
-         "value_in_gold" : 50,
+         "value_in_gold" : 100,
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   

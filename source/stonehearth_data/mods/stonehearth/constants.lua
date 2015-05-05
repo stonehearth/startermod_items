@@ -284,6 +284,10 @@ local constants = {
          ['stonehearth:simple_labor'] = true,
          ['stonehearth:mining'] = true,
       }
+   },
+
+   shop = {
+      RESALE_CONSTANT = 0.6
    }
 }
 

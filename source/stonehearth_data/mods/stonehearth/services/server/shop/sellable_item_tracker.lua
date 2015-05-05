@@ -49,7 +49,8 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
       local unit_info = entity:add_component('unit_info')      
       local entity_uri, _, _ = entity_forms.get_uris(entity)
       local cost = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth').value_in_gold
-      
+      local resale = math.ceil(cost * stonehearth.constants.shop.RESALE_CONSTANT)
+
       tracking_data = {
          uri = entity:get_uri(),
          count = 0, 
@@ -58,8 +59,9 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
          display_name = unit_info:get_display_name(),
          category = radiant.entities.get_category(entity),
          cost = cost,
+         resale = resale
       }
-end
+   end
 
    -- Add the current entity to the tracking data, and return
    local id = entity:get_id()
@@ -91,5 +93,6 @@ function SellableItemTracker:remove_entity_from_tracking_data(entity_id, trackin
    end
    return tracking_data
 end
+
 
 return SellableItemTracker
