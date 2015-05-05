@@ -25,6 +25,8 @@
          "#806B27"
       ],
       "stone resource" : [
+         "#464D53",
+         "#4E555C",
          "#2C3339",
          "#575E67",
          "#676D74",         
@@ -57,7 +59,19 @@
          "stonehearth:build:brushes:wall:wooden_wall"
       ],
       "stone resource" : [
-         "stonehearth:build:brushes:wall:cobblestone_wall"
+         "stonehearth:build:brushes:wall:cobblestone_wall",
+         "#2C3339",
+         "#575E67",
+         "#676D74",         
+         "#172F4A",
+         "#244E7D",
+         "#224165",
+         "#604B42",
+         "#644F46",
+         "#69534A",
+         "#8E8260",
+         "#9B8F6D",
+         "#A69C7F"         
       ]
    },
 
@@ -76,7 +90,10 @@
          "#332B1F"
       ],
       "stone resource" : [
-         "#644F46"
+         "#644F46",
+         "#2C3339",
+         "#575E67",
+         "#676D74"
       ]
    },
 

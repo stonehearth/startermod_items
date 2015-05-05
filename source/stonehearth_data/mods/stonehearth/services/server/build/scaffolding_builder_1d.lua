@@ -79,6 +79,10 @@ function ScaffoldingBuilder_OneDim:destroy()
    self._sv.scaffolding_rgn = nil
 end
 
+function ScaffoldingBuilder_OneDim:get_id()
+   return self._sv.id
+end
+
 -- interfaces for the owner of the builder
 function ScaffoldingBuilder_OneDim:set_clipper(blueprint_clipbox)
    self._sv.blueprint_clipbox = blueprint_clipbox

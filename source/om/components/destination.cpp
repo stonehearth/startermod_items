@@ -60,6 +60,10 @@ void Destination::SerializeToJson(json::Node& node) const
    if (adjacent) {
       node.set("adjacent", adjacent->Get());
    }
+   om::Region3fBoxedPtr reserved = GetReserved();
+   if (reserved) {
+      node.set("reserved", reserved->Get());
+   }
    node.set("auto_update_adjacent", GetAutoUpdateAdjacent());
    node.set("allow_diagonal_adjacency", GetAllowDiagonalAdjacency());
 }

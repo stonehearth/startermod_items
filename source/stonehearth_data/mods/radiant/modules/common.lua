@@ -247,6 +247,7 @@ end
 
 local NATIVE_CHECKS = {
    Entity         = _radiant.om.Entity,
+   Destination    = _radiant.om.Destination,
    Region3Boxed   = _radiant.om.Region3Boxed,
    Point2         = _radiant.csg.Point2,
    Point3         = _radiant.csg.Point3,

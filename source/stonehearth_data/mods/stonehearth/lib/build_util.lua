@@ -541,6 +541,8 @@ local function edge_point_to_point_inset(edge_point)
 end
 
 function build_util.get_footprint_region2(blueprint)
+   assert(build_util.is_blueprint(blueprint))
+
    local region = blueprint:get_component('destination')
                                     :get_region()
                                        :get()
@@ -575,6 +577,9 @@ function build_util.get_footprint_region3(blueprint)
 end
 
 function build_util.grow_walls_around(floor, visitor_fn)
+   -- could be a fabricator...
+   floor = build_util.get_blueprint_for(floor)
+
    local footprint = build_util.get_footprint_region2(floor)
 
    -- figure out where the columns and walls should go in world space
