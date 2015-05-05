@@ -36,6 +36,7 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(new PlaceFixtureTool({ category: 'windows', toolId: 'drawWindowTool', materialClass: 'windowMaterials'}));
       this.newTool(new DrawFloorTool({ toolId: 'drawFloorTool', sinkFloor:true }));
       this.newTool(new DrawFloorTool({ toolId: 'growFloorTool', sinkFloor:false }));
+      this.newTool(new DrawFloorTool({ toolId: 'drawSlabTool', sinkFloor:false }));
       this.newTool(new DrawWallTool);
       this.newTool(new GrowWallsTool);
       this.newTool(new GrowRoofTool);
