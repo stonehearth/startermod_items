@@ -40,7 +40,6 @@ public:
    void DumpHeap(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
-   bool ToggleCpuProfiling();
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
    void AddJsonToLuaConverter(JsonToLuaFn const& fn);
@@ -66,6 +65,17 @@ public:
    void SaveLuaPromise(rpc::LuaPromisePtr promise);
    void FreeLuaPromise(rpc::LuaPromisePtr promise);
 
+   enum CpuProfilerMethod {
+      None,
+      Default,
+      TimeAccumulation,
+      Sampling,
+   };
+   bool IsCpuProfilerRunning();
+   void StopCpuProfiling(bool report);
+   void StartCpuProfiling(CpuProfilerMethod method, int samplingTime);
+
+
 public: // the static interface
    static ScriptHost* GetScriptHost(lua_State*);
    static ScriptHost* GetScriptHost(dm::ObjectPtr obj);
@@ -80,13 +90,6 @@ public: // the static interface
    static bool CoerseToBool(luabind::object const& o);
    static void ProfileHookFn(lua_State *L, lua_Debug *ar);
    static void ProfileSampleHookFn(lua_State *L, lua_Debug *ar);
-
-private:
-   enum CpuProfilerMethod {
-      None,
-      TimeAccumulation,
-      Sampling,
-   };
 
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
@@ -106,6 +109,8 @@ private:
    void ProfileHook(lua_State *L, lua_Debug *ar);
    void ProfileSampleHook(lua_State *L, lua_Debug *ar);
    void DumpFusedFrames(perfmon::FusedFrames& fusedFrames);
+   void ReportProfileData();
+   void ResetProfileData();
 
 private:
    luabind::object GetManifest(std::string const& mod_name);

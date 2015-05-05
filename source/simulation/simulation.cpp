@@ -79,7 +79,8 @@ Simulation::Simulation() :
    _showDebugNodes(false),
    _singleStepPathFinding(false),
    begin_loading_(false),
-   _sequenceNumber(1)
+   _sequenceNumber(1),
+   _profileLongFrames(false)
 {
    OneTimeIninitializtion();
 }
@@ -91,6 +92,7 @@ void Simulation::OneTimeIninitializtion()
    game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
    net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
    base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
+   game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
@@ -197,7 +199,20 @@ void Simulation::OneTimeIninitializtion()
       return result;
    });
    core_reactor_->AddRouteV("radiant:toggle_cpu_profile", [this](rpc::Function const& f) {
-      SIM_LOG(0) << "lua cpu profile is " << (scriptHost_->ToggleCpuProfiling() ? "on" : "off");
+      bool profileLongFrame = core::Config::GetInstance().Get<bool>("simulation.profile_long_frames", true);
+      if (profileLongFrame) {
+         _profileLongFrames = !_profileLongFrames;
+         SIM_LOG(0) << "lua long frame cpu profile is " << (_profileLongFrames ? "on" : "off");
+         return;
+      }
+
+      bool enabled = !scriptHost_->IsCpuProfilerRunning();
+      if (enabled) {
+         scriptHost_->StopCpuProfiling(true);
+      } else {
+         scriptHost_->StartCpuProfiling(lua::ScriptHost::CpuProfilerMethod::Default, -1);
+      }
+      SIM_LOG(0) << "lua cpu profile is " << (enabled ? "on" : "off");
    });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
       scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
@@ -870,6 +885,9 @@ void Simulation::Mainloop()
       perf_jobs_.BeginFrame();
       log_jobs_timer_.set(2000);
    }
+   if (_profileLongFrames) {
+      scriptHost_->StartCpuProfiling(lua::ScriptHost::CpuProfilerMethod::TimeAccumulation, -1);
+   }
 
    ReadClientMessages();
 
@@ -887,6 +905,14 @@ void Simulation::Mainloop()
       scriptHost_->Trigger("radiant:gameloop:start");
 
       UpdateGameState();
+      if (_profileLongFrames) {
+         bool tooLong = game_loop_timer_.expired();
+         if (tooLong) {
+            SIM_LOG(0) << "frame too long by " << game_loop_timer_.remaining() << ".  dumping profile!";
+         }
+         scriptHost_->StopCpuProfiling(tooLong);
+      }
+      
       ProcessTaskList();
       ProcessJobList();
       FireLuaTraces();
@@ -913,7 +939,6 @@ void Simulation::Mainloop()
    } else {
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
-
    LuaGC();
    Idle();
 }
