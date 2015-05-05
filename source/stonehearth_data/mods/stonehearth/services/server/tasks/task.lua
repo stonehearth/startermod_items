@@ -529,6 +529,10 @@ function Task:__action_try_start_thinking(action)
       return false;
    end
 
+   if not self:check_worker_against_task_affinity(entity) then
+      return false
+   end
+
    -- actions that are already running (or we've just told to run) are of course
    -- allowed to start.
    if self:_action_is_active(action) then
