@@ -10,6 +10,8 @@ local WOODEN_ROOF    = stonehearth.constants.construction.DEFAULT_WOOD_ROOF_BRUS
 local WOODEN_FLOOR   = stonehearth.constants.construction.DEFAULT_WOOD_FLOOR_BRUSH
 local WOODEN_COLUMN  = stonehearth.constants.construction.DEFAULT_WOOD_COLUMN_BRUSH
 local STONE_FLOOR    = stonehearth.constants.construction.DEFAULT_STONE_FLOOR_BRUSH
+local STONE_WALL    = stonehearth.constants.construction.brushes.wall['stone resource'][1]
+local STONE_COLUMN  = stonehearth.constants.construction.brushes.column['stone resource'][1]
 
 function lrbt_util.create_workers(autotest, x, y)
    local workers = {}
@@ -120,6 +122,10 @@ function lrbt_util.grow_wooden_walls(session, entity)
       floor = entity
    end
    return stonehearth.build:grow_walls(floor, WOODEN_COLUMN, WOODEN_WALL)
+end
+
+function lrbt_util.grow_stone_walls(session, floor)
+   return stonehearth.build:grow_walls(floor, STONE_COLUMN, STONE_WALL)
 end
 
 function lrbt_util.grow_wooden_roof(session, arg1)

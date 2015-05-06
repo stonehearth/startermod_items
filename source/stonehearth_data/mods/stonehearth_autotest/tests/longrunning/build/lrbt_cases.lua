@@ -308,4 +308,68 @@ function lrbt_cases.problem_shape_H(autotest, session)
    }
 end
 
+function lrbt_cases.irregular_scaffolding_footing(autotest, session)
+   return {
+      function()
+         local floor = stonehearth.build:add_floor(session, BRICK_SLAB, Cube3(Point3(7, 9, 2), Point3(10, 13, 8)))
+         local building = build_util.get_building_for(floor)
+         stonehearth.build:instabuild(building)
+      end,
+      function()
+         lrbt_util.create_wooden_wall(session, Point3(5, 15, 5), Point3(12, 15, 5))
+      end,
+
+   }
+end
+
+function lrbt_cases.center_steeple(autotest, session)
+   local INNER_WIDTH = 2
+   local OUTER_WIDTH = 7
+   local BOTTOM = 9
+   local floor, bottom_wall, top_wall, id
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-INNER_WIDTH,     BOTTOM,     -OUTER_WIDTH),
+                                                              Point3( INNER_WIDTH + 1, BOTTOM + 1,  OUTER_WIDTH + 1)))
+      end,
+      function()
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(-OUTER_WIDTH    , BOTTOM,     -INNER_WIDTH),
+                                                      Point3( OUTER_WIDTH + 1, BOTTOM + 1,  INNER_WIDTH + 1)))
+      end,
+      function()
+         local walls = lrbt_util.grow_wooden_walls(session, floor)
+         id, bottom_wall = next(walls)
+         for _, wall in pairs(walls) do
+            local normal = wall:get_component('stonehearth:wall')
+                                    :get_normal()
+            if normal.z == 1 then
+               local bounds = wall:get_component('destination')
+                                       :get_region()
+                                          :get()
+                                             :get_bounds()
+               if bounds.max.x - bounds.min.x > INNER_WIDTH * 2 then
+                  local location = bounds.min + Point3(INNER_WIDTH, 0, 0)
+                  stonehearth.build:add_fixture(wall, 'stonehearth:portals:wooden_door', location, normal)
+                  break
+               end
+            end
+         end
+      end,
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-INNER_WIDTH - 1, BOTTOM + STOREY_HEIGHT + 1, -INNER_WIDTH - 1),
+                                                              Point3( INNER_WIDTH + 2, BOTTOM + STOREY_HEIGHT + 2,  INNER_WIDTH + 2)))
+      end,
+      function()
+         local walls = lrbt_util.grow_wooden_walls(session, floor)
+         id, top_wall = next(walls)
+      end,
+      function()
+         lrbt_util.grow_wooden_roof(session, top_wall)
+      end,
+      function()
+         lrbt_util.grow_wooden_roof(session, bottom_wall)
+      end,
+   }
+end
+
 return lrbt_cases
