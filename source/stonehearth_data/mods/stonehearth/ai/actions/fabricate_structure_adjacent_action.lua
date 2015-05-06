@@ -14,9 +14,7 @@ FabricateStructureAdjacent.priority = 1
 function FabricateStructureAdjacent:start_thinking(ai, entity, args)
    local material = args.fabricator:get_material(args.block)
    if not radiant.entities.is_material(ai.CURRENT.carrying, material) then
-      local mat = ai.CURRENT.carrying:get_component('stonehearth:material')
-                                          :get_string()
-      ai:get_log():info('not required material "%s" ~= carrying material "%s".  bailing.', material, mat)
+      ai:get_log():info('not carrying required material.  bailing.')
       return
    end
    ai:set_think_output()

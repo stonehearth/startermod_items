@@ -756,7 +756,11 @@ function Building:_compute_floor_dependencies()
             end
          end
       end
-      -- everything connected to the floor depends on the floor.
+
+      -- everything connected to the floor depends on the floor.  for example,
+      -- when we use the "grow walls" tool to add walls to some floor, those
+      -- walls end up being connected to the floor.  if that was on the ground
+      -- level, they might not be directly on top of it!
       local connected = floor:get_component('stonehearth:floor')
                                  :get_connected()
 
@@ -764,6 +768,22 @@ function Building:_compute_floor_dependencies()
          local centry = self:_get_entry_for_structure(entity)
          assert(centry)
          self:_add_dependency(centry, floor)
+      end
+
+      -- if we depend on any columns, also depend on the walls connected
+      -- to them.  this handles the case where a floating floor is supported
+      -- only by columns
+      local columns = {}
+      for id, dependency in pairs(entry.dependencies) do
+         local column = dependency:get_component('stonehearth:column')
+         if column then
+            table.insert(columns, column)
+         end
+      end
+      for _, column in ipairs(columns) do
+         for _, wall in pairs(column:get_connected_walls()) do
+            self:_add_dependency(entry, wall)
+         end
       end
    end
 end

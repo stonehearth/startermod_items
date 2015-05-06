@@ -1,3 +1,5 @@
+local build_util = require 'lib.build_util'
+
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
@@ -15,8 +17,11 @@ end
 -- xxx: this is only correct in a world where the terrain doesn't change. 
 -- we should take a pass over all the ladder building code and make sure
 -- it can handle cases where the ground around the latter starts moving.
-function LadderManager:request_ladder_to(owner, to, normal, removable)
+function LadderManager:request_ladder_to(owner, to, normal, options)
+   checks('self', 'string|Entity', 'Point3', 'Point3', '?table')
    log:detail('%s requesting ladder to %s', owner, to)
+
+   self._options = options or {}
    if not self:_should_build_rung(to) then
       -- the destination is not actually a valid rung.  this will result in a 0
       -- height ladder!  we should probably make a ladder builder anyway and just
@@ -33,7 +38,7 @@ function LadderManager:request_ladder_to(owner, to, normal, removable)
       local id = self:_get_next_id()
 
       log:detail('creating new ladder builder (lbid:%d)!', id)
-      ladder_builder = radiant.create_controller('stonehearth:build:ladder_builder', self, id, owner, base, normal, removable)
+      ladder_builder = radiant.create_controller('stonehearth:build:ladder_builder', self, id, owner, base, normal, self._options)
       self._sv.ladder_builders[base:key_value()] = ladder_builder
       self.__saved_variables:mark_changed()
    end
@@ -67,33 +72,49 @@ end
 function LadderManager:_should_build_rung(pt)
    local function is_empty_enough(entity)
       if entity:get_id() == 1 then
-         log:spam('  - %s is terrain.  no.', entity)
+         log:spam('  - %s is terrain.  not ok to build rung.', entity)
          return false
       end
-      if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
-         log:spam('  - %s is scaffolding.  yes.', entity)
+      
+      if build_util.is_blueprint(entity) then
+         log:spam('  - %s is a blueprint.  ok to build rung.', entity)
          return true
       end
+
+      if build_util.is_fabricator(entity) then
+         log:spam('  - %s is a fabricator.  ok to build rung.', entity)
+         return true
+      end
+
+      local uri = entity:get_uri()
+      if uri == 'stonehearth:build:prototypes:scaffolding' then
+         log:spam('  - %s is scaffolding.  ok to build rung.', entity)
+         return true
+      end
+
+      if self._options.pierce_roof and uri == "stonehearth:build:prototypes:roof" then
+         log:spam('  - %s is roof.  ok to build rung (by request).', entity)
+         return true
+      end
+
       if entity:get_component('stonehearth:fabricator') then
-         log:spam('  - %s is fabricator.  yes.', entity)
+         log:spam('  - %s is fabricator.  ok to build rung.', entity)
          return true
       end
+
       local rcs = entity:get_component('region_collision_shape')
-      if not rcs or rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
-         log:spam('  - %s is non-opaque.  yes.', entity)
-         return true
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         log:spam('  - %s is opaque enough to support.  not ok to build .', entity)
+         return false
       end
-      log:spam('  - %s has non-NONE collision shape.  no.', entity)
-      return false
+
+      log:spam('  - %s has no disqualfiers.  ok to build rung.', entity)
+      return true
    end
    
    -- if the space isn't blocked, definitely build one.
-   log:spam('checking all entities @ %s to see if we should build a rung.', pt);
-   if not radiant.terrain.is_blocked(pt) then
-      log:spam('  - point is not blocked.  yes.')
-      return true
-   end
-
+   log:spam('checking all entities @ %s to see if we should build a rung (pierce_roof?: %s).',
+            pt, tostring(self._options.pierce_roof));
    local entities = radiant.terrain.get_entities_at_point(pt)
    for _, entity in pairs(entities) do
       if not is_empty_enough(entity) then

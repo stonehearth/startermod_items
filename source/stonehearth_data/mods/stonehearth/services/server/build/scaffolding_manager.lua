@@ -350,8 +350,10 @@ function ScaffoldingManager:_update_scaffolding_region(sblock)
          local climb_to = self:_compute_ladder_top(rblock)
          if climb_to then
             local ladder_builder = stonehearth.build:request_ladder_to(sblock.owner,
-                                                    climb_to,
-                                                    rblock.normal)
+                                                                       climb_to,
+                                                                       rblock.normal, {
+                                                                         pierce_roof = true
+                                                                       })
             new_ladder_builders[rblock.rid] = ladder_builder
             log:detail('created ladder lbid:%d to %s for sid:%d rid:%d', ladder_builder:get_id(), climb_to, sid, rid)
          end
