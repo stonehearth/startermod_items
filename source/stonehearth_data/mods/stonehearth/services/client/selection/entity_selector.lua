@@ -104,11 +104,20 @@ function EntitySelector:_get_selected_entity(x, y)
       -- skip the cursor...
       local entity = qr.entity
       if entity then
-         if not self._filter_fn then
-            return entity
+         local result = nil
+         if stonehearth.selection:is_selectable(entity) then
+            if self._filter_fn then
+               result = self._filter_fn(qr)
+            else
+               result = true
+            end
+         else
+            result = stonehearth.selection.FILTER_IGNORE
          end
-         local result = self._filter_fn(qr)
+
+         assert(result ~= nil)
          if result == stonehearth.selection.FILTER_IGNORE then
+            -- continue to next entity in result
          elseif result == true then
             return entity
          elseif result == false then
