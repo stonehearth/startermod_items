@@ -204,7 +204,7 @@ function CombatService:get_entity_reach(entity)
    if entity and entity:is_valid() then
       entity_reach = radiant.entities.get_entity_data(entity, 'stonehearth:entity_reach')
       if not entity_reach then
-         log:error('%s does not have entity data stonehearth:entity_reach. Using default', entity)
+         log:info('%s does not have entity data stonehearth:entity_reach. Using default', entity)
          entity_reach = 1.0
       end
    end
@@ -218,7 +218,7 @@ function CombatService:get_entity_radius(entity)
    if entity and entity:is_valid() then
       entity_radius = radiant.entities.get_entity_data(entity, 'stonehearth:entity_radius')
       if not entity_radius then
-         log:error('%s does not have entity data stonehearth:entity_radius. Using default.', entity)
+         log:info('%s does not have entity data stonehearth:entity_radius. Using default.', entity)
          entity_radius = 0.5
       end
    end
