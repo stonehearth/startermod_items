@@ -38,7 +38,10 @@
          "#69534A",
          "#8E8260",
          "#9B8F6D",
-         "#A69C7F"
+         "#A69C7F",
+         "#542929",
+         "#4C2424",
+         "#3B1919"         
       ]
    },
 
@@ -71,7 +74,7 @@
          "#69534A",
          "#8E8260",
          "#9B8F6D",
-         "#A69C7F"         
+         "#A69C7F"
       ]
    },
 
@@ -81,7 +84,8 @@
          "stonehearth:build:brushes:roof:wooden_peaked_roof"
       ],
       "stone resource" : [
-         "stonehearth:build:brushes:roof:blue_slate_peaked_roof"
+         "stonehearth:build:brushes:roof:blue_slate_peaked_roof",
+         "stonehearth:build:brushes:roof:red_slate_peaked_roof"
       ]
    },
 
