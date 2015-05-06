@@ -5,7 +5,8 @@
    "components": {
       "unit_info": {
          "name": "A wolf",
-         "description": "Om nom nom"
+         "description": "Om nom nom",
+         "player_id" : "animals"
       },
       "stonehearth:attributes": {
          "menace": {

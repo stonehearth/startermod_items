@@ -1290,6 +1290,11 @@ int Simulation::GetGameTickInterval() const
    return game_tick_interval_;
 }
 
+void Simulation::ClearWaterTightRegionDelta()
+{
+   waterTightRegionBuilder_->ClearDirtyTiles();
+}
+
 void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
 {
    dm::ObjectId id = mob->GetObjectId();

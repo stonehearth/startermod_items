@@ -1,3 +1,5 @@
+local build_util = require 'lib.build_util'
+
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
@@ -70,34 +72,49 @@ end
 function LadderManager:_should_build_rung(pt)
    local function is_empty_enough(entity)
       if entity:get_id() == 1 then
-         log:spam('  - %s is terrain.  no.', entity)
+         log:spam('  - %s is terrain.  not ok to build rung.', entity)
          return false
       end
-      local uri = entity:get_uri()
-      if uri == 'stonehearth:build:prototypes:scaffolding' then
-         log:spam('  - %s is scaffolding.  yes.', entity)
+      
+      if build_util.is_blueprint(entity) then
+         log:spam('  - %s is a blueprint.  ok to build rung.', entity)
          return true
       end
+
+      if build_util.is_fabricator(entity) then
+         log:spam('  - %s is a fabricator.  ok to build rung.', entity)
+         return true
+      end
+
+      local uri = entity:get_uri()
+      if uri == 'stonehearth:build:prototypes:scaffolding' then
+         log:spam('  - %s is scaffolding.  ok to build rung.', entity)
+         return true
+      end
+
       if self._options.pierce_roof and uri == "stonehearth:build:prototypes:roof" then
-         log:spam('  - %s is roof.  yes (by request).', entity)
+         log:spam('  - %s is roof.  ok to build rung (by request).', entity)
          return true
       end
 
       if entity:get_component('stonehearth:fabricator') then
-         log:spam('  - %s is fabricator.  yes.', entity)
+         log:spam('  - %s is fabricator.  ok to build rung.', entity)
          return true
       end
+
       local rcs = entity:get_component('region_collision_shape')
       if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-         log:spam('  - %s is opaque enough to support.  no.', entity)
+         log:spam('  - %s is opaque enough to support.  not ok to build .', entity)
          return false
       end
-      log:spam('  - %s has no disqualfiers.  yes.', entity)
+
+      log:spam('  - %s has no disqualfiers.  ok to build rung.', entity)
       return true
    end
    
    -- if the space isn't blocked, definitely build one.
-   log:spam('checking all entities @ %s to see if we should build a rung.', pt);
+   log:spam('checking all entities @ %s to see if we should build a rung (pierce_roof?: %s).',
+            pt, tostring(self._options.pierce_roof));
    local entities = radiant.terrain.get_entities_at_point(pt)
    for _, entity in pairs(entities) do
       if not is_empty_enough(entity) then

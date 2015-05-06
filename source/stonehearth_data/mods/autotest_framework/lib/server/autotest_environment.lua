@@ -33,6 +33,7 @@ function env.create_world(world_generator_script)
    radiant.terrain.clear()
    env.world = env.create_world_fn(env)
    env._reset_camera()
+   stonehearth.hydrology:start()
 end
 
 function env.get_player_id()

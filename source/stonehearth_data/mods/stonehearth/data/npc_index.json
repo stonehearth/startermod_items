@@ -4,5 +4,8 @@
     },
     "undead": {
       "kingdom" : "stonehearth:kingdoms:undead"
+    },
+    "animals": {
+      "kingdom" : "stonehearth:kingdoms:animals"
     }    
 }

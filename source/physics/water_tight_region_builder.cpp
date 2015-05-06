@@ -48,6 +48,11 @@ void WaterTightRegionBuilder::UpdateRegion()
    }
 }
 
+void WaterTightRegionBuilder::ClearDirtyTiles()
+{
+   _dirtyTiles.clear();
+}
+
 csg::Region3 WaterTightRegionBuilder::GetTileDelta(csg::Point3 const& index)
 {
    csg::Point3 origin = index.Scaled(TILE_SIZE);

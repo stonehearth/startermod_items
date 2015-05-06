@@ -67,6 +67,7 @@
       "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
       "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
       "kingdoms:undead" : "file(services/server/population/data/undead_population.json)",
+      "kingdoms:animals" : "file(services/server/population/data/animal_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 

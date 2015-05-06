@@ -1,4 +1,4 @@
-{
+{   
    "type" : "entity",
    "mixins" : "file(comfy_chair_fine_ghost.json)",
    
@@ -18,6 +18,16 @@
       }
    },
    "entity_data" : {
-      "stonehearth:chair" : {}
+      "stonehearth:chair" : {},
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 60,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : false,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
    }
 }
