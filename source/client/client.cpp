@@ -2149,31 +2149,41 @@ void Client::SetCurrentUIScreen(UIScreen screen, bool reloadRequested)
 
 bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Node& result)
 {
-   std::string screenshotUploadToken;
+   std::string apiKey = issues.get<std::string>("key", "");
+   std::string token, payload;
+   json::Node upload;
+   json::Node uploadsArray(JSON_ARRAY);
 
    if (takeScreenshot) {
       fs::path sspath = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR / "bug_screenshot.png";
       fs::remove_all(sspath);
       h3dutScreenshot(sspath.string().c_str(), 0);
-      std::string payload = io::read_contents(std::ifstream(sspath.string(), std::ifstream::in | std::ifstream::binary));
+      payload = io::read_contents(std::ifstream(sspath.string(), std::ifstream::in | std::ifstream::binary));
       //fs::remove_all(sspath);
 
-      if (!PostRedmineUpload(issues.get<std::string>("key", ""), payload, result)) {
+      if (!PostRedmineUpload(apiKey, payload, token)) {
          return false;
       }
 
-      json::Node upload;
-      upload.set("token", result.get("upload.token", ""));
+      upload.set("token", token);
       upload.set("filename", "screenshot.png");
       upload.set("content_type", "image/png");
-
-      json::Node uploadsArray(JSON_ARRAY);
-      uploadsArray.add(upload);
-      issues.set("uploads", uploadsArray);
+      uploadsArray.add(upload);     
    }
 
+   // Upload the logfile
+   payload = io::clip_middle_of_logfile(std::ifstream("stonehearth.log", std::ifstream::in), 256 * 1024);
+   if (!PostRedmineUpload(apiKey, payload, token)) {
+      return false;
+   }
+   upload.set("token", token);
+   upload.set("filename", "stonehearth.log");
+   upload.set("content_type", "text/plain");
+   uploadsArray.add(upload);
+
    CLIENT_LOG(1) << "PostRedmineIssues: " << issues.write_formatted();
-   std::string payload = issues.write();
+   issues.set("uploads", uploadsArray);
+   payload = issues.write();
 
    std::string uri = BUILD_STRING("http://" << REDMINE_HOST << "/issues.json");
    Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, uri, Poco::Net::HTTPMessage::HTTP_1_1);
@@ -2197,7 +2207,7 @@ bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Nod
    return status == Poco::Net::HTTPResponse::HTTP_CREATED;
 }
 
-bool Client::PostRedmineUpload(std::string const& apiKey, std::string const& payload, json::Node& result)
+bool Client::PostRedmineUpload(std::string const& apiKey, std::string const& payload, std::string& uploadToken)
 {
    std::string uri = BUILD_STRING("http://" << REDMINE_HOST << "/uploads.json");
    Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, uri, Poco::Net::HTTPMessage::HTTP_1_1);
@@ -2220,8 +2230,9 @@ bool Client::PostRedmineUpload(std::string const& apiKey, std::string const& pay
    std::string s(std::istreambuf_iterator<char>(response_stream), eos);
    CLIENT_LOG(1) << "PostRedmineUpload response: " << s;
    boost::algorithm::replace_all(s, "\\\"", "\"");
-   result = libjson::parse(s);
+   json::Node result = libjson::parse(s);
 
    int status = response.getStatus();
+   uploadToken = result.get("upload.token", "");
    return status == Poco::Net::HTTPResponse::HTTP_CREATED;
 }
