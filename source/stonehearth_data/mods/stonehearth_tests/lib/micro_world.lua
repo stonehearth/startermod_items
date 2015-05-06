@@ -37,8 +37,9 @@ function MicroWorld:create_world()
    region3:add_cube(Cube3(Point3(0, 9, 0), Point3(self._size, 10, self._size), block_types.grass))
    region3 = region3:translated(Point3(-half_size, 0, -half_size))
 
-   radiant._root_entity:add_component('terrain')
-                           :add_tile(region3)
+   radiant.terrain.get_terrain_component():add_tile(region3)
+
+   stonehearth.hydrology:start()
 end
 
 function MicroWorld:at(time, fn)

@@ -24,13 +24,15 @@ function HydrologyService:initialize()
       self._sv._channel_manager = radiant.create_controller('stonehearth:channel_manager')
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
-
-      self:_deferred_initialize()
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             self:_deferred_initialize()
          end)
    end
+end
+
+function HydrologyService:start()
+   self:_deferred_initialize()
 end
 
 function HydrologyService:_deferred_initialize()
@@ -70,11 +72,15 @@ end
 function HydrologyService:_trace_terrain_delta()
    local terrain_component = radiant.terrain.get_terrain_component()
    self._water_tight_region = terrain_component:get_water_tight_region()
+
+   -- The water_tight_region_delta will contain the entire terrain and all watertight shapes from world generation/loading.
+   -- Clear the delta since we're only interested in changes in the water tight region from gameplay events.
+   terrain_component:clear_water_tight_region_delta()
+
    self._delta_trace = terrain_component:trace_water_tight_region_delta('hydrology service', TraceCategories.SYNC_TRACE)
       :on_changed(function(delta_region)
             self:_on_terrain_changed(delta_region)
          end)
-      :push_object_state()
 end
 
 function HydrologyService:_destroy_terrain_delta_trace()
@@ -110,6 +116,12 @@ function HydrologyService:_get_water_bodies_descending()
 end
 
 function HydrologyService:_on_terrain_changed(delta_region)
+   if delta_region:empty() then
+      return
+   end
+
+   log:info('water tight delta region %s', tostring(delta_region))
+   
    local inflated_delta_bounds = self:_get_inflated_delta_bounds(delta_region)
    if not inflated_delta_bounds then
       return

@@ -6,6 +6,7 @@
 #include "dm/dm.h"
 #include "resources/res_manager.h"
 #include "physics/namespace.h"
+#include "simulation/simulation.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -189,14 +190,19 @@ csg::Point3 const& Terrain::GetTileSize() const
    return TILE_SIZE;
 }
 
+Region3TiledPtr Terrain::GetWaterTightRegion()
+{
+   return water_tight_region_;
+}
+
 dm::Boxed<csg::Region3f>* Terrain::GetWaterTightRegionDelta()
 {
    return &water_tight_region_delta_;
 }
 
-Region3TiledPtr Terrain::GetWaterTightRegion()
+void Terrain::ClearWaterTightRegionDelta()
 {
-   return water_tight_region_;
+   simulation::Simulation::GetInstance().ClearWaterTightRegionDelta();
 }
 
 void Terrain::ReadConfigFile()
