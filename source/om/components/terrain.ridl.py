@@ -14,7 +14,6 @@ class Terrain(Component):
 
    get_water_tight_region = ridl.Method(Region3TiledPtr())
    water_tight_region_delta = dm.Boxed(csg.Region3f(), get=None, set=None)
-   clear_water_tight_region_delta = ridl.Method(c.void())
 
    mined_region_tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='mined_region_tile', add=None, remove=None, get=None, contains=None, num=None)
 
@@ -35,8 +34,7 @@ class Terrain(Component):
       "om/region.h",
       "om/tiled_region.h",
       "csg/util.h",
-      "csg/point.h",
-      "simulation/simulation.h"
+      "csg/point.h"
    ]
 
    _public = \
