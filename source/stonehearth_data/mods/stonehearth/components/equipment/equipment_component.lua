@@ -74,7 +74,10 @@ function EquipmentComponent:equip_item(item)
    --Once done, remove this code, because this mechanism of adding/removing to
    --the inventory is very brittle
    local inventory = stonehearth.inventory:get_inventory(radiant.entities.get_player_id(self._entity))
-   inventory:remove_item(item:get_id())
+   if inventory then
+      --There may not be an inventory in say, autotests
+      inventory:remove_item(item:get_id())
+   end
 
    -- if someone tries to equip a proxy, equip the full-sized item instead
    assert(radiant.check.is_entity(item))
