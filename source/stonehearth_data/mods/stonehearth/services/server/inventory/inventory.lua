@@ -113,6 +113,7 @@ function Inventory:add_item(item)
 end
 
 --- Call whenever a stockpile wants to tell the inventory that we're removing an item
+--  If the item isn't in the inventory, ignore
 function Inventory:remove_item(item_id)
    if self._sv.items[item_id] then
       self._sv.items[item_id] = nil
