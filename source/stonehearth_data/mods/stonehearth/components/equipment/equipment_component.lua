@@ -67,6 +67,15 @@ function EquipmentComponent:equip_item(item)
       item = radiant.entities.create_entity(item)
    end
 
+   --TODO: Because of the current implementation of the shop, it is possible
+   --to equip an item bought from the shop, and then sell that item off a 
+   --person's back. Final solution involves pausing the game while in the shop,
+   --keeping track of all shop transactions, and then delivering results before
+   --Once done, remove this code, because this mechanism of adding/removing to
+   --the inventory is very brittle
+   local inventory = stonehearth.inventory:get_inventory(radiant.entities.get_player_id(self._entity))
+   inventory:remove_item(item:get_id())
+
    -- if someone tries to equip a proxy, equip the full-sized item instead
    assert(radiant.check.is_entity(item))
    local proxy = item:get_component('stonehearth:iconic_form')
@@ -78,7 +87,6 @@ function EquipmentComponent:equip_item(item)
 
    radiant.entities.set_player_id(item, self._entity)
 
-   
    local slot = ep:get_slot()
    
    if not slot then
@@ -96,6 +104,7 @@ function EquipmentComponent:equip_item(item)
    
 
    ep:equip(self._entity)
+
    self.__saved_variables:mark_changed()
    self:_trigger_equipment_changed()
 

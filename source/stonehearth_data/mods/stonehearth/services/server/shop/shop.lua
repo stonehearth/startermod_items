@@ -303,8 +303,10 @@ function Shop:_spawn_items(uri, quantity)
    items[uri] = quantity
    items = radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
 
-   -- add the item to the inventory immediately so anyone displaying the 'gold' amount
-   -- will see it update immediately
+   ---[[
+   -- TODO: eventually, pause the game while we're in the shop. 
+   -- Handle all shop transactions during pause, then add gold/remove items from the game
+   -- 
    local inventory = self._sv._inventory
    for _, item in pairs(items) do
       local root, iconic, _ = entity_forms.get_forms(item)
@@ -314,7 +316,7 @@ function Shop:_spawn_items(uri, quantity)
          inventory:add_item(root)
       end
    end
-
+   --]]
    return true
 end
 
