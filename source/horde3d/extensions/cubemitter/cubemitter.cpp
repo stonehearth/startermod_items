@@ -588,6 +588,11 @@ void CubemitterNode::updateAndSpawnCubes(int numToSpawn)
          _bBox.addPoint(d.position);
       }
    }
+
+   // We went through a loop with no particles spawned, so our bounding box never got set, so just set it to our origin.
+   if (!_bBox.isValid()) {
+      _bBox.addPoint(_absTrans.getTrans());
+   }
 }
 
 void CubemitterNode::spawnCube(CubeData &d, CubeAttribute &ca)
