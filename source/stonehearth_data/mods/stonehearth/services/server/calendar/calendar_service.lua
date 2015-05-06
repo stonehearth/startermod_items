@@ -64,8 +64,6 @@ function CalendarService:start()
 end
 
 function CalendarService:stop()
-   assert(radiant.empty(self._sv._past_alarms))
-   assert(radiant.empty(self._sv._future_alarms))
    self:_on_event_loop({ now = 0 })
    self._sv.start_game_tick = nil
 end
