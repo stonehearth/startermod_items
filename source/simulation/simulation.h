@@ -83,8 +83,6 @@ public:
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
 
-   void ClearWaterTightRegionDelta();
-
 private:
    void PostCommandRequest(tesseract::protocol::PostCommandRequest const& msg);
    void FinishedUpdate(tesseract::protocol::FinishedUpdate const& msg);

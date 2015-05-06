@@ -90,11 +90,16 @@ SelectionService.floor_xz_region_support_filter = function(result, raise_selecto
       return true
    end
 
+   local rcs = entity:get_component('region_collision_shape')
+   local rct = rcs and rcs:get_region_collision_type()
+   if rct and rct == _radiant.om.RegionCollisionShape.NONE then
+      return stonehearth.selection.FILTER_IGNORE
+   end
+
    -- solid regions are good if we're pointing at the top face, but unsink the floor
    -- when doing so
    if result.normal:to_int().y == 1 then
-      local rcs = entity:get_component('region_collision_shape')
-      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+      if rct and rct ~= _radiant.om.RegionCollisionShape.NONE then
          if raise_selector then
             result.brick = result.brick + result.normal
          end
@@ -249,7 +254,7 @@ function SelectionService:is_selectable(entity)
    end
 
    local render_entity = _radiant.client.get_render_entity(entity)
-   local selectable = render_entity and render_entity:has_query_flag(UNSELECTABLE_FLAG)
+   local selectable = render_entity and not render_entity:has_query_flag(UNSELECTABLE_FLAG)
    return selectable
 end
 

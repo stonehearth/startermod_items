@@ -1257,6 +1257,7 @@ void Simulation::FinishLoadingGame()
    if (waterTightRegionBuilder_) {
       waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
                                                     terrain->GetWaterTightRegionDelta());
+      waterTightRegionBuilder_->ClearDirtyTiles();
    }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
@@ -1288,11 +1289,6 @@ void Simulation::Reset()
 int Simulation::GetGameTickInterval() const
 {
    return game_tick_interval_;
-}
-
-void Simulation::ClearWaterTightRegionDelta()
-{
-   waterTightRegionBuilder_->ClearDirtyTiles();
 }
 
 void Simulation::CreateFreeMotionTrace(om::MobPtr mob)

@@ -10,6 +10,12 @@ end
 
 --Always do these things
 function FootmanClass:restore()
+   --If we're loading and there is no entity anymore (b/c killed, etc) then don't progress
+   --TODO: shouldn't we find some way to retire these controllers if they're no longer needed?
+   if not self._sv._entity or not self._sv._entity:is_valid() then
+      return
+   end
+
    self._job_component = self._sv._entity:get_component('stonehearth:job')
 
    --If we load and we're the current class, do these things

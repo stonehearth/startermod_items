@@ -74,11 +74,16 @@ function CreateCamp:_create_camp(location)
       end
    end
    
-   local terrain_region = surface_region:translated(-Point3.unit_y)
+   -- carve out the grass around the camp, but only if there's grass there.  this is largely to
+   -- prevent digging a hole in a hole, which causes pathfinding problems (e.g. if we pick the same
+   -- camp location twice.)
+   local kind = radiant.terrain.get_block_kind_at(location - Point3.unit_y)
+   if kind == 'grass' then
+      local terrain_region = surface_region:translated(-Point3.unit_y)
+      radiant.terrain.subtract_region(terrain_region)
+      location.y = location.y - Point3.unit_y.y
+   end
 
-   -- carve out the grass around the camp
-   radiant.terrain.subtract_region(terrain_region)
-   location.y = location.y - Point3.unit_y.y
    -- create the boss entity
    if info.boss then
       local members = game_master_lib.create_citizens(self._population,
