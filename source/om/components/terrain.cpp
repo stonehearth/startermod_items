@@ -6,7 +6,6 @@
 #include "dm/dm.h"
 #include "resources/res_manager.h"
 #include "physics/namespace.h"
-#include "simulation/simulation.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -198,11 +197,6 @@ Region3TiledPtr Terrain::GetWaterTightRegion()
 dm::Boxed<csg::Region3f>* Terrain::GetWaterTightRegionDelta()
 {
    return &water_tight_region_delta_;
-}
-
-void Terrain::ClearWaterTightRegionDelta()
-{
-   simulation::Simulation::GetInstance().ClearWaterTightRegionDelta();
 }
 
 void Terrain::ReadConfigFile()
