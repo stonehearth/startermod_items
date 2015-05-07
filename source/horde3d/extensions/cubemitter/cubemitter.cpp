@@ -406,11 +406,8 @@ void CubemitterNode::advanceTime( float timeDelta )
       }
    }
 
-   if (_wasVisible)
-   {
-	   _timeDelta += timeDelta;
-   	markDirty(SceneNodeDirtyKind::Ancestors);
-   }
+	_timeDelta += timeDelta;
+   markDirty(SceneNodeDirtyKind::Ancestors);
 }
 
 // Stops production of new particles, but lets the remainder finish up.  Horde will reap the node
@@ -542,7 +539,7 @@ void CubemitterNode::renderBatch(ShaderCombination *curShader, int batchNum, int
 
 void CubemitterNode::onPostUpdate()
 {	
-   if( _timeDelta <= 0 || !_wasVisible /*|| _effectRes == 0x0*/ ) return;
+   if( _timeDelta <= 0 ) return;
 	
 	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
 	if( Modules::config().gatherTimeStats ) timer->Start();
