@@ -265,6 +265,7 @@ function FabricatorComponent:_initialize_existing_project(project)
                   :modify(function(cursor)
                         cursor:clear()
                      end)
+      self:_create_material_proxy_trace(proxy)
    end
 end
 
@@ -308,6 +309,17 @@ function FabricatorComponent:_create_new_project()
    self._sv.project:add_component('stonehearth:construction_data', state)
 end
 
+function FabricatorComponent:_create_material_proxy_trace(proxy)
+   -- update the adjacent region of this proxy whenever it's region or reserved
+   -- changes
+   local update_dst_adjacent = function()     
+      self:_update_material_proxy_adjacent(proxy)
+   end
+   local proxy_dst = proxy:add_component('destination')
+   table.insert(self._traces, proxy_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
+   table.insert(self._traces, proxy_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))   
+end
+
 function FabricatorComponent:_create_material_proxies()
    -- create a proxy entity which will contain the destination for just the blocks made
    -- out of a certain material.  this lets us, for example, path find only to the wooden
@@ -331,21 +343,16 @@ function FabricatorComponent:_create_material_proxies()
       self._sv.material_proxies[material] = proxy
       radiant.entities.add_child(self._entity, proxy, Point3.zero)
 
-      -- update all the material proxy destination regions whenever the fabricator
-      -- region changes.
-      local update_all_dst_regions = function()
-         self:_update_all_material_proxy_regions()
-      end
-      table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_all_dst_regions))
-
-      -- update the adjacent region of this proxy whenever it's region or reserved
-      -- changes
-      local update_dst_adjacent = function()     
-         self:_update_material_proxy_adjacent(proxy)
-      end
-      table.insert(self._traces, proxy_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
-      table.insert(self._traces, proxy_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))   
+      self:_create_material_proxy_trace(proxy)
    end
+
+   -- update all the material proxy destination regions whenever the fabricator
+   -- region changes.
+   local update_all_dst_regions = function()
+      self:_update_all_material_proxy_regions()
+   end
+   table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_all_dst_regions))
+
 
    local blueprint_rgn = self._blueprint_dst:get_region():get()
 
