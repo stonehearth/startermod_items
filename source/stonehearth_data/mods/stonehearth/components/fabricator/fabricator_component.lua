@@ -346,14 +346,6 @@ function FabricatorComponent:_create_material_proxies()
       self:_create_material_proxy_trace(proxy)
    end
 
-   -- update all the material proxy destination regions whenever the fabricator
-   -- region changes.
-   local update_all_dst_regions = function()
-      self:_update_all_material_proxy_regions()
-   end
-   table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_all_dst_regions))
-
-
    local blueprint_rgn = self._blueprint_dst:get_region():get()
 
    -- if there's a resource material specified in the construction_data component,
@@ -1084,6 +1076,13 @@ function FabricatorComponent:_trace_blueprint_and_project()
    table.insert(self._traces, btrace)
    table.insert(self._traces, ptrace)
    
+   -- update all the material proxy destination regions whenever the fabricator
+   -- region changes.
+   local update_all_dst_regions = function()
+      self:_update_all_material_proxy_regions()
+   end
+   table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_all_dst_regions))
+
    update_blueprint_region()
 end
 
