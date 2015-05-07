@@ -1456,6 +1456,8 @@ void ScriptHost::StartCpuProfiling(CpuProfilerMethod method, int samplingTime)
       _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1000);
    }
 
+   ResetProfileData();
+
    _lastHookTimestamp = perfmon::Timer::GetCurrentCounterValueType();
    for (lua_State* L : allThreads_) {
       InstallProfileHook(L);
