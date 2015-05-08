@@ -119,7 +119,7 @@ function EntitySelector:_get_selected_entity(x, y)
          if result == stonehearth.selection.FILTER_IGNORE then
             -- continue to next entity in result
          elseif result == true then
-            return entity
+            return entity, qr
          elseif result == false then
             return nil
          end
@@ -139,10 +139,10 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
       return true
    end
 
-   local entity = self:_get_selected_entity(mouse_pos.x, mouse_pos.y)
+   local entity, result = self:_get_selected_entity(mouse_pos.x, mouse_pos.y)
 
    -- if the user installed a progress handler, go ahead and call it now
-   self:notify(entity)
+   self:notify(entity, result)
 
    local cursor_uri = entity and self._cursor_uri or 'stonehearth:cursors:invalid_hover'
    if self._last_cursor_uri ~= cursor_uri then
@@ -154,7 +154,7 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
    end
 
    if entity and event and event:up(1) then
-      self:resolve(entity)
+      self:resolve(entity, result)
    end
 
    local event_consumed = event and (event:down(1) or event:up(1))

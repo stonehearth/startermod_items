@@ -13,7 +13,6 @@ function GrowWallsEditor:__init(build_service)
 
    self._preview_walls = {}
    self._preview_columns = {}
-   self._last_target = nil
 end
 
 function GrowWallsEditor:destroy()
@@ -63,13 +62,14 @@ function GrowWallsEditor:go(response, column_brush, wall_brush)
             end
             return true
          end)
-      :progress(function(selector, entity)
-            self:_switch_to_target(entity, column_brush, wall_brush)
+      :progress(function(selector, entity, result)
+            local query_pt = result and result.brick or nil
+            self:_switch_to_target(entity, query_pt, column_brush, wall_brush)
          end)
-      :done(function(selector, entity)
+      :done(function(selector, entity, result)
             log:detail('box selected')
             if entity then
-               _radiant.call_obj(self._build_service, 'grow_walls_command', entity, column_brush, wall_brush)
+               _radiant.call_obj(self._build_service, 'grow_walls_command', entity, column_brush, wall_brush, result.brick)
                            :always(function()
                                  self:destroy()
                               end)
@@ -102,12 +102,16 @@ function GrowWallsEditor:is_road(building)
    return false
 end
 
-function GrowWallsEditor:_switch_to_target(target, column_brush, wall_brush)
-   if target ~= self._last_target then
+function GrowWallsEditor:_switch_to_target(target, pt, column_brush, wall_brush)
+   if target ~= self._last_target or pt ~= self._last_point then
+      self._last_point = pt
       self._last_target = target
+
       self:_destroy_preview_entities()
       if target then
-         build_util.grow_walls_around(target, function(min, max, normal)               
+         local origin = radiant.entities.get_world_grid_location(target)
+         local offset = pt - origin
+         build_util.grow_walls_around(target, offset, function(min, max, normal)               
                local col_a = self:_create_preview_column(min, column_brush)
                local col_b = self:_create_preview_column(max, column_brush)
                if col_a and col_b then
