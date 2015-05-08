@@ -84,7 +84,7 @@ void Set<T>::Clear() {
 }
 
 template <class T>
-void Set<T>::Remove(const T& item) {
+void Set<T>::Remove(T item) {
    // this could be faster...
    if (stdutil::UniqueRemove(items_, item)) {
       GetStore().OnSetRemoved(*this, item);

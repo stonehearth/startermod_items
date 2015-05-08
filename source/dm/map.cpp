@@ -120,7 +120,7 @@ void Map<K, V, H, MH>::Add(K const& key, V const& value) {
 }
 
 template <class K, class V, class H, class MH>
-void Map<K, V, H, MH>::Remove(const K& key) {
+void Map<K, V, H, MH>::Remove(K key) {
    auto i = items_.find(MH()(key));
    if (i != items_.end()) {
       MAP_LOG(7) << "removing " << key;

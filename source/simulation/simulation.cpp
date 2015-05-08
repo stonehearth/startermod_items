@@ -206,7 +206,7 @@ void Simulation::OneTimeIninitializtion()
          return;
       }
 
-      bool enabled = !scriptHost_->IsCpuProfilerRunning();
+      bool enabled = scriptHost_->IsCpuProfilerRunning();
       if (enabled) {
          scriptHost_->StopCpuProfiling(true);
       } else {
