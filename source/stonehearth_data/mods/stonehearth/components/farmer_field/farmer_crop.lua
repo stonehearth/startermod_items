@@ -107,8 +107,10 @@ function FarmerCrop:destroy()
 
    self._sv.farm_tilled_region = nil
 
-   self.planting_task:destroy()
-   self.planting_task = nil
+   if self.planting_task then
+      self.planting_task:destroy()
+      self.planting_task = nil
+   end
 end
 
 
