@@ -12,6 +12,8 @@ local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
 local DoodadPlacer = require 'services.client.build_editor.doodad_placer'
 local LadderEditor = require 'services.client.build_editor.ladder_editor'
 local TemplateEditor = require 'services.client.build_editor.template_editor'
+local DeleteStructureEditor = require 'services.client.build_editor.delete_structure_editor'
+
 local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build_editor')
@@ -144,41 +146,11 @@ end
 function BuildEditorService:grow_roof(session, response, roof_brush, options)
    self._grow_roof_editor = GrowRoofEditor(self._build_service)
    self._grow_roof_editor:go(response, roof_brush, options)
-   
-   --[[
-   local has_roof_fn = function(building)
-      for _, child in building:get_component('entity_container'):each_child() do
-         if child:get_component('stonehearth:roof') then   
-            return true
-         end
-      end
-      return false
-   end
+end
 
-   local building
-   stonehearth.selection:select_entity_tool()
-      :set_cursor('stonehearth:cursors:grow_roof')
-      :set_filter_fn(function(result)
-            local entity = result.entity
-            building = build_util.get_building_for(entity)
-            return building ~= nil and not has_roof_fn(building) and build_util.has_walls(building)
-         end)
-      :done(function(selector, entity)
-            if building then
-               _radiant.call_obj(self._build_service, 'grow_roof_command', building, roof_uri, self._grow_roof_options)
-                  :done(function(r)
-                        if r.new_selection then
-                           stonehearth.selection:select_entity(r.new_selection)
-                        end
-                     end)
-            end
-            response:resolve('done')
-         end)
-      :fail(function(selector)
-            response:reject('failed')
-         end)
-      :go()   
-      ]]
+function BuildEditorService:delete_structure(session, response)
+   local delete_structure = DeleteStructureEditor(self._build_service)
+   delete_structure:go(response)
 end
 
 return BuildEditorService
