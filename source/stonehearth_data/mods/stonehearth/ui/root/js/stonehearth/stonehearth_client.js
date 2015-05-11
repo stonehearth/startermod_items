@@ -611,6 +611,23 @@ var StonehearthClient;
          };
       },
 
+      deleteStructure : function() {
+         var self = this;
+         var tip = self.showTip('stonehearth:delete_structure_tip_title',
+                                'stonehearth:delete_structure_tip_description',
+                                { i18n: true });
+
+         return this._callTool('deleteStructure', function() {            
+            return radiant.call_obj(self._build_editor, 'delete_structure')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       drawVoxels : function(brush, mode) {
          var self = this;
          return function() {

@@ -85,9 +85,14 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       var self = this;
       this._super();
 
-      // undo/redoo tool
+      // undo tool
       this.$('#undoTool').click(function() {
          App.stonehearthClient.undo();
+      });
+
+      // delete tool
+      this.$('#deleteTool').click(function() {
+         App.stonehearthClient.deleteStructure();
       });
 
       if (self._buildBrushes) {

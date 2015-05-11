@@ -736,6 +736,27 @@ function BuildService:grow_walls(floor, column_brush, wall_brush, query_pt)
 end
 
 
+function BuildService:delete_structure_command(session, response, entity)
+   local success = self:do_command('delete_structure', response, function()
+         self:delete_structure(entity)
+      end)
+
+   if success then
+      return true
+   end
+end
+
+function BuildService:delete_structure(entity)
+   -- xxxx: don't check this in
+   entity:get_component('mob')
+            :get_parent()
+               :get_component('stonehearth:wall')
+                  :layout()
+
+   -- nuke the window or door!
+   self:unlink_entity(entity)
+end
+
 -- Pops a roof on a building with no roof. 
 --
 --    @param session - the session for the player initiating the request
