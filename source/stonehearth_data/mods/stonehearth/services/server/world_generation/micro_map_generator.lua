@@ -1,6 +1,5 @@
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
-local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local ValleyShapes = require 'services.server.world_generation.valley_shapes'
 local Timer = require 'services.server.world_generation.timer'
