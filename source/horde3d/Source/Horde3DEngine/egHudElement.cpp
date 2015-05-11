@@ -156,6 +156,25 @@ ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int 
 
    MaterialResource* mr = (MaterialResource*)Modules::resMan().resolveResHandle( matRes );
    materialRes_ = mr;
+
+   ScreenspaceRectVertex* verts = (ScreenspaceRectVertex*)gRDI->mapBuffer(rectVBO_);
+   verts[0].pos = Vec4f(0, 0, offsetX_, offsetY_);
+   verts[0].texU = 0; verts[0].texV = 1;
+   verts[0].color = color_;
+
+   verts[1].pos = Vec4f(0, height_, offsetX_, offsetY_);
+   verts[1].texU = 0; verts[1].texV = 0;
+   verts[1].color = color_;
+
+   verts[2].pos = Vec4f(width_, height_, offsetX_, offsetY_);
+   verts[2].texU = 1; verts[2].texV = 0;
+   verts[2].color = color_;
+
+   verts[3].pos = Vec4f(width_, 0, offsetX_, offsetY_);
+   verts[3].texU = 1; verts[3].texV = 1;
+   verts[3].color = color_;
+
+   gRDI->unmapBuffer(rectVBO_);
 }
 
 
@@ -164,6 +183,12 @@ void ScreenspaceRectHudElement::draw(std::string const& shaderContext, Matrix4f&
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;
+   }
+   ShaderCombination *curShader = Modules::renderer().getCurShader();
+
+   // World transformation
+   if (curShader->uni_worldMat >= 0) {
+      gRDI->setShaderConst(curShader->uni_worldMat, CONST_FLOAT44, &worldMat.x[0]);
    }
    gRDI->setVertexLayout(Modules::renderer().getClipspaceLayout());
 
@@ -188,43 +213,32 @@ void ScreenspaceRectHudElement::updateGeometry(const Matrix4f& absTrans)
    const Vec4f origin = clipMat * Vec4f(0, 0, 0, 1);
 
    Vec4f screenPos;
-   ScreenspaceRectVertex* verts = (ScreenspaceRectVertex*)gRDI->mapBuffer(rectVBO_);
    float xScale = origin.w * 2.0f / vpWidth;
    float yScale = origin.w * 2.0f / vpHeight;
 
    screenPos = Vec4f(offsetX_, offsetY_, 0, 0);
    screenPos.x *= xScale;
    screenPos.y *= yScale;
-   verts[0].pos = origin + screenPos;
-   verts[0].texU = 0; verts[0].texV = 1;
-   verts[0].color = color_;
-   bounds_.addPoint((invClipMat * verts[0].pos).xyz());
+   Vec4f v = origin + screenPos;
+   bounds_.addPoint((invClipMat * v).xyz());
 
    screenPos = Vec4f(offsetX_, height_ + offsetY_, 0, 0);
    screenPos.x *= xScale;
    screenPos.y *= yScale;
-   verts[1].pos = origin + screenPos;
-   verts[1].texU = 0; verts[1].texV = 0;
-   verts[1].color = color_;
-   bounds_.addPoint((invClipMat * verts[1].pos).xyz());
+   v = origin + screenPos;
+   bounds_.addPoint((invClipMat * v).xyz());
 
    screenPos = Vec4f(width_ + offsetX_, height_ + offsetY_, 0, 0);
    screenPos.x *= xScale;
    screenPos.y *= yScale;
-   verts[2].pos = origin + screenPos;
-   verts[2].texU = 1; verts[2].texV = 0;
-   verts[2].color = color_;
-   bounds_.addPoint((invClipMat * verts[2].pos).xyz());
+   v = origin + screenPos;
+   bounds_.addPoint((invClipMat * v).xyz());
 
    screenPos = Vec4f(width_ + offsetX_, offsetY_, 0, 0);
    screenPos.x *= xScale;
    screenPos.y *= yScale;
-   verts[3].pos = origin + screenPos;
-   verts[3].texU = 1; verts[3].texV = 1;
-   verts[3].color = color_;
-   bounds_.addPoint((invClipMat * verts[3].pos).xyz());
-
-   gRDI->unmapBuffer(rectVBO_);
+   v = origin + screenPos;
+   bounds_.addPoint((invClipMat * v).xyz());
 }
 
 
@@ -406,9 +420,6 @@ void HudElementNode::onPostUpdate()
 
 void HudElementNode::onFinishedUpdate()
 {
-   // Hud elements are view-dependent, so we need them to constantly be updated
-   // whenever the view changes.  For now, just always mark them as dirty.
-   markDirty(SceneNodeDirtyKind::Ancestors);
 }
 
 
