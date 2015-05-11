@@ -52,16 +52,21 @@ function DoodadPlacer:go(session, response, uri)
 end
 
 function DoodadPlacer:_on_mouse_event(e)
-   local s = _radiant.client.query_scene(e.x, e.y)
-   if s and s:get_result_count() > 0 then            
-      local entity = s:get_result(0).entity
-      if entity and entity:is_valid() then
+   local raycast_results = _radiant.client.query_scene(e.x, e.y)
+
+   for result in raycast_results:each_result() do
+      local entity = result.entity
+      local ignore_entity = self:_ignore_entity(entity)
+
+      if not ignore_entity then
          log:detail('hit entity %s', entity)
+
          if self._wall_editor and not self._wall_editor:should_keep_focus(entity) then
             log:detail('destroying wall editor')
             self._wall_editor:destroy()
             self._wall_editor = nil
          end
+
          if not self._wall_editor then
             local fabricator, blueprint, project = build_util.get_fbp_for(entity)
             if blueprint and blueprint:get_component('stonehearth:wall') then
@@ -74,8 +79,10 @@ function DoodadPlacer:_on_mouse_event(e)
                                        :go()
             end
          end
+         
          if self._wall_editor then
-            self._wall_editor:on_mouse_event(e, s)
+            self._wall_editor:on_mouse_event(e, raycast_results)
+            break
          end
       end
    end
@@ -98,6 +105,18 @@ function DoodadPlacer:_on_mouse_event(e)
 
    local event_consumed = e and (e:down(1) or e:up(1))
    return event_consumed
+end
+
+function DoodadPlacer:_ignore_entity(entity)
+   if not entity or not entity:is_valid() then
+      return true
+   end
+
+   if not stonehearth.selection:is_selectable(entity) then
+      return true
+   end
+
+   return false
 end
 
 return DoodadPlacer

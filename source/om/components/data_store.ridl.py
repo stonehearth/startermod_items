@@ -8,21 +8,27 @@ import ridl.lua_types as lua
 class DataStore(dm.Record):
    controller_type = dm.Boxed(std.string())
    controller_name = dm.Boxed(std.string())
+   flags = dm.Boxed(c.int())
    data_object = dm.Boxed(lua.DataObject(), get=None, set=None)
 
    _no_lua = True
    _declare_constructor = True
+   _generate_construct_object = True
 
    _public = \
    """
+   enum DataStoreFlags {
+      IS_CPP_MANAGED = (1 << 0)
+   };
+
    void MarkDataChanged();
    luabind::object GetController() const;
    luabind::object GetData() const;
    void SetData(luabind::object o);
-   void RestoreController(DataStorePtr self, bool isCppManaged = false);
+   void RestoreController(DataStorePtr self, int flags);
    void RestoreControllerData();
    void RemoveKeepAliveReferences();
-   luabind::object CreateController(DataStorePtr self, std::string const& type, std::string const& alias);
+   luabind::object CreateController(DataStorePtr self, std::string const& type, std::string const& alias, int flags);
    void SetController(luabind::object controller);
    void OnLoadObject(dm::SerializationType r) override;
    dm::Boxed<lua::DataObject> const& GetDataObjectBox() const;
@@ -42,7 +48,6 @@ class DataStore(dm.Record):
    luabind::object _controllerKeepAliveObject;
    luabind::object _controllerDestructor;
    bool _needsRestoration;
-   bool _isCppManaged;
    dm::TracePtr _dataObjTrace;
    """
 

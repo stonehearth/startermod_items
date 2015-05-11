@@ -540,21 +540,42 @@ local function edge_point_to_point_inset(edge_point)
    return point
 end
 
-function build_util.get_footprint_region2(blueprint)
+function build_util.get_footprint_region2(blueprint, query_point)
+   checks('Entity', '?Point3')
    assert(build_util.is_blueprint(blueprint))
 
    local region = blueprint:get_component('destination')
                                     :get_region()
                                        :get()
 
+   local y = query_point and query_point.y or 0
+
+   -- take just the floor we have at this level
+   local slice = Cube3(Point3(-INFINITE, y,     -INFINITE),
+                       Point3( INFINITE, y + 1,  INFINITE))
+   local slice_region = region:intersect_cube(slice)
+
    -- calculate the local footprint of the floor.
    local footprint = Region2()
-   for cube in region:each_cube() do
+   for cube in slice_region:each_cube() do
       local rect = Rect2(Point2(cube.min.x, cube.min.z),
                          Point2(cube.max.x, cube.max.z),
                          0)
       footprint:add_cube(rect)
    end
+
+   if y > 0 then
+      -- subtract out the floor on the next level
+      slice:translate(Point3.unit_y)
+      local next_slice_region = region:intersect_cube(slice)
+      for cube in next_slice_region:each_cube() do
+         local rect = Rect2(Point2(cube.min.x, cube.min.z),
+                            Point2(cube.max.x, cube.max.z),
+                            0)
+         footprint:subtract_cube(rect)
+      end
+   end
+
    footprint:force_optimize_by_merge('creating footprint region')
    return footprint
 end
@@ -576,22 +597,26 @@ function build_util.get_footprint_region3(blueprint)
    return footprint
 end
 
-function build_util.grow_walls_around(floor, visitor_fn)
+function build_util.grow_walls_around(floor, query_point, visitor_fn)
+   checks('Entity', '?Point3', 'function')
+
    -- could be a fabricator...
    floor = build_util.get_blueprint_for(floor)
 
-   local footprint = build_util.get_footprint_region2(floor)
+   local dy = query_point and query_point.y or 0
+   local footprint = build_util.get_footprint_region2(floor, query_point)
 
    -- figure out where the columns and walls should go in world space
    local building = build_util.get_building_for(floor)
    local floor_origin = radiant.entities.get_world_grid_location(floor)
+   local wall_origin = floor_origin + Point3(0, dy, 0)
    local building_origin = radiant.entities.get_world_grid_location(building)
 
    -- if the floor is below the origin of the building, make sure the walls and
    -- columns are not!   
-   local height = floor_origin.y - building_origin.y
+   local height = wall_origin.y - building_origin.y
    if height < 0 then
-      floor_origin.y = floor_origin.y - height
+      wall_origin.y = wall_origin.y - height
    end
 
    -- if the floor is on the 2nd storey or higher, we grow walls in an 'inset'
@@ -603,8 +628,8 @@ function build_util.grow_walls_around(floor, visitor_fn)
    -- for each one.
    local edges = footprint:get_edge_list()
    for edge in edges:each_edge() do
-      local min = ep2p(edge.min) + floor_origin
-      local max = ep2p(edge.max) + floor_origin
+      local min = ep2p(edge.min) + wall_origin
+      local max = ep2p(edge.max) + wall_origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
 
       if min ~= max then

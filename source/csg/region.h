@@ -141,10 +141,10 @@ public:
       }
    }
 
-   void OptimizeByOctTree(const char* reason, S minCubeSize);
-   void OptimizeByMerge(const char* reason);
+   bool OptimizeByOctTree(const char* reason, S minCubeSize);
+   bool OptimizeByMerge(const char* reason);
    void ForceOptimizeByMerge(const char* reason);
-   void OptimizeByDefragmentation(const char* reason);
+   bool OptimizeByDefragmentation(const char* reason);
    void ForceOptimizeByDefragmentation(const char* reason);
 
 public:

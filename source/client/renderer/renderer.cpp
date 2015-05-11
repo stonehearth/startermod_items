@@ -39,6 +39,8 @@ H3DRes starfieldMat;
 H3DRes skysphereMat;
 H3DNode cursorNode;
 
+#define MAX_FOW_NODES 10000
+
 static std::unique_ptr<Renderer> renderer_;
 
 Renderer& Renderer::GetInstance()
@@ -436,7 +438,8 @@ void Renderer::SetupGlfwHandlers()
 
 void Renderer::UpdateFoW(H3DNode node, const csg::Region2f& region)
 {
-   if (region.GetCubeCount() >= 1000) {
+   if (region.GetCubeCount() >= MAX_FOW_NODES) {
+      R_LOG(1) << "Reached limit on fow nodes!  Is region optimization broken?";
       return;
    }
    float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
@@ -1021,7 +1024,7 @@ void Renderer::Initialize()
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
    fowExploredNode_ = h3dAddInstanceNode(fowSceneRoot_, "fow_explorednode", 
       h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.json", 0), 
-      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
+      Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), MAX_FOW_NODES);
    h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 
    csg::Region2f r;
