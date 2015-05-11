@@ -2148,8 +2148,6 @@ void Client::SetCurrentUIScreen(UIScreen screen, bool reloadRequested)
    }
 }
 
-#pragma optimize ( "", off )
-
 bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Node& result)
 {
    std::string apiKey = issues.get<std::string>("key", "");
