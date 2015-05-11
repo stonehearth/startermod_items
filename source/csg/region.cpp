@@ -475,17 +475,17 @@ void Region<S, C>::ForceOptimizeByMerge(const char* reason)
 }
 
 template <class S, int C>
-void Region<S, C>::OptimizeByMerge(const char* reason)
+bool Region<S, C>::OptimizeByMerge(const char* reason)
 {
    size_t count = cubes_.size();
    if (count <= 1) {
-      return;
+      return false;
    }
 
    if (_churn < (int)count/4) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
-      return;
+      return false;
    }
 #if defined(REGION_PROFILE_OPTIMIZE)
    perfmon::CounterValueType start = perfmon::Timer::GetCurrentCounterValueType();
@@ -551,6 +551,7 @@ void Region<S, C>::OptimizeByMerge(const char* reason)
 
    _churn = 0;
    CHURN_LOG(7) << "resetting churn after optimize: " << reason;
+   return true;
 }
 
 // assumes all cubes have the same tag
@@ -698,17 +699,17 @@ S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds) const
 // good optimization for regions with cubes that clump together
 // not so great for regions with multiple tags
 template <class S, int C>
-void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
+bool Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
 {
    size_t count = cubes_.size();
    if (count <= 1) {
-      return;
+      return false;
    }
 
    if (_churn < (int)count) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
-      return;
+      return false;
    }
 
    if (ContainsAtMostOneTag()) {
@@ -728,6 +729,7 @@ void Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
    }
    _churn = 0;
    CHURN_LOG(7) << "resetting churn after optimize by oct tree: " << reason;
+   return true;
 }
 
 // assumes all cubes have the same tag
@@ -856,15 +858,16 @@ void Region<S, C>::OptimizeTagByOctTree(Cube const& bounds, S partitionSize, S m
 }
 
 template <class S, int C>
-void Region<S, C>::OptimizeByDefragmentation(const char* reason)
+bool Region<S, C>::OptimizeByDefragmentation(const char* reason)
 {
    S averageVolume = GetArea() / GetCubeCount();
 
    if (averageVolume > 4) {
       REGION_LOG(7) << "ignoring optimize by defragmentation and calling optimize by merge: " << reason;
-      OptimizeByMerge(reason);
+      return OptimizeByMerge(reason);
    } else {
       OptimizeByDefragmentationInternal(reason);
+      return true;
    }
 }
 
@@ -1239,9 +1242,9 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template bool Cls::Intersects(const Cls&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
-   template void Cls::OptimizeByMerge(const char*); \
-   template void Cls::OptimizeByDefragmentation(const char*); \
-   template void Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
+   template bool Cls::OptimizeByMerge(const char*); \
+   template bool Cls::OptimizeByDefragmentation(const char*); \
+   template bool Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
    template void Cls::ForceOptimizeByDefragmentation(const char*); \
    template Cls::Cube Cls::GetBounds() const; \

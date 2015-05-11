@@ -19,6 +19,13 @@ function TerrainService:initialize()
       self._sv._visible_regions = {}
       self._sv._explored_regions = {}
       self._sv._convex_hull = {}
+   else
+      for player_id, explored_region in pairs(self._sv._explored_regions) do
+         explored_region:modify(function(cursor)
+               cursor:optimize_by_oct_tree('terrain service', 64)
+            end)
+         log:write(0, '%s explored region contains %d rects', player_id, explored_region:get():get_num_rects())
+      end
    end
 
    self._terrain_component = radiant.terrain.get_terrain_component()
@@ -26,8 +33,6 @@ function TerrainService:initialize()
    -- the radius of the sight sensor in the json files should match this value
    self._sight_radius = radiant.util.get_config('sight_radius', 64)
    self._visbility_step_size = radiant.util.get_config('visibility_step_size', 8)
-   self._last_optimized_rect_count = 10
-   self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
    self._enable_full_vision = radiant.util.get_config('enable_full_vision', false)
 
@@ -162,43 +167,34 @@ function TerrainService:_update_regions()
       new_visible_region = self:_get_visible_region(player_id)
 
       if not self:_are_equivalent_regions(old_visible_region, new_visible_region) then
-         visible_region_boxed:modify(
-            function (region2)
-               region2:clear()
-               region2:add_region(new_visible_region)
-               log:info('server visibility rects: %d', region2:get_num_rects())
-            end
-         )
+         visible_region_boxed:modify(function(region2)
+               region2:copy_region(new_visible_region)
+            end)
 
          explored_region = explored_region_boxed:get()
          unexplored_region = new_visible_region - explored_region
 
          if not unexplored_region:empty() then
-            explored_region_boxed:modify(
-               function (region2)
+            explored_region_boxed:modify(function(region2)
                   region2:add_unique_region(unexplored_region)
 
-                  local num_rects = region2:get_num_rects()
+                  local num_rects_before = region2:get_num_rects()
+                  local optimized
 
-                  if num_rects >= self._last_optimized_rect_count * self._region_optimization_threshold then
-                     log:debug('Optimizing explored region')
+                  local seconds = Timer.measure(function()
+                        optimized = region2:optimize_by_oct_tree('unexplored region', 64)
+                     end)
 
-                     local seconds = Timer.measure(
-                        function()
-                           region2:optimize_by_oct_tree('unexplored region', 64)
-                        end
-                     )
-                     log:debug('Optimization time: %.3fs', seconds)
+                  if optimized then
+                     local num_rects_after = region2:get_num_rects()
+                     log:error('%s explored region optimization time: %.3fs, num rects before and after: %d to %d',
+                        player_id, seconds, num_rects_before, num_rects_after)
 
                      -- performance counters standardize on milliseconds
                      radiant.set_performance_counter('explored_region:last_optimization_time', seconds*1000, "time")
-
-                     self._last_optimized_rect_count = region2:get_num_rects()
+                     radiant.set_performance_counter('explored_region:num_rects', num_rects_after)
                   end
-
-                  radiant.set_performance_counter('explored_region:num_rects', num_rects)
-               end
-            )
+               end)
          end
       end
    end
