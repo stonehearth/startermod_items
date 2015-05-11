@@ -755,7 +755,6 @@ function BuildService:delete_structure(entity)
 
    -- nuke the window or door!
    self:unlink_entity(entity)
-   --radiant.entities.destroy_entity(entity) -- NOO!O!O!O!O!!O!O!!!
 end
 
 -- Pops a roof on a building with no roof. 
