@@ -1097,12 +1097,20 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
    }
    SH_LOG(7) << "finished restoring datastores controller data";
 
+   // By now, all the (lua) datastores should have lua references to keep them alive.
+   // Remove the unused ones now, before we call restore and activate on an orphaned controller.
+   SH_LOG(7) << "removing keep alive references to datastores";
+   for (om::DataStorePtr datastore : datastores) {
+      datastore->RemoveKeepAliveReferences();
+   }
+   SH_LOG(7) << "finished removing keep alive references to datastores";
+
    CreateModules(mods, allocd);
 
    for (om::DataStorePtr datastore : datastores) {
       try {
          luabind::object controller = datastore->GetController();
-         if (controller.is_valid()) {
+         if (controller.is_valid() && luabind::type(controller) == LUA_TTABLE) {
             object restore_fn = controller["restore"];
             if (type(restore_fn) == LUA_TFUNCTION) {
                restore_fn(controller);
@@ -1123,13 +1131,6 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
       om::Stonehearth::RestoreLuaComponents(this, entity);
    }
    SH_LOG(7) << "finished restoring lua components";
-
-
-   SH_LOG(7) << "removing keep alive references to datastores";
-   for (om::DataStorePtr datastore : datastores) {
-      datastore->RemoveKeepAliveReferences();
-   }
-   SH_LOG(7) << "finished removing keep alive references to datastores";
 
    Trigger("radiant:game_loaded");
 }
