@@ -90,7 +90,7 @@ static const std::regex call_path_regex__("/r/call/?");
 const char *HOTKEY_SAVE_KEY = "hotkey_save";
 const char *SHIFT_F5_SAVE_KEY = "shift_f5_save";
 
-static const std::string REDMINE_HOST = "104.197.61.23";
+static const std::string REDMINE_HOST = "redmine.corp.radiant-entertainment.com";
 static const int REDMINE_PORT = 80;
 
 static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
@@ -2148,6 +2148,8 @@ void Client::SetCurrentUIScreen(UIScreen screen, bool reloadRequested)
    }
 }
 
+#pragma optimize ( "", off )
+
 bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Node& result)
 {
    std::string apiKey = issues.get<std::string>("key", "");
@@ -2156,11 +2158,10 @@ bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Nod
    json::Node uploadsArray(JSON_ARRAY);
 
    if (takeScreenshot) {
-      fs::path sspath = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR / "bug_screenshot.png";
-      fs::remove_all(sspath);
+      fs::path sspath = core::System::GetInstance().GetTempDirectory() / "bug_screenshot.png";
       h3dutScreenshot(sspath.string().c_str(), 0);
       payload = io::read_contents(std::ifstream(sspath.string(), std::ifstream::in | std::ifstream::binary));
-      //fs::remove_all(sspath);
+      fs::remove_all(sspath);
 
       if (!PostRedmineUpload(apiKey, payload, token)) {
          return false;
@@ -2182,9 +2183,9 @@ bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Nod
    upload.set("content_type", "text/plain");
    uploadsArray.add(upload);
 
-   CLIENT_LOG(1) << "PostRedmineIssues: " << issues.write_formatted();
-   issues.set("uploads", uploadsArray);
+   issues.set("issue.uploads", uploadsArray);
    payload = issues.write();
+   CLIENT_LOG(1) << "PostRedmineIssues: " << issues.write_formatted();
 
    std::string uri = BUILD_STRING("http://" << REDMINE_HOST << "/issues.json");
    Poco::Net::HTTPRequest request(Poco::Net::HTTPRequest::HTTP_POST, uri, Poco::Net::HTTPMessage::HTTP_1_1);
@@ -2200,9 +2201,13 @@ bool Client::PostRedmineIssues(json::Node issues, bool takeScreenshot, json::Nod
 
    std::istreambuf_iterator<char> eos;
    std::string s(std::istreambuf_iterator<char>(response_stream), eos);
-   CLIENT_LOG(1) << "PostRedmineIssues response: " << s;
+   CLIENT_LOG(1) << "PostRedmineIssues response (" << s.size() << " bytes): " << s;
    boost::algorithm::replace_all(s, "\\\"", "\"");
-   result = libjson::parse(s);
+   try {
+      result = libjson::parse(s);
+   } catch (std::exception const& e) {
+      CLIENT_LOG(1) << "failed to encode response: " << e.what();
+   }
 
    int status = response.getStatus();
    return status == Poco::Net::HTTPResponse::HTTP_CREATED;
@@ -2229,11 +2234,15 @@ bool Client::PostRedmineUpload(std::string const& apiKey, std::string const& pay
 
    std::istreambuf_iterator<char> eos;
    std::string s(std::istreambuf_iterator<char>(response_stream), eos);
-   CLIENT_LOG(1) << "PostRedmineUpload response: " << s;
-   boost::algorithm::replace_all(s, "\\\"", "\"");
-   json::Node result = libjson::parse(s);
-
    int status = response.getStatus();
-   uploadToken = result.get("upload.token", "");
-   return status == Poco::Net::HTTPResponse::HTTP_CREATED;
+
+   CLIENT_LOG(1) << "PostRedmineUpload response " << status << " (" << s.size() << " bytes): " << s;
+   boost::algorithm::replace_all(s, "\\\"", "\"");
+
+   if (status == Poco::Net::HTTPResponse::HTTP_CREATED) {
+      json::Node result = libjson::parse(s);
+      uploadToken = result.get("upload.token", "");
+      return true;
+   }
+   return false;
 }
