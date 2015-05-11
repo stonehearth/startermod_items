@@ -33,7 +33,6 @@ function FabricateStructureAdjacent:run(ai, entity, args)
          ai:abort('failed to add block to fabricator')
       end
       carrying = radiant.entities.consume_carrying(entity)
-      if true then break end
       self._current_block = self._fabricator:find_another_block(carrying, standing)
    until not self._current_block
 end
