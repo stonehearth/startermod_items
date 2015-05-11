@@ -551,8 +551,8 @@ function build_util.get_footprint_region2(blueprint, query_point)
    local y = query_point and query_point.y or 0
 
    -- take just the floor we have at this level
-   local slice = Cube3(Point3(-INFINITE, query_point.y,     -INFINITE),
-                       Point3( INFINITE, query_point.y + 1,  INFINITE))
+   local slice = Cube3(Point3(-INFINITE, y,     -INFINITE),
+                       Point3( INFINITE, y + 1,  INFINITE))
    local slice_region = region:intersect_cube(slice)
 
    -- calculate the local footprint of the floor.

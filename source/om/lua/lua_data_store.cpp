@@ -122,7 +122,7 @@ StrongDataStore_CreateController(DataStorePtr ds, std::string const& name)
    luabind::object controller;
 
    if (ds) {
-      controller = ds->CreateController(ds, "controllers", name);
+      controller = ds->CreateController(ds, "controllers", name, 0);
    }
    return controller;
 }
@@ -132,7 +132,7 @@ StrongDataStore_Restore(DataStoreRef data_store)
 {
    auto ds = data_store.lock();
    if (ds) {
-      ds->RestoreController(ds);
+      ds->RestoreController(ds, 0);
       ds->RestoreControllerData();
       ds->RemoveKeepAliveReferences();
    }

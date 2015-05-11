@@ -39,7 +39,7 @@ namespace radiant {
          }
          std::string clipped;
 
-         int size = maxSize + filler.size() + 1;
+         int size = (int)(maxSize + filler.size() + 1);
          clipped.resize(size);
          char* p = &clipped[0];
          in.read(p, halfSize);
@@ -52,7 +52,7 @@ namespace radiant {
          in.read(p, halfSize);
          p += halfSize;
 
-         size = p - &clipped[0];
+         size = (int)(p - &clipped[0]);
          clipped.resize(size);
 
          return clipped;
