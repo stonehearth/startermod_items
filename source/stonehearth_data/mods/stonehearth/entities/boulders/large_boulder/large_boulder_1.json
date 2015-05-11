@@ -28,7 +28,6 @@
          ]
       },      
       "region_collision_shape" : {
-         "foo" : { "x": 0.5, "y": 0, "z": -0.5 },
          "region_from_model": {
             "model" : "file(large_boulder_1.qb)"
          }

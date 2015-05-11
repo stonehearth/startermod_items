@@ -23,6 +23,7 @@
       "cursors:create_ladder" : "file(data/cursors/create_ladder.cur)",
       "cursors:place_template" : "file(data/cursors/place_template.cur)",
       "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
+      "cursors:delete_structure" : "file(data/cursors/delete_structure.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:loot" : "file(data/cursors/loot.cur)",
       "cursors:zone_generic" : "file(data/cursors/zone_generic.cur)",

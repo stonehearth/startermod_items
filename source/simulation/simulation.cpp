@@ -1104,6 +1104,7 @@ void Simulation::Save(boost::filesystem::path const& saveid)
    ASSERT(store_);
 
    SIM_LOG(0) << "Starting save.";
+   scriptHost_->Trigger("radiant:save");
    scriptHost_->FullGC();
 
    std::string error;
