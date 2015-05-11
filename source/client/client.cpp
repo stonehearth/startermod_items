@@ -2052,7 +2052,8 @@ void Client::RestoreDatastores()
    for (auto const& entry : datastores_to_restore_) {
       om::DataStorePtr ds = entry.second.lock();
       if (ds) {
-         ds->RestoreController(ds, true);
+         // Make the controller as cpp managed since the server controls the lifetime.
+         ds->RestoreController(ds, om::DataStore::IS_CPP_MANAGED);
       } else {
          CLIENT_LOG(7) << "datastore id:" << entry.first << " did not surive the journey";
       }
