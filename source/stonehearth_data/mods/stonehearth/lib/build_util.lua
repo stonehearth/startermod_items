@@ -576,7 +576,9 @@ function build_util.get_footprint_region2(blueprint, query_point)
       end
    end
 
-   footprint:force_optimize_by_merge('creating footprint region')
+   -- force optimizing here usually isn't necessary for solid shapes and
+   -- is too expensive for complex ones.  so let it rock!
+
    return footprint
 end
 
