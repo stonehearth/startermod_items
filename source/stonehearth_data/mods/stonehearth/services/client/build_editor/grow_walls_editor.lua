@@ -57,13 +57,8 @@ function GrowWallsEditor:go(response, column_brush, wall_brush)
                return false
             end
 
-            -- If this floor already has walls, then don't allow us to grow walls again.
-            if next(floor:get().connected_to) then
-               return false
-            end
-
             if floor:get().category ~= constants.floor_category.FLOOR then
-               -- never grow around slabs or roads
+               -- never grow around roads
                return false
             end
             return true
@@ -109,22 +104,41 @@ function GrowWallsEditor:is_road(building)
 end
 
 function GrowWallsEditor:_switch_to_target(target, pt, column_brush, wall_brush)
-   if target ~= self._last_target then
+   if target ~= self._last_target or pt ~= self._last_point then
+      self._last_point = pt
       self._last_target = target
 
-      self:_destroy_preview_entities()
-      if target then
-         local origin = radiant.entities.get_world_grid_location(target)
-         local offset = pt - origin
-         build_util.grow_walls_around(target, offset, function(min, max, normal)               
-               local col_a = self:_create_preview_column(min, column_brush)
-               local col_b = self:_create_preview_column(max, column_brush)
-               if col_a and col_b then
-                  if min ~= max then
-                     return self:_create_preview_wall(col_a, col_b, normal, wall_brush)
-                  end
+      if not target then
+         self._last_walls_desc = nil
+         self:_destroy_preview_entities()
+         return
+      end
+
+      local origin = radiant.entities.get_world_grid_location(target)
+      local offset = pt - origin
+
+      local walls = {}
+      local walls_desc = ''
+      build_util.grow_walls_around(target, offset, function(min, max, normal)
+            table.insert(walls, { min, max, normal })
+            walls_desc = walls_desc .. string.format('min=%s,max=%s,normal=%s ',
+                                                      tostring(min), tostring(max), tostring(normal))
+         end)
+
+      if walls_desc ~= self._last_walls_desc then
+         self._last_walls_desc = walls_desc
+
+         self:_destroy_preview_entities()
+         for i, wall in ipairs(walls) do
+            local min, max, normal = unpack(wall)
+            local col_a = self:_create_preview_column(min, column_brush)
+            local col_b = self:_create_preview_column(max, column_brush)
+            if col_a and col_b then
+               if min ~= max then
+                  self:_create_preview_wall(col_a, col_b, normal, wall_brush)
                end
-            end)
+            end
+         end
       end
    end
 end
