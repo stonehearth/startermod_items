@@ -206,6 +206,8 @@
       "monsters:goblins:wolf" : "file(entities/monsters/goblins/goblin_wolf)", 
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
       "monsters:goblins:wolf_sleep_collar" : "file(entities/critters/collars/goblin_wolf_sleep_collar.json)", 
+      "monsters:goblins:broken_flute" : "file(entities/monsters/goblins/goblin_flute/broken_flute.json)", 
+      "monsters:goblins:mountains_flute" : "file(entities/monsters/goblins/goblin_flute/mountains_flute.json)", 
 
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton/male/skeleton_male.json)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/female/skeleton_female.json)",

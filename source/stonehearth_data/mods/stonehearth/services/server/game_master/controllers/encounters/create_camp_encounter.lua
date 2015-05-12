@@ -60,11 +60,6 @@ function CreateCamp:_create_camp(location)
 
    self._population = stonehearth.population:get_population(info.npc_player_id)
 
-   -- carve a hole in the ground for the camp to sit in
-   --local size = 20 --TODO: this should actually come from Radius
-   --local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
-   --local cube2 = cube:translated(Point3.unit_y)
-
    local surface_region = self._sv.camp_region:translated(location)
    -- nuke all the entities around the camp
    local entities = radiant.terrain.get_entities_in_region(surface_region)

@@ -9,6 +9,10 @@
             "x" : 0,
             "y" : 0,
             "z" : 0
+         }, 
+          "unit_info" : {
+            "name" : "Hypnotic Campfire",
+            "Description" : "But... what makes it green?"
          }
       },
       "wood" : {

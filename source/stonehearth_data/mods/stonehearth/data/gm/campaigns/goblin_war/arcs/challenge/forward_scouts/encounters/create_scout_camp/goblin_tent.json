@@ -8,7 +8,12 @@
             "x" : 0,
             "y" : 0,
             "z" : 0
+         },
+         "unit_info" : {
+            "name" : "Wolf Trainer Tent",
+            "Description" : "Full of improbable makeshift devices."
          }
       }
+
    }
 }
