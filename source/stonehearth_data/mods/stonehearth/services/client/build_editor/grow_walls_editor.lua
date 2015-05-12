@@ -56,6 +56,12 @@ function GrowWallsEditor:go(response, column_brush, wall_brush)
                -- only grow around floor
                return false
             end
+
+            -- If this floor already has walls, then don't allow us to grow walls again.
+            if next(floor:get().connected_to) then
+               return false
+            end
+
             if floor:get().category ~= constants.floor_category.FLOOR then
                -- never grow around slabs or roads
                return false
