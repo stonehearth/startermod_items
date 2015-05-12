@@ -429,8 +429,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    destroy: function() {
       $(top).off("radiant_selection_changed.citizen_character_sheet")
 
-      if (self.selectedEntityTrace) {
-         self.selectedEntityTrace.destroy();
+      if (this.selectedEntityTrace) {
+         this.selectedEntityTrace.destroy();
       }
 
       this._super();

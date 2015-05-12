@@ -45,8 +45,7 @@ std::ostream& operator<<(std::ostream& os, DataStore const& o)
    return (os << "[DataStore]");
 }
 
-DataStore::DataStore() :
-   _isCppManaged(false)
+DataStore::DataStore()
 {
    (*data_object_).SetDataObjectChanged([this]() {
       if (_weakTable.is_valid()) {
@@ -61,6 +60,12 @@ DataStore::DataStore() :
 DataStore::~DataStore()
 {
    DS_LOG(9) << "destroying datastore";
+}
+
+void DataStore::ConstructObject()
+{
+   Record::ConstructObject();
+   flags_ = 0;
 }
 
 luabind::object DataStore::GetData() const
@@ -95,91 +100,14 @@ void DataStore::SerializeToJson(json::Node& node) const
    node.set("__controller", *controller_name_);
 }
 
-static const char* components[] = {
-      "stonehearth:ai",
-      "stonehearth:observers",
-      "stonehearth:commands",
-      "stonehearth:thought_bubble",
-      "stonehearth:center_of_attention_spot",
-      "stonehearth:material",
-      "stonehearth:resource_node",
-      "stonehearth:renewable_resource_node",
-      "stonehearth:stockpile",
-      "stonehearth:mining_zone",
-      "stonehearth:trapping_grounds",
-      "stonehearth:bait_trap",
-      "stonehearth:pet",
-      "stonehearth:pet_owner",
-      "stonehearth:water",
-      "stonehearth:waterfall",
-      "stonehearth:door",
-      "stonehearth:lamp",
-      "stonehearth:workshop",
-      "stonehearth:crafter" ,
-      "stonehearth:promotion_talisman",
-      "stonehearth:job",
-      "stonehearth:iconic_form",
-      "stonehearth:entity_forms",
-      "stonehearth:ghost_form",
-      "stonehearth:firepit",
-      "stonehearth:lease",
-      "stonehearth:lease_holder",
-      "stonehearth:sensor_ai_injector" ,
-      "stonehearth:posture" ,
-      "stonehearth:leash" ,
-      "stonehearth:equipment",
-      "stonehearth:equipment_piece",
-      "stonehearth:attributes",
-      "stonehearth:score",
-      "stonehearth:buffs",
-      "stonehearth:fabricator",
-      "stonehearth:fixture_fabricator",
-      "stonehearth:scaffolding_fabricator",
-      "stonehearth:portal",
-      "stonehearth:fixture",
-      "stonehearth:no_construction_zone",
-      "stonehearth:construction_data",
-      "stonehearth:construction_progress",
-      "stonehearth:construction_project",
-      "stonehearth:personality",
-      "stonehearth:backpack",
-      "stonehearth:carry_block",
-      "stonehearth:farmer_field",
-      "stonehearth:shepherd_pasture",
-      "stonehearth:shepherded_animal",
-      "stonehearth:growing",
-      "stonehearth:crop",
-      "stonehearth:dirt_plot",
-      "stonehearth:target_tables",
-      "stonehearth:combat_state",
-      "stonehearth:building",
-      "stonehearth:floor",
-      "stonehearth:column",
-      "stonehearth:wall",
-      "stonehearth:roof",
-      "stonehearth:pathfinder",
-      "stonehearth:ladder",
-      "stonehearth:stacks_model_renderer",
-      "stonehearth:party_member",
-      "stonehearth:loot_drops",
-};
-
-// This is a REALLY crappy way to do this.  We should store this bit when we save,
-// but that would break compatibility with Alpha 9.  Do this for now, and remove it
-// when porting to develop
 bool DataStore::GetIsCppManaged() const
 {
-   for (int i = 0; i < ARRAY_SIZE(components); i++) {
-      if (strcmp(components[i], (*controller_name_).c_str()) == 0) {
-         return true;
-      }
-   }
-   return false;
+   return ((*flags_) & DataStoreFlags::IS_CPP_MANAGED) != 0;
 }
 
 void DataStore::RemoveKeepAliveReferences()
 {
-   if (_isCppManaged) {
+   if (GetIsCppManaged()) {
       DS_LOG(9) << "preserving keep alive reference to controller of cpp managed datastore";
       return;
    }
@@ -187,12 +115,12 @@ void DataStore::RemoveKeepAliveReferences()
    _controllerKeepAliveObject = luabind::object();
 }
 
-void DataStore::RestoreController(DataStorePtr self, bool isCppManaged)
+void DataStore::RestoreController(DataStorePtr self, int flags)
 {
    if (_weakTable.is_valid()) {
       return;
    }
-   _isCppManaged = isCppManaged || GetIsCppManaged();
+   flags_ = (*flags_) | flags;
 
    lua_State* L = GetData().interpreter();
    lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
@@ -210,7 +138,7 @@ void DataStore::RestoreController(DataStorePtr self, bool isCppManaged)
                // gets a chance to point to it.
                _controllerKeepAliveObject = controller;
 
-               if (_isCppManaged) {
+               if (GetIsCppManaged()) {
                   DS_LOG(9) << "restoring controller " << uri << " (weak)";
                   saved_variables = luabind::object(L, om::DataStoreRefWrapper(self));
                } else {
@@ -426,14 +354,14 @@ void DataStore::SetController(luabind::object controller)
              << (luabind::object(_weakTable["controller"]).is_valid() ? luabind::type(_weakTable["controller"]) : -1);
 }
 
-luabind::object DataStore::CreateController(DataStorePtr self, std::string const& type, std::string const& name)
+luabind::object DataStore::CreateController(DataStorePtr self, std::string const& type, std::string const& name, int flags)
 {
    controller_type_ = type;
    controller_name_ = name;
 
    // Ordering is important here to make sure the controller doesn't get
    // reaped by the GC before we can return a reference to it.
-   RestoreController(self);
+   RestoreController(self, flags);
    luabind::object controller = GetController();
    RemoveKeepAliveReferences();
 

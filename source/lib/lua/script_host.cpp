@@ -1085,7 +1085,7 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
 
    SH_LOG(7) << "restoring datastores controllers";
    for (om::DataStorePtr datastore : datastores) {
-      datastore->RestoreController(datastore);
+      datastore->RestoreController(datastore, 0);
    }
    SH_LOG(7) << "finished restoring datastores controllers";
 
@@ -1455,6 +1455,8 @@ void ScriptHost::StartCpuProfiling(CpuProfilerMethod method, int samplingTime)
    if (_cpuProfileInstructionSamplingTime <= 0) {
       _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1000);
    }
+
+   ResetProfileData();
 
    _lastHookTimestamp = perfmon::Timer::GetCurrentCounterValueType();
    for (lua_State* L : allThreads_) {

@@ -36,7 +36,7 @@ public:
    Iterator find(const K& key) const;
 
    void Add(K const& key, V const& value);
-   void Remove(const K& key);
+   void Remove(K key);
    bool Contains(const K& key) const;
    V Get(const K& key, V default) const;
    int Size() const { return (int)items_.size(); }

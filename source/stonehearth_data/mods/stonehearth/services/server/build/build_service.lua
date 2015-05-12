@@ -694,14 +694,16 @@ end
 --    @param column_brush - the type of columns to generate
 --    @param wall_brush - the type of walls to generate
 --
-function BuildService:grow_walls_command(session, response, floor, column_brush, wall_brush)
+function BuildService:grow_walls_command(session, response, floor, column_brush, wall_brush, query_pt)
    local success = self:do_command('grow_walls', response, function()
-         self:grow_walls(floor, column_brush, wall_brush)
+         self:grow_walls(floor, column_brush, wall_brush, ToPoint3(query_pt))
       end)
    return success or nil
 end
 
-function BuildService:grow_walls(floor, column_brush, wall_brush)
+function BuildService:grow_walls(floor, column_brush, wall_brush, query_pt)
+   checks('self', 'Entity', 'string', 'string', '?Point3')
+
    local building = build_util.get_building_for(floor)
    local walls = {}
 
@@ -715,7 +717,11 @@ function BuildService:grow_walls(floor, column_brush, wall_brush)
       return
    end
 
-   build_util.grow_walls_around(floor, function(min, max, normal)
+   if query_pt then
+      local origin = radiant.entities.get_world_grid_location(floor)
+      query_pt = query_pt - origin      
+   end
+   build_util.grow_walls_around(floor, query_pt, function(min, max, normal)
          local wall = self:_add_wall_span(building, min, max, normal, column_brush, wall_brush)
          walls[wall:get_id()] = wall
 
@@ -729,6 +735,27 @@ function BuildService:grow_walls(floor, column_brush, wall_brush)
    return walls
 end
 
+
+function BuildService:delete_structure_command(session, response, entity)
+   local success = self:do_command('delete_structure', response, function()
+         self:delete_structure(entity)
+      end)
+
+   if success then
+      return true
+   end
+end
+
+function BuildService:delete_structure(entity)
+   -- xxxx: don't check this in
+   entity:get_component('mob')
+            :get_parent()
+               :get_component('stonehearth:wall')
+                  :layout()
+
+   -- nuke the window or door!
+   self:unlink_entity(entity)
+end
 
 -- Pops a roof on a building with no roof. 
 --

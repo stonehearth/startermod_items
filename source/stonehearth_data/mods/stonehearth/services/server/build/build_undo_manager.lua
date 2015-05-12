@@ -13,8 +13,14 @@ function BuildUndoManager:__init()
    self._added_entities = {}
    self._tracer = _radiant.sim.create_tracer('undo manager')
    self._tracer_category = self._tracer.category
-   
    self._tracer:stop()
+
+   -- clear the undo stack whenever we save.  otherwise we'll end up
+   -- orphaning entities which were destroyed in previous steps (e.g
+   -- deleting an authored building)
+   radiant.events.listen(radiant, 'radiant:save', function()
+         self:_clear_undo_stack()
+      end)
 end
 
 function BuildUndoManager:begin_transaction(desc)

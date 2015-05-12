@@ -206,7 +206,7 @@ void Simulation::OneTimeIninitializtion()
          return;
       }
 
-      bool enabled = !scriptHost_->IsCpuProfilerRunning();
+      bool enabled = scriptHost_->IsCpuProfilerRunning();
       if (enabled) {
          scriptHost_->StopCpuProfiling(true);
       } else {
@@ -1104,6 +1104,7 @@ void Simulation::Save(boost::filesystem::path const& saveid)
    ASSERT(store_);
 
    SIM_LOG(0) << "Starting save.";
+   scriptHost_->Trigger("radiant:save");
    scriptHost_->FullGC();
 
    std::string error;

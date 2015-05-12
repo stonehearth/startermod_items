@@ -26,7 +26,7 @@ function Party:initialize(unit_controller, player_id, id, ord)
    self._sv.members = {}
    self._sv.banners = {}
    self._sv.party_size = 0
-   self._sv.leash_range = 10
+   self._sv.leash_range = 20
    self._sv.player_id = player_id
    self._party_tasks = {}
 end

@@ -24,7 +24,7 @@ public:
    void SaveValue(SerializationType r, Protocol::Value* msg) const override;
 
    void Clear();
-   void Remove(const T& item);
+   void Remove(T item);
    void Add(const T& item);
 
    bool IsEmpty() const;

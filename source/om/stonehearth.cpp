@@ -65,7 +65,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, const char* name)
             // or the client).  The entity will manually delete them when being destroyed.
             om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
             datastore->SetData(luabind::newtable(L));
-            component = datastore->CreateController(datastore, "components", name);
+            component = datastore->CreateController(datastore, "components", name, om::DataStore::IS_CPP_MANAGED);
             if (component) {
                entity->AddLuaComponent(name, datastore);
                SetEntityForComponent(L, component, entity, luabind::newtable(L));
@@ -103,7 +103,7 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, const char* name, objec
          // or the client).  The entity will manually delete them when being destroyed.
          om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
          datastore->SetData(luabind::newtable(L));
-         component = datastore->CreateController(datastore, "components", name);
+         component = datastore->CreateController(datastore, "components", name, om::DataStore::IS_CPP_MANAGED);
          if (component) {
             entity->AddLuaComponent(name, datastore);
             SetEntityForComponent(L, component, entity, data);
@@ -156,7 +156,7 @@ Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
                } else {
                   om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
                   datastore->SetData(luabind::newtable(L));
-                  object lua_component = datastore->CreateController(datastore, "components", component_name);
+                  object lua_component = datastore->CreateController(datastore, "components", component_name, om::DataStore::IS_CPP_MANAGED);
                   if (lua_component.is_valid()) {
                      entity->AddLuaComponent(component_name.c_str(), datastore);
                      // XXX: don't call initialize till they're all there!
