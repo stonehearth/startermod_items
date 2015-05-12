@@ -34,6 +34,13 @@
                   "raid_timeout_variance_minutes" : 60,
                   "health" : 150, 
                   "menace" : 100
+               },
+               "loot_drops" : {
+                  "items" : [
+                     {"uri" : "", "weight" : 1 },
+                     {"uri" : "stonehearth:resources:gold:ore", "weight" : 1 },
+                     {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+                  ]
                }
             },
             "ferocious_wolf_2" : {
@@ -46,8 +53,15 @@
                   "raid_timeout_variance_minutes" : 30,
                   "health" : 120, 
                   "menace" : 90
-
+               },
+               "loot_drops" : {
+                  "items" : [
+                     {"uri" : "", "weight" : 1 },
+                     {"uri" : "stonehearth:resources:gold:ore", "weight" : 1 },
+                     {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+                  ]
                }
+
             },
             "ferocious_wolf_3" : {
                "from_ctx" : "create_scout_camp.citizens.tame_wolf[3]",
@@ -59,6 +73,13 @@
                   "raid_timeout_variance_minutes" : 60,
                   "health" : 200,
                   "menace" : 150
+               },
+               "loot_drops" : {
+                  "items" : [
+                     {"uri" : "", "weight" : 1 },
+                     {"uri" : "stonehearth:resources:gold:ore", "weight" : 1 },
+                     {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+                  ]
                }
             }
          }
