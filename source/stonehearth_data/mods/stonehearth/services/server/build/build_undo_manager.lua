@@ -28,6 +28,9 @@ function BuildUndoManager:activate()
          self:_clear_undo_stack()
       end)
 
+   -- Undo needs any traces to be done in a transaction; we also need the buildings
+   -- to create an entry in the undo stack so that we have something to revert _to_ when
+   -- doing an undo.
    self:begin_transaction(ACTIVATE_ENTRY)
    for _, building in pairs(self._sv.buildings) do
       self:_trace_entity(building)
@@ -350,6 +353,14 @@ function BuildUndoManager:clear()
    self._entity_traces = {}
    self._save_states = {}
    self._unlinked_entities = {}
+
+   -- Just in case, remove any remaining buildings in our building map, even
+   -- though removing the traces above should have removed the buildings.
+   for id, _ in pairs(self._sv.buildings) do
+      self:_untrace_entity(id)
+   end
+   self._sv.buildings = {}
+   self.__saved_variables:mark_changed()   
 end
 
 -- clear the undo stack.  each step in the undo stack includes a list of entities
