@@ -59,7 +59,11 @@
             { "uri" : "stonehearth:toys:plushie_toy_rabbit", "weight" : 5  },
             { "uri" : "stonehearth:armor:leather_vest", "weight" : 5  },
             { "uri" : "stonehearth:armor:bronze_breastplate", "weight" : 3  },
-            { "uri" : "stonehearth:armor:iron_mail" , "weight" : 1  }
+            { "uri" : "stonehearth:armor:iron_mail" , "weight" : 1  },
+            { "uri" : "stonehearth:resources:copper:ore" },
+            { "uri" : "stonehearth:resources:silver:ore"  },
+            { "uri" : "stonehearth:resources:gold:ore"  }, 
+            { "uri" : "stonehearth:monsters:goblins:broken_flute" }
          ]
       }
    }   
