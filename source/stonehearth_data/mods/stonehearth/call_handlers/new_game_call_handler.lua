@@ -13,6 +13,8 @@ local GENERATION_RADIUS = 2
 
 local NewGameCallHandler = class()
 
+local GAME_OPTIONS
+
 function NewGameCallHandler:sign_in(session, response, num_tiles_x, num_tiles_y, seed)
    stonehearth.player:add_player(session.player_id, 'stonehearth:kingdoms:ascendancy')   
    return {
@@ -25,6 +27,8 @@ function NewGameCallHandler:set_game_options(session, response, options)
       stonehearth.game_master:enable_campaign_type('combat', false)
       stonehearth.game_master:enable_campaign_type('ambient_threats', false)
    end
+
+   GAME_OPTIONS = options -- gross hack because call handlers aren't persisted across calls.
    return true
 end
 
@@ -244,7 +248,37 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:talisman'))
 
+   -- kickstarter pets
+   if GAME_OPTIONS.starting_pets then
+      if GAME_OPTIONS.starting_pets.puppy then   
+         self:place_pet(pop, 'stonehearth:squirrel', camp_x-3, camp_z-6)
+      end
+
+      if GAME_OPTIONS.starting_pets.kitten then   
+         self:place_pet(pop, 'stonehearth:rabbit', camp_x+0, camp_z-6)
+      end
+
+      if GAME_OPTIONS.starting_pets.mammoth then   
+         self:place_pet(pop, 'stonehearth:sheep', camp_x+3, camp_z-6)
+      end
+
+      if GAME_OPTIONS.starting_pets.dragon_whelp then   
+         --self:place_pet(pop, 'stonehearth:dragon_whelp', camp_x+3, camp_z-6)
+      end
+   end
+
    return {random_town_name = random_town_name}
+end
+
+function NewGameCallHandler:place_pet(pop, uri, x, z)
+   local pet = self:place_item(pop, uri, x, z)
+   
+   local equipment = pet:add_component('stonehearth:equipment')
+   local pet_collar = radiant.entities.create_entity('stonehearth:pet_collar')
+   equipment:equip_item(pet_collar)
+
+   local town = stonehearth.town:get_town(pop:get_player_id())   
+   town:add_pet(pet)
 end
 
 function NewGameCallHandler:place_citizen(pop, x, z, job, talisman)
