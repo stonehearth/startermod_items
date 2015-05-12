@@ -3,7 +3,13 @@ local BuildUndoManager = class()
 
 local log = radiant.log.create_logger('build.undo')
 
-function BuildUndoManager:__init()
+local ACTIVATE_ENTRY = 'activate'
+
+function BuildUndoManager:initialize()
+   self._sv.buildings = {}
+end
+
+function BuildUndoManager:activate()
    self._changed_objects = {}
    self._object_traces = {}
    self._entity_traces = {}
@@ -21,6 +27,15 @@ function BuildUndoManager:__init()
    radiant.events.listen(radiant, 'radiant:save', function()
          self:_clear_undo_stack()
       end)
+
+   -- Undo needs any traces to be done in a transaction; we also need the buildings
+   -- to create an entry in the undo stack so that we have something to revert _to_ when
+   -- doing an undo.
+   self:begin_transaction(ACTIVATE_ENTRY)
+   for _, building in pairs(self._sv.buildings) do
+      self:_trace_entity(building)
+   end
+   self:end_transaction(ACTIVATE_ENTRY)
 end
 
 function BuildUndoManager:begin_transaction(desc)
@@ -62,6 +77,7 @@ function BuildUndoManager:end_transaction(desc)
    end
 
    table.insert(self._undo_stack, {
+         desc = desc,
          changed_objects = self._changed_objects,
          added_entities = self._added_entities,
          unlinked_entities = self._unlinked_entities,
@@ -84,6 +100,12 @@ function BuildUndoManager:undo()
 
    if stack_top > 0 then
       local entry = self._undo_stack[stack_top]
+
+      -- Do not allow entire that came from deserialization to be destroyed.
+      if entry.desc == ACTIVATE_ENTRY then
+         return
+      end
+
       table.remove(self._undo_stack, stack_top)
       stack_top = stack_top - 1
 
@@ -195,6 +217,10 @@ function BuildUndoManager:trace_building(entity)
 
    assert(self._in_transaction)
    self:_trace_entity(entity)
+
+   self._sv.buildings[entity:get_id()] = entity
+
+   self.__saved_variables:mark_changed()
 end
 
 function BuildUndoManager:_trace_entity(entity)
@@ -327,6 +353,14 @@ function BuildUndoManager:clear()
    self._entity_traces = {}
    self._save_states = {}
    self._unlinked_entities = {}
+
+   -- Just in case, remove any remaining buildings in our building map, even
+   -- though removing the traces above should have removed the buildings.
+   for id, _ in pairs(self._sv.buildings) do
+      self:_untrace_entity(id)
+   end
+   self._sv.buildings = {}
+   self.__saved_variables:mark_changed()   
 end
 
 -- clear the undo stack.  each step in the undo stack includes a list of entities
@@ -359,6 +393,10 @@ function BuildUndoManager:_untrace_entity(id)
       end
       self._entity_traces[id] = nil
    end
+   if self._sv.buildings[id] then
+      self._sv.buildings[id] = nil
+   end
+   self.__saved_variables:mark_changed()
 end
 
 return BuildUndoManager
