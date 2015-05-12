@@ -1,0 +1,24 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 1
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(broken_flute.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Broken Flute",
+         "description": "Produces pathetically wheezy wailing.",
+         "icon" : "file(broken_flute.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "tool"
+      }
+   }
+}

@@ -1,0 +1,37 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 1
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(goblin_flute.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Mountain's Lullabye Flute",
+         "description": "Pitched to soothe Mountain's soul.",
+         "icon" : "file(goblin_flute.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "tool"
+      }, 
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+            ],
+            "observers": [
+            ]
+         },
+         "slot" : "none",
+         "ilevel" : 2,
+         "roles" : "shepherd_job",
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   }
+}
