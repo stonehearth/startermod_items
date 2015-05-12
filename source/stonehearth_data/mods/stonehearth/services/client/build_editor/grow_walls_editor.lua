@@ -56,6 +56,12 @@ function GrowWallsEditor:go(response, column_brush, wall_brush)
                -- only grow around floor
                return false
             end
+
+            -- If this floor already has walls, then don't allow us to grow walls again.
+            if next(floor:get().connected_to) then
+               return false
+            end
+
             if floor:get().category ~= constants.floor_category.FLOOR then
                -- never grow around slabs or roads
                return false
@@ -103,8 +109,7 @@ function GrowWallsEditor:is_road(building)
 end
 
 function GrowWallsEditor:_switch_to_target(target, pt, column_brush, wall_brush)
-   if target ~= self._last_target or pt ~= self._last_point then
-      self._last_point = pt
+   if target ~= self._last_target then
       self._last_target = target
 
       self:_destroy_preview_entities()
