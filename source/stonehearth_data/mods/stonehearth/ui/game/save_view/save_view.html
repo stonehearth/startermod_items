@@ -5,7 +5,7 @@
          <div id="saves">
             {{partial "saveList"}}
          </div>
-         {{#unless model}}
+         {{#unless controller.hideSave}}
             <a href="#" {{action 'deleteSaveGame' target=view}}>
                <button id="deleteSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_delete}}</button>
             </a>
@@ -15,7 +15,7 @@
             <button id="loadSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:load_game}}</button>
          </a>
          
-         {{#unless model}}
+         {{#unless controller.hideSave}}
             <a href="#" {{action overwriteSaveGame target="view"}}>
                <button id="overwriteSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_overwrite}}</button>
             </a>
