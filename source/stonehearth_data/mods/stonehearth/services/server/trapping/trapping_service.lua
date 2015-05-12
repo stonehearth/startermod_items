@@ -28,7 +28,7 @@ function TrappingService:create_trapping_grounds(player_id, location, size)
    local trapping_grounds_component = entity:add_component('stonehearth:trapping_grounds')
    trapping_grounds_component:set_size(size.x, size.z)
 
-   radiant.terrain.place_entity(entity, location)
+   radiant.terrain.place_entity_at_exact_location(entity, location)
 
    trapping_grounds_component:start_tasks()
 
