@@ -26,7 +26,8 @@ Convert::Convert(dm::Store const& store, int flags) :
 }
 
 void Convert::ToProtobuf(luabind::object const& from, Protocol::Value* to) {
-   std::vector<luabind::object> tables;
+   luabind::object tables = luabind::newtable(from.interpreter());
+   tables["n"] = 0;
 
    Protocol::LuaObject* msg = to->MutableExtension(Protocol::LuaObject::extension);
    LuaToProtobuf(from, msg, msg, tables);
@@ -114,7 +115,7 @@ void Convert::ProtobufToUserdata(Protocol::Value const& msg, luabind::object& ob
    }
 }
 
-void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, Protocol::LuaObject* rootmsg, std::vector<luabind::object>& tables)
+void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, Protocol::LuaObject* rootmsg, luabind::object& tables)
 {
    if (luabind::type(from) == LUA_TTABLE) {
       // A Lua table is an instance of a class if it has member variable called __type == "object"
@@ -233,17 +234,17 @@ void Convert::ProtobufToLua(Protocol::LuaObject const& msg, luabind::object &obj
    }
 }
 
-uint Convert::SaveLuaTableToProtobuf(luabind::object const& obj, Protocol::LuaObject* rootmsg, std::vector<luabind::object>& tables)
+uint Convert::SaveLuaTableToProtobuf(luabind::object const& obj, Protocol::LuaObject* rootmsg, luabind::object& tables)
 {
-   uint i;
-   for (i = 0; i < tables.size(); i++) {
-      if (obj == tables[i]) {
-         return i;
-      }
+   luabind::object i = tables[obj];
+   if (luabind::type(i) == LUA_TNUMBER) {
+      return luabind::object_cast<int>(i);
    }
-   tables.push_back(obj);
+   uint n = luabind::object_cast<int>(tables["n"]);
+   tables[obj] = n;
+   tables["n"] = n + 1;
 
-   CONVERT_LOG(7) << "saving lua LUA_TTABLE -> { (table index " << i << ")";
+   CONVERT_LOG(7) << "saving lua LUA_TTABLE -> { (table index " << n << ")";
    {
       lua_State* L = obj.interpreter();
 
@@ -270,7 +271,7 @@ uint Convert::SaveLuaTableToProtobuf(luabind::object const& obj, Protocol::LuaOb
       }
    }
    CONVERT_LOG(7) << "}";
-   return i;
+   return n;
 }
 
 void Convert::RestoreLuaTableFromProtobuf(uint i, Protocol::LuaObject const& rootmsg, std::unordered_map<uint, luabind::object>& tables)
