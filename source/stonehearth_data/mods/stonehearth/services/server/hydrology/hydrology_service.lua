@@ -32,7 +32,11 @@ function HydrologyService:initialize()
 end
 
 function HydrologyService:start()
-   self:_deferred_initialize()
+   -- Wait for the end of the gameloop so that the dirty navgrid tiles from world creation have been
+   -- clocked through the water_tight_delta_region
+   radiant.events.listen_once(radiant, 'radiant:gameloop:end', function()
+         self:_deferred_initialize()
+      end)
 end
 
 function HydrologyService:_deferred_initialize()
