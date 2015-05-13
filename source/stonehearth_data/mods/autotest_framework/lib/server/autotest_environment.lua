@@ -184,12 +184,13 @@ function env.create_trapping_grounds(x, z, options)
    local player_id = env.session.player_id
    local size = options.size or { x = 16, z = 16 }
 
-   local location = Point3(x, 1, z)
+   local location = radiant.terrain.get_point_on_terrain(Point3(x, 1, z))
    return stonehearth.trapping:create_trapping_grounds(player_id, location, size)
 end
 
 function env.create_shepherd_pasture(x, z, x_size, z_size)
-   return stonehearth.shepherd:create_new_pasture(env.session, Point3(x, 1, z), {x = x_size, z = z_size})
+   local location = radiant.terrain.get_point_on_terrain(Point3(x, 1, z))
+   return stonehearth.shepherd:create_new_pasture(env.session, location, {x = x_size, z = z_size})
 end
 
 function env.equip_weapon(entity, weapon_uri)

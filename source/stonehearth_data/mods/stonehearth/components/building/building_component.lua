@@ -58,7 +58,6 @@ function Building:initialize(entity, json)
    self:_trace_entity_container()
    self._traces = {}
    self._cp_listeners = {}
-   self._cached_envelope = {}
 end
 
 function Building:destroy()
@@ -229,10 +228,6 @@ end
 function Building:get_building_envelope(kind, ignoring_blueprint)
    checks('self', 'string', '?Entity')
 
-   if self._cached_envelope[kind] then
-      return self._cached_envelope[kind]
-   end
-   
    local envelope = Region3()
    local origin = radiant.entities.get_world_grid_location(self._entity)
    for _, kind in ipairs(STRUCTURE_TYPES) do
@@ -249,16 +244,13 @@ function Building:get_building_envelope(kind, ignoring_blueprint)
                local rgn = component:get_region()
                if rgn then
                   local location = radiant.entities.get_world_grid_location(entity)
-                  local offset = location - origin               
+                  local offset = location - origin
                   envelope:add_region(rgn:get()
                                            :translated(offset))
                end
             end
          end
       end
-   end
-   if self._sv.active then
-      self._cached_envelope[kind] = envelope
    end
    return envelope
 end
@@ -268,8 +260,6 @@ function Building:set_active(active)
    if active then
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
-   else
-      self._cached_envelope = {}
    end
 end
 
@@ -354,6 +344,12 @@ function Building:layout_roof(roof)
 
    if roof then
       self:_add_patch_walls_to_building(roof)
+
+      -- finally once every structure has adjusted its size to cope
+      -- with the new configuration of the roof, remove parts of the
+      -- roof which still overlap structures
+      roof:get_component(ROOF)
+            :clip_overlapping_structures()
    end
 end
 

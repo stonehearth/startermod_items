@@ -1354,6 +1354,7 @@
       "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
+      "build:undo_manager" : "file(services/server/build/build_undo_manager.lua)",
       "build:ladder_manager" : "file(services/server/build/ladder_manager.lua)",
       "build:scaffolding_manager" : "file(services/server/build/scaffolding_manager.lua)",
       "build:ladder_builder" : "file(services/server/build/ladder_builder.lua)",
