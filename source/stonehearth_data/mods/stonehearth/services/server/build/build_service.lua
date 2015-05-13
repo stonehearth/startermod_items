@@ -747,14 +747,14 @@ function BuildService:delete_structure_command(session, response, entity)
 end
 
 function BuildService:delete_structure(entity)
-   -- xxxx: don't check this in
-   entity:get_component('mob')
-            :get_parent()
-               :get_component('stonehearth:wall')
-                  :layout()
+   local wall = entity:get_component('mob')
+                           :get_parent()
 
    -- nuke the window or door!
    self:unlink_entity(entity)
+
+   wall:get_component('stonehearth:wall')
+            :layout()
 end
 
 -- Pops a roof on a building with no roof. 
