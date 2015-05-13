@@ -1,0 +1,11 @@
+{
+   "type" : "arc",
+   "rarity" : "common",
+
+   "encounters" : {
+      "wait to start" : "file(encounters/wait_to_start.json)", 
+      "create ogo camp" : "file(encounters/create_ogo_camp.json)", 
+      "fakeout shakedown" : "file(encounters/fakeout_shakedown.json)", 
+      "wait to attack" : "file(encounters/wait_to_attack.json)"
+   }
+}
