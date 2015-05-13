@@ -2,8 +2,14 @@ local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 
-local GrowWallsEditor = class()
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+
+
+local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
+
 local log = radiant.log.create_logger('build_editor.grow_walls')
+local GrowWallsEditor = class()
 
 -- this is the component which manages the fabricator entity.
 function GrowWallsEditor:__init(build_service)
@@ -61,11 +67,24 @@ function GrowWallsEditor:go(response, column_brush, wall_brush)
                -- never grow around roads
                return false
             end
-            return true
+
+            -- try to grow...
+            self:_try_grow_walls(entity, result.brick)
+
+            return self._last_walls ~= nil
          end)
       :progress(function(selector, entity, result)
-            local query_pt = result and result.brick or nil
-            self:_switch_to_target(entity, query_pt, column_brush, wall_brush)
+            if not entity then
+               self._last_point = nil
+               self._last_target = nil
+               self._last_walls = nil
+               self._last_walls_desc = nil
+               self._cursor_dirty = false
+               self:_destroy_preview_entities()
+               return
+            end
+            
+            self:_recreate_cursor(column_brush, wall_brush)
          end)
       :done(function(selector, entity, result)
             log:detail('box selected')
@@ -103,17 +122,9 @@ function GrowWallsEditor:is_road(building)
    return false
 end
 
-function GrowWallsEditor:_switch_to_target(target, pt, column_brush, wall_brush)
+function GrowWallsEditor:_try_grow_walls(target, pt)
+   checks('self', 'Entity', 'Point3')
    if target ~= self._last_target or pt ~= self._last_point then
-      self._last_point = pt
-      self._last_target = target
-
-      if not target then
-         self._last_walls_desc = nil
-         self:_destroy_preview_entities()
-         return
-      end
-
       local origin = radiant.entities.get_world_grid_location(target)
       local offset = pt - origin
 
@@ -126,21 +137,58 @@ function GrowWallsEditor:_switch_to_target(target, pt, column_brush, wall_brush)
          end)
 
       if walls_desc ~= self._last_walls_desc then
+         self._cursor_dirty = true
          self._last_walls_desc = walls_desc
 
-         self:_destroy_preview_entities()
          for i, wall in ipairs(walls) do
             local min, max, normal = unpack(wall)
-            local col_a = self:_create_preview_column(min, column_brush)
-            local col_b = self:_create_preview_column(max, column_brush)
-            if col_a and col_b then
-               if min ~= max then
-                  self:_create_preview_wall(col_a, col_b, normal, wall_brush)
-               end
+            if self:_wall_obstructed(min, max) then
+               self._last_walls = nil
+               return
+            end
+         end
+         self._last_walls = walls
+      end
+   end
+end
+
+function GrowWallsEditor:_recreate_cursor(column_brush, wall_brush)
+   if not self._cursor_dirty then 
+      return
+   end
+
+   self._cursor_dirty = false
+   self:_destroy_preview_entities()
+   if self._last_walls then
+      for i, wall in ipairs(self._last_walls) do
+         local min, max, normal = unpack(wall)            
+         local col_a = self:_create_preview_column(min, column_brush)
+         local col_b = self:_create_preview_column(max, column_brush)
+         if col_a and col_b then
+            if min ~= max then
+               self:_create_preview_wall(col_a, col_b, normal, wall_brush)
             end
          end
       end
    end
+end
+
+function GrowWallsEditor:_wall_obstructed(min, max)
+   local query_cube = Cube3(min, max + Point3(1, STOREY_HEIGHT, 1))
+   for _, entity in pairs(radiant.terrain.get_entities_in_cube(query_cube)) do
+      if entity:get_id() == 1 then
+         return true
+      end
+      local blueprint = build_util.get_blueprint_for(entity)
+      if blueprint then
+         return true
+      end
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         return true
+      end
+   end
+   return false
 end
 
 function GrowWallsEditor:_create_preview_column(pt, column_brush)
