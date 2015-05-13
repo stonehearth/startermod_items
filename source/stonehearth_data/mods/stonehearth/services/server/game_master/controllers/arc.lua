@@ -24,6 +24,11 @@ function Arc:start()
    self._sv.encounters = self:_create_nodelist('encounter', self._sv._info.encounters)
    self.__saved_variables:mark_changed()
 
+   --In the arc's context, which is passed to all children, keep track of
+   --how many times each scenario is created
+   local ctx = self:get_ctx()
+   ctx.arc_encounters = {}
+
    self:_trigger_edge('start', self)
 end
 
@@ -137,6 +142,15 @@ function Arc:_start_encounter(name, encounter, parent_node)
    local enc_ctx = game_master_lib.create_context(name, encounter, parent_node)
    enc_ctx.encounter = encounter
    enc_ctx.encounter_name = name
+
+   --update the ctx
+   local ctx = self:get_ctx()
+   local num_times_run = ctx.arc_encounters[name]
+   if not num_times_run then
+      ctx.arc_encounters[name] = 1
+   else
+      ctx.arc_encounters[name] = num_times_run + 1
+   end
 
    encounter:start(enc_ctx)
 

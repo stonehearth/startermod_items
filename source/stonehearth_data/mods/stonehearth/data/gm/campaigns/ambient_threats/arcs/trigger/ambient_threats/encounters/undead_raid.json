@@ -34,8 +34,10 @@
                   "role" : "zombie",
                   "location" : { "x": 0, "z": 0 },
                   "min" : 1,
-                  "max" : 4,
-                  "range" : 20
+                  "max" : 2,
+                  "range" : 20, 
+                  "scale_with_run" : true
+
                },
 
                "equipment" : {
@@ -47,8 +49,9 @@
                   "role" : "skeleton",
                   "location" : { "x": 3, "z": 3 },
                   "min" : 0,
-                  "max" : 3,
-                  "range" : 20
+                  "max" : 2,
+                  "range" : 20,
+                  "scale_with_run" : true
                },
 
                "equipment" : {
