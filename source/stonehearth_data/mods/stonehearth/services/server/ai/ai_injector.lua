@@ -1,10 +1,8 @@
 local AiInjector = class()
 local log = radiant.log.create_logger('ai.injector')
 
--- injecting_entity is optional
-function AiInjector:__init(entity, ai, injecting_entity)
+function AiInjector:__init(entity, ai)
    self._entity = entity
-   self._injecting_entity = injecting_entity
    self._injected = {}
    self._injected.actions = {}
    self._injected.observers = {}
@@ -19,7 +17,7 @@ function AiInjector:inject_ai(ai)
    if ai.actions then
       local aic = self._entity:add_component('stonehearth:ai')
       for _, uri in ipairs(ai.actions) do
-         aic:add_action(uri, self._injecting_entity)
+         aic:add_action(uri)
          table.insert(self._injected.actions, uri)
       end
    end
@@ -27,7 +25,7 @@ function AiInjector:inject_ai(ai)
    if ai.observers then
       local obs = self._entity:add_component('stonehearth:observers')
       for _, uri in ipairs(ai.observers) do
-         obs:add_observer(uri, self._injecting_entity)
+         obs:add_observer(uri)
          table.insert(self._injected.observers, uri)
       end
    end

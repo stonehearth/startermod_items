@@ -282,7 +282,7 @@ function Task:_create_action()
          name = self._name,
          does = activity.name,
          args = activity.args,
-         create_action = function(_, ai_component, entity, injecting_entity)
+         create_action = function(_, ai_component, entity)
             local action = RunTaskAction(self, self._activity)
             action.name = self._name .. ' run task action ' .. stonehearth.ai:format_activity(self._activity)
             action.does = activity.name

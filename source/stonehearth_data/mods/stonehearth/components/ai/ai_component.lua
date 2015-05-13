@@ -95,19 +95,37 @@ function AIComponent:set_status_text(text)
    self.__saved_variables:mark_changed()
 end
 
-function AIComponent:add_action(uri, injecting_entity)
-   if injecting_entity == nil then
-      self._sv._actions[uri] = true
-      self.__saved_variables:mark_changed()
+function AIComponent:add_action(uri)
+   local ref_count = self:_add_ref(uri)
+   if ref_count > 1 then
+      return
    end
 
-   self:_add_action_script(uri, injecting_entity)
+   -- new action, add it to the system
+   self:_add_action_internal(uri)
 end
 
-function AIComponent:_add_action_script(uri, injecting_entity)
-   local ctor = radiant.mods.load_script(uri)
-   assert(ctor, string.format('could not load action script at %s', tostring(uri)))
-   self:_add_action(uri, ctor, injecting_entity)
+function AIComponent:_add_ref(uri)
+   local ref_count = self._sv._action_ref_counts[uri] or 0
+   ref_count = ref_count + 1
+   self._sv._action_ref_counts[uri] = ref_count
+   self.__saved_variables:mark_changed()
+   return ref_count
+end
+
+function AIComponent:_dec_ref(uri)
+   local ref_count = self._sv._action_ref_counts[uri] or 0
+   ref_count = ref_count - 1
+
+   if ref_count <= 0 then
+      ref_count = 0
+      self._sv._action_ref_counts[uri] = nil
+   else
+      self._sv._action_ref_counts[uri] = ref_count
+   end
+
+   self.__saved_variables:mark_changed()
+   return ref_count
 end
 
 function AIComponent:_action_key_to_name(key)
@@ -118,7 +136,9 @@ function AIComponent:_action_key_to_name(key)
    end
 end
 
-function AIComponent:_add_action(key, action_ctor, injecting_entity)
+-- action may be a uri or a class instance
+function AIComponent:_add_action_internal(action)
+   local key, action_ctor = self:_get_key_and_constructor_for_action(action)
    local does = action_ctor.does
    assert(does)
    assert(not action_key_to_activity[key] or action_key_to_activity[key] == does)
@@ -129,10 +149,9 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
    end
 
    action_key_to_activity[key] = does
-   local action_index = self._action_index[does]
-   if not action_index then
-      action_index = {}
-      self._action_index[does] = action_index
+
+   if not self._action_index[does] then
+      self._action_index[does] = {}
    end
       
    if self._action_index[does][key] then
@@ -146,11 +165,28 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
    --self._log:spam('%s, ai_component:add_action: %s', self._entity, self:_action_key_to_name(key))
 
    local entry = {
-      action_ctor = action_ctor,
-      injecting_entity = injecting_entity,
+      action_ctor = action_ctor
    }
    self._action_index[does][key] = entry
    self:_queue_action_index_changed_notification(does, 'add', key, entry)
+end
+
+-- action may be a uri or a class instance
+function AIComponent:_get_key_and_constructor_for_action(action)
+   local key, action_ctor
+
+   if type(action) == 'string' then
+      local uri = action
+      key = uri
+      action_ctor = radiant.mods.load_script(uri)
+      assert(action_ctor, string.format('could not load action script at %s', uri))
+   else
+      assert(type(action) == 'table')
+      action_ctor = action
+      key = action_ctor
+   end
+
+   return key, action_ctor
 end
 
 -- queues a notification that the action index has changed.  this will schedule a call to
@@ -224,9 +260,11 @@ function AIComponent:remove_action(key)
    end
 
    if type(key) == 'string' then
-      self.__saved_variables:modify(function (o)
-            o._actions[key] = nil
-         end)
+      local uri = key
+      local ref_count = self:_dec_ref(uri)
+      if ref_count > 0 then
+         return
+      end
    end
 
    local does = action_key_to_activity[key]
@@ -241,27 +279,32 @@ function AIComponent:remove_action(key)
    end
 end
 
-function AIComponent:add_custom_action(action_ctor, injecting_entity)
+function AIComponent:add_custom_action(action_ctor)
    self._log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
-   self:_add_action(action_ctor, action_ctor, injecting_entity)
+   local key = self:_get_key_for_custom_action(action_ctor)
+   self:_add_action_internal(key, action_ctor)
 end
 
-function AIComponent:remove_custom_action(action_ctor, injecting_entity)
+function AIComponent:remove_custom_action(action_ctor)
    self._log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
    self:remove_action(action_ctor)
+end
+
+function AIComponent:_get_key_for_custom_action(action_ctor)
+   return action_ctor
 end
 
 function AIComponent:_initialize(json)
    if not self._sv._initialized then
       self._sv.status_text = ''
-      self._sv._actions = {}
+      self._sv._action_ref_counts = {}
       
       for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)
       end
    else
-      for uri, _ in pairs(self._sv._actions) do
-         self:_add_action_script(uri)
+      for uri, _ in pairs(self._sv._action_ref_counts) do
+         self:_add_action_internal(uri)
       end
    end
    self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)

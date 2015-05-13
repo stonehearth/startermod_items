@@ -28,7 +28,7 @@ end
 
 radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionUnitV2._dump_and_reset_stats)
 
-function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index)
+function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, action_index)
    assert(action.name)
    assert(action.does)
    assert(action.args)

@@ -1,7 +1,6 @@
 local AiVersion1 = class()
 local log = radiant.log.create_logger('ai.version1')
 
--- injecting_entity is optional
 function AiVersion1:__init(ai_component)
    self._ai_component = ai_component
 end

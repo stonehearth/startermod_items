@@ -6,11 +6,10 @@ local placeholders = require 'services.server.ai.placeholders'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = radiant.class()
 
-function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, think_output_placeholders)
+function CompoundAction:__init(entity, action_ctor, activities, think_output_placeholders)
    -- initialize metadata
    self._entity = entity
-   self._injecting_entity = injecting_entity
-   self._action = action_ctor(entity, injecting_entity)
+   self._action = action_ctor(entity)
    self.name = self._action.name
    self.does = self._action.does
    self.realtime = self._action.realtime or false

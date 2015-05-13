@@ -33,7 +33,8 @@ function ObserversComponent:destroy()
 end
 
 function ObserversComponent:add_observer(uri)
-   if self._observer_instances[uri] then
+   local ref_count = self:_add_ref(uri)
+   if ref_count > 1 then
       return
    end
 
@@ -52,6 +53,11 @@ function ObserversComponent:add_observer(uri)
 end
 
 function ObserversComponent:remove_observer(uri)
+   local ref_count = self:_dec_ref(uri)
+   if ref_count > 0 then
+      return
+   end
+
    local observer = self._observer_instances[uri]
 
    if observer then
@@ -69,9 +75,10 @@ function ObserversComponent:remove_observer(uri)
 end
 
 function ObserversComponent:_initialize(json)
-
    if not self._sv._initialized then
       self._sv._observer_datastores = {}
+      self._sv._observer_ref_counts = {}
+
       for _, uri in ipairs(json.observers or {}) do
          self:add_observer(uri)
       end
@@ -82,6 +89,29 @@ function ObserversComponent:_initialize(json)
    end
    self._sv._initialized = true
    self.__saved_variables:mark_changed()
+end
+
+function ObserversComponent:_add_ref(uri)
+   local ref_count = self._sv._observer_ref_counts[uri] or 0
+   ref_count = ref_count + 1
+   self._sv._observer_ref_counts[uri] = ref_count
+   self.__saved_variables:mark_changed()
+   return ref_count
+end
+
+function ObserversComponent:_dec_ref(uri)
+   local ref_count = self._sv._observer_ref_counts[uri] or 0
+   ref_count = ref_count - 1
+
+   if ref_count <= 0 then
+      ref_count = 0
+      self._sv._observer_ref_counts[uri] = nil
+   else
+      self._sv._observer_ref_counts[uri] = ref_count
+   end
+
+   self.__saved_variables:mark_changed()
+   return ref_count
 end
 
 return ObserversComponent
