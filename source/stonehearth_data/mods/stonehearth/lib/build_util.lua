@@ -294,16 +294,6 @@ function build_util.get_building_for(entity)
    end
 end
 
-function build_util.get_building_envelope_for(entity, kind, ignoring_blueprint)
-   checks('Entity', 'string', '?Entity')
-   local building = build_util.get_building_for(entity)
-   if building then
-      local envelope = building:get_component('stonehearth:building')
-                                    :get_building_envelope(kind, ignoring_blueprint)
-      return envelope, building
-   end
-end
-
 function build_util.get_blueprint_for(entity)
    local fabricator, blueprint, project = build_util.get_fbp_for(entity)
    return blueprint
@@ -576,7 +566,9 @@ function build_util.get_footprint_region2(blueprint, query_point)
       end
    end
 
-   footprint:force_optimize_by_merge('creating footprint region')
+   -- force optimizing here usually isn't necessary for solid shapes and
+   -- is too expensive for complex ones.  so let it rock!
+
    return footprint
 end
 

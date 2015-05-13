@@ -140,7 +140,13 @@ function Roof:_compute_collision_shape()
       shape:add_region(s)
    end
 
-   -- now subtract off other overlapping structures
+   return shape
+end
+
+-- make sure the shape of the roof and all surrounding structures has been
+-- finalized before calling.  this can be tricky, as the size of the structures
+-- under a roof can change size when the shape of the roof changes.
+function Roof:clip_overlapping_structures()
    local building = build_util.get_building_for(self._entity)
    local envelope = building:get_component('stonehearth:building')
                               :get_building_envelope('blueprint', self._entity)
@@ -149,9 +155,11 @@ function Roof:_compute_collision_shape()
 
    local local_envelope = envelope:translated(offset)
 
-   shape:subtract_region(local_envelope)
-
-   return shape
+   self._entity:get_component('destination')
+                  :get_region()
+                     :modify(function(cursor)
+                           cursor:subtract_region(local_envelope)
+                        end)
 end
 
 -- changes properties in the construction data component.

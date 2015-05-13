@@ -53,7 +53,7 @@ function TerrainInfo:__init()
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
 
-   local max_mountains_steps = 10
+   local max_mountains_steps = 7
    mountains_info.max_height = mountains_info.base_height + mountains_info.step_size*max_mountains_steps
 
    self.min_height = plains_info.valley_height

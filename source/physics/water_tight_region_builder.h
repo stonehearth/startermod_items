@@ -27,7 +27,6 @@ public: // public methods
    void SetWaterTightRegion(om::Region3TiledPtr region,
                             dm::Boxed<csg::Region3f>* delta);
    void UpdateRegion();
-   void ClearDirtyTiles();
    void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
 
 private: // private methods

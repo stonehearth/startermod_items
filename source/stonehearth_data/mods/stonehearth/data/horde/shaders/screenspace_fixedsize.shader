@@ -10,6 +10,9 @@ sampler2D albedoMap = sampler_state
 };
 
 [[VS]]
+uniform vec2 viewPortSize;
+uniform mat4 viewProjMat;
+uniform mat4 worldMat;
 
 attribute vec4 vertPos;
 attribute vec2 texCoords0;
@@ -21,7 +24,13 @@ varying vec2 texCoords;
 void main() {
   texCoords = texCoords0;
   oColor = color;
-  gl_Position = vertPos;
+
+  vec4 origin = viewProjMat * worldMat * vec4(0.0, 0.0, 0.0, 1.0);
+  vec2 offset = vertPos.zw;
+  vec2 scale = origin.w * vec2(2.0 / viewPortSize.x, 2.0 / viewPortSize.y);
+  vec4 screenPos = vec4(vertPos.xy + offset, 0, 0);
+
+  gl_Position = origin + screenPos * scale.xyxy;
 }
 
 

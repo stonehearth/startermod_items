@@ -10,9 +10,10 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
       this._getAutoSaveSetting();
    }.on('init'),
 
-   _foo: function() {
-      console.log(this.get(model));
-   }.on('didInsertElement'),
+   _onModelChange: function() {
+      var model = this.get('model');
+      this.set('hideSave', model == 'hideSaveButtons');
+   }.observes('model'),
 
    // grab all the saves from the server
    _getSaves: function() {
@@ -151,17 +152,6 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
    init: function() {
       this._super();
-   },
-
-   didInsertElement: function() {
-      this._super();
-      /*
-      this.$('#saveView').position({
-            my: 'center center',
-            at: 'center center-150',
-            of: '#modalOverlay'
-         });
-      */
    },
 
    // when a controller op is in progress (saving, etc), disable the buttons
@@ -312,5 +302,5 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
             }
          });
       }
-   }
+   },
 });

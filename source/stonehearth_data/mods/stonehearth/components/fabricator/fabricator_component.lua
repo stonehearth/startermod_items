@@ -317,7 +317,17 @@ function FabricatorComponent:_create_material_proxy_trace(proxy)
    end
    local proxy_dst = proxy:add_component('destination')
    table.insert(self._traces, proxy_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
-   table.insert(self._traces, proxy_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))   
+   table.insert(self._traces, proxy_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
+
+   -- Undo can remove proxy entities, so listen to when they die, so that we can remove them, too.
+   radiant.events.listen_once(proxy, 'radiant:entity:pre_destroy', function(e)
+         for material, entity in pairs(self._sv.material_proxies) do
+            if entity:get_id() == e.entity:get_id() then
+               self._sv.material_proxies[material] = nil
+               break
+            end
+         end
+      end)
 end
 
 function FabricatorComponent:_create_material_proxies()
