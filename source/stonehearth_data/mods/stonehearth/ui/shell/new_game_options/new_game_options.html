@@ -5,21 +5,31 @@
             New Game<div class="closeButton"></div>
          </div>
 
+         {{#if view.kickstarter_pets}}
+            <h1>{{i18n stonehearth:starting_pets}}</h1>
+            <div class="downSection">
+               <input type="checkbox" id="starting_puppy" checked=true><label for="starting_puppy">{{i18n stonehearth:puppy}}</label>
+               <input type="checkbox" id="starting_kitten" checked=true><label for="starting_kitten">{{i18n stonehearth:kitten}}</label>
+               <input type="checkbox" id="starting_mammoth" checked=true><label for="starting_mammoth">{{i18n stonehearth:mammoth}}</label>
+               <input type="checkbox" id="starting_dragon_whelp" checked=true><label for="starting_dragon_whelp">{{i18n stonehearth:dragon_whelp}}</label>
+            </div>
+         {{/if}}
+
          <table>
             <tr>
                <td>
-                  <button id="enemiesOn" class="newGameButton">Normal Game</button>
+                  <button id="enemiesOn" class="newGameButton">{{i18n stonehearth:normal_game}}</button>
                </td>
                <td>
-                  <button id="enemiesOff" class="newGameButton">Peaceful Game</button>
+                  <button id="enemiesOff" class="newGameButton">{{i18n stonehearth:peaceful_game}}</button>
                </td>
             </tr>
             <tr>
                <td>
-                  <div>Adventure forth in a world fraught with danger. Your town will be subject to raiding goblins.</div>
+                  <div>{{i18n stonehearth:normal_game_description}}</div>
                </td>
                <td>
-                  <div>A sandbox-mode, where you're free to build your town without worrying about invaders whatsoever.</div>
+                  <div>{{i18n stonehearth:peaceful_game_description}}</div>
                </td>
             </tr>
          </table>
