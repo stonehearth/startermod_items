@@ -1,7 +1,7 @@
 {
    "scenarios" : {
       "stonehearth:scenarios:immigration" : {
-         "time_till_first_occurance" : "24h",
+         "time_till_first_occurance" : "30h",
          "occurance_interval" : "24h", 
          "enabled" : true
       }      
