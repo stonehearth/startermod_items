@@ -98,6 +98,15 @@ local function _create_or_load_citizens(population, info, origin, ctx)
    if info.from_population then
       local min = info.from_population.min or 1
       local max = info.from_population.max or 1
+
+      --If we're supposed to generate more guys based on the number of times this has run
+      --do so here
+      if info.from_population.scale_with_run and ctx then
+         local num_enc_of_type = ctx.arc_encounters[ctx.encounter_name]
+         min = min * num_enc_of_type
+         max = max * num_enc_of_type
+      end
+
       local num = rng:get_int(min, max)
       
       local job = info.from_population.job

@@ -26,7 +26,6 @@
                      "location" : { "x": 3, "z": -3 },
                      "range" : 4
                   },
-
                   "equipment" : {
                      "abilities" : "stonehearth:abilities:thief_abilities"
                   }
@@ -34,10 +33,11 @@
                "escorts" : {
                   "from_population" : {
                      "job" : "stonehearth:jobs:footman",
-                     "min" : 2,
-                     "max" : 3,
+                     "min" : 0,
+                     "max" : 2,
                      "location" : { "x": 1, "z": -1 },
-                     "range" : 4
+                     "range" : 4, 
+                     "scale_with_run" : true
                   },
 
                   "equipment" : {
