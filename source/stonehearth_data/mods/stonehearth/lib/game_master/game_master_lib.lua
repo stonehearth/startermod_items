@@ -100,9 +100,13 @@ local function _create_or_load_citizens(population, info, origin, ctx)
       local max = info.from_population.max or 1
 
       --If we're supposed to generate more guys based on the number of times this has run
-      --do so here
+      --do so here, and be mindful of the cap, if there is a cap
       if info.from_population.scale_with_run and ctx then
          local num_enc_of_type = ctx.arc_encounters[ctx.encounter_name]
+         local encounter_cap = info.from_population.scale_with_run.encounter_cap
+         if encounter_cap and num_enc_of_type > encounter_cap then
+            num_enc_of_type = encounter_cap
+         end
          min = min * num_enc_of_type
          max = max * num_enc_of_type
       end

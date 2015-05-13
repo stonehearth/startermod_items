@@ -37,7 +37,9 @@
                      "max" : 2,
                      "location" : { "x": 1, "z": -1 },
                      "range" : 4, 
-                     "scale_with_run" : true
+                     "scale_with_run" : {
+                        "encounter_cap" : 5 
+                     }
                   },
 
                   "equipment" : {
