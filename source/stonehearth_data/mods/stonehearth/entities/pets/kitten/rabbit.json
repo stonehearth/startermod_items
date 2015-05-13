@@ -1,0 +1,34 @@
+{
+   "type" : "entity",
+   "mixins" : "stonehearth:mixins:critter",   
+   "components": {
+      "unit_info" : {
+         "name" : "Rabbit",
+         "description" : "Om nom nom",
+         "player_id" : "critters"
+      },
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/critters/rabbit)"
+
+      },
+      "model_variants" : {
+         "default" : {
+            "models" : [
+               "file(rabbit.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:harvest_beast_loot_table" : {
+         "num_rolls" : {
+            "min" : 2,
+            "max" : 4
+         },
+         "items" : [
+            { "uri" : "stonehearth:rabbit_jerky" },
+            { "uri" : "stonehearth:resources:rabbit_pelt"  }
+         ]
+      }
+   }
+}

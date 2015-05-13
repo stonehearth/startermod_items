@@ -43,6 +43,8 @@
             "stonehearth:actions:choose_point_around_leash"
          ]
       },
+      "stonehearth:observers" : {
+      },
       "sensor_list": {
          "sensors": {
             "sight": {

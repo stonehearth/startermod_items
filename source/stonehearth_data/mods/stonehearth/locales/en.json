@@ -24,6 +24,16 @@
    "title_screen_quick_start": "Quick Start",
    "title_screen_patch_notes": "Show Patch Notes",
 
+   "starting_pets" : "Starting Pets",
+   "puppy" : "Puppy",
+   "kitten" : "Kitten",
+   "mammoth" : "Mammoth",
+   "dragon_whelp" : "Dragon Whelp",
+   "normal_game" : "Normal Game",
+   "peaceful_game" : "Peaceful Game",
+   "normal_game_description" : "Adventure forth in a world fraught with danger. Your town will be subject to raiding enemies.",
+   "peaceful_game_description" : "A sandbox-mode, where you're free to build your town without worrying about invaders whatsoever.",
+
    "save_view_title" : "Saved Games",
    "save_confim_delete_title" : "Confirm Delete",
    "save_confirm_delete_message" : "Do you really want to delete this save game?",
