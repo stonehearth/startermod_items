@@ -1,0 +1,21 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(mountains_flute.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Mountain's Lullabye Flute",
+         "description": "Pitched to soothe Mountain's soul.",
+         "icon" : "file(goblin_flute.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "tool"
+      } 
+   }
+}

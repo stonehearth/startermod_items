@@ -700,6 +700,7 @@
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
       "observers:kill_at_zero_health" : "file(ai/observers/kill_at_zero_health_observer.lua)", 
       "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)",
+      "observers:goblin_campaign:mountain_mammoth_observer" : "file(ai/observers/mountain_mammoth_observer.lua)", 
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
