@@ -34,7 +34,7 @@
                   "role" : "zombie",
                   "location" : { "x": 0, "z": 0 },
                   "min" : 1,
-                  "max" : 4,
+                  "max" : 2,
                   "range" : 20
                },
 
@@ -47,7 +47,7 @@
                   "role" : "skeleton",
                   "location" : { "x": 3, "z": 3 },
                   "min" : 0,
-                  "max" : 3,
+                  "max" : 2,
                   "range" : 20
                },
 
