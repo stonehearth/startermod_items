@@ -44,13 +44,10 @@ void WaterTightRegionBuilder::UpdateRegion()
       // a tile at a time so we don't need to make one GIGANTIC region when the
       // terrain changes a lot (like at startup!)
       csg::Region3 delta = GetTileDelta(addr);
-      _deltaAccumulator->Set(csg::ToFloat(delta));
+      if (!delta.IsEmpty()) {
+         _deltaAccumulator->Set(csg::ToFloat(delta));
+      }
    }
-}
-
-void WaterTightRegionBuilder::ClearDirtyTiles()
-{
-   _dirtyTiles.clear();
 }
 
 csg::Region3 WaterTightRegionBuilder::GetTileDelta(csg::Point3 const& index)

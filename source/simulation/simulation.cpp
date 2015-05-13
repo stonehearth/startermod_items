@@ -1258,7 +1258,8 @@ void Simulation::FinishLoadingGame()
    if (waterTightRegionBuilder_) {
       waterTightRegionBuilder_->SetWaterTightRegion(terrain->GetWaterTightRegion(),
                                                     terrain->GetWaterTightRegionDelta());
-      waterTightRegionBuilder_->ClearDirtyTiles();
+      // Rebuild the WaterTightRegion after loading
+      waterTightRegionBuilder_->UpdateRegion();
    }
 
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
