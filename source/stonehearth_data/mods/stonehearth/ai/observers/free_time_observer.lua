@@ -3,8 +3,6 @@
    For example, people only look for fires to admire if there are fires. 
 ]]
 
-local events = stonehearth.events
-
 local FreeTimeObserver = class()
 
 function FreeTimeObserver:__init(entity)
@@ -23,7 +21,7 @@ function FreeTimeObserver:initialize(entity)
    end
 
    --Listen on fire added/removed events
-   self._firepit_listener = radiant.events.listen(events, 'stonehearth:fire:lit', self, self._on_firepit_activity)
+   self._firepit_listener = radiant.events.listen(stonehearth.events, 'stonehearth:fire:lit', self, self._on_firepit_activity)
 
    if self._sv.should_find_fires then
       self:_start_admiring_fire_task()

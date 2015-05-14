@@ -3,8 +3,6 @@ Counts down from 100 (well nourished) to 25 (starving) and 0 (min calories)
 See the documentation for food/calorie/eating behavior here: http://wiki.rad-ent.com/doku.php?id=hunger
 ]]
 
-local calendar = stonehearth.calendar
-
 local CalorieObserver = class()
 
 --TODO: now defunct?

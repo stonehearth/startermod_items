@@ -11,8 +11,6 @@
 
 local NutritionScoreObserver = class()
 
-local calendar = stonehearth.calendar
-
 function NutritionScoreObserver:__init(entity)
 end
 
