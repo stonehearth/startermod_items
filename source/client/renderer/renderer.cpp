@@ -489,7 +489,7 @@ void Renderer::RenderFogOfWarRT()
       bb.addPoint(fowView * camFrust.getCorner(i));
    }
 
-   float cascadeBound = (camFrust.getCorner(0) - camFrust.getCorner(6)).length();
+   float cascadeBound = std::floor((camFrust.getCorner(0) - camFrust.getCorner(6)).length());
    Horde3D::Vec3f boarderOffset = (Horde3D::Vec3f(cascadeBound, cascadeBound, cascadeBound) - (bb.max() - bb.min())) * 0.5f;
    boarderOffset.z = 0;
    Horde3D::Vec3f max = bb.max() + boarderOffset;
