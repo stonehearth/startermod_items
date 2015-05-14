@@ -96,25 +96,6 @@ function AIComponent:set_status_text(text)
    self.__saved_variables:mark_changed()
 end
 
-function AIComponent:add_action_new(uri)
-   local path = radiant.resources.convert_to_canonical_path(uri)
-   local extension = string.match(path, '(%.%a+)%s*$')
-
-   if extension == '.lua' then
-      -- add one action
-      return
-   end
-
-   if extension == '.json' then
-      local json = radiant.resources.load_json(uri, true)
-      for _, uri in ipairs(json.actions or {}) do
-         -- recusive add
-      end
-   end
-
-   error('unknown extension')
-end
-
 function AIComponent:add_action(uri)
    local ref_count = self._sv._ref_counts:add_ref(uri)
    if ref_count > 1 then
