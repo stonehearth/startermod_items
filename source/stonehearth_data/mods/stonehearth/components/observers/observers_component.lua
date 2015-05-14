@@ -55,8 +55,8 @@ function ObserversComponent:remove_observer(uri)
    local observer = self._sv._observers[uri]
 
    if observer then
-      observer:destroy()
       self._sv._observers[uri] = nil
+      observer:destroy()
       self.__saved_variables:mark_changed()
    end
 end

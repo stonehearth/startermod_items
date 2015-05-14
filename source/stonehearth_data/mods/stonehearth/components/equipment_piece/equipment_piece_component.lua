@@ -27,8 +27,7 @@ function EquipmentPieceComponent:initialize(entity, json)
       -- first, the 'radiant:entities:post_create' event has already been fired.
       -- so just load up once the whole game is loaded.
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-            self:_inject_ai()
-            self:_inject_buffs()
+            -- Only needed for the posture trace? I think everything else rehydrates on its own.
             self:_setup_item_rendering()
          end)
    end

@@ -10,7 +10,7 @@ function ReferenceCount:destroy()
 end
 
 function ReferenceCount:add_ref(key)
-   local ref_count = self._sv.ref_counts[key] or 0
+   local ref_count = self:get_ref_count(key)
    ref_count = ref_count + 1
    self._sv.ref_counts[key] = ref_count
    self.__saved_variables:mark_changed()
@@ -18,7 +18,7 @@ function ReferenceCount:add_ref(key)
 end
 
 function ReferenceCount:dec_ref(key)
-   local ref_count = self._sv.ref_counts[key] or 0
+   local ref_count = self:get_ref_count(key)
    ref_count = ref_count - 1
 
    if ref_count <= 0 then
@@ -30,6 +30,11 @@ function ReferenceCount:dec_ref(key)
 
    self.__saved_variables:mark_changed()
    return ref_count
+end
+
+function ReferenceCount:get_ref_count(key)
+   local result = self._sv.ref_counts[key] or 0
+   return result
 end
 
 function ReferenceCount:clear()

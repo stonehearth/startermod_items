@@ -125,14 +125,6 @@ function AIComponent:add_action(uri)
    self:_add_action_internal(uri)
 end
 
-function AIComponent:_action_key_to_name(key)
-   if type(key) == 'table' then
-      return key.name
-   else
-      return key
-   end
-end
-
 -- action may be a uri or a class instance
 function AIComponent:_add_action_internal(action)
    local key, action_ctor = self:_get_key_and_constructor_for_action(action)
@@ -166,6 +158,55 @@ function AIComponent:_add_action_internal(action)
    }
    self._action_index[does][key] = entry
    self:_queue_action_index_changed_notification(does, 'add', key, entry)
+end
+
+function AIComponent:remove_action(key)
+   if not self._action_index then
+      self._log:debug('ignoring remove_action %s during entity destruction', tostring(key))
+      return
+   end
+
+   if type(key) == 'string' then
+      local uri = key
+      local ref_count = self._sv._ref_counts:dec_ref(uri)
+      if ref_count > 0 then
+         return
+      end
+   end
+
+   local does = action_key_to_activity[key]
+   if does then
+      local entry = self._action_index[does][key]
+      --self._log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
+      self._log:detail('triggering stonehearth:action_index_changed:' .. does)
+      self._action_index[does][key] = nil
+      self:_queue_action_index_changed_notification(does, 'remove', key, entry)
+   else
+      self._log:debug('could not find action for key %s in :remove_action', tostring(key))
+   end
+end
+
+function AIComponent:add_custom_action(action_ctor)
+   self._log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
+   local key = self:_get_key_for_custom_action(action_ctor)
+   self:_add_action_internal(key, action_ctor)
+end
+
+function AIComponent:remove_custom_action(action_ctor)
+   self._log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
+   self:remove_action(action_ctor)
+end
+
+function AIComponent:_get_key_for_custom_action(action_ctor)
+   return action_ctor
+end
+
+function AIComponent:_action_key_to_name(key)
+   if type(key) == 'table' then
+      return key.name
+   else
+      return key
+   end
 end
 
 -- action may be a uri or a class instance
@@ -248,47 +289,6 @@ function AIComponent:_unregister_execution_frame(activity_name, frame)
    if frames then
       frames[frame] = nil
    end
-end
-
-function AIComponent:remove_action(key)
-   if not self._action_index then
-      self._log:debug('ignoring remove_action %s during entity destruction', tostring(key))
-      return
-   end
-
-   if type(key) == 'string' then
-      local uri = key
-      local ref_count = self._sv._ref_counts:dec_ref(uri)
-      if ref_count > 0 then
-         return
-      end
-   end
-
-   local does = action_key_to_activity[key]
-   if does then
-      local entry = self._action_index[does][key]
-      --self._log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
-      self._log:detail('triggering stonehearth:action_index_changed:' .. does)
-      self._action_index[does][key] = nil
-      self:_queue_action_index_changed_notification(does, 'remove', key, entry)
-   else
-      self._log:debug('could not find action for key %s in :remove_action', tostring(key))
-   end
-end
-
-function AIComponent:add_custom_action(action_ctor)
-   self._log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
-   local key = self:_get_key_for_custom_action(action_ctor)
-   self:_add_action_internal(key, action_ctor)
-end
-
-function AIComponent:remove_custom_action(action_ctor)
-   self._log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
-   self:remove_action(action_ctor)
-end
-
-function AIComponent:_get_key_for_custom_action(action_ctor)
-   return action_ctor
 end
 
 function AIComponent:_initialize(json)
