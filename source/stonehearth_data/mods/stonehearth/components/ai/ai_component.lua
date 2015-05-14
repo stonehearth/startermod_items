@@ -87,6 +87,7 @@ end
 function AIComponent:destroy()
    self._dead = true
    self._action_index = nil
+   self._sv._ref_counts:destroy()
    self:_terminate_thread()
 end
 
@@ -95,37 +96,33 @@ function AIComponent:set_status_text(text)
    self.__saved_variables:mark_changed()
 end
 
+function AIComponent:add_action_new(uri)
+   local path = radiant.resources.convert_to_canonical_path(uri)
+   local extension = string.match(path, '(%.%a+)%s*$')
+
+   if extension == '.lua' then
+      -- add one action
+      return
+   end
+
+   if extension == '.json' then
+      local json = radiant.resources.load_json(uri, true)
+      for _, uri in ipairs(json.actions or {}) do
+         -- recusive add
+      end
+   end
+
+   error('unknown extension')
+end
+
 function AIComponent:add_action(uri)
-   local ref_count = self:_add_ref(uri)
+   local ref_count = self._sv._ref_counts:add_ref(uri)
    if ref_count > 1 then
       return
    end
 
    -- new action, add it to the system
    self:_add_action_internal(uri)
-end
-
-function AIComponent:_add_ref(uri)
-   local ref_count = self._sv._action_ref_counts[uri] or 0
-   ref_count = ref_count + 1
-   self._sv._action_ref_counts[uri] = ref_count
-   self.__saved_variables:mark_changed()
-   return ref_count
-end
-
-function AIComponent:_dec_ref(uri)
-   local ref_count = self._sv._action_ref_counts[uri] or 0
-   ref_count = ref_count - 1
-
-   if ref_count <= 0 then
-      ref_count = 0
-      self._sv._action_ref_counts[uri] = nil
-   else
-      self._sv._action_ref_counts[uri] = ref_count
-   end
-
-   self.__saved_variables:mark_changed()
-   return ref_count
 end
 
 function AIComponent:_action_key_to_name(key)
@@ -261,7 +258,7 @@ function AIComponent:remove_action(key)
 
    if type(key) == 'string' then
       local uri = key
-      local ref_count = self:_dec_ref(uri)
+      local ref_count = self._sv._ref_counts:dec_ref(uri)
       if ref_count > 0 then
          return
       end
@@ -297,13 +294,14 @@ end
 function AIComponent:_initialize(json)
    if not self._sv._initialized then
       self._sv.status_text = ''
-      self._sv._action_ref_counts = {}
+      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_count')
       
       for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)
       end
    else
-      for uri, _ in pairs(self._sv._action_ref_counts) do
+      local saved_actions = self._sv._ref_counts:get_all_refs()
+      for uri, _ in pairs(saved_actions) do
          self:_add_action_internal(uri)
       end
    end
