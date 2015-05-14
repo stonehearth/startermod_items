@@ -58,7 +58,7 @@ function HydrologyService:_deferred_initialize()
 end
 
 function HydrologyService:destroy()
-   radiant.destroy_controller(self._sv._channel_manager)
+   self._sv._channel_manager:destroy()
 
    self:_destroy_terrain_delta_trace()
 end
