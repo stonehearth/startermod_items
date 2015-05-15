@@ -3,6 +3,8 @@
 #include "meshtools.h"
 #include "region_tools.h"
 #include "region_tools_traits.h"
+#include "core/config.h"
+#include "core/profiler.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -111,6 +113,56 @@ csg::Color4 Vertex::GetColor() const
       (unsigned char)(color[3] * 255.0));
 }
 
+bool Vertex::operator==(Vertex const& other) const
+{
+   return location[0] == other.location[0] &&
+          location[1] == other.location[1] &&
+          location[2] == other.location[2] &&
+          boneIndex == other.boneIndex && 
+          normal[0] == other.normal[0] &&
+          normal[1] == other.normal[1] &&
+          normal[2] == other.normal[2] &&
+          color[0] == other.color[0] &&
+          color[1] == other.color[1] &&
+          color[2] == other.color[2] &&
+          color[3] == other.color[3];
+}
+
+size_t Vertex::Hash::operator()(Vertex const& p) const
+{
+   return std::hash<float>()(p.location[0]) ^
+            std::hash<float>()(p.location[1]) ^
+            std::hash<float>()(p.location[2]) ^
+            std::hash<float>()(p.boneIndex) ^
+            std::hash<float>()(p.normal[0]) ^
+            std::hash<float>()(p.normal[1]) ^
+            std::hash<float>()(p.normal[2]) ^
+            std::hash<float>()(p.color[0]) ^
+            std::hash<float>()(p.color[1]) ^
+            std::hash<float>()(p.color[2]) ^
+            std::hash<float>()(p.color[3]);
+}
+
+int32 Mesh::AddVertex(Vertex const& v)
+{
+   _compiled = false;
+
+   auto i = _vertexMap.find(v);
+   if (i != _vertexMap.end()) {
+      ++_duplicatedVertexCount;
+      return i->second;
+   }
+   int32 index = _vertices.size();
+   _vertexMap[v] = index;
+   _vertices.emplace_back(v);
+
+   return index;
+}
+
+void Mesh::AddIndex(int32 index)
+{
+   _indices.push_back(index);
+}
 
 void Mesh::AddFace(Point3f const points[], Point3f const& normal, uint32 boneIndex)
 {
@@ -123,25 +175,26 @@ void Mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& 
 
    float polyOffsetFactor = boneIndex > 0 ? 1.0f - (boneIndex / 10000.0f) : 1.0f;
 
-   if (vertices.empty()) {
+   if (_vertices.empty()) {
       bounds.SetMin((points[0] * polyOffsetFactor) + offset_);
       bounds.SetMax((points[0] * polyOffsetFactor) + offset_);
    }
-   int vlast = static_cast<int>(vertices.size());
+   int vlast = static_cast<int>(_vertices.size());
+   int32 indices[4];
    for (int i = 0; i < 4; i++) {
       Point3f offsetPoint = (points[i] * polyOffsetFactor) + offset_;
-      vertices.emplace_back(Vertex(offsetPoint, (float)boneIndex, normal, color));
+      indices[i] = AddVertex(Vertex(offsetPoint, (float)boneIndex, normal, color));
       bounds.Grow(offsetPoint);
    }
    
    //  it's up to the caller to get the winding right!
-   indices.push_back(vlast + 0);  // first triangle...
-   indices.push_back(vlast + 1);
-   indices.push_back(vlast + 2);
+   _indices.push_back(indices[0]);  // first triangle...
+   _indices.push_back(indices[1]);
+   _indices.push_back(indices[2]);
 
-   indices.push_back(vlast + 0);  // second triangle...
-   indices.push_back(vlast + 2);
-   indices.push_back(vlast + 3);
+   _indices.push_back(indices[0]);  // second triangle...
+   _indices.push_back(indices[2]);
+   _indices.push_back(indices[3]);
 }
 
 template <typename S>
@@ -158,10 +211,6 @@ void Mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p, uint32 bone
    PlaneInfo3f pi = ToFloat(p);
    Point3f normal = pi.GetNormal();
 
-   if (flip_) {
-      normal *= -1;
-   }
-
    Point2f p0 = ToFloat(rect.min);
    Point2f p2 = ToFloat(rect.max);
 
@@ -169,10 +218,6 @@ void Mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p, uint32 bone
    // correct, we need to re-order points depending on the direction of the
    // normal
    bool reverse_winding = (pi.reduced_coord == 2) ? (pi.normal_dir < 0) : (pi.normal_dir > 0);
-   if (flip_) {
-      reverse_winding = !reverse_winding;
-   }
-
    if (reverse_winding) {
       std::swap(p0, p2);
    }
@@ -205,13 +250,14 @@ Mesh::Mesh() :
    color_(0, 0, 0, 255),
    colorMap_(nullptr),
    offset_(-0.5f, 0.0f, -0.5f),
-   flip_(false)
+   _compiled(false),
+   _duplicatedVertexCount(0)
 {
 }
 
 bool Mesh::IsEmpty() const
 {
-   return vertices.size() == 0;
+   return _vertices.size() == 0;
 }
 
 Mesh& Mesh::SetColor(csg::Color4 const& color)
@@ -233,34 +279,10 @@ Mesh& Mesh::SetOffset(csg::Point3f const& offset)
    return *this;
 }
 
-Mesh& Mesh::FlipFaces()
-{
-   flip_ = !flip_;
-   return *this;
-}
-
-Mesh& Mesh::AddVertices(Mesh const& other)
-{   
-   int offset = static_cast<int>(vertices.size());
-
-   if (offset == 0) {
-      vertices = other.vertices;
-      indices = other.indices;
-      bounds = other.bounds;
-   } else {
-      vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
-      for (int32 i : other.indices) {
-         indices.push_back(i + offset);
-      }
-      bounds.Grow(other.bounds);
-   }
-   return *this;
-}
-
 Mesh& Mesh::Clear()
 {
-   vertices.clear();
-   indices.clear();
+   _vertices.clear();
+   _indices.clear();
    bounds = Cube3f::zero;
    return *this;
 }
@@ -312,6 +334,183 @@ void csg::RegionToMeshMap(csg::Region3 const& region, MaterialToMeshMap& meshes,
       }
    });
 }
+
+#define LOG_TRIANGLE(i) " tri(" << LOG_INDEX_POINT(i) << ", " << LOG_INDEX_POINT(i + 1) << ", " << LOG_INDEX_POINT(i + 2) << ")";
+#define LOG_INDEX_POINT(i)    "(ii:" << i << " vi:" << _indices[i] << " pt:" << _vertices[_indices[i]].GetLocation() << " n:" << _vertices[_indices[i]].GetNormal() << ")"
+#define LOG_VERTEX_POINT(vi)  "(vi:" << vi << " pt:" << _vertices[vi].GetLocation() << " n:" << _vertices[vi].GetNormal() << ")"
+
+#define CHECK_BETWEEN_COMP(pt, p0, p1, coord) \
+   if (p0.coord <= p1.coord) { \
+      if (pt.coord < p0.coord || pt.coord > p1.coord) { \
+         return false; \
+      } \
+   } else { \
+      if (pt.coord < p1.coord || pt.coord > p0.coord) { \
+         return false; \
+      } \
+   }
+
+#define CHECK_BETWEEN(pt, v0, v1) \
+   CHECK_BETWEEN_COMP(pt, v0, v1, x) \
+   CHECK_BETWEEN_COMP(pt, v0, v1, y) \
+   CHECK_BETWEEN_COMP(pt, v0, v1, z)
+
+bool Mesh::PointOnLineSegement(csg::Point3f const& point, uint ei0, uint ei1)
+{
+   Point3f edge0 = _vertices[_indices[ei0]].GetLocation();
+   Point3f edge1 = _vertices[_indices[ei1]].GetLocation();
+
+   // reject quickly...
+   CHECK_BETWEEN(point, edge0, edge1);
+
+   double d1 = edge0.DistanceTo(point);
+   if (d1 == 0) {
+      LOG(csg.meshtools, 9) << "edge0 == vertex.  bailing";
+      return false;
+   }
+   
+   double d2 = edge1.DistanceTo(point);
+   if (d2 == 0) {
+      LOG(csg.meshtools, 9) << "edge1 == vertex.  bailing";
+      return false;
+   }
+
+   double d0 = edge0.DistanceTo(edge1);
+   bool onLine = fabs(d0 - (d1 + d2)) < 0.001;
+
+   LOG(csg.meshtools, 9) << "fabs( d0(" << d0 << ") - (d1(" << d1 << ") + d2(" << d2 << ")) ) = " << fabs(d0 - (d1 + d2));
+
+   if (onLine) {
+      LOG(csg.meshtools, 7) << "found t-junction @ " << point
+                            << " between " << LOG_INDEX_POINT(ei0)
+                            << " and " << LOG_INDEX_POINT(ei1) << ".";
+   }
+   return onLine;
+}
+
+uint Mesh::CreateVertex(csg::Point3f const& point, uint copyFrom)
+{
+   Vertex newVertex(_vertices[_indices[copyFrom]]);        // copy the rest from the current edge.
+
+   newVertex.location[0] = (float)point.x;
+   newVertex.location[1] = (float)point.y;
+   newVertex.location[2] = (float)point.z;
+
+   uint nv = (uint)AddVertex(newVertex);
+   LOG(csg.meshtools, 9) << "created new vertex " << LOG_VERTEX_POINT(nv);
+
+   return nv;
+}
+
+void Mesh::SplitTriangle(uint i, uint a0, uint a1, uint a2, uint b0, uint b1, uint b2)
+{
+   _indices[i]   = a0;
+   _indices[i+1] = a1;
+   _indices[i+2] = a2;
+
+   uint newi = _indices.size();
+   _indices.push_back(b0);
+   _indices.push_back(b1);
+   _indices.push_back(b2);
+
+   LOG(csg.meshtools, 9) << "modified existing triangle " << LOG_TRIANGLE(i);
+   LOG(csg.meshtools, 7) << "created new triangle " << LOG_TRIANGLE(newi);         
+}
+
+bool Mesh::SplitTJunction(csg::Point3f const& vi, uint triangle)
+{
+   LOG(csg.meshtools, 9) << "testing vertex " << vi << " against " << LOG_TRIANGLE(triangle);
+
+   uint ti0 = triangle;
+   uint ti1 = triangle + 1;
+   uint ti2 = triangle + 2;
+
+   if (PointOnLineSegement(vi, ti0, ti1)) {
+      uint nvi = CreateVertex(vi, ti0);
+      // create 2 new triangles (ti0, nvi, ti2) and (nvi, ti1, ti2)
+      LOG(csg.meshtools, 9) << "splitting edge 0 1";
+      SplitTriangle(ti0, _indices[ti0], nvi, _indices[ti2],
+                         nvi, _indices[ti1], _indices[ti2]);
+      return true;
+   }
+
+   if (PointOnLineSegement(vi, ti1, ti2)) {
+      uint nvi = CreateVertex(vi, ti0);
+      // create 2 new triangles (ti0, nvi, ti2) (ti0, ti1, nvi)
+      LOG(csg.meshtools, 9) << "splitting edge 1 2";
+      SplitTriangle(ti0, _indices[ti0], nvi, _indices[ti2],
+                         _indices[ti0], _indices[ti1], nvi);
+      return true;
+   }
+
+   if (PointOnLineSegement(vi, ti2, ti0)) {
+      uint nvi = CreateVertex(vi, ti0);
+      // create 2 new triangles (ti0, ti1, nvi) (nvi, ti1, ti2)
+      LOG(csg.meshtools, 9) << "splitting edge 2 0";
+      SplitTriangle(ti0, _indices[ti0], _indices[ti1], nvi,
+                         nvi, _indices[ti1], _indices[ti2]);
+      return true;
+   }
+   return false;
+}
+
+Mesh::Buffers Mesh::GetBuffers() 
+{
+   if (!_compiled) {
+      EliminateTJunctures();
+
+      float saved = 100.0f * _duplicatedVertexCount / (_duplicatedVertexCount + _vertices.size());
+      LOG(csg.meshtools, 3) << std::fixed << std::setprecision(2) << saved << "% of _vertices were duplicates (total:" << _vertices.size() << ")";
+      _compiled = true;
+   }
+
+   Mesh::Buffers buffers;
+   buffers.vertices = (VoxelGeometryVertex const*)_vertices.data();
+   buffers.vertexCount = _vertices.size();
+
+   buffers.indices = (unsigned int const*)_indices.data();
+   buffers.indexCount = _indices.size();
+
+   return buffers;
+}
+
+void Mesh::EliminateTJunctures()
+{
+   if (!core::Config::GetInstance().Get<bool>("enable_t_junction_removal", true)) {
+      return;
+   }
+   core::SetProfilerEnabled(true);
+
+   LOG(csg.meshtools, 7) << "eliminating t-junctions... << " << "(_indices:" << _indices.size() << " _vertices:" << _vertices.size() << ")";
+
+   std::vector<csg::Point3f> points;
+   std::unordered_set<csg::Point3f, csg::Point3f::Hash> visited;
+
+   // processing a point is expensive, so collapse all the vertices which
+   // share a location but have a different color, normal, etc.
+   for (auto const& v : _vertices) {
+      csg::Point3f p = v.GetLocation();
+      if (visited.emplace(p).second) {
+         points.push_back(p);
+      }
+   }
+
+   // run through all the verts looking for intersections with other edges.
+   // when we find one, split it.
+   for (csg::Point3f const& candidate : points) {
+      LOG(csg.meshtools, 5) << "checking triangle starting @ " << candidate << " (_indices:" << _indices.size() << " _vertices:" << _vertices.size() << ")";
+
+      // test all points of the candidate against the edges of the ith triangle.
+      for (uint i = 0; i < _indices.size(); i += 3) {
+         SplitTJunction(candidate, i);
+      }
+   }
+   core::SetProfilerEnabled(false);
+
+   LOG(csg.meshtools, 5) << "t-junctions eliminated!";
+}
+
+#undef LOG_INDEX_POINT
 
 template void Mesh::AddRegion(Region<double, 2> const& region, PlaneInfo<double, 3> const& p, uint32 boneIndex);
 template void Mesh::AddRegion(Region<int, 2> const& region, PlaneInfo<int, 3> const& p, uint32 boneIndex);

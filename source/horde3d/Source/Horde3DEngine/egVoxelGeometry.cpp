@@ -112,7 +112,7 @@ bool VoxelGeometryResource::raiseError( std::string const& msg )
 	return false;
 }
 
-bool VoxelGeometryResource::loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels)
+bool VoxelGeometryResource::loadData(VoxelVertexData const* vertices, int vertexOffsets[], uint32 const* indicies, int indexOffsets[], int numLodLevels)
 {
    _numLodLevels = numLodLevels;
    for (int i = 0; i < numLodLevels + 1; i++) {

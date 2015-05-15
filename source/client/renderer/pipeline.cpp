@@ -96,9 +96,10 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
       mesh.AddRegion(plane, pi);
    });
 
-   int vertexOffsets[2] = {0, (int)mesh.vertices.size()};
-   int indexOffsets[2] = {0, (int)mesh.indices.size()};
-   return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
+   csg::Mesh::Buffers buffers = mesh.GetBuffers();
+   int vertexOffsets[2] = {0, (int)buffers.vertexCount};
+   int indexOffsets[2] = {0, (int)buffers.indexCount};
+   return h3dutCreateVoxelGeometryRes(geoName.c_str(), buffers.vertices, vertexOffsets, buffers.indices, indexOffsets, 1);
 }
 
 void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2f const& panels)
@@ -427,19 +428,35 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
 
    // Accumulate the vertex and index data for all meshes at all LOD levels
    // into `meshes`, remembering offets into buffers as we go
-   csg::MaterialToMeshMap meshes;
+   std::unordered_map<csg::MaterialName, std::vector<VoxelGeometryVertex>, csg::MaterialName::Hash> verticesByMaterial;
+   std::unordered_map<csg::MaterialName, std::vector<unsigned int>,        csg::MaterialName::Hash> indicesByMaterial;
+
    for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
+      csg::MaterialToMeshMap meshes;
+
       create_mesh_fn(meshes, i);
 
-      for (auto const& entry : meshes) {
+      for (auto& entry : meshes) {
          csg::MaterialName material = entry.first;
-         csg::Mesh const& mesh = entry.second;
+         csg::Mesh& mesh = entry.second;
+         csg::Mesh::Buffers buffers = mesh.GetBuffers();
 
          GeometryInfo& geo = geometry[material];
+         std::vector<unsigned int>& indices = indicesByMaterial[material];
+         std::vector<VoxelGeometryVertex>& vertices = verticesByMaterial[material];
+
          geo.levelCount = GeometryInfo::MAX_LOD_LEVELS;
          geo.noInstancing = noInstancing;
-         geo.vertexIndices[i + 1] = (int)mesh.vertices.size();
-         geo.indexIndicies[i + 1] = (int)mesh.indices.size();
+         geo.vertexIndices[i + 1] = geo.vertexIndices[i] + (int)buffers.vertexCount;
+         geo.indexIndicies[i + 1] = geo.indexIndicies[i] + (int)buffers.indexCount;
+
+         uint indexOffset = vertices.size();
+         std::copy(buffers.vertices, buffers.vertices + buffers.vertexCount, std::back_inserter(vertices));
+
+         for (uint j = 0; j < buffers.indexCount; j++) {
+            unsigned int index = buffers.indices[j];
+            indices.push_back(index + indexOffset);
+         }
       }
    }
 
@@ -448,15 +465,16 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
       csg::MaterialName material = entry.first;
       GeometryInfo& geo = entry.second;
 
-      csg::Mesh const& mesh = meshes[material];
-      ConvertVoxelDataToGeometry((VoxelGeometryVertex *)mesh.vertices.data(), (uint *)mesh.indices.data(), geo);
+      std::vector<unsigned int>& indices = indicesByMaterial[material];
+      std::vector<VoxelGeometryVertex>& vertices = verticesByMaterial[material];
+      ConvertVoxelDataToGeometry(vertices.data(), indices.data(), geo);
    }
 
    // Finally, cache it!
    _materialToGeometryCache[key] = geometryPtr;
 }
 
-void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing)
+void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh& m, bool noInstancing)
 {
    if (!GetSharedGeometry(key, geo)) {
       CreateGeometryFromMesh(geo, m, noInstancing);
@@ -464,14 +482,15 @@ void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey 
    }
 }
 
-void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m, bool noInstancing)
+void Pipeline::CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh& m, bool noInstancing)
 {
-   geo.vertexIndices[1] = (int)m.vertices.size();
-   geo.indexIndicies[1] = (int)m.indices.size();
+   csg::Mesh::Buffers buffers = m.GetBuffers();
+   geo.vertexIndices[1] = (int)buffers.vertexCount;
+   geo.indexIndicies[1] = (int)buffers.indexCount;
    geo.levelCount = 1;
    geo.noInstancing = noInstancing;
 
-   ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
+   ConvertVoxelDataToGeometry(buffers.vertices, buffers.indices, geo);
 }
 
 void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing)
@@ -483,7 +502,7 @@ void Pipeline::CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey c
    }
 }
 
-void Pipeline::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo)
+void Pipeline::ConvertVoxelDataToGeometry(VoxelGeometryVertex const* vertices, uint const* indices, GeometryInfo& geo)
 {
    std::string geoName = BUILD_STRING("geo" << unique_id_++);
 
@@ -594,7 +613,7 @@ void Pipeline::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &geo)
                                     indices.data(), normalData.data(), nullptr, nullptr, nullptr, nullptr);
 }
 
-RenderNodePtr Pipeline::CreateRenderNodeFromMesh(H3DNode parent, csg::Mesh const& m)
+RenderNodePtr Pipeline::CreateRenderNodeFromMesh(H3DNode parent, csg::Mesh& m)
 {
    GeometryInfo geo;
    Pipeline::GetInstance().CreateGeometryFromMesh(geo, m);
