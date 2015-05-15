@@ -3,7 +3,7 @@
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:immigration", 
    "scenario_data" : {
-      "expiration_timeout" : "6h",
+      "expiration_timeout" : "10h",
       "happiness_threshold" : 4,
       "food_threshold" : 100,
       "score_threshold" : 1000,
