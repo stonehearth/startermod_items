@@ -27,6 +27,7 @@ function CrafterComponent:initialize(entity, json)
    -- what about the orchestrator?  hmm...  will the town restore it for us?
    -- how do we get a pointer to it so we can destroy it?
 
+   -- xxx: show_workshop.js should just ask the inventory itself!! - tony
    local inventory = stonehearth.inventory:get_inventory(self._entity)
    self:_determine_maintain()
    self._added_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_added', self, self._on_stockpiles_changed)

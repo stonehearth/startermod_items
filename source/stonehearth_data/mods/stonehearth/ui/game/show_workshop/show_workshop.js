@@ -29,6 +29,7 @@ App.StonehearthCrafterView = App.View.extend({
       "stonehearth:workshop": {
          "crafter": {
             "unit_info" : {},
+            'stonehearth:crafter' : {},
             'stonehearth:job' : {
                'curr_job_info' : {},
                'curr_job_controller' : {}
