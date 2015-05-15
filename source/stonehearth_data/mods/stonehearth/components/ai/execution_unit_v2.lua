@@ -79,20 +79,23 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
       'run',
       'destroy'
    }
+
    for _, method in ipairs(actions) do
-      ExecutionUnitV2['_call_' .. method] = function (self)
-         local result
-         local call_action_fn = self._action[method]
-         if call_action_fn then
-            self._calling_method = method
-            self._log:detail('calling action %s', method)
-            result = call_action_fn(self._action, self._ai_interface, self._entity, self._args)
-            self._calling_method = nil
-         else
-            self._log:detail('action does not implement %s.', method)
-            result = CALL_NOT_IMPLEMENTED
+      if self._action[method] then
+         local call_fn = self._action[method]
+         -- Make a locally-scoped copy of 'method' that will be bound in our closure below.
+         local local_method = method .. ''
+         self['_call_' .. method] = function(self)
+            self._log:detail('calling action %s', local_method)
+            return call_fn(self._action, self._ai_interface, self._entity, self._args)
          end
-         return result
+      else
+         -- Make a locally-scoped copy of 'method' that will be bound in our closure below.
+         local local_method = method .. ''
+         self['_call_' .. method] = function(self)
+            self._log:detail('action does not implement %s.', local_method)
+            return CALL_NOT_IMPLEMENTED
+         end
       end
    end
 
