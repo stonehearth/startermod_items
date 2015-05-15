@@ -29,10 +29,8 @@ App.StonehearthCrafterView = App.View.extend({
       "stonehearth:workshop": {
          "crafter": {
             "unit_info" : {},
-            "stonehearth:crafter": {
-
-            }, 
             'stonehearth:job' : {
+               'curr_job_info' : {},
                'curr_job_controller' : {}
             }
          },
@@ -91,7 +89,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    _buildRecipeArray: function() {
       var self = this;
-      var recipes = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list');
+      var recipes = this.get('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_info.recipe_list');
       var recipe_categories = [];
 
       radiant.each(recipes, function(_, category) {
@@ -142,7 +140,7 @@ App.StonehearthCrafterView = App.View.extend({
       recipe_categories.sort(this._compareByOrdinal);
 
       self.set('recipes', recipe_categories);
-   }.observes('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list'),
+   }.observes('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_info.recipe_list'),
 
    //Something with an ordinal of 1 should have precedence
    _compareByOrdinal: function(a, b) {
@@ -280,7 +278,7 @@ App.StonehearthCrafterView = App.View.extend({
          //Arrr!! If you try to assign the context at selection, it won't update
          //when the data updates. So when the data updates, check if we should update the context
          //If anyone knows how to do this better with Ember's actual data binding, kill this code!
-         var catArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list');
+         var catArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_info.recipe_list');
          var catLen = catArr.length;
          for (var i = 0; i < catLen; i++) {
             var recipeArr = catArr[i].recipes;

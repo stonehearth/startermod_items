@@ -7,6 +7,7 @@ local Point3 = _radiant.csg.Point3
 function SettlementTest:__init()
    self[MicroWorld]:__init(1024)
    self:create_world()
+   if true then return end
 
    -- build the player camp
    ---[[
