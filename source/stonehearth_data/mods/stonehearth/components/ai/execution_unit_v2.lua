@@ -123,6 +123,13 @@ function ExecutionUnitV2:get_cost()
    return self._cost
 end
 
+function ExecutionUnitV2:get_task()
+   if self._action.get_task then
+      return self._action:get_task()
+   end
+   return nil
+end
+
 function ExecutionUnitV2:get_id()
    return self._id
 end
