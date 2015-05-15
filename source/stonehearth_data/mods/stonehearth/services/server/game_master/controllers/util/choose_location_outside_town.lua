@@ -25,7 +25,7 @@ function ChooseLocationOutsideTown:initialize(player_id, min_range, max_range, c
 end
 
 function ChooseLocationOutsideTown:activate()
-   self._log = radiant.log.create_logger('game_master')
+   self._log = radiant.log.create_logger('game_master.choose_location_outside_town')
                               :set_prefix('choose loc outside city')
 
    self:_destroy_find_location_timer()
@@ -36,23 +36,38 @@ function ChooseLocationOutsideTown:activate()
 end
 
 function ChooseLocationOutsideTown:_try_location(location)
+   local camp_region
+
    if self._sv.target_region then
       --Check that there is no terrain above the surface of the region
-      local test_region = self._sv.target_region:translated(location)
-      local intersection = radiant.terrain.intersect_region(test_region)
+      camp_region = self._sv.target_region:translated(location)
+
+      local intersection = radiant.terrain.intersect_region(camp_region)
       if not intersection:empty() then
          self._log:info('location %s intersects terrain (intersection:%s).  trying again', location, intersection:get_bounds())
          return false
       end
 
-      --Check that the region is supported by terrain (translateD makes a copy of the region, yay!)
-      intersection = radiant.terrain.intersect_region(test_region:translated(-Point3.unit_y))
-      if intersection:get_area() ~= test_region:get_area() then
+      --Check that the region is supported by terrain
+      intersection = radiant.terrain.intersect_region(camp_region:translated(-Point3.unit_y))
+      if intersection:get_area() ~= camp_region:get_area() then
          self._log:info('location %s  not flat.  trying again (supported area:%d   test area:%d)', location,
-                        intersection:get_area(), test_region:get_area())
+                        intersection:get_area(), camp_region:get_area())
          return false
       end
+
+      -- give the callback a shot...
+      if self._sv.callback then
+         if not radiant.invoke(self._sv.callback, 'check_location', location, camp_region) then
+            return false
+         end
+      end      
    end
+
+   --if everything is fine, succeed!
+   self._log:info('found location %s', location)
+   self:_finalize_location(location, camp_region)
+
    return true
 end
 
@@ -69,21 +84,22 @@ function ChooseLocationOutsideTown:_try_finding_location_thread()
    local banner_location = radiant.entities.get_world_grid_location(player_banner)
 
    local open = {}
-   local closed = {}
+   local closed = Region3()
 
    -- if not already contained in `closed`, adds `pt` to `closed`, as
    -- well as `open` if `add_to_open` is true.
    local function visit_point(pt, add_to_open)
       checks('Point3', 'boolean')
       local key = pt:key_value()
-      if not closed[key] then
+      if not closed:contains(pt) then
+         closed:add_point(pt)
+         closed:optimize_by_merge('choose location outside town closed set')
          if add_to_open then
             table.insert(open, {
                   location = pt,
                   distance = pt:distance_to(banner_location)
                })
          end
-         closed[key] = true
       end
    end
 
@@ -120,13 +136,19 @@ function ChooseLocationOutsideTown:_try_finding_location_thread()
    end
 
    -- run through every point on this plane looking for a good one!
+   local nodes_per_loop = 10
+   local nodes_processed = 0
    while #open > 0 do
+      -- yield every so often...
+      if nodes_processed >= nodes_per_loop then
+         nodes_processed = 0
+         coroutine.yield()
+      end
+      nodes_processed = nodes_processed + 1
+
       local node = get_first_open_node()
       if node.distance >= min_range then
          if self:_try_location(node.location) then
-            --if everything is fine, succeed!
-            self._log:info('found location %s', node.location)
-            self:_finalize_location(node.location)                  
             return
          end
       end
@@ -148,13 +170,13 @@ function ChooseLocationOutsideTown:_try_finding_location_thread()
    self:_try_later()
 end
 
-function ChooseLocationOutsideTown:_finalize_location(location)
+function ChooseLocationOutsideTown:_finalize_location(location, camp_region)
    self:_destroy_find_location_timer()
  
    self._sv.found_location = true
    self.__saved_variables:mark_changed()
    if self._sv.callback then
-      radiant.invoke(self._sv.callback, location)
+      radiant.invoke(self._sv.callback, 'set_location', location, camp_region)
       self._sv.callback = nil
    end
 end

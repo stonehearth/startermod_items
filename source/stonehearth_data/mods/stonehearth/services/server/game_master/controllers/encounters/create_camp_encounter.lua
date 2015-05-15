@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local Point3 = _radiant.csg.Point3
@@ -12,6 +13,11 @@ local log = radiant.log.create_logger('game_master')
 
 local VISION_PADDING = Point2(16, 16)
 local CreateCamp = class()
+
+function CreateCamp:activate()
+   self._log = radiant.log.create_logger('game_master.create_camp')
+                              :set_prefix('create camp')
+end
 
 function CreateCamp:start(ctx, info)
    assert(ctx)
@@ -39,7 +45,7 @@ function CreateCamp:start(ctx, info)
    --Create a controller to find the location, pass params
    self._sv.searcher = radiant.create_controller('stonehearth:game_master:util:choose_location_outside_town',
                                                  ctx.player_id, min, max,
-                                                 radiant.bind(self, '_create_camp'), 
+                                                 radiant.bind(self, '_choose_camp_cb'), 
                                                  self._sv.camp_region)
 end
 
@@ -51,7 +57,72 @@ function CreateCamp:stop()
    end
 end
 
-function CreateCamp:_create_camp(location)
+function CreateCamp:_choose_camp_cb(op, location, camp_region)
+   checks('self', 'string', 'Point3', 'Region3')
+
+   if op == 'check_location' then
+      return self:_test_camp(location, camp_region)
+   elseif op == 'set_location' then
+      return self:_create_camp(location, camp_region)
+   else
+      radiant.error('unknown op "%s" in choose camp callback', op)
+   end
+end
+
+function CreateCamp:_classify_entity_in_camp_region(id, entity)
+   -- the ground is fine
+   if id == 1 then
+      return 'ok'
+   end
+
+   -- resources and items should be destroyed
+   if entity:get_component('item') or
+      entity:get_component('stonehearth:resource_node') or
+      entity:get_component('stonehearth:renewable_resource_node') then
+      return 'destroy'
+   end
+
+   -- no water and not in a mine.
+   if entity:get_component('stonehearth:water') or
+      entity:get_component('stonehearth:waterfall') or      
+      entity:get_component('stonehearth:mining_zone') then
+      return 'invalid'
+   end
+
+   -- no buildings
+   if build_util.get_building_for(entity) then
+      return 'invalid'
+   end
+
+   -- or anything else solid
+   if radiant.entities.is_solid_entity(entity) then
+      return 'invalid'
+   end
+
+   -- everything else is ok!
+   return 'ok'
+end
+
+function CreateCamp:_test_camp(location, camp_region)
+   -- check everything in the region and make sure we're ok to be here.
+   -- we look 1 down, too, since we may end up sinking the camp.
+   local query_region = Region3()
+   query_region:copy_region(camp_region)
+   query_region:add_region(camp_region:translated(-Point3.unit_y))
+
+   local entities = radiant.terrain.get_entities_in_region(query_region)
+   for id, entity in pairs(entities) do
+      if self:_classify_entity_in_camp_region(id, entity) == 'invalid' then
+         self._log:detail('%s inside potential camp location %s.  rejecting.', entity, location)
+         return false
+      end
+   end
+   return true
+end
+
+function CreateCamp:_create_camp(location, camp_region)
+   checks('self', 'Point3', 'Region3')
+
    local ctx = self._sv.ctx
    local info = self._sv._info
 
@@ -60,16 +131,10 @@ function CreateCamp:_create_camp(location)
 
    self._population = stonehearth.population:get_population(info.npc_player_id)
 
-   -- carve a hole in the ground for the camp to sit in
-   --local size = 20 --TODO: this should actually come from Radius
-   --local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
-   --local cube2 = cube:translated(Point3.unit_y)
-
-   local surface_region = self._sv.camp_region:translated(location)
    -- nuke all the entities around the camp
-   local entities = radiant.terrain.get_entities_in_region(surface_region)
+   local entities = radiant.terrain.get_entities_in_region(camp_region)
    for id, entity in pairs(entities) do
-      if id ~= 1 then
+      if self:_classify_entity_in_camp_region(id, entity) == 'destroy' then
          radiant.entities.destroy_entity(entity)
       end
    end
@@ -79,7 +144,7 @@ function CreateCamp:_create_camp(location)
    -- camp location twice.)
    local kind = radiant.terrain.get_block_kind_at(location - Point3.unit_y)
    if kind == 'grass' then
-      local terrain_region = surface_region:translated(-Point3.unit_y)
+      local terrain_region = camp_region:translated(-Point3.unit_y)
       radiant.terrain.subtract_region(terrain_region)
       location.y = location.y - Point3.unit_y.y
    end
