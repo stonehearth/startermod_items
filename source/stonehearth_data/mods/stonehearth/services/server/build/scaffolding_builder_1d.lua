@@ -64,6 +64,8 @@ function ScaffoldingBuilder_OneDim:activate()
       end)
 
    if self._sv.active then
+      assert(self._sv.scaffolding_rgn)
+      
       self:_trace_blueprint_and_project()
 
       -- for performance reasons, we don't update our regions synchronously.  this creates a race
@@ -76,6 +78,7 @@ end
 function ScaffoldingBuilder_OneDim:destroy()
    self._log:info('destroying scaffolding builder')
    self:_untrace_blueprint_and_project()
+   self._sv.active = false
    self._sv.scaffolding_rgn = nil
 end
 
