@@ -20,6 +20,9 @@ var DrawRoadTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                var road = self._roadMaterial.getSelectedBrush();
+               if (road == 'eraser') {
+                  return App.stonehearthClient.eraseStructure();
+               }
                return App.stonehearthClient.buildRoad(road);
             });
       },
