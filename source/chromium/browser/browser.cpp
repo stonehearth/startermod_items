@@ -172,10 +172,13 @@ void Browser::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& titl
 bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line) 
 {
    if (message.c_str()) {
-      char msg[128];
-      std::wcstombs(msg, message.c_str(), sizeof msg);
+      std::wstring msg(message.c_str());
 
-      BROWSER_LOG(7) << "console log: " << msg;
+      std::vector<std::wstring> parts;
+      boost::split(parts, msg, boost::is_any_of("\n"));
+      for (std::wstring const& part : parts) {
+         BROWSER_LOG(3) << "console:" << part;
+      }
    }
    return false;
 }

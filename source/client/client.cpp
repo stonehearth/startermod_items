@@ -315,6 +315,18 @@ void Client::OneTimeIninitializtion()
    });
    core_reactor_->SetRemoteRouter(protobuf_router_);
 
+   core_reactor_->AddRoute("radiant:browser_log", [this](rpc::Function const& f) {
+      std::string msg(f.args[0].as_string());
+
+      std::vector<std::string> parts;
+      boost::split(parts, msg, boost::is_any_of("\n"));
+      for (std::string const& part : parts) {
+         LOG(browser, 1) << part;
+      }
+
+      return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
+   });
+
    // core functionality exposed by the client...
    core_reactor_->AddRoute("radiant:post_redmine_issues", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("filing bug");
