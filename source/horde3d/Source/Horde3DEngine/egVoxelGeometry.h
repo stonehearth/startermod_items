@@ -64,7 +64,7 @@ public:
 	void initDefault();
 	void release();
 	bool load( const char *data, int size );
-   bool loadData(VoxelVertexData *vertices, int vertexOffsets[], uint32 *indicies, int indexOffsets[], int numLodLevels);
+   bool loadData(VoxelVertexData const* vertices, int vertexOffsets[], uint32 const* indicies, int indexOffsets[], int numLodLevels);
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
