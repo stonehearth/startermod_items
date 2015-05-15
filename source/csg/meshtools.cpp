@@ -152,7 +152,7 @@ int32 Mesh::AddVertex(Vertex const& v)
       ++_duplicatedVertexCount;
       return i->second;
    }
-   int32 index = _vertices.size();
+   int32 index = (int32)_vertices.size();
    _vertexMap[v] = index;
    _vertices.emplace_back(v);
 
@@ -408,7 +408,7 @@ void Mesh::SplitTriangle(uint i, uint a0, uint a1, uint a2, uint b0, uint b1, ui
    _indices[i+1] = a1;
    _indices[i+2] = a2;
 
-   uint newi = _indices.size();
+   uint newi = (uint)_indices.size();
    _indices.push_back(b0);
    _indices.push_back(b1);
    _indices.push_back(b2);
@@ -466,10 +466,10 @@ Mesh::Buffers Mesh::GetBuffers()
 
    Mesh::Buffers buffers;
    buffers.vertices = (VoxelGeometryVertex const*)_vertices.data();
-   buffers.vertexCount = _vertices.size();
+   buffers.vertexCount = (uint)_vertices.size();
 
    buffers.indices = (unsigned int const*)_indices.data();
-   buffers.indexCount = _indices.size();
+   buffers.indexCount = (uint)_indices.size();
 
    return buffers;
 }
