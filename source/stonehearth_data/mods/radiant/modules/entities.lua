@@ -929,6 +929,23 @@ function entities.world_to_local(pt, e)
    return _radiant.physics.world_to_local(pt, e)
 end
 
+function entities.is_solid_entity(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+   
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   local rcs = entity:get_component('region_collision_shape')
+   if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+      return true
+   end
+
+   return false
+end
+
 -- extract the full sized entity from an iconic entity proxy.  `component_name`
 -- is optional.  if specified, the component for the full sized item matching that
 -- name will be returned as the 2nd parameter.  if the entity is not a placable
