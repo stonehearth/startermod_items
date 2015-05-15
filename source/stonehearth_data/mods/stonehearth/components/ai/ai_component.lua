@@ -275,7 +275,7 @@ end
 function AIComponent:_initialize(json)
    if not self._sv._initialized then
       self._sv.status_text = ''
-      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_count')
+      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
       
       for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)

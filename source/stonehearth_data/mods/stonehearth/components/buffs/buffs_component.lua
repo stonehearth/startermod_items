@@ -9,7 +9,7 @@ function BuffsComponent:initialize(entity, json)
 
    if not self._sv.initialized then
       self._sv.buffs = {}
-      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_count')
+      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
