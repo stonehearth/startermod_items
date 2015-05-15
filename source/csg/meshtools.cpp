@@ -476,11 +476,9 @@ Mesh::Buffers Mesh::GetBuffers()
 
 void Mesh::EliminateTJunctures()
 {
-   if (!core::Config::GetInstance().Get<bool>("enable_t_junction_removal", true)) {
+   if (!core::Config::GetInstance().Get<bool>("enable_t_junction_removal", false)) {
       return;
    }
-   core::SetProfilerEnabled(true);
-
    LOG(csg.meshtools, 7) << "eliminating t-junctions... << " << "(_indices:" << _indices.size() << " _vertices:" << _vertices.size() << ")";
 
    std::vector<csg::Point3f> points;
@@ -505,7 +503,6 @@ void Mesh::EliminateTJunctures()
          SplitTJunction(candidate, i);
       }
    }
-   core::SetProfilerEnabled(false);
 
    LOG(csg.meshtools, 5) << "t-junctions eliminated!";
 }
