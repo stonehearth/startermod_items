@@ -35,7 +35,7 @@ class Pipeline : public core::Singleton<Pipeline> {
       RenderNodePtr CreateStockpileNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNodePtr CreateSelectionNode(H3DNode parent, csg::Region2f const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNodePtr CreateRegionOutlineNode(H3DNode parent, csg::Region3f const& region, csg::Color4 const& edge_color, csg::Color4 const& face_color, std::string const& material);
-      RenderNodePtr CreateRenderNodeFromMesh(H3DNode parent, csg::Mesh const& m);
+      RenderNodePtr CreateRenderNodeFromMesh(H3DNode parent, csg::Mesh& m);
 
       H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);
 
@@ -46,10 +46,10 @@ class Pipeline : public core::Singleton<Pipeline> {
       void CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometry, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing);
 
       void CreateSharedGeometryFromOBJ(GeometryInfo& geo, ResourceCacheKey const& key, std::istream& is, bool noInstancing=false);
-      void CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh const& m, bool noInstancing=false);
-      void CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh const& m, bool noInstancing=true);
+      void CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh& m, bool noInstancing=false);
+      void CreateGeometryFromMesh(GeometryInfo& geo, csg::Mesh& m, bool noInstancing=true);
 
-      void ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint *indices, GeometryInfo& geo);
+      void ConvertVoxelDataToGeometry(VoxelGeometryVertex const* vertices, uint const* indices, GeometryInfo& geo);
 
       csg::Mesh CreateMeshFromRegion(csg::Region3 const& region);
 
