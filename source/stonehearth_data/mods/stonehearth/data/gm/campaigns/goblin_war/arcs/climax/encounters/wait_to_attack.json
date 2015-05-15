@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_to_attack",
+   "out_edge" : ["destroy_fakeout_entity"],
+
+   "wait_info" :  {
+      "duration" : "2d"
+   }
+}

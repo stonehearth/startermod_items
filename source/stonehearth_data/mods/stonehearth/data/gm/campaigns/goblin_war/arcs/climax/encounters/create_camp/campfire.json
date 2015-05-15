@@ -1,0 +1,55 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "campfire" : {
+         "uri" : "stonehearth:decoration:firepit_skulls",
+         "force_iconic" : false,
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      },
+      "wood" : {
+         "uri" : "stonehearth:resources:wood:oak_log",
+         "force_iconic" : false,
+         "location" : {
+            "x" : 4,
+            "y" : 0,
+            "z" : 4
+         }
+      }      
+   },
+   "citizens" : {
+      "workers" : {
+         "from_population" : {
+            "job" : "stonehearth:jobs:worker",
+            "min" : 2,
+            "max" : 4,
+            "location" : { "x": 4, "z": 4 },
+            "range" : 6
+         },
+         "equipment" : {
+            "weapon" : ["stonehearth:mining_pick", "stonehearth:worker_hammer"]
+         },
+         "combat_leash_range" : 30
+      },
+
+      "guards" : {
+         "from_population" : {
+            "job" : "stonehearth:jobs:footman",
+            "min" : 2,
+            "max" : 4,
+            "location" : { "x": -4, "z": -4 },
+            "range" : 6
+         },
+
+         "equipment" : {
+            "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+            "outfit" : "stonehearth:monsters:goblins:outfits:footman"
+         }
+      }
+      
+   }
+}

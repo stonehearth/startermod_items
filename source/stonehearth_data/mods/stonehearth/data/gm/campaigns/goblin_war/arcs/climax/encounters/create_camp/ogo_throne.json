@@ -1,0 +1,19 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "ogo_throne" : {
+         "uri" : "stonehearth:monsters:goblins:goblin_throne",
+         "location" : {
+            "x" : 15,
+            "y" : 0,
+            "z" : 0
+         },
+         "unit_info" : {
+            "name" : "Ogo's Throne",
+            "Description" : "Decorated with Mountain's Baby Tusks"
+         }
+      }
+
+   }
+}

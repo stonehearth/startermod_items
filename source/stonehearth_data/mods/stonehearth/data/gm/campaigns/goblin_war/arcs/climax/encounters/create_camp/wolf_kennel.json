@@ -1,0 +1,52 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "wolf_cage" : {
+         "uri" : "stonehearth:monsters:goblins:wolf_cage",
+         "unit_info" : {
+            "name" : "Wolf Cage",
+            "Description" : "Property of Ogo Skullbonker"
+         },
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      } 
+   },
+   "citizens" : {
+      "trainer" : {
+         "from_population" : {
+            "location" : { "x": 5, "z": -5 },
+            "job" : "stonehearth:jobs:footman"
+         },
+         "equipment" : {
+            "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+            "outfit" : "stonehearth:monsters:goblins:outfits:maurauder"
+         }, 
+         "loot_drops" : {
+            "num_rolls" : {
+               "min" : 1,
+               "max" : 1
+            },
+            "items" : [
+               { "uri" : "stonehearth:monsters:goblins:broken_flute" }
+            ]
+         }
+      },
+      "guard_wolf" : {
+         "from_population" : {
+            "role" : "wolf",
+            "min" : 2,
+            "max" : 2, 
+            "location" :  { "x": 0, "y": 1, "z": 0 },
+            "range" : 10
+         },
+         "attributes" : {
+            "health" : 150,
+            "menace" : 100
+         }
+      }
+   }
+}

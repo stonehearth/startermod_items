@@ -1,0 +1,59 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_camp",
+   "rarity" : "common",
+
+   "in_edge"  : "create_ogo_camp",
+   "out_edge" : ["wait_for_boss_death", "wait_to_attack"],
+
+
+   "create_camp_info" : {
+      "npc_player_id" : "goblins",
+      "ctx_entity_registration_path" : "ogo_camp", 
+
+      "radius" : 30,
+      
+      "spawn_range" : {
+         "min" : 100,
+         "max" : 300
+      },
+
+      "script" : "file(create_camp/create_ogo_camp.lua)",
+
+      "pieces" : {
+         "campfire" : {
+            "info" : "file(create_camp/campfire.json)",
+            "position" : { "x": 0, "y": 0 }
+         },
+         "ogo_tent" : {
+            "info" : "file(create_camp/ogo_tent.json)",
+            "position" : { "x": -12, "y": 12 },
+            "rotation" : -90
+         },
+         "ogo_throne" : {
+            "info" : "file(create_camp/ogo_throne.json)",
+            "position" : { "x": -15, "y": 15 },
+            "rotation" : 0
+         },
+         "stockpile" : {
+            "position" : { "x": -6, "y": 4 },
+            "info" : "file(create_camp/war_stockpile.json)"
+         },
+         "soothsayer_tent" : {
+            "info" : "file(create_camp/soothsayer_tent.json)",
+            "position" : { "x": 12, "y": 12 },
+            "rotation" : 90
+         },
+         "banner_goblin_tent" : {
+            "info" : "file(create_camp/banner_goblin_tent.json)",
+            "position" : { "x": -10, "y": -16 },
+            "rotation" : 180
+         }, 
+         "wolf_kennel" : {
+            "info" : "file(create_camp/wolf_kennel.json)",
+            "position" : { "x": 0, "y": -18 },
+            "rotation" : 90
+         }
+      }
+   }
+}
