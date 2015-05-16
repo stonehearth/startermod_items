@@ -5,7 +5,7 @@ function CreateOgoCamp:start(ctx)
    --TODO
    --Create names for Ogo, the soothsayer, the bannerman, and Mountain
    --Create the fakeout entity
-   ctx.ogo_camp.fakeout_entity = radiant.entities.create_entity(nil, { debug_text = 'for creating a fakeout shakedown' })
+   --ctx.ogo_camp.fakeout_entity = radiant.entities.create_entity(nil, { debug_text = 'for creating a fakeout shakedown' })
 
 
    -- scale the boss up

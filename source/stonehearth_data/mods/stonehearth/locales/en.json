@@ -501,6 +501,21 @@
    "collection_quest_cancel" : "I've changed my mind",
 
    "shop_buy" : "Buy",
-   "shop_sell" : "Sell"
+   "shop_sell" : "Sell",
 
+   "huh" : "Huh.",
+   "alarm" : "Gagh!", 
+   "ogo_who" : "Ogo who?", 
+   "uh_no" : "Uh. No.",
+   "soothsayer_who" : "Soothsayer?", 
+   "not_impressed" : "Eh", 
+   "no_way" : "No way!",
+   "well_yes" : "Well... yes.",
+   "dubious_interest" : "Uh... okay?", 
+   "confusion" : "Confused. Sorry.", 
+   "sounds_good" : "Sounds good!", 
+   "no_thanks" : "No. Thanks.",
+   "wait_who_are_you" : "Wait! Who are you?", 
+   "cool" : "Cool!", 
+   "sounds_ominous" : "Sounds ominous."
 }

@@ -4,7 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "create_ogo_camp",
-   "out_edge" : ["wait_for_boss_death", "wait_to_attack"],
+   "out_edge" : ["wait_for_boss_death", "ogos_bannerman", "wait_to_attack"],
 
 
    "create_camp_info" : {
