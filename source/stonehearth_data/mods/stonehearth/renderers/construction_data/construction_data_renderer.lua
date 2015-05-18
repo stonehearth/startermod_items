@@ -140,7 +140,16 @@ function ConstructionDataRenderer:_update_child_visibility(entity)
    local visible = true
    if self._view_mode == 'rpg' then
       local location = entity:get_component('mob'):get_location()
-      visible = location.y == 0
+      local parent = entity:get_component('mob'):get_parent()
+
+      if parent:get_component('stonehearth:wall') then
+         -- If you're parent is a wall, then, in rpg mode, you're only visible if
+         -- you're flush with the wall...
+         visible = location.y == 0
+      else
+         -- ...otherwise, you're visible if you're flush, or on top of.
+         visible = location.y == 0 or location.y == 1
+      end
    end
 
    self:_set_visibility(entity, visible)
