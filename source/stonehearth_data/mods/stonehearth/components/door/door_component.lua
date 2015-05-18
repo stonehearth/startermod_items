@@ -52,7 +52,7 @@ function DoorComponent:_add_collision_shape()
          end)
 
       mgs:set_guard_cb(function(entity, location)
-            return radiant.entities.is_friendly(self._entity, entity)
+            return stonehearth.player:are_players_friendly(self._entity, entity)
          end)
    end
 end

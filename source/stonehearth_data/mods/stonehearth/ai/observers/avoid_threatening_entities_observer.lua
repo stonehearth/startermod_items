@@ -103,7 +103,6 @@ function AvoidThreateningEntities:_on_added_to_sensor(id)
       return
    end
 
-   -- TODO: eventually, we should listen for faction/reputation changes in case a unit changes from ally to hostile or the reverse
    if self:_is_threatening(other_entity) then
       self:_observe_threat(other_entity)
       self:_check_avoid_entity(other_entity)
@@ -180,9 +179,9 @@ function AvoidThreateningEntities:_is_hostile(other_entity)
    end
 
    if self._treat_neutral_as_hostile then
-      return not radiant.entities.is_friendly(other_entity, self._entity)
+      return not stonehearth.player:are_players_friendly(other_entity, self._entity)
    else
-      return radiant.entities.is_hostile(other_entity, self._entity)
+      return stonehearth.player:are_players_hostile(other_entity, self._entity)
    end
 end
 
@@ -248,7 +247,7 @@ function AvoidThreateningEntities:_check_avoid_entity(threat)
       local threat_ratio = self:_get_threat_ratio(threat)
       local avoidance_distance = self:_get_avoidance_distance(threat_ratio)
 
-      if threat_distance > avoidance_distance then
+      if threat_distance and avoidance_distance and threat_distance > avoidance_distance then
          return
       end
    else

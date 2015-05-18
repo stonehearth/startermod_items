@@ -1,6 +1,8 @@
 {
    "kingdom_name" : "The Undead (Stephanie, heeeeeelp!)",
    "kingdom_id" : "undead",
+   "amenity_to_strangers" : "hostile",
+
    "roles" : {
       "skeleton" : {
          "male" : {

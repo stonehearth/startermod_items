@@ -13,6 +13,7 @@ function AggroObserver:initialize(entity)
    self._ally_aggro_ratio = radiant.util.get_config('ally_aggro_ratio', 0.50)
 
    self:_add_sensor_trace()
+   self:_add_amenity_listener()
 end
 
 function AggroObserver:_add_sensor_trace()
@@ -30,6 +31,23 @@ function AggroObserver:_add_sensor_trace()
       :push_object_state()
 end
 
+function AggroObserver:_add_amenity_listener()
+   local pop = stonehearth.population:get_population(self._entity)
+   if pop then
+      -- what should we do when our amenity with some other faction changes?  we could easily recompute
+      -- aggro for all our friends and foes, but what about people inside the sensor who were neutral that
+      -- we didn't keep track of?  the simplest thing to do here is to start from scratch, so clear the
+      -- target table and re-evaluate everything in the sensor.
+      self._amenity_listener = radiant.events.listen(pop, 'stonehearth:amenity_changed', function()
+            if self._trace then
+               local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+               target_table:clear()
+               self._trace:push_object_state()
+            end
+         end)
+   end
+end
+
 -- this may be called more than once for an entity, so make sure we can handle duplicates
 function AggroObserver:_on_added_to_sensor(id, other_entity)
    if not other_entity or not other_entity:is_valid() then
@@ -39,11 +57,11 @@ function AggroObserver:_on_added_to_sensor(id, other_entity)
 
    -- TODO: eventually, we should listen for alliance change if a unit changes from ally to hostile or the reverse
    -- TODO: only observe units, not structures that have factions
-   if radiant.entities.is_friendly(other_entity, self._entity) then
+   if stonehearth.player:are_players_friendly(other_entity, self._entity) then
       self:_observe_ally(other_entity)
       return
    end
-   if radiant.entities.is_hostile(other_entity, self._entity) then
+   if stonehearth.player:are_players_hostile(other_entity, self._entity) then
       self:_add_hostile_to_aggro_table(other_entity)
    end
 end
@@ -135,10 +153,15 @@ end
 function AggroObserver:destroy()
    self:_destroy_trace()
 
+   if self._amenity_listener then
+      self._amenity_listener:destroy()
+      self._amenity_listener = nil
+   end
+
    for _, listener in pairs(self._observed_allies_listeners) do
       listener:destroy()
    end
-   self._observed_allies_listeners = nil
+   self._observed_allies_listeners = nil   
 end
 
 function AggroObserver:_destroy_trace()

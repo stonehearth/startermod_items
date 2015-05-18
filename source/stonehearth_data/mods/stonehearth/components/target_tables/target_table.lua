@@ -45,6 +45,12 @@ function TargetTable:get_top(fitness_fn)
    return best_entity, best_score
 end
 
+function TargetTable:clear()
+   self._sv.targets = {}
+   self.__saved_variables:mark_changed()
+   self:_signal_changed()
+end
+
 function TargetTable:get_value(target)
    if not target or not target:is_valid() then
       return

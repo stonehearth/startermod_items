@@ -40,6 +40,7 @@ function SettlementTest:__init()
          stonehearth.game_master:start()
       end)
    
+   
    -- just for fun...
    --[[
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)
