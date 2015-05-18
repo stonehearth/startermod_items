@@ -39,7 +39,7 @@ function BumpAllies:_should_bump(other_entity)
       return false
    end
 
-   if not radiant.entities.is_friendly(other_entity, self._entity) then
+   if not stonehearth.player:are_players_friendly(other_entity, self._entity) then
       return false
    end
 

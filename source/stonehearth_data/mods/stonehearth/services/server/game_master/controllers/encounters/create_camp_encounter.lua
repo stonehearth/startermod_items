@@ -131,6 +131,12 @@ function CreateCamp:_create_camp(location, camp_region)
 
    self._population = stonehearth.population:get_population(info.npc_player_id)
 
+   -- change the amenity between the owner of the camp and the player we're creating
+   -- the encounter for.
+   if info.amenity_with_player then
+      stonehearth.player:set_amenity(info.npc_player_id, ctx.player_id, info.amenity_with_player)
+   end
+
    -- nuke all the entities around the camp
    local entities = radiant.terrain.get_entities_in_region(camp_region)
    for id, entity in pairs(entities) do

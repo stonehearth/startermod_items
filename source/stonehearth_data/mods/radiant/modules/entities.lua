@@ -804,49 +804,6 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    return 0
 end
 
--- This really shouldn't be here, but until we have a thing for this....
-function entities.are_players_hostile(player_a, player_b)
-   if entities._is_neutral_player(player_a) then
-      return false
-   end
-
-   if entities._is_neutral_player(player_b) then
-      return false
-   end
-
-   return player_a ~= player_b
-end
-
--- we'll use a mapping table later to determine alliances / hostilities
-function entities.is_hostile(entity_a, entity_b)
-   local player_a = radiant.entities.get_player_id(entity_a)
-   if entities._is_neutral_player(player_a) then
-      return false
-   end
-
-   local player_b = radiant.entities.get_player_id(entity_b)
-   if entities._is_neutral_player(player_b) then
-      return false
-   end
-
-   return player_a ~= player_b
-end
-
--- we'll use a mapping table later to determine alliances / hostilities
-function entities.is_friendly(entity_a, entity_b)
-   local player_a = radiant.entities.get_player_id(entity_a)
-   if entities._is_neutral_player(player_a) then
-      return false
-   end
-
-   local player_b = radiant.entities.get_player_id(entity_b)
-   if entities._is_neutral_player(player_b) then
-      return false
-   end
-
-   return player_a == player_b
-end
-
 -- we'll use a mapping table later to determine alliances / hostilities
 function entities._is_neutral_player(player)
    return player == nil or player == '' or player == 'critters' or player == 'animals'
