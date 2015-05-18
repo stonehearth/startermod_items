@@ -2209,9 +2209,9 @@ Frustum Renderer::computeDirectionalLightFrustum(LightNode const* light, float n
 
 struct LightImportanceSortPred
 {
-   Matrix4f clipMat;
-   LightImportanceSortPred(Matrix4f& m) {
-      clipMat = m;
+   Matrix4f const& clipMat;
+   Vec3f const& camPos;
+   LightImportanceSortPred(Matrix4f const& m, Vec3f const& cp) : clipMat(m), camPos(cp) {
    }
 
 	bool operator()( LightNode*const& a, LightNode*const& b ) const
@@ -2227,6 +2227,16 @@ struct LightImportanceSortPred
       if (!b->getParamI(LightNodeParams::DirectionalI)) {
          b->calcScreenSpaceAABB(clipMat, x, y, w, h);
          bArea = w * h;
+      }
+
+      if (aArea == bArea) {
+         Vec3f l1 = (camPos - a->getAbsPos());
+         float d1 = l1.dot(l1);
+
+         Vec3f l2 = (camPos - b->getAbsPos());
+         float d2 = l2.dot(l2);
+
+         return d1 <= d2;
       }
 
       return aArea > bArea;
@@ -2261,7 +2271,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
    Matrix4f clipMat = _curCamera->getProjMat() * _curCamera->getViewMat();
    
    // Sort high importance lights.
-   std::sort(high.begin(), high.end(), LightImportanceSortPred(clipMat));
+   std::sort(high.begin(), high.end(), LightImportanceSortPred(clipMat, _curCamera->getAbsPos()));
    for (auto const& entry : high) {
       if (lights->size() >= maxLights) {
          return;
@@ -2271,7 +2281,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 
 
    // Sort low importance lights.
-   std::sort(low.begin(), low.end(), LightImportanceSortPred(clipMat));
+   std::sort(low.begin(), low.end(), LightImportanceSortPred(clipMat, _curCamera->getAbsPos()));
    for (auto const& entry : low) {
       if (lights->size() >= maxLights) {
          return;
@@ -3583,6 +3593,8 @@ void Renderer::renderDebugView()
 	   }
    }
 
+   float tempscale = 1.0f;
+   gRDI->setShaderConst(_defColorShader.uni_modelScale, CONST_FLOAT, &tempscale);
 	defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, true );
    for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
