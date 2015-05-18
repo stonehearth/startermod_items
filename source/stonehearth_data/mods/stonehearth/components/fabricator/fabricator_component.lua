@@ -983,7 +983,7 @@ function FabricatorComponent:_update_fabricator_region()
                      rank = rank + 1
                   end
                end
-               table.insert(points_by_connect_count[rank], pt)
+               table.insert(points_by_connect_count[rank], { pt = pt, tag = top_slice_cube.tag })
             end
          end
          -- choose the least connected points (i.e. those points with the highest rank).
@@ -998,7 +998,7 @@ function FabricatorComponent:_update_fabricator_region()
          -- now add all those points to the region
          cursor:clear()        
          for _, pt in ipairs(points_to_add) do
-            cursor:add_unique_point(pt)
+            cursor:add_unique_cube(Cube3(pt.pt, pt.tag))
          end
          cursor:optimize_by_merge('update fab region')
          self._finished = cursor:empty()

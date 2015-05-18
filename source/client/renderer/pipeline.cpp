@@ -450,7 +450,7 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
          geo.vertexIndices[i + 1] = geo.vertexIndices[i] + (int)buffers.vertexCount;
          geo.indexIndicies[i + 1] = geo.indexIndicies[i] + (int)buffers.indexCount;
 
-         uint indexOffset = vertices.size();
+         uint indexOffset = (uint)vertices.size();
          std::copy(buffers.vertices, buffers.vertices + buffers.vertexCount, std::back_inserter(vertices));
 
          for (uint j = 0; j < buffers.indexCount; j++) {

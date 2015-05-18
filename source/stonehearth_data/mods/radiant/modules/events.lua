@@ -269,7 +269,7 @@ function events._update()
    events._dead_listeners = {}
 end
 
-radiant.create_background_task = function(name, fn)
+function radiant.create_background_task(name, fn)
    local co = coroutine.create(fn)
    local thread_main = function()
       local success, _ = coroutine.resume(co)

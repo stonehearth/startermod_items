@@ -13,7 +13,7 @@ TeardownStructureAdjacent.priority = 1
 
 local MATERIAL_TO_RESOURCE = {
    ['wood resource']  = 'stonehearth:resources:wood:oak_log',
-   ['stone resource'] = 'stonehearth:resources:resources:stone:hunk_of_stone',
+   ['stone resource'] = 'stonehearth:resources:stone:hunk_of_stone',
 }
 
 function TeardownStructureAdjacent:start(ai, entity, args)

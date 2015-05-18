@@ -16,6 +16,7 @@ function PlayerService:add_player(player_id, kingdom, options)
 
    local town = stonehearth.town:get_town(player_id)
    if not town then
+      stonehearth.job:add_player(player_id)
       stonehearth.town:add_town(player_id)
       stonehearth.inventory:add_inventory(player_id)
       stonehearth.population:add_population(player_id, kingdom)
