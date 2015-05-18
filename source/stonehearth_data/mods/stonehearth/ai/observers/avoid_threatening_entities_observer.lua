@@ -247,7 +247,7 @@ function AvoidThreateningEntities:_check_avoid_entity(threat)
       local threat_ratio = self:_get_threat_ratio(threat)
       local avoidance_distance = self:_get_avoidance_distance(threat_ratio)
 
-      if threat_distance > avoidance_distance then
+      if threat_distance and avoidance_distance and threat_distance > avoidance_distance then
          return
       end
    else
