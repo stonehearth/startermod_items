@@ -9,5 +9,10 @@
       "stonehearth:actions:move_item_to_available_stockpile",
       "stonehearth:actions:drop_item_near_workshop",
       "stonehearth:actions:wait_for_closest_stockpile_space"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying"
    ]
 }

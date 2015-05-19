@@ -5,5 +5,10 @@
       "stonehearth:actions:plant_crop",
       "stonehearth:actions:harvest_crop",
       "stonehearth:actions:harvest_crop_adjacent"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying"
    ]
 }

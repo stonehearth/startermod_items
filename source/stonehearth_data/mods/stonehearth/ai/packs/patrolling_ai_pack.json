@@ -5,5 +5,9 @@
       "stonehearth:actions:patrol:idle",
       "stonehearth:actions:get_patrol_route",
       "stonehearth:actions:mark_patrol_completed"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }

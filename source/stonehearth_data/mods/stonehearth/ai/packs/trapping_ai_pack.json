@@ -7,5 +7,10 @@
       "stonehearth:actions:trapping:check_bait_trap",
       "stonehearth:actions:trapping:find_trap_in_trapping_grounds",
       "stonehearth:actions:trapping:harvest_trapped_beast"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:backpack"
    ]
 }

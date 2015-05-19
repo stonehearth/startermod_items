@@ -85,13 +85,15 @@
             "priority" : 1
          }
       ],
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:harvesting",
-         "stonehearth:ai_pack:restocking",
-         "stonehearth:ai_pack:patrolling",
-         "stonehearth:ai_pack:sitting",
-         "stonehearth:ai_pack:promotion",
-         "stonehearth:ai_pack:admire_fire"
-      ]
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:harvesting",
+            "stonehearth:ai_pack:restocking",
+            "stonehearth:ai_pack:patrolling",
+            "stonehearth:ai_pack:sitting",
+            "stonehearth:ai_pack:promotion",
+            "stonehearth:ai_pack:admire_fire"
+         ]
+      }
    }
 }

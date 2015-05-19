@@ -4,5 +4,10 @@
       "stonehearth:actions:fabricate_structure_adjacent",
       "stonehearth:actions:teardown_structure",
       "stonehearth:actions:teardown_structure_adjacent"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying"
    ]
 }

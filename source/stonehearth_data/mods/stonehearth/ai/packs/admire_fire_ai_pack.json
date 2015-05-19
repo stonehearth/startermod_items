@@ -6,5 +6,9 @@
    ],
    "observers" : [
       "stonehearth:observers:free_time"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }

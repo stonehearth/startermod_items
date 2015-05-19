@@ -24,8 +24,18 @@
       "stonehearth:actions:walk_to_empty_space",
       "stonehearth:actions:wander",
 
+      "stonehearth:actions:get_town_banner",
+      "stonehearth:actions:goto_town_banner",
+      "stonehearth:actions:get_town_center",
+      "stonehearth:actions:goto_town_center",
+
       "stonehearth:actions:bump_entity",
       "stonehearth:actions:bump_against_entity",
-      "stonehearth:actions:bump_allies"
+      "stonehearth:actions:bump_allies",
+
+      "stonehearth:actions:drop_carrying_now"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
    ]
 }

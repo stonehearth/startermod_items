@@ -1,5 +1,8 @@
 {
    "actions" : [
       "stonehearth:actions:idle:look_around"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
    ]
 }

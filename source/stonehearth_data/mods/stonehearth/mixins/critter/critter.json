@@ -22,7 +22,7 @@
             "type" : "basic", 
             "value": 110
          },
-          "calories" : {
+         "calories" : {
             "type" : "basic", 
             "value" : 30
          },
@@ -51,11 +51,15 @@
          "max_avoidance_distance" : 16
       },
 
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:idle:bored:look_around",
-         "stonehearth:ai_pack:idle:bored:wander",
-         "stonehearth:ai_pack:wimpy",
-         "stonehearth:ai_pack:panic:flee"
-      ]
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:wimpy",
+            "stonehearth:ai_pack:panic:flee",
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander"
+         ]
+      }
    }
 }

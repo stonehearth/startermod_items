@@ -60,9 +60,13 @@
    },
 
    "entity_data" : {
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:idle:bored:look_around",
-         "stonehearth:ai_pack:idle:bored:wander"
-      ]
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander"
+         ]
+      }
    }
 }

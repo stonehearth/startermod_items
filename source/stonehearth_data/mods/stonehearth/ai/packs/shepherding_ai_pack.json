@@ -10,5 +10,9 @@
       "stonehearth:actions:shepherd:leave_animal_in_pasture",
       "stonehearth:actions:shepherd:wait_for_trailing_animal",
       "stonehearth:actions:shepherd:find_stray_animal"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }

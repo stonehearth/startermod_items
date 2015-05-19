@@ -33,12 +33,5 @@
             }
          }
       }
-   },
-
-   "entity_data" : {
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:common",
-         "stonehearth:ai_pack:town"
-      ]
    }
 }

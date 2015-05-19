@@ -65,9 +65,15 @@
       "stonehearth:entity_radius" : 2.0,
       "stonehearth:entity_reach" : 2.0,
 
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:idle:bored:look_around",
-         "stonehearth:ai_pack:idle:bored:wander"
-      ]
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:combat",
+            "stonehearth:ai_pack:health",
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander"
+         ]
+      }
    }
 }

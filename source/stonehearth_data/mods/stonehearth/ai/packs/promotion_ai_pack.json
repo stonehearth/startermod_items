@@ -2,5 +2,10 @@
    "actions" : [
       "stonehearth:actions:grab_promotion_talisman",
       "stonehearth:actions:grab_promotion_talisman_type"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying"
    ]
 }

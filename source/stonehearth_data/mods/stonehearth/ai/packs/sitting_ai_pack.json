@@ -3,5 +3,9 @@
       "stonehearth:actions:sit_on_ground",
       "stonehearth:actions:sit_on_chair",
       "stonehearth:actions:sit_on_chair_adjacent"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }

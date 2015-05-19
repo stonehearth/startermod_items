@@ -13,6 +13,9 @@
       "stonehearth:observers:calorie"
    ],
    "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying",
       "stonehearth:ai_pack:sitting"
    ]
 }

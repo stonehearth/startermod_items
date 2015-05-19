@@ -5,5 +5,8 @@
       "stonehearth:actions:pickup_item_into_backpack",
       "stonehearth:actions:pickup_item_type_from_backpack",
       "stonehearth:actions:find_stockpile_for_backpack_item"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:restocking"
    ]
 }

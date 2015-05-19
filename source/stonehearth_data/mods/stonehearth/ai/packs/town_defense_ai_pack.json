@@ -3,5 +3,9 @@
       "stonehearth:actions:town_defense:town_defense_dispatcher",
       "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
       "stonehearth:actions:town_defense:town_defense_idle_ready"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }

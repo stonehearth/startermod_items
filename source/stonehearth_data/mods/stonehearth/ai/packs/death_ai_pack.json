@@ -3,5 +3,8 @@
       "stonehearth:actions:death",
       "stonehearth:actions:die_generic",
       "stonehearth:actions:run_death_effect"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
    ]
 }

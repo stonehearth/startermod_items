@@ -22,13 +22,17 @@
       }
    },
    "entity_data" : {
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:combat",
-         "stonehearth:ai_pack:health",
-         "stonehearth:ai_pack:upgrade_equipment",
-         "stonehearth:ai_pack:idle:bored:look_around",
-         "stonehearth:ai_pack:idle:bored:wander",
-         "stonehearth:ai_pack:idle:bored:sway"
-      ]
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:combat",
+            "stonehearth:ai_pack:upgrade_equipment",
+            "stonehearth:ai_pack:health",
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander",
+            "stonehearth:ai_pack:idle:bored:sway"
+         ]
+      }
    }
 }

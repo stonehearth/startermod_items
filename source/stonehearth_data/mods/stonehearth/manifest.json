@@ -700,10 +700,9 @@
       "actions:party:idle_at_banner" : "file(services/server/unit_control/entities/actions/party_idle_at_banner_action.lua)",
 
       "ai_pack:core" : "file(ai/packs/core_ai_pack.json)",
-      "ai_pack:common" : "file(ai/packs/common_ai_pack.json)",
       "ai_pack:movement" : "file(ai/packs/movement_ai_pack.json)",
       "ai_pack:restocking" : "file(ai/packs/restocking_ai_pack.json)",
-      "ai_pack:carry_item" : "file(ai/packs/carry_item_ai_pack.json)",
+      "ai_pack:carrying" : "file(ai/packs/carrying_ai_pack.json)",
       "ai_pack:place_item" : "file(ai/packs/place_item_ai_pack.json)",
       "ai_pack:sitting" : "file(ai/packs/sitting_ai_pack.json)",
       "ai_pack:eating" : "file(ai/packs/eating_ai_pack.json)",
@@ -736,7 +735,6 @@
       "ai_pack:idle:bored:look_around" : "file(ai/packs/idle_bored_look_around_ai_pack.json)",
       "ai_pack:idle:bored:sway" : "file(ai/packs/idle_bored_sway_ai_pack.json)",
       "ai_pack:party" : "file(ai/packs/party_ai_pack.json)",
-      "ai_pack:town" : "file(ai/packs/town_ai_pack.json)",
       "ai_pack:destructable_object" : "file(ai/packs/destructable_object_ai_pack.json)",
 
       "class_info" : "file(entities/class_info)",

@@ -216,23 +216,27 @@
       "stonehearth:entity_radius" : 0.75,
       "stonehearth:entity_reach" : 1.0,
 
-      "stonehearth:ai_packs" : [
-         "stonehearth:ai_pack:harvesting",
-         "stonehearth:ai_pack:sitting",
-         "stonehearth:ai_pack:eating",
-         "stonehearth:ai_pack:sleeping",
-         "stonehearth:ai_pack:restocking",
-         "stonehearth:ai_pack:idle:bored:look_around",
-         "stonehearth:ai_pack:idle:bored:wander",
-         "stonehearth:ai_pack:idle:bored:sway",
-         "stonehearth:ai_pack:combat",
-         "stonehearth:ai_pack:promotion",
-         "stonehearth:ai_pack:upgrade_equipment",
-         "stonehearth:ai_pack:health",
-         "stonehearth:ai_pack:citizen_death",
-         "stonehearth:ai_pack:admire_fire",
-         "stonehearth:ai_pack:score"
-      ],
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:harvesting",
+            "stonehearth:ai_pack:sitting",
+            "stonehearth:ai_pack:eating",
+            "stonehearth:ai_pack:sleeping",
+            "stonehearth:ai_pack:restocking",
+            "stonehearth:ai_pack:combat",
+            "stonehearth:ai_pack:promotion",
+            "stonehearth:ai_pack:upgrade_equipment",
+            "stonehearth:ai_pack:admire_fire",
+            "stonehearth:ai_pack:health",
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:citizen_death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander",
+            "stonehearth:ai_pack:idle:bored:sway",
+            "stonehearth:ai_pack:score"
+         ]
+      },
 
       "stonehearth:observers:avoid_threatening_entities" : {
          "min_avoidance_distance" : 16,

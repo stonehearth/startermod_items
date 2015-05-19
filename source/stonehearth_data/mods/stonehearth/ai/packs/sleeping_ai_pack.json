@@ -8,5 +8,9 @@
    ],
    "observers" : [
       "stonehearth:observers:sleepiness"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }

@@ -22,5 +22,9 @@
    "observers" : [
       "stonehearth:observers:aggro",
       "stonehearth:observers:find_target"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
    ]
 }
