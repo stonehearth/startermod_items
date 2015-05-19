@@ -48,6 +48,7 @@
 
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",
+      "mixins:undead" : "file(mixins/undead)",
       "mixins:critter" : "file(mixins/critter)",
       "mixins:base_human" : "file(mixins/base_human)",
       "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
