@@ -432,6 +432,15 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
    std::unordered_map<csg::MaterialName, std::vector<unsigned int>,        csg::MaterialName::Hash> indicesByMaterial;
 
    for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
+      // For every material, propogate the offset from the previous
+      // stage to the next.  This is important in the case whre the LOD
+      // process removes entire materials from the mesh.
+      for (auto& entry : geometry) {
+         GeometryInfo& geo = entry.second;
+         geo.vertexIndices[i + 1] = geo.vertexIndices[i];
+         geo.indexIndicies[i + 1] = geo.indexIndicies[i];
+      }
+
       csg::MaterialToMeshMap meshes;
 
       create_mesh_fn(meshes, i);
