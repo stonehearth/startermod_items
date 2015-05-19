@@ -5,7 +5,7 @@
       
       <RenderTarget id="Final" numColBufs="1" depthBufAlias="GBuffers" format="RGBA8" scale="1.0"/>
       <RenderTarget id="Albedo" numColBufs="1" colBuf0="GBuffers[2]" depthBufAlias="GBuffers" />
-      <RenderTarget id="LightAccumulation" numColBufs="1" depthBuf="false" format="RGBA32F" scale="1.0" />
+      <RenderTarget id="LightAccumulation" numColBufs="1" depthBufAlias="GBuffers" format="RGBA8" scale="1.0" />
 
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />

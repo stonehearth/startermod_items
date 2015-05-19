@@ -141,6 +141,7 @@ public:
       }
    }
 
+   bool ForceOptimizeByOctTree(const char* reason, S minCubeSize);
    bool OptimizeByOctTree(const char* reason, S minCubeSize);
    bool OptimizeByMerge(const char* reason);
    void ForceOptimizeByMerge(const char* reason);
