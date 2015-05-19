@@ -1,0 +1,31 @@
+{
+   "actions" : [
+      "stonehearth:actions:turn_to_face_entity",
+      "stonehearth:actions:turn_to_face_point",
+
+      "stonehearth:actions:find_path_to_entity",
+      "stonehearth:actions:find_path_to_entity_type",
+      "stonehearth:actions:find_direct_path_to_entity",
+      "stonehearth:actions:find_direct_path_to_location",
+      "stonehearth:actions:follow_path_action",
+
+      "stonehearth:actions:run_to_entity",
+      "stonehearth:actions:run_to_entity_type",
+      "stonehearth:actions:run_to_location",
+      "stonehearth:actions:run_toward_entity",
+      "stonehearth:actions:run_toward_location",
+      "stonehearth:actions:run_to_closest_standable_location",
+      "stonehearth:actions:run_away_from_entity",
+      "stonehearth:actions:goto_item_made_of",
+      "stonehearth:actions:goto_entity_with_entity_data",
+      "stonehearth:actions:follow_entity",
+      "stonehearth:actions:chase_entity",
+
+      "stonehearth:actions:walk_to_empty_space",
+      "stonehearth:actions:wander",
+
+      "stonehearth:actions:bump_entity",
+      "stonehearth:actions:bump_against_entity",
+      "stonehearth:actions:bump_allies"
+   ]
+}

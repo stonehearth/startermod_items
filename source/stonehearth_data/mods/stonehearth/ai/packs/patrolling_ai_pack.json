@@ -1,0 +1,9 @@
+{
+   "actions" : [
+      "stonehearth:actions:patrol_dispatcher",
+      "stonehearth:actions:patrol",
+      "stonehearth:actions:patrol:idle",
+      "stonehearth:actions:get_patrol_route",
+      "stonehearth:actions:mark_patrol_completed"
+   ]
+}

@@ -1,0 +1,9 @@
+{
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:idle",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carry_item",
+      "stonehearth:ai_pack:death"
+   ]
+}

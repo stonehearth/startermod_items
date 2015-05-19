@@ -1,0 +1,8 @@
+{
+   "actions" : [
+      "stonehearth:actions:fabricate_structure",
+      "stonehearth:actions:fabricate_structure_adjacent",
+      "stonehearth:actions:teardown_structure",
+      "stonehearth:actions:teardown_structure_adjacent"
+   ]
+}

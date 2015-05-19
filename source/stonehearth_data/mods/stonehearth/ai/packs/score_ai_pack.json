@@ -1,0 +1,7 @@
+{
+   "observers" : [
+      "stonehearth:observers:nutrition_score",
+      "stonehearth:observers:shelter_score",
+      "stonehearth:observers:safety_score"
+   ]
+}

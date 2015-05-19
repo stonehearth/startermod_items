@@ -1,0 +1,7 @@
+{
+   "actions" : [
+      "stonehearth:actions:wander_when_bored",
+      "stonehearth:actions:wander_within_leash",
+      "stonehearth:actions:choose_point_around_leash"
+   ]
+}

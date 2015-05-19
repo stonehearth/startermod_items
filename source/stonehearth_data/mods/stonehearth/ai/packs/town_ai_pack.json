@@ -1,0 +1,8 @@
+{
+   "actions" : [
+      "stonehearth:actions:get_town_banner",
+      "stonehearth:actions:goto_town_banner",
+      "stonehearth:actions:get_town_center",
+      "stonehearth:actions:goto_town_center"
+   ]
+}

@@ -1,0 +1,9 @@
+{
+   "actions" : [
+      "stonehearth:actions:build_ladder",
+      "stonehearth:actions:build_ladder_down",
+      "stonehearth:actions:build_ladder_adjacent",
+      "stonehearth:actions:teardown_ladder",
+      "stonehearth:actions:teardown_ladder_adjacent"
+   ]
+}

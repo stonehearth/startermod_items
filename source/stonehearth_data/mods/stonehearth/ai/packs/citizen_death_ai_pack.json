@@ -1,0 +1,6 @@
+{
+   "actions" : [
+      "stonehearth:actions:die_citizen",
+      "stonehearth:actions:memorialize_death"
+   ]
+}

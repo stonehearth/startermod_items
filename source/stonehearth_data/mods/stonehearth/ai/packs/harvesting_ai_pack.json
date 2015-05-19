@@ -1,0 +1,10 @@
+{
+   "actions" : [
+      "stonehearth:actions:harvest_resource_node_action",
+      "stonehearth:actions:harvest_resource_node_adjacent_action",
+      "stonehearth:actions:harvest_plant",
+      "stonehearth:actions:harvest_plant_adjacent",
+      "stonehearth:actions:clear_item",
+      "stonehearth:actions:clear_item_adjacent"
+   ]
+}

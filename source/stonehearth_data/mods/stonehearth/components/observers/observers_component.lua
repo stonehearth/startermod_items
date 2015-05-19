@@ -11,16 +11,17 @@ function ObserversComponent:initialize(entity, json)
                           :set_entity(self._entity)
 
    if not self._sv._initialized then
-      -- wait until the entity is completely initialized before piling all our
-      -- observers and actions
-      radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
-            self:_initialize(json)
-         end)
+      if json.observers then
+         self._log:error('%s: Observers are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
+         assert(false)
+      end
+
+      self._sv._observers = {}
+      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
+      self._sv._initialized = true
+      self.__saved_variables:mark_changed()
    else
-      -- we're loading so instead listen on game loaded
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            self:_initialize(json)
-         end)
+      -- the self._sv._observers instances are rehydrated by the controller infrastructure
    end
 end
 
@@ -59,21 +60,6 @@ function ObserversComponent:remove_observer(uri)
       observer:destroy()
       self.__saved_variables:mark_changed()
    end
-end
-
-function ObserversComponent:_initialize(json)
-   if not self._sv._initialized then
-      self._sv._observers = {}
-      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
-
-      for _, uri in ipairs(json.observers or {}) do
-         self:add_observer(uri)
-      end
-   else
-      -- observers will be rehydradated by controller infrastructure
-   end
-   self._sv._initialized = true
-   self.__saved_variables:mark_changed()
 end
 
 return ObserversComponent

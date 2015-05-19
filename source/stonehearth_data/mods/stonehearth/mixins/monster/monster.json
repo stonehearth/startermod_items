@@ -2,78 +2,6 @@
    "type": "entity", 
    "mixins" : "stonehearth:mixins:mob",
    "components": {
-      "stonehearth:ai": {
-         "actions" : [
-            "stonehearth:actions:idle:sway",
-            "stonehearth:actions:idle:look_around",
-            "stonehearth:actions:wander",
-            "stonehearth:actions:wander_within_leash",
-            "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash",
-            "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack_after_cooldown",
-            "stonehearth:actions:combat:attack:melee",
-            "stonehearth:actions:combat:attack:melee_adjacent",
-            "stonehearth:actions:combat:defend_dispatcher",
-            "stonehearth:actions:combat:defend:melee",
-            "stonehearth:actions:combat:idle_dispatcher",
-            "stonehearth:actions:combat:idle:ready",
-            "stonehearth:actions:combat:idle:shuffle",
-            "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:chase_entity",
-            "stonehearth:actions:restock_stockpile",
-            "stonehearth:actions:drop_carrying_in_stockpile",            
-            "stonehearth:actions:reserve_stockpile_space",
-            "stonehearth:actions:place_item",
-            "stonehearth:actions:stockpile_arson",
-            "stonehearth:actions:combat:create_engage_callback",
-            "stonehearth:actions:combat:get_melee_range",
-            "stonehearth:actions:combat:get_primary_target",
-            "stonehearth:actions:combat:set_global_attack_cooldown",
-            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
-            "stonehearth:actions:set_posture",
-            "stonehearth:actions:patrol_dispatcher",
-            "stonehearth:actions:patrol",
-            "stonehearth:actions:patrol:idle",
-            "stonehearth:actions:get_patrol_route",
-            "stonehearth:actions:mark_patrol_completed",
-            "stonehearth:actions:wander",
-            "stonehearth:actions:wander_within_leash",
-            "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash",
-            "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack_after_cooldown",
-            "stonehearth:actions:combat:attack:melee",
-            "stonehearth:actions:combat:attack:melee_adjacent",
-            "stonehearth:actions:combat:defend_dispatcher",
-            "stonehearth:actions:combat:defend:melee",
-            "stonehearth:actions:combat:idle_dispatcher",
-            "stonehearth:actions:combat:idle:ready",
-            "stonehearth:actions:combat:idle:shuffle",
-            "stonehearth:actions:combat:panic_dispatcher",
-            "stonehearth:actions:combat:panic_watcher",
-            "stonehearth:actions:combat:stop_panicking",
-            "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:combat:create_engage_callback",
-            "stonehearth:actions:combat:get_primary_target",
-            "stonehearth:actions:combat:get_melee_range",
-            "stonehearth:actions:combat:set_global_attack_cooldown",
-            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
-            "stonehearth:actions:chase_entity",
-            "stonehearth:actions:set_posture",
-            "stonehearth:actions:free_time:dispatcher",
-            "stonehearth:actions:equip_carrying",
-            "stonehearth:actions:upgrade_equipment",
-            "stonehearth:actions:find_equipment_upgrade"            
-         ]
-      },
-      "stonehearth:observers" : {
-         "observers": [
-            "stonehearth:observers:aggro",
-            "stonehearth:observers:find_target",
-            "stonehearth:observers:health_score"            
-         ]
-      },
       "stonehearth:job" : {
          "starting_level_title" : "Apprentice __job_name__ ",
          "default_level_title" : "Level __level_number__ __job_name__", 
@@ -92,5 +20,15 @@
             }
          }
       }
+   },
+   "entity_data" : {
+      "stonehearth:ai_packs" : [
+         "stonehearth:ai_pack:combat",
+         "stonehearth:ai_pack:health",
+         "stonehearth:ai_pack:upgrade_equipment",
+         "stonehearth:ai_pack:idle:bored:look_around",
+         "stonehearth:ai_pack:idle:bored:wander",
+         "stonehearth:ai_pack:idle:bored:sway"
+      ]
    }
 }

@@ -28,10 +28,23 @@ function AIComponent:initialize(entity, json)
                           :set_entity(self._entity)
 
    if not self._sv._initialized then
+      self._sv.status_text = ''
+      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
+
       -- wait until the entity is completely initialized before piling all our actions
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
+            if json.actions then
+               self._log:error('%s, Actions are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
+               assert(false)
+            end
+
             self._sv._dispatchers = json.dispatchers
-            self:_initialize(json)
+            self._sv._initialized = true
+            self:_restore_dispatchers()
+            self.__saved_variables:mark_changed()
+
+            -- Actions and observers are now added by the ai service after entity creation.
+            -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
 
             -- wait until the very next gameloop to start our thread.  this gives the
             -- person creating the entity time to do some more post-creating initialization
@@ -47,7 +60,8 @@ function AIComponent:initialize(entity, json)
    else
       --we're loading so instead listen on game loaded
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            self:_initialize(json)
+            self:_restore_dispatchers()
+            self:_restore_actions()
             self:start()
          end)
    end
@@ -272,29 +286,18 @@ function AIComponent:_unregister_execution_frame(activity_name, frame)
    end
 end
 
-function AIComponent:_initialize(json)
-   if not self._sv._initialized then
-      self._sv.status_text = ''
-      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
-      
-      for _, uri in ipairs(json.actions or {}) do
-         self:add_action(uri)
-      end
-   else
-      local saved_actions = self._sv._ref_counts:get_all_refs()
-      for uri, _ in pairs(saved_actions) do
-         self:_add_action_internal(uri)
-      end
+function AIComponent:_restore_actions()
+   local saved_actions = self._sv._ref_counts:get_all_refs()
+   for uri, _ in pairs(saved_actions) do
+      self:_add_action_internal(uri)
    end
-   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
-
-   -- all the dynamic dispatchers into our entity.  this wires together big sections
-   -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
-
-   self._sv._initialized = true
-   self.__saved_variables:mark_changed()
 end
 
+function AIComponent:_restore_dispatchers()
+   -- all the dynamic dispatchers into our entity.  this wires together big sections
+   -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
+   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
+end
 
 -- create a single task dispatcher which delegates the implementation of
 -- parent_activity to info.does at info.priority.  for example:

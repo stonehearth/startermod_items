@@ -1,0 +1,7 @@
+{
+   "actions" : [
+      "stonehearth:actions:reserve_stockpile_space",
+      "stonehearth:actions:restock_stockpile",
+      "stonehearth:actions:drop_carrying_in_stockpile"
+   ]
+}

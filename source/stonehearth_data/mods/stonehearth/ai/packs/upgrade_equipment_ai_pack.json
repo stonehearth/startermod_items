@@ -1,0 +1,7 @@
+{
+   "actions" : [
+      "stonehearth:actions:upgrade_equipment",
+      "stonehearth:actions:find_equipment_upgrade",
+      "stonehearth:actions:equip_carrying"
+   ]
+}

@@ -37,7 +37,7 @@ local constants = {
          URGENT_ACTIONS = 80,
          COMBAT = 100,
          UNIT_CONTROL = 1000,
-         COMPELLED_BEHAVIOR = 9999999,
+         COMPELLED_BEHAVIOR = 10000,
          DIE = 10000000,
       },
 

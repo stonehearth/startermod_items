@@ -1,0 +1,6 @@
+{
+   "actions" : [
+      "stonehearth:actions:grab_promotion_talisman",
+      "stonehearth:actions:grab_promotion_talisman_type"
+   ]
+}

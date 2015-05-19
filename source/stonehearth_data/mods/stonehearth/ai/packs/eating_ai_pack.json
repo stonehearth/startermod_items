@@ -1,0 +1,18 @@
+{
+   "actions" : [
+      "stonehearth:actions:eat",
+      "stonehearth:actions:eat_carrying",
+      "stonehearth:actions:eat_item",
+      "stonehearth:actions:eat_on_ground",
+      "stonehearth:actions:eat_on_chair",
+      "stonehearth:actions:get_food_on_ground",
+      "stonehearth:actions:get_food_from_container",
+      "stonehearth:actions:get_food_from_container_adjacent"
+   ],
+   "observers" : [
+      "stonehearth:observers:calorie"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:sitting"
+   ]
+}

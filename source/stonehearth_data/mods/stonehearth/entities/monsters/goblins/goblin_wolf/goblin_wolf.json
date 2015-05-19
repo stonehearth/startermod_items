@@ -15,10 +15,6 @@
             "value": 120
          }
       },
-      "stonehearth:ai": {
-         "actions": [
-         ]
-      },
       "model_variants": {
          "default": {
             "models": [

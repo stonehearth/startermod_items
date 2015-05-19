@@ -1,0 +1,7 @@
+{
+   "actions" : [
+      "stonehearth:actions:death",
+      "stonehearth:actions:die_generic",
+      "stonehearth:actions:run_death_effect"
+   ]
+}

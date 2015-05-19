@@ -14,11 +14,6 @@
             ]
          }
       },
-      "stonehearth:observers": {
-         "observers" : [
-            "stonehearth:observers:kill_at_zero_health"
-         ]
-      },
       "stonehearth:attributes": {
           "max_health": {
             "type" : "basic", 

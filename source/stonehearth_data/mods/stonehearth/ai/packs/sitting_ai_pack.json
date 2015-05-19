@@ -1,0 +1,7 @@
+{
+   "actions" : [
+      "stonehearth:actions:sit_on_ground",
+      "stonehearth:actions:sit_on_chair",
+      "stonehearth:actions:sit_on_chair_adjacent"
+   ]
+}
