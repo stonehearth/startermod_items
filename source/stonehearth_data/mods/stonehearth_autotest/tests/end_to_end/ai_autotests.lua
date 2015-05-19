@@ -7,7 +7,7 @@ local function setup_object_monitor_test(autotest, action_script, args)
    local e = autotest.env:create_entity(0, 0, 'stonehearth:resources:wood:oak_log')
    local ai = e:add_component('stonehearth:ai')
    
-   ai:_initialize({
+   stonehearth.ai:inject_ai(e, {
       actions = {
          '/stonehearth_autotest/ai/actions/autotest_dispatcher.lua',
          action_script,
