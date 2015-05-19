@@ -1,0 +1,5 @@
+ZWriteEnable = false;
+ZEnable = false;
+BlendMode = Add;
+CullMode = Front;
+ 

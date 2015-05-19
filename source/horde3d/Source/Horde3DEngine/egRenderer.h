@@ -252,6 +252,7 @@ protected:
 	void bindPipeBuffer( uint32 rbObj, std::string const& sampler, uint32 bufIndex );
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, std::string const& shaderContext );
+	void drawMatSphere(Resource *matRes, std::string const& shaderContext, const Vec3f &pos, float radius);
 	void drawQuad();
    void drawLodGeometry(SceneId sceneId, std::string const& shaderContext,
                          RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);

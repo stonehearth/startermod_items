@@ -14,13 +14,16 @@ sampler2D depths = sampler_state
 [[VS]]
 
 uniform mat4 projMat;
+uniform mat4 viewProjMat;
+uniform mat4 worldMat;
 attribute vec3 vertPos;
-varying vec2 texCoords;
+varying vec4 tCoords;
         
 void main(void)
 {
-  texCoords = vertPos.xy; 
-  gl_Position = projMat * vec4(vertPos, 1.0);
+  vec4 clipPos = viewProjMat * worldMat * vec4(vertPos, 1.0);
+  tCoords = clipPos;
+  gl_Position = clipPos;
 }
 
 
@@ -36,18 +39,21 @@ uniform vec3 lightAmbientColor;
 uniform sampler2D normals;
 uniform sampler2D depths;
 
-varying vec2 texCoords;
+varying vec4 tCoords;
 
 void main(void)
 {
-  vec4 normal = texture2D(normals, texCoords);
+  vec2 texCoords = ((tCoords.xy / tCoords.w * 0.5) + vec2(0.5));
+  vec4 normal = texture2D(normals,  texCoords);
   // Check to see if a valid normal was even written!
   if (normal.w == 0.0) {
   	discard;
   }
 
   vec4 depthAttribs = texture2D(depths, texCoords);
-  vec3 pos = toWorldSpace(camProjMat, camViewMatInv, texCoords, depthAttribs.r);
+  mat4 lProj = camProjMat;
+  mat4 lView = camViewMatInv;
+  vec3 pos = toWorldSpace(lProj, lView, texCoords, depthAttribs.r);
 
   // Light Color.
   gl_FragColor = calcPhongOmniLight(camViewerPos, pos, normal.xyz, depthAttribs.b, depthAttribs.a);

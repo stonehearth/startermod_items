@@ -11,6 +11,14 @@
 		"OMNI_LIGHTING_FORWARD_POSTPROCESS" : {
 			"state" : "states/voxel/add.state",
 			"shader" : "shaders/voxel/deferred_omni_lighting.shader"
+		},
+		"OMNI_LIGHTING_NO_SHADOW_FORWARD_POSTPROCESS_INSIDE" : {
+			"state" : "states/voxel/add_nocull.state",
+			"shader" : "shaders/voxel/deferred_no_shadow_omni_lighting.shader"
+		},
+		"OMNI_LIGHTING_FORWARD_POSTPROCESS_INSIDE" : {
+			"state" : "states/voxel/add_nocull.state",
+			"shader" : "shaders/voxel/deferred_omni_lighting.shader"
 		}
 	}
 }
