@@ -1,0 +1,114 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+
+   "in_edge"  : "ogos_bannerman",
+
+   "dialog_tree_info" : {
+      "start_node" : "snooty_introduction",
+      "nodes" : {
+         "snooty_introduction" : {
+            "bulletin" : {
+               "title" : "A goblin with a officious smirk slithers into town",
+               "dialog_title" : "Ogo's Bannerman",
+               "portrait" : "file(images/ogo_bannerman.png)",
+               "message" : [
+                  "Ho, puny town! Me stand here with bad news for you!",
+                  "Puny Town! Bow and tremble!",
+                  "Muahahahahah! This? This your town? I laugh till I cry!"
+               ],
+               "choices" : {
+                  "stonehearth:huh" : {
+                     "next_node" : "ogo_introduction"
+                  }, 
+                  "stonehearth:alarm" : {
+                     "next_node" : "ogo_introduction"
+                  }
+               }               
+            }
+         },
+         "ogo_introduction" : {
+            "bulletin" : {
+               "title" : "The goblin straightens",
+               "dialog_title" : "Ogo's Bannerman",
+               "portrait" : "file(images/ogo_bannerman.png)",
+               "message" : [
+                  "By order of Ogo Skullbonker, Goblin-All-Chief-To-Be, you and all your stuffs now be tribute to Great Glittering Army and Red Kiln Empire!",
+                  "I envoy of Ogo Skullbonker, tamer of Mountains! Ogo demand many thing from all, include you, include your gold!",
+                  "My Chief-of-Chiefs, Ogo Skullbonker, soon rule take Glittering Army and rule all of Red Kiln! You next of many conquests. You become our goldfarmers!",
+                  "I am Bannergoblin of Ogo Skullbonker, rider of Mountain! My master demand you tribute, in form of all you have! You give everything! Or you pay!",
+                  "I bannergoblin of Ogo Skullbonker! When you bested the small chiefs, you bring Ogo's Eye upon you! And Ogo's Eye know all! You will give tribute, or eye will see your end!"
+               ],
+               "choices" : {
+                  "stonehearth:ogo_who" : {
+                     "next_node" : "ogo_description"
+                  }, 
+                  "stonehearth:uh_no" : {
+                     "next_node" : "conclusion"
+                  }
+               }
+            }
+         },
+         "ogo_description" : {
+            "bulletin" : {
+               "title" : "The goblin's eyes glow with zeal",
+               "dialog_title" : "Ogo's Bannerman",
+               "portrait" : "file(images/ogo_bannerman.png)",
+               "message" : [
+                  "Soothsayer say Ogo Skullbonker will be hero above all heroes! You destined to give him gold!",
+                  "Soothsayer little, but have big thoughts! Soothsayer never wrong. Soothsayer say you give Ogo gold, or Ogo will take it from you!"
+                  "Goblins long be shunned and forgotten. Soothsayer say that Ogo Skullbonker, my LittleChief, will soon change everything! For that, he need gold and labor!",
+                  "Ogo Skullbonker, Master of Masters, have great destiny, to rule over all! Soothsayer say so; soothsayer never wrong. Soothsayer say, you will help!",
+               ],
+               "choices" : {
+                  "stonehearth:soothsayer_who" : {
+                     "next_node" : "soothsayer_description"
+                  }, 
+                  "stonehearth:not_impressed" : {
+                     "next_node" : "conclusion"
+                  }
+               }               
+            }
+         }, 
+         "soothsayer_description" : {
+            "bulletin" : {
+               "title" : "The goblin's eyes grow round",
+               "dialog_title" : "Ogo's Bannerman",
+               "portrait" : "file(images/ogo_bannerman.png)",
+               "message" : [
+                  "Soothsayer magic! Speak with old ones! Tell future! He see... he see Red Kiln Falling, new star rising. That star is Ogo. This time, we pick winning side!",
+                  "Soothsayer old, old snake. Speaks out with bones and scales. Sees future! Sees cycle ending, ending forever. Not sure what he mean, but good for Ogo!",
+                  "Soothsayer goblin, obviously! Goblin who can see future! He say old ones dying away, new star rising. Good for Ogo, bad for everyone else, you included!"
+               ],
+               "choices" : {
+                  "stonehearth:no_way" : {
+                     "next_node" : "conclusion"
+                  },
+                  "stonehearth:huh" : {
+                     "next_node" : "conclusion"
+                  }
+               }               
+            }
+         },
+         "conclusion" : {
+            "bulletin" : {
+               "title" : "The goblin's eyes narrow",
+               "dialog_title" : "Ogo's Bannerman",
+               "portrait" : "file(images/ogo_bannerman.png)",
+               "message" : [
+                  "Anyway, it matter not! I here only to warn you: muster your gold, so it easy for us to collect! We be back soon!",
+                  "Hahaha! Whatever. You all belong to us now. We come soon to collect you for gold mines!",
+                  "Oh, you say something? No matter, we return soon! Collect all your things so will be easy for us to move!", 
+                  "Anyway, time to go iron my banner. Be back soon! Be ready, yes? New life under goblin rule awaits!"
+               ],
+               "choices" : {
+                  "stonehearth:ok" : {
+                     "out_edge" : "wait_for_help"
+                  }
+               }               
+            }
+         }        
+      }
+   }
+}

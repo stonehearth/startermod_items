@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_to_attack",
+   "out_edge" : [],
+
+   "wait_info" :  {
+      "duration" : "3d"
+   }
+}

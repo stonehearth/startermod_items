@@ -30,10 +30,10 @@
                   "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
                "attributes" : {
-                  "raid_timeout_minutes" : 320,
+                  "raid_timeout_minutes" : 120,
                   "raid_timeout_variance_minutes" : 60,
-                  "health" : 200, 
-                  "menace" : 150
+                  "health" : 150, 
+                  "menace" : 100
                }
             },
             "ferocious_wolf_2" : {
@@ -42,10 +42,10 @@
                   "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
                "attributes" : {
-                  "raid_timeout_minutes" : 320,
+                  "raid_timeout_minutes" : 180,
                   "raid_timeout_variance_minutes" : 30,
-                  "health" : 150, 
-                  "menace" : 120
+                  "health" : 120, 
+                  "menace" : 90
 
                }
             },
@@ -55,10 +55,10 @@
                   "abilities" : "stonehearth:abilities:wolf_rider_abilities"
                },
                "attributes" : {
-                  "raid_timeout_minutes" : 320,
-                  "raid_timeout_variance_minutes" : 180,
-                  "health" : 250,
-                  "menace" : 200
+                  "raid_timeout_minutes" : 120,
+                  "raid_timeout_variance_minutes" : 60,
+                  "health" : 200,
+                  "menace" : 150
                }
             }
          }
