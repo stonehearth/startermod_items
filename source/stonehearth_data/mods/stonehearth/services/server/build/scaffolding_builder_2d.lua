@@ -40,7 +40,7 @@ end
 function ScaffoldingBuilder_TwoDim:destroy()
    self._log:info('destroying scaffolding builder')
    for id, builder in pairs(self._sv.builders) do
-      builder:destroy()
+      self._sv.manager:_remove_builder(id)
    end
    self._sv.builders = {}
 end
