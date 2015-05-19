@@ -22,7 +22,7 @@ function TerrainService:initialize()
    else
       for player_id, explored_region in pairs(self._sv._explored_regions) do
          explored_region:modify(function(cursor)
-               cursor:optimize_by_oct_tree('terrain service', 64)
+               cursor:force_optimize_by_oct_tree('terrain service', 64)
             end)
          log:write(0, '%s explored region contains %d rects', player_id, explored_region:get():get_num_rects())
       end
@@ -237,22 +237,13 @@ end
 
 function TerrainService:get_entities_in_explored_region(player_id, filter_fn)
    local explored_region_boxed = self:get_explored_region(player_id)
-   local explored_region = explored_region_boxed:get()
+   local explored_region_3d = explored_region_boxed:get():lift(-100, 100)
 
-   local entities_in_region = {}
-   for rect in explored_region:each_cube() do
-      local min = Point3(rect.min.x, -INFINITE, rect.min.y)
-      local cube = Cube3(Point3(rect.min.x, -INFINITE, rect.min.y),
-                         Point3(rect.max.x,  INFINITE, rect.max.y))
-      local entities = radiant.terrain.get_entities_in_cube(cube)
-      for id, entity in pairs(entities) do 
-         if id ~= 1 and (not filter_fn or filter_fn(entity)) then
-            entities_in_region[id] = entity
-         end
-      end
-   end 
+   local ents = radiant.terrain.get_entities_in_region(explored_region_3d, filter_fn)
 
-   return entities_in_region
+   -- Make sure we don't record the terrain.
+   ents[1] = nil
+   return ents
 end
 
 function TerrainService:_get_entity_visible_region(entity)

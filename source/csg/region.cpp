@@ -699,6 +699,16 @@ S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds) const
 // good optimization for regions with cubes that clump together
 // not so great for regions with multiple tags
 template <class S, int C>
+bool Region<S, C>::ForceOptimizeByOctTree(const char* reason, S minCubeSize)
+{
+   _churn = INT_MAX;
+   return OptimizeByOctTree(reason, minCubeSize);
+}
+
+
+// good optimization for regions with cubes that clump together
+// not so great for regions with multiple tags
+template <class S, int C>
 bool Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
 {
    size_t count = cubes_.size();
@@ -1245,6 +1255,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template bool Cls::OptimizeByMerge(const char*); \
    template bool Cls::OptimizeByDefragmentation(const char*); \
    template bool Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
+   template bool Cls::ForceOptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
    template void Cls::ForceOptimizeByDefragmentation(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
