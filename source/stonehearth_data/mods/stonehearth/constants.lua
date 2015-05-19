@@ -103,8 +103,8 @@ local constants = {
       },
 
       combat = {
-         IDLE                       = 1,
-         PARTY_AGGRESSIVE_FORMATION = 2,
+         PARTY_AGGRESSIVE_FORMATION = 1,
+         IDLE                       = 5,
          ACTIVE                     = 10,
          PARTY_PASSIVE_FORMATION    = 15,
          PARTY_TASK                 = 16,
