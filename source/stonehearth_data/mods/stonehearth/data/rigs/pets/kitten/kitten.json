@@ -1,0 +1,20 @@
+{
+   "skeleton" : {
+      "root": [3.5,6,2.36588e-007],
+      "torso": [4,6.5,5],
+      "leftBackLeg": [5,8.49788,4.45949],
+      "leftBackPaw": [5,8.98705,2.00701],
+      "rightBackLeg": [2,8.49788,4.45949],
+      "rightBackPaw": [2,8.98705,2.00701],
+      "rightFrontLeg": [2,4,4.02208],
+      "rightFrontPaw": [2,4.01058,1],
+      "leftFrontLeg": [5,4,4.02208],
+      "leftFrontPaw": [5,4.01058,1],
+      "tail0": [3.5,9.99944,5.5],
+      "tail1": [3.5,11.9994,5.5],
+      "head": [3.5,3.96892,5.01177]
+    },
+   "effects_root" : "file(effects)",
+   "animation_root" : "file(animations)",
+   "postures" : "file(postures.json)"
+}

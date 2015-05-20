@@ -172,6 +172,8 @@
       "rabbit_jerky" : "file(entities/critters/rabbit/rabbit_jerky)",
       "squirrel" : "file(entities/critters/squirrel)",
 
+      "kitten" : "file(entities/pets/kitten)",
+
       "squirrel_jerky" : "file(entities/critters/squirrel/squirrel_jerky)",
       "racoon" : "file(entities/critters/racoon)",
 
