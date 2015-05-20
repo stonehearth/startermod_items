@@ -129,7 +129,6 @@ function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
 end
 
 function ScaffoldingBuilder_OneDim:_remove_scaffolding_region()
-   self._sv.manager:_remove_region(self._sv.id)
    self._sv.manager:_remove_builder(self._sv.id)
 end
 
@@ -214,7 +213,7 @@ end
 
 function ScaffoldingBuilder_OneDim:_building_is_finished()
    if not self._sv.entity:is_valid() then
-      return
+      return true
    end
 
    local building = build_util.get_building_for(self._sv.entity)

@@ -182,30 +182,56 @@ end
 
 ---  Iterate through the terrain we've exposed and all items in it. 
 function ScoreService:_calc_score_from_entities(player_id, all_agg_scores)
-   stonehearth.terrain:get_entities_in_explored_region(player_id, function(entity)
-      --iterate through the functions and call each with the entity. 
-      if not radiant.entities.is_owned_by_player(entity, player_id) then 
-         return false
-      else
-         for score_name, score_data in pairs(self._aggregate_score_data) do
-            local score_category = score_data.score_category
-            local eval_fn = score_data.eval_fn
-            local agg_score_bag = all_agg_scores[score_category] 
+   for score_name, score_data in pairs(self._aggregate_score_data) do
+      local score_category = score_data.score_category
+      local agg_score_bag = all_agg_scores[score_category] 
 
-            if not agg_score_bag then
-               agg_score_bag = {}
-            end
-
-            if not agg_score_bag[score_name] then
-               agg_score_bag[score_name] = 0
-            end
-
-            eval_fn(entity, agg_score_bag)
-            
-            all_agg_scores[score_category] = agg_score_bag
-         end
+      if not agg_score_bag then
+         agg_score_bag = {}
       end
-   end)
+
+      if not agg_score_bag[score_name] then
+         agg_score_bag[score_name] = 0
+      end
+
+      all_agg_scores[score_category] = agg_score_bag
+   end
+
+   local entities = stonehearth.terrain:get_entities_in_explored_region(player_id, function(entity)
+         if not radiant.entities.is_owned_by_player(entity, player_id) then
+            return false
+         end
+
+         -- Food and resources will be scored by stockpiles.
+         local material_component = entity:get_component('stonehearth:material')
+         if material_component then
+            if material_component:is('food') then
+               return false
+            end
+            if material_component:is('resource') then
+               return false
+            end
+            if material_component:is('food_container') then 
+               return false
+            end
+         end
+
+         if entity:get_component('stonehearth:fabricator') then
+            return false
+         end
+         return true
+      end)
+
+   --iterate through the functions and call each with the entity. 
+   for score_name, score_data in pairs(self._aggregate_score_data) do
+      local score_category = score_data.score_category
+      local eval_fn = score_data.eval_fn
+      local agg_score_bag = all_agg_scores[score_category] 
+
+      for _, entity in pairs(entities) do
+         eval_fn(entity, agg_score_bag)
+      end
+   end
 end
 
 --- Call whenever the aggregate happiness for a player should be updated

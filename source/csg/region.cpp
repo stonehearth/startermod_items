@@ -467,6 +467,14 @@ std::map<int, std::unique_ptr<Region<S, C>>> Region<S, C>::SplitByTag() const
 }
 
 template <class S, int C>
+bool Region<S, C>::ShouldOptimize() const
+{
+   size_t numCubes = cubes_.size();
+   bool result = _churn > (int)numCubes/4;
+   return result;
+}
+
+template <class S, int C>
 void Region<S, C>::ForceOptimizeByMerge(const char* reason)
 {
    CHURN_LOG(5)  << "maxing out churn to force optimize (" << reason << ")";
@@ -482,7 +490,7 @@ bool Region<S, C>::OptimizeByMerge(const char* reason)
       return false;
    }
 
-   if (_churn < (int)count/4) {
+   if (!ShouldOptimize()) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
       return false;
@@ -699,6 +707,15 @@ S Region<S, C>::GetOctTreeCubeSize(Cube const& bounds) const
 // good optimization for regions with cubes that clump together
 // not so great for regions with multiple tags
 template <class S, int C>
+bool Region<S, C>::ForceOptimizeByOctTree(const char* reason, S minCubeSize)
+{
+   _churn = INT_MAX;
+   return OptimizeByOctTree(reason, minCubeSize);
+}
+
+// good optimization for regions with cubes that clump together
+// not so great for regions with multiple tags
+template <class S, int C>
 bool Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
 {
    size_t count = cubes_.size();
@@ -706,7 +723,7 @@ bool Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
       return false;
    }
 
-   if (_churn < (int)count) {
+   if (!ShouldOptimize()) {
       CHURN_LOG(9) << "ignoring optimize: " << reason;
       ++_churn;
       return false;
@@ -1245,6 +1262,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template bool Cls::OptimizeByMerge(const char*); \
    template bool Cls::OptimizeByDefragmentation(const char*); \
    template bool Cls::OptimizeByOctTree(const char*, Cls::ScalarType); \
+   template bool Cls::ForceOptimizeByOctTree(const char*, Cls::ScalarType); \
    template void Cls::ForceOptimizeByMerge(const char*); \
    template void Cls::ForceOptimizeByDefragmentation(const char*); \
    template Cls::Cube Cls::GetBounds() const; \
