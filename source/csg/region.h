@@ -118,6 +118,7 @@ private:
 
 private:
    void Validate() const;
+   bool ShouldOptimize() const;
    bool ContainsAtMostOneTag() const;
    std::map<int, std::unique_ptr<Region<S, C>>> SplitByTag() const;
    S GetOctTreeCubeSize(Cube const& bounds) const;
