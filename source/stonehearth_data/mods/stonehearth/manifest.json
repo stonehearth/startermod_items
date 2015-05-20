@@ -1468,7 +1468,10 @@
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
       "unit_control:party" : "file(services/server/unit_control/party.lua)",
 
-      "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)"
+      "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)",
+
+      "player_jobs_controller" : "file(services/server/job/player_jobs_controller.lua)",
+      "job_info_controller" : "file(services/server/job/job_info_controller.lua)"
    },
 
    "client_controllers" :  {

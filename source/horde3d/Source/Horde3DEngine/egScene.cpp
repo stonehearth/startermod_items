@@ -664,7 +664,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
 
             // Only lights that are NOT directional can be culled.
             if (!n->getParamI(LightNodeParams::DirectionalI)) {
-               if (qFrustum.cullBox(node->_bBox) || (qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(node->_bBox))) {
+               if (qFrustum.cullSphere(n->getAbsPos(), n->getRadius()) || (qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullSphere(n->getAbsPos(), n->getRadius()))) {
                   continue;
                }
             }

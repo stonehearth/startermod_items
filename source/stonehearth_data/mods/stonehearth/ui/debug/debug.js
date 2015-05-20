@@ -19,7 +19,7 @@ App.StonehearthDebugView = App.ContainerView.extend({
          }
       });
 
-      // StonehearthDebugDockView is defined in stoneheath_debugtools, which
+      // StonehearthDebugDockView is defined in stonehearth_debugtools, which
       // may not be installed.  Shouldn't it create the dock?  Yes, no?  -- tony
       if (App.StonehearthDebugDockView) {
          this._dock = this.addView(App.StonehearthDebugDockView);

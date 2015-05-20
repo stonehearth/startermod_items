@@ -198,6 +198,8 @@ function JobComponent:promote_to(job_uri, options)
          self._sv.job_controllers[self._sv.job_uri] = 
             radiant.create_controller(self._job_json.controller, self._entity)
       end
+      local player_id = radiant.entities.get_player_id(self._entity)
+      self._sv.curr_job_info = stonehearth.job:get_job_info(player_id, job_uri)
       self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
       self:_call_job('promote', self._job_json, {talisman = talisman_entity})
       self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
@@ -479,7 +481,7 @@ function JobComponent:_equip_abilities(json)
 end
 
 function JobComponent:_equip_equipment(json)
-local equipment_component = self._entity:add_component('stonehearth:equipment')
+   local equipment_component = self._entity:add_component('stonehearth:equipment')
    if json and json.equipment then
       -- iterate through the equipment in the table, placing one item from each value
       -- on the entity.  they of the entry are irrelevant: they're just for documenation

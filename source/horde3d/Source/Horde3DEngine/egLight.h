@@ -116,6 +116,8 @@ public:
 
    Frustum const& getFrustum() const { return _frustum; }
    Matrix4f const& getViewMat() const { return _viewMat; }
+   Vec3f const& getAbsPos() const { return _absPos; }
+   float getRadius() const { return _radius2; }
    
    Frustum const& getCubeFrustum(LightCubeFace::List faceNum) const { return _cubeFrustums[faceNum]; }
    Matrix4f const& getCubeViewMat(LightCubeFace::List faceNum) const { return _cubeViewMats[faceNum]; }

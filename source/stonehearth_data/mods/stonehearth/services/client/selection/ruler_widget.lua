@@ -80,53 +80,54 @@ function RulerWidget:_add_quad(mesh, x, z, w, h, color)
    local function push(x, y, z)
       local point = self:_transform_point(Point3(x, y, z))
       point = point + self._start
-      mesh:add_vertex(Vertex(point, self._meshNormal, color))
+      return mesh:add_vertex(Vertex(point, self._meshNormal, color))
    end
    
    local y = 0
-   local ioffset = mesh:get_vertex_count()
+   local indices = {}
    if self._normal.x > 0 then
-      push(x + w, y, z)
-      push(x + w, y, z + h)
-      push(x, y, z + h)
-      push(x, y, z)
+      indices[0] = push(x + w, y, z)
+      indices[1] = push(x + w, y, z + h)
+      indices[2] = push(x, y, z + h)
+      indices[3] = push(x, y, z)
    else   
-      push(x, y, z)
-      push(x, y, z + h)
-      push(x + w, y, z + h)
-      push(x + w, y, z)
+      indices[0] = push(x, y, z)
+      indices[1] = push(x, y, z + h)
+      indices[2] = push(x + w, y, z + h)
+      indices[3] = push(x + w, y, z)
    end
    
-   mesh:add_index(ioffset)      -- first triangle
-   mesh:add_index(ioffset + 1)
-   mesh:add_index(ioffset + 2)
-   mesh:add_index(ioffset)      -- second triangle
-   mesh:add_index(ioffset + 2)
-   mesh:add_index(ioffset + 3)
+   mesh:add_index(indices[0])      -- first triangle
+   mesh:add_index(indices[1])
+   mesh:add_index(indices[2])
+
+   mesh:add_index(indices[0])      -- second triangle
+   mesh:add_index(indices[2])
+   mesh:add_index(indices[3])
 end
 
 function RulerWidget:_add_triangle(mesh, p0, p1, p2, color)
    local function push(pt)
       local point = self:_transform_point(Point3(pt.x, pt.y, pt.z))
       point = point + self._start
-      mesh:add_vertex(Vertex(point, self._meshNormal, color))
+      return mesh:add_vertex(Vertex(point, self._meshNormal, color))
    end
    
    local y = 0
-   local ioffset = mesh:get_vertex_count()
+   local indices = {}
    if self._normal.x > 0 then
-      push(p2)
-      push(p1)
-      push(p0)
+      indices[0] = push(p2)
+      indices[1] = push(p1)
+      indices[2] = push(p0)
    else   
-      push(p0)
-      push(p1)
-      push(p2)
+      indices[0] = push(p0)
+      indices[1] = push(p1)
+      indices[2] = push(p2)
    end
    
-   mesh:add_index(ioffset)      -- first triangle
-   mesh:add_index(ioffset + 1)
-   mesh:add_index(ioffset + 2)
+   mesh:add_index(indices[0])
+   mesh:add_index(indices[1])
+   mesh:add_index(indices[2])
 end
 
 function RulerWidget:_get_width()

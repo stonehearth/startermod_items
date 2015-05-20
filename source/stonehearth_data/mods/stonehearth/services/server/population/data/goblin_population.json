@@ -1,6 +1,7 @@
 {
    "kingdom_name" : "The Golden Conquering Arm",
    "kingdom_id" : "goldarm",
+   "amenity_to_strangers" : "hostile",
 
    "roles" : {
       "default" : { 

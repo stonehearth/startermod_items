@@ -198,7 +198,43 @@ void Client::OneTimeIninitializtion()
       }
    }
 
-   if (config.Get("enable_debug_keys", false)) {
+   bool enableDebugKeys = config.Get("enable_debug_keys", false);
+
+   // Unconditionally enabled...
+   _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) {
+      if (kb.shift) {
+         if (!enableDebugKeys) {
+            return;
+         }
+
+         if (!_reloadSavePromise && !_reloadLoadPromise) {
+
+            // Sweet.  No reload is in progress.  First save the game.  What that's done, load
+            // the game we just saved.  The ->Always() blocks null out the promise pointers.
+            // Always is always (ha!) called after Done or Reject.
+            json::Node metadata;
+            metadata.set("name", "Shift+F5 Save");
+            _reloadSavePromise = SaveGame(SHIFT_F5_SAVE_KEY, metadata);
+
+            _reloadSavePromise->Done([this](json::Node const&n) {
+                                 ASSERT(!_reloadLoadPromise);
+
+                                 _reloadLoadPromise = LoadGame(SHIFT_F5_SAVE_KEY);
+                                 _reloadLoadPromise->Always([this]() {
+                                    _reloadLoadPromise = nullptr;
+                                 });
+                              });
+            _reloadSavePromise->Always([this]() {
+                                 _reloadSavePromise = nullptr;
+                              });
+         }
+      } else {
+         ReloadBrowser();
+      }
+   };
+
+   // Only if enable_debug_keys == true in the config file.
+   if (enableDebugKeys) {
       _commands[GLFW_KEY_F1] = [this](KeyboardInput const& kb) {
          const char* mode = kb.shift ? "water_tight" : "navgrid";
          if (debug_cursor_mode_ != mode) {
@@ -216,33 +252,7 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F2] = [=](KeyboardInput const& kb) { EnableDisableLifetimeTracking(); };
       _commands[GLFW_KEY_F3] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) {
-         if (kb.shift) {
-            if (!_reloadSavePromise && !_reloadLoadPromise) {
 
-               // Sweet.  No reload is in progress.  First save the game.  What that's done, load
-               // the game we just saved.  The ->Always() blocks null out the promise pointers.
-               // Always is always (ha!) called after Done or Reject.
-               json::Node metadata;
-               metadata.set("name", "Shift+F5 Save");
-               _reloadSavePromise = SaveGame(SHIFT_F5_SAVE_KEY, metadata);
-
-               _reloadSavePromise->Done([this](json::Node const&n) {
-                                    ASSERT(!_reloadLoadPromise);
-
-                                    _reloadLoadPromise = LoadGame(SHIFT_F5_SAVE_KEY);
-                                    _reloadLoadPromise->Always([this]() {
-                                       _reloadLoadPromise = nullptr;
-                                    });
-                                 });
-               _reloadSavePromise->Always([this]() {
-                                    _reloadSavePromise = nullptr;
-                                 });
-            }
-         } else {
-            ReloadBrowser();
-         }
-      };
       
       _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) {
          json::Node metadata;
@@ -314,6 +324,18 @@ void Client::OneTimeIninitializtion()
       send_queue_->Push(msg);
    });
    core_reactor_->SetRemoteRouter(protobuf_router_);
+
+   core_reactor_->AddRoute("radiant:browser_log", [this](rpc::Function const& f) {
+      std::string msg(f.args[0].as_string());
+
+      std::vector<std::string> parts;
+      boost::split(parts, msg, boost::is_any_of("\n"));
+      for (std::string const& part : parts) {
+         LOG(browser, 1) << part;
+      }
+
+      return core_reactor_->RemoveTrace(rpc::UnTrace(f.caller, f.call_id));
+   });
 
    // core functionality exposed by the client...
    core_reactor_->AddRoute("radiant:post_redmine_issues", [this](rpc::Function const& f) {

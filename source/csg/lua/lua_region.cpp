@@ -60,6 +60,17 @@ Region2f ProjectOntoXZPlane(Region3f const& region)
    return r2;
 }
 
+Region3f LiftToRegion3f(Region2f const& region, float minHeight, float maxHeight)
+{
+   Region3f r3;
+
+   for (Rect2f const& rect : EachCube(region)) {
+      Cube3f c(Point3f(rect.min.x, minHeight, rect.min.y), Point3f(rect.max.x, maxHeight, rect.max.y));
+      r3.Add(c);
+   }
+   return r3;
+}
+
 // The csg version of these functions are optimized for use in templated code.  They
 // avoid copies for nop conversions by returning a const& to the input parameter.
 // For lua's "to_int" and "to_double", we always want to return a copy to avoid confusion.
@@ -99,6 +110,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("optimize_by_oct_tree", &T::OptimizeByOctTree)
          .def("optimize_by_merge",  &T::OptimizeByMerge)
          .def("optimize_by_defragmentation", &T::OptimizeByDefragmentation)
+         .def("force_optimize_by_oct_tree", &T::ForceOptimizeByOctTree)
          .def("force_optimize_by_merge",  &T::ForceOptimizeByMerge)
          .def("force_optimize_by_defragmentation",  &T::ForceOptimizeByDefragmentation)
          .def("intersects_region",  (bool (T::*)(T const&) const)&T::Intersects)
@@ -144,6 +156,7 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
          .def("to_float",                 &Region_ToFloat<int, 3>)
       ,
       Register<Region2f>(L, "Region2")
+         .def("lift",                     &LiftToRegion3f)
          .def("each_point",               &EachPointRegion2f)
          .def("get_edge_list",            &RegionGetEdgeList<double, 2>)
          .def("rotate",                   (void (*)(Region2f&, int))&csg::Rotate)

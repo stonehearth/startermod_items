@@ -37,6 +37,18 @@ function ShakeDown:_construct()
    }
 end
 
+-- 
+function ShakeDown:on_transition(transition)
+   local ctx = self._sv.ctx
+
+   -- go to war if the player ever fails or opts out
+   if transition == 'shakedown_refused' or
+      transition == 'collection_failed' then
+      stonehearth.player:set_amenity(ctx.npc_player_id, ctx.player_id, stonehearth.player.HOSTILE)
+      return
+   end
+end
+
 -- return a table containing the tribute information needed for the
 -- demand tribute encounter
 --

@@ -20,9 +20,13 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
    self._sensor_traces = {}
    self._data = radiant.resources.load_json(self._sv.kingdom)
 
-   for id, citizen in pairs(self._sv.citizens) do
-      self:_monitor_citizen(citizen)
-   end
+   -- xxx: make this class a controller -tony, then move this to :activate() instead
+   -- of being in a listener
+   radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         for id, citizen in pairs(self._sv.citizens) do
+            self:_monitor_citizen(citizen)
+         end
+      end)
 end
 
 function PopulationFaction:get_datastore(reason)
@@ -31,6 +35,10 @@ end
 
 function PopulationFaction:get_kingdom()
    return self._sv.kingdom
+end
+
+function PopulationFaction:get_amenity_to_strangers()
+   return self._data.amenity_to_strangers or 'neutral'
 end
 
 function PopulationFaction:get_player_id()
@@ -152,7 +160,7 @@ function PopulationFaction:_monitor_citizen(citizen)
 end
 
 function PopulationFaction:_get_threat_level(visitor)
-   if radiant.entities.is_friendly(self._sv.player_id, visitor) then
+   if stonehearth.player:are_players_friendly(self._sv.player_id, visitor) then
       return 0
    end
    return radiant.entities.get_attribute(visitor, 'menace', 0)
