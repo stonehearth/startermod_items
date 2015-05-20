@@ -18,6 +18,11 @@ CombatIdleShuffle.priority = 1
 CombatIdleShuffle.weight = 1
 
 function CombatIdleShuffle:start_thinking(ai, entity, args)
+   local enabled = self:_shuffle_enabled(entity)
+   if not enabled then
+      return
+   end
+
    self._entity = entity
    local enemy = args.enemy
 
@@ -144,6 +149,16 @@ function CombatIdleShuffle:_is_occupied(location)
 
    local occupied = next(entities) ~= nil
    return occupied
+end
+
+function CombatIdleShuffle:_shuffle_enabled(entity)
+   local entity_data = radiant.entities.get_entity_data(entity, 'stonehearth:combat:idle:shuffle')
+
+   if entity_data and entity_data.enabled ~= nil then
+      return entity_data.enabled
+   end
+
+   return true
 end
 
 return CombatIdleShuffle

@@ -1,6 +1,6 @@
 {
    "type": "entity", 
-   "mixins" : "stonehearth:mixins:monster",
+   "mixins" : "stonehearth:mixins:undead",
    "components": {
       "render_info" : {
          "animation_table": "file(/data/rigs/monsters/undead/skeletons/male.json)"
