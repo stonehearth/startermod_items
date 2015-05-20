@@ -255,7 +255,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
       end
 
       if GAME_OPTIONS.starting_pets.kitten then   
-         self:place_pet(pop, 'stonehearth:rabbit', camp_x+0, camp_z-6)
+         self:place_pet(pop, 'stonehearth:kitten', camp_x+0, camp_z-6)
       end
 
       if GAME_OPTIONS.starting_pets.mammoth then   
