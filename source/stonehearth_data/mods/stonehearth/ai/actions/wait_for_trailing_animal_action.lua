@@ -24,9 +24,17 @@ function WaitForTrailingAnimal:start_thinking(ai, entity, args)
          local target_sheep
          --Get a sheep (TODO: do we need to make sure it's not the same sheep?)
          for id, sheep in pairs(trailed_animals) do
-            target_sheep = sheep
+            if sheep:is_valid() then
+               target_sheep = sheep
+            end
             break
          end
+         
+         -- all the sheep are dead?  tragedy!
+         if not target_sheep then
+            return
+         end
+
          --get it's pasture
          local equipment_component = target_sheep:add_component('stonehearth:equipment')
          local pasture_collar = equipment_component:has_item_type('stonehearth:pasture_tag')
@@ -40,7 +48,6 @@ function WaitForTrailingAnimal:start_thinking(ai, entity, args)
          self:_on_animal_added(args)
       end
    end
-
 end
 
 --TODO: test what happens when a sheep is eaten AS the shepherd leads him home
