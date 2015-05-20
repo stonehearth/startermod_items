@@ -3,11 +3,8 @@
    "components" : {
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
-            "actions" : [
-               "file(actions/party_move_to_banner.lua)",
-               "file(actions/party_idle_at_banner.lua)"
-            ],
-            "observers" : [
+            "ai_packs" : [
+               "stonehearth:ai_pack:party"
             ]
          }
       }

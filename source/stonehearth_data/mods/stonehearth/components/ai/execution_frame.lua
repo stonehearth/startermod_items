@@ -1462,16 +1462,15 @@ function ExecutionFrame:_add_execution_unit(key, entry)
    local action_ctor = entry.action_ctor
    
    if action_ctor.create_action then
-      action = action_ctor:create_action(self._entity, self._injecting_entity)
+      action = action_ctor:create_action(self._entity)
    else
-      action = action_ctor(self._entity, self._injecting_entity)
+      action = action_ctor(self._entity)
    end
 
    local unit = ExecutionUnitV2(self,
                                 self._thread,
                                 self._debug_route,
                                 self._entity,
-                                entry.injecting_entity,
                                 action,
                                 self._action_index)
    if action.type == 'filter' then

@@ -19,11 +19,46 @@ function AiService:initialize()
    end
    AiService.ANY = { ANY = 'Any lua value will do' }
    AiService.NIL = { NIL = 'The nil value' }
+
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self.__saved_variables:mark_changed()
+
+      self:_trace_entity_creation()
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_trace_entity_creation()
+         end)
+   end
+end
+
+function AiService:destroy()
+   if self._entity_post_create_trace then
+      self._entity_post_create_trace:destroy()
+      self._entity_post_create_trace = nil
+   end
+end
+
+function AiService:_trace_entity_creation()
+   self._entity_post_create_trace = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
+         local entity = e.entity
+         local ai_packs = radiant.entities.get_entity_data(entity, 'stonehearth:ai_packs')
+         if ai_packs and ai_packs.packs then
+            -- Discard the ai_handle because this injection is a permanent definition in the entity.
+            -- i.e. We will never call ai_handle:destroy() to revoke the ai from entity_data.
+            local ai_handle = self:inject_ai_packs(entity, ai_packs.packs)
+         end
+      end)
+end
+
+function AiService:inject_ai_packs(entity, packs)
+   local ai = { ai_packs = packs}
+   return self:inject_ai(entity, ai)
 end
 
 -- injecting entity may be null
-function AiService:inject_ai(entity, ai, injecting_entity) 
-   return AiInjector(entity, ai, injecting_entity)
+function AiService:inject_ai(entity, ai) 
+   return AiInjector(entity, ai)
 end
 
 function AiService:format_activity(activity)

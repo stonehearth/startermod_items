@@ -8,7 +8,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(goblin_flute.qb)"
+               "file(mountains_flute.qb)"
             ]
          }
       },
@@ -20,12 +20,16 @@
       "stonehearth:material" : {
          "tags" :  "tool"
       }, 
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(mountains_flute_iconic.json)"
+      },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
             ],
             "observers": [
+               "stonehearth:observers:goblin_campaign:mountain_mammoth_observer"
             ]
          },
          "slot" : "none",

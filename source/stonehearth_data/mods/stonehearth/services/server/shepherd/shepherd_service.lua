@@ -26,7 +26,7 @@ function ShepherdService:create_new_pasture(session, location, size)
    pasture_component:set_size(size.x, size.z)
    pasture_component:set_pasture_type()
 
-   radiant.terrain.place_entity(entity, location)
+   radiant.terrain.place_entity_at_exact_location(entity, location)
 
    return entity
 

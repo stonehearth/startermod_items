@@ -30,10 +30,10 @@ public:
 private:
    luabind::object GetObjectSavedVariables(luabind::object const& obj);
    void ProtobufToLua(Protocol::LuaObject const& msg, luabind::object &obj, Protocol::LuaObject const& rootmsg, std::unordered_map<uint, luabind::object>& tables);
-   void LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, Protocol::LuaObject* rootmsg, std::vector<luabind::object>& tables);
+   void LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, Protocol::LuaObject* rootmsg, luabind::object& tables);
 
    void RestoreLuaTableFromProtobuf(uint i, Protocol::LuaObject const& rootmsg, std::unordered_map<uint, luabind::object>& tables);
-   uint SaveLuaTableToProtobuf(luabind::object const& obj, Protocol::LuaObject* rootmsg, std::vector<luabind::object>& tables);
+   uint SaveLuaTableToProtobuf(luabind::object const& obj, Protocol::LuaObject* rootmsg, luabind::object& tables);
 
    void ProtobufToUserdata(Protocol::Value const& msg, luabind::object& obj);
    void UserdataToProtobuf(luabind::object const& obj, Protocol::Value* msg);

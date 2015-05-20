@@ -1,0 +1,8 @@
+{
+   "actions" : [
+      "stonehearth:actions:idle:sway"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
+   ]
+}

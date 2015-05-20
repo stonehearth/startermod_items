@@ -3,17 +3,10 @@
    "components" : {
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
-            "actions" : [
-               "stonehearth:actions:patrol_dispatcher",
-               "stonehearth:actions:patrol",
-               "stonehearth:actions:patrol:idle",
-               "stonehearth:actions:get_patrol_route",
-               "stonehearth:actions:mark_patrol_completed",
-               "stonehearth:actions:combat:flee",
-               "stonehearth:actions:combat:cower"
-            ],
-            "observers" : [
-               "stonehearth:observers:avoid_threatening_entities"
+            "ai_packs" : [
+               "stonehearth:ai_pack:patrolling",
+               "stonehearth:ai_pack:wimpy",
+               "stonehearth:ai_pack:panic:flee"
             ]
          },
          "injected_buffs" : [ "stonehearth:buffs:combat_basics" ]

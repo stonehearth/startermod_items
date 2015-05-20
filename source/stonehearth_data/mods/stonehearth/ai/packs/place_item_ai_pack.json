@@ -1,0 +1,15 @@
+{
+   "actions" : [
+      "stonehearth:actions:place_item",
+      "stonehearth:actions:place_item_on_structure",
+      "stonehearth:actions:place_carrying_on_structure_adjacent",
+      "stonehearth:actions:replace_proxy_with_item",
+
+      "stonehearth:actions:set_hangable_adjacent"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying"
+   ]
+}

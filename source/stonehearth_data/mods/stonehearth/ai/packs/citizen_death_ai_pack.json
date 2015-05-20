@@ -1,0 +1,9 @@
+{
+   "actions" : [
+      "stonehearth:actions:die_citizen",
+      "stonehearth:actions:memorialize_death"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
+   ]
+}

@@ -28,10 +28,23 @@ function AIComponent:initialize(entity, json)
                           :set_entity(self._entity)
 
    if not self._sv._initialized then
+      self._sv.status_text = ''
+      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
+
       -- wait until the entity is completely initialized before piling all our actions
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
+            if json.actions then
+               self._log:error('%s, Actions are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
+               assert(false)
+            end
+
             self._sv._dispatchers = json.dispatchers
-            self:_initialize(json)
+            self._sv._initialized = true
+            self:_restore_dispatchers()
+            self.__saved_variables:mark_changed()
+
+            -- Actions and observers are now added by the ai service after entity creation.
+            -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
 
             -- wait until the very next gameloop to start our thread.  this gives the
             -- person creating the entity time to do some more post-creating initialization
@@ -47,7 +60,8 @@ function AIComponent:initialize(entity, json)
    else
       --we're loading so instead listen on game loaded
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            self:_initialize(json)
+            self:_restore_dispatchers()
+            self:_restore_actions()
             self:start()
          end)
    end
@@ -87,6 +101,7 @@ end
 function AIComponent:destroy()
    self._dead = true
    self._action_index = nil
+   self._sv._ref_counts:destroy()
    self:_terminate_thread()
 end
 
@@ -95,30 +110,19 @@ function AIComponent:set_status_text(text)
    self.__saved_variables:mark_changed()
 end
 
-function AIComponent:add_action(uri, injecting_entity)
-   if injecting_entity == nil then
-      self._sv._actions[uri] = true
-      self.__saved_variables:mark_changed()
+function AIComponent:add_action(uri)
+   local ref_count = self._sv._ref_counts:add_ref(uri)
+   if ref_count > 1 then
+      return
    end
 
-   self:_add_action_script(uri, injecting_entity)
+   -- new action, add it to the system
+   self:_add_action_internal(uri)
 end
 
-function AIComponent:_add_action_script(uri, injecting_entity)
-   local ctor = radiant.mods.load_script(uri)
-   assert(ctor, string.format('could not load action script at %s', tostring(uri)))
-   self:_add_action(uri, ctor, injecting_entity)
-end
-
-function AIComponent:_action_key_to_name(key)
-   if type(key) == 'table' then
-      return key.name
-   else
-      return key
-   end
-end
-
-function AIComponent:_add_action(key, action_ctor, injecting_entity)
+-- action may be a uri or a class instance
+function AIComponent:_add_action_internal(action)
+   local key, action_ctor = self:_get_key_and_constructor_for_action(action)
    local does = action_ctor.does
    assert(does)
    assert(not action_key_to_activity[key] or action_key_to_activity[key] == does)
@@ -129,10 +133,9 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
    end
 
    action_key_to_activity[key] = does
-   local action_index = self._action_index[does]
-   if not action_index then
-      action_index = {}
-      self._action_index[does] = action_index
+
+   if not self._action_index[does] then
+      self._action_index[does] = {}
    end
       
    if self._action_index[does][key] then
@@ -146,11 +149,77 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
    --self._log:spam('%s, ai_component:add_action: %s', self._entity, self:_action_key_to_name(key))
 
    local entry = {
-      action_ctor = action_ctor,
-      injecting_entity = injecting_entity,
+      action_ctor = action_ctor
    }
    self._action_index[does][key] = entry
    self:_queue_action_index_changed_notification(does, 'add', key, entry)
+end
+
+function AIComponent:remove_action(key)
+   if not self._action_index then
+      self._log:debug('ignoring remove_action %s during entity destruction', tostring(key))
+      return
+   end
+
+   if type(key) == 'string' then
+      local uri = key
+      local ref_count = self._sv._ref_counts:dec_ref(uri)
+      if ref_count > 0 then
+         return
+      end
+   end
+
+   local does = action_key_to_activity[key]
+   if does then
+      local entry = self._action_index[does][key]
+      --self._log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
+      self._log:detail('triggering stonehearth:action_index_changed:' .. does)
+      self._action_index[does][key] = nil
+      self:_queue_action_index_changed_notification(does, 'remove', key, entry)
+   else
+      self._log:debug('could not find action for key %s in :remove_action', tostring(key))
+   end
+end
+
+function AIComponent:add_custom_action(action_ctor)
+   self._log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
+   local key = self:_get_key_for_custom_action(action_ctor)
+   self:_add_action_internal(key, action_ctor)
+end
+
+function AIComponent:remove_custom_action(action_ctor)
+   self._log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
+   self:remove_action(action_ctor)
+end
+
+function AIComponent:_get_key_for_custom_action(action_ctor)
+   return action_ctor
+end
+
+function AIComponent:_action_key_to_name(key)
+   if type(key) == 'table' then
+      return key.name
+   else
+      return key
+   end
+end
+
+-- action may be a uri or a class instance
+function AIComponent:_get_key_and_constructor_for_action(action)
+   local key, action_ctor
+
+   if type(action) == 'string' then
+      local uri = action
+      key = uri
+      action_ctor = radiant.mods.load_script(uri)
+      assert(action_ctor, string.format('could not load action script at %s', uri))
+   else
+      assert(type(action) == 'table')
+      action_ctor = action
+      key = action_ctor
+   end
+
+   return key, action_ctor
 end
 
 -- queues a notification that the action index has changed.  this will schedule a call to
@@ -217,62 +286,18 @@ function AIComponent:_unregister_execution_frame(activity_name, frame)
    end
 end
 
-function AIComponent:remove_action(key)
-   if not self._action_index then
-      self._log:debug('ignoring remove_action %s during entity destruction', tostring(key))
-      return
-   end
-
-   if type(key) == 'string' then
-      self.__saved_variables:modify(function (o)
-            o._actions[key] = nil
-         end)
-   end
-
-   local does = action_key_to_activity[key]
-   if does then
-      local entry = self._action_index[does][key]
-      --self._log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
-      self._log:detail('triggering stonehearth:action_index_changed:' .. does)
-      self._action_index[does][key] = nil
-      self:_queue_action_index_changed_notification(does, 'remove', key, entry)
-   else
-      self._log:debug('could not find action for key %s in :remove_action', tostring(key))
+function AIComponent:_restore_actions()
+   local saved_actions = self._sv._ref_counts:get_all_refs()
+   for uri, _ in pairs(saved_actions) do
+      self:_add_action_internal(uri)
    end
 end
 
-function AIComponent:add_custom_action(action_ctor, injecting_entity)
-   self._log:debug('adding action "%s" (%s) to %s', action_ctor.name, tostring(action_ctor), self._entity)
-   self:_add_action(action_ctor, action_ctor, injecting_entity)
-end
-
-function AIComponent:remove_custom_action(action_ctor, injecting_entity)
-   self._log:debug('removing action "%s" (%s) from %s', action_ctor.name, tostring(action_ctor), self._entity)
-   self:remove_action(action_ctor)
-end
-
-function AIComponent:_initialize(json)
-   if not self._sv._initialized then
-      self._sv.status_text = ''
-      self._sv._actions = {}
-      
-      for _, uri in ipairs(json.actions or {}) do
-         self:add_action(uri)
-      end
-   else
-      for uri, _ in pairs(self._sv._actions) do
-         self:_add_action_script(uri)
-      end
-   end
-   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
-
+function AIComponent:_restore_dispatchers()
    -- all the dynamic dispatchers into our entity.  this wires together big sections
    -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
-
-   self._sv._initialized = true
-   self.__saved_variables:mark_changed()
+   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
 end
-
 
 -- create a single task dispatcher which delegates the implementation of
 -- parent_activity to info.does at info.priority.  for example:

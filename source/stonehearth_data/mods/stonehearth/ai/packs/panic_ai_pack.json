@@ -1,0 +1,14 @@
+{
+   "actions" : [
+      "stonehearth:actions:combat",
+      "stonehearth:actions:combat:panic_dispatcher",
+      "stonehearth:actions:combat:panic_watcher",
+      "stonehearth:actions:combat:stop_panicking"
+   ],
+   "observers" : [
+      "stonehearth:observers:combat_panic"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
+   ]
+}

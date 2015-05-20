@@ -1,0 +1,13 @@
+{
+   "type" : "arc",
+   "rarity" : "common",
+
+   "encounters" : {
+      "wait to start" : "file(encounters/wait_to_start.json)", 
+      "create ogo camp" : "file(encounters/create_ogo_camp.json)", 
+      "ogos bannerman" : "file(encounters/ogos_bannerman.json)", 
+      "wait to attack" : "file(encounters/wait_to_attack.json)",
+      "wait for help" : "file(encounters/wait_for_help.json)",
+      "erdenes help" : "file(encounters/erdenes_help.json)"
+   }
+}

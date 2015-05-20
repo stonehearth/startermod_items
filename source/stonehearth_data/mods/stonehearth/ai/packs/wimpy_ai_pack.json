@@ -1,0 +1,8 @@
+{
+   "observers" : [
+      "stonehearth:observers:avoid_threatening_entities"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:panic"
+   ]
+}

@@ -1,0 +1,14 @@
+{
+   "actions" : [
+      "stonehearth:actions:free_time:dispatcher",
+      "stonehearth:actions:admire_fire",
+      "stonehearth:actions:admire_fire_adjacent"
+   ],
+   "observers" : [
+      "stonehearth:observers:free_time"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
+   ]
+}

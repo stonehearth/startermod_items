@@ -1,0 +1,12 @@
+{
+   "actions" : [
+      "stonehearth:actions:reserve_stockpile_space",
+      "stonehearth:actions:restock_stockpile",
+      "stonehearth:actions:drop_carrying_in_stockpile"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement",
+      "stonehearth:ai_pack:carrying"
+   ]
+}

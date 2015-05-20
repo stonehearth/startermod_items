@@ -35,16 +35,6 @@
          "description" : "harvest_animal", 
          "resource": "stonehearth:sheep_jerky"
       },
-      "stonehearth:ai" : {
-         "actions" : [
-            "stonehearth:actions:wander",
-            "stonehearth:actions:wander_within_leash",
-            "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash"
-         ]
-      },
-      "stonehearth:observers" : {
-      },
       "sensor_list": {
          "sensors": {
             "sight": {
@@ -66,6 +56,17 @@
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/sheep)",
          "scale": 0.12
+      }
+   },
+
+   "entity_data" : {
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander"
+         ]
       }
    }
 }

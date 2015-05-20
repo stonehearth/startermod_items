@@ -2,88 +2,6 @@
    "type" : "entity",
    "mixins" : "stonehearth:mixins:mob",
    "components" : {
-      "stonehearth:ai" : {
-         "actions" : [
-            "stonehearth:actions:collect_ingredient",
-            "stonehearth:actions:pickup_ingredient_with_material",
-            "stonehearth:actions:pickup_ingredient_with_uri",
-            "stonehearth:actions:reserve_stockpile_space",
-            "stonehearth:actions:idle:sway",
-            "stonehearth:actions:idle:look_around",
-            "stonehearth:actions:grab_promotion_talisman",                        
-            "stonehearth:actions:grab_promotion_talisman_type",                        
-            "stonehearth:actions:sleep_on_ground",
-            "stonehearth:actions:sleep_in_new_bed",
-            "stonehearth:actions:sleep_in_own_bed",
-            "stonehearth:actions:sleep_in_bed_adjacent",
-            "stonehearth:actions:sleep_when_exhausted",
-            "stonehearth:actions:sit_on_ground",
-            "stonehearth:actions:sit_on_chair",
-            "stonehearth:actions:sit_on_chair_adjacent",
-            "stonehearth:actions:eat",
-            "stonehearth:actions:eat_carrying",
-            "stonehearth:actions:eat_item",
-            "stonehearth:actions:eat_on_ground",
-            "stonehearth:actions:eat_on_chair",
-            "stonehearth:actions:get_food_on_ground",
-            "stonehearth:actions:get_food_from_container",
-            "stonehearth:actions:get_food_from_container_adjacent",
-            "stonehearth:actions:wander",
-            "stonehearth:actions:wander_within_leash",
-            "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash",
-            "stonehearth:actions:admire_fire",
-            "stonehearth:actions:admire_fire_adjacent",
-            "stonehearth:actions:complete_workshop_construction",
-            "stonehearth:actions:harvest_resource_node_action",
-            "stonehearth:actions:harvest_resource_node_adjacent_action",
-            "stonehearth:actions:harvest_plant",
-            "stonehearth:actions:harvest_plant_adjacent",
-            "stonehearth:actions:clear_item",
-            "stonehearth:actions:clear_item_adjacent",
-            "stonehearth:actions:restock_stockpile",
-            "stonehearth:actions:drop_carrying_in_stockpile",            
-            "stonehearth:actions:memorialize_death",
-            "stonehearth:actions:combat",
-            "stonehearth:actions:combat:attack_after_cooldown",
-            "stonehearth:actions:combat:attack:melee",
-            "stonehearth:actions:combat:attack:melee_adjacent",
-            "stonehearth:actions:combat:defend_dispatcher",
-            "stonehearth:actions:combat:defend:melee",
-            "stonehearth:actions:combat:idle_dispatcher",
-            "stonehearth:actions:combat:idle:ready",
-            "stonehearth:actions:combat:idle:shuffle",
-            "stonehearth:actions:combat:panic_dispatcher",
-            "stonehearth:actions:combat:panic_watcher",
-            "stonehearth:actions:combat:stop_panicking",
-            "stonehearth:actions:combat:hit_stun",
-            "stonehearth:actions:combat:create_engage_callback",
-            "stonehearth:actions:combat:get_primary_target",
-            "stonehearth:actions:combat:get_melee_range",
-            "stonehearth:actions:combat:set_global_attack_cooldown",
-            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
-            "stonehearth:actions:chase_entity",
-            "stonehearth:actions:set_posture",
-            "stonehearth:actions:die_citizen",
-            "stonehearth:actions:free_time:dispatcher",
-            "stonehearth:actions:equip_carrying",
-            "stonehearth:actions:upgrade_equipment",
-            "stonehearth:actions:find_equipment_upgrade"
-         ]
-      },
-      "stonehearth:observers" : {
-         "observers": [
-            "stonehearth:observers:aggro",
-            "stonehearth:observers:find_target",
-            "stonehearth:observers:sleepiness",
-            "stonehearth:observers:calorie",
-            "stonehearth:observers:free_time", 
-            "stonehearth:observers:nutrition_score", 
-            "stonehearth:observers:shelter_score", 
-            "stonehearth:observers:health_score", 
-            "stonehearth:observers:safety_score"
-         ]
-      },
       "unit_info" : {
          "name": "Civilian",
          "description": "Citizen of your town"
@@ -293,9 +211,32 @@
       "stonehearth:equipment" : {
       }
    },
+   
    "entity_data" : {
       "stonehearth:entity_radius" : 0.75,
       "stonehearth:entity_reach" : 1.0,
+
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:harvesting",
+            "stonehearth:ai_pack:sitting",
+            "stonehearth:ai_pack:eating",
+            "stonehearth:ai_pack:sleeping",
+            "stonehearth:ai_pack:restocking",
+            "stonehearth:ai_pack:combat",
+            "stonehearth:ai_pack:promotion",
+            "stonehearth:ai_pack:upgrade_equipment",
+            "stonehearth:ai_pack:admire_fire",
+            "stonehearth:ai_pack:health",
+            "stonehearth:ai_pack:death",
+            "stonehearth:ai_pack:citizen_death",
+            "stonehearth:ai_pack:idle",
+            "stonehearth:ai_pack:idle:bored:look_around",
+            "stonehearth:ai_pack:idle:bored:wander",
+            "stonehearth:ai_pack:idle:bored:sway",
+            "stonehearth:ai_pack:score"
+         ]
+      },
 
       "stonehearth:observers:avoid_threatening_entities" : {
          "min_avoidance_distance" : 16,

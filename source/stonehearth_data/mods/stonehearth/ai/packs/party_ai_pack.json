@@ -1,0 +1,10 @@
+{
+   "actions" : [
+      "stonehearth:actions:party:move_to_banner",
+      "stonehearth:actions:party:idle_at_banner"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
+   ]
+}

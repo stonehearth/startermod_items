@@ -621,6 +621,7 @@ var StonehearthClient;
             return radiant.call_obj(self._build_editor, 'delete_structure')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+                  self.deleteStructure();
                })
                .fail(function(response) {
                   self.hideTip(tip);

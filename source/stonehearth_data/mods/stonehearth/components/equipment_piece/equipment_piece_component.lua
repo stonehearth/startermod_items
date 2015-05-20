@@ -4,7 +4,6 @@ local log = radiant.log.create_logger('equipment_piece')
 function EquipmentPieceComponent:initialize(entity, json)
    self._entity = entity
    self._json = json
-   self._sv = self.__saved_variables:get_data()
    self._roles = self:_get_roles()
    
    self._slot_to_bone_map = {
@@ -12,30 +11,31 @@ function EquipmentPieceComponent:initialize(entity, json)
       offhand = 'offHand',
    }
 
-   if not self._sv._injected_commands then
+   self._sv = self.__saved_variables:get_data()
+
+   if not self._sv.initialized then
       self._sv._injected_commands = {}
-   end
-
-   if not self._sv._injected_buffs then
       self._sv._injected_buffs = {}
-   end
-
-   local owner = self._sv.owner
-   if owner and owner:is_valid() then
-      -- we can't be sure what gets loaded first: us or our owner.  if we get
-      -- loaded first, it's way too early to inject the ai.  if the owner got loaded
-      -- first, the 'radiant:entities:post_create' event has already been fired.
-      -- so just load up once the whole game is loaded.
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-            self:_inject_ai()
-            self:_inject_buffs()
-            self:_setup_item_rendering()
-         end)
+      self._sv.initialized = true
+      self.__saved_variables:mark_changed()
+   else
+      local owner = self._sv.owner
+      if owner and owner:is_valid() then
+         -- we can't be sure what gets loaded first: us or our owner.  if we get
+         -- loaded first, it's way too early to inject the ai.  if the owner got loaded
+         -- first, the 'radiant:entities:post_create' event has already been fired.
+         -- so just load up once the whole game is loaded.
+         radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+               -- Only needed for the posture trace? Everything else rehydrates on its own.
+               self:_setup_item_rendering()
+            end)
+      end
    end
 end
 
 function EquipmentPieceComponent:destroy()
    self:unequip()
+
    if self._posture_changed_listener then
       self._posture_changed_listener:destroy()
       self._posture_changed_listener = nil

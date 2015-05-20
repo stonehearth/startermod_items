@@ -1,0 +1,8 @@
+{
+   "actions" : [
+      "stonehearth:actions:combat:cower"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core"
+   ]
+}

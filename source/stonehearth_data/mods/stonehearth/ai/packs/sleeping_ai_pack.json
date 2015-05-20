@@ -1,0 +1,16 @@
+{
+   "actions" : [
+      "stonehearth:actions:sleep_on_ground",
+      "stonehearth:actions:sleep_in_new_bed",
+      "stonehearth:actions:sleep_in_own_bed",
+      "stonehearth:actions:sleep_in_bed_adjacent",
+      "stonehearth:actions:sleep_when_exhausted"
+   ],
+   "observers" : [
+      "stonehearth:observers:sleepiness"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
+   ]
+}

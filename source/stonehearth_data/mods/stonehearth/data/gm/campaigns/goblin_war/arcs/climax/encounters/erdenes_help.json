@@ -1,0 +1,120 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+
+   "in_edge"  : "erdenes_help",
+
+   "dialog_tree_info" : {
+      "start_node" : "erdene_appears",
+      "nodes" : {
+         "erdene_appears" : {
+            "bulletin" : {
+               "title" : "A figure with a sibilant voice appears beside your fire",
+               "dialog_title" : "???",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : [
+                  "Are you afraid, valiant town? Ogo so-called-chief will be here soon. For you."
+               ],
+               "choices" : {
+                  "stonehearth:no_way" : {
+                     "next_node" : "erdenes_help"
+                  }, 
+                  "stonehearth:well_yes" : {
+                     "next_node" : "erdenes_help"
+                  }
+               }               
+            }
+         },
+         "erdenes_help" : {
+            "bulletin" : {
+               "title" : "The figure tilts her head",
+               "dialog_title" : "???",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : [
+                  "To borrow strength to rise means to fall when strength fails. Ogo borrows his power not from his so-called-sayer, but from the babe he stole."
+               ],
+               "choices" : {
+                  "stonehearth:dubious_interest" : {
+                     "next_node" : "flute_description"
+                  }, 
+                  "stonehearth:confusion" : {
+                     "next_node" : "flute_description"
+                  }
+               }
+            }
+         },
+         "flute_description" : {
+            "bulletin" : {
+               "title" : "She offers a scrap of paper",
+               "dialog_title" : "???",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : [
+                  "Upon this paper, you shall find the lullabye to sooth the Mountain's soul. Find a stolen flute. Bid your wood-worker pitch it to this melody. Grant it to your bravest sheep-singer, set him at Ogo's great mammoth, and watch self-importance meet it's just reward."
+               ],
+               "choices" : {
+                  "stonehearth:sounds_good" : {
+                     "next_node" : "accept_offer"
+                  }, 
+                  "stonehearth:no_thanks" : {
+                     "next_node" : "departure"
+                  }
+               }               
+            }
+         }, 
+         "accept_offer" : {
+            "bulletin" : {
+               "title" : "She nods firmly",
+               "dialog_title" : "???",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : [
+                  "Fight hard, little town. Fate is meaningless. But were it not, yours would be to rise."
+               ],
+               "choices" : {
+                  "stonehearth:wait_who_are_you" : {
+                     "next_node" : "erdene_description"
+                  },
+                  "stonehearth:huh" : {
+                     "next_node" : "departure"
+                  }
+               }               
+            }
+         },
+         "departure" : {
+            "bulletin" : {
+               "title" : "She shrugs",
+               "dialog_title" : "???",
+               "portrait" : "file(images/mysterious.png)",
+               "message" : [
+                  "Well then. Fight hard, little town."
+               ],
+               "choices" : {
+                  "stonehearth:ok" : {
+                  }
+               }               
+            }
+         },
+         "erdene_description" : {
+            "bulletin" : {
+               "title" : "She smiles with a glint of teeth",
+               "dialog_title" : "???",
+               "portrait" : "file(images/erdene.png)",
+               "message" : [
+                  "Me? I am the one who watches. You. Him. For the star. For fate.",
+                  "I? I am of the Red Kiln. We would have been your saviours, but your Cid parlayed hard in your stead. So now we watch. And wait for the day when your star rises.",
+                  "Me! I suppose you've earned your bit. I am an ember in the forge, a spark in the air. I watch, so that I may know when it is time for the fire to engulf us all.",
+                  "Me? Today, it matters not. Tomorrow, if you still live, you may call me Erdene, of the Red Kiln."
+               ],
+               "choices" : {
+                  "stonehearth:cool" : {
+                     "next_node" : "departure"
+                  },
+                  "stonehearth:sounds_ominous" : {
+                     "next_node" : "departure"
+                  }
+               }               
+            }
+         }    
+      }
+   }
+}

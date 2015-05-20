@@ -1,0 +1,9 @@
+{
+   "actions" : [
+      "stonehearth:actions:combat:flee"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
+   ]
+}

@@ -3,25 +3,14 @@
    "components" : {
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
-            "actions" : [
-               "stonehearth:actions:combat:flee",
-               "stonehearth:actions:combat:cower",
-
-               "stonehearth:actions:town_defense:town_defense_dispatcher",
-               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
-               "stonehearth:actions:town_defense:town_defense_idle_ready",
-
-               "stonehearth:actions:trapping_dispatcher",
-               "stonehearth:actions:trapping:survey_trapping_grounds",
-               "stonehearth:actions:trapping:set_bait_trap",
-               "stonehearth:actions:trapping:set_bait_trap_adjacent",
-               "stonehearth:actions:trapping:check_bait_trap",
-               "stonehearth:actions:trapping:find_trap_in_trapping_grounds",
-               "stonehearth:actions:trapping:harvest_trapped_beast"
-            ],
-            "observers" : [
-               "stonehearth:observers:combat_panic",
-               "stonehearth:observers:avoid_threatening_entities"
+            "ai_packs" : [
+               "stonehearth:ai_pack:trapping",
+               "stonehearth:ai_pack:backpack",
+               "stonehearth:ai_pack:town_defense",
+               "stonehearth:ai_pack:wimpy",
+               "stonehearth:ai_pack:panic",
+               "stonehearth:ai_pack:panic:flee",
+               "stonehearth:ai_pack:panic:cower"
             ]
          }
       }

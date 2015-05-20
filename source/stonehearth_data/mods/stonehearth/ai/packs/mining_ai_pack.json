@@ -1,0 +1,12 @@
+{
+   "actions" : [
+      "stonehearth:actions:mining_dispatcher",
+      "stonehearth:actions:mining:mine",
+      "stonehearth:actions:mining:get_block_to_mine",
+      "stonehearth:actions:mining:mine_adjacent"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
+   ]
+}

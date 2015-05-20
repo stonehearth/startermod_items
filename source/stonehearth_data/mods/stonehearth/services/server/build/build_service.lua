@@ -49,13 +49,13 @@ function BuildService:__init(datastore)
 end
 
 function BuildService:initialize()
-   self._undo = BuildUndoManager()
 
    self.__saved_variables:set_controller(self)
 
    self._log = radiant.log.create_logger('build.service')
    self._sv = self.__saved_variables:get_data()
    if not self._sv.next_building_id then
+      self._sv.undo = radiant.create_controller('stonehearth:build:undo_manager')
       self._sv.next_building_id = 1 -- used to number newly created buildings
       self._sv.ladder_manager = radiant.create_controller('stonehearth:build:ladder_manager')
       self._sv.scaffolding_manager = radiant.create_controller('stonehearth:build:scaffolding_manager')
@@ -82,7 +82,7 @@ function BuildService:_call_all_children(entity, cb)
 end
 
 function BuildService:clear_undo_stack()
-   self._undo:clear()
+   self._sv.undo:clear()
 end
 
 function BuildService:set_active(entity, enabled)
@@ -104,7 +104,7 @@ end
 
 function BuildService:set_teardown(entity, enabled)
    if enabled then
-      self._undo:clear()      
+      self._sv.undo:clear()      
    end
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
@@ -115,7 +115,7 @@ function BuildService:set_teardown(entity, enabled)
 end
 
 function BuildService:undo_command(session, response)
-   self._undo:undo()
+   self._sv.undo:undo()
    response:resolve(true)
 end
 
@@ -458,7 +458,7 @@ end
 --
 function BuildService:_create_new_building(session, location)
    local building = radiant.entities.create_entity('stonehearth:build:prototypes:building', { owner = session.player_id })
-   self._undo:trace_building(building)
+   self._sv.undo:trace_building(building)
    
    -- give the building a unique name and establish ownership.
    building:add_component('unit_info')
@@ -747,14 +747,14 @@ function BuildService:delete_structure_command(session, response, entity)
 end
 
 function BuildService:delete_structure(entity)
-   -- xxxx: don't check this in
-   entity:get_component('mob')
-            :get_parent()
-               :get_component('stonehearth:wall')
-                  :layout()
+   local wall = entity:get_component('mob')
+                           :get_parent()
 
    -- nuke the window or door!
    self:unlink_entity(entity)
+
+   wall:get_component('stonehearth:wall')
+            :layout()
 end
 
 -- Pops a roof on a building with no roof. 
@@ -1037,7 +1037,7 @@ function BuildService:unlink_entity(entity)
       building:get_component('stonehearth:building')
                   :unlink_entity(entity)
    end
-   self._undo:unlink_entity(entity)
+   self._sv.undo:unlink_entity(entity)
 end
 
 -- called by a remote ui to change properties in the construction data component.
@@ -1152,7 +1152,7 @@ function BuildService:get_cost_command(session, response, building)
 end
 
 function BuildService:do_command(reason, response, cb)
-   self._undo:begin_transaction(reason)
+   self._sv.undo:begin_transaction(reason)
    self._in_transaction = true
    self._at_end_of_transaction_cbs = {}
    cb()
@@ -1165,7 +1165,7 @@ function BuildService:do_command(reason, response, cb)
    end
    self._at_end_of_transaction_cbs = {}
 
-   self._undo:end_transaction(reason)
+   self._sv.undo:end_transaction(reason)
    return true
 end
 

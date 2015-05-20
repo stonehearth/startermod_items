@@ -4,9 +4,9 @@
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
             "actions" : [
-               "file(actions/destroy_items_in_stockpile_action.lua)"
-            ],
-            "observers" : [
+               "stonehearth:actions:destroy_items_in_stockpile",
+               "stonehearth:actions:smash_item",
+               "stonehearth:actions:smash_item_adjacent"
             ]
          }
       }

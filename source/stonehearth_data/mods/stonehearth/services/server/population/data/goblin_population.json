@@ -115,6 +115,13 @@
             "Peopleeater",
             "the Friendly"
          ]
+      }, 
+      "mountain_mammoth" : {
+         "male" : {
+            "uri" : ["stonehearth:monsters:goblin:mammoth:mountain"],
+            "given_names" : ["Mountain"], 
+            "surnames" : ["the Mammoth"]
+         }
       }
    },
    "town_pieces" : {

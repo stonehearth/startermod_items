@@ -18,6 +18,11 @@ CombatIdleShuffle.priority = 1
 CombatIdleShuffle.weight = 1
 
 function CombatIdleShuffle:start_thinking(ai, entity, args)
+   local no_shuffle = self:_no_shuffle(entity)
+   if no_shuffle then
+      return
+   end
+
    self._entity = entity
    local enemy = args.enemy
 
@@ -144,6 +149,16 @@ function CombatIdleShuffle:_is_occupied(location)
 
    local occupied = next(entities) ~= nil
    return occupied
+end
+
+function CombatIdleShuffle:_no_shuffle(entity)
+   local entity_data = radiant.entities.get_entity_data(entity, 'stonehearth:combat')
+
+   if entity_data and entity_data.no_shuffle ~= nil then
+      return entity_data.no_shuffle
+   end
+
+   return false
 end
 
 return CombatIdleShuffle

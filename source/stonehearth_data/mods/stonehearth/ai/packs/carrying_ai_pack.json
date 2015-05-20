@@ -1,0 +1,31 @@
+{
+   "actions" : [
+      "stonehearth:actions:pickup_item_on_table_action",
+      "stonehearth:actions:pickup_item",
+      "stonehearth:actions:pickup_item_trivial",
+      "stonehearth:actions:pickup_hangable_item",
+      "stonehearth:actions:pickup_item_adjacent",
+      "stonehearth:actions:pickup_placed_item_adjacent",
+      "stonehearth:actions:pickup_placed_item_adjacent_trivial",
+      "stonehearth:actions:pickup_item_on_table",
+      "stonehearth:actions:pickup_item_on_table_adjacent",
+      "stonehearth:actions:pickup_item_type",
+      "stonehearth:actions:pickup_item_type_trivial",
+      "stonehearth:actions:pickup_item_made_of",
+      "stonehearth:actions:pickup_item_with_uri",
+
+      "stonehearth:actions:drop_carrying_at",
+      "stonehearth:actions:drop_carrying_now",
+      "stonehearth:actions:drop_carrying_adjacent",
+      "stonehearth:actions:drop_carrying_into_entity",
+      "stonehearth:actions:drop_carrying_into_entity_adjacent",
+      "stonehearth:actions:drop_carrying_into_entity_adjacent_at",
+      "stonehearth:actions:drop_carrying_if_stacks_full",
+
+      "stonehearth:actions:set_hangable_adjacent"
+   ],
+   "ai_packs" : [
+      "stonehearth:ai_pack:core",
+      "stonehearth:ai_pack:movement"
+   ]
+}

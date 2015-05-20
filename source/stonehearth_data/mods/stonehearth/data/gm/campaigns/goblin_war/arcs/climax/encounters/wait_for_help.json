@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_time_of_day",
+
+   "in_edge"  : "wait_for_help",
+   "out_edge" : "erdenes_help",
+
+   "wait_for_time_of_day_info" :  {
+      "time" : "22:00+1h"
+   }
+}

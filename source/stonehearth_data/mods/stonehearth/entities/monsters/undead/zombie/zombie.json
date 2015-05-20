@@ -1,6 +1,6 @@
 {
    "type": "entity", 
-   "mixins" : "stonehearth:mixins:monster",
+   "mixins" : "stonehearth:mixins:undead",
    "components": {
       "render_info" : {
          "color_map" : "stonehearth:color_map:undead",

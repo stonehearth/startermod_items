@@ -4,8 +4,6 @@
    Sleeping always resets us to a sleepiness of 0. 
 ]]
 
-local calendar = stonehearth.calendar
-
 local SleepinessObserver = class()
 
 --TODO: now defunct?

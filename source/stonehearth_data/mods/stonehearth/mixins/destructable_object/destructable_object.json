@@ -1,11 +1,6 @@
 {
    "type": "entity", 
    "components": {
-      "stonehearth:observers": {
-         "observers" : [
-            "stonehearth:observers:kill_at_zero_health"
-         ]
-      },
       "stonehearth:attributes": {
          "max_health": {
             "type" : "basic", 
@@ -20,6 +15,12 @@
    "entity_data" : {
       "stonehearth:on_destroy" : {
          "effect": "/stonehearth/data/effects/object_destroyed/object_destroyed.json"
+      },
+
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:destructable_object"
+         ]
       }
    }
 }

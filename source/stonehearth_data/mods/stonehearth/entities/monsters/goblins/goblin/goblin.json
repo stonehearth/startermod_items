@@ -33,41 +33,6 @@
          "name": "A Goblin",
          "description": "Attracted to shiny things"
       },
-      "stonehearth:ai" : {
-         "actions" : [
-            "stonehearth:actions:collect_ingredient",
-            "stonehearth:actions:pickup_ingredient_with_material",
-            "stonehearth:actions:pickup_ingredient_with_uri",
-            "stonehearth:actions:reserve_stockpile_space",
-            "stonehearth:actions:idle:sway",
-            "stonehearth:actions:idle:look_around",
-            "stonehearth:actions:grab_promotion_talisman",                        
-            "stonehearth:actions:grab_promotion_talisman_type",
-            "stonehearth:actions:sit_on_ground",
-            "stonehearth:actions:sit_on_chair",
-            "stonehearth:actions:sit_on_chair_adjacent",
-            "stonehearth:actions:wander",
-            "stonehearth:actions:wander_within_leash",
-            "stonehearth:actions:wander_when_bored",
-            "stonehearth:actions:choose_point_around_leash",
-            "stonehearth:actions:admire_fire",
-            "stonehearth:actions:admire_fire_adjacent",
-            "stonehearth:actions:complete_workshop_construction",
-            "stonehearth:actions:harvest_resource_node_action",
-            "stonehearth:actions:harvest_resource_node_adjacent_action",
-            "stonehearth:actions:harvest_plant",
-            "stonehearth:actions:harvest_plant_adjacent",
-            "stonehearth:actions:restock_stockpile",
-            "stonehearth:actions:drop_carrying_in_stockpile"
-         ]
-      },
-      "stonehearth:observers" : {
-         "observers": [
-            "stonehearth:observers:aggro",
-            "stonehearth:observers:find_target",
-            "stonehearth:observers:free_time"
-         ]
-      },
       "stonehearth:attributes": {
           "max_health": {
             "type" : "basic", 
@@ -119,6 +84,16 @@
             "cooldown" : 12000,
             "priority" : 1
          }
-      ]
+      ],
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:harvesting",
+            "stonehearth:ai_pack:restocking",
+            "stonehearth:ai_pack:patrolling",
+            "stonehearth:ai_pack:sitting",
+            "stonehearth:ai_pack:promotion",
+            "stonehearth:ai_pack:admire_fire"
+         ]
+      }
    }
 }

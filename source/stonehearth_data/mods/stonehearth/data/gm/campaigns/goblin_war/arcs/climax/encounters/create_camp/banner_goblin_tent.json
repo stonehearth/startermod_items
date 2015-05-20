@@ -1,0 +1,39 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "tent" : {
+         "uri" : "stonehearth:monsters:goblins:goblin_tent",
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      }
+   },
+   "citizens" : {
+      "banner_goblin" : {
+         "from_population" : {
+            "location" : { "x": 5, "z": -5 },
+            "job" : "stonehearth:jobs:footman"
+         },
+         "equipment" : {
+            "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
+            "outfit" : "stonehearth:monsters:goblins:outfits:miniboss"
+         }, 
+          "attributes" : {
+            "health" : 100
+         },
+         "loot_drops" : {
+            "num_rolls" : {
+               "min" : 1,
+               "max" : 1
+            },
+            "items" : [
+               { "uri" : "stonehearth:weapons:giant_bone_mace" },
+               { "uri" : "stonehearth:weapons:giant_bone_axe"  }
+            ]
+         }
+      }
+   }
+}
