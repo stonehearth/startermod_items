@@ -176,7 +176,7 @@ App.StonehearthNameCampView = App.View.extend({
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
          var townName = self.$('#name').val()
          App.stonehearthClient.settlementName(townName);
-         radiant.call('stonehearth:set_town_name', townName);
+         radiant.call_obj('stonehearth.town', 'set_town_name_command', townName);
          App.gameView._addViews(App.gameView.views.complete);
 
          // kick off the tutorials

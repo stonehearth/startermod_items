@@ -172,7 +172,7 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:embark'} );
          App.shellView.addView(App.StonehearthLoadingScreenView);
 
-         radiant.call('stonehearth:new_game', width, height, seed, {enable_enemies : true})
+         radiant.call_obj('stonehearth.game_creation', 'new_game_command', width, height, seed, {enable_enemies : true})
             .done(function(e) {
                var map = e.map;
 
@@ -185,7 +185,7 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
                   y = Math.floor(Math.random() * map.length);
                } while (map[y][x].terrain_code.indexOf('plains') != 0);
 
-               radiant.call('stonehearth:generate_start_location', x, y, e.map_info);
+               radiant.call_obj('stonehearth.game_creation', 'generate_start_location_command', x, y, e.map_info);
                radiant.call('stonehearth:get_world_generation_progress')
                   .done(function(o) {
                      self.trace = radiant.trace(o.tracker)

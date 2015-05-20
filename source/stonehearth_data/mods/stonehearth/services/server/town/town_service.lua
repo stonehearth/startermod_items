@@ -41,5 +41,27 @@ function TownService:get_town(arg1)
    return self._sv.towns[player_id]
 end
 
+-- xxx, change this whole town name business to a unit_info component on the town entity (created in town.lua)
+function TownService:get_town_name_command(session, response)
+   local town = self:get_town(session.player_id)
+   if town then
+      return {townName = town:get_town_name()}
+   else
+      return {townName = 'Defaultville'}
+   end
+end
+
+function TownService:get_town_entity_command(session, response)
+   local town = self:get_town(session.player_id)
+   local entity = town:get_entity()
+   return { town = entity }
+end
+
+function TownService:set_town_name_command(session, response, town_name)
+   local town = self:get_town(session.player_id)
+   town:set_town_name(town_name)
+   return true
+end
+
 return TownService
 

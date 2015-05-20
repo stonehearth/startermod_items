@@ -92,7 +92,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
       var seed = self._generate_seed();
 
-      radiant.call('stonehearth:new_game', 12, 8, seed, self.options)
+      radiant.call_obj('stonehearth.game_creation', 'new_game_command', 12, 8, seed, self.options)
          .done(function(e) {
             self._map_info = e.map_info
             fn(e);
@@ -199,7 +199,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
 
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:embark'} );
-      radiant.call('stonehearth:generate_start_location', cellX, cellY, self._map_info);
+      radiant.call_obj('stonehearth.game_creation', 'generate_start_location_command', cellX, cellY, self._map_info);
       App.shellView.addView(App.StonehearthLoadingScreenView);
       self.destroy();
    }
