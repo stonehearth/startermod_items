@@ -23,8 +23,8 @@
                "maurauders" : {
                   "from_population" : {
                      "job" : "stonehearth:jobs:footman",
-                     "min" : 2,
-                     "max" : 5,
+                     "min" : 1,
+                     "max" : 3,
                      "location" : { "x": 3, "z": 3 },
                      "range" : 6
                   },
