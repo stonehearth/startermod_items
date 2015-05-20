@@ -164,7 +164,6 @@ function FixtureFabricator:_start_project()
    local dependencies_finished = build_util.blueprint_is_finished(structure)
 
    if not finished and dependencies_finished and not teardown then
-      self:set_always_show_ghost(true)
       self:_place_fixture()
    end
 end

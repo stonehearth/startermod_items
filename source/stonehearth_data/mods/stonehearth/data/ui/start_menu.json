@@ -35,13 +35,21 @@
             "hotkey" : "h"
          },
          "mining_ui" : {
-            "name" : "Mine",
+            "name" : "Mine Tunnel",
             "description" : "Mine out tunnels and caves",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
             "sticky" : true,
             "hotkey" : "m"
          },         
+         "mine_block" : {
+            "name" : "Mine Block",
+            "description" : "Mine individual blocks",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine_block.png",
+            "sticky" : true,
+            "hotkey" : "n"
+         },
          "cancel_task" : {
             "name" : "Cancel Task",
             "description" : "Cancel tasks on this object",
@@ -55,14 +63,6 @@
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/clear.png",
             "sticky" : true
-         },
-         "mine_block" : {
-            "name" : "Mine Block",
-            "description" : "Mine individual blocks",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
-            "sticky" : true,
-            "hotkey" : "n"
          }
       }
    },
