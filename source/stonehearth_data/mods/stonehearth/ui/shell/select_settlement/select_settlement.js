@@ -75,8 +75,8 @@ App.StonehearthSelectSettlementView = App.View.extend({
       })
 
       var tipContent = '<div id="embarkTooltip">';
-      tipContent += '<button id="embarkButton" class="flat">' + i18n.t('stonehearth:embark_at_this_location') + '</button><br>';
-      tipContent += '<button id="clearSelectionButton" class="flat">' + i18n.t('stonehearth:embark_clear_selection') + '</button>';
+      tipContent += '<button id="embarkButton" class="flat">' + i18n.t('stonehearth:select_settlement_at_this_location') + '</button><br>';
+      tipContent += '<button id="clearSelectionButton" class="flat">' + i18n.t('stonehearth:select_settlement_clear_selection') + '</button>';
       tipContent += '</div>'
 
       self.$('#embarkPin').tooltipster({
@@ -125,7 +125,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
          mineralDescription = cell.mineral_density;
 
          if (cell.terrain_code != this._prevTerrainCode) {
-            var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)'
+            var portrait = 'url(/stonehearth/ui/shell/select_settlement/images/' + cell.terrain_code + '.png)'
 
             self.$('#terrainType').html(terrainType);
             //self.$('#terrainPortrait').css('content', portrait);   
