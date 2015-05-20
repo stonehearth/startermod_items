@@ -983,42 +983,6 @@
          "controller" : "file(call_handlers/world_generation_call_handler.lua)",
          "endpoint" : "server"
       },
-      "sign_in": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "set_game_options": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "new_game": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "get_overview_map": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "get_town_entity" : {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "get_town_name" : {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "set_town_name" : {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "generate_start_location": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "embark_server": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "embark_client": {
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "client"
@@ -1026,10 +990,6 @@
       "choose_camp_location": {
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "client"
-      },
-      "create_camp": {
-         "controller" : "file(call_handlers/new_game_call_handler.lua)",
-         "endpoint" : "server"
       },
       "get_visibility_regions": {
          "controller" : "file(call_handlers/terrain_call_handler.lua)",

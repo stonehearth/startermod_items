@@ -11,7 +11,7 @@ App.StonehearthExpBarWidget = App.View.extend({
       var self = this;
       this._super();
 
-      radiant.call('stonehearth:get_town_entity')
+      radiant.call_obj('stonehearth.town', 'get_town_entity_command')
          .done(function(response) {
             self.townTrace = new StonehearthDataTrace(response.town, self.components);
             self.townTrace.progress(function(eobj) {

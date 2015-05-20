@@ -55,7 +55,7 @@ var StonehearthClient;
             self.mouseY = e.pageY;
          });
 
-         radiant.call('stonehearth:get_town_name')
+         radiant.call_obj('stonehearth.town', 'get_town_name_command')
             .done(function(e) {
                self.gameState.settlementName = e.townName;
             });
