@@ -111,6 +111,8 @@ function AIComponent:set_status_text(text)
 end
 
 function AIComponent:add_action(uri)
+   self._log:debug('adding action "%s"', uri)
+
    local ref_count = self._sv._ref_counts:add_ref(uri)
    if ref_count > 1 then
       return
@@ -162,11 +164,14 @@ function AIComponent:remove_action(key)
    end
 
    if type(key) == 'string' then
+      self._log:detail('removing action "%s"', key)
       local uri = key
       local ref_count = self._sv._ref_counts:dec_ref(uri)
       if ref_count > 0 then
          return
       end
+   else
+      self._log:detail('removing custom action "%s"', tostring(key))
    end
 
    local does = action_key_to_activity[key]

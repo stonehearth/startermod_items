@@ -9,7 +9,7 @@
       "out_edges" : {
          "refuse" : "spawn_city_raids",
          "fail" : "spawn_city_raids",
-      "success" : "wait_for_next_shakedown"
+         "success" : "wait_for_next_shakedown"
       },
 
       "script" : "file(shakedown/shakedown.lua)",

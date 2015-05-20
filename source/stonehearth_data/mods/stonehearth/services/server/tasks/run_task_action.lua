@@ -16,6 +16,10 @@ function RunTaskAction:get_log()
    return self._log
 end
 
+function RunTaskAction:get_task()
+   return self._task
+end
+
 function RunTaskAction:_create_execution_frame(ai)
    if not self._execution_frame then
       self._ai = ai

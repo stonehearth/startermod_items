@@ -1980,6 +1980,21 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
    }
 }
 
+void Renderer::drawMatSphere(Resource *matRes, std::string const& shaderContext, const Vec3f &pos, float radius)
+{
+
+   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+   if( !setMaterial( (MaterialResource *)matRes, shaderContext ) ) return;
+	Matrix4f mat = Matrix4f::TransMat( pos.x, pos.y, pos.z ) *
+	               Matrix4f::ScaleMat( radius, radius, radius );
+	gRDI->setShaderConst( _curShader->uni_worldMat, CONST_FLOAT44, &mat.x[0] );
+	
+	gRDI->setVertexBuffer( 0, _vbSphere, 0, 12 );
+	gRDI->setIndexBuffer( _ibSphere, IDXFMT_16 );
+	gRDI->setVertexLayout( _vlPosOnly );
+
+	gRDI->drawIndexed( PRIM_TRILIST, 0, 128 * 3, 0, 126 );
+}
 
 void Renderer::drawFSQuad( Resource *matRes, std::string const& shaderContext )
 {
@@ -2209,9 +2224,9 @@ Frustum Renderer::computeDirectionalLightFrustum(LightNode const* light, float n
 
 struct LightImportanceSortPred
 {
-   Matrix4f clipMat;
-   LightImportanceSortPred(Matrix4f& m) {
-      clipMat = m;
+   Matrix4f const& clipMat;
+   Vec3f const& camPos;
+   LightImportanceSortPred(Matrix4f const& m, Vec3f const& cp) : clipMat(m), camPos(cp) {
    }
 
 	bool operator()( LightNode*const& a, LightNode*const& b ) const
@@ -2227,6 +2242,16 @@ struct LightImportanceSortPred
       if (!b->getParamI(LightNodeParams::DirectionalI)) {
          b->calcScreenSpaceAABB(clipMat, x, y, w, h);
          bArea = w * h;
+      }
+
+      if (aArea == bArea) {
+         Vec3f l1 = (camPos - a->getAbsPos());
+         float d1 = l1.dot(l1);
+
+         Vec3f l2 = (camPos - b->getAbsPos());
+         float d2 = l2.dot(l2);
+
+         return d1 <= d2;
       }
 
       return aArea > bArea;
@@ -2261,7 +2286,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
    Matrix4f clipMat = _curCamera->getProjMat() * _curCamera->getViewMat();
    
    // Sort high importance lights.
-   std::sort(high.begin(), high.end(), LightImportanceSortPred(clipMat));
+   std::sort(high.begin(), high.end(), LightImportanceSortPred(clipMat, _curCamera->getAbsPos()));
    for (auto const& entry : high) {
       if (lights->size() >= maxLights) {
          return;
@@ -2271,7 +2296,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 
 
    // Sort low importance lights.
-   std::sort(low.begin(), low.end(), LightImportanceSortPred(clipMat));
+   std::sort(low.begin(), low.end(), LightImportanceSortPred(clipMat, _curCamera->getAbsPos()));
    for (auto const& entry : low) {
       if (lights->size() >= maxLights) {
          return;
@@ -2455,17 +2480,21 @@ void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialReso
             }
          }
       }
-      // Calculate light screen space position
-      float bbx, bby, bbw, bbh;
-      curLight->calcScreenSpaceAABB(_curCamera->getProjMat() * _curCamera->getViewMat(), bbx, bby, bbw, bbh);
-      // Set scissor rectangle
-      if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
-      {
-         gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
-         glEnable(GL_SCISSOR_TEST);
+
+      if (curLight->_directional) {
+         drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
+      } else {
+         // Calculate light screen space position
+         float bbx, bby, bbw, bbh;
+         curLight->calcScreenSpaceAABB(_curCamera->getProjMat() * _curCamera->getViewMat(), bbx, bby, bbw, bbh);
+         // Set scissor rectangle
+         if (bbw == 1.0 && bbh == 1.0)
+         {
+            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName + "_INSIDE", curLight->getAbsPos(), curLight->getRadius());
+         } else {
+            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, curLight->getAbsPos(), curLight->getRadius());
+         }
       }
-      drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
-		glDisable(GL_SCISSOR_TEST);
 
       Modules().stats().incStat(EngineStats::LightPassCount, 1);
 	}
@@ -3583,6 +3612,8 @@ void Renderer::renderDebugView()
 	   }
    }
 
+   float tempscale = 1.0f;
+   gRDI->setShaderConst(_defColorShader.uni_modelScale, CONST_FLOAT, &tempscale);
 	defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, true );
    for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())

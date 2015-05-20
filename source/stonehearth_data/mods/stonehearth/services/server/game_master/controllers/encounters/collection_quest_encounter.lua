@@ -92,6 +92,7 @@ end
 -- phase
 --
 function CollectionQuest:_on_introduction_finished()
+   self._sv.script:on_transition('shakedown')
    self:_show_demand()
 end
 
@@ -111,6 +112,8 @@ end
 --
 function CollectionQuest:_on_shakedown_accepted()
    self:_destroy_bulletin()
+
+   self._sv.script:on_transition('shakedown_accepted')
 
    -- update the bulletin to start tracking the collection progress
    local bulletin_data = self._sv._info.nodes.collection_progress.bulletin
@@ -134,6 +137,7 @@ end
 -- show the antagonist's displeasure
 --
 function CollectionQuest:_on_shakedown_declined()
+   self._sv.script:on_transition('shakedown_refused')
    self:_show_refused_threat()
 end
 
@@ -320,6 +324,7 @@ function CollectionQuest:_on_collection_paid()
 end
 
 function CollectionQuest:_on_collection_success_ok()
+   self._sv.script:on_transition('collection_succeeded')
    self:_finish_encounter('success')
 end
 
@@ -336,6 +341,7 @@ end
 -- in the arc (after setting the 'fail' out_edge)
 --
 function CollectionQuest:_on_collection_failed_ok()
+   self._sv.script:on_transition('collection_failed')   
    self:_finish_encounter('fail')
 end
 

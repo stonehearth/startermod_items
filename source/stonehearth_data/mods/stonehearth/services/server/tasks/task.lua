@@ -361,11 +361,10 @@ function Task:_unfeed_worker(worker)
    self._workers_pending_unfeed[worker:get_id()] = worker
 end
 
-function Task:_estimate_task_distance(worker)
+function Task:estimate_task_distance(worker_location)
    local distance = 0
    local source_location
 
-   local worker_location = radiant.entities.get_world_grid_location(worker)
    if radiant.util.is_a(self._source, Point3) then
       source_location = self._source
    elseif radiant.util.is_a(self._source, Entity) and self._source:is_valid() then
@@ -393,6 +392,13 @@ function Task:_estimate_task_distance(worker)
       distance = worker_location:distance_to(source_location)
    end
    return distance
+end
+
+
+function Task:_estimate_task_distance(worker)
+   local worker_location = radiant.entities.get_world_grid_location(worker)
+
+   return self:estimate_task_distance(worker_location)
 end
 
 function Task:_get_fitness(worker)

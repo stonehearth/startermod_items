@@ -19,6 +19,7 @@ local service_creation_order = {
    'inventory',
    'population',
    'town',
+   'job',
    'player',
    'spawn_region_finder',
    'dm',

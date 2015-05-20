@@ -325,8 +325,13 @@
    "mine_out_tip_description" : "Right click to exit", 
    "wall_segment_tip_title" : "Click to place freestanding wall segments", 
    "wall_segment_tip_description" : "Hold down SHIFT while clicking to draw connected walls", 
+
    "build_floor_tip_title" : "Click and drag to build floor", 
    "build_floor_tip_description" : "Right click to exit", 
+
+   "build_floor_tip_title" : "Click to delete",
+   "build_floor_tip_description" : "Right click to exit",
+
    "build_slab_tip_title" : "Click and drag to build a slab", 
    "build_slab_tip_description" : "Right click to exit", 
    "erase_structure_tip_title" : "Click to erase items. Click and drag to erase floor", 

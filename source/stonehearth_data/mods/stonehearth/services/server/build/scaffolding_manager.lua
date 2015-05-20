@@ -68,9 +68,12 @@ function ScaffoldingManager:_create_builder(builder_type, requestor, blueprint_r
 end
 
 function ScaffoldingManager:_remove_builder(bid)
-   if self._sv.builders[bid] then
-      self._sv.builders[bid]:destroy()
+   self:_remove_region(bid)
+
+   local builder = self._sv.builders[bid]
+   if builder then
       self._sv.builders[bid] = nil
+      builder:destroy()
    end
    self.__saved_variables:mark_changed()
 end
@@ -117,6 +120,7 @@ function ScaffoldingManager:_remove_region(rid)
          log:detail('removing region rid:%d from sblock:%d', rid, sid)
          sblock.regions[rid] = nil
          self._changed_scaffolding[sid] = sblock
+         self:_mark_changed()
       end
    end
 end
@@ -180,11 +184,15 @@ function ScaffoldingManager:_check_sblock_destroy(sblock)
    sblock.region = nil
 end
 
-function ScaffoldingManager:_mark_rblock_region_changed(rblock)
+function ScaffoldingManager:_mark_changed()
    if not self._marked_changed then
       self._marked_changed = true
       radiant.events.listen_once(radiant, 'stonehearth:gameloop', self, self._process_changes)
    end
+end
+
+function ScaffoldingManager:_mark_rblock_region_changed(rblock)
+   self:_mark_changed()
    local sblock = rblock.sblock
    if sblock then
       log:detail('rid:%d changed.  marking sblock sid:%d changed as well.', rblock.rid, sblock.sid)

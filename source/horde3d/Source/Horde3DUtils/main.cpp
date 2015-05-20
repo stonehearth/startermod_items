@@ -492,7 +492,7 @@ DLLEXP void h3dutFreeMem( char **ptr )
 	delete[] *ptr; *ptr = 0x0;
 }
 
-DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex* vertexData, int vertexOffsets[], unsigned int* indexData, int indexOffsets[], int numLodLevels)
+DLLEXP H3DRes h3dutCreateVoxelGeometryRes( const char *name, struct VoxelGeometryVertex const* vertexData, int vertexOffsets[], unsigned int const* indexData, int indexOffsets[], int numLodLevels)
 {
 	if( numLodLevels <= 0 || vertexOffsets[1] == 0 || indexOffsets[1] == 0 ) return 0;
 

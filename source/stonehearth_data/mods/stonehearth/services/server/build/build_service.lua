@@ -753,6 +753,7 @@ function BuildService:delete_structure(entity)
    -- nuke the window or door!
    self:unlink_entity(entity)
 
+   -- layout the wall
    wall:get_component('stonehearth:wall')
             :layout()
 end

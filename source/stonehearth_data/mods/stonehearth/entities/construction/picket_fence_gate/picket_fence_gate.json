@@ -36,7 +36,6 @@
       }
    },
    "entity_data" : {
-      "stonehearth:bed" : {},
       "stonehearth:net_worth" : {
          "value_in_gold" : 15,
          "rarity" : "common",

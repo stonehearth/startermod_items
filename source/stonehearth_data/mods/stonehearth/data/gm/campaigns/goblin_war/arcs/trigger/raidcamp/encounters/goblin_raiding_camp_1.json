@@ -10,6 +10,7 @@
 
    "create_camp_info" : {
       "npc_player_id" : "goblins",
+      "amenity_with_player" : "neutral",
       "ctx_entity_registration_path" : "goblin_raiding_camp_1", 
 
       "radius" : 20,

@@ -24,8 +24,8 @@ function PopulationService:add_population(player_id, kingdom)
    return pop
 end
 
-function PopulationService:get_population(player_id)
-   radiant.check.is_string(player_id)
+function PopulationService:get_population(player)
+   local player_id = radiant.entities.get_player_id(player)
    return self._sv.populations[player_id]
 end
 
