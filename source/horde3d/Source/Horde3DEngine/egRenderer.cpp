@@ -2490,9 +2490,9 @@ void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialReso
          // Set scissor rectangle
          if (bbw == 1.0 && bbh == 1.0)
          {
-            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName + "_INSIDE", curLight->getAbsPos(), curLight->getRadius());
+            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName + "_INSIDE", curLight->getAbsPos(), curLight->getRadius() + 1.0f);
          } else {
-            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, curLight->getAbsPos(), curLight->getRadius());
+            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, curLight->getAbsPos(), curLight->getRadius() + 1.0f);
          }
       }
 
@@ -3613,6 +3613,8 @@ void Renderer::renderDebugView()
    }
 
    float tempscale = 1.0f;
+	setShaderComb( &_defColorShader );
+	commitGeneralUniforms();
    gRDI->setShaderConst(_defColorShader.uni_modelScale, CONST_FLOAT, &tempscale);
 	defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, true );
