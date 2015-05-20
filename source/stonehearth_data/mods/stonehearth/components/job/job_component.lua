@@ -463,8 +463,12 @@ function JobComponent:_remove_from_task_groups(task_groups)
    end
 end
 
+--Set the description of the person to something appropriate for their job
+--If they are an NPC, don't change this!
 function JobComponent:_set_unit_info(name)
-   self._entity:add_component('unit_info'):set_description(name)
+   if not stonehearth.player:is_npc(self._entity) then
+      self._entity:add_component('unit_info'):set_description(name)
+   end
 end
 
 function JobComponent:_equip_abilities(json)

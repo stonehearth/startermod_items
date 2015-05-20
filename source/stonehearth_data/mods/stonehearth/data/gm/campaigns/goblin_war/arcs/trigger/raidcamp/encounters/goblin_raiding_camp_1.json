@@ -25,6 +25,9 @@
             "location" : { "x": 6, "y": 6 },
             "job" : "stonehearth:jobs:footman"
          },
+         "unit_info" : {
+            "description" : "Me leen green fighting macheen!!!"
+         },
 
          "combat_leash_range" : 30,
          
