@@ -28,7 +28,7 @@
             "min" : 2,
             "max" : 4,
             "location" : { "x": 0, "z": -0 },
-            "range" : 6
+            "range" : 3
          },
          "equipment" : {
             "weapon" : ["stonehearth:mining_pick", "stonehearth:worker_hammer"]

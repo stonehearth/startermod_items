@@ -10,7 +10,6 @@ end
 
 function GeneratorEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.generator')
-   self._sv.num_spawns = 0
 
    if self._sv.timer then
       self._sv.timer:bind(function()
@@ -28,6 +27,7 @@ function GeneratorEncounter:start(ctx, info)
 
    self._sv.ctx = ctx
    self._sv.spawn_edge = info.spawn_edge
+   self._sv.num_spawns = 0
 
    if info.source_entity then
       local entity = ctx:get(info.source_entity)
@@ -81,6 +81,8 @@ function GeneratorEncounter:_spawn_encounter()
       local ctx = self._sv.ctx
       ctx.arc:trigger_next_encounter(ctx)
    end 
+
+   self.__saved_variables:mark_changed()
 end
 
 function GeneratorEncounter:_start_timer()
