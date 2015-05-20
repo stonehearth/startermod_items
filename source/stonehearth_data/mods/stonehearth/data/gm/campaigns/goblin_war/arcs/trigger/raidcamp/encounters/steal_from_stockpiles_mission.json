@@ -28,6 +28,9 @@
                   },
                   "equipment" : {
                      "abilities" : "stonehearth:abilities:thief_abilities"
+                  },
+                  "attributes" : {
+                     "speed" : 40
                   }
                },
                "escorts" : {

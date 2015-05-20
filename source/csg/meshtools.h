@@ -7,6 +7,8 @@
 #include "region.h"
 #include "core/static_string.h"
 
+struct VoxelGeometryVertex;
+
 BEGIN_RADIANT_CSG_NAMESPACE
 
 typedef std::unordered_map<int, Color4> TagToColorMap;
@@ -32,12 +34,25 @@ struct Vertex {
    csg::Point3f GetLocation() const;
    csg::Point3f GetNormal() const;
    csg::Color4 GetColor() const;
+
+   bool operator==(Vertex const& other) const;
+
+   struct Hash { 
+      inline size_t operator()(Vertex const& p) const;
+   };
+
 };
 
 struct Mesh {
-   std::vector<Vertex>  vertices;
-   std::vector<int32>   indices;
    Cube3f               bounds;
+
+   struct Buffers {
+      VoxelGeometryVertex const* vertices;
+      uint                       vertexCount;
+
+      unsigned int const*        indices;
+      uint                       indexCount;
+   };
 
    Mesh();
 
@@ -45,25 +60,36 @@ struct Mesh {
    Mesh& SetOffset(csg::Point3f const& offset);
    Mesh& SetColor(csg::Color4 const& color);
    Mesh& SetColorMap(TagToColorMap const* colorMap);
-   Mesh& FlipFaces();
-   Mesh& AddVertices(Mesh const& other);
 
    bool IsEmpty() const;
+   Buffers GetBuffers();
 
    // This is the one, true add face.  move over to it...
    template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi, uint32 boneIndex=0);
    template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi, uint32 boneIndex=0);
    void AddFace(Point3f const points[], Point3f const& normal, uint32 boneIndex=0);
+   int32 AddVertex(Vertex const& v);
+   void AddIndex(int32 index);
 
 private:
    void AddFace(Point3f const points[], Point3f const& normal, Color4 const& color, uint32 boneIndex);
+   void SplitTriangle(uint i, uint a0, uint a1, uint a2, uint b0, uint b1, uint b2);
+   bool SplitTJunction(csg::Point3f const& point, uint triangle);
+   bool PointOnLineSegement(csg::Point3f const& point, uint e0, uint e1);
+   uint CreateVertex(csg::Point3f const& point, uint copyFrom);
+   void EliminateTJunctures();
 
 private:
+   std::vector<Vertex>  _vertices;
+   std::vector<int32>   _indices;
    csg::Color4          color_;
    TagToColorMap const* colorMap_;
    bool                 override_color_;
    bool                 flip_;
    Point3f              offset_;
+   bool                 _compiled;
+   uint                 _duplicatedVertexCount;
+   std::unordered_map<Vertex, int32, Vertex::Hash> _vertexMap;
 };
 
 // The material name refers to the horde material used to render the mesh.  We alias it here

@@ -488,6 +488,20 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
    end
 end
 
+
+-- _restart_thinking gets called a lot, so any closures we can turn into functions, we
+-- should do so.
+function unit_sort_fn(l, r)
+   if l.priority > r.priority then
+      return true
+   elseif l.priority < r.priority then
+      return false
+   end
+
+   return l.cost < r.cost
+end
+
+
 -- Returns true iff a child unit is active (and is different from the previously active unit)
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
@@ -535,26 +549,24 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
    -- Don't even bother examining units which are not strictly better than any active we might have.
    local sorted_units = {}
+   local self_location = radiant.entities.get_world_grid_location(self._ai_component:get_entity())
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
-         table.insert(sorted_units, unit)
+         table.insert(sorted_units, {
+            unit = unit,
+            cost = unit:get_task() and unit:get_task():estimate_task_distance(self_location) or 0,
+            priority = unit:get_priority()
+         })
       end
    end
 
    -- Sort all of our possible units, first by priority, then by cost.  This will
    -- ensure that higher-priority slow_rethink_units get to think first.
-   table.sort(sorted_units, function(l, r)
-         if l:get_priority() > r:get_priority() then
-            return true
-         elseif l:get_priority() < r:get_priority() then
-            return false
-         end
-         return l._cost < r._cost
-      end)
+   table.sort(sorted_units, unit_sort_fn)
 
    -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
    -- Anbody not rethinking right now gets added to the slow_rethink_units.
-   for _, unit in pairs(sorted_units) do
+   for _, u in pairs(sorted_units) do
       local new_state = self:_clone_entity_state('new speculation for unit')
       local think_now = true
 
@@ -562,13 +574,13 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       if self._slow_start_enabled then
          -- realtime actions get to start right away, regardless of whether or not this is
          -- a slow-start frame.
-         if not unit:get_action().realtime then
+         if not u.unit:get_action().realtime then
             -- If we're not realtime, make sure we have room in the fast start queue!
             if num_think_now < FAST_START_MAX_UNITS then
                -- If we have room, then just make sure this unit is not lower priority than the rerun unit,
                -- if the rerun unit exists.
-               if self._rerun_unit and self._rerun_unit ~= unit then
-                  think_now = self._rerun_unit:get_priority() < unit:get_priority()
+               if self._rerun_unit and self._rerun_unit ~= u.unit then
+                  think_now = self._rerun_unit:get_priority() < u.unit:get_priority()
                end
             else
                think_now = false
@@ -578,12 +590,12 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
       -- add the unit to the `fast_rethink_units` or `slow_rethink_units` list
       if think_now then
-         self._log:spam('fast start unit %s', unit:get_name())
-         fast_rethink_units[unit] = new_state
+         self._log:spam('fast start unit %s', u.unit:get_name())
+         fast_rethink_units[u.unit] = new_state
          num_think_now = num_think_now + 1
       else
-         self._log:spam('slow start unit %s', unit:get_name())
-         table.insert(slow_rethink_units, { unit = unit, state = new_state })
+         self._log:spam('slow start unit %s', u.unit:get_name())
+         table.insert(slow_rethink_units, { unit = u.unit, state = new_state })
       end
    end
 

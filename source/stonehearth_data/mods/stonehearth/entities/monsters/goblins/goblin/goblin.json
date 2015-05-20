@@ -44,7 +44,7 @@
          },
          "speed": {
             "type" : "basic",
-            "value" : 80
+            "value" : 60
          },
          "menace": {
             "type" : "basic",

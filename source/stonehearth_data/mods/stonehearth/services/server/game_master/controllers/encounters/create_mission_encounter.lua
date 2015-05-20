@@ -25,7 +25,7 @@ function CreateMission:get_ctx()
    return self._sv.ctx
 end
 
-function CreateMission:_start_mission(location)
+function CreateMission:_start_mission(op, location)
    local info = self._sv.info
    local ctx = self._sv.ctx
 

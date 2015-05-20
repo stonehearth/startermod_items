@@ -184,11 +184,14 @@ function entities.set_description(entity, description)
    end
 end
 
+function entities.get_player_id_from_entity(entity)
+   local unit_info = entity:get_component('unit_info')
+   return unit_info and unit_info:get_player_id() or nil
+end
+
 function entities.get_player_id(subject)
    if radiant.util.is_a(subject, Entity) then
-      local entity = subject
-      local unit_info = entity:get_component('unit_info')
-      return unit_info and unit_info:get_player_id() or nil
+      return entities.get_player_id_from_entity(subject)
    end
    if type(subject) == 'string' then
       return subject
@@ -197,7 +200,7 @@ function entities.get_player_id(subject)
 end
 
 function entities.is_owned_by_player(entity, player_id)
-   return entities.get_player_id(entity) == player_id
+   return entities.get_player_id_from_entity(entity) == player_id
 end
 
 function entities.is_entity(entity)
@@ -804,49 +807,6 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    return 0
 end
 
--- This really shouldn't be here, but until we have a thing for this....
-function entities.are_players_hostile(player_a, player_b)
-   if entities._is_neutral_player(player_a) then
-      return false
-   end
-
-   if entities._is_neutral_player(player_b) then
-      return false
-   end
-
-   return player_a ~= player_b
-end
-
--- we'll use a mapping table later to determine alliances / hostilities
-function entities.is_hostile(entity_a, entity_b)
-   local player_a = radiant.entities.get_player_id(entity_a)
-   if entities._is_neutral_player(player_a) then
-      return false
-   end
-
-   local player_b = radiant.entities.get_player_id(entity_b)
-   if entities._is_neutral_player(player_b) then
-      return false
-   end
-
-   return player_a ~= player_b
-end
-
--- we'll use a mapping table later to determine alliances / hostilities
-function entities.is_friendly(entity_a, entity_b)
-   local player_a = radiant.entities.get_player_id(entity_a)
-   if entities._is_neutral_player(player_a) then
-      return false
-   end
-
-   local player_b = radiant.entities.get_player_id(entity_b)
-   if entities._is_neutral_player(player_b) then
-      return false
-   end
-
-   return player_a == player_b
-end
-
 -- we'll use a mapping table later to determine alliances / hostilities
 function entities._is_neutral_player(player)
    return player == nil or player == '' or player == 'critters' or player == 'animals'
@@ -927,6 +887,23 @@ end
 
 function entities.world_to_local(pt, e)
    return _radiant.physics.world_to_local(pt, e)
+end
+
+function entities.is_solid_entity(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+   
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   local rcs = entity:get_component('region_collision_shape')
+   if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+      return true
+   end
+
+   return false
 end
 
 -- extract the full sized entity from an iconic entity proxy.  `component_name`

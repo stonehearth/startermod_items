@@ -18,6 +18,9 @@
                      "location" : { "x": -3, "z": -3 },   
                      "job" : "stonehearth:jobs:footman"
                   },
+                  "attributes" : {
+                     "speed" : 40
+                  },
                   
                   "equipment" : {
                      "abilities" : "stonehearth:abilities:thief_abilities",

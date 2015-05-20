@@ -201,7 +201,7 @@ RenderNodePtr Client_CreateStockpileNode(lua_State* L,
 
 RenderNodePtr Client_CreateMeshNode(lua_State* L, 
                                     H3DNode parent,
-                                    csg::Mesh const& m)
+                                    csg::Mesh& m)
 {
    return Pipeline::GetInstance().CreateRenderNodeFromMesh(parent, m);
 }

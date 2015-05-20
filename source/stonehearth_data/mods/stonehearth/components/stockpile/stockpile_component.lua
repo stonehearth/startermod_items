@@ -202,7 +202,7 @@ local function get_restock_filter_fn(filter_key, filter, player_id)
             local containing_stockpile_owner_id = radiant.entities.get_player_id(containing_entity)
             log:detail('item:      %s', radiant.entities.get_player_id(item))
             log:detail('stockpile: %s', containing_stockpile_owner_id)
-            local already_stocked = not radiant.entities.are_players_hostile(player_id, containing_stockpile_owner_id)
+            local already_stocked = not stonehearth.player:are_players_hostile(player_id, containing_stockpile_owner_id)
             if already_stocked then
                log:detail('already stocked!  returning false from filter function')
                return false

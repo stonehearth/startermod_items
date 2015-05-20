@@ -59,23 +59,25 @@
          resGetPath: '../../../__ns__/locales/__lng__.json'
       });
 
-/*
-      window.onerror = function (message, file, line, column, errorObj) {
+      window.onerror = function (message, file, line, column, error) {
          //console.log('Error: ' + errorObj.stack);
-         var error = {
+         var model = {
             message: message,
             file: file,
-            line: line
+            line: line,
+            error: error,
          }
          if (App.gameView) {
-            App.gameView.addView(App.StonehearthJsErrorDialogView, { error : error });   
+            App.gameView.addView(App.StonehearthJsErrorDialogView, { model : model });
          }
          console.error(message);
-         console.error(file);
-         console.error(line);
+         console.error(error.stack);
+
+         // the chromum console log is stifled under log level 3.  make sure it
+         // makes it into log level by sending the error directly to the client
+         radiant.call('radiant:browser_log', error.stack)
          return true;
       }
-*/
 
       window.addEventListener("error", function (e) {
          //console.log(e.error.message, "from", e.error.stack);

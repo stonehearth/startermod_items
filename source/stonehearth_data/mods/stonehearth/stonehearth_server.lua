@@ -19,6 +19,7 @@ local service_creation_order = {
    'inventory',
    'population',
    'town',
+   'job',
    'player',
    'spawn_region_finder',
    'dm',
@@ -40,7 +41,7 @@ local service_creation_order = {
    'shepherd',
    'shop',
    'tutorial',
-   'unit_control'
+   'unit_control',
 }
 
 local function create_service(name)

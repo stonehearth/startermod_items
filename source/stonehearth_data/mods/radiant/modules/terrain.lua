@@ -167,14 +167,16 @@ end
 -- returns all entities whose locations of collision shapes intersect the cube
 function Terrain.get_entities_in_cube(cube, filter_fn)
    local entities = _physics:get_entities_in_cube(cube)
+   local results = entities
    if filter_fn then
+      results = {}
       for id, entity in pairs(entities) do         
-         if not filter_fn(entity) then
-            entities[id] = nil
+         if filter_fn(entity) then
+            results[id] = entity
          end
       end
    end
-   return entities
+   return results
 end
 
 function Terrain.get_entities_in_region(region, filter_fn)
