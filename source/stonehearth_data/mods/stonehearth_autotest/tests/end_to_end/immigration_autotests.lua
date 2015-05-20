@@ -5,17 +5,23 @@ function immigration_tests.get_one_citizen(autotest)
 
    --Have enough supplies to pass the criteria
    --50 food, > 4.0 morale, 100 net worth
-   local cluster = autotest.env:create_entity_cluster(0, 0, 10, 10, 'stonehearth:food:corn:corn_basket')
-   local stockpile = autotest.env:create_stockpile(0, 0, {size = {x=10, y=10}})
+   local cluster = autotest.env:create_entity_cluster(0, 0, 9, 9, 'stonehearth:food:corn:corn_basket')
+   local stockpile = autotest.env:create_stockpile(0, 0, {size = {x=9, y=9}})
 
-   local cluster = autotest.env:create_entity_cluster(0, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
-   local stockpile = autotest.env:create_stockpile(0, 10, {size = {x=10, y=10}})
+   local cluster = autotest.env:create_entity_cluster(0, 10, 9, 9, 'stonehearth:food:corn:corn_basket')
+   local stockpile = autotest.env:create_stockpile(0, 10, {size = {x=9, y=9}})
 
-   local cluster = autotest.env:create_entity_cluster(-10, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
-   local stockpile = autotest.env:create_stockpile(-10, 10, {size = {x=10, y=10}})
+   local cluster = autotest.env:create_entity_cluster(-10, 10, 9, 9, 'stonehearth:food:corn:corn_basket')
+   local stockpile = autotest.env:create_stockpile(-10, 10, {size = {x=9, y=9}})
 
-   local cluster = autotest.env:create_entity_cluster(10, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
-   local stockpile = autotest.env:create_stockpile(10, 10, {size = {x=10, y=10}})
+   local cluster = autotest.env:create_entity_cluster(10, 10, 9, 9, 'stonehearth:food:corn:corn_basket')
+   local stockpile = autotest.env:create_stockpile(10, 10, {size = {x=9, y=9}})
+
+   local cluster = autotest.env:create_entity_cluster(-10, -10, 9, 9, 'stonehearth:food:corn:corn_basket')
+   local stockpile = autotest.env:create_stockpile(-10, -10, {size = {x=9, y=9}})
+
+   local cluster = autotest.env:create_entity_cluster(-20, -10, 9, 9, 'stonehearth:food:corn:corn_basket')
+   local stockpile = autotest.env:create_stockpile(-20, -10, {size = {x=9, y=9}})
 
 
    autotest:sleep(10*1000)
