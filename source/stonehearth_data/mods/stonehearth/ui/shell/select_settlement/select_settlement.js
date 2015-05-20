@@ -2,7 +2,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
    templateName: 'stonehearthSelectSettlement',
    i18nNamespace: 'stonehearth',
 
-   classNames: ['flex', 'fullScreen', 'embarkBackground'],
+   classNames: ['flex', 'fullScreen', 'selectSettlementBackground'],
 
    // Game options (such as peaceful mode, etc.)
    options: {},
@@ -32,8 +32,8 @@ App.StonehearthSelectSettlementView = App.View.extend({
          });
       });
 
-      $('body').on( 'click', '#embarkButton', function() {
-         self._embark(self._selectedX, self._selectedY);
+      $('body').on( 'click', '#selectSettlementButton', function() {
+         self._selectSettlement(self._selectedX, self._selectedY);
       });
 
       $('body').on( 'click', '#clearSelectionButton', function() {
@@ -67,25 +67,25 @@ App.StonehearthSelectSettlementView = App.View.extend({
       self.$('#map').stonehearthMap('suspend');
 
       // Must show before setting position. jQueryUI does not support positioning of hidden elements.
-      self.$('#embarkPin').show();
-      self.$('#embarkPin').position({
+      self.$('#selectSettlementPin').show();
+      self.$('#selectSettlementPin').position({
          my: 'left+' + 12 * cellX + ' top+' + 12 * cellY,
          at: 'left top',
          of: self.$('#map'),
       })
 
-      var tipContent = '<div id="embarkTooltip">';
-      tipContent += '<button id="embarkButton" class="flat">' + i18n.t('stonehearth:select_settlement_at_this_location') + '</button><br>';
+      var tipContent = '<div id="selectSettlementTooltip">';
+      tipContent += '<button id="selectSettlementButton" class="flat">' + i18n.t('stonehearth:select_settlement_at_this_location') + '</button><br>';
       tipContent += '<button id="clearSelectionButton" class="flat">' + i18n.t('stonehearth:select_settlement_clear_selection') + '</button>';
       tipContent += '</div>'
 
-      self.$('#embarkPin').tooltipster({
+      self.$('#selectSettlementPin').tooltipster({
          autoClose: false,
          interactive: true,
          content:  $(tipContent)
       });
 
-      self.$('#embarkPin').tooltipster('show');
+      self.$('#selectSettlementPin').tooltipster('show');
    },
 
    _newGame: function(fn) {
@@ -171,8 +171,8 @@ App.StonehearthSelectSettlementView = App.View.extend({
       var self = this;
 
       try {
-         self.$('#embarkPin').tooltipster('destroy');
-         self.$('#embarkPin').hide();
+         self.$('#selectSettlementPin').tooltipster('destroy');
+         self.$('#selectSettlementPin').hide();
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_closed'} );
       } catch(e) {
       }
@@ -195,7 +195,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
       }
    },
 
-   _embark: function(cellX, cellY) {
+   _selectSettlement: function(cellX, cellY) {
       var self = this;
 
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:embark'} );

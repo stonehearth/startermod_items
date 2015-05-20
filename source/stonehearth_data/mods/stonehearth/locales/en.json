@@ -149,6 +149,12 @@
    "esc_menu_exit_game": "Exit Game",
    "esc_menu_post_bug" : "Post a bug", 
 
+   "embark_title" : "Prepare to set out for adventure",
+   "embark_citizen_info" : "Citizens",
+   "embark_citizen_info_name" : "Name",
+   "embark_reroll_citizens" : "Roll new citizens",   
+   "embark_finished" : "Embark!",
+
    "select_settlement_title" : "Click the map to choose your settlement's location",
    "select_settlement_at_this_location" : "Settle here!",
    "select_settlement_clear_selection" : "Choose another location",
@@ -203,6 +209,9 @@
    "level_abbreviation" : "Lvl",
    "locked_status" : " (Locked)",
    "apprentice" : "Apprentice",
+   "stat_mind" : "Mind",
+   "stat_body" : "Body",
+   "stat_spirit" : "Spirit",
 
    "journal" : "Journal",
    "attributes" : "Attributes",
