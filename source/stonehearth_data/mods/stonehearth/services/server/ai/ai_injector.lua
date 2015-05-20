@@ -1,7 +1,8 @@
 local AiInjector = class()
-local log = radiant.log.create_logger('ai.injector')
 
 function AiInjector:__init(entity, ai)
+   self._log = radiant.log.create_logger('ai.injector')
+                              :set_entity(entity)
    self._entity = entity
    self._injected = {}
    self._injected.actions = {}
@@ -11,7 +12,7 @@ function AiInjector:__init(entity, ai)
 end
 
 function AiInjector:inject_ai(ai)
-   log:info('injecting ai into %s', self._entity)
+   self._log:info('injecting ai into %s', self._entity)
    
    if ai.ai_packs then
       for _, uri in pairs(ai.ai_packs) do
@@ -47,11 +48,11 @@ end
 
 function AiInjector:destroy()
    if not self._entity:is_valid() then
-      log:info('entity destroyed before revoking injected ai', self._entity)
+      self._log:info('entity destroyed before revoking injected ai', self._entity)
       return
    end
 
-   log:info('revoking injected ai from %s', self._entity)
+   self._log:info('revoking injected ai')
 
    if self._injected.actions then
       local ai = self._entity:add_component('stonehearth:ai')
