@@ -46,8 +46,10 @@ function EquipmentPieceComponent:get_slot()
    return self._json.slot
 end
 
-function EquipmentPieceComponent:get_no_drop()
-   return self._json.no_drop
+function EquipmentPieceComponent:get_should_drop()
+   -- don't drop equipment that is trivial (ilevel == 0) or equipment that has
+   -- the no_drop flag.
+   return self:get_ilevel() > 0 and not self._json.no_drop
 end
 
 function EquipmentPieceComponent:get_ilevel()

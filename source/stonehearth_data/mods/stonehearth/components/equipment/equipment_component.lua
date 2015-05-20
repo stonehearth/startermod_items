@@ -20,19 +20,21 @@ end
 --When we've been killed, dump things that are >0 iLevel on the ground
 function EquipmentComponent:_on_kill_event()
    if not stonehearth.player:is_npc(self._entity) then
-      self:drop_equipment()
+      self:_drop_equipment()
    end
 end
 
-function EquipmentComponent:drop_equipment()
+function EquipmentComponent:_drop_equipment()
    if self._sv.equipped_items then
       for key, item in pairs(self._sv.equipped_items) do
          self:unequip_item(item)
          local ep = item:get_component('stonehearth:equipment_piece')
-         if ep and ep:get_ilevel() > 0 and not ep:get_no_drop() then 
+         if ep and ep:get_should_drop() then 
             local location = radiant.entities.get_world_grid_location(self._entity)
             local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
             radiant.terrain.place_entity(item, placement_point)
+         else
+            radiant.entities.destroy_entity(item)
          end
       end
    end
