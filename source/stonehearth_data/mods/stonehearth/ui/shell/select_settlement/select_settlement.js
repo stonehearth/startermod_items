@@ -1,5 +1,5 @@
-App.StonehearthEmbarkView = App.View.extend({
-   templateName: 'stonehearthEmbark',
+App.StonehearthSelectSettlementView = App.View.extend({
+   templateName: 'stonehearthSelectSettlement',
    i18nNamespace: 'stonehearth',
 
    classNames: ['flex', 'fullScreen', 'embarkBackground'],
