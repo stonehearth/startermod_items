@@ -111,7 +111,6 @@ App.StonehearthStartMenuView = App.View.extend({
                .done(function(response) {
                   if (!response.show_in_progress_ui) {
                      self.$('#tasks_manager').hide();
-                     self.$('#mine_block').hide();
                   }
                })
 
