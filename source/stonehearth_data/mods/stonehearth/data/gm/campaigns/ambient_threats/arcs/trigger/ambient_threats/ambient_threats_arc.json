@@ -3,12 +3,20 @@
    "rarity" : "common",
 
    "encounters" : {
-      "wait_for_day_two" : "file(encounters/wait_for_day_two.json)", 
-      "undead at night" : "file(encounters/nighttime_undead.json)",
-      "generate nightly undead" : "file(encounters/generate_nightly_undead.json)",
-      "randomize_spawn" : "file(encounters/randomize_spawn.json)", 
+      "wait_for_day_two" : "file(encounters/wait_for_day_two.json)",
+      "generate daily threat" : "file(encounters/generate_daily_threat.json)",
+      "randomize daily threat" : "file(encounters/randomize_daily_threat.json)",  
+
+      "nighttime undead" : "file(encounters/nighttime_undead.json)",
       "undead raid" : "file(encounters/undead_raid.json)",
       "wait_for_dawn" : "file(encounters/wait_for_dawn.json)", 
-      "destroy_undead" : "file(encounters/destroy_undead.json)"
+      "destroy_undead" : "file(encounters/destroy_undead.json)",
+
+      "goblin thief camp" : "file(encounters/goblin_thief_camp.json)", 
+      "create thief camp" : "file(encounters/create_thief_camp.json)",
+      "spawn thieves" : "file(encounters/spawn_thieves.json)", 
+      "lone thief raid" : "file(encounters/lone_thief_raid.json)", 
+      "wait for campfire destruction" : "file(encounters/wait_for_campfire_destruction.json)", 
+      "destroy thief stockpile" : "file(encounters/destroy_thief_stockpile.json)"
    }
 }

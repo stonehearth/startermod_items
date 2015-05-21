@@ -2,13 +2,16 @@
    "type" : "encounter",
    "encounter_type" : "random_out_edge",
 
-   "in_edge"  : "randomize_spawn",
+   "in_edge"  : "randomize_daily_threat",
 
    "random_out_edge_info" :  {
       "out_edges" : {
-         "undead_raid" : {
-            "weight" : 8
+         "nighttime_undead" : {
+            "weight" : 6
          }, 
+         "goblin_thief_camp" : {
+            "weight" : 2
+         },
          "none" : {
             "weight" : 2
          }

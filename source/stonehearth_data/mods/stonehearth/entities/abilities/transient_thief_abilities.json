@@ -1,0 +1,17 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "file(actions/steal_items_in_stockpile_action.lua)",
+               "stonehearth:actions:find_point_beyond_visible",
+               "stonehearth:actions:depart_visible_area"
+            ],
+            "observers" : [
+               "stonehearth:observers:raid_timeout_observer"
+            ]
+         }
+      }
+   }
+}
