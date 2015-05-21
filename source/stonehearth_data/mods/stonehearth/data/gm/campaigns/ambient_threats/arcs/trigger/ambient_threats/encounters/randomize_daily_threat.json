@@ -1,0 +1,17 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "random_out_edge",
+
+   "in_edge"  : "randomize_daily_threat",
+
+   "random_out_edge_info" :  {
+      "out_edges" : {
+         "nighttime_undead" : {
+            "weight" : 8
+         }, 
+         "none" : {
+            "weight" : 2
+         }
+      }
+   }
+}

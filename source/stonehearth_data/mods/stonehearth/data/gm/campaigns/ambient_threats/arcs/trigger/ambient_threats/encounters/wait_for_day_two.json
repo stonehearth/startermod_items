@@ -3,7 +3,7 @@
    "encounter_type" : "wait",
 
    "in_edge"  : "start",
-   "out_edge" : "wait_for_night",
+   "out_edge" : "generate_daily_threat",
 
    "wait_info" :  {
       "duration" : "48h"
