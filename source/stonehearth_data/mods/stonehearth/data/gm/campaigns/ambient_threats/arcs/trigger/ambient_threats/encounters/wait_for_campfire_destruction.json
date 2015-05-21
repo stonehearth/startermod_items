@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_event",
+
+   "in_edge"  : "wait_for_campfire_destruction",
+   "out_edge" : "destroy_thief_stockpiles",
+
+   "wait_for_event_info" :  {
+      "source" : "create_thief_camp.entities.campfire",
+      "event"  : "radiant:entity:pre_destroy"
+   }
+}

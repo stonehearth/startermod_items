@@ -4,7 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "create_thief_camp",
-   "out_edge" : "",
+   "out_edge" : ["spawn_thieves", "wait_for_campfire_destruction"],
 
 
    "create_camp_info" : {

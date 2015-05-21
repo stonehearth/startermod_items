@@ -13,6 +13,10 @@
       "destroy_undead" : "file(encounters/destroy_undead.json)",
 
       "goblin thief camp" : "file(encounters/goblin_thief_camp.json)", 
-      "create thief camp" : "file(encounters/create_thief_camp.json)"
+      "create thief camp" : "file(encounters/create_thief_camp.json)",
+      "spawn thieves" : "file(encounters/spawn_thieves.json)", 
+      "lone thief raid" : "file(encounters/lone_thief_raid.json)", 
+      "wait for campfire destruction" : "file(encounters/wait_for_campfire_destruction.json)", 
+      "destroy thief stockpile" : "file(encounters/destroy_thief_stockpile.json)"
    }
 }

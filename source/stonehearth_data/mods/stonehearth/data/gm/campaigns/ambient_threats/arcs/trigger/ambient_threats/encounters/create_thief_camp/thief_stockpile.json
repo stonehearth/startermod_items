@@ -6,7 +6,7 @@
       "npc_player_id" : "goblins",
       "stockpile_size" : { "w" : 5, "h" : 5 }, 
       "npc_player_id" : "goblins", 
-      "ctx_entity_registration_path" : "create_scout_camp",
+      "ctx_entity_registration_path" : "create_thief_camp",
       "entity_name" : "general_stockpile"
    }
 
