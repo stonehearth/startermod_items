@@ -19,14 +19,18 @@ local ADJACENT_POINTS = {
 }
 
 -- build the inverse material map
-local COLOR_TO_MATERIAL = {}
-local function build_color_to_material_map()  
+local TAG_TO_MATERIAL = {}
+local function build_tag_to_material_map()  
    for material, colorlist in pairs(stonehearth.constants.construction.brushes.voxel) do
-      for _, color in ipairs(colorlist) do
-         if COLOR_TO_MATERIAL[color] then
-            radiant.error('duplicate color %s in stonehearth:build:brushes', color)
+      for _, color_code in ipairs(colorlist) do
+         local color = Color3(color_code)
+         local tag = color:to_integer()
+
+         if TAG_TO_MATERIAL[tag] then
+            radiant.error('duplicate color %s in stonehearth:build:brushes', color_code)
          end
-         COLOR_TO_MATERIAL[color] = material
+
+         TAG_TO_MATERIAL[tag] = material
       end
    end
 end
@@ -35,17 +39,15 @@ end
 -- an entity may be required before the stonehearth mod gets loaded.  if that happens, wait for
 -- the load message before trying to rebuild the colormap
 if rawget(_G, 'stonehearth') then
-   build_color_to_material_map()
+   build_tag_to_material_map()
 else
-   radiant.events.listen_once(radiant, 'radiant:game_loaded',  build_color_to_material_map)
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', build_tag_to_material_map)
 end
 
 local FabricatorComponent = class()
 
 -- this is the component which manages the fabricator entity.
 function FabricatorComponent:initialize(entity, json)
-   
-
    self._log = radiant.log.create_logger('build.fabricator')
                         :set_entity(entity)
 
@@ -423,9 +425,9 @@ function FabricatorComponent:get_material(world_location)
 end
 
 function FabricatorComponent:_tag_to_material(tag)
-   checks('self', 'number')
-   local color = Color3(tag)
-   local material = COLOR_TO_MATERIAL[tostring(color)]
+   -- checks is a bit slow for this inner loop function
+   --checks('self', 'number')
+   local material = TAG_TO_MATERIAL[tag]
    if not material then
       radiant.error("building color to material map has no entry for color %s", tostring(color))
    end
@@ -726,14 +728,24 @@ function FabricatorComponent:_stop_project()
    end
 end
 
+function FabricatorComponent:_has_single_material()
+   local t = self._sv.material_proxies
+   -- are there 2+ values in the table?
+   local result = next(t, next(t)) == nil
+   return result
+end
+
 function FabricatorComponent:_update_all_material_proxy_regions()
    self._log:info('updating all proxies')
+
+   local has_single_material = self:_has_single_material()
+
    for material, proxy in pairs(self._sv.material_proxies) do
-      self:_update_material_proxy_region(material, proxy)
+      self:_update_material_proxy_region(material, proxy, has_single_material)
    end
 end
 
-function FabricatorComponent:_update_material_proxy_region(material, proxy)
+function FabricatorComponent:_update_material_proxy_region(material, proxy, has_single_material)
    local rcs_rgn = self._fabricator_rcs:get_region():get():to_int()
    local proxy_dst = proxy:get_component('destination')
    
@@ -747,7 +759,7 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy)
    local dst_region_all_materials = rcs_rgn - clipper
 
    local dst_region
-   if self._resource_material then
+   if has_single_material then
       dst_region = dst_region_all_materials
    else
       dst_region = Region3()
@@ -786,7 +798,6 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy)
       end
       dst_region = dr
    end
-   dst_region:optimize_by_merge('fabricator dst')
 
    --self._log:detail('update dst region')
    --self:_log_region(rcs_rgn, 'region collision shape ->')
@@ -794,21 +805,20 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy)
    
    -- Any region that needs mining should be removed from our destination region.
    for id, mining_zone in pairs(self._mining_zones) do
+      -- BUG: The mining zone destination region may only be a subset of the region to be mined!!!
       local mining_region = mining_zone:get_component('destination')
                                           :get_region()
                                              :get()
       if not mining_region:empty() then
          local offset = radiant.entities.get_world_grid_location(mining_zone) -
                         radiant.entities.get_world_grid_location(self._entity)
-                        
 
          local fab_mining_region = mining_region:translated(offset)
-
-         local a = dst_region:get_area()
          dst_region:subtract_region(fab_mining_region)
-         local b = dst_region:get_area()
       end
    end
+
+   dst_region:optimize_by_defragmentation('fabricator dst')
 
    -- copy into the destination region
    proxy_dst:get_region():modify(function (cursor)
