@@ -12,10 +12,7 @@
       "wait_for_dawn" : "file(encounters/wait_for_dawn.json)", 
       "destroy_undead" : "file(encounters/destroy_undead.json)",
 
-
-
-
-      "out_of_date___ generate nightly undead" : "file(encounters/generate_nightly_undead.json)",
-      "out_of_date___ randomize_spawn" : "file(encounters/randomize_spawn.json)"      
+      "goblin thief camp" : "file(encounters/goblin_thief_camp.json)", 
+      "create thief camp" : "file(encounters/create_thief_camp.json)"
    }
 }

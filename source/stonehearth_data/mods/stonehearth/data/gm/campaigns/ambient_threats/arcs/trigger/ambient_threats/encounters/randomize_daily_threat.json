@@ -7,8 +7,11 @@
    "random_out_edge_info" :  {
       "out_edges" : {
          "nighttime_undead" : {
-            "weight" : 8
+            "weight" : 6
          }, 
+         "goblin_thief_camp" : {
+            "weight" : 2
+         },
          "none" : {
             "weight" : 2
          }

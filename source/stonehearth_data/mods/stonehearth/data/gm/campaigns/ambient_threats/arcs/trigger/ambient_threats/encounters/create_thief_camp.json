@@ -1,0 +1,33 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_camp",
+   "rarity" : "common",
+
+   "in_edge"  : "create_thief_camp",
+   "out_edge" : "",
+
+
+   "create_camp_info" : {
+      "npc_player_id" : "goblins",
+      "ctx_entity_registration_path" : "create_thief_camp",
+
+      "radius" : 5,
+      "keep_grass" : true,
+
+      "spawn_range" : {
+         "min" : 80,
+         "max" : 180
+      },
+      
+      "pieces" : {
+         "campfire" : {
+            "info" : "file(create_thief_camp/thief_campfire.json)",
+            "position" : { "x": 3, "y": 3 }
+         },
+         "stockpile" : {
+            "position" : { "x": -3, "y": -3 },
+            "info" : "file(create_thief_camp/thief_stockpile.json)"
+         }
+      }
+   }
+}
