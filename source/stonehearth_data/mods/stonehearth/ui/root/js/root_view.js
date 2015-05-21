@@ -106,17 +106,16 @@ App.RootView = Ember.ContainerView.extend({
       $('#' + this._shellView.elementId).hide();
       $('#' + this._gameView.elementId).show();
 
-      // Uncomment out this line after top fixes the tutorials
-      //App.stonehearthTutorials = new StonehearthTutorialManager();
+      App.stonehearthTutorials = new StonehearthTutorialManager();
 
       $(document).trigger('stonehearthGameStarted');
 
       this.get('controller').send('tryAutoSave', true);
-      /*
+      
       setTimeout(function() {
          App.stonehearthTutorials.start();
       }, 1000);
-      */
+      
    },
 
    gotoShell: function() {
