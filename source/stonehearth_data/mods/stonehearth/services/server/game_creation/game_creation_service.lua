@@ -40,6 +40,7 @@ function GameCreationService:generate_citizens_command(session, response)
    for i=1, NUM_STARTING_CITIZENS do
       self.generated_citizens[i] = self:_generate_citizen(pop)
    end
+   response:resolve({})
 end
 
 function GameCreationService:new_game_command(session, response, num_tiles_x, num_tiles_y, seed, options)

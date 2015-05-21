@@ -18,9 +18,9 @@
             {{#each view.model.citizensArray}}
                <tr>
                   <td class="row">{{this.unit_info.name}}</td>
-                  <td class="row">#{{this.stonehearth:attributes.attributes.mind.effective_value}}</td>
-                  <td class="row">#{{this.stonehearth:attributes.attributes.body.effective_value}}</td>
-                  <td class="row">#{{this.stonehearth:attributes.attributes.spirit.effective_value}}</td>
+                  <td class="row">{{this.stonehearth:attributes.attributes.mind.effective_value}}</td>
+                  <td class="row">{{this.stonehearth:attributes.attributes.body.effective_value}}</td>
+                  <td class="row">{{this.stonehearth:attributes.attributes.spirit.effective_value}}</td>
                </tr>
             {{/each}}
             </tbody>

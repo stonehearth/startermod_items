@@ -4,11 +4,21 @@ App.StonehearthEmbarkView = App.View.extend({
 
    // Game options (such as peaceful mode, etc.)
    _options: {},
+   _components: {
+      "citizens" : {
+         "*" : {
+            "unit_info": {},
+            "stonehearth:attributes": {
+               "attributes" : {}
+            },
+         }
+      }
+   },
 
    init: function() {
       this._super();
       var self = this;
-      this._trace = new StonehearthPopulationTrace();
+      this._trace = new StonehearthDataTrace(App.population.getUri(), this._components);
 
       this._trace.progress(function(pop) {
             self.set('model', pop);
