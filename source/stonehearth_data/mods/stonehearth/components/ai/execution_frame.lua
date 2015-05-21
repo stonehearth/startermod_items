@@ -491,7 +491,7 @@ end
 
 -- _restart_thinking gets called a lot, so any closures we can turn into functions, we
 -- should do so.
-function unit_sort_fn(l, r)
+local function unit_sort_fn(l, r)
    if l.priority > r.priority then
       return true
    elseif l.priority < r.priority then
@@ -549,7 +549,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
    -- Don't even bother examining units which are not strictly better than any active we might have.
    local sorted_units = {}
-   local self_location = radiant.entities.get_world_grid_location(self._ai_component:get_entity())
+   local self_location = self._state.location or radiant.entities.get_world_grid_location(self._ai_component:get_entity())
    for _, unit in pairs(self._execution_units) do
       if self:_is_strictly_better_than_active(unit) then
          table.insert(sorted_units, {
