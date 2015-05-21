@@ -48,6 +48,12 @@
          },
          "attributes" : {
             "menace" : 0
+         },
+         "loot_drops" : {
+            "items" : [
+               {"uri" : "stonehearth:resources:wolf_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+            ]
          }
       }
    }

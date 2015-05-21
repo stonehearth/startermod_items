@@ -254,6 +254,7 @@
       "resources:racoon_pelt" : "file(entities/resources/pelt/racoon_pelt)",
       "resources:squirrel_pelt" : "file(entities/resources/pelt/squirrel_pelt)",
       "resources:rabbit_pelt" : "file(entities/resources/pelt/rabbit_pelt)",
+      "resources:wolf_pelt" : "file(entities/resources/pelt/wolf_pelt)",
 
 
       "refined:thread" : "file(entities/refined/thread)",
@@ -478,6 +479,7 @@
       "actions:die_citizen" : "file(ai/actions/die_citizen_action.lua)",
       "actions:die_generic" : "file(ai/actions/die_generic_action.lua)",
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
+      "actions:kill_entity" : "file(ai/actions/kill_entity.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
       "actions:drop_carrying_at_action" : "file(ai/actions/drop_carrying_at_action.lua)",
