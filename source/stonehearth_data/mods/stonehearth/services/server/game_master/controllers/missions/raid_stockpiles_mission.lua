@@ -120,6 +120,7 @@ function RaidStockpilesMission:_raid_stockpile(raid_stockpile, friendly_stockpil
                      from_stockpile = raid_stockpile,
                      to_stockpile = stockpile,
                   })
+                  :set_priority(stonehearth.constants.priorities.combat.IDLE)
                   :start()
       end
    end
@@ -127,6 +128,7 @@ function RaidStockpilesMission:_raid_stockpile(raid_stockpile, friendly_stockpil
    party:add_task('stonehearth:destroy_items_in_stockpile', {
             stockpile = raid_stockpile,
          })
+         :set_priority(stonehearth.constants.priorities.combat.IDLE)
          :start()
 
 end
