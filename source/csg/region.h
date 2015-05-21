@@ -51,6 +51,7 @@ public:
    void SetTag(int tag);
 
    bool IsEmpty() const;
+   bool IsHomogeneous() const;
    bool Contains(Point const& pt) const;
    bool Intersects(Cube const& cube) const;
    bool Intersects(Region const& region) const;
@@ -119,7 +120,6 @@ private:
 private:
    void Validate() const;
    bool ShouldOptimize() const;
-   bool ContainsAtMostOneTag() const;
    std::map<int, std::unique_ptr<Region<S, C>>> SplitByTag() const;
    S GetOctTreeCubeSize(Cube const& bounds) const;
    void OptimizeTagByOctTree(S minCubeSize);
