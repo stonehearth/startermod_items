@@ -463,8 +463,12 @@ function JobComponent:_remove_from_task_groups(task_groups)
    end
 end
 
+--Set the description of the person to something appropriate for their job
+--If they are an NPC, don't change this!
 function JobComponent:_set_unit_info(name)
-   self._entity:add_component('unit_info'):set_description(name)
+   if not stonehearth.player:is_npc(self._entity) then
+      self._entity:add_component('unit_info'):set_description(name)
+   end
 end
 
 function JobComponent:_equip_abilities(json)
@@ -503,17 +507,24 @@ end
 -- Drop all the equipment and the talisman, if relevant
 function JobComponent:_remove_equipment()
    if self._sv.equipment then
+      -- make sure we only take away what we gave the entity.  otherwise, we may end
+      -- up nuking abilities which were given by other parts of the the code (for example,
+      -- party abilities)
       local equipment_component = self._entity:add_component('stonehearth:equipment')
-      equipment_component:drop_equipment()
-      --[[
-      for _, equipment in ipairs(self._sv.equipment) do
-         equipment_component:unequip_item(equipment)
+      for i, item in ipairs(self._sv.equipment) do
+         equipment_component:unequip_item(item)
+         local ep = item:get_component('stonehearth:equipment_piece')
 
-         --TODO: we shouldn't destroy iLevel 2 items, though
-         --Call the kill equipment function?
-         radiant.entities.destroy_entity(equipment)
+         if ep and ep:get_should_drop() then 
+            local location = radiant.entities.get_world_grid_location(self._entity)
+            local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+            radiant.terrain.place_entity(item, placement_point)
+         else
+            -- this will make sure we don't leak any job ability and other non-tangible
+            -- equipment pieces that we created during the promote process.
+            radiant.entities.destroy_entity(item)
+         end
       end
-      ]]
       self._sv.equipment = nil
    end
 
