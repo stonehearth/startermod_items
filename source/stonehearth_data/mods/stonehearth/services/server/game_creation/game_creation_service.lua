@@ -10,11 +10,13 @@ local Region2 = _radiant.csg.Region2
 
 local log = radiant.log.create_logger('world_generation')
 local GENERATION_RADIUS = 2
+local NUM_STARTING_CITIZENS = 7
 
 GameCreationService = class()
 
 function GameCreationService:initialize()
    self._sv = self.__saved_variables:get_data()
+   self.generated_citizens = {}
 end
 
 function GameCreationService:sign_in_command(session, response)
@@ -22,6 +24,22 @@ function GameCreationService:sign_in_command(session, response)
    return {
       version = _radiant.sim.get_version()
    }
+end
+
+function GameCreationService:generate_citizens_command(session, response)
+   local pop = stonehearth.population:get_population(session.player_id)
+
+   --First destroy all existing citizens.
+   for i=1, NUM_STARTING_CITIZENS do
+      if self.generated_citizens[i] then
+         radiant.entities.destroy_entity(self.generated_citizens[i])      
+      end
+   end
+
+   --Create a new set of citizens.
+   for i=1, NUM_STARTING_CITIZENS do
+      self.generated_citizens[i] = self:_generate_citizen(pop)
+   end
 end
 
 function GameCreationService:new_game_command(session, response, num_tiles_x, num_tiles_y, seed, options)
@@ -167,22 +185,21 @@ function GameCreationService:create_camp_command(session, response, pt)
    local camp_x = pt.x
    local camp_z = pt.z
 
-   local function place_citizen_embark(x, z, job, talisman)
-      local citizen = self:_place_citizen(pop, x, z, job, talisman)
+   local function place_citizen_embark(citizen, x, z)
+      radiant.terrain.place_entity(citizen, Point3(x, 1, z))
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = citizen, description = 'person_embarks'})
-
       radiant.entities.turn_to(citizen, 180)
       return citizen
    end
 
-   local worker1 = place_citizen_embark(camp_x-3, camp_z-3)
-   local worker2 = place_citizen_embark(camp_x+0, camp_z-3)
-   local worker3 = place_citizen_embark(camp_x+3, camp_z-3)
-   local worker4 = place_citizen_embark(camp_x-3, camp_z+3)
-   local worker5 = place_citizen_embark(camp_x+3, camp_z+3)
-   local worker6 = place_citizen_embark(camp_x-3, camp_z+0)
-   local worker7 = place_citizen_embark(camp_x+3, camp_z+0)
+   local worker1 = place_citizen_embark(self.generated_citizens[1], camp_x-3, camp_z-3)
+   local worker2 = place_citizen_embark(self.generated_citizens[2], camp_x+0, camp_z-3)
+   local worker3 = place_citizen_embark(self.generated_citizens[3], camp_x+3, camp_z-3)
+   local worker4 = place_citizen_embark(self.generated_citizens[4], camp_x-3, camp_z+3)
+   local worker5 = place_citizen_embark(self.generated_citizens[5], camp_x+3, camp_z+3)
+   local worker6 = place_citizen_embark(self.generated_citizens[6], camp_x-3, camp_z+0)
+   local worker7 = place_citizen_embark(self.generated_citizens[7], camp_x+3, camp_z+0)
    
    self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
 
@@ -224,7 +241,7 @@ function GameCreationService:_place_pet(pop, uri, x, z)
    town:add_pet(pet)
 end
 
-function GameCreationService:_place_citizen(pop, x, z, job, talisman)
+function GameCreationService:_generate_citizen(pop, job, talisman)
    local citizen = pop:create_new_citizen()
    if not job then
       job = 'stonehearth:jobs:worker'
@@ -233,8 +250,6 @@ function GameCreationService:_place_citizen(pop, x, z, job, talisman)
                :promote_to(job, {
                   talisman = talisman
                })
-
-   radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
 end
 

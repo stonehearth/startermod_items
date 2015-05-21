@@ -8,12 +8,22 @@
       <div id="citizens">
          <div id="citizenInfoTitle">{{i18n stonehearth:embark_citizen_info}}</div>
          <table id="citizenInfoTable">
-            <tr>
-               <td class="title">{{i18n stonehearth:embark_citizen_info_name}}</td>
-               <td class="title">{{i18n stonehearth:stat_mind}}</td>
-               <td class="title">{{i18n stonehearth:stat_body}}</td>
-               <td class="title">{{i18n stonehearth:stat_spirit}}</td>
-            </tr>
+            <tbody>
+               <tr>
+                  <td class="title">{{i18n stonehearth:embark_citizen_info_name}}</td>
+                  <td class="title">{{i18n stonehearth:stat_mind}}</td>
+                  <td class="title">{{i18n stonehearth:stat_body}}</td>
+                  <td class="title">{{i18n stonehearth:stat_spirit}}</td>
+               </tr>
+            {{#each view.model.citizensArray}}
+               <tr>
+                  <td class="row">{{this.unit_info.name}}</td>
+                  <td class="row">#{{this.stonehearth:attributes.attributes.mind.effective_value}}</td>
+                  <td class="row">#{{this.stonehearth:attributes.attributes.body.effective_value}}</td>
+                  <td class="row">#{{this.stonehearth:attributes.attributes.spirit.effective_value}}</td>
+               </tr>
+            {{/each}}
+            </tbody>
          </table>
       </div>
 

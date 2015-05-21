@@ -42,7 +42,7 @@ App.StonehearthNewGameOptions = App.View.extend({
          }
 
          // show the embark view
-         App.shellView.addView(App.StonehearthEmbarkView, {options: self._options});
+         App.shellView.addView(App.StonehearthEmbarkView, {_options: self._options});
 
          // hide the title screen so it doesn't flicker later.
          App.shellView.getView(App.StonehearthTitleScreenView).$().hide();

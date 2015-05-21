@@ -17,6 +17,9 @@ var StonehearthPopulation;
                "stonehearth:crafter" : {
                   "workshop" : {}
                },
+               "stonehearth:attributes": {
+                  "attributes" : {}
+               },
             }
          }
       },
