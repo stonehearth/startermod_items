@@ -191,23 +191,22 @@ function GameCreationService:create_camp_command(session, response, pt)
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = citizen, description = 'person_embarks'})
       radiant.entities.turn_to(citizen, 180)
-      return citizen
    end
 
-   local worker1 = place_citizen_embark(self.generated_citizens[1], camp_x-3, camp_z-3)
-   local worker2 = place_citizen_embark(self.generated_citizens[2], camp_x+0, camp_z-3)
-   local worker3 = place_citizen_embark(self.generated_citizens[3], camp_x+3, camp_z-3)
-   local worker4 = place_citizen_embark(self.generated_citizens[4], camp_x-3, camp_z+3)
-   local worker5 = place_citizen_embark(self.generated_citizens[5], camp_x+3, camp_z+3)
-   local worker6 = place_citizen_embark(self.generated_citizens[6], camp_x-3, camp_z+0)
-   local worker7 = place_citizen_embark(self.generated_citizens[7], camp_x+3, camp_z+0)
+   place_citizen_embark(self.generated_citizens[1], camp_x-3, camp_z-3)
+   place_citizen_embark(self.generated_citizens[2], camp_x+0, camp_z-3)
+   place_citizen_embark(self.generated_citizens[3], camp_x+3, camp_z-3)
+   place_citizen_embark(self.generated_citizens[4], camp_x-3, camp_z+3)
+   place_citizen_embark(self.generated_citizens[5], camp_x+3, camp_z+3)
+   place_citizen_embark(self.generated_citizens[6], camp_x-3, camp_z+0)
+   place_citizen_embark(self.generated_citizens[7], camp_x+3, camp_z+0)
    
    self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
 
-   radiant.entities.pickup_item(worker1, pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:talisman'))
-   radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:talisman'))
+   radiant.entities.pickup_item(self.generated_citizens[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(self.generated_citizens[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(self.generated_citizens[3], pop:create_entity('stonehearth:trapper:talisman'))
+   radiant.entities.pickup_item(self.generated_citizens[4], pop:create_entity('stonehearth:carpenter:talisman'))
 
    -- kickstarter pets
    if self.game_options.starting_pets then
@@ -227,7 +226,7 @@ function GameCreationService:create_camp_command(session, response, pt)
          --self:_place_pet(pop, 'stonehearth:dragon_whelp', camp_x+3, camp_z-6)
       end
    end
-
+   
    return {random_town_name = random_town_name}
 end
 
