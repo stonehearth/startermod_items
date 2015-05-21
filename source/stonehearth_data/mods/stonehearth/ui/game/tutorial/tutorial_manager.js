@@ -38,6 +38,8 @@ var StonehearthTutorialManager;
       },
 
       start: function(tutorialName) {
+         // Uncomment out this function after top fixes the tutorials
+         /*
          var self = this;
          if (!tutorialName) {
             tutorialName = 'starting'
@@ -59,7 +61,7 @@ var StonehearthTutorialManager;
             })
          */
 
-         //self._showDingStep('starting', 'spawnScenario', 'foo', 'foobar');
+         //self._showDingStep('starting', 'spawnScenario', 'foo', 'foobar'); */
       },
 
       _startStep: function(tutorialName, step) {
