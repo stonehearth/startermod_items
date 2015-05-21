@@ -47,7 +47,7 @@ bool MovementGuardShape::CanPassThrough(om::EntityPtr const& entity, csg::Point3
    csg::Point3f location = csg::ToFloat(pt);
    csg::Region3f r = phys::LocalToWorld(region->Get(), GetEntityPtr());
    if (!r.Contains(location)) {
-      return false;
+      return true;
    }
    if (luabind::type(_guardCb) == LUA_TNIL) {
       return false;
