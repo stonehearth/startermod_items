@@ -156,17 +156,18 @@ function PlayerService:set_amenity(player_a, player_b, amenity)
    end
 end
 
--- return whether or not 
-function PlayerService:are_players_hostile(entity_a, entity_b)
-   local player_a = radiant.entities.get_player_id(entity_a)
-   local player_b = radiant.entities.get_player_id(entity_b)
+-- return whether or not the relevant parties are hostle. May pass either strings or entities.
+function PlayerService:are_players_hostile(party_a, party_b)
+   local player_a = radiant.entities.get_player_id(party_a)
+   local player_b = radiant.entities.get_player_id(party_b)
    local amenity = self:_get_amenity(player_a, player_b)
    return amenity == PlayerService.HOSTILE
 end
 
-function PlayerService:are_players_friendly(entity_a, entity_b)
-   local player_a = radiant.entities.get_player_id(entity_a)
-   local player_b = radiant.entities.get_player_id(entity_b)
+-- return whether or not the relevant parties are hostle. May pass either strings or entities.
+function PlayerService:are_players_friendly(party_a, party_b)
+   local player_a = radiant.entities.get_player_id(party_a)
+   local player_b = radiant.entities.get_player_id(party_b)
    local amenity = self:_get_amenity(player_a, player_b)
    return amenity == PlayerService.FRIENDLY
 end
