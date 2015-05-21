@@ -1,16 +1,16 @@
 local log = radiant.log.create_logger('death')
 
-local DestroyEntity = class()
+local KillEntity = class()
 
-DestroyEntity.name = 'destroy entity'
-DestroyEntity.does = 'stonehearth:destroy_entity'
-DestroyEntity.args = {}
-DestroyEntity.version = 2
-DestroyEntity.priority = 1
+KillEntity.name = 'destroy entity'
+KillEntity.does = 'stonehearth:kill_entity'
+KillEntity.args = {}
+KillEntity.version = 2
+KillEntity.priority = 1
 
 local destroy_scheduled = {}
 
-function DestroyEntity:start_thinking(ai, entity, args)
+function KillEntity:start_thinking(ai, entity, args)
    if not entity and not entity:is_vaild() then
       ai:set_think_output()
       return
@@ -21,7 +21,7 @@ function DestroyEntity:start_thinking(ai, entity, args)
    end
 end
 
-function DestroyEntity:run(ai, entity, args)
+function KillEntity:run(ai, entity, args)
    log:detail('%s in DestroyEntity:run()', entity)
 
    if entity and entity:is_valid() then
@@ -33,7 +33,7 @@ function DestroyEntity:run(ai, entity, args)
                log:detail('Destroying %s', entity)
                local id = entity:get_id()
                --TODO: move all this functionality to an observer
-               radiant.entities.destroy_entity(entity)
+               radiant.entities.kill_entity(entity)
                destroy_scheduled[id] = nil
             end
          end
@@ -41,4 +41,4 @@ function DestroyEntity:run(ai, entity, args)
    end
 end
 
-return DestroyEntity
+return KillEntity

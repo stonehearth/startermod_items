@@ -58,7 +58,7 @@ function game_master_lib.create_context(node_name, node, parent_node)
 end
 
 --Creates an entity and adds optional info from the json file
---Currently supports unit_info (name/description)
+--Currently supports unit_info (name/description), and loot_component
 function game_master_lib.create_entity(info, player_id)
    local entity = radiant.entities.create_entity(info.uri, {owner = player_id })
 
@@ -69,6 +69,10 @@ function game_master_lib.create_entity(info, player_id)
       end
       if unit_info.description then
          radiant.entities.set_description(entity, unit_info.description)
+      end
+      if info.loot_drops then
+         entity:add_component('stonehearth:loot_drops')
+                     :set_loot_table(info.loot_drops)
       end
    end
 

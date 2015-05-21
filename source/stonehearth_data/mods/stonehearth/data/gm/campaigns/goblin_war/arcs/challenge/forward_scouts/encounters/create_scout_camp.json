@@ -31,13 +31,18 @@
             "position" : { "x": -5, "y": -5 }
          },
          "stockpile" : {
-            "position" : { "x": -6, "y": 4 },
+            "position" : { "x": -6, "y": 1 },
             "info" : "file(create_scout_camp/stockpile.json)"
          },
          "goblin_tent_1" : {
             "info" : "file(create_scout_camp/goblin_tent.json)",
             "position" : { "x": 5, "y": -5 },
             "rotation" : -90
+         },
+         "loot_chest" : {
+            "info" : "file(create_scout_camp/loot_chest.json)",
+            "position" : { "x": -7, "y": 8 },
+            "rotation" : 0
          }
       }
    }

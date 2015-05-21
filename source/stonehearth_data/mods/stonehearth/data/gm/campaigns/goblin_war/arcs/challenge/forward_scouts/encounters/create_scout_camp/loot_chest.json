@@ -1,0 +1,14 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "loot_chest" : {
+         "uri" : "stonehearth:decoration:loot_chest",
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      }
+   }
+}

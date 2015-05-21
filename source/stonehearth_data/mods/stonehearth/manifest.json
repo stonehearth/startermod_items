@@ -208,6 +208,8 @@
       "monsters:goblins:wolf" : "file(entities/monsters/goblins/goblin_wolf)", 
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
       "monsters:goblins:wolf_sleep_collar" : "file(entities/critters/collars/goblin_wolf_sleep_collar.json)", 
+      "monsters:goblins:broken_flute" : "file(entities/monsters/goblins/goblin_flute/broken_flute.json)", 
+      "monsters:goblins:mountains_flute" : "file(entities/monsters/goblins/goblin_flute/mountains_flute.json)", 
 
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton/male/skeleton_male.json)",
       "monsters:undead:skeleton_female" : "file(entities/monsters/undead/skeleton/female/skeleton_female.json)",
@@ -252,6 +254,7 @@
       "resources:racoon_pelt" : "file(entities/resources/pelt/racoon_pelt)",
       "resources:squirrel_pelt" : "file(entities/resources/pelt/squirrel_pelt)",
       "resources:rabbit_pelt" : "file(entities/resources/pelt/rabbit_pelt)",
+      "resources:wolf_pelt" : "file(entities/resources/pelt/wolf_pelt)",
 
 
       "refined:thread" : "file(entities/refined/thread)",
@@ -476,6 +479,7 @@
       "actions:die_citizen" : "file(ai/actions/die_citizen_action.lua)",
       "actions:die_generic" : "file(ai/actions/die_generic_action.lua)",
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
+      "actions:kill_entity" : "file(ai/actions/kill_entity.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
       "actions:drop_carrying_at_action" : "file(ai/actions/drop_carrying_at_action.lua)",

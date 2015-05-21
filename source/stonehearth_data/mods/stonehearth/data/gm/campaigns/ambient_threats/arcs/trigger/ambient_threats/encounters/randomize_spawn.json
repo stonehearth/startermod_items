@@ -7,10 +7,10 @@
    "random_out_edge_info" :  {
       "out_edges" : {
          "undead_raid" : {
-            "weight" : 5
+            "weight" : 8
          }, 
          "none" : {
-            "weight" : 5
+            "weight" : 2
          }
       }
    }
