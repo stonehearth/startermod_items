@@ -187,6 +187,7 @@ end
 -- destroy the entity for this fabricator.  the rest happens directly as a side-effect
 -- of doing so (see :destroy())
 function FabricatorComponent:_destroy_self()
+   self:_stop_project()
    if self._entity and self._entity:is_valid() then
       radiant.entities.destroy_entity(self._entity)
    end
