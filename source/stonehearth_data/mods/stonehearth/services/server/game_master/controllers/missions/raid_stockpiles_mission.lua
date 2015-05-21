@@ -24,6 +24,11 @@ function RaidStockpilesMission:can_start(ctx, info)
    if not Mission.can_start(self, ctx, info) then
       return false
    end
+   --Only do this if the players are hostile to each other
+   if ctx.npc_player_id and ctx.player_id and 
+      not stonehearth.player:are_players_hostile(ctx.npc_player_id, ctx.player_id ) then
+      return false
+   end
 
    assert(ctx)
    assert(ctx.enemy_location)
