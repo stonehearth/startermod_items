@@ -199,8 +199,6 @@ public:
    }
    virtual const long sortKey() { return 0x0; }
 	int getType() const { return _type; }
-   inline int getRenderStamp() const { return _renderStamp; }
-   inline void setRenderStamp(int s) const { _renderStamp = s; }
 	NodeHandle getHandle() const { return _handle; }
 	SceneNode *getParent() const { return _parent; }
 	std::string const& getName() const { return _name; }
@@ -237,9 +235,11 @@ protected:
 	Matrix4f                    _relTrans, _absTrans;  // Transformation matrices
 	SceneNode                   *_parent;  // Parent node
 	int                         _type;
-   // Because a reverse-lookup is going to be more expensive to maintain.
-   mutable int                 _renderStamp;
 	NodeHandle                  _handle;
+   int                         _gridId;
+   int                         _gridPos;
+
+
 	uint32                      _flags;
    uint32                      _userFlags;
    uint32                      _accumulatedFlags;
@@ -344,11 +344,19 @@ protected:
 	std::unordered_map<NodeHandle, SceneNode const*>      _nodes;  // Renderable nodes and lights
 };
 
+struct GridItem {
+   GridItem(BoundingBox const& b, SceneNode* n) {
+      bounds = b;
+      node = n;
+   }
+   BoundingBox bounds;
+   SceneNode* node;
+};
 
 struct GridElement 
 {
    BoundingBox bounds;
-   boost::container::flat_set<SceneNode const*> _nodes;
+   std::vector<GridItem> nodes[2];
 };
 
 class GridSpatialGraph
@@ -356,27 +364,29 @@ class GridSpatialGraph
 public:
    GridSpatialGraph(SceneId sceneId);
 
-   void addNode(SceneNode const& sceneNode);
-	void removeNode(SceneNode const& sceneNode);
-	void updateNode(SceneNode const& sceneNode);
+   void addNode(SceneNode& sceneNode);
+	void removeNode(SceneNode& sceneNode);
+	void updateNode(SceneNode& sceneNode);
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode const*>& lightQueue);
-   void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(boost::container::flat_set<SceneNode const*> const& nodes)> cb);
+   void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb);
 
 protected:
-   void boundingBoxToGrids(BoundingBox const& aabb, boost::container::flat_set<uint32>& gridElementList) const;
+   int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline uint32 hashGridPoint(int x, int y) const;
    inline void unhashGridHash(uint32 hash, int* x, int* y) const;
+   void _queryLights(std::vector<GridItem> const& nodes, SpatialQuery const& query, std::vector<SceneNode const*>& lightQueue);
+   void _queryRenderables(std::vector<GridItem> const& nodes, SpatialQuery const& query, RenderableQueues& renderableQueues, 
+                         InstanceRenderableQueues& instanceQueues);
 
-   boost::container::flat_map<NodeHandle, boost::container::flat_set<uint32> > _nodeGridLookup;
-   std::unordered_map<uint32, GridElement> _gridElements;
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
-   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
-   int _renderStamp;
 
-   boost::container::flat_set<uint32> newGrids;
-   std::vector<uint32> toRemove;
+   std::unordered_map<uint32, GridElement> _gridElements;
+   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
+   
+   std::vector<GridItem> _spilloverNodes[2];
+
 private:
    SceneId _sceneId;
 };
@@ -464,7 +474,7 @@ public:
 	NodeRegEntry *findType( std::string const& typeString );
 	
 	void updateNodes();
-	void updateSpatialNode(SceneNode const& node);
+	void updateSpatialNode(SceneNode& node);
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
                       uint32 userFlags=0 );
