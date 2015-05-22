@@ -1,3 +1,5 @@
+local Relations = require 'lib.player.relations'
+
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -10,6 +12,8 @@ function HilightService:initialize()
    self._mouse_x = 0
    self._mouse_y = 0
    self._custom_highlight_fn = nil
+
+   self:_trace_services()
 
    self._frame_trace = _radiant.client.trace_render_frame()
    self._frame_trace:on_frame_start('update hilight service', function(now, alpha, frame_time)
@@ -27,6 +31,24 @@ function HilightService:initialize()
    self._enable_terrain_coordinates = radiant.util.get_config('enable_terrain_coordinates', false)
    self._highlight_coordinates = false
    self._last_terrain_brick = nil
+end
+
+function HilightService:_trace_services()
+   self._player_relations = Relations({})
+   _radiant.call('stonehearth:get_service', 'player')
+      :done(function(r)
+            local player_service = r.result
+            local amenity_map = player_service:get_data().amenity_map
+            self._player_relations = Relations(amenity_map)
+
+            self._player_service_trace = player_service:trace('checking amenity')
+                  :on_changed(function(o)
+                        local amenity_map = player_service:get_data().amenity_map
+                        self._player_relations = Relations(amenity_map)
+                     end)
+
+            self._player_service_trace:push_object_state()
+         end)
 end
 
 function HilightService:get_hilighted()
@@ -59,12 +81,25 @@ function HilightService:_on_frame()
       local last_hilghted = self._hilighted
       self._hilighted = hilighted
 
-      _radiant.client.hilight_entity(self._hilighted)
-
       if last_hilghted and last_hilghted:is_valid() then
          radiant.events.trigger(last_hilghted, 'stonehearth:hilighted_changed')
       end
       if self._hilighted and self._hilighted:is_valid() then
+         local hilighted_id = radiant.entities.get_player_id(hilighted)
+         local amenity = self._player_relations:get_amenity('player_1', hilighted_id, self._amenity_map);
+
+         -- HEY CHRIS!
+         --
+         -- This is the part where we would switch the hilight color based on the
+         -- value of amenity
+         --    "hostile"  -> red
+         --    "neutral"  -> light brown
+         --    "friendly" -> white
+         --
+         -- Thanks! - tony
+         
+         _radiant.client.hilight_entity(self._hilighted)
+         
          radiant.events.trigger(self._hilighted, 'stonehearth:hilighted_changed')
       end
    end
