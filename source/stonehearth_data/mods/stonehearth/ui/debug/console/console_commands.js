@@ -103,4 +103,14 @@ $(document).ready(function(){
          return App.stonehearthClient.setTime(time);
       }
    });
+
+   // Usage: add_gold 1000 
+   // OR  add_gold -1000
+   // A negative value will subtract gold.
+   radiant.console.register('add_gold', {
+      call: function(cmdobj, fn, args) {
+         var goldAmount = JSON.parse(args[0]);
+         return radiant.call_obj('stonehearth.inventory', 'add_gold_console_command', goldAmount);
+      }
+   });
 });

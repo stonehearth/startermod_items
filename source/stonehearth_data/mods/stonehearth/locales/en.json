@@ -516,6 +516,7 @@
 
    "shop_buy" : "Buy",
    "shop_sell" : "Sell",
+   "shop_not_enough_gold" : "Not enough gold",
 
    "huh" : "Huh.",
    "alarm" : "Gagh!", 

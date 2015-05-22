@@ -18,6 +18,8 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       var self = this;
       self._super();
 
+      self.$('#buy1Button').tooltipster();
+      self.$('#buy10Button').tooltipster();
       // build the inventory palettes
       self._buildBuyPalette();
       self._buildSellPalette();
@@ -141,24 +143,41 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       var self = this;
 
       var item = self.$('#buyList').find(".selected");
-
-      if (item) {
+      var cost = parseInt(item.attr('cost'));
+      // For some reason, if there's nothing selected
+      // item will still be defined, but its cost will be NaN.
+      if (item && cost) {
          // update the buy buttons
-         var cost = parseInt(item.attr('cost'));
          var numAvailable = parseInt(item.attr('num'));
          var gold = self.get('model.data.shop.gold');
 
          if (cost <= gold) {
-            self.$('#buy1Button').removeClass('disabled');   
-            self.$('#buy10Button').removeClass('disabled');   
-         } else {
-            self.$('#buy1Button').addClass('disabled');   
-            self.$('#buy10Button').addClass('disabled');   
+            self._enableButton('#buy1Button');
+            self._enableButton('#buy10Button');
+         } else  {
+            self._disableButton('#buy1Button', 'stonehearth:shop_not_enough_gold');
+            self._disableButton('#buy10Button', 'stonehearth:shop_not_enough_gold');
          }
       } else {
-         self.$('#buy1Button').addClass('disabled');   
-         self.$('#buy10Button').addClass('disabled');   
+         self._disableButton('#buy1Button');
+         self._disableButton('#buy10Button');   
       }
+   },
+
+   _disableButton: function(buttonId, tooltipId) {
+      // Disable the button with a tooltip if provided.
+      self.$(buttonId).addClass('disabled');
+      if (tooltipId) {
+         self.$(buttonId).tooltipster('content', i18n.t(tooltipId));
+         self.$(buttonId).tooltipster('enable');
+      } else {
+         self.$(buttonId).tooltipster('disable');
+      }
+   },
+
+   _enableButton: function(buttonId) {
+      self.$(buttonId).removeClass('disabled');
+      self.$(buttonId).tooltipster('disable');
    },
 
    _updateSellButtons: function() {
