@@ -5,17 +5,30 @@ local log = radiant.log.create_logger('portrait_renderer')
 local PortraitRendererService = class()
 
 function PortraitRendererService:initialize()
-   self._entities = {}
+   self._created_entities = {}
    self._lights = {}
 end
 
 
-function PortraitRendererService:_add_entity(entity_data, position, rotation)
-   local ent = radiant.entities.create_entity(entity_data.uri)
+function PortraitRendererService:_create_entity(entity_uri, position, rotation)
+   local ent = radiant.entities.create_entity(entity_uri)
    ent:add_component('render_info')
    local render_ent = _radiant.client.create_render_entity(_radiant.renderer.get_root_node(2), ent)
 
-   table.insert(self._entities, {
+   table.insert(self._created_entities, {
+      entity = ent,
+      render_entity = render_ent,
+   })
+end
+
+function PortraitRendererService:_add_existing_entity(ent)
+   local render_ent = _radiant.client.get_render_entity(ent)
+   if not render_ent then
+      ent:add_component('render_info')
+      render_ent = _radiant.client.create_render_entity(_radiant.renderer.get_root_node(2), ent)
+   end
+
+   table.insert(self._created_entities, {
       entity = ent,
       render_entity = render_ent,
    })
@@ -94,13 +107,13 @@ function _parse_scene(scene_json)
    end
    scene['lights'] = lights
 
-   local entities = {}
-   for _, entity in pairs(scene_json['entities']) do
-      table.insert(entities, {
-         uri = entity['uri'],
-      })
+   if scene_json['entity_alias'] then
+      scene['entity_alias'] = scene_json['entity_alias']
    end
-   scene['entities'] = entities
+
+   if scene_json['entity'] then
+      scene['entity'] = scene_json['entity']
+   end
 
    scene['camera'] = {
       position = _to_point3(scene_json['camera']['position']),
@@ -117,8 +130,12 @@ function PortraitRendererService:set_scene(scene_json)
       self:_add_light(light)
    end
 
-   for _, entity in pairs(scene['entities']) do
-      self:_add_entity(entity)
+   if scene['entity_alias'] then
+      self:_create_entity(scene['entity_alias'])
+   end
+
+   if scene['entity'] then
+      self:_add_existing_entity(scene['entity'])
    end
 
    self:_set_camera_position(scene['camera'].position)
@@ -131,10 +148,10 @@ function PortraitRendererService:clear_scene()
    end
    self._lights = {}
 
-   for _, entity_data in pairs(self._entities) do
+   for _, entity_data in pairs(self._created_entities) do
       radiant.entities.destroy_entity(entity_data.entity)
    end
-   self._entities = {}
+   self._created_entities = {}
 end
 
 function PortraitRendererService:render_scene(scene_json, callback)

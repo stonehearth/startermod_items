@@ -69,12 +69,43 @@ App.StonehearthEmbarkView = App.View.extend({
       self.destroy();
    },
 
+   _generateCitizenPortrait: function(citizen) {
+      var self = this;
+      var scene = {
+         lights : [
+            {
+               // Only supports directional lights for now
+               color: [0.9, 0.2, 0.9],
+               ambient_color: [0.3, 0.3, 0.3],
+               direction: [0, 0, 0]
+            },
+         ],
+         entity_alias: "stonehearth:furniture:comfy_bed",
+         camera: {
+            // Hmm, did you say you wanted an ortho camera?
+            position: [4,3,4],
+            look_at: [0,0,0]
+         }
+      };
+      radiant.call_obj('stonehearth.portrait_renderer', 'render_scene_command', scene)
+         .done(function(response) {
+            $('#testImage').attr('src', 'data:image/png;base64,' + response.bytes);
+         })
+         .fail(function(e) {
+            console.error('generate portrait failed:', e)
+         });
+   },
+
    _buildCitizensArray: function() {
       var self = this;
       var citizenMap = this.get('model.citizens');
-
-      var vals = radiant.map_to_array(citizenMap, function(k ,v) {
-         v.set('__id', k);
+      var firstCitizen = true;
+      var vals = radiant.map_to_array(citizenMap, function(citizen_id ,citizen) {
+         citizen.set('__id', citizen_id);
+         if (firstCitizen) {
+            self._generateCitizenPortrait(citizen.__self);
+            firstCitizen = false;
+         }
       });
       this.set('model.citizensArray', vals);
    },
