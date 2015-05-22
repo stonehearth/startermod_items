@@ -239,7 +239,6 @@ protected:
 	
    void commitLightUniforms(LightNode const* light);
    void setupShadowMap(LightNode const* light, bool noShadows);
-   Matrix4f calcCropMatrix(SceneId sceneId, const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(LightNode const* light, BoundingBox const& worldBounds, Frustum const& frustSlice, Matrix4f const& lightViewMat) const;
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV) const;
    void computeTightCameraBounds(SceneId sceneId, float* minDist, float* maxDist);
