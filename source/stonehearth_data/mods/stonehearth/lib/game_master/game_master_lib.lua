@@ -151,6 +151,16 @@ function game_master_lib.create_citizens(population, info, origin, ctx)
          end
       end
 
+      local unit_info = info.unit_info
+      if unit_info then
+         if unit_info.name then
+            radiant.entities.set_name(citizen, unit_info.name)
+         end
+         if unit_info.description then
+            radiant.entities.set_description(citizen, unit_info.description)
+         end
+      end
+
       -- info.loot_drops: what does the guy drop when it dies?
       if info.loot_drops then
          citizen:add_component('stonehearth:loot_drops')

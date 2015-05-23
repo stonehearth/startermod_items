@@ -34,6 +34,9 @@
                      "raid_timeout_minutes" : 600,
                      "raid_timeout_variance_minutes" : 60
                   },
+                  "unit_info" : {
+                     "description" : "Cowardly but covetuous"
+                  },
                   "loot_drops" : {
                      "items" : [
                         {"uri" : "", "weight" : 10 },
@@ -67,6 +70,9 @@
                      "speed" : 40,
                      "raid_timeout_minutes" : 600,
                      "raid_timeout_variance_minutes" : 180
+                  },
+                  "unit_info" : {
+                     "description" : "Covetous and armed!"
                   },
                   "loot_drops" : {
                      "items" : [
