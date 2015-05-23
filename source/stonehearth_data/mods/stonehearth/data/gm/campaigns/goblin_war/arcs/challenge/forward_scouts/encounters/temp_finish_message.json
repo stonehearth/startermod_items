@@ -1,0 +1,38 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+
+   "in_edge"  : "temp_finish_message",
+
+   "dialog_tree_info" : {
+      "start_node" : "msg1",
+      "nodes" : {
+         "msg1" : {
+            "bulletin" : {
+               "title" : "Mer Burlyhands Reappears",
+               "dialog_title" : "Mer Burlyhands",
+               "portrait" : "file(images/mer_burlyhands.png)",
+               "message" : "Hello there? Anyone still home?",
+               "choices" : {
+                  "stonehearth:next" : {
+                     "next_node" : "msg2"
+                  }
+               }               
+            }
+         },
+         "msg2" : {
+            "bulletin" : {
+               "title" : "Mer Burlyhands nods firmly",
+               "dialog_title" : "Mer Burlyhands",
+               "portrait" : "file(images/mer_burlyhands.png)",
+               "message" : "Congratulations are in order, if that's the sort of thing you care about. I've been up and down the area and it seems you've taken care of the bulk of the goblins around these parts! Not saying you won't see a straggler or two come to harass you, but good job, all in all.",
+               "choices" : {
+                  "stonehearth:ok" : {
+                  }
+               }               
+            }
+         }      
+      }
+   }
+}
