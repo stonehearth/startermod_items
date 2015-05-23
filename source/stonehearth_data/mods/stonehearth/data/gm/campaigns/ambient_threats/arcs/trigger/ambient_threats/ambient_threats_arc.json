@@ -22,6 +22,18 @@
       "goblin thug" : "file(encounters/goblin_thug.json)", 
 
       "wait for campfire destruction" : "file(encounters/wait_for_campfire_destruction.json)", 
-      "destroy thief stockpile" : "file(encounters/destroy_thief_stockpile.json)"
+      "destroy thief stockpile" : "file(encounters/destroy_thief_stockpile.json)",
+
+      "wait_for_middle_worth" : "file(encounters/wait_for_middle_worth.json)",
+      "generate_advanced_threats" : "file(encounters/generate_advanced_threats.json)",
+      "randomize_advanced_threats" : "file(encounters/randomize_advanced_threats.json)", 
+      "goblin raider camp" : "file(encounters/goblin_raider_camp.json)",
+      "create_raider_camp" : "file(encounters/create_raider_camp.json)",
+      "spawn raiders" : "file(encounters/spawn_raiders.json)",
+      "mauraders raid" : "file(encounters/mauraders_raid.json)", 
+      "goblin wolf raid" : "file(encounters/goblin_wolf_raid.json)",
+
+      "wait for raider campfire destruction" : "file(encounters/wait_for_raider_campfire_destruction.json)",
+      "destroy_raider_stockpiles" : "file(encounters/destroy_raider_stockpiles.json)"
    }
 }
