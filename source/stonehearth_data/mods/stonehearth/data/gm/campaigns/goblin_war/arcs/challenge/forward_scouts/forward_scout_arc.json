@@ -18,6 +18,7 @@
       "destroy_stockpiles" : "file(encounters/destroy_goblin_stockpiles.json)",
 
       "wait four days" : "file(encounters/wait_four_days.json)", 
-      "temp finish message" : "file(encounters/temp_finish_message.json)"
+      "temp finish message" : "file(encounters/temp_finish_message.json)",
+      "reward_loot" : "file(encounters/reward_loot.json)"
    }
 }
