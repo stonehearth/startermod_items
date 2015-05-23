@@ -1,5 +1,6 @@
 local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local rng = _radiant.csg.get_default_rng()
+local Relations = require 'lib.player.relations'
 
 local ShakeDown = class()
 
@@ -44,7 +45,7 @@ function ShakeDown:on_transition(transition)
    -- go to war if the player ever fails or opts out
    if transition == 'shakedown_refused' or
       transition == 'collection_failed' then
-      stonehearth.player:set_amenity(ctx.npc_player_id, ctx.player_id, stonehearth.player.HOSTILE)
+      stonehearth.player:set_amenity(ctx.npc_player_id, ctx.player_id, Relations.HOSTILE)
       return
    end
 end
