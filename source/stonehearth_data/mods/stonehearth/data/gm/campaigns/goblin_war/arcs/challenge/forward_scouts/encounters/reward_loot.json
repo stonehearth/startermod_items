@@ -1,0 +1,27 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "donation_encounter",
+
+   "in_edge"  : "reward_loot",
+   "out_edge" : "",
+
+   "donation_encounter_info" :  {
+   	    "loot_table" : {
+            "num_rolls" : {
+               "min" : 5,
+               "max" : 10
+            },
+            "items" : [
+            	{ "uri" : "stonehearth:refined:gold_ingot", "weight" : 5 },
+            	{ "uri" : "stonehearth:refined:silver_ingot", "weight" : 5  },
+            	{ "uri" : "stonehearth:refined:steel_ingot", "weight" : 5  },
+            	{ "uri" : "stonehearth:refined:bronze_ingot", "weight" : 5  },
+            	{ "uri" : "stonehearth:refined:cloth_bolt", "weight" : 5  },
+            	{ "uri" : "stonehearth:toys:plushie_toy_rabbit", "weight" : 1  },
+            	{ "uri" : "stonehearth:furniture:comfy_bed", "weight" : 1  },
+            	{ "uri" : "stonehearth:furniture:comfy_bed:fine", "weight" : 1  },
+            	{ "uri" : "stonehearth:decoration:wooden_garden_lantern:fine", "weight" : 1  }
+            ]
+        }         
+   }
+}

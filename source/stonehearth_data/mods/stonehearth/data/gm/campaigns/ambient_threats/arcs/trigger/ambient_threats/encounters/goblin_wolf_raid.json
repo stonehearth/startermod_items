@@ -1,0 +1,52 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "city_raid",
+   "rarity" : "common",
+
+   "in_edge"  : "raider_raid",
+
+   "city_raid_info" : {
+      "missions" : {
+         "raid_stockpiles" : {
+            "require_free_stockpile_space" : false,
+            "role" : "raid_stockpiles",
+            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+            "sighted_bulletin" : {
+               "title" : "A stray goblin wolf!",
+               "message" : "He wants to eat you."
+            },
+
+            "members" : {
+               "goblin_wolf" : {
+                  "from_population" : {
+                     "role" : "wolf",
+                     "min" : 1,
+                     "max" : 1, 
+                     "location" :  { "x": 0, "y": 1, "z": 0 },
+                     "range" : 2
+                  },
+                  "equipment" : {
+                     "abilities" : "stonehearth:abilities:wolf_rider_abilities"
+                  },
+                  "attributes" : {
+                     "raid_timeout_minutes" : 120,
+                     "raid_timeout_variance_minutes" : 120,
+                     "health" : 150, 
+                     "menace" : 100
+                  },  
+                  "loot_drops" : {
+                     "items" : [
+                        {"uri" : "stonehearth:resources:wolf_pelt", "weight" : 1 },
+                        {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+                     ]
+                  },
+                  "unit_info" : {
+                     "description" : "Terrifyingly ferocious"
+                  }
+               }
+            }
+         }
+      }
+   }
+}
