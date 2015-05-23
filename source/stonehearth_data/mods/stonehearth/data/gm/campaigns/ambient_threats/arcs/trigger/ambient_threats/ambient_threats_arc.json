@@ -32,6 +32,7 @@
       "spawn raiders" : "file(encounters/spawn_raiders.json)",
       "mauraders raid" : "file(encounters/mauraders_raid.json)", 
       "goblin wolf raid" : "file(encounters/goblin_wolf_raid.json)",
+      "thief with friends" : "file(encounters/thief_with_friends.json)",
 
       "wait for raider campfire destruction" : "file(encounters/wait_for_raider_campfire_destruction.json)",
       "destroy_raider_stockpiles" : "file(encounters/destroy_raider_stockpiles.json)"
