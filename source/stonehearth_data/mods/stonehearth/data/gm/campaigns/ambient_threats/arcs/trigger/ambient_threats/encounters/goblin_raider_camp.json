@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "goblin_raider_camp",
+   "out_edge" : "create_raider_camp",
+
+   "wait_info" :  {
+      "duration" : "2h+6h"
+   }
+}

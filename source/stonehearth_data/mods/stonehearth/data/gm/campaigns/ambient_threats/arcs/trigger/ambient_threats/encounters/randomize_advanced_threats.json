@@ -1,0 +1,17 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "random_out_edge",
+
+   "in_edge"  : "randomize_advanced_threats",
+
+   "random_out_edge_info" :  {
+      "out_edges" : {
+         "goblin_raider_camp" : {
+            "weight" : 2
+         },
+         "none" : {
+            "weight" : 2
+         }
+      }
+   }
+}

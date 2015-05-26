@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_net_worth",
+
+   "in_edge"  : "wait_for_middle_worth",
+   "out_edge" : "generate_advanced_threats",
+
+   "wait_for_net_worth_info" :  {
+      "threshold" : 6000,
+      "interval" : "1d"
+   }
+}
