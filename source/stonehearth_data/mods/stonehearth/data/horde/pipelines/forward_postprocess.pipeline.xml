@@ -27,19 +27,13 @@
    </Setup>
    <CommandQueue>
       <Stage id="Init">
-         <SwitchTarget target="" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0" />
-
          <SwitchTarget target="WaterTemp" />
          <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="0" />
-
-         <SwitchTarget target="Final" />
-         <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="-1"/>
       </Stage>
 
       <Stage id="Attributes">
          <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
+         <ClearTarget colBuf0="false" colBuf1="false" colBuf2="false" depthBuf="true" stencilBuf="0"/>
 
          <SwitchTarget target="GBuffers" />
          <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3"/>
