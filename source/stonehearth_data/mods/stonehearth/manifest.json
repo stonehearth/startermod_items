@@ -1410,6 +1410,8 @@
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
       "game_master:encounters:destroy_entity" : "file(services/server/game_master/controllers/encounters/destroy_entity_encounter.lua)", 
+      "game_master:encounters:donation_encounter" : "file(services/server/game_master/controllers/encounters/donation_encounter.lua)", 
+      
       "game_master:encounters:create_mission" : "file(services/server/game_master/controllers/encounters/create_mission_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
       "game_master:missions:pillage" : "file(services/server/game_master/controllers/missions/pillage_mission.lua)",
