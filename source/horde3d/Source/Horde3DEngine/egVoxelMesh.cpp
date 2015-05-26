@@ -77,7 +77,7 @@ bool VoxelMeshNode::canAttach( SceneNode &parent )
 }
 
 
-int VoxelMeshNode::getParamI( int param )
+int VoxelMeshNode::getParamI( int param ) const
 {
 	switch( param )
 	{

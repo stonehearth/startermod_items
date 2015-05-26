@@ -672,6 +672,28 @@ void Renderer::setShaderComb( ShaderCombination *sc )
 	}
 }
 
+void Renderer::addSelectedNode(NodeHandle n, float r, float g, float b) {
+   for (SelectedNode& s : _selectedNodes) {
+      if (s.h == n) {
+         return;
+      }
+   }
+
+   _selectedNodes.push_back(SelectedNode(n, Vec3f(r, g, b)));
+}
+
+
+void Renderer::removeSelectedNode(NodeHandle n) {
+   int i = 0;
+   for (SelectedNode& s : _selectedNodes) {
+      if (s.h == n) {
+         _selectedNodes.erase(_selectedNodes.begin() + i);
+         return;
+      }
+      i++;
+   }
+}
+
 void Renderer::commitGlobalUniforms()
 {
    for (auto& e : _uniformFloats)
@@ -2097,6 +2119,56 @@ void Renderer::drawGeometry(SceneId sceneId, std::string const& shaderContext,
    }
 }
 
+void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
+                             RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel, Frustum const* lightFrus)
+{
+
+   _lod_polygon_offset_x = -1.0;
+   _lod_polygon_offset_y = -4.0;
+   Frustum f = _curCamera->getFrustum();
+   for (SelectedNode &n : _selectedNodes) {
+      // We load up each selected node (and all descendents) and render them, one root at a time.
+      Modules::sceneMan().sceneForId(sceneId).updateQueuesWithNode(*Modules::sceneMan().resolveNodeHandle(n.h), f);
+
+      // Update every selected element's selection color.
+      for (auto& q: Modules::sceneMan().sceneForId(sceneId).getRenderableQueues()) {
+         for (auto &rn : q.second) {
+            // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
+            // amongst other necessities, a material, and then everything will Just Work.
+            int matResHandle = rn.node->getParamI(VoxelMeshNodeParams::MatResI);
+            if (matResHandle > 0) {
+	            Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
+
+               ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
+               ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
+            }
+         }
+      }
+
+      for (auto& q: Modules::sceneMan().sceneForId(sceneId).getInstanceRenderableQueues()) {
+         for (auto &irq : q.second) {
+            for (auto &rn : irq.second) {
+               // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
+               // amongst other necessities, a material, and then everything will Just Work.
+               int matResHandle = rn.node->getParamI(VoxelMeshNodeParams::MatResI);
+               if (matResHandle > 0) {
+	               Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
+
+                  ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
+                  ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
+               }
+            }
+         }
+      }
+      updateLodUniform(0, 0.41f, 0.39f);
+
+	   setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+	   drawRenderables(sceneId, shaderContext, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1);
+   }
+   _lod_polygon_offset_x = 0.0;
+   _lod_polygon_offset_y = 0.0;
+}
+
 
 void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags )
 {
@@ -3493,6 +3565,11 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 
 			case PipelineCommands::DrawGeometry:
 				drawGeometry(sceneId, pc.params[0].getString(), (RenderingOrder::List)pc.params[1].getInt(),
+                          pc.params[2].getInt(), _curCamera->_occSet, pc.params[3].getFloat(), pc.params[4].getFloat(), pc.params[5].getInt() );
+				break;
+
+			case PipelineCommands::DrawSelected:
+				drawSelected(sceneId, pc.params[0].getString(), (RenderingOrder::List)pc.params[1].getInt(),
                           pc.params[2].getInt(), _curCamera->_occSet, pc.params[3].getFloat(), pc.params[4].getFloat(), pc.params[5].getInt() );
 				break;
 

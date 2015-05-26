@@ -88,17 +88,14 @@ function HilightService:_on_frame()
          local hilighted_id = radiant.entities.get_player_id(hilighted)
          local amenity = self._player_relations:get_amenity('player_1', hilighted_id, self._amenity_map);
 
-         -- HEY CHRIS!
-         --
-         -- This is the part where we would switch the hilight color based on the
-         -- value of amenity
-         --    "hostile"  -> red
-         --    "neutral"  -> light brown
-         --    "friendly" -> white
-         --
-         -- Thanks! - tony
+         local color = Point3(0.9, 0.9, 0.9)
+         if amenity == 'hostile' then
+            color = Point3(1.0, 0.0, 0.0)
+         elseif amenity == 'neutral' then
+            color = Point3(0.7, 0.5, 0.2)
+         end
          
-         _radiant.client.hilight_entity(self._hilighted)
+         _radiant.client.hilight_entity(self._hilighted, color)
          
          radiant.events.trigger(self._hilighted, 'stonehearth:hilighted_changed')
       end

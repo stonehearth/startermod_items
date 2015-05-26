@@ -202,7 +202,7 @@ function SelectionService:select_entity(entity)
    end
 
    local last_selected = self._selected
-   _radiant.client.select_entity(entity)
+   _radiant.client.select_entity(entity, Point3(0.9, 0.9, 0.9))
    self._selected = entity
 
    if last_selected and last_selected:is_valid() then
@@ -271,7 +271,7 @@ function SelectionService:set_selectable(entity, selectable)
       else
          render_entity:add_query_flag(UNSELECTABLE_FLAG)
          if entity == self._selected then
-            self:select_entity(nil)
+            self:select_entity(nil, Point3(0, 0, 0))
          end
       end
    end

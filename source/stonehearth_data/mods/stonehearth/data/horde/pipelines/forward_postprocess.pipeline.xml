@@ -10,7 +10,8 @@
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       
-      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="SelectedTemp" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="SelectedFixed" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>
       
       <RenderTarget id="WaterTemp" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
 
@@ -117,14 +118,16 @@
 
       <Stage id="Selected">
          <SwitchTarget target="SelectedTemp" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
-
-         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="false"/>
          <DrawSelected context="SELECTED_SCREENSPACE" />
 
+         <!-- Nuke this once t junctions go away. -->
+         <SwitchTarget target="SelectedFixed" />
+         <BindBuffer sampler="selections" sourceRT="SelectedTemp" bufIndex="0"/>
+         <DrawQuad material="materials/selectable.material.json" context="SELECTED_SCREENSPACE_TJUNCTIONFIX" />
+
          <SwitchTarget target="Final" />
-         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
-         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
+         <BindBuffer sampler="outlineSampler" sourceRT="SelectedFixed" bufIndex="0"/>
          <DrawQuad material="materials/selectable.material.json" context="SELECTED_SCREENSPACE_OUTLINER" />
          <UnbindBuffers />
       </Stage>

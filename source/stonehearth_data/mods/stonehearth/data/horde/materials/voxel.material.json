@@ -1,7 +1,17 @@
 {
 	"materials" : {
 		"SELECTABLE" : {
-			"name" : "materials/selected.material.json"
+			"name" : "materials/selected.material.json",
+			"inputs" : [
+				{
+					"name" : "selected_color_fast",
+					"bind_to_material_input" : "selected_color_fast"
+				},
+				{
+					"name" : "selected_color",
+					"bind_to_material_input" : "selected_color"
+				}
+			]
 		}
 	},
 
@@ -118,6 +128,14 @@
 		{
 			"name" : "gridlineColor",
 			"default" : [0.2, 0.2, 0.2, 0.0]
+		},
+		{
+			"name" : "selected_color_fast",
+			"default" : [0.4, 0.4, 0.4, 1.0]
+		},
+		{
+			"name" : "selected_color",
+			"default" : [0.9, 0.9, 0.9, 1]
 		}
 	]
 }
