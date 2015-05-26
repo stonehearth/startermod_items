@@ -24,7 +24,7 @@ sampler2D depthBuffer = sampler_state
 
 [[FS]]
 #version 130
-
+#include "shaders/utilityLib/camera_transforms.glsl"
 #include "shaders/utilityLib/vertCommon_400.glsl"
 #include "shaders/utilityLib/ssaoSamplerKernel.glsl"
 
@@ -53,22 +53,6 @@ float getSampleDepth(const vec2 texCoords/*, const float screenSpaceDistance*/) 
   return texture2D(depthBuffer, texCoords).r;
 }
 
-
-vec3 toCameraSpace(const vec2 fragCoord, float depth)
-{
-  vec3 result;
-  vec4 projInfo = vec4(
-    -2.0 / (camProjMat[0][0]),
-    -2.0 / (camProjMat[1][1]),
-    (1.0 - camProjMat[0][2]) / camProjMat[0][0],
-    (1.0 + camProjMat[1][2]) / camProjMat[1][1]);
-
-  result.z = depth;
-  result.xy = vec2((fragCoord.xy * projInfo.xy + projInfo.zw) * result.z);
-
-  return result;
-}
-
 vec3 getRandomVec(const vec2 texCoords)
 {
   vec2 noiseScale = frameBufSize.xy / 4.0;
@@ -82,7 +66,8 @@ void main()
   const float intensity = 0.5;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
-  vec3 origin = toCameraSpace(texCoords, attribs.r);
+  mat4 camProj = camProjMat;
+  vec3 origin = toCameraSpace(camProj, texCoords, attribs.r);
   radius *= attribs.g;
   vec3 rvec = getRandomVec(texCoords);
   vec3 normal = (camViewMat * vec4(-texture2D(normalBuffer, texCoords).xyz, 0.0)).xyz;

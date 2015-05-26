@@ -51,7 +51,9 @@ varying vec2 texCoords;
 
 void main(void)
 {
-  vec3 pos = toWorldSpace(camProjMat, camViewMatInv, texCoords, texture2D(depths, texCoords).r);
+  mat4 pMat = camProjMat;
+  mat4 cVIMat = camViewMatInv;
+  vec3 pos = toWorldSpace(pMat, cVIMat, texCoords, texture2D(depths, texCoords).r);
   vec4 projFowPos = fowViewMat * vec4(pos, 1.0);
 
   // Mix in cloud color.
