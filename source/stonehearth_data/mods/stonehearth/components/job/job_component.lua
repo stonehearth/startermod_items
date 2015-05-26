@@ -208,6 +208,9 @@ function JobComponent:promote_to(job_uri, options)
       --Add all existing perks, if any
       self:_apply_existing_perks()
       
+      -- remove any acquired equipment from our prior job that we can no longer use
+      self:_remove_unequippable_items()
+
       --Add self to task groups
       if self._job_json.task_groups then
          self:_add_to_task_groups(self._job_json.task_groups)
@@ -293,7 +296,7 @@ end
 
 --Call when we no longer want the job we have
 function JobComponent:demote()
-   self:_remove_equipment()
+   self:_remove_profession_equipment()
    self:_remove_all_perks()
 
    --If we have a talisman to drop, drop it. 
@@ -473,15 +476,15 @@ end
 
 function JobComponent:_equip_abilities(json)
    assert(json and json.abilities)
-   assert(not self._sv.equipment)
+   assert(not self._sv.profession_equipment)
       
    
    local equipment_component = self._entity:add_component('stonehearth:equipment')
    local item = radiant.entities.create_entity(json.abilities)
    equipment_component:equip_item(item)
    
-   self._sv.equipment = {}
-   table.insert(self._sv.equipment, item)
+   self._sv.profession_equipment = {}
+   table.insert(self._sv.profession_equipment, item)
 end
 
 function JobComponent:_equip_equipment(json)
@@ -499,37 +502,72 @@ function JobComponent:_equip_equipment(json)
             equipment = radiant.entities.create_entity(items[rng:get_int(1, #items)])
          end
          equipment_component:equip_item(equipment)
-         table.insert(self._sv.equipment, equipment)
+         table.insert(self._sv.profession_equipment, equipment)
       end
    end
 end
 
 -- Drop all the equipment and the talisman, if relevant
-function JobComponent:_remove_equipment()
-   if self._sv.equipment then
+function JobComponent:_remove_profession_equipment()
+   if self._sv.profession_equipment then
       -- make sure we only take away what we gave the entity.  otherwise, we may end
       -- up nuking abilities which were given by other parts of the the code (for example,
       -- party abilities)
-      local equipment_component = self._entity:add_component('stonehearth:equipment')
-      for i, item in ipairs(self._sv.equipment) do
-         equipment_component:unequip_item(item)
-         local ep = item:get_component('stonehearth:equipment_piece')
-
-         if ep and ep:get_should_drop() then 
-            local location = radiant.entities.get_world_grid_location(self._entity)
-            local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
-            radiant.terrain.place_entity(item, placement_point)
-         else
-            -- this will make sure we don't leak any job ability and other non-tangible
-            -- equipment pieces that we created during the promote process.
-            radiant.entities.destroy_entity(item)
-         end
+      for i, item in ipairs(self._sv.profession_equipment) do
+         self:_remove_item(item)
       end
-      self._sv.equipment = nil
+      self._sv.profession_equipment = nil
    end
 
    --TODO: what to do about backpack? Should this be called or triggered via an event?
    --or should this be handled by the demote operation on the specific job controller?
+end
+
+function JobComponent:_remove_unequippable_items()
+   local profession_equipment = self:_entity_array_to_map(self._sv.profession_equipment)
+   local equipment_component = self._entity:add_component('stonehearth:equipment')
+   local equipped_items = equipment_component:get_all_items()
+
+   for _, item in pairs(equipped_items) do
+      -- Profession equipment is by definition equippable. We perform this check so that we
+      -- don't require all basic equipment to be tagged with the proper roles.
+      if not profession_equipment[item:get_id()] then
+         local equipment_piece_component = item:add_component('stonehearth:equipment_piece')
+         if not equipment_piece_component:is_equippable_by(self._entity) then
+            self:_remove_item(item)
+         end
+      end
+   end
+end
+
+function JobComponent:_remove_item(item)
+   local equipment_component = self._entity:add_component('stonehearth:equipment')
+   equipment_component:unequip_item(item)
+
+   local equipment_piece_component = item:get_component('stonehearth:equipment_piece')
+   if equipment_piece_component and equipment_piece_component:get_should_drop() then
+      self:_drop_item(item)
+   else
+      -- this will make sure we don't leak any job ability and other non-tangible
+      -- equipment pieces that we created during the promote process.
+      radiant.entities.destroy_entity(item)
+   end
+end
+
+function JobComponent:_drop_item(item)
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+   radiant.terrain.place_entity(item, placement_point)
+end
+
+function JobComponent:_entity_array_to_map(array)
+   local map = {}
+
+   for _, entity in pairs(array) do
+      map[entity:get_id()] = entity
+   end
+
+   return map
 end
 
 --[[

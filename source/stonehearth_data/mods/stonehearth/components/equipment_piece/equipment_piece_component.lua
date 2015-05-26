@@ -101,6 +101,17 @@ function EquipmentPieceComponent:unequip()
    end
 end
 
+function EquipmentPieceComponent:is_equippable_by(unit)
+   local job_component = unit:get_component('stonehearth:job')
+   if not job_component then
+      return false
+   end
+
+   local job_roles = job_component:get_roles()
+   local result = self:suitable_for_roles(job_roles)
+   return result
+end
+
 function EquipmentPieceComponent:is_upgrade_for(unit)
    -- upgradable items have a slot.  if there's not slot (e.g. the job outfits that
    -- just contain abilities), there's no possibility for upgrade
@@ -109,17 +120,13 @@ function EquipmentPieceComponent:is_upgrade_for(unit)
       return false
    end
 
-   -- if the unit can't wear equipment, obviously not an upgrade!  similarly, if the
-   -- unit has no job, we can't figure out if it can wear this
-   local equipment_component = unit:get_component('stonehearth:equipment')
-   local job_component = unit:get_component('stonehearth:job')
-   if not equipment_component or not job_component then
+   if not self:is_equippable_by(unit) then
       return false
    end
 
-   -- if we're not suitable for the unit, bail.
-   local job_roles = job_component:get_roles()
-   if not self:suitable_for_roles(job_roles) then
+   local equipment_component = unit:get_component('stonehearth:equipment')
+   if not equipment_component then
+      -- unit can't wear equipment, obviously not an upgrade!
       return false
    end
 
