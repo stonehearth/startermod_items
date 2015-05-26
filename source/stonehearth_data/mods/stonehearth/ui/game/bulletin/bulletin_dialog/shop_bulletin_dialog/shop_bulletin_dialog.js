@@ -148,7 +148,6 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       // item will still be defined, but its cost will be NaN.
       if (item && cost) {
          // update the buy buttons
-         var numAvailable = parseInt(item.attr('num'));
          var gold = self.get('model.data.shop.gold');
 
          if (cost <= gold) {
