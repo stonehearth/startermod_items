@@ -678,7 +678,7 @@ bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixe
    ASSERT(0 == setjmp(png_jmpbuf(p)));
 
    png_set_IHDR(p, info_ptr, width, height, 8,
-         PNG_COLOR_TYPE_RGB,
+         PNG_COLOR_TYPE_RGB_ALPHA,
          PNG_INTERLACE_NONE,
          PNG_COMPRESSION_TYPE_BASE,
          PNG_FILTER_TYPE_BASE);
@@ -686,7 +686,7 @@ bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixe
    //png_set_compression_level(p, 1);
    std::vector<unsigned char*> rows(height);
    for (int y = 0; y < height; ++y) {
-      rows[height - y - 1] = pixels + y * width * 3;
+      rows[height - y - 1] = pixels + y * width * 4;
    }
    png_set_rows(p, info_ptr, &rows[0]);
    png_set_write_fn(p, &result, PngWriteCallback, NULL);
@@ -709,15 +709,20 @@ void h3dutCreatePngImageFromTexture(H3DRes tex, std::vector<unsigned char>& resu
 
    h3dGetRenderTextureData(tex, nullptr, nullptr, nullptr, pixelsF, width * height * 16);
 
-   // Convert to BGR8
-   unsigned char *pixels = new unsigned char[width * height * 3];
+   // Convert to BGRA8
+   unsigned char *pixels = new unsigned char[width * height * 4];
    for( int y = 0; y < height; ++y )
    {
       for( int x = 0; x < width; ++x )
       {
-         pixels[(y * width + x) * 3 + 0] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 3 + 1] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 3 + 2] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
+         int *pixelValue = (int*)&(pixels[(y * width + x) * 4]);
+         pixels[(y * width + x) * 4 + 0] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 4 + 1] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 4 + 2] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
+         pixels[(y * width + x) * 4 + 3] = 0;//Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 3], 0.f, 1.f ) * 255.f );
+         if (*pixelValue > 0) {
+            pixels[(y * width + x) * 4 + 3] = 255;
+         }
       }
    }
    delete[] pixelsF;

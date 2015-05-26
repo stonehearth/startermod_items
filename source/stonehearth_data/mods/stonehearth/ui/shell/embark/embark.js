@@ -75,9 +75,9 @@ App.StonehearthEmbarkView = App.View.extend({
          lights : [
             {
                // Only supports directional lights for now
-               color: [0.9, 0.2, 0.9],
+               color: [0.9, 0.8, 0.9],
                ambient_color: [0.3, 0.3, 0.3],
-               direction: [0, 0, 0]
+               direction: [-45, -45, 0]
             },
          ],
          entity_alias: "stonehearth:furniture:comfy_bed",
