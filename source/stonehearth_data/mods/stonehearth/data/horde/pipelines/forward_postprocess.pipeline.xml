@@ -8,7 +8,6 @@
       <RenderTarget id="LightAccumulation" numColBufs="1" depthBufAlias="GBuffers" format="RGBA8" scale="1.0" />
 
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
-      <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
       <RenderTarget id="SelectedFixed" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>
@@ -49,24 +48,6 @@
          <DrawGeometry context="DEFERRED_ALBEDO_LOD" forceLodLevel="-3" frustum_start="0.39" frustum_end="0.41" />
       </Stage>
 
-      <Stage id="Collect SSAO">
-         <SwitchTarget target="SSAOBlur" />
-         <ClearTarget colBuf0="true" depthBuf="false" />
-
-         <SwitchTarget target="SSAOTemp" />
-         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
-         <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
-         <DrawQuad material="materials/ssao.material.json" context="SSAO" />
-         <UnbindBuffers />
-
-         <SwitchTarget target="SSAOBlur"/>
-         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
-         <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
-         <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR" />
-         <UnbindBuffers />
-      </Stage>
-
-
       <Stage id="Light">
          <SwitchTarget target="LightAccumulation" />
          <ClearTarget colBuf0="true" depthBuf="false"/>
@@ -77,10 +58,17 @@
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="SSAO Contribution">
-         <SwitchTarget target="LightAccumulation" />
-         <BindBuffer sampler="buf0" sourceRT="SSAOBlur" bufIndex="0" />
-         <DrawQuad material="materials/fullscreen_quad.material.json" context="SUB" />
+      <Stage id="Collect SSAO">
+         <SwitchTarget target="SSAOTemp" />
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
+         <DrawQuad material="materials/ssao.material.json" context="SSAO" />
+         <UnbindBuffers />
+
+         <SwitchTarget target="LightAccumulation"/>
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
+         <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR_SUB" />
          <UnbindBuffers />
       </Stage>
 
