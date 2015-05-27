@@ -80,17 +80,6 @@
 			"shader" : "shaders/voxel/depth_back.shader"
 		},
 		
-		"BLOOM" : {
-			"state" : "states/voxel/replace.state",
-			"shader" : "shaders/voxel/flat_color.shader",
-			"inputs" : [
-				{
-					"name" : "flat_color",
-					"default" : [0.0, 0.0, 0.0, 0.0]
-				}
-			]
-		},
-
 		"DEFERRED_ATTRIBUTES" : {
 			"state" : "states/voxel/replace_mask.state",
 			"shader" : "shaders/voxel/deferred_attributes.shader",
