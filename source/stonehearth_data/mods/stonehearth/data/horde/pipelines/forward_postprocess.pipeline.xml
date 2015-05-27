@@ -171,8 +171,8 @@
       <!-- Don't want to anti-alias bloom, so lets put it after the actual AA pass -->
       <Stage id="Bloom">
          <SwitchTarget target="Bloom" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
-
+         <BindBuffer sampler="depthImage" sourceRT="Final" bufIndex="32"/>
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="DEPTH_COPY" />
          <DrawGeometry context="BLOOM" forceLodLevel="0"/>
 
          <SwitchTarget target="BloomTemp" />
