@@ -205,28 +205,28 @@ function GameCreationService:create_camp_command(session, response, pt)
 
    radiant.entities.pickup_item(self.generated_citizens[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
    radiant.entities.pickup_item(self.generated_citizens[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(self.generated_citizens[3], pop:create_entity('stonehearth:trapper:talisman'))
-   radiant.entities.pickup_item(self.generated_citizens[4], pop:create_entity('stonehearth:carpenter:talisman'))
+
+   -- Spawn initial talismans
+   for i, talisman_uri in ipairs (self.game_options.starting_talismans) do
+      if i + 2 > NUM_STARTING_CITIZENS then
+         break
+      end
+      radiant.entities.pickup_item(self.generated_citizens[i + 2], pop:create_entity(talisman_uri))
+   end
 
    -- kickstarter pets
-   if self.game_options.starting_pets then
-      if self.game_options.starting_pets.puppy then   
-         self:_place_pet(pop, 'stonehearth:squirrel', camp_x-3, camp_z-6)
-      end
-
-      if self.game_options.starting_pets.kitten then   
-         self:_place_pet(pop, 'stonehearth:rabbit', camp_x+0, camp_z-6)
-      end
-
-      if self.game_options.starting_pets.mammoth then   
-         self:_place_pet(pop, 'stonehearth:sheep', camp_x+3, camp_z-6)
-      end
-
-      if self.game_options.starting_pets.dragon_whelp then   
-         --self:_place_pet(pop, 'stonehearth:dragon_whelp', camp_x+3, camp_z-6)
-      end
+   for i, pet_uri in ipairs (self.game_options.starting_pets) do
+      local x_offset = -6 + i * 3;
+      self:_place_pet(pop, pet_uri, camp_x-x_offset, camp_z-6)
    end
-   
+
+   -- Add starting gold
+   local starting_gold = self.game_options.starting_gold;
+   if (starting_gold > 0) then
+      local inventory = stonehearth.inventory:get_inventory(session.player_id)
+      inventory:add_gold(starting_gold)
+   end
+
    return {random_town_name = random_town_name}
 end
 

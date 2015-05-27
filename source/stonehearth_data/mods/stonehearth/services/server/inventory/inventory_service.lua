@@ -133,4 +133,23 @@ function InventoryService:_get_score_for_stockpile(entity)
    return total_score / 10
 end
 
+function InventoryService:add_gold_console_command(session, response, gold_amount)
+   local inventory = self:get_inventory(session.player_id)
+
+   if inventory == nil then
+      response:reject('there is no inventory for player ' .. session.player_id)
+      return
+   end
+
+   if (gold_amount > 0) then
+      -- give gold to the player
+      inventory:add_gold(gold_amount)
+   else
+      -- deduct gold from the player
+      gold_amount = -gold_amount;
+      inventory:subtract_gold(gold_amount)
+   end
+   response:resolve({})
+end
+
 return InventoryService

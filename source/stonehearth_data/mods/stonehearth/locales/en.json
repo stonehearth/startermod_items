@@ -24,11 +24,6 @@
    "title_screen_quick_start": "Quick Start",
    "title_screen_patch_notes": "Show Patch Notes",
 
-   "starting_pets" : "Starting Pets",
-   "puppy" : "Puppy",
-   "kitten" : "Kitten",
-   "mammoth" : "Mammoth",
-   "dragon_whelp" : "Dragon Whelp",
    "normal_game" : "Normal Game",
    "peaceful_game" : "Peaceful Game",
    "normal_game_description" : "Adventure forth in a world fraught with danger. Your town will be subject to raiding enemies.",
@@ -152,7 +147,15 @@
    "embark_title" : "Prepare to set out for adventure",
    "embark_citizen_info" : "Citizens",
    "embark_citizen_info_name" : "Name",
-   "embark_reroll_citizens" : "Roll new citizens",   
+   "embark_reroll_citizens" : "Roll new citizens",
+   "embark_shop_category_talisman" : "Job Talismans",
+   "embark_shop_category_pets": "Starting Pets",
+   "embark_pet_collie" : "Puppy",
+   "embark_pet_kitten" : "Kitten",
+   "embark_pet_mammoth" : "Mammoth",
+   "embark_pet_dragon_whelp" : "Dragon Whelp",
+   "embark_shop_buy_button" : "Buy",
+   "embark_shop_reset_button" : "Reset",
    "embark_finished" : "Embark!",
 
    "select_settlement_title" : "Click the map to choose your settlement's location",
@@ -516,6 +519,7 @@
 
    "shop_buy" : "Buy",
    "shop_sell" : "Sell",
+   "shop_not_enough_gold" : "Not enough gold",
 
    "huh" : "Huh.",
    "alarm" : "Gagh!", 

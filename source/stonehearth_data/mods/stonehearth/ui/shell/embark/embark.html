@@ -10,6 +10,7 @@
          <table id="citizenInfoTable">
             <tbody>
                <tr>
+                  <td class="title"><img id="testImage"></img></td>
                   <td class="title">{{i18n stonehearth:embark_citizen_info_name}}</td>
                   <td class="title">{{i18n stonehearth:stat_mind}}</td>
                   <td class="title">{{i18n stonehearth:stat_body}}</td>
@@ -25,6 +26,20 @@
             {{/each}}
             </tbody>
          </table>
+      </div>
+
+      <div id="embarkShop" class="gui bulletinDialog">
+         <div id="buyPallet"></div>
+         
+         <div id="playerGold">
+            <h2>Gold: <span class="goldText">{{view.gold}}</h2></h2>
+         </div>
+
+         <div id="shopButtons">
+            <button class="green disabled tooltip" id="buyButton">{{i18n embark_shop_buy_button}}</button>
+            <button class="green" id="resetButton">{{i18n embark_shop_reset_button}}</button>
+         </div>
+
       </div>
 
       <button id="embarkButton" class="flat">{{i18n stonehearth:embark_finished}}</div>

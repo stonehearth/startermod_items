@@ -1214,9 +1214,8 @@ void Renderer::RenderPortraitRT()
       portrait_generated_ = true;
 
       // Turn off the UI to render the portrait.
-      SetStageEnable(GetPipeline(currentPipeline_), "Overlays", false);
-      h3dRender(portraitCamera_->GetNode(), GetPipeline(currentPipeline_));
-
+      SetStageEnable(GetPipeline(worldPipeline_), "Overlays", false);
+      h3dRender(portraitCamera_->GetNode(), GetPipeline(worldPipeline_));
    } else if (portrait_generated_) {
       portrait_generated_ = false;
       h3dutCreatePngImageFromTexture(portraitTexRes_, portraitBytes_);

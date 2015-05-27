@@ -10,7 +10,11 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          return true;
       },
 
-      cssClass: ''
+      cssClass: '',
+
+      // If true, items with a num of 0 will be removed.
+      // If false, items with a num of 0 will be disabled.
+      removeZeroNumItems: true,
    },
 
    _create: function() {
@@ -19,12 +23,16 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       this.palette = $('<div>').addClass('itemPalette');
 
       this.palette.on( 'click', '.item', function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
-         self.palette.find('.item').removeClass('selected');
-         $(this).addClass('selected');
+         var itemSelected = $(this);
+
+         if (!itemSelected.hasClass('disabled')) {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
+            self.palette.find('.item').removeClass('selected');
+            itemSelected.addClass('selected');  
+         }
 
          if (self.options.click) {
-            self.options.click($(this));
+            self.options.click(itemSelected);
          }
          return false;
       });
@@ -137,9 +145,14 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       }
 
       if (num == 0) {
-         itemEl.remove();
+         if (this.options.removeZeroNumItems) {
+            itemEl.remove();
+         } else {
+            itemEl.addClass('disabled');
+         }
       } else {
          itemEl.find('.num').html(num);
+         itemEl.removeClass('disabled');
       }
    },
 });
