@@ -155,6 +155,13 @@ struct UniformType
 };
 
 
+struct SelectedNode
+{
+   SelectedNode(NodeHandle n, Vec3f c) : h(n), color(c) {}
+   NodeHandle h;
+   Vec3f color;
+};
+
 
 class Renderer
 {
@@ -180,6 +187,9 @@ public:
 	void commitGeneralUniforms();
    void commitGlobalUniforms();
 	bool setMaterial( MaterialResource *materialRes, std::string const& shaderContext );
+
+   void addSelectedNode(NodeHandle n, float r, float g, float b);
+   void removeSelectedNode(NodeHandle n);
 	
    uint32 calculateShadowBufferSize(LightNode const* node) const;
    void reallocateShadowBuffers(int quality);
@@ -257,6 +267,8 @@ protected:
                          RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
    void drawGeometry(SceneId sceneId, std::string const& shaderContext,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
+   void drawSelected(SceneId sceneId, std::string const& shaderContext,
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags );
    void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights);
 	void doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
@@ -290,6 +302,8 @@ protected:
    std::unordered_map<std::string, Vec3f> _uniformVec3s;
    std::unordered_map<std::string, Matrix4f> _uniformMats;
    std::unordered_map<std::string, std::vector<float>> _uniformMatArrays;
+
+   std::vector<SelectedNode>          _selectedNodes;
 	
 	std::vector< OverlayBatch >        _overlayBatches;
 	OverlayVert                        *_overlayVerts;

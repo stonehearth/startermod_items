@@ -1214,6 +1214,71 @@ void Scene::updateSpatialNode(SceneNode& node)
    updateNodeTrackers(&node);
 }
 
+void Scene::_updateQueuesWithNode(SceneNode& node, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues)
+{
+   if (node._renderable) {
+      if (node.getInstanceKey() != 0x0) {
+         auto iqsIt = instanceQueues.find(node._type);
+         if (iqsIt == instanceQueues.end()) {
+            InstanceRenderableQueue newQ;
+            iqsIt = instanceQueues.emplace_hint(iqsIt, node._type, newQ);
+         }
+         InstanceRenderableQueue& iq = iqsIt->second;
+
+         const InstanceKey& ik = *(node.getInstanceKey());
+         auto iqIt = iq.find(ik);
+         if (iqIt == iq.end()) {
+            RenderableQueue newQ;
+            newQ.reserve(1000);
+            iqIt = iq.emplace_hint(iqIt, ik, newQ);
+         }
+         iqIt->second.emplace_back(RendQueueItem(node._type, node._sortKey, &node));
+      } else {
+         auto rqIt = renderableQueues.find(node._type);
+         if (rqIt == renderableQueues.end()) {
+            RenderableQueue newQ;
+            newQ.reserve(1000);
+            rqIt = renderableQueues.emplace_hint(rqIt, node._type, newQ);
+         }
+         rqIt->second.emplace_back( RendQueueItem( node._type, node._sortKey, &node) );
+      }
+   }
+
+   for (SceneNode* child : node.getChildren()) {
+      _updateQueuesWithNode(*child, renderableQueues, instanceQueues);
+   }
+}
+
+
+void Scene::updateQueuesWithNode(SceneNode& node, Frustum const& frust)
+{
+   if (_queryCacheCount < QueryCacheSize) {
+      _queryCacheCount++;
+   }
+   _currentQuery = _queryCacheCount - 1;
+   SpatialQueryResult& sqr = _queryCache[_currentQuery];
+ 
+   sqr.query.filterIgnore = 0;
+   sqr.query.filterRequired = 0;
+   sqr.query.frustum = frust;
+   sqr.query.order = Horde3D::RenderingOrder::StateChanges;
+   sqr.query.secondaryFrustum = 0;
+   sqr.query.useLightQueue = false;
+   sqr.query.useRenderableQueue = true;
+   sqr.query.forceNoInstancing = false;
+   sqr.query.userFlags = 0;
+ 
+   for (auto& item : sqr.renderableQueues) {
+      item.second.resize(0);
+   }
+
+   for (auto& item : sqr.instanceRenderableQueues) {
+      for (auto& instances : item.second) {
+         instances.second.resize(0);
+      }
+   }
+   _updateQueuesWithNode(node, sqr.renderableQueues, sqr.instanceRenderableQueues);
+}
 
 void Scene::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
                                  uint32 filterIgnore, uint32 filterRequired, bool useLightQueue, bool useRenderableQueue, bool forceNoInstancing, uint32 userFlags )
@@ -1314,6 +1379,15 @@ RenderableQueues& Scene::getRenderableQueues()
    ASSERT(_currentQuery != -1);
    return _queryCache[_currentQuery].renderableQueues;
 }
+
+
+InstanceRenderableQueues& Scene::getInstanceRenderableQueues()
+{
+   ASSERT(_currentQuery != -1);
+   InstanceRenderableQueues& renderQueues = _queryCache[_currentQuery].instanceRenderableQueues;
+   return renderQueues;
+}
+
 
 InstanceRenderableQueue& Scene::getInstanceRenderableQueue(int itemType)
 {

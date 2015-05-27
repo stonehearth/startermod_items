@@ -37,6 +37,9 @@
          "equipment" : {
             "weapon" : ["stonehearth:mining_pick", "stonehearth:worker_hammer"]
          },
+         "unit_info" : {
+            "description" : "Firekeeper"
+         },
          "combat_leash_range" : 30, 
          "loot_drops" : {
             "items" : [

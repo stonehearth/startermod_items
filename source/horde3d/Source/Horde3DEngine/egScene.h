@@ -478,6 +478,7 @@ public:
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
                       uint32 userFlags=0 );
+   void updateQueuesWithNode(SceneNode& node, Frustum const& frust);
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
@@ -496,6 +497,7 @@ public:
 	std::vector<SceneNode const*> &getLightQueue();
 	RenderableQueue& getRenderableQueue(int itemType);
    InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
+   InstanceRenderableQueues& getInstanceRenderableQueues();
    RenderableQueues& getRenderableQueues();
 	
 	SceneNode *resolveNodeHandle( NodeHandle handle );
@@ -508,6 +510,7 @@ public:
    void shutdown();
    void initialize();
 protected:
+   void _updateQueuesWithNode(SceneNode& node, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues);
    NodeHandle nextNodeId();
 	void _findNodes( SceneNode &startNode, std::string const& name, int type );
    int _checkQueryCache(const SpatialQuery& query);

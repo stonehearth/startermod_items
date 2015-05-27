@@ -33,6 +33,9 @@
             "items" : [
                { "uri" : "stonehearth:monsters:goblins:broken_flute" }
             ]
+         },
+         "unit_info" : {
+            "description" : "Whips the wolves into a dangerous frenzy"
          }
       },
       "tame_wolf" : {
@@ -54,6 +57,9 @@
                {"uri" : "stonehearth:resources:wolf_pelt", "weight" : 1 },
                {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
             ]
+         },
+         "unit_info" : {
+            "description" : "Terrifyingly ferocious"
          }
       }
    }

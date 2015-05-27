@@ -52,39 +52,52 @@ function DoodadPlacer:go(session, response, uri)
 end
 
 function DoodadPlacer:_on_mouse_event(e)
-   local raycast_results = _radiant.client.query_scene(e.x, e.y)
+   if stonehearth.selection.user_cancelled(e) then
+      self:destroy()
+      return true
+   end
 
+   local raycast_results = _radiant.client.query_scene(e.x, e.y)
+   local entity, fabricator, blueprint, project
+   local found_wall = false
+
+   -- look for a valid wall
    for result in raycast_results:each_result() do
-      local entity = result.entity
+      entity = result.entity
       local ignore_entity = self:_ignore_entity(entity)
 
       if not ignore_entity then
          log:detail('hit entity %s', entity)
 
-         if self._wall_editor and not self._wall_editor:should_keep_focus(entity) then
-            log:detail('destroying wall editor')
-            self._wall_editor:destroy()
-            self._wall_editor = nil
-         end
+         fabricator, blueprint, project = build_util.get_fbp_for(entity)
 
-         if not self._wall_editor then
-            local fabricator, blueprint, project = build_util.get_fbp_for(entity)
-            if blueprint and blueprint:get_component('stonehearth:wall') then
-
-               log:detail('got blueprint %s', tostring(blueprint))
-               log:detail('creating wall editor for blueprint: %s', blueprint)
-               self._wall_editor = PortalEditor(self._build_service)
-                                       :begin_editing(fabricator, blueprint, project)
-                                       :set_fixture_uri(self._uri)
-                                       :go()
-            end
-         end
-         
-         if self._wall_editor then
-            self._wall_editor:on_mouse_event(e, raycast_results)
+         if blueprint then
+            found_wall = blueprint:get_component('stonehearth:wall')
             break
          end
       end
+   end
+
+   local keep_editor = found_wall and self._wall_editor and self._wall_editor:should_keep_focus(entity)
+
+   if not keep_editor then
+      if self._wall_editor then
+         log:detail('destroying wall editor')
+         self._wall_editor:destroy()
+         self._wall_editor = nil
+      end
+   end
+
+   if found_wall then
+      if not self._wall_editor then
+         log:detail('creating wall editor for blueprint: %s', blueprint)
+         self._wall_editor = PortalEditor(self._build_service)
+                              :begin_editing(fabricator, blueprint, project)
+                              :set_fixture_uri(self._uri)
+                              :go()
+      end
+
+      self._wall_editor:on_mouse_event(e, raycast_results)
    end
 
    if e:up(1) then
@@ -96,11 +109,6 @@ function DoodadPlacer:_on_mouse_event(e)
          self._response = nil
       end
       self:destroy()
-   end
-
-   if stonehearth.selection.user_cancelled(e) then
-      self:destroy()
-      return true
    end
 
    local event_consumed = e and (e:down(1) or e:up(1))

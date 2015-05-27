@@ -64,24 +64,24 @@ luabind::object Client_GetAuthoringRootEntity(lua_State* L)
    return luabind::object(L, om::EntityRef(std::static_pointer_cast<om::Entity>(obj)));
 }
 
-void Client_SelectEntity(lua_State* L, luabind::object o)
+void Client_SelectEntity(lua_State* L, luabind::object o, csg::Point3f& rgbColor)
 {
    om::EntityPtr entity;
    boost::optional<om::EntityRef> e = object_cast_nothrow<om::EntityRef>(o);
    if (e.is_initialized()) {
       entity = e.get().lock();
    }
-   Client::GetInstance().SelectEntity(entity);
+   Client::GetInstance().SelectEntity(entity, rgbColor);
 }
 
-void Client_HilightEntity(lua_State* L, luabind::object o)
+void Client_HilightEntity(lua_State* L, luabind::object o, csg::Point3f& rgbColor)
 {
    om::EntityPtr entity;
    boost::optional<om::EntityRef> e = object_cast_nothrow<om::EntityRef>(o);
    if (e.is_initialized()) {
       entity = e.get().lock();
    }
-   Client::GetInstance().HilightEntity(entity);
+   Client::GetInstance().HilightEntity(entity, rgbColor);
 }
 
 RenderNodePtr Client_CreateVoxelNode(lua_State* L, 

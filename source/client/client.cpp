@@ -610,7 +610,7 @@ void Client::OneTimeIninitializtion()
       }
       if (entity) {
          CLIENT_LOG(5) << " selecting " << *entity;
-         SelectEntity(entity);
+         SelectEntity(entity, csg::Point3f(1, 1, 1));
       }
    });
 
@@ -1417,7 +1417,7 @@ bool Client::CallInputHandlers(Input const& input)
    return false;
 }
 
-void Client::SelectEntity(om::EntityPtr entity)
+void Client::SelectEntity(om::EntityPtr entity, csg::Point3f const& color)
 {
    CLIENT_LOG(3) << "selecting " << entity;
 
@@ -1430,7 +1430,7 @@ void Client::SelectEntity(om::EntityPtr entity)
       if (selectedEntity) {
          renderEntity = Renderer::GetInstance().GetRenderEntity(selectedEntity);
          if (renderEntity) {
-            renderEntity->SetSelected(false);
+            h3dSetSelected(renderEntity->GetNode(), false, 0, 0, 0);
          }
       }
 
@@ -1439,12 +1439,12 @@ void Client::SelectEntity(om::EntityPtr entity)
          CLIENT_LOG(3) << "selected entity " << *entity;
          selected_trace_ = entity->TraceChanges("selection", dm::RENDER_TRACES)
                               ->OnDestroyed([=]() {
-                                 SelectEntity(nullptr);
+                                 SelectEntity(nullptr, csg::Point3f(0, 0, 0));
                               });
 
          renderEntity = Renderer::GetInstance().CreateRenderEntity(RenderNode::GetUnparentedNode(), entity);
          if (renderEntity) {
-            renderEntity->SetSelected(true);
+            h3dSetSelected(renderEntity->GetNode(), true, (float)color.x, (float)color.y, (float)color.z);
          }
          std::string uri = entity->GetStoreAddress();
          selectionChanged.push_back(JSONNode("selected_entity", uri));
@@ -1506,7 +1506,7 @@ void Client::InstallCurrentCursor()
    }
 }
 
-void Client::HilightEntity(om::EntityPtr hilight)
+void Client::HilightEntity(om::EntityPtr hilight, csg::Point3f const& color)
 {
    auto &renderer = Renderer::GetInstance();
    om::EntityPtr selectedEntity = selectedEntity_.lock();
@@ -1515,7 +1515,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
    if (hilightedEntity && hilightedEntity != selectedEntity) {
       auto renderObject = renderer.GetRenderEntity(hilightedEntity);
       if (renderObject) {
-         renderObject->SetSelected(false);
+         h3dSetSelected(renderObject->GetNode(), false, (float)color.x, (float)color.y, (float)color.z);
       }
    }
    hilightedEntity_.reset();
@@ -1523,7 +1523,7 @@ void Client::HilightEntity(om::EntityPtr hilight)
    if (hilight && hilight != rootEntity_.lock()) {
       RenderEntityPtr renderObject = renderer.GetRenderEntity(hilight);
       if (renderObject) {
-         renderObject->SetSelected(true);
+         h3dSetSelected(renderObject->GetNode(), true, (float)color.x, (float)color.y, (float)color.z);
       }
       hilightedEntity_ = hilight;
    }

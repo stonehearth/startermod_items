@@ -1,0 +1,16 @@
+{
+   "type" : "command",
+
+   "name": "loot_item",
+   "tooltip": "Loot item",
+   "description" : "Claim this item for your town.",
+   "default_enabled": true,
+   "icon": "file(loot_item.png)",
+
+   "action": "call",
+   "function" : "loot_item_command",
+   "object" : "stonehearth.town",
+   "args": [
+      "{{self}}"
+   ]
+}

@@ -10,7 +10,7 @@ HMODULE psapiDll;
 
 // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219%28v=vs.85%29.aspx for why
 // we have to do this to avoid crashing on Vista. =( - tony
-typedef BOOL (*GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+typedef BOOL (WINAPI *GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
 static GetProcessMemoryInfoFn GetProcessMemoryInfof;
 
 #define SI_LOG(level)              LOG(sysinfo, level)
