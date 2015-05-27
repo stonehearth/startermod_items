@@ -1,0 +1,14 @@
+{
+   "type" : "campaign",
+   "rarity" : "common",
+
+   "arcs" : {
+      "trigger" : {
+         "game_events" : "file(arcs/trigger/game_events/game_events_arc.json)"
+      },
+      "challenge" : {
+      },
+      "climax" : {
+      }
+   }
+}

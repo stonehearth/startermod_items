@@ -1,11 +1,11 @@
 {
    "type" : "encounter",
-   "encounter_type" : "donation_encounter",
+   "encounter_type" : "donation",
 
    "in_edge"  : "reward_loot",
    "out_edge" : "",
 
-   "donation_encounter_info" :  {
+   "donation_info" :  {
    	    "loot_table" : {
             "num_rolls" : {
                "min" : 5,

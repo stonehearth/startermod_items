@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "start",
+   "out_edge" : ["generate_daily_report"],
+
+   "wait_info" :  {
+      "duration" : "24h"
+   }
+}
