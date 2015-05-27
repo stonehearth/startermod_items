@@ -43,7 +43,7 @@ function CalendarService:initialize()
       --We're loading for the first time
       self._sv.date = {} -- the calendar data to export
       self._sv.start_time = {}
-      self._sv.start_game_tick = nil
+      self._sv.start_game_tick = 0
       self._sv._time_tracker = radiant.create_controller('radiant:controllers:time_tracker')
       self._sv._past_alarms = {}
       self._sv._future_alarms = {}
@@ -270,7 +270,9 @@ end
 -- recompute the game calendar based on the time
 function CalendarService:_on_event_loop(e)
    local start_tick = self._sv.start_game_tick
+   --log:spam("in event loop and start_tick is %s", start_tick)   
    if start_tick == nil then
+      log:spam("not running yet!!!")   
       -- not running yet.  see CalendarService:start()
       return
    end
@@ -303,6 +305,7 @@ function CalendarService:_on_event_loop(e)
 
    self:_fire_alarms()
    self._sv._time_tracker:set_now(self:get_elapsed_time())
+   --log:spam("running game loop, setting time tracker!")   
 
    self.__saved_variables:mark_changed()
 
