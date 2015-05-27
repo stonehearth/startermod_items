@@ -1,3 +1,4 @@
+local log = radiant.log.create_logger('game_master_encounter')
 
 local WaitEncounter = class()
 
@@ -25,6 +26,9 @@ function WaitEncounter:start(ctx, info)
    self._sv.timer = stonehearth.calendar:set_timer(timeout, function()
          self:_timer_callback()
       end)
+
+   log:spam('Wait Encounter: %s will expire at %s which is in %s', ctx.encounter_name, self._sv.timer:get_expire_time(), stonehearth.calendar:format_remaining_time(self._sv.timer))
+   log:spam('It is currently %s', stonehearth.calendar:format_time())
 end
 
 function WaitEncounter:_timer_callback()
@@ -32,6 +36,9 @@ function WaitEncounter:_timer_callback()
       self._sv.timer:destroy()
       self._sv.timer = nil
    end
+
+   log:spam('Wait Encounter: %s is now firing at %s', self._sv.ctx.encounter_name, stonehearth.calendar:format_time())
+
    self.__saved_variables:mark_changed()
    self._sv.ctx.arc:trigger_next_encounter(self._sv.ctx)
 end

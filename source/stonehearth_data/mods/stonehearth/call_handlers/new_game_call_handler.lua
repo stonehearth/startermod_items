@@ -201,7 +201,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
    stonehearth.calendar:start()
    stonehearth.game_master:start()
    stonehearth.hydrology:start()
-   stonehearth.interval:enable(true)
 
    stonehearth.world_generation:set_starting_location(Point2(pt.x, pt.z))
 
