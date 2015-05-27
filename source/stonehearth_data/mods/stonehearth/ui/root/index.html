@@ -71,6 +71,7 @@
             App.gameView.addView(App.StonehearthJsErrorDialogView, { model : model });
          }
          console.error(message);
+         console.error("File:" + file + " Line:" + line);
          console.error(error.stack);
 
          // the chromum console log is stifled under log level 3.  make sure it

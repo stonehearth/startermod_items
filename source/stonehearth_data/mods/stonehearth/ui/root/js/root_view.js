@@ -87,6 +87,8 @@ App.RootView = Ember.ContainerView.extend({
             f(numFrames, callback);
          });
       };
+
+      App.portraitManager = new StonehearthPortraitManager();
    },
 
    didInsertElement: function() {

@@ -133,11 +133,16 @@ function PortraitRendererService:set_scene(scene_json)
    if scene['entity_alias'] then
       self:_create_entity(scene['entity_alias'])
    end
-
-   if scene['entity'] then
+   local entity = scene['entity']
+   -- Sometimes, the entity will fail to resolve and be
+   -- a string instead, this might happen if the entity
+   -- was destroyed right before the portrait request fired.
+   -- TODO(yshan): this should call back to the response with
+   -- a fail instead of proceeding to render an empty scene.
+   if entity and not (type(entity) == 'string') then
       self:_add_existing_entity(scene['entity'])
    end
-
+   
    self:_set_camera_position(scene['camera'].position)
    self:_set_camera_look_at(scene['camera'].look_at)
 end
