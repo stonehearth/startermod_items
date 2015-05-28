@@ -15,8 +15,14 @@ function parse_options(index, options)
       options.group = 'all'
    end
 
-   local run_forever = options.run_forever
-   local exit_on_complete = options.exit_on_complete
+   local run_forever = false
+   local exit_on_complete = true
+   if options.run_forever ~= nil then
+      run_forever = options.run_forever
+   end
+   if options.exit_on_complete ~= nil then
+      exit_on_complete = options.exit_on_complete
+   end
 
    -- find the world which matches the script or group chosen
    for world_name, world in pairs(index.worlds) do
