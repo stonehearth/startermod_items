@@ -1,6 +1,5 @@
 mod = {}
 
-
 function parse_options(index, options)
    local run_world, run_group, run_script
 
@@ -16,13 +15,16 @@ function parse_options(index, options)
       options.group = 'all'
    end
 
+   local run_forever = options.run_forever
+   local exit_on_complete = options.exit_on_complete
+
    -- find the world which matches the script or group chosen
    for world_name, world in pairs(index.worlds) do
       for group_name, group in pairs(world.groups) do
          if options.group and group_name == options.group then
             -- the name of this group matches the one we were looking for.
             -- run all tests from this group and this world.
-            return world, group, nil
+            return world, group, nil, run_forever, exit_on_complete
          end
 
          if options.script and group.scripts then
@@ -30,7 +32,7 @@ function parse_options(index, options)
                if endswith(script, options.script) then
                   -- the name of this script matches the one we were looking for.
                   -- run all tests from this script and this world.
-                  return world, nil, script
+                  return world, nil, script, run_forever, exit_on_complete
                end
             end
          end
@@ -41,7 +43,7 @@ end
 radiant.events.listen(mod, 'radiant:new_game', function(args)
       local index = radiant.resources.load_json('stonehearth_autotest/tests/index.json')
       local options = radiant.util.get_config('options', {})
-      local world, group, script = parse_options(index, options)
+      local world, group, script, run_forever, exit_on_complete = parse_options(index, options)
 
       if not group and not script then
          radiant.log.write('stonehearth_autotest', 0, 'could not determine group or script to execute.  aborting.')
@@ -51,8 +53,6 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
          radiant.log.write('stonehearth_autotest', 0, 'could not determine world script.  aborting.')
          radiant.exit(1)
       end
-
-      local run_forever = false
       
       autotest_framework.env.set_world_generator_script(world.world_generator)
       
@@ -66,11 +66,15 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
       end
       autotest_framework.set_finish_cb(function(errorcode)
             if errorcode ~= 0 or not run_forever then
-               radiant.exit(errorcode)
+               if exit_on_complete then
+                  radiant.exit(errorcode)
+               end
             end
-            radiant.set_realtime_timer(0, function()
-                  run_autotests()
-               end)
+            if run_forever then
+               radiant.set_realtime_timer(0, function()
+                     run_autotests()
+                  end)
+            end
          end)
       radiant.set_realtime_timer(3000, function()
          run_autotests()

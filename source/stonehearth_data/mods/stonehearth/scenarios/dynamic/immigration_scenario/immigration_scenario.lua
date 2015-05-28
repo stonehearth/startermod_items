@@ -1,6 +1,7 @@
 local Immigration = class()
 local rng = _radiant.csg.get_default_rng()
 local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('immigration_scenario')
 
 --[[
    Immigration Synopsis
@@ -109,17 +110,16 @@ function Immigration:_compose_town_report()
    return message, success
 end
 
-
-
 function Immigration:_eval_requirement(num_citizens)
    local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
-
+   log:detail('caculating immigration data %s', radiant.util.table_tostring(score_data))
    --Get data for food
    local available_food = 0
    if score_data.resources and score_data.resources.edibles then
       available_food = score_data.resources.edibles
    end 
    local food_success, food_data = self:_find_requirments_by_type_and_pop(available_food, 'food', num_citizens)
+   log:detail('Food result: %s', radiant.util.table_tostring(food_data))
 
    --Get data for morale
    local morale_score = 0
@@ -128,13 +128,15 @@ function Immigration:_eval_requirement(num_citizens)
    end
    local morale_success, morale_data = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
    morale_data.available =  radiant.math.round(morale_data.available*10)*0.1
-
+   log:detail('Moral result: %s', radiant.util.table_tostring(morale_data))
+   
    --Get data for net worth
    local curr_score = 0
    if score_data.net_worth and score_data.net_worth.total_score then
       curr_score = score_data.net_worth.total_score
    end
    local net_worth_success, net_worth_data = self:_find_requirments_by_type_and_pop(curr_score, 'net_worth', num_citizens)
+   log:detail('Net Worth result: %s', radiant.util.table_tostring(net_worth_data))
 
    local summation = {
       food_data = food_data, 
@@ -142,6 +144,10 @@ function Immigration:_eval_requirement(num_citizens)
       net_worth_data = net_worth_data, 
       success = food_success and morale_success and net_worth_success
    }
+
+   if (not summation.success) then
+      log:debug("Immigration unsuccessful.")
+   end
 
    return summation
 end
