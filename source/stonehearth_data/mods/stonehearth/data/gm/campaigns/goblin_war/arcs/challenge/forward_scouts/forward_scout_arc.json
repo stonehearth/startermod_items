@@ -17,7 +17,7 @@
       "mysterious_orc_hint" : "file(encounters/mysterious_orc_hint.json)",
       "destroy_stockpiles" : "file(encounters/destroy_goblin_stockpiles.json)",
 
-      "wait four days" : "file(encounters/wait_four_days.json)", 
+      "wait to return" : "file(encounters/wait_to_return.json)", 
       "temp finish message" : "file(encounters/temp_finish_message.json)",
       "reward_loot" : "file(encounters/reward_loot.json)"
    }
