@@ -236,7 +236,7 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			params.resize( 6 );			
 			params[0].setString( node1.getAttribute( "context" ) );
 			params[1].setInt( order );
-			params[2].setInt( SceneNodeFlags::Selected );
+			params[2].setInt( 0 );
          params[3].setFloat(0.0);
          params[4].setFloat(1.0);
          params[5].setInt(lodLevel);

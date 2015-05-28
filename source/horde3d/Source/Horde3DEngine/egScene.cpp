@@ -44,7 +44,6 @@ static std::string FlagsToString(int flags)
    ADD_FLAG(NoDraw)
    ADD_FLAG(NoCastShadow)
    ADD_FLAG(NoRayQuery)
-   ADD_FLAG(Selected)
 #undef ADD_FLAG
    s << ")";
    return s.str();

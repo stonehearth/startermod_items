@@ -357,11 +357,6 @@ void RenderEntity::RemoveComponent(core::StaticString name)
    components_.erase(name);
 }
 
-void RenderEntity::SetSelected(bool selected)
-{
-   h3dTwiddleNodeFlags(node_, H3DNodeFlags::Selected, selected, true);
-}
-
 dm::ObjectId RenderEntity::GetObjectId() const
 {
    return entity_id_;

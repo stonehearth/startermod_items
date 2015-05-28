@@ -118,8 +118,7 @@ struct SceneNodeFlags
 		NoCastShadow = 0x2,
 		NoRayQuery = 0x4,
 		Inactive = 0x7,  // NoDraw | NoCastShadow | NoRayQuery
-		Selected = 0x8,
-      NoCull = 0x10
+      NoCull = 0x8
 	};
 };
 
