@@ -14,7 +14,7 @@
                "title" : "A message on an arrow appears on your banner",
                "dialog_title" : "Mysterious Message",
                "portrait" : "file(images/mysterious.png)",
-               "message" : "If you want to finish them before they finish you, strike first.",
+               "message" : "If you want to finish the wolves before they finish you, strike first.",
                "choices" : {
                   "stonehearth:next" : {
                      "next_node" : "msg2"

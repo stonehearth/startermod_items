@@ -14,7 +14,7 @@
                "title" : "Panting refugees appear on the horizon",
                "dialog_title" : "Refugee",
                "portrait" : "file(images/refugee.png)",
-               "message" : "Those wolves are nearly impossible to fight! Run away while you still can!",
+               "message" : "There are wolves in the woods! Run away while you still can!",
                "choices" : {
                   "stonehearth:ok" : {
                   }
