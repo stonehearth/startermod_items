@@ -1522,6 +1522,7 @@ uint32 Renderer::calculateShadowBufferSize(LightNode const* node) const
 
 void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus, float minDist, float maxDist, int cubeFace)
 {
+   radiant::perfmon::TimelineCounterGuard smr("updateShadowMap");
 	if (light == 0x0) {
       return;
    }
@@ -1562,17 +1563,11 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
    if (light->_directional) {
 	   // Find AABB of lit geometry
       Vec3f lightAbsPos;
-      std::ostringstream reason;
-      reason << "update shadowmap for light " << light->getName();
-      Modules::sceneMan().sceneForId(sceneId).updateQueues(reason.str().c_str(), *lightFrus, 0x0,
-		   RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
-      for(const auto& queue : Modules::sceneMan().sceneForId(sceneId).getRenderableQueues())
-	   {
-         for (const auto& entry : queue.second) 
-         {
-            SceneNode const* n = entry.node;
-            litAabb.makeUnion(n->getBBox());
-         }
+
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::Renderables);
+
+      for (const auto& result : results) {
+         litAabb.makeUnion(result.bounds);
 	   }
 
       lightAbsPos = (litAabb.min() + litAabb.max()) * 0.5f;

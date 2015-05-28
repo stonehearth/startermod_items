@@ -358,6 +358,26 @@ struct GridElement
    std::vector<GridItem> nodes[2];
 };
 
+
+struct QueryTypes
+{
+   enum List
+   {
+      Renderables = 1,
+      Lights = 2,
+      All = 3
+   };
+};
+struct QueryResult
+{
+   QueryResult() {}
+   QueryResult(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) {}
+
+   BoundingBox bounds;
+   SceneNode* node;
+};
+
+
 class GridSpatialGraph
 {
 public:
@@ -369,6 +389,7 @@ public:
 
    void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
       std::vector<SceneNode const*>& lightQueue);
+   void query2(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
    void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb);
 
 protected:
@@ -378,7 +399,7 @@ protected:
    void _queryLights(std::vector<GridItem> const& nodes, SpatialQuery const& query, std::vector<SceneNode const*>& lightQueue);
    void _queryRenderables(std::vector<GridItem> const& nodes, SpatialQuery const& query, RenderableQueues& renderableQueues, 
                          InstanceRenderableQueues& instanceQueues);
-
+   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
 
    std::unordered_map<uint32, GridElement> _gridElements;
@@ -425,6 +446,12 @@ struct SpatialQueryResult
    RenderableQueues renderableQueues;
    InstanceRenderableQueues instanceRenderableQueues;
    std::vector<SceneNode const*> lightQueue;
+};
+
+struct CachedQueryResult 
+{
+   Frustum frust;
+   std::vector<QueryResult> result;
 };
 
 // =================================================================================================
@@ -478,6 +505,8 @@ public:
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
                       uint32 userFlags=0 );
    void updateQueuesWithNode(SceneNode& node, Frustum const& frust);
+
+   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes);
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
@@ -536,6 +565,10 @@ protected:
    SpatialQueryResult             _queryCache[QueryCacheSize];
    int                            _queryCacheCount;
    int                            _currentQuery;
+
+   CachedQueryResult              _queryCache2[QueryCacheSize];
+   int                            _queryCacheCount2;
+   int                            _currentQuery2;
 
    std::unordered_map<SceneNode const*, std::function<void(SceneNode const*)>> _nodeTrackers;
 

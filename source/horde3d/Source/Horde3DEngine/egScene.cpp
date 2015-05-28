@@ -835,6 +835,77 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    }
 }
 
+
+void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results)
+{
+   for (GridItem const& g: nodes) {
+      BoundingBox const& bounds = g.bounds;
+
+      if (frust.cullBox(bounds)) {
+         continue;
+      }
+
+      results.emplace_back(QueryResult(bounds, g.node));
+   }
+}
+
+void GridSpatialGraph::query2(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes)
+{
+   Modules::sceneMan().sceneForId(_sceneId).updateNodes();
+
+   for (auto const& ge : _gridElements) {
+
+      if (frust.cullBox(ge.second.bounds)) {
+         continue;
+      }
+
+      if (queryTypes & QueryTypes::Renderables) {
+         _queryGrid(ge.second.nodes[RENDER_NODES], frust, results);
+      }
+
+      if (queryTypes & QueryTypes::Lights) {
+         _queryGrid(ge.second.nodes[LIGHT_NODES], frust, results);
+      }
+   }
+
+
+   if (queryTypes & QueryTypes::Renderables) {
+      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results);
+   }
+
+   if (queryTypes & QueryTypes::Lights) {
+      _queryGrid(_spilloverNodes[LIGHT_NODES], frust, results);
+   }
+
+
+   /*if (query.useRenderableQueue) {
+      if (query.filterRequired & SceneNodeFlags::NoCull || ((query.filterIgnore & SceneNodeFlags::NoCull) == 0)) {
+         for (auto const& n : _nocullNodes) {
+            if (n.second->_accumulatedFlags & query.filterIgnore) {
+               continue;
+            }
+            if ((n.second->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+               continue;
+            }
+            if ((n.second->_userFlags & query.userFlags) != query.userFlags) {
+               continue;
+            }
+            if (renderableQueues.find(n.second->_type) == renderableQueues.end()) {
+               renderableQueues[n.second->_type] = RenderableQueue();
+               renderableQueues[n.second->_type].reserve(1000);
+            }
+            renderableQueues[n.second->_type].emplace_back( RendQueueItem( n.second->_type, 0, n.second ) );
+         }
+      }
+   }*/
+
+   /*if (queryTypes & QueryTypes::Lights) {
+      for (auto& d : _directionalLights) {
+         results.emplace_back(QueryResult(d.second->_bBox, d.second));
+      }
+   }*/   
+}
+
 // =================================================================================================
 // Class SpatialGraph
 // =================================================================================================
@@ -1161,6 +1232,9 @@ void Scene::initialize()
    _queryCacheCount = 0;
    _currentQuery = -1;
 
+   _queryCacheCount2 = 0;
+   _currentQuery2 = -1;
+
    for (int i = 0; i < QueryCacheSize; i++) {
       _queryCache[i].lightQueue.reserve(20);
    }
@@ -1279,6 +1353,29 @@ void Scene::updateQueuesWithNode(SceneNode& node, Frustum const& frust)
       }
    }
    _updateQueuesWithNode(node, sqr.renderableQueues, sqr.instanceRenderableQueues);
+}
+
+std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes) {
+   radiant::perfmon::TimelineCounterGuard uq("queryScene");
+
+   for (int i = 0; i < _queryCacheCount2; i++)
+   {
+      CachedQueryResult& r = _queryCache2[i];
+
+      if (r.frust == frust) {
+         return r.result;
+      }
+   }
+
+   if (_queryCacheCount2 < QueryCacheSize) {
+      _queryCacheCount2++;
+   }
+   _currentQuery2 = _queryCacheCount2 - 1;
+   CachedQueryResult& r = _queryCache2[_currentQuery2];
+
+   r.frust = frust;
+   _spatialGraph->query2(frust, r.result, queryTypes);
+   return r.result;
 }
 
 void Scene::updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2, RenderingOrder::List order,
@@ -1803,6 +1900,14 @@ void Scene::clearQueryCache()
 
    _queryCacheCount = 0;
    _currentQuery = -1;
+
+
+
+   for (int i = 0; i < _queryCacheCount2; i++) {
+      _queryCache2[i].result.resize(0);
+   }
+   _queryCacheCount2 = 0;
+   _currentQuery2 = -1;
 }
 
 
