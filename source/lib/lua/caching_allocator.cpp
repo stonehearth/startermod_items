@@ -255,6 +255,10 @@ void *CachingAllocator::Allocate(size_t size)
             *(int *)0 = 0;    // crash harder!!!
          }
       } else {
+         if (size > 500000) {
+            std::string msg = BUILD_STRING("Allocating " << size  << " bytes for lua.");
+            LOG(lua.memory, 0) << msg;
+         }
          ptr = new char[size];
       }
    }
