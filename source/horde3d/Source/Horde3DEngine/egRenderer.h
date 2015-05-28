@@ -34,6 +34,7 @@ const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
 const uint32 QuadIndexBufCount = MaxNumOverlayVerts * 6;
 const uint32 MaxVoxelInstanceCount = 1024;
+const uint32 RenderCacheSize = 4;
 
 extern const char *vsDefColor;
 extern const char *fsDefColor;
@@ -162,6 +163,12 @@ struct SelectedNode
    Vec3f color;
 };
 
+struct CachedRenderResult
+{
+   Frustum frust;
+   QueryTypes::List queryTypes;
+   RenderingOrder::List order;
+};
 
 class Renderer
 {
@@ -236,6 +243,9 @@ public:
 
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
+   InstanceRenderableQueues           _instanceQueues[RenderCacheSize];
+   RenderableQueues                   _singularQueues[RenderCacheSize];
+
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* sr) const;
    bool isShaderContextSwitch(std::string const& curContext, MaterialResource *materialRes) const;
@@ -282,8 +292,11 @@ protected:
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
 	void renderDebugView();
 	void finishRendering();
+   void clearRenderCache();
    void logPerformanceData();
    void setGpuCompatibility();
+
+   void composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes);
 
 protected:
 	unsigned char                      *_scratchBuf;
@@ -343,6 +356,9 @@ protected:
    float                              _lod_polygon_offset_x;
    float                              _lod_polygon_offset_y;
 
+   int                                _renderCacheCount;
+   int                                _activeRenderCache;
+   CachedRenderResult                 _renderCache[RenderCacheSize];
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

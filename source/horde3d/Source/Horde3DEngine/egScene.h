@@ -32,31 +32,19 @@ class SceneGraphResource;
 
 const int QueryCacheSize = 32;
 
+class SceneNode;
 class InstanceKey {
 public:
    Resource* geoResource;
    MaterialResource* matResource;
+   SceneNode* node;
    float scale;
    size_t hash;
 
-   InstanceKey() {
-      geoResource = nullptr;
-      matResource = nullptr;
-      scale = 1.0;
-   }
-
-   void updateHash() {
-      hash = (uint32)(((uintptr_t)(geoResource) ^ (uintptr_t)(matResource)) >> 2) ^ (uint32)(101 * scale);
-   }
-
-   bool operator==(const InstanceKey& other) const {
-      return geoResource == other.geoResource &&
-         matResource == other.matResource &&
-         scale == other.scale;
-   }
-   bool operator!=(const InstanceKey& other) const {
-      return !(other == *this);
-   }
+   InstanceKey();
+   void updateHash();
+   bool operator==(const InstanceKey& other) const;
+   bool operator!=(const InstanceKey& other) const;
 };
 
 struct hash_InstanceKey {
@@ -297,59 +285,29 @@ protected:
 // Spatial Graph
 // =================================================================================================
 
-struct SpatialQuery
-{
-  Frustum frustum;
-  const Frustum* secondaryFrustum;
-  Vec3f camPos;
-  RenderingOrder::List order;
-  uint32 filterIgnore; 
-  uint32 filterRequired;
-  bool useRenderableQueue;
-  bool useLightQueue;
-  bool forceNoInstancing;
-  uint32 userFlags;
-};
-
 struct RendQueueItem
 {
 	SceneNode  const*node;
-	int        type;  // Type is stored explicitly for better cache efficiency when iterating over list
 	float      sortKey;
 
 	RendQueueItem() {}
-	RendQueueItem( int type, float sortKey, SceneNode const*node ) : node( node ), type( type ), sortKey( sortKey ) {}
+	RendQueueItem(float sortKey, SceneNode const*node) : node(node), sortKey(sortKey) {}
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
-typedef boost::container::flat_map<int, RenderableQueue > RenderableQueues;
-typedef std::unordered_map<InstanceKey, RenderableQueue, hash_InstanceKey > InstanceRenderableQueue;
+typedef boost::container::flat_map<int, std::shared_ptr<RenderableQueue> > RenderableQueues;
+typedef std::unordered_map<InstanceKey, std::shared_ptr<RenderableQueue>, hash_InstanceKey > InstanceRenderableQueue;
 typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
 
-class SpatialGraph
-{
-public:
-	SpatialGraph(SceneId sceneId);
-	
-	void addNode(SceneNode const& sceneNode);
-	void removeNode(SceneNode const& sceneNode);
-	void updateNode(SceneNode const& sceneNode);
-
-   void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-      std::vector<SceneNode const*>& lightQueue);
-
-protected:
-   SceneId _sceneId;
-	std::unordered_map<NodeHandle, SceneNode const*>      _nodes;  // Renderable nodes and lights
-};
 
 struct GridItem {
-   GridItem(BoundingBox const& b, SceneNode* n) {
-      bounds = b;
-      node = n;
+   GridItem(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) 
+   {
    }
    BoundingBox bounds;
    SceneNode* node;
+   float sortKey;
+   std::shared_ptr<RenderableQueue> renderQueues[4];
 };
 
 struct GridElement 
@@ -375,6 +333,8 @@ struct QueryResult
 
    BoundingBox bounds;
    SceneNode* node;
+   float sortKey;
+   RenderableQueue* renderQueues[4];
 };
 
 
@@ -387,18 +347,14 @@ public:
 	void removeNode(SceneNode& sceneNode);
 	void updateNode(SceneNode& sceneNode);
 
-   void query(const SpatialQuery& query, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues,
-      std::vector<SceneNode const*>& lightQueue);
    void query2(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
    void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb);
+   void updateNodeInstanceKey(SceneNode& sceneNode);
 
 protected:
    int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline uint32 hashGridPoint(int x, int y) const;
    inline void unhashGridHash(uint32 hash, int* x, int* y) const;
-   void _queryLights(std::vector<GridItem> const& nodes, SpatialQuery const& query, std::vector<SceneNode const*>& lightQueue);
-   void _queryRenderables(std::vector<GridItem> const& nodes, SpatialQuery const& query, RenderableQueues& renderableQueues, 
-                         InstanceRenderableQueues& instanceQueues);
    void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    void _queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
@@ -439,14 +395,6 @@ struct CastRayResult
 	float      distance;
 	Vec3f      intersection;
    Vec3f      normal;
-};
-
-struct SpatialQueryResult
-{
-   SpatialQuery query;
-   RenderableQueues renderableQueues;
-   InstanceRenderableQueues instanceRenderableQueues;
-   std::vector<SceneNode const*> lightQueue;
 };
 
 struct CachedQueryResult 
@@ -514,6 +462,7 @@ public:
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
 	void removeNode( SceneNode &node );
 	bool relocateNode( SceneNode &node, SceneNode &parent );
+   void updateNodeInstanceKey(SceneNode& node);
 	
 	int findNodes( SceneNode &startNode, std::string const& name, int type );
 	SceneNode *getFindResult( int index ) { return (unsigned)index < _findResults.size() ? _findResults[index] : 0x0; }
@@ -543,7 +492,6 @@ protected:
    void _updateQueuesWithNode(SceneNode& node, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues);
    NodeHandle nextNodeId();
 	void _findNodes( SceneNode &startNode, std::string const& name, int type );
-   int _checkQueryCache(const SpatialQuery& query);
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
 	void removeNodeRec( SceneNode &node );
 	void castRayInternal( SceneNode &node, int userFlags );
@@ -563,10 +511,6 @@ protected:
 	Vec3f                          _rayOrigin;  // Don't put these values on the stack during recursive search
 	Vec3f                          _rayDirection;  // Ditto
 	int                            _rayNum;  // Ditto
-
-   SpatialQueryResult             _queryCache[QueryCacheSize];
-   int                            _queryCacheCount;
-   int                            _currentQuery;
 
    CachedQueryResult              _queryCache2[QueryCacheSize];
    int                            _queryCacheCount2;

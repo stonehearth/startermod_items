@@ -1615,9 +1615,13 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 		// Generate render queue with shadow casters for current slice
 	   // Build optimized light projection matrix
 		frustum.buildViewFrustum(lightViewMat, lightProjMat);
-      Modules::sceneMan().sceneForId(sceneId).updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
-			SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, false, 0 );
-		
+      //Modules::sceneMan().sceneForId(sceneId).updateQueues("rendering shadowmap", frustum, 0x0, RenderingOrder::None,
+		//	SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, false, 0 );
+      
+      // TODO: NoDraw/NoCastShadow, need to purge the results!
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::Renderables);
+      composeRenderables(results, frustum, RenderingOrder::None, QueryTypes::Renderables);
+
       gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
 
 		// Create texture atlas if several splits are enabled
@@ -1902,6 +1906,55 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
    }
 }
 
+void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes)
+{
+   // Has this query been cached?  Set those renderable queues, if so.
+   radiant::perfmon::TimelineCounterGuard uq("composeRenderables");
+
+   for (int i = 0; i < _renderCacheCount; i++)
+   {
+      CachedRenderResult& r = _renderCache[i];
+
+      if (r.frust == frust && r.queryTypes == queryTypes && r.order == order) {
+         _activeRenderCache = i;
+         return;
+      }
+   }
+
+   if (_renderCacheCount < RenderCacheSize) {
+      _renderCacheCount++;
+   } else {
+      ASSERT(false);
+   }
+   _activeRenderCache = _renderCacheCount - 1;
+   CachedRenderResult& r = _renderCache[_activeRenderCache];
+
+   r.frust = frust;
+   r.queryTypes = queryTypes;
+   r.order = order;
+
+   // Seriously consider/profile breaking this into 4 (not 3) seperate loops.
+   for (auto const& result : queryResults) {
+      BoundingBox const& bounds = result.bounds;
+      float sortKey = 0;
+
+      switch(order)
+      {
+      case RenderingOrder::StateChanges:
+         sortKey = result.sortKey;
+         break;
+      case RenderingOrder::FrontToBack:
+         sortKey = nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
+         break;
+      case RenderingOrder::BackToFront:
+         sortKey = -nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
+         break;
+      }
+
+      result.renderQueues[_activeRenderCache]->emplace_back(sortKey, result.node);
+   }
+}
+
 void Renderer::drawMatSphere(Resource *matRes, std::string const& shaderContext, const Vec3f &pos, float radius)
 {
 
@@ -1974,8 +2027,11 @@ void Renderer::drawLodGeometry(SceneId sceneId, std::string const& shaderContext
 
    R_LOG(7) << "updating geometry queue";
 
-   Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing geometry", f, lightFrus, order, SceneNodeFlags::NoDraw, 
-      filterRequried, false, true );
+   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::Renderables);
+   composeRenderables(result, f, order, QueryTypes::Renderables);
+
+   /*Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing geometry", f, lightFrus, order, SceneNodeFlags::NoDraw, 
+      filterRequried, false, true );*/
 	
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 	drawRenderables(sceneId, shaderContext, false, &_curCamera->getFrustum(), 0x0, order, occSet, lodLevel );
@@ -2121,8 +2177,7 @@ void Renderer::computeTightCameraBounds(SceneId sceneId, float* minDist, float* 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
    std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::Renderables);
-   //scene.updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
-   //   RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
+
    for (const auto& r : results) {
 	   visibleAabb.makeUnion(r.bounds);
    }
@@ -2913,17 +2968,17 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 			continue;
       }
 
-      if (instanceKind.second.size() <= 0) {
+      if (instanceKind.second->size() <= 0) {
          R_LOG(9) << "no instances created for " << curVoxelGeoRes->getName() << " .  ignoring.";
          continue;
       }
 
-      bool useInstancing = instanceKind.second.size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
+      bool useInstancing = instanceKind.second->size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
       Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
       Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
 
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
-      vmn = (VoxelMeshNode*)instanceKind.second.front().node;
+      vmn = (VoxelMeshNode*)instanceKind.second->front().node;
       const VoxelModelNode* voxelModel = vmn->getParentModel();
 
 		// Bind geometry
@@ -3003,9 +3058,9 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 
       RENDER_LOG() << "rendering (use instancing: " << useInstancing << ")";
       if (useInstancing) {
-         drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn, lodLevel);
+         drawVoxelMesh_Instances_WithInstancing(*instanceKind.second.get(), vmn, lodLevel);
       } else {
-         drawVoxelMesh_Instances_WithoutInstancing(instanceKind.second, vmn, lodLevel);
+         drawVoxelMesh_Instances_WithoutInstancing(*instanceKind.second.get(), vmn, lodLevel);
       }
 #undef RENDER_LOG
    }
@@ -3520,6 +3575,23 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 	finishRendering();
 }
 
+
+void Renderer::clearRenderCache()
+{
+   _activeRenderCache = -1;
+   _renderCacheCount = 0;
+   for (int i = 0; i < RenderCacheSize; i++) {
+      for (auto& iq : _instanceQueues[i]) {
+         for (auto& rq : iq.second) {
+            rq.second->resize(0);
+         }
+      }
+      for (auto& rq : _singularQueues[i]) {
+         rq.second->resize(0);
+      }
+   }
+}
+
 void Renderer::finalizeFrame()
 {
 	++_frameID;
@@ -3534,6 +3606,7 @@ void Renderer::finalizeFrame()
    logPerformanceData();
 	timer->Restart();
    Modules::sceneMan().clearQueryCaches();
+   clearRenderCache();
    gRDI->_frameDebugInfo.endFrame();
 }
 
