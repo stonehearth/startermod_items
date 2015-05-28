@@ -400,7 +400,8 @@ protected:
    void _queryRenderables(std::vector<GridItem> const& nodes, SpatialQuery const& query, RenderableQueues& renderableQueues, 
                          InstanceRenderableQueues& instanceQueues);
    void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
-   std::unordered_map<NodeHandle, SceneNode const*> _directionalLights;
+   void _queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
+   std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
 
    std::unordered_map<uint32, GridElement> _gridElements;
    std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
@@ -452,6 +453,7 @@ struct CachedQueryResult
 {
    Frustum frust;
    std::vector<QueryResult> result;
+   QueryTypes::List queryTypes;
 };
 
 // =================================================================================================

@@ -270,7 +270,7 @@ protected:
    void drawSelected(SceneId sceneId, std::string const& shaderContext,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags );
-   void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights);
+   void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights, std::vector<QueryResult> const& allLights);
 	void doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel=-1 );
 	void doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource* deferredMaterial);

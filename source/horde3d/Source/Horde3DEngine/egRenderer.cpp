@@ -2120,15 +2120,11 @@ void Renderer::computeTightCameraBounds(SceneId sceneId, float* minDist, float* 
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
-   scene.updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
-      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
-   for( const auto& queue : scene.getRenderableQueues() )
-   {
-      for (const auto& entry : queue.second)
-      {
-         SceneNode const* n = entry.node;
-	      visibleAabb.makeUnion(n->getBBox());
-      }
+   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::Renderables);
+   //scene.updateQueues("computing tight camera", _curCamera->getFrustum(), 0x0,
+   //   RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
+   for (const auto& r : results) {
+	   visibleAabb.makeUnion(r.bounds);
    }
 
    if (!visibleAabb.isValid())
@@ -2240,7 +2236,7 @@ struct LightImportanceSortPred
 };
 
 
-void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights)
+void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights, std::vector<QueryResult> const& allLights)
 {
    std::vector<LightNode*> high, low;
 
@@ -2251,9 +2247,14 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
    // As many low-importance lights as can fit, in order of f(screen_area, distance_from_viewer).
    // Right now, we don't worry about distance to the viewer; let's see how it looks....
 
-	for(auto const& entry : Modules::sceneMan().sceneForId(sceneId).getLightQueue())
+	for(auto const& entry : allLights)
 	{
-		LightNode* curLight = (LightNode*)entry;
+      LightNode* curLight = (LightNode*)entry.node;
+
+      if (curLight->getFlags() & SceneNodeFlags::NoDraw) {
+         continue;
+      }
+
       if (curLight->_importance == LightNodeImportance::Required) {
          // Just add all required lights, immediately, regardless of the maxLight cap.
          lights->push_back(curLight);
@@ -2289,11 +2290,10 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel)
 {
-   Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, order,
-      SceneNodeFlags::NoDraw, 0, true, false);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
 
    std::vector<LightNode*> prioritizedLights;
-   prioritizeLights(sceneId, &prioritizedLights);
+   prioritizeLights(sceneId, &prioritizedLights, lights);
 
    // For shadows, knowing the tightest extents (surrounding geometry) of the front and back of the frustum can 
    // help us greatly with increasing shadow precision, so compute them if needed.
@@ -2396,10 +2396,10 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
 
 void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource *deferredMaterial)
 {
-	Modules::sceneMan().sceneForId(sceneId).updateQueues( "drawing light shapes", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                  SceneNodeFlags::NoDraw, 0, true, false );
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
+   
    std::vector<LightNode*> prioritizedLights;
-   prioritizeLights(sceneId, &prioritizedLights);
+   prioritizeLights(sceneId, &prioritizedLights, lights);
 
    // For shadows, knowing the tightest extents (surrounding geometry) of the front and back of the frustum can 
    // help us greatly with increasing shadow precision, so compute them if needed.

@@ -849,6 +849,20 @@ void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum co
    }
 }
 
+void GridSpatialGraph::_queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results)
+{
+   for (GridItem const& g: nodes) {
+      LightNode *n = (LightNode*)g.node;
+
+      if (!n->getParamI(LightNodeParams::DirectionalI)) {
+         if (frust.cullSphere(n->getAbsPos(), n->getRadius())) {
+            continue;
+         }
+      }
+      results.emplace_back(QueryResult(g.bounds, g.node));
+   }
+}
+
 void GridSpatialGraph::query2(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes)
 {
    Modules::sceneMan().sceneForId(_sceneId).updateNodes();
@@ -864,7 +878,7 @@ void GridSpatialGraph::query2(Frustum const& frust, std::vector<QueryResult>& re
       }
 
       if (queryTypes & QueryTypes::Lights) {
-         _queryGrid(ge.second.nodes[LIGHT_NODES], frust, results);
+         _queryGridLight(ge.second.nodes[LIGHT_NODES], frust, results);
       }
    }
 
@@ -874,7 +888,7 @@ void GridSpatialGraph::query2(Frustum const& frust, std::vector<QueryResult>& re
    }
 
    if (queryTypes & QueryTypes::Lights) {
-      _queryGrid(_spilloverNodes[LIGHT_NODES], frust, results);
+      _queryGridLight(_spilloverNodes[LIGHT_NODES], frust, results);
    }
 
 
@@ -899,11 +913,11 @@ void GridSpatialGraph::query2(Frustum const& frust, std::vector<QueryResult>& re
       }
    }*/
 
-   /*if (queryTypes & QueryTypes::Lights) {
+   if (queryTypes & QueryTypes::Lights) {
       for (auto& d : _directionalLights) {
          results.emplace_back(QueryResult(d.second->_bBox, d.second));
       }
-   }*/   
+   }   
 }
 
 // =================================================================================================
@@ -1362,7 +1376,7 @@ std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTyp
    {
       CachedQueryResult& r = _queryCache2[i];
 
-      if (r.frust == frust) {
+      if (r.frust == frust && r.queryTypes == queryTypes) {
          return r.result;
       }
    }
@@ -1374,6 +1388,7 @@ std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTyp
    CachedQueryResult& r = _queryCache2[_currentQuery2];
 
    r.frust = frust;
+   r.queryTypes = queryTypes;
    _spatialGraph->query2(frust, r.result, queryTypes);
    return r.result;
 }
