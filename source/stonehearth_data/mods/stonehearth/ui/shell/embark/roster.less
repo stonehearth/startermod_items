@@ -1,0 +1,77 @@
+.roster {
+   overflow-y: auto;
+   overflow-x: hidden;
+
+   .rosterEntry {
+      position: relative;
+      width: 485px;
+      height: 130px;
+      display: inline-block;
+      border: #776746 solid 8px;
+      margin-left: 14px;
+      margin-right: 14px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+
+      .portrait {
+         position: relative;
+         float: left;
+         left: 3px;
+         top: 3px;
+         width: 122px;
+         height: 122px;
+         background: #776746;
+         padding: 1px;
+      }
+
+      .name {
+         font-family: @headerFontFamily;
+         font-size: 28px;
+         position: absolute;
+         left: 160px;
+         top: 7px;
+         color: #000;
+      }
+
+      .traits {
+         font-family: @baseFontFamily;
+         position: absolute;
+         left: 160px;
+         top: 45px;
+         color: #000;
+         font-size: 20px;
+      }
+
+      .stats {
+         .controlFont;
+         position: absolute;
+         font-size: 30px;
+         background: url(./images/stats_bg.png) no-repeat;
+         left: 160px;
+         top: 72px;
+         width:200px;
+         height:60px;
+         
+         .mind {
+            position: absolute;
+            bottom: 0px;
+            left: 36px;
+            color: #4bf600;
+         }
+         .body {
+            position: absolute;
+            bottom: 0px;
+            left: 110px;
+            color: #ff405b;
+         }
+         .spirit {
+            position: absolute;
+            bottom: 0px;
+            left: 176px;
+            color: #00b9f6;
+         }
+      }
+   }
+}
+
+

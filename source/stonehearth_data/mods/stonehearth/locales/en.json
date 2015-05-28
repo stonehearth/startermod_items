@@ -145,8 +145,7 @@
    "esc_menu_post_bug" : "Post a bug", 
 
    "embark_title" : "Prepare to set out for adventure",
-   "embark_citizen_info" : "Citizens",
-   "embark_citizen_info_name" : "Name",
+   "embark_citizen_info" : "Expedition Roster",
    "embark_reroll_citizens" : "Roll new citizens",
    "embark_shop_category_talisman" : "Job Talismans",
    "embark_shop_category_pets": "Starting Pets",

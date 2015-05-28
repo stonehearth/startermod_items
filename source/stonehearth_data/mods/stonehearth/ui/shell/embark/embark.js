@@ -23,6 +23,7 @@ App.StonehearthEmbarkView = App.View.extend({
       this._startingGold = 0;
 
       this._requestedPortraits = [];
+      this._citizensArray = [];
    },
 
    didInsertElement: function() {
@@ -89,6 +90,8 @@ App.StonehearthEmbarkView = App.View.extend({
          },
          removeZeroNumItems: false
       });
+
+      this._citizensRoster = this.$('#citizensRoster').stonehearthRoster();
 
       $.getJSON('/stonehearth/ui/data/embark_shop.json', function(data) {
          
@@ -188,7 +191,7 @@ App.StonehearthEmbarkView = App.View.extend({
             }
          },
          success: function(response) {
-            citizen.set('portrait_data', 'data:image/png;base64,' + response.bytes);
+            citizen.set('portrait', 'data:image/png;base64,' + response.bytes);
          }
       }
 
@@ -209,14 +212,15 @@ App.StonehearthEmbarkView = App.View.extend({
       self._cancelAllPortraitRequests();
 
       var citizenMap = this.get('model.citizens');
-      var vals = radiant.map_to_array(citizenMap, function(citizen_id ,citizen) {
+      this._citizensArray = radiant.map_to_array(citizenMap, function(citizen_id ,citizen) {
          citizen.set('__id', citizen_id);
-         citizen.set('portrait_data', '/stonehearth/ui/shell/embark/images/portrait_not_yet_available.png');
+         citizen.set('portrait', '/stonehearth/ui/shell/embark/images/portrait_not_yet_available.png');
          // TODO(yshan): Uncomment this once we fix the bug where citizens
          // are invisible if we generate their portrait on embark screen.
          //self._requestCitizenPortrait(citizen);
       });
-      this.set('model.citizensArray', vals);
+
+      self._citizensRoster.stonehearthRoster('updateRoster', this._citizensArray);
    },
 
    _updateBuyButton: function() {
