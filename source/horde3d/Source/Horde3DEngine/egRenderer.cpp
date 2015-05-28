@@ -1556,6 +1556,32 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 		_splitPlanes[i] = (1 - lambda) * uniformDist + lambda * logDist;  // Lerp
 	}
 
+   BoundingBox litAabb;
+	Matrix4f lightProjMat;
+   Matrix4f lightViewMat;
+   if (light->_directional) {
+	   // Find AABB of lit geometry
+      Vec3f lightAbsPos;
+      std::ostringstream reason;
+      reason << "update shadowmap for light " << light->getName();
+      Modules::sceneMan().sceneForId(sceneId).updateQueues(reason.str().c_str(), *lightFrus, 0x0,
+		   RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
+      for(const auto& queue : Modules::sceneMan().sceneForId(sceneId).getRenderableQueues())
+	   {
+         for (const auto& entry : queue.second) 
+         {
+            SceneNode const* n = entry.node;
+            litAabb.makeUnion(n->getBBox());
+         }
+	   }
+
+      lightAbsPos = (litAabb.min() + litAabb.max()) * 0.5f;
+      lightViewMat = Matrix4f(light->getViewMat());
+      lightViewMat.x[12] = lightAbsPos.x;
+      lightViewMat.x[13] = lightAbsPos.y;
+      lightViewMat.x[14] = lightAbsPos.z;
+   }
+
 	// Prepare shadow map rendering
 	glEnable(GL_DEPTH_TEST);
    gRDI->setShadowOffsets(2.0f, 4.0f);
@@ -1582,32 +1608,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
       //gRDI->_frameDebugInfo.addSplitFrustum_(frustum);
 		
 		// Get light projection matrix
-		Matrix4f lightProjMat;
-      Matrix4f lightViewMat;
-      Vec3f lightAbsPos;
       if (light->_directional) {
-	      // Find AABB of lit geometry
-	      BoundingBox litAabb;
-
-         std::ostringstream reason;
-         reason << "update shadowmap for light " << light->getName();
-         Modules::sceneMan().sceneForId(sceneId).updateQueues(reason.str().c_str(), *lightFrus, 0x0,
-		      RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true);
-         for(const auto& queue : Modules::sceneMan().sceneForId(sceneId).getRenderableQueues())
-	      {
-            for (const auto& entry : queue.second) 
-            {
-               SceneNode const* n = entry.node;
-               litAabb.makeUnion(n->getBBox());
-            }
-	      }
-
-         lightAbsPos = (litAabb.min() + litAabb.max()) * 0.5f;
-         lightViewMat = Matrix4f(light->getViewMat());
-         lightViewMat.x[12] = lightAbsPos.x;
-         lightViewMat.x[13] = lightAbsPos.y;
-         lightViewMat.x[14] = lightAbsPos.z;
-
          lightProjMat = calcDirectionalLightShadowProj(light, litAabb, frustum, lightViewMat);
       } else {
 		   float ymax = 0.1f * tanf(degToRad(45.0f));
