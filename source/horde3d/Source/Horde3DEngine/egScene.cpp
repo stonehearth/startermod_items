@@ -784,21 +784,23 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    }
 
    if (query.useRenderableQueue) {
-      for (auto const& n : _nocullNodes) {
-         if (n.second->_accumulatedFlags & query.filterIgnore) {
-            continue;
+      if (query.filterRequired & SceneNodeFlags::NoCull || ((query.filterIgnore & SceneNodeFlags::NoCull) == 0)) {
+         for (auto const& n : _nocullNodes) {
+            if (n.second->_accumulatedFlags & query.filterIgnore) {
+               continue;
+            }
+            if ((n.second->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
+               continue;
+            }
+            if ((n.second->_userFlags & query.userFlags) != query.userFlags) {
+               continue;
+            }
+            if (renderableQueues.find(n.second->_type) == renderableQueues.end()) {
+               renderableQueues[n.second->_type] = RenderableQueue();
+               renderableQueues[n.second->_type].reserve(1000);
+            }
+            renderableQueues[n.second->_type].emplace_back( RendQueueItem( n.second->_type, 0, n.second ) );
          }
-         if ((n.second->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
-            continue;
-         }
-         if ((n.second->_userFlags & query.userFlags) != query.userFlags) {
-            continue;
-         }
-         if (renderableQueues.find(n.second->_type) == renderableQueues.end()) {
-            renderableQueues[n.second->_type] = RenderableQueue();
-            renderableQueues[n.second->_type].reserve(1000);
-         }
-         renderableQueues[n.second->_type].emplace_back( RendQueueItem( n.second->_type, 0, n.second ) );
       }
    }
 
