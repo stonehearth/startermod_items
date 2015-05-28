@@ -14,7 +14,13 @@
                "title" : "Panting refugees appear on the horizon",
                "dialog_title" : "Refugee",
                "portrait" : "file(images/refugee.png)",
-               "message" : "There are wolves in the woods! Run away while you still can!",
+               "message" : [
+                  "There are wolves in the woods! Run away while you still can!",
+                  "Can't you hear the howling? There are goblin wolves in the woods!",
+                  "Our group was just attacked by goblins! Flee!",
+                  "Those goblin wolves aren't like normal wolves--they're fast and viscious and unafraid! Run while you can!",
+                  "You have goblins in your woods! Bunker down somewhere safe before they attack!"
+               ],
                "choices" : {
                   "stonehearth:ok" : {
                   }

@@ -5,6 +5,7 @@
    "encounters" : {
       "wait to start" : "file(encounters/wait_to_start.json)",
       "inital_warning" : "file(encounters/initial_warning.json)", 
+      "wait to create camps" : "file(encounters/wait_to_create_camps.json)", 
       "create_camps" : "file(encounters/create_camps.json)",
       "create_scout_camp" : "file(encounters/create_scout_camp.json)", 
       "wait_for_wakeup" : "file(encounters/wait_for_wakeup.json)",
