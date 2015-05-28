@@ -49,9 +49,18 @@ $.widget( "stonehearth.stonehearthRoster", {
          .addClass('portrait')
          .attr('src', entry.portrait);
 
-      var name = $('<div>')
+      var name = $('<input>')
          .addClass('name')
-         .html(entry.unit_info.name);
+         .attr('onClick', 'this.select();')
+         .attr('type', 'text')
+         .attr('value', entry.unit_info.name);
+
+      name.keypress(function (e) {
+            if (e.which == 13) {
+               radiant.call('stonehearth:set_display_name', entry.__self, $(this).val())
+               $(this).blur();
+           }
+         });
 
       // TODO(yshan): add traits.
       var traits = $('<div>')
