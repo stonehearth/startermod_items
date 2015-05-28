@@ -3,7 +3,7 @@
    "encounter_type" : "generator",
 
    "in_edge"  : "create_camps",
-   "out_edge" : ["wait_four_days", "arc:finish"],
+   "out_edge" : ["wait_to_return", "arc:finish"],
 
    "generator_info" :  {
       "delay" : "1d+5h",

@@ -4,7 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "create_scout_camp",
-   "out_edge" : ["wait_for_wakeup", "wait_for_cage_destruction"],
+   "out_edge" : ["wait_for_wakeup", "wait_for_cage_destruction", "unique_defeat_hint"],
 
 
    "create_camp_info" : {
