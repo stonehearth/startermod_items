@@ -260,6 +260,10 @@ local constants = {
       }
    },
 
+   combat = {
+      ALLY_AGGRO_RATIO = 0.50
+   },
+
    mining = {
       XZ_CELL_SIZE = 4,
       Y_CELL_SIZE = 5,
