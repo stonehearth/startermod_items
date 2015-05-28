@@ -67,27 +67,22 @@ $.widget( "stonehearth.stonehearthRoster", {
          .addClass('traits')
          .html("Normal");
 
-      var mindValue = entry['stonehearth:attributes'].attributes.mind.effective_value;
-      var bodyValue = entry['stonehearth:attributes'].attributes.body.effective_value;
-      var spiritValue = entry['stonehearth:attributes'].attributes.spirit.effective_value;
-
-      var mind = $('<div>')
-         .addClass('mind')
-         .html(mindValue);
-
-      var body = $('<div>')
-         .addClass('body')
-         .html(bodyValue);
-      
-      var spirit = $('<div>')
-         .addClass('spirit')
-         .html(spiritValue);
-
       var stats = $('<div>')
-         .addClass('stats')
-         .append(mind)
-         .append(body)
-         .append(spirit);
+         .addClass('stats');
+
+      var attributesToDisplay = ['mind', 'body', 'spirit'];
+      radiant.each(attributesToDisplay, function(i, attribute) {
+         var attributeValue = entry['stonehearth:attributes'].attributes[attribute].effective_value;
+         var element = $('<div>')
+            .addClass(attribute)
+            .html(attributeValue);
+         
+         element.tooltipster();            
+         var tooltipString = App.tooltipHelper.getAttributeTooltip(attribute);
+         element.tooltipster('content', $(tooltipString));
+         
+         stats.append(element);
+      });
 
       var rosterElement = $('<div>')
          .addClass('rosterEntry')

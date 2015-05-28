@@ -1,0 +1,64 @@
+{
+   "attribute_tooltips" : [
+      {
+         "attribute" : "mind",
+         "display_name" : "Mind",
+         "description" : "The ability to think intelligently. A high Mind stat allows a hearthling to exceed in complex mental tasks. Influences Diligence, Curiosity, Inventiveness."
+      },
+      {
+         "attribute" : "body",
+         "display_name" : "Body",
+         "description" : "Competence at physical activities. Hearthlings with a high Body stat will move faster. Influences Muscle, Speed, Stamina."
+      },
+      {
+         "attribute" : "spirit",
+         "display_name" : "Spirit",
+         "description" : "Faith in other people. A high Spirit hearthling will easily befriend others and stand strong against enemies. Influences Courage, Willpower, Compassion."
+      },
+      {
+         "attribute" : "diligence",
+         "display_name" : "Diligence",
+         "description" : "How hard this hearthling works. More diligent workers will complete their tasks without getting distracted."
+      },
+      {
+         "attribute" : "curiosity",
+         "display_name" : "Curiosity",
+         "description" : "How likely this hearthling is to explore interesting things in the world."
+      },
+      {
+         "attribute" : "inventiveness",
+         "display_name" : "Inventiveness",
+         "description" : "How good this hearthling is at creating things. Good inventors are more likely to create fine craftables."
+      },
+      {
+         "attribute" : "muscle",
+         "display_name" : "Muscle",
+         "description" : "This hearthling's brawn. Contributes to this hearthling's damage in combat."
+      },
+      {
+         "attribute" : "speed",
+         "display_name" : "Speed",
+         "description" : "How fast this hearthling moves."
+      },
+      {
+         "attribute" : "stamina",
+         "display_name" : "Stamina",
+         "description" : "How long this hearthling can work before needing rest."
+      },
+      {
+         "attribute" : "courage",
+         "display_name" : "Courage",
+         "description" : "How brave this hearthling is in the face of combat. Less courageous hearthlings are liable to flee from enemies."
+      },
+      {
+         "attribute" : "willpower",
+         "display_name" : "Willpower",
+         "description" : "How likely this hearthling is to resist enemy charms."
+      },
+      {
+         "attribute" : "compassion",
+         "display_name" : "Compassion",
+         "description" : "How likely this hearthling will help out a fellow villager or befriend others."
+      }
+   ]
+}

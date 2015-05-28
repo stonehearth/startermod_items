@@ -1618,6 +1618,7 @@
          "file(ui/common/modal_overlay/modal_overlay.js)",
          "file(ui/common/confirm/confirm.js)",
          "file(ui/common/portrait_manager/portrait_manager.js)",
+         "file(ui/common/tooltip_helper/tooltip_helper.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
          "file(ui/shell/new_game_options/new_game_options.js)",

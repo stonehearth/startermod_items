@@ -303,8 +303,14 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $(obj).tooltipster('enable');
 
       } else if ($(obj).tooltipster()) {
-         $(obj).tooltipster('content', "");
-         $(obj).tooltipster('disable');
+         // Put down generic tooltip if it exists.
+         var tooltipString = App.tooltipHelper.getAttributeTooltip(attrib_name);
+         if (tooltipString) {
+            $(obj).tooltipster('content', $(tooltipString));
+         } else {
+            $(obj).tooltipster('content', "");
+            $(obj).tooltipster('disable');
+         }
       }
    },
 
