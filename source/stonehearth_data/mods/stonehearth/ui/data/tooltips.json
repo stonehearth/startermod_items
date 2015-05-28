@@ -33,7 +33,7 @@
       {
          "attribute" : "muscle",
          "display_name" : "Muscle",
-         "description" : "This hearthling's brawn. Contributes to this hearthling's damage in combat."
+         "description" : "This hearthling's brawn. Contributes to damage in combat."
       },
       {
          "attribute" : "speed",

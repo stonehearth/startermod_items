@@ -121,7 +121,7 @@
       "description" : "Build structures like houses and city walls.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/build.png",
-      "hotkey" : "2",
+      "hotkey" : "3",
       "game_mode" : "build",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
