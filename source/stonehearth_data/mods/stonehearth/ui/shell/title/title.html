@@ -38,18 +38,18 @@
             </div>
          </div>
 
-         <a href="#" {{action continueGame target="view"}}>
+         <a href="#" {{action 'continueGame' target="view"}}>
             <button id="continueGameButton" class="flat last">{{i18n stonehearth:title_screen_continue_game}}</button>
          </a>         
 
-         <a href="#" {{action newGame target="view"}}>
+         <a href="#" {{action 'newGame' target="view"}}>
             <button id="newGameButton" class="flat">{{i18n stonehearth:title_screen_new_game}}</button>
          </a>
          <a href="#" {{action 'openModal' 'save' 'hideSaveButtons'}}>
             <button id="loadGameButton" class="flat">{{i18n stonehearth:title_screen_load_game}}</button>
          </a>
 
-         <a href="#" {{action quickStart target="view"}}>
+         <a href="#" {{action 'quickStart' target="view"}}>
             <button id="quickStartButton" class="flat last">{{i18n stonehearth:title_screen_quick_start}}</button>
          </a>
       </div>
