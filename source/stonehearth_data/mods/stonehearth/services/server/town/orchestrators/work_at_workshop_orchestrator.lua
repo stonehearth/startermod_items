@@ -1,6 +1,7 @@
 local Point3 = _radiant.csg.Point3
 local CollectIngredients = require 'services.server.town.orchestrators.collect_ingredients_orchestrator'
 local ClearWorkshop = require 'services.server.town.orchestrators.clear_workshop_orchestrator'
+local constants = require 'constants'
 local rng = _radiant.csg.get_default_rng()
 
 local WorkAtWorkshop = class()
@@ -165,7 +166,21 @@ function WorkAtWorkshop:_determine_output(product)
    local item_uri = product.item
    local target_num = rng:get_int(1, 100)
    local crafter_component = self._crafter:get_component('stonehearth:crafter')
-   if product.fine and target_num <= crafter_component:get_fine_percentage() then
+   local fine_percentage = crafter_component:get_fine_percentage()
+   if (fine_percentage > 0) then
+      local attributes_component = self._crafter:get_component('stonehearth:attributes')
+      local inventiveness = attributes_component:get_attribute('inventiveness')
+      if (inventiveness >= constants.attribute_effects.INVENTIVENESS_CRAFTING_FINE_THRESHOLD) then
+         local inventiveness_modifier = radiant.math.round(inventiveness * constants.attribute_effects.INVENTIVENESS_CRAFTING_FINE_MULTIPLIER)
+         fine_percentage = fine_percentage + inventiveness_modifier
+      end
+
+      if (fine_percentage < 0) then
+         fine_percentage = 0
+      end
+   end
+
+   if product.fine and target_num <= fine_percentage then
       item_uri = product.fine
    end
    return item_uri

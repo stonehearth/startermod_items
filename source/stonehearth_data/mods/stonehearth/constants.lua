@@ -291,7 +291,9 @@ local constants = {
    },
 
    attribute_effects = {
-      MUSCLE_MELEE_MULTIPLIER = 0.1,   -- Multiply an entity's mucle attribute by this to contribute to melee total damage.
+      MUSCLE_MELEE_MULTIPLIER = 0.2,   -- Multiply an entity's mucle attribute by this to contribute to melee total damage.
+      INVENTIVENESS_CRAFTING_FINE_THRESHOLD = 20,   -- Inventiveness must be greater than or equal to this to get the bonus multiplier.
+      INVENTIVENESS_CRAFTING_FINE_MULTIPLIER = 0.5,   -- Multiply an entity's inventiveness attribute by this, and then add that to the percentage fine chance when crafting.
    },
 }
 

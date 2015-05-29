@@ -136,7 +136,7 @@
          },
          "compassion": {
             "type" : "derived",
-            "equation" : "spirit * 10 + stamina_adjustment"
+            "equation" : "spirit * 10 + compassion_adjustment"
          },
          "menace": {
             "type" : "derived",
