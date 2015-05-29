@@ -291,8 +291,8 @@ local constants = {
    },
 
    attribute_effects = {
-      MUSCLE_MELEE_MULTIPLIER = 0.017,   -- Multiply an entity's mucle attribute by this to get multiplier on top of base damage.
-      MUSCLE_MELEE_MULTIPLIER_BASE = 0.5,   -- Add melee multiplier and melee multipler base to get full multiplier
+      MUSCLE_MELEE_MULTIPLIER = 0.01,   -- Multiply an entity's mucle attribute by this to get multiplier on top of base damage.
+      MUSCLE_MELEE_MULTIPLIER_BASE = 1,   -- Add melee multiplier and melee multipler base to get full multiplier
       INVENTIVENESS_CRAFTING_FINE_THRESHOLD = 20,   -- Inventiveness must be greater than or equal to this to get the bonus multiplier.
       INVENTIVENESS_CRAFTING_FINE_MULTIPLIER = 0.5,   -- Multiply an entity's inventiveness attribute by this, and then add that to the percentage fine chance when crafting.
       DILIGENCE_WORK_UNITS_THRESHOLD = 3, -- Craftables with work units above this threshold will get a diligence deduction
