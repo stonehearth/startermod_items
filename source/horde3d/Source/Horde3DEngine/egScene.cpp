@@ -195,11 +195,22 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 	}
 }
 
-
 void SceneNode::updateAccumulatedFlags()
 {
    int parentFlags = _parent ? _parent->_accumulatedFlags : 0;
+
+   int oldFlags = _accumulatedFlags;
    _accumulatedFlags = _flags | parentFlags;
+
+   if (_accumulatedFlags & SceneNodeFlags::NoDraw) {
+      if ((oldFlags & SceneNodeFlags::NoDraw) == 0) {
+         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, true);
+      }
+   } else {
+      if (oldFlags & SceneNodeFlags::NoDraw) {
+         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, false);
+      }
+   }
 }
 
 void SceneNode::setFlags( int flags, bool recursive )
@@ -564,6 +575,9 @@ void GridSpatialGraph::removeNode(SceneNode& sceneNode)
    if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights.erase(h);
    } else {
+      if (sceneNode._gridPos == -1) {
+         return;
+      }
       const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
       std::vector<GridItem>*vec;
       if (sceneNode._gridId == -1) {
@@ -630,7 +644,11 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:updateNode");
 
-   if(!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
+   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoDraw) {
+      return;
+   }
+
+   if (!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
       return;
    }
    
@@ -1039,6 +1057,18 @@ NodeRegEntry *Scene::findType( std::string const& typeString )
 	return 0x0;
 }
 
+
+void Scene::setNodeHidden(SceneNode& node, bool hidden) {
+   if (hidden) {
+      if (node._gridPos >= 0) {
+         _spatialGraph->removeNode(node);
+      }
+   } else {
+      _spatialGraph->addNode(node);
+   }
+}
+
+
 void Scene::updateNodes()
 {
    radiant::perfmon::TimelineCounterGuard un("updateNodes");
@@ -1047,7 +1077,7 @@ void Scene::updateNodes()
 
 
 void Scene::updateSpatialNode(SceneNode& node) 
-{ 
+{
    _spatialGraph->updateNode(node);
    updateNodeTrackers(&node);
 }
@@ -1189,7 +1219,9 @@ NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
    node->markDirty(SceneNodeDirtyKind::All);
 
 	// Register node in spatial graph
-   _spatialGraph->addNode( *node );
+   if ((node->_accumulatedFlags & SceneNodeFlags::NoDraw) == 0) {
+      _spatialGraph->addNode(*node);
+   }
    return node->_handle;
 }
 
