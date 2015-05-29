@@ -3587,9 +3587,7 @@ RenderableQueue const& Renderer::getSingularQueue(int type)
 
 void Renderer::clearRenderCache()
 {
-   _activeRenderCache = -1;
-   _renderCacheCount = 0;
-   for (int i = 0; i < RenderCacheSize; i++) {
+   for (int i = 0; i < _renderCacheCount; i++) {
       _renderCache[i].singleNode = nullptr;
       for (auto& iq : _instanceQueues[i]) {
          for (auto& rq : iq.second) {
@@ -3600,6 +3598,8 @@ void Renderer::clearRenderCache()
          rq.second->clear();
       }
    }
+   _activeRenderCache = -1;
+   _renderCacheCount = 0;
 }
 
 void Renderer::finalizeFrame()
