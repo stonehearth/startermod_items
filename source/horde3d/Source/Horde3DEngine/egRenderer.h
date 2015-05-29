@@ -363,6 +363,13 @@ protected:
    int                                _renderCacheCount;
    int                                _activeRenderCache;
    CachedRenderResult                 _renderCache[RenderCacheSize];
+
+   static std::string const           DRAW_SKINNED_FLAG;
+   static std::string const           DRAW_WITH_INSTANCING_FLAG;
+   static std::string const           INSTANCE_SUPPORT_FLAG;
+
+
+
 public:
    // needed to draw debug shapes in extensions!
    glslopt_ctx*                       _glsl_opt_ctx;

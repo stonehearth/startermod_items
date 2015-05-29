@@ -74,6 +74,10 @@ float* Renderer::_vbInstanceVoxelBuf;
 std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
 Matrix4f Renderer::_defaultBoneMat;
 
+const std::string Renderer::DRAW_SKINNED_FLAG("ASD");
+const std::string Renderer::DRAW_WITH_INSTANCING_FLAG("DRAW_WITH_INSTANCING");
+const std::string Renderer::INSTANCE_SUPPORT_FLAG("INSTANCE_SUPPORT");
+
 Renderer::Renderer()
 {
 	_scratchBuf = 0x0;
@@ -227,7 +231,7 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 		Modules::log().writeWarning( "Renderer: No multisampling for render targets available" );
 
    // TODO(klochek): expose flags as part of an interface; h3dGetSupportedShaderFlags(), or something?
-   Modules::config().setGlobalShaderFlag("INSTANCE_SUPPORT", gRDI->getCaps().hasInstancing);
+   Modules::config().setGlobalShaderFlag(INSTANCE_SUPPORT_FLAG, gRDI->getCaps().hasInstancing);
 	
 	// Create vertex layouts
 	VertexLayoutAttrib attribsPosOnly[1] = {
@@ -2602,8 +2606,8 @@ void Renderer::drawMeshes(SceneId sceneId, std::string const& shaderContext, boo
 
    R_LOG(9) << "drawing meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
 
-   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
-   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
+   Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, false);
+   Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, false);
 	// Loop over mesh queue
 	for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::Mesh))
 	{
@@ -2772,7 +2776,7 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
    VoxelGeometryResource *curVoxelGeoRes = 0x0;
    MaterialResource *curMatRes = 0x0;
 
-   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
+   Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, true);
 
    R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
 
@@ -2966,8 +2970,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
       }
 
       bool useInstancing = instanceKind.second->size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
-      Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
-      Modules::config().setGlobalShaderFlag("DRAW_SKINNED", true);
+      Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, useInstancing);
+      Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, true);
 
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       vmn = (VoxelMeshNode*)instanceKind.second->front().node;
@@ -3169,8 +3173,8 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
 
    bool useInstancing = gRDI->getCaps().hasInstancing;
 
-   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
-   Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
+   Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, useInstancing);
+   Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, false);
 	
    R_LOG(9) << "drawing instance nodes (useInstancing:" << useInstancing << " lod:" << lodLevel << ")";
 
