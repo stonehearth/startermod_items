@@ -49,7 +49,7 @@ void DebugShapesNode::renderFunc(SceneId sceneId, std::string const& shaderConte
 
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
    // Loop through debug shape queue
-   for (const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_DebugShapesNode)) {
+   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_DebugShapesNode)) {
       DebugShapesNode *debugShapes = (DebugShapesNode *)entry.node;
       if (debugShapes->empty()) {
          continue;

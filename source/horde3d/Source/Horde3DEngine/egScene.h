@@ -307,7 +307,7 @@ struct GridItem {
    BoundingBox bounds;
    SceneNode* node;
    float sortKey;
-   std::shared_ptr<RenderableQueue> renderQueues[4];
+   RenderableQueue* renderQueues[32];
 };
 
 struct GridElement 
@@ -329,12 +329,18 @@ struct QueryTypes
 struct QueryResult
 {
    QueryResult() {}
-   QueryResult(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) {}
+   QueryResult(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) {
+   }
+   QueryResult(BoundingBox const& b, SceneNode* n, RenderableQueue* const queues[]) : bounds(b), node(n) {
+      for (int i = 0; i < 32; i++) {
+         renderQueues[i] =  queues[i];
+      }
+   }
 
    BoundingBox bounds;
    SceneNode* node;
    float sortKey;
-   RenderableQueue* renderQueues[4];
+   RenderableQueue* renderQueues[32];
 };
 
 
@@ -347,7 +353,8 @@ public:
 	void removeNode(SceneNode& sceneNode);
 	void updateNode(SceneNode& sceneNode);
 
-   void query2(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
+   GridItem* gridItemForNode(SceneNode const& node);
+   void query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
    void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb);
    void updateNodeInstanceKey(SceneNode& sceneNode);
 
@@ -402,6 +409,7 @@ struct CachedQueryResult
    Frustum frust;
    std::vector<QueryResult> result;
    QueryTypes::List queryTypes;
+   SceneNode const* singleNode;
 };
 
 // =================================================================================================
@@ -451,12 +459,9 @@ public:
 	
 	void updateNodes();
 	void updateSpatialNode(SceneNode& node);
-	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
-	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
-                      uint32 userFlags=0 );
-   void updateQueuesWithNode(SceneNode& node, Frustum const& frust);
 
    std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes);
+   std::vector<QueryResult> const& queryNode(SceneNode& node);
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );
 	NodeHandle addNodes( SceneNode &parent, SceneGraphResource &sgRes );
@@ -473,11 +478,6 @@ public:
 	int checkNodeVisibility( SceneNode &node, CameraNode &cam, bool checkOcclusion );
 
 	SceneNode &getRootNode() { return *_nodes[_rootNodeId]; }
-	std::vector<SceneNode const*> &getLightQueue();
-	RenderableQueue& getRenderableQueue(int itemType);
-   InstanceRenderableQueue& getInstanceRenderableQueue(int itemType);
-   InstanceRenderableQueues& getInstanceRenderableQueues();
-   RenderableQueues& getRenderableQueues();
 	
 	SceneNode *resolveNodeHandle( NodeHandle handle );
 
@@ -489,7 +489,6 @@ public:
    void shutdown();
    void initialize();
 protected:
-   void _updateQueuesWithNode(SceneNode& node, RenderableQueues& renderableQueues, InstanceRenderableQueues& instanceQueues);
    NodeHandle nextNodeId();
 	void _findNodes( SceneNode &startNode, std::string const& name, int type );
 	NodeHandle parseNode( SceneNodeTpl &tpl, SceneNode *parent );
@@ -497,6 +496,7 @@ protected:
 	void castRayInternal( SceneNode &node, int userFlags );
    void fastCastRayInternal(int userFlags);
    void updateNodeTrackers(SceneNode const* n);
+   void _queryNode(SceneNode& node, std::vector<QueryResult>& results);
 
 protected:
    SceneId                        _sceneId;
@@ -512,9 +512,9 @@ protected:
 	Vec3f                          _rayDirection;  // Ditto
 	int                            _rayNum;  // Ditto
 
-   CachedQueryResult              _queryCache2[QueryCacheSize];
-   int                            _queryCacheCount2;
-   int                            _currentQuery2;
+   CachedQueryResult              _queryCache[QueryCacheSize];
+   int                            _queryCacheCount;
+   int                            _currentQuery;
 
    std::unordered_map<SceneNode const*, std::function<void(SceneNode const*)>> _nodeTrackers;
 

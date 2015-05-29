@@ -34,7 +34,7 @@ const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
 const uint32 QuadIndexBufCount = MaxNumOverlayVerts * 6;
 const uint32 MaxVoxelInstanceCount = 1024;
-const uint32 RenderCacheSize = 4;
+const uint32 RenderCacheSize = 32;
 
 extern const char *vsDefColor;
 extern const char *fsDefColor;
@@ -168,6 +168,7 @@ struct CachedRenderResult
    Frustum frust;
    QueryTypes::List queryTypes;
    RenderingOrder::List order;
+   SceneNode* singleNode;
 };
 
 class Renderer
@@ -243,6 +244,9 @@ public:
 
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
+   InstanceRenderableQueue const& getInstanceQueue(int type);
+   RenderableQueue const& getSingularQueue(int type);
+
    InstanceRenderableQueues           _instanceQueues[RenderCacheSize];
    RenderableQueues                   _singularQueues[RenderCacheSize];
 
@@ -296,7 +300,7 @@ protected:
    void logPerformanceData();
    void setGpuCompatibility();
 
-   void composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes);
+   void composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes, SceneNode* singleNode);
 
 protected:
 	unsigned char                      *_scratchBuf;

@@ -91,6 +91,8 @@ Renderer::Renderer()
    _materialOverride = 0x0;
    _curPipeline = 0x0;
    _shadowCascadeBuffer = 0;
+   _activeRenderCache = -1;
+   _renderCacheCount = 0;
 
 	_vlPosOnly = 0;
 	_vlOverlay = 0;
@@ -1620,7 +1622,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
       
       // TODO: NoDraw/NoCastShadow, need to purge the results!
       std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::Renderables);
-      composeRenderables(results, frustum, RenderingOrder::None, QueryTypes::Renderables);
+      composeRenderables(results, frustum, RenderingOrder::None, QueryTypes::Renderables, nullptr);
 
       gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
 
@@ -1906,7 +1908,8 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
    }
 }
 
-void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes)
+
+void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes, SceneNode* singleNode)
 {
    // Has this query been cached?  Set those renderable queues, if so.
    radiant::perfmon::TimelineCounterGuard uq("composeRenderables");
@@ -1915,7 +1918,8 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
    {
       CachedRenderResult& r = _renderCache[i];
 
-      if (r.frust == frust && r.queryTypes == queryTypes && r.order == order) {
+      if ((singleNode && r.singleNode == singleNode) ||
+        (!singleNode && !r.singleNode && r.frust == frust && r.queryTypes == queryTypes && r.order == order)) {
          _activeRenderCache = i;
          return;
       }
@@ -1932,6 +1936,7 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
    r.frust = frust;
    r.queryTypes = queryTypes;
    r.order = order;
+   r.singleNode = singleNode;
 
    // Seriously consider/profile breaking this into 4 (not 3) seperate loops.
    for (auto const& result : queryResults) {
@@ -1954,6 +1959,7 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
       result.renderQueues[_activeRenderCache]->emplace_back(sortKey, result.node);
    }
 }
+
 
 void Renderer::drawMatSphere(Resource *matRes, std::string const& shaderContext, const Vec3f &pos, float radius)
 {
@@ -2028,7 +2034,7 @@ void Renderer::drawLodGeometry(SceneId sceneId, std::string const& shaderContext
    R_LOG(7) << "updating geometry queue";
 
    std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::Renderables);
-   composeRenderables(result, f, order, QueryTypes::Renderables);
+   composeRenderables(result, f, order, QueryTypes::Renderables, nullptr);
 
    /*Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing geometry", f, lightFrus, order, SceneNodeFlags::NoDraw, 
       filterRequried, false, true );*/
@@ -2086,38 +2092,22 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
       SceneNode *np = Modules::sceneMan().resolveNodeHandle(n.h);
       if (np) {
          // We load up each selected node (and all descendents) and render them, one root at a time.
-         Modules::sceneMan().sceneForId(sceneId).updateQueuesWithNode(*np, f);
+         std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryNode(*np);
 
-         // Update every selected element's selection color.
-         for (auto& q: Modules::sceneMan().sceneForId(sceneId).getRenderableQueues()) {
-            for (auto &rn : q.second) {
-               // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
-               // amongst other necessities, a material, and then everything will Just Work.
-               int matResHandle = rn.node->getParamI(VoxelMeshNodeParams::MatResI);
-               if (matResHandle > 0) {
-	               Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
+         for (QueryResult const& q : results) {
+            // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
+            // amongst other necessities, a material, and then everything will Just Work.
+            int matResHandle = q.node->getParamI(VoxelMeshNodeParams::MatResI);
+            if (matResHandle > 0) {
+	            Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
 
-                  ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
-                  ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
-               }
+               ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
+               ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
             }
          }
 
-         for (auto& q: Modules::sceneMan().sceneForId(sceneId).getInstanceRenderableQueues()) {
-            for (auto &irq : q.second) {
-               for (auto &rn : irq.second) {
-                  // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
-                  // amongst other necessities, a material, and then everything will Just Work.
-                  int matResHandle = rn.node->getParamI(VoxelMeshNodeParams::MatResI);
-                  if (matResHandle > 0) {
-	                  Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
+         composeRenderables(results, f, order, QueryTypes::Renderables, np);
 
-                     ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
-                     ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
-                  }
-               }
-            }
-         }
          updateLodUniform(0, 0.41f, 0.39f);
 
 	      setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2151,9 +2141,10 @@ void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext
       _materialOverride = n->getMaterialRes();
       Frustum f;
       const BoundingBox& b = n->getBBox();
+      ASSERT(false);
       f.buildBoxFrustum(m, b.min().x, b.max().x, b.min().y, b.max().y, b.min().z, b.max().z);
-      scene.updateQueues("drawing geometry", f, 0x0, RenderingOrder::None,
-	                                    SceneNodeFlags::NoDraw, 0, false, true, false, userFlags);
+      //scene.updateQueues("drawing geometry", f, 0x0, RenderingOrder::None,
+	   //                                 SceneNodeFlags::NoDraw, 0, false, true, false, userFlags);
 
       _projectorMat = n->getAbsTrans();
 
@@ -2611,11 +2602,10 @@ void Renderer::drawMeshes(SceneId sceneId, std::string const& shaderContext, boo
 
    R_LOG(9) << "drawing meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
 
-
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
    Modules::config().setGlobalShaderFlag("DRAW_SKINNED", false);
 	// Loop over mesh queue
-	for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::Mesh) )
+	for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::Mesh))
 	{
 		MeshNode *meshNode = (MeshNode *)entry.node;
 		ModelNode *modelNode = meshNode->getParentModel();
@@ -2755,18 +2745,18 @@ void Renderer::drawHudElements(SceneId sceneId, std::string const& shaderContext
                                int occSet, int lodLevel)
 {
    radiant::perfmon::TimelineCounterGuard dvm("drawHudElements");
-	if( frust1 == 0x0 ) return;
+   if (frust1 == 0x0) {
+      return;
+   }
 	
-	for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::HudElement) )
-	{
+   for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::HudElement)) {
       HudElementNode* hudNode = (HudElementNode*) entry.node;
       
-      for (const auto& hudElement : hudNode->getSubElements())
-      {
+      for (const auto& hudElement : hudNode->getSubElements()) {
          hudElement->draw(shaderContext, hudNode->_absTrans);
       }
    }
-	gRDI->setVertexLayout( 0 );
+   gRDI->setVertexLayout(0);
 }
 
 
@@ -2775,7 +2765,9 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
                                int occSet, int lodLevel)
 {
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes");
-   if( frust1 == 0x0 ) return;
+   if (frust1 == 0x0) {
+      return;
+   }
 
    VoxelGeometryResource *curVoxelGeoRes = 0x0;
    MaterialResource *curMatRes = 0x0;
@@ -2785,8 +2777,7 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
    R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
 
    // Loop over mesh queue
-   for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::VoxelMesh) )
-   {
+   for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::VoxelMesh)) {
       VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
       VoxelModelNode *modelNode = meshNode->getParentModel();
 
@@ -2945,7 +2936,9 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 {
    const unsigned int VoxelInstanceCutoff = 2;
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
-	if( frust1 == 0x0 ) return;
+	if (frust1 == 0x0) {
+      return;
+   }
 	
 	MaterialResource *curMatRes = 0x0;
 
@@ -2957,8 +2950,7 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
                                  << ") "
 
    // Loop over mesh queue
-   for( const auto& instanceKind : Modules::sceneMan().sceneForId(sceneId).getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
-	{
+   for (auto const& instanceKind : Modules::renderer().getInstanceQueue(SceneNodeTypes::VoxelMesh)) {
       const InstanceKey& instanceKey = instanceKind.first;
       const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.geoResource;
       VoxelMeshNode* vmn = nullptr;
@@ -3188,8 +3180,7 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
 
       gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
 	   MaterialResource *curMatRes = 0x0;
-      for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::InstanceNode) )
-	   {
+      for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::InstanceNode)) {
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
@@ -3213,8 +3204,7 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
    } else {
       gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
 	   MaterialResource *curMatRes = 0x0;
-      for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::InstanceNode) )
-	   {
+      for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::InstanceNode)) {
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
@@ -3260,8 +3250,7 @@ void Renderer::drawParticles(SceneId sceneId, std::string const& shaderContext, 
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
-	for( const auto& entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SceneNodeTypes::Emitter) )
-	{
+	for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::Emitter)) {
 		EmitterNode *emitter = (EmitterNode *)entry.node;
 		
 		if( emitter->_particleCount == 0 ) continue;
@@ -3576,18 +3565,39 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 }
 
 
+InstanceRenderableQueue const& Renderer::getInstanceQueue(int type)
+{
+   InstanceRenderableQueues& qs = _instanceQueues[_activeRenderCache];
+   if (qs.find(type) == qs.end()) {
+      qs.emplace(type, InstanceRenderableQueue());
+   }
+   return qs.at(type);
+}
+
+
+RenderableQueue const& Renderer::getSingularQueue(int type)
+{
+   RenderableQueues& qs = _singularQueues[_activeRenderCache];
+   if (qs.find(type) == qs.end()) {
+      qs.emplace(type, std::make_shared<RenderableQueue>(RenderableQueue()));
+   }
+   return *qs.at(type).get();
+}
+
+
 void Renderer::clearRenderCache()
 {
    _activeRenderCache = -1;
    _renderCacheCount = 0;
    for (int i = 0; i < RenderCacheSize; i++) {
+      _renderCache[i].singleNode = nullptr;
       for (auto& iq : _instanceQueues[i]) {
          for (auto& rq : iq.second) {
-            rq.second->resize(0);
+            rq.second->clear();
          }
       }
       for (auto& rq : _singularQueues[i]) {
-         rq.second->resize(0);
+         rq.second->clear();
       }
    }
 }
@@ -3657,26 +3667,28 @@ void Renderer::renderDebugView()
    int frustNum = 0;
 
    Scene& defaultScene = Modules::sceneMan().sceneForId(0);
-
-   defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-      SceneNodeFlags::NoDraw | SceneNodeFlags::NoCull, 0, true, true, true );
+   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Renderables);
+   composeRenderables(result, _curCamera->getFrustum(), RenderingOrder::None, QueryTypes::Renderables, nullptr);
+    
+   //defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+   //   SceneNodeFlags::NoDraw | SceneNodeFlags::NoCull, 0, true, true, true );
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
-	drawRenderables(0, "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0 );
-   for (const auto& queue : defaultScene.getRenderableQueues())
-   {
-      for( const auto& entry : queue.second )
-	   {
-		   const SceneNode *sn = entry.node;
-		   //drawAABB( sn->_bBox.min(), sn->_bBox.max() );
-	   }
+	
+   // Draw meshes.
+   drawRenderables(0, "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0 );
+   
+   // Draw bounding boxes.
+   for (auto& entry : result) {
+		SceneNode const* sn = entry.node;
+		//drawAABB( sn->_bBox.min(), sn->_bBox.max() );
    }
 
    float tempscale = 1.0f;
 	setShaderComb( &_defColorShader );
 	commitGeneralUniforms();
    gRDI->setShaderConst(_defColorShader.uni_modelScale, CONST_FLOAT, &tempscale);
-	defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
-	                                  SceneNodeFlags::NoDraw, 0, true, true );
+	//defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
+	//                                  SceneNodeFlags::NoDraw, 0, true, true );
    for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
    {
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
@@ -3743,9 +3755,9 @@ void Renderer::renderDebugView()
 	glCullFace( GL_FRONT );
 	color[0] = 1; color[1] = 1; color[2] = 0; color[3] = 0.25f;
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-	for( size_t i = 0, s = defaultScene.getLightQueue().size(); i < s; ++i )
-	{
-		LightNode *lightNode = (LightNode *)defaultScene.getLightQueue()[i];
+   std::vector<QueryResult> const& lights = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
+	for (auto &r : lights) {
+		LightNode *lightNode = (LightNode *)r.node;
 		
 		if( lightNode->_fov < 180 )
 		{
