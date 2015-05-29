@@ -288,7 +288,11 @@ local constants = {
 
    shop = {
       RESALE_CONSTANT = 0.6
-   }
+   },
+
+   attribute_effects = {
+      MUSCLE_MELEE_MULTIPLIER = 0.1,   -- Multiply an entity's mucle attribute by this to contribute to melee total damage.
+   },
 }
 
 constants.construction.DEFAULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
