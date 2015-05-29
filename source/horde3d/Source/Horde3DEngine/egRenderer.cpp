@@ -74,7 +74,7 @@ float* Renderer::_vbInstanceVoxelBuf;
 std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
 Matrix4f Renderer::_defaultBoneMat;
 
-const std::string Renderer::DRAW_SKINNED_FLAG("ASD");
+const std::string Renderer::DRAW_SKINNED_FLAG("DRAW_SKINNED");
 const std::string Renderer::DRAW_WITH_INSTANCING_FLAG("DRAW_WITH_INSTANCING");
 const std::string Renderer::INSTANCE_SUPPORT_FLAG("INSTANCE_SUPPORT");
 
