@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Mason's Chisel",
-         "description" : "Promotes a hearthling into a mason.",
+         "description" : "Required to promote a hearthling into a mason.",
          "icon": "file(mason_chisel.png)"
       },
       "item" : {

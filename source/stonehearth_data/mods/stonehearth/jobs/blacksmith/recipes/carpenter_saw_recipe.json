@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Carpenter's Saw",
-   "description" : "Promotes a hearthling into a Carpenter.",
+   "description" : "Required to promote a hearthling into a Carpenter.",
    "portrait"    : "/stonehearth/jobs/carpenter/carpenter_saw/carpenter_saw.png",
    "level_requirement" : 1,
 

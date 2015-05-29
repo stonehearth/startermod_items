@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Farmer's Hoe",
-         "description" : "Promotes a hearthling into a Farmer."
+         "description" : "Required to promote a hearthling into a Farmer."
       },
       "item" : {
          "category" : "tools"
