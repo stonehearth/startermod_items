@@ -129,17 +129,20 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
    end
    local additive_dmg_modifier = attributes_component:get_attribute('additive_dmg_modifier')
    local multiplicative_dmg_modifier = attributes_component:get_attribute('multiplicative_dmg_modifier')
-   local muscle_dmg_modifier = attributes_component:get_attribute('muscle')
+   local muscle = attributes_component:get_attribute('muscle')
+
+   if muscle then
+      local muscle_dmg_modifier = muscle * constants.attribute_effects.MUSCLE_MELEE_MULTIPLIER
+      muscle_dmg_modifier = muscle_dmg_modifier + constants.attribute_effects.MUSCLE_MELEE_MULTIPLIER_BASE
+      multiplicative_dmg_modifier = multiplicative_dmg_modifier + muscle_dmg_modifier
+   end
+
    if multiplicative_dmg_modifier then
       local dmg_to_add = base_damage * multiplicative_dmg_modifier
       total_damage = dmg_to_add + total_damage
    end
    if additive_dmg_modifier then
       total_damage = total_damage + additive_dmg_modifier
-   end
-   if muscle_dmg_modifier then
-      muscle_dmg_modifier = radiant.math.round(muscle_dmg_modifier * constants.attribute_effects.MUSCLE_MELEE_MULTIPLIER)
-      total_damage = total_damage + muscle_dmg_modifier
    end
 
    --Get damage from weapons
@@ -148,6 +151,7 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
       total_damage = dmg_to_add + total_damage
    end
 
+   total_damage = radiant.math.round(total_damage)
    --Get the damage reduction from armor
    local total_armor = self:_calculate_total_armor(entity)
 

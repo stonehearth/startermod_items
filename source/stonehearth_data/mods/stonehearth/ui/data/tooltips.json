@@ -18,7 +18,7 @@
       {
          "attribute" : "diligence",
          "display_name" : "Diligence",
-         "description" : "How hard this hearthling works. More diligent workers will complete their tasks without getting distracted."
+         "description" : "This hearthling's concentration. Diligent workers complete long tasks without getting distracted."
       },
       {
          "attribute" : "curiosity",

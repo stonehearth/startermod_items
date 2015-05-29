@@ -91,6 +91,19 @@ function WorkAtWorkshop:_process_order(order)
       effect = effect, 
       item_name = recipe.recipe_name
    }
+
+   local work_units = recipe.work_units
+   if work_units > constants.attribute_effects.DILIGENCE_WORK_UNITS_THRESHOLD then
+      local attributes_component = crafter:get_component('stonehearth:attributes')
+      local diligence = attributes_component:get_attribute('diligence')
+      local percentage_deduction = diligence * constants.attribute_effects.DILIGENCE_WORK_UNITS_REDUCTION_MULTIPLER 
+      local work_units_percent = 1 - percentage_deduction
+      work_units = radiant.math.round(work_units * work_units_percent)
+      if work_units < constants.attribute_effects.DILIGENCE_WORK_UNITS_THRESHOLD then
+         work_units = constants.attribute_effects.DILIGENCE_WORK_UNITS_THRESHOLD
+      end
+   end
+
    local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
                                      :set_priority(stonehearth.constants.priorities.crafting.DEFAULT)
                                      :times(recipe.work_units)
