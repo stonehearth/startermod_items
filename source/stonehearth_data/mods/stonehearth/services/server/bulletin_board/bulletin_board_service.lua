@@ -43,6 +43,14 @@ function BulletinBoardService:post_bulletin(player_id)
    return bulletin
 end
 
+-- Removes all bulletins tracked by the service.
+-- Currently used by autotests to ensure bulletin board sane-ness.
+function BulletinBoardService:remove_all_bulletins(player_id)
+   for bulletin_id, player_id in pairs (self._sv.bulletin_to_player_map) do
+      self:remove_bulletin(bulletin_id)
+   end
+end
+
 function BulletinBoardService:remove_bulletin(bulletin)
    local bulletin_id
    if type(bulletin) == 'number' then

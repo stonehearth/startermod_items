@@ -3,6 +3,8 @@ local immigration_tests = {}
 function immigration_tests.get_one_citizen(autotest)
    autotest.env:create_person(2, 2, { job = 'worker' })
 
+   stonehearth.bulletin_board:remove_all_bulletins()
+
    local num_corn = 0
    local required_corn = 430
 
