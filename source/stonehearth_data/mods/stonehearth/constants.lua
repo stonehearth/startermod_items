@@ -292,6 +292,10 @@ local constants = {
 
    shop = {
       RESALE_CONSTANT = 0.6
+   },
+
+   placement = {
+      DEFAULT_ROTATION = 180
    }
 }
 
