@@ -103,6 +103,8 @@ function ScoreService:_calculate_net_worth()
          end
       end
    end
+   --Trigger an event for score updated
+   radiant.events.trigger_async(radiant, 'stonehearth:score_updated', {})
 end
 
 --- Transform the json score categories into a sorted array for calculations later
