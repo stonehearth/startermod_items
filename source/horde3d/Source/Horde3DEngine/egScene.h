@@ -321,9 +321,10 @@ struct QueryTypes
 {
    enum List
    {
-      Renderables = 1,
+      CullableRenderables = 1,
       Lights = 2,
-      All = 3
+      UncullableRenderables = 4,
+      AllRenderables = 5
    };
 };
 struct QueryResult
@@ -359,6 +360,7 @@ public:
    void updateNodeInstanceKey(SceneNode& sceneNode);
 
 protected:
+   void swapAndRemove(std::vector<GridItem>& vec, int index);
    int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline uint32 hashGridPoint(int x, int y) const;
    inline void unhashGridHash(uint32 hash, int* x, int* y) const;
@@ -367,7 +369,7 @@ protected:
    std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
 
    std::unordered_map<uint32, GridElement> _gridElements;
-   std::unordered_map<NodeHandle, SceneNode const*> _nocullNodes;
+   std::vector<GridItem> _noCullNodes;
    
    std::vector<GridItem> _spilloverNodes[2];
 

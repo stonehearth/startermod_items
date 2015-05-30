@@ -502,8 +502,13 @@ GridItem* GridSpatialGraph::gridItemForNode(SceneNode const& node)
       return nullptr;
    }
    GridItem *gi;
+    
    if (node._gridId == -1) {
-      gi = &_spilloverNodes[RENDER_NODES].at(node._gridPos);
+      if (node._accumulatedFlags & SceneNodeFlags::NoCull) {
+         gi = &_noCullNodes[node._gridPos];
+      } else {
+         gi = &_spilloverNodes[RENDER_NODES].at(node._gridPos);
+      }
    } else {
       gi = &_gridElements.at(node._gridId).nodes[RENDER_NODES].at(node._gridPos);
    }
@@ -532,7 +537,8 @@ void GridSpatialGraph::updateNodeInstanceKey(SceneNode& sceneNode)
 {
    GridItem *gi = gridItemForNode(sceneNode);
    if (gi == nullptr) {
-      // It's possible (un-cullable nodes, for example) that a node doesn't have a valid bounding box yet, so if so, don't process it yet.
+      // It's trivial for nodes being created to not have a valid bounding box yet (mesh nodes can have geometry attached at a later
+      // time, for example).  So, don't worry about them; changes to their bounding box will trigger this update.
       return;
    }
 
@@ -567,6 +573,14 @@ void GridSpatialGraph::updateNodeInstanceKey(SceneNode& sceneNode)
    }
 }
 
+void GridSpatialGraph::swapAndRemove(std::vector<GridItem>& vec, int index) {
+   if (vec.size() > 1) {
+      vec[index] = vec.back();
+   }
+
+   vec.back().node->_gridPos = index;
+   vec.pop_back();
+}
 
 void GridSpatialGraph::removeNode(SceneNode& sceneNode)
 {
@@ -578,22 +592,20 @@ void GridSpatialGraph::removeNode(SceneNode& sceneNode)
       if (sceneNode._gridPos == -1) {
          return;
       }
-      const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
-      std::vector<GridItem>*vec;
-      if (sceneNode._gridId == -1) {
-         vec = &_spilloverNodes[nodeType];
+
+      std::vector<GridItem>* vec;
+      if (sceneNode._accumulatedFlags & SceneNodeFlags::NoCull) {
+         vec = &_noCullNodes;
       } else {
-         vec = &_gridElements[sceneNode._gridId].nodes[nodeType];
+         const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
+         if (sceneNode._gridId == -1) {
+            vec = &_spilloverNodes[nodeType];
+         } else {
+            vec = &_gridElements[sceneNode._gridId].nodes[nodeType];
+         }
       }
 
-      if (vec->size() > 1) {
-         (*vec)[sceneNode._gridPos] = vec->back();
-      }
-
-      if (vec->size() > 0) {
-         vec->back().node->_gridPos = sceneNode._gridPos;
-         vec->pop_back();
-      }
+      swapAndRemove(*vec, sceneNode._gridPos);
 
       sceneNode._gridId = -1;
       sceneNode._gridPos = -1;
@@ -651,18 +663,23 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
    if (!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
       return;
    }
-   
-   BoundingBox const& sceneBox = sceneNode.getBBox();
-   if (!sceneBox.isValid()) {
-      return;
-   }
 
+   BoundingBox const& sceneBox = sceneNode.getBBox();
    const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
    
    if (sceneNode.getFlags() & SceneNodeFlags::NoCull) {
       ASSERT(sceneNode._gridId == -1);
-      _nocullNodes[sceneNode.getHandle()] = &sceneNode;
+      if (sceneNode._gridPos == -1) {
+         _noCullNodes.emplace_back(GridItem(sceneBox, &sceneNode));
+         sceneNode._gridPos = (int)(_noCullNodes.size() - 1);
+         updateNodeInstanceKey(sceneNode);
+      } else { 
+         _noCullNodes.at(sceneNode._gridPos).bounds = sceneBox;
+      }
    } else {
+      if (!sceneBox.isValid()) {
+         return;
+      }
       int gridId = boundingBoxToGrid(sceneBox);
 
       if (sceneNode._gridPos >= 0 && gridId == sceneNode._gridId) {
@@ -711,14 +728,10 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
          newVec = &e->second.nodes[nodeType];
       }
       // Remove the node from the old grid list by swapping with the rear element;
-      if (oldVec->size() > 1 && sceneNode._gridPos >= 0) {
-         (*oldVec)[sceneNode._gridPos] = oldVec->back();
+      if (sceneNode._gridPos >= 0) {
+         swapAndRemove(*oldVec, sceneNode._gridPos);
       }
 
-      if (sceneNode._gridPos >= 0) {
-         oldVec->back().node->_gridPos = sceneNode._gridPos;
-         oldVec->pop_back();
-      }
       newVec->emplace_back(GridItem(sceneBox, &sceneNode));
       sceneNode._gridId = gridId;
       sceneNode._gridPos = (int)(newVec->size() - 1);
@@ -727,6 +740,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
       updateNodeInstanceKey(sceneNode);
    }
 }
+
 
 void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb) {
    Vec3f rayDirN = rayDirection.normalized();
@@ -741,8 +755,6 @@ void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection
    cb(_spilloverNodes[RENDER_NODES]);
    cb(_spilloverNodes[LIGHT_NODES]);
 }
-
-
 
 
 void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results)
@@ -782,7 +794,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
          continue;
       }
 
-      if (queryTypes & QueryTypes::Renderables) {
+      if (queryTypes & QueryTypes::CullableRenderables) {
          _queryGrid(ge.second.nodes[RENDER_NODES], frust, results);
       }
 
@@ -792,35 +804,19 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
    }
 
 
-   if (queryTypes & QueryTypes::Renderables) {
+   if (queryTypes & QueryTypes::CullableRenderables) {
       _queryGrid(_spilloverNodes[RENDER_NODES], frust, results);
+   }
+
+   if (queryTypes & QueryTypes::UncullableRenderables) {
+      for (auto const& n : _noCullNodes) {
+         results.emplace_back(QueryResult(n.bounds, n.node, n.renderQueues));
+      }
    }
 
    if (queryTypes & QueryTypes::Lights) {
       _queryGridLight(_spilloverNodes[LIGHT_NODES], frust, results);
    }
-
-
-   /*if (query.useRenderableQueue) {
-      if (query.filterRequired & SceneNodeFlags::NoCull || ((query.filterIgnore & SceneNodeFlags::NoCull) == 0)) {
-         for (auto const& n : _nocullNodes) {
-            if (n.second->_accumulatedFlags & query.filterIgnore) {
-               continue;
-            }
-            if ((n.second->_accumulatedFlags & query.filterRequired) != query.filterRequired) {
-               continue;
-            }
-            if ((n.second->_userFlags & query.userFlags) != query.userFlags) {
-               continue;
-            }
-            if (renderableQueues.find(n.second->_type) == renderableQueues.end()) {
-               renderableQueues[n.second->_type] = RenderableQueue();
-               renderableQueues[n.second->_type].reserve(1000);
-            }
-            renderableQueues[n.second->_type].emplace_back( RendQueueItem( n.second->_type, 0, n.second ) );
-         }
-      }
-   }*/
 
    if (queryTypes & QueryTypes::Lights) {
       for (auto& d : _directionalLights) {

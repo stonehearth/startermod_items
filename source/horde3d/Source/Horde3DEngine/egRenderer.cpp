@@ -1570,7 +1570,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Find AABB of lit geometry
       Vec3f lightAbsPos;
 
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::Renderables);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables);
 
       for (const auto& result : results) {
          litAabb.makeUnion(result.bounds);
@@ -1625,8 +1625,8 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 		//	SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, false, 0 );
       
       // TODO: NoDraw/NoCastShadow, need to purge the results!
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::Renderables);
-      composeRenderables(results, frustum, RenderingOrder::None, QueryTypes::Renderables, nullptr);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables);
+      composeRenderables(results, frustum, RenderingOrder::None, QueryTypes::CullableRenderables, nullptr);
 
       gRDI->_frameDebugInfo.addShadowCascadeFrustum_(frustum);
 
@@ -2037,8 +2037,8 @@ void Renderer::drawLodGeometry(SceneId sceneId, std::string const& shaderContext
 
    R_LOG(7) << "updating geometry queue";
 
-   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::Renderables);
-   composeRenderables(result, f, order, QueryTypes::Renderables, nullptr);
+   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::AllRenderables);
+   composeRenderables(result, f, order, QueryTypes::AllRenderables, nullptr);
 
    /*Modules::sceneMan().sceneForId(sceneId).updateQueues("drawing geometry", f, lightFrus, order, SceneNodeFlags::NoDraw, 
       filterRequried, false, true );*/
@@ -2110,7 +2110,7 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
             }
          }
 
-         composeRenderables(results, f, order, QueryTypes::Renderables, np);
+         composeRenderables(results, f, order, QueryTypes::AllRenderables, np);
 
          updateLodUniform(0, 0.41f, 0.39f);
 
@@ -2171,7 +2171,7 @@ void Renderer::computeTightCameraBounds(SceneId sceneId, float* minDist, float* 
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
-   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::Renderables);
+   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables);
 
    for (const auto& r : results) {
 	   visibleAabb.makeUnion(r.bounds);
@@ -3671,8 +3671,8 @@ void Renderer::renderDebugView()
    int frustNum = 0;
 
    Scene& defaultScene = Modules::sceneMan().sceneForId(0);
-   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Renderables);
-   composeRenderables(result, _curCamera->getFrustum(), RenderingOrder::None, QueryTypes::Renderables, nullptr);
+   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables);
+   composeRenderables(result, _curCamera->getFrustum(), RenderingOrder::None, QueryTypes::CullableRenderables, nullptr);
     
    //defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
    //   SceneNodeFlags::NoDraw | SceneNodeFlags::NoCull, 0, true, true, true );
