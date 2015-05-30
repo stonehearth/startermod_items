@@ -145,6 +145,7 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
    for i, product in ipairs(recipe.produces) do
       --If we're a certain level of crafter, we can make fine versions of objects
       local item = radiant.entities.create_entity(self:_determine_output(product), { owner = self._crafter })
+      local item_uri = item:get_uri()
       local entity_forms = item:get_component('stonehearth:entity_forms')
       if entity_forms then
          local iconic_entity = entity_forms:get_iconic_entity()
@@ -165,7 +166,8 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
       --send event that the carpenter has finished an item
       local crafting_data = {
          recipe_data = recipe, 
-         product = item
+         product = item,
+         product_uri = item_uri,
       }
       radiant.events.trigger_async(self._crafter, 'stonehearth:crafter:craft_item', crafting_data)
 

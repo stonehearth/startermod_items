@@ -23,7 +23,7 @@
       {
          "attribute" : "curiosity",
          "display_name" : "Curiosity",
-         "description" : "How likely this hearthling is to explore interesting things in the world."
+         "description" : "How much this hearthling enjoys new experiences."
       },
       {
          "attribute" : "inventiveness",
