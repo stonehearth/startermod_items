@@ -99,9 +99,23 @@ function combat_tests.worker_defense(autotest)
    autotest:fail('woker defense failed to complete on time')
 end
 
-
-
 function combat_tests.talisman_drop(autotest)
+   -- Create a fence around everyone because villagers will sometimes escape.
+   for i=-10, 10 do
+      for j=-10, 10 do
+         if i == -10 or i == 10 then
+            local fence = autotest.env:create_entity(i*2, j*2, 'stonehearth:furniture:picket_fence', { force_iconic = false})
+            radiant.entities.turn_to(fence, 90)
+         end
+      end
+      if i ~= -10 and i ~= 10 then
+         local fence = autotest.env:create_entity(i*2, -20, 'stonehearth:furniture:picket_fence', { force_iconic = false})
+         local fence = autotest.env:create_entity(i*2, 20, 'stonehearth:furniture:picket_fence', { force_iconic = false})
+      end
+   end
+   -- Sleep a little to wait for the fences to spawn
+   autotest:sleep(500)
+
    local citizens = {
       autotest.env:create_person(-9, -2, { job = 'footman', attributes = { mind = 0, body = 1, spirit = 0 } }),
       autotest.env:create_person( -5, -2, { job = 'carpenter', attributes = { mind = 0, body = 1, spirit = 0 } }),
@@ -109,7 +123,6 @@ function combat_tests.talisman_drop(autotest)
       autotest.env:create_person(  3, -2, { job = 'trapper', attributes = { mind = 0, body = 1, spirit = 0 } }),
       autotest.env:create_person(  5, -2, { job = 'weaver', attributes = { mind = 0, body = 1, spirit = 0 } })
    }
-
 
    --Note: sometimes tombstones pop in under a person, preventing them from being attacked
    --I've fixed the tombstones so they should check the terrain before they pop.
