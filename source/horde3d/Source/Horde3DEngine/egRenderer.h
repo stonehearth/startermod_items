@@ -34,7 +34,6 @@ const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
 const uint32 QuadIndexBufCount = MaxNumOverlayVerts * 6;
 const uint32 MaxVoxelInstanceCount = 1024;
-const uint32 RenderCacheSize = 32;
 
 extern const char *vsDefColor;
 extern const char *fsDefColor;
@@ -218,7 +217,7 @@ public:
 	static void drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 	static void drawVoxelMeshes_Instances(SceneId sceneId, std::string const& shaderContext, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel, bool cached );
 	static void drawParticles(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static void drawHudElements(SceneId sceneId, std::string const& shaderContext, bool debugView,
@@ -279,9 +278,9 @@ protected:
 	void drawMatSphere(Resource *matRes, std::string const& shaderContext, const Vec3f &pos, float radius);
 	void drawQuad();
    void drawLodGeometry(SceneId sceneId, std::string const& shaderContext,
-                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
+                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0, bool cached=true);
    void drawGeometry(SceneId sceneId, std::string const& shaderContext,
-	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0, bool cached=true);
    void drawSelected(SceneId sceneId, std::string const& shaderContext,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags );
@@ -291,9 +290,9 @@ protected:
 	void doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource* deferredMaterial);
 	
 	void drawRenderables(SceneId sceneId, std::string const& shaderContext, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel, bool cached );
    static uint32 acquireInstanceAttributeBuffer();
-   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
+   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel, bool cached);
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
 	void renderDebugView();
 	void finishRendering();
@@ -301,7 +300,7 @@ protected:
    void logPerformanceData();
    void setGpuCompatibility();
 
-   void composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes, SceneNode* singleNode);
+   void composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes, SceneNode* singleNode, bool cacheResults);
 
 protected:
 	unsigned char                      *_scratchBuf;

@@ -212,13 +212,14 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 6 );
+			params.resize( 7 );
 			params[0].setString( node1.getAttribute( "context" ) );
 			params[1].setInt( order );
 			params[2].setInt( 0 );
          params[3].setFloat(frustStart);
          params[4].setFloat(frustEnd);
          params[5].setInt(lodLevel);
+         params[6].setBool(_stricmp( node1.getAttribute( "cached", "true" ), "true" ) == 0);
 		}
 		else if( strcmp( node1.getName(), "DrawSelected" ) == 0 )
 		{

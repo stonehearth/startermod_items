@@ -307,7 +307,7 @@ struct GridItem {
    BoundingBox bounds;
    SceneNode* node;
    float sortKey;
-   RenderableQueue* renderQueues[32];
+   RenderableQueue* renderQueues[RenderCacheSize];
 };
 
 struct GridElement 
@@ -333,7 +333,7 @@ struct QueryResult
    QueryResult(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) {
    }
    QueryResult(BoundingBox const& b, SceneNode* n, RenderableQueue* const queues[]) : bounds(b), node(n) {
-      for (int i = 0; i < 32; i++) {
+      for (int i = 0; i < RenderCacheSize; i++) {
          renderQueues[i] =  queues[i];
       }
    }
@@ -341,7 +341,7 @@ struct QueryResult
    BoundingBox bounds;
    SceneNode* node;
    float sortKey;
-   RenderableQueue* renderQueues[32];
+   RenderableQueue* renderQueues[RenderCacheSize];
 };
 
 
@@ -387,6 +387,9 @@ typedef SceneNode *(*NodeTypeFactoryFunc)( const SceneNodeTpl &tpl );
 typedef void (*NodeTypeRenderFunc)(SceneId sceneId, std::string const& shaderContext, bool debugView,
                                     const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                     int occSet, int lodLevel );
+typedef void (*NodeTypeInstanceRenderFunc)(SceneId sceneId, std::string const& shaderContext, bool debugView,
+                                    const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
+                                    int occSet, int lodLevel, bool cached );
 
 struct NodeRegEntry
 {
@@ -394,7 +397,7 @@ struct NodeRegEntry
 	NodeTypeParsingFunc  parsingFunc;
 	NodeTypeFactoryFunc  factoryFunc;
 	NodeTypeRenderFunc   renderFunc;
-   NodeTypeRenderFunc   instanceRenderFunc;
+   NodeTypeInstanceRenderFunc   instanceRenderFunc;
    std::unordered_map<NodeHandle, SceneNode*> nodes;
 };
 
@@ -422,7 +425,7 @@ public:
    ~SceneManager();
 
 	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
-	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
+	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeInstanceRenderFunc irf );
    bool sceneExists(SceneId sceneId) const;
    Scene& sceneForNode(NodeHandle handle);
    Scene& sceneForId(SceneId handle);
@@ -455,7 +458,7 @@ public:
    SceneId getId() const;
 
 	void registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
-	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf );
+	                   NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeInstanceRenderFunc irf );
 	NodeRegEntry *findType( int type );
 	NodeRegEntry *findType( std::string const& typeString );
 	
@@ -465,6 +468,7 @@ public:
    void setNodeHidden(SceneNode& node, bool hide);
 
    std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes);
+   std::vector<QueryResult> const& subQuery(std::vector<QueryResult> const& queryResults, SceneNodeFlags::List ignoreFlags);
    std::vector<QueryResult> const& queryNode(SceneNode& node);
 	
 	NodeHandle addNode( SceneNode *node, SceneNode &parent );

@@ -882,7 +882,7 @@ SceneId SceneManager::sceneIdFor(NodeHandle handle) const
 }
 
 void SceneManager::registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
-	                  NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
+	                  NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeInstanceRenderFunc irf )
 {
 	NodeRegEntry entry;
 	entry.typeString = typeString;
@@ -1018,7 +1018,7 @@ void Scene::initialize()
 }
 
 void Scene::registerType( int type, std::string const& typeString, NodeTypeParsingFunc pf,
-								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeRenderFunc irf )
+								 NodeTypeFactoryFunc ff, NodeTypeRenderFunc rf, NodeTypeInstanceRenderFunc irf )
 {
 	NodeRegEntry entry;
 	entry.typeString = typeString;
@@ -1148,6 +1148,27 @@ std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTyp
    _spatialGraph->query(frust, r.result, queryTypes);
    return r.result;
 }
+
+
+std::vector<QueryResult> const& Scene::subQuery(std::vector<QueryResult> const& queryResults, SceneNodeFlags::List ignoreFlags)
+{
+   radiant::perfmon::TimelineCounterGuard uq("subQuery");
+
+   // Just store the sub query in the last place of the cache, since that is effectively a 'scratch'
+   // location anyway.
+   CachedQueryResult& r = _queryCache[QueryCacheSize - 1];
+
+   r.result.clear();
+
+   for (auto& qr : queryResults) {
+      if (!(qr.node->_accumulatedFlags & ignoreFlags)) {
+         r.result.emplace_back(qr);
+      }
+   }
+
+   return r.result;
+}
+
 
 NodeHandle Scene::parseNode( SceneNodeTpl &tpl, SceneNode *parent )
 {
