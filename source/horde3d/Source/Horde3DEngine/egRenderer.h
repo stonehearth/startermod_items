@@ -195,6 +195,7 @@ public:
 	void commitGeneralUniforms();
    void commitGlobalUniforms();
 	bool setMaterial( MaterialResource *materialRes, std::string const& shaderContext );
+	bool canSetMaterial(MaterialResource *materialRes, std::string const& shaderContext);
 
    void addSelectedNode(NodeHandle n, float r, float g, float b);
    void removeSelectedNode(NodeHandle n);

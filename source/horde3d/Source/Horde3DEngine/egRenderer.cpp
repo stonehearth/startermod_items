@@ -959,6 +959,20 @@ bool Renderer::isShaderContextSwitch(std::string const& newContext, MaterialReso
    return findShaderCombination(sr) != _curShader;
 }
 
+bool Renderer::canSetMaterial(MaterialResource *materialRes, std::string const& shaderContext)
+{
+   if( materialRes == 0x0 ) {
+      return false;
+   }
+
+   PShaderResource shaderRes = materialRes->getShader(shaderContext);
+
+   if (!shaderRes.getPtr()) {
+      return false;
+   }
+   return true;
+}
+
 
 bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& shaderContext)
 {
@@ -2654,17 +2668,16 @@ void Renderer::drawMeshes(SceneId sceneId, std::string const& shaderContext, boo
 		
 		ShaderCombination *prevShader = Modules::renderer().getCurShader();
 		
-		if( !debugView )
+		if(!debugView)
 		{
 			// Set material
-			if( curMatRes != meshNode->getMaterialRes() )
+			if (curMatRes != meshNode->getMaterialRes())
 			{
-				if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
-				{	
+            if (!Modules::renderer().canSetMaterial( meshNode->getMaterialRes(), shaderContext )) {
                RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-					curMatRes = 0x0;
 					continue;
-				}
+            }
+				Modules::renderer().setMaterial(meshNode->getMaterialRes(), shaderContext);
 				curMatRes = meshNode->getMaterialRes();
 			}
 		}
@@ -2776,6 +2789,7 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
    VoxelGeometryResource *curVoxelGeoRes = 0x0;
    MaterialResource *curMatRes = 0x0;
 
+   Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, false);
    Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, true);
 
    R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
@@ -2816,29 +2830,17 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
 
       gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
 
-      ShaderCombination *prevShader = Modules::renderer().getCurShader();
-
       if( !debugView )
       {
-         if (Modules::renderer()._materialOverride != 0x0) {
-            if( !Modules::renderer().setMaterial( Modules::renderer()._materialOverride, shaderContext ) )
-            {	
-               RENDER_LOG() << "no override material for context " << shaderContext << ".  RETURNING!";
-               return;
+         // Set material
+         if (curMatRes != meshNode->getMaterialRes())
+         {
+            if (!Modules::renderer().canSetMaterial(meshNode->getMaterialRes(), shaderContext)) {
+               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+               continue;
             }
-            curMatRes = Modules::renderer()._materialOverride;
-         } else {
-            // Set material
-            if( curMatRes != meshNode->getMaterialRes() )
-            {
-               if( !Modules::renderer().setMaterial( meshNode->getMaterialRes(), shaderContext ) )
-               {	
-                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-                  curMatRes = 0x0;
-                  continue;
-               }
-               curMatRes = meshNode->getMaterialRes();
-            }
+            Modules::renderer().setMaterial(meshNode->getMaterialRes(), shaderContext);
+            curMatRes = meshNode->getMaterialRes();
          }
       }
       else
@@ -2938,13 +2940,16 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
                                const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                int occSet, int lodLevel)
 {
-   const unsigned int VoxelInstanceCutoff = 2;
    radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances");
 	if (frust1 == 0x0) {
       return;
    }
 	
 	MaterialResource *curMatRes = 0x0;
+
+   bool useInstancing = gRDI->getCaps().hasInstancing;
+   Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, useInstancing);
+   Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, true);
 
    R_LOG(9) << "drawVoxelMeshes_Instances (shader:" << shaderContext << " lod:" << lodLevel << ")";
    #define RENDER_LOG() R_LOG(9) << " instance (" \
@@ -2969,9 +2974,6 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
          continue;
       }
 
-      bool useInstancing = instanceKind.second->size() >= VoxelInstanceCutoff && gRDI->getCaps().hasInstancing;
-      Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, useInstancing);
-      Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, true);
 
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       vmn = (VoxelMeshNode*)instanceKind.second->front().node;
@@ -2987,26 +2989,16 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 				
 		if( !debugView )
 		{
-         if (Modules::renderer()._materialOverride != 0x0) {
-				if( !Modules::renderer().setMaterial(Modules::renderer()._materialOverride, shaderContext ) )
-				{	
-               RENDER_LOG() << "no material override for context " << shaderContext << ".  RETURNING!";
-               return;
-				}
-				curMatRes = Modules::renderer()._materialOverride;
-         } else {
-			   // Set material
-			   //if( curMatRes != instanceKey.matResource )
-			   //{
-               if( !Modules::renderer().setMaterial( instanceKey.matResource, shaderContext ) )
-				   {	
-                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-					   curMatRes = 0x0;
-					   continue;
-				   }
-               curMatRes = instanceKey.matResource;
-			   //}
-         }
+			// Set material
+			if (curMatRes != instanceKey.matResource)
+			{
+            if (!Modules::renderer().canSetMaterial(instanceKey.matResource, shaderContext)) {
+               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+               continue;
+            }
+            Modules::renderer().setMaterial(instanceKey.matResource, shaderContext);
+            curMatRes = instanceKey.matResource;
+			}
 		} else {
 			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
 			Modules::renderer().commitGeneralUniforms();
@@ -3616,7 +3608,7 @@ void Renderer::finalizeFrame()
    _instanceDataCache.clear();
    gRDI->clearBufferCache();
    Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
-   Modules::stats().incStat( EngineStats::FrameTime, (float)radiant::perfmon::CounterToMilliseconds(timer->GetElapsed()));
+   Modules::stats().incStat( EngineStats::FrameTime, timer->GetElapsed()/1000.0f);
    logPerformanceData();
 	timer->Restart();
    Modules::sceneMan().clearQueryCaches();

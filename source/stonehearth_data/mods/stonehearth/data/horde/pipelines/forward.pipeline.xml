@@ -32,11 +32,6 @@
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Projections">
-         <!-- '1' is UserFlags::Terrain only (see pipeline.h for enum definition). -->
-         <DrawProjections context="PROJECTION" userFlags="1" />
-      </Stage>
-
       <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry context="FOG" noShadows="true" frustum_start="0.7"/>
