@@ -1,17 +1,17 @@
 <script type="text/x-handlebars" data-template-name="stonehearthTerrainVision">
    <div id="stonehearthTerrainVision">
-      <div id="sliceButton" hotkey="" class="normal" title="Change terrain vision mode" {{bind-attr class=data.clip_enabled:clip:noclip}}/>
-      <div id="xrayButton" hotkey="" class="normal" title="Change terrain X-Ray Mode" {{bind-attr class=data.xray_mode}}/>
+      <div id="sliceButton" class="normal" {{bind-attr class=data.clip_enabled:clip:noclip}}/>
+      <div id="xrayButton" hotkey="x" class="normal" {{bind-attr class=data.xray_mode}}/>
       
       <div id="slicePalette" class='palette' {{bind-attr class=data.clip_enabled:clip:noclip}}>
-         <div class="button" id="clipUp" hotkey="" />
+         <div class="button" id="clipUp"/>
          <div id="depth">{{data.clip_height}}m</div>
-         <div class="button" id="clipDown" hotkey=""/>
+         <div class="button" id="clipDown"/>
       </div>
 
       <div id="xrayPalette" class='palette' {{bind-attr class=data.xray_mode}}>
-         <div id="xrayFull" class='xrayButton button' mode="full" hotkey="" {{bind-attr class=data.xray_mode}}>full</div>
-         <div id="xrayFlat" class='xrayButton button' mode="flat" hotkey="" {{bind-attr class=data.xray_mode}}>flat</div>
+         <div id="xrayFull" class='xrayButton button' mode="full" {{bind-attr class=data.xray_mode}}>full</div>
+         <div id="xrayFlat" class='xrayButton button' mode="flat" {{bind-attr class=data.xray_mode}}>flat</div>
       </div>
       <div id="info">
          clip: {{data.clip_enabled}}<br>
