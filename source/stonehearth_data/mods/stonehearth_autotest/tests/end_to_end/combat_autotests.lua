@@ -102,8 +102,8 @@ end
 function combat_tests.talisman_drop(autotest)
    -- Create a fence around everyone because villagers will sometimes escape.
    for i=-10, 10 do
-      for j=-10, 10 do
-         if i == -10 or i == 10 then
+      if i == -10 or i == 10 then
+         for j=-9, 9 do
             local fence = autotest.env:create_entity(i*2, j*2, 'stonehearth:furniture:picket_fence', { force_iconic = false})
             radiant.entities.turn_to(fence, 90)
          end
