@@ -36,7 +36,7 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    csg::GetAxisAngleNormalized(orientation, axis, radAngle);
 
    // Assumes rotation about the Y axis.
-   double degrees = radAngle * 180 / csg::k_pi;
+   double degrees = csg::ToDegrees(radAngle);
    int angle = (csg::ToClosestInt(degrees / 90) * 90) % 360;
 
    if (regionOrigin != csg::Point3f::zero) {

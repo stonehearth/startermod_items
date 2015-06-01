@@ -13,6 +13,12 @@ function Bulletin:initialize(id)
    self.__saved_variables:mark_changed()
 end
 
+function Bulletin:restore()
+   --If there is a zoom-to entity in data, make sure
+   --the bulletin does not outlive the entity. 
+   self:_listen_for_target_entity_destruction()
+end
+
 function Bulletin:activate()
    --We were a bulletin that was going to be destroyed at some future point
    if self._sv.active_duration_timer then
@@ -25,6 +31,7 @@ end
 
 function Bulletin:destroy()
    self:_stop_duration_timer()
+   self:_destroy_death_listener()
 end
 
 -- unique id for the bulletin
@@ -69,6 +76,10 @@ end
 function Bulletin:set_data(data)
    self._sv.data = data
 
+   --If there is a zoom-to entity in data, make sure
+   --the bulletin does not outlive the entity. 
+   self:_listen_for_target_entity_destruction()
+
    --Make the parent list update too?
    stonehearth.bulletin_board:update(self._sv.id)
    self.__saved_variables:mark_changed()
@@ -76,11 +87,35 @@ function Bulletin:set_data(data)
    return self
 end
 
+function Bulletin:_listen_for_target_entity_destruction()
+   local data = self._sv.data
+   if data and data.zoom_to_entity then
+      self._entity_death_listener = radiant.events.listen(data.zoom_to_entity, 'radiant:entity:pre_destroy', self, self._on_target_destroy)
+   end
+end
+
+--If the bulletin is still active when the target is destroyed, remove it
+function Bulletin:_on_target_destroy()
+   --If the bulletin is already gone, this is a safe no-op
+   stonehearth.bulletin_board:remove_bulletin(self._sv.id)
+   self:_destroy_death_listener()
+   self:_stop_duration_timer()
+   self.__saved_variables:mark_changed()
+end
+
+function Bulletin:_destroy_death_listener()
+   if self._entity_death_listener then
+      self._entity_death_listener:destroy()
+      self._entity_death_listener = nil
+   end
+end
+
 --If you don't want the bulletin to stick around forever, set this value
 function Bulletin:set_active_duration(duration)
    self._sv.active_duration_timer = stonehearth.calendar:set_timer(duration, function()
       stonehearth.bulletin_board:remove_bulletin(self._sv.id)
       self:_stop_duration_timer()
+      self:_destroy_death_listener()
    end)
    self.__saved_variables:mark_changed()
 end

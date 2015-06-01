@@ -35,7 +35,6 @@ local service_creation_order = {
    'town_patrol',
    'bulletin_board',
    'linear_combat',
-   'interval',
    'farming',
    'trapping',
    'shepherd',

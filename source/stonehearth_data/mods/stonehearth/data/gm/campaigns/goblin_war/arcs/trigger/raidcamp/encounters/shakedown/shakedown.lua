@@ -76,24 +76,30 @@ function ShakeDown:get_tribute_demand()
       local uri = keys[rng:get_int(1, key_count)]
       local _, entity = next(items[uri].items)
       if entity then 
-         local worth = self:_get_value_in_gold(entity)
-         if worth > 0 then
-            local cap = (remaining_value / worth) + 1
-            local count = rng:get_int(1, cap)
-            if not tribute[uri] then
-               local info = items[uri]
-               tribute[uri] = {
-                  uri = uri,
-                  count = 0, 
-                  icon = info.icon,
-                  display_name = info.display_name,
-               }
+         --excempt food items, since they may be eaten without the player's approval
+         local material_component = entity:get_component('stonehearth:material')
+         if not material_component or 
+            not (material_component:is('food') or material_component:is('food_container')) then
+            
+            local worth = self:_get_value_in_gold(entity)
+            if worth > 0 then
+               local cap = (remaining_value / worth) + 1
+               local count = rng:get_int(1, cap)
+               if not tribute[uri] then
+                  local info = items[uri]
+                  tribute[uri] = {
+                     uri = uri,
+                     count = 0, 
+                     icon = info.icon,
+                     display_name = info.display_name,
+                  }
+               end
+               tribute[uri].count = tribute[uri].count + count
+               remaining_value = remaining_value - (count * worth)
             end
-            tribute[uri].count = tribute[uri].count + count
-            remaining_value = remaining_value - (count * worth)
          end
+         tries = tries + 1            
       end
-      tries = tries + 1
    end
 
    -- make up the rest in oak logs

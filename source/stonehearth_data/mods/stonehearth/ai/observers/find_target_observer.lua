@@ -182,7 +182,7 @@ end
 function FindTargetObserver:_attack_target(target)
    assert(not self._task)
 
-   self._log:info('setting target to %s', tostring(target))
+   self._log:info('setting target to %s', target)
 
    if target ~= self._target then
       self:_unlisten_from_target_pre_destroy()
@@ -232,9 +232,10 @@ function FindTargetObserver:_find_target()
          end)
    end
 
-   self._log:info('stance is %s.  returning %s as target.', stance, tostring(target))
+   self._log:info('stance is %s.  returning %s as target.', stance, target)
    
    if target ~= nil and target:is_valid() then
+      assert(not stonehearth.player:are_players_friendly(target, self._entity))
       return target
    end
 

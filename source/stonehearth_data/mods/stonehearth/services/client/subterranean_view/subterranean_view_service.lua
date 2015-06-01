@@ -278,6 +278,8 @@ function SubterraneanViewService:_create_entity_traces()
                parent = parent_trace,
                destroyed = destroyed_trace
             }
+
+            self:_update_visiblity(entity)
          end)
       :push_object_state()
 end

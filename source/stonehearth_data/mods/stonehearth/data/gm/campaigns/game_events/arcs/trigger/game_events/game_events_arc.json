@@ -1,0 +1,9 @@
+{
+   "type" : "arc", 
+   "rarity" : "common", 
+   "encounters" : {
+      "wait for tomorrow" : "file(encounters/wait_for_tomorrow.json)", 
+      "generate daily report" : "file(encounters/generate_daily_report.json)",
+      "daily_report" : "file(encounters/daily_report_encounter.json)"
+   }
+}
