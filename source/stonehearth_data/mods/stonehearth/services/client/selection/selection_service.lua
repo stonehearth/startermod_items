@@ -1,4 +1,4 @@
-local constants = require('constants').construction
+local constants = require('constants')
 local build_util = require 'lib.build_util'
 local EntitySelector = require 'services.client.selection.entity_selector'
 local XZRegionSelector = require 'services.client.selection.xz_region_selector'
@@ -70,7 +70,7 @@ SelectionService.floor_xz_region_support_filter = function(result, raise_selecto
          local blueprint = build_util.get_blueprint_for(entity)
          local floor = blueprint:get_component('stonehearth:floor')
          if floor then
-            if raise_selector and floor:get().category == constants.floor_category.CURB then
+            if raise_selector and floor:get().category == constants.construction.floor_category.CURB then
                result.brick = result.brick - Point3(0, 1, 0)
             end
             return true

@@ -75,12 +75,12 @@ double Mob::GetFacing() const
    // this method currently only makes sense for rotations about the y axis
    ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < FLT_EPSILON);
 
-   return radians / csg::k_pi * 180.0f;
+   return csg::ToDegrees(radians);
 }
 
 void Mob::TurnTo(float angle)
 {
-   csg::Quaternion q(csg::Point3f::unitY, angle / 180.0f * csg::k_pi);
+   csg::Quaternion q(csg::Point3f::unitY, csg::ToRadians(angle));
    ASSERT(q.is_unit());
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = q;
