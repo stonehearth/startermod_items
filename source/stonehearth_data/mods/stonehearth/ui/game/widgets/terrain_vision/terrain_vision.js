@@ -1,5 +1,5 @@
 App.StonehearthTerrainVisionWidget = App.View.extend({
-   templateName: 'stoneheartTerrainVision',
+   templateName: 'stonehearthTerrainVision',
    uriProperty: 'context.data',
 
    init: function() {
