@@ -41,6 +41,7 @@ function GameMasterService:start()
    self:_start_campaign('combat')
    self:_start_campaign('trader')
    self:_start_campaign('ambient_threats')
+   self:_start_campaign('game_events')
 end
 
 -- This function initializes a debug hook fn that can be used to jump ahead in 

@@ -3,12 +3,38 @@
    "rarity" : "common",
 
    "encounters" : {
-      "wait_for_day_two" : "file(encounters/wait_for_day_two.json)", 
-      "undead at night" : "file(encounters/nighttime_undead.json)",
-      "generate nightly undead" : "file(encounters/generate_nightly_undead.json)",
-      "randomize_spawn" : "file(encounters/randomize_spawn.json)", 
+      "wait_for_day_two" : "file(encounters/wait_for_day_two.json)",
+      "generate daily threat" : "file(encounters/generate_daily_threat.json)",
+      "randomize daily threat" : "file(encounters/randomize_daily_threat.json)",  
+
+      "nighttime undead" : "file(encounters/nighttime_undead.json)",
       "undead raid" : "file(encounters/undead_raid.json)",
       "wait_for_dawn" : "file(encounters/wait_for_dawn.json)", 
-      "destroy_undead" : "file(encounters/destroy_undead.json)"
+      "destroy_undead" : "file(encounters/destroy_undead.json)",
+
+      "goblin thief camp" : "file(encounters/goblin_thief_camp.json)", 
+      "create thief camp" : "file(encounters/create_thief_camp.json)",
+      "spawn thieves" : "file(encounters/spawn_thieves.json)", 
+      "lone thief raid" : "file(encounters/lone_thief_raid.json)", 
+      "goblin night ninjas" : "file(encounters/goblin_night_ninja.json)", 
+      "spawn night ninjas" : "file(encounters/spawn_night_ninjas.json)", 
+      "goblin thieves" : "file(encounters/goblin_thieves.json)", 
+      "goblin thug" : "file(encounters/goblin_thug.json)", 
+
+      "wait for campfire destruction" : "file(encounters/wait_for_campfire_destruction.json)", 
+      "destroy thief stockpile" : "file(encounters/destroy_thief_stockpile.json)",
+
+      "wait_for_middle_worth" : "file(encounters/wait_for_middle_worth.json)",
+      "generate_advanced_threats" : "file(encounters/generate_advanced_threats.json)",
+      "randomize_advanced_threats" : "file(encounters/randomize_advanced_threats.json)", 
+      "goblin raider camp" : "file(encounters/goblin_raider_camp.json)",
+      "create_raider_camp" : "file(encounters/create_raider_camp.json)",
+      "spawn raiders" : "file(encounters/spawn_raiders.json)",
+      "mauraders raid" : "file(encounters/mauraders_raid.json)", 
+      "goblin wolf raid" : "file(encounters/goblin_wolf_raid.json)",
+      "thief with friends" : "file(encounters/thief_with_friends.json)",
+
+      "wait for raider campfire destruction" : "file(encounters/wait_for_raider_campfire_destruction.json)",
+      "destroy_raider_stockpiles" : "file(encounters/destroy_raider_stockpiles.json)"
    }
 }

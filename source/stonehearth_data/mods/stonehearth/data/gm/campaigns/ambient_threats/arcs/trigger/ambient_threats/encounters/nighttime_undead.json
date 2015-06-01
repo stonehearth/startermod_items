@@ -2,8 +2,8 @@
    "type" : "encounter",
    "encounter_type" : "wait_for_time_of_day",
 
-   "in_edge"  : "wait_for_night",
-   "out_edge" : "nighttime_undead",
+   "in_edge"  : "nighttime_undead",
+   "out_edge" : "undead_raid",
 
    "wait_for_time_of_day_info" :  {
       "time" : "22:00+1h30m"

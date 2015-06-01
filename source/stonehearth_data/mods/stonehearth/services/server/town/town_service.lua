@@ -24,6 +24,14 @@ function TownService:add_town(player_id)
    return town
 end
 
+--Called by the loot command on items dropped by enemies
+function TownService:loot_item_command(session, response, item)
+   local town = stonehearth.town:get_town(session.player_id)
+   town:loot_item(item)
+   return true
+end
+
+
 function TownService:get_town(arg1)
    local player_id
    if type(arg1) == 'string' then

@@ -201,7 +201,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
    stonehearth.calendar:start()
    stonehearth.game_master:start()
    stonehearth.hydrology:start()
-   stonehearth.interval:enable(true)
 
    stonehearth.world_generation:set_starting_location(Point2(pt.x, pt.z))
 
@@ -214,7 +213,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = session.player_id })
    radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
-   radiant.entities.turn_to(banner_entity, 180)
+   radiant.entities.turn_to(banner_entity, constants.placement.DEFAULT_ROTATION)
 
    -- build the camp
    local camp_x = pt.x
@@ -225,7 +224,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                              {entity = citizen, description = 'person_embarks'})
 
-      radiant.entities.turn_to(citizen, 180)
+      radiant.entities.turn_to(citizen, constants.placement.DEFAULT_ROTATION)
       return citizen
    end
 

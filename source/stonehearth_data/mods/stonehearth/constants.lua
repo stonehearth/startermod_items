@@ -55,11 +55,11 @@ local constants = {
       simple_labor = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
-         RESTOCK_FROM_BACKPACK = 3,
          CLEAR              = 3,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,
+         RESTOCK_FROM_BACKPACK = 7,
          PLACE_ITEM         = 8,
          LOOT_ITEM          = 8,
          LIGHT_FIRE         = 10,
@@ -260,6 +260,10 @@ local constants = {
       }
    },
 
+   combat = {
+      ALLY_AGGRO_RATIO = 0.50
+   },
+
    mining = {
       XZ_CELL_SIZE = 4,
       Y_CELL_SIZE = 5,
@@ -288,6 +292,10 @@ local constants = {
 
    shop = {
       RESALE_CONSTANT = 0.6
+   },
+
+   placement = {
+      DEFAULT_ROTATION = 180
    }
 }
 

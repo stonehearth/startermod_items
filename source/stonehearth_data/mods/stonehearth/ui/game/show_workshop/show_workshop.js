@@ -349,9 +349,11 @@ App.StonehearthCrafterView = App.View.extend({
       });
 
       self.$('[title]').tooltipster();
-      // select the first recipe
-      this.$("#recipeItems").find("[unlock_level='0']")[0].click();
-
+      // Select the first recipe if currentRecipe isn't set.
+      // Current recipe can be set by autotest before we reach this point.
+      if (!this.currentRecipe) {
+         this.$("#recipeItems").find("[unlock_level='0']")[0].click();
+      }
    },
 
    _setRadioButtons: function(remaining, maintainNumber) {

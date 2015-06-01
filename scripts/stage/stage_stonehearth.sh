@@ -238,6 +238,7 @@ if [ ! -z $STAGE_DATA ]; then
    pushd $DATA_ROOT > /dev/null
    find . -maxdepth 1 -type f  \
       ! -name '*.log' \
+      ! -name 'user_settings.json' \
       -print0 | xargs -0 cp -u --target-directory $OUTPUT_DIR
    popd > /dev/null
 

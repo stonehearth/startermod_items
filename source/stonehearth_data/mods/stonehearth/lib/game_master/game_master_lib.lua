@@ -70,10 +70,10 @@ function game_master_lib.create_entity(info, player_id)
       if unit_info.description then
          radiant.entities.set_description(entity, unit_info.description)
       end
-      if info.loot_drops then
-         entity:add_component('stonehearth:loot_drops')
-                     :set_loot_table(info.loot_drops)
-      end
+   end
+   if info.loot_drops then
+      entity:add_component('stonehearth:loot_drops')
+                  :set_loot_table(info.loot_drops)
    end
 
    return entity
@@ -148,6 +148,16 @@ function game_master_lib.create_citizens(population, info, origin, ctx)
                piece = piece[rng:get_int(1, #piece)]            
             end
             ec:equip_item(piece)
+         end
+      end
+
+      local unit_info = info.unit_info
+      if unit_info then
+         if unit_info.name then
+            radiant.entities.set_name(citizen, unit_info.name)
+         end
+         if unit_info.description then
+            radiant.entities.set_description(citizen, unit_info.description)
          end
       end
 

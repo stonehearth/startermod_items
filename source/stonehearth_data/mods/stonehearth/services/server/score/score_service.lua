@@ -202,16 +202,11 @@ function ScoreService:_calc_score_from_entities(player_id, all_agg_scores)
             return false
          end
 
-         -- Food and resources will be scored by stockpiles.
+         -- Needs review: Brad noticed that the town inventory UI
+         -- shows all resources, not just ones in stockpiles. Will evaluating all food items kill perf?
          local material_component = entity:get_component('stonehearth:material')
          if material_component then
-            if material_component:is('food') then
-               return false
-            end
-            if material_component:is('resource') then
-               return false
-            end
-            if material_component:is('food_container') then 
+            if material_component:is('resource') and not (material_component:is('food') or material_component:is('food_container')) then
                return false
             end
          end

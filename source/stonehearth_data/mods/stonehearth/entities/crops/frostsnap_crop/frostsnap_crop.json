@@ -24,7 +24,7 @@
          },
          "frostsnap_4": {
             "models": [
-               "file(frostsnap.qb)"
+               "file(../../decoration/frostsnap/frostsnap.qb)"
             ]
          }
       },
