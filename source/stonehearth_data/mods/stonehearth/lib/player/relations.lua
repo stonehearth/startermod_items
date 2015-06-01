@@ -71,8 +71,8 @@ function Relations:get_amenity(player_a, player_b)
 
    -- no?  pick the worst default
    amenity = Relations.FRIENDLY
-   amenity = most_hostile(amenity, self._amenity_map[get_amenity_key(player_a, 'strangers')])
-   amenity = most_hostile(amenity, self._amenity_map[get_amenity_key(player_b, 'strangers')])
+   amenity = most_hostile(amenity, self._amenity_map[get_amenity_key(player_a, 'strangers')] or amenity)
+   amenity = most_hostile(amenity, self._amenity_map[get_amenity_key(player_b, 'strangers')] or amenity)
 
    return amenity
 end
