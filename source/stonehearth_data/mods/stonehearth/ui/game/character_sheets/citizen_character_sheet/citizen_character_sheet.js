@@ -278,39 +278,39 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $(obj).removeClass('debuffedValue buffedValue').addClass('normalValue');
       }
 
-      //For each buff and debuff that's associated with this attribute, 
-      //put it in the tooltip
-      if (buffsByAttribute[attrib_name] != null) {
-         var tooltipString = '<div class="buffTooltip">';
-         for (var i = 0; i < buffsByAttribute[attrib_name].length; i++) {
-            tooltipString = tooltipString + '<span class="buffTooltipText">'
-                                                + '<span class="dataSpan ' 
-                                                + buffsByAttribute[attrib_name][i].type
-                                                + 'DataSpan">'
-                                                + buffsByAttribute[attrib_name][i].shortDescription
-                                                + '</span>'
-                                                + '<img class="buffTooltipImg" src="'
-                                                + buffsByAttribute[attrib_name][i].icon + '"> ' 
-                                                + buffsByAttribute[attrib_name][i].name
-                                                + '</span></br>';
+      var attributeData = App.tooltipHelper.getAttributeData(attrib_name);
+      if (attributeData) {
+         var tooltipString = '<div class="attributeTooltip"> <h2>' + attributeData.display_name
+                                 + '</h2><p>'+ attributeData.description + '</p>';
+
+         //For each buff and debuff that's associated with this attribute, 
+         //put it in the tooltip
+         if (buffsByAttribute[attrib_name] != null) {
+            var buffString = '<div class="buffTooltip">';
+            for (var i = 0; i < buffsByAttribute[attrib_name].length; i++) {
+               buffString = buffString + '<span class="buffTooltipText">'
+                                                   + '<span class="dataSpan ' 
+                                                   + buffsByAttribute[attrib_name][i].type
+                                                   + 'DataSpan">'
+                                                   + buffsByAttribute[attrib_name][i].shortDescription
+                                                   + '</span>'
+                                                   + '<img class="buffTooltipImg" src="'
+                                                   + buffsByAttribute[attrib_name][i].icon + '"> ' 
+                                                   + buffsByAttribute[attrib_name][i].name
+                                                   + '</span></br>';
+            }
+            buffString = buffString + '</div>';
+            tooltipString = tooltipString + buffString;
          }
+
          tooltipString = tooltipString + '</div>';
 
          $(obj).tooltipster({
-            position: 'right'
-         });
+               position: 'right'
+            });
          $(obj).tooltipster('content', $(tooltipString));
          $(obj).tooltipster('enable');
 
-      } else if ($(obj).tooltipster()) {
-         // Put down generic tooltip if it exists.
-         var tooltipString = App.tooltipHelper.getAttributeTooltip(attrib_name);
-         if (tooltipString) {
-            $(obj).tooltipster('content', $(tooltipString));
-         } else {
-            $(obj).tooltipster('content', "");
-            $(obj).tooltipster('disable');
-         }
       }
    },
 

@@ -26,5 +26,9 @@ var StonehearthTooltipHelper;
          }
          return null;
       },
+
+      getAttributeData: function(attributeName) {
+         return this._attributeTooltips[attributeName];
+      }
    });
 })();
