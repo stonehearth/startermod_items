@@ -120,8 +120,8 @@ end
 
 function env.create_entity_cluster(x, y, w, h, uri, options)
    local entities = {}
-   for i=x,x+w do
-      for j=y,y+h do
+   for i=x, x+w-1 do
+      for j=y, y+h-1 do
          table.insert(entities, env.create_entity(i, j, uri, options))
       end
    end
