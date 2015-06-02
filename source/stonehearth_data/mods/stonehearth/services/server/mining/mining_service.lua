@@ -359,6 +359,10 @@ function MiningService:create_ore_network(location, kind, properties)
    return ore_region
 end
 
+function MiningService:set_insta_mine(value)
+   self._enable_insta_mine = value
+end
+
 function MiningService:_insta_mine(region)
    local terrain_region = radiant.terrain.intersect_region(region)
 
