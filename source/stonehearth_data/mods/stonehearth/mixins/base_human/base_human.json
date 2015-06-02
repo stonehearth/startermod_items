@@ -157,7 +157,7 @@
          "sleepiness": {
             "type" : "random_range", 
             "base" :  4,
-            "max"  :  8
+            "max"  :  7
          }, 
          "total_level" : {
             "type" : "basic", 
@@ -170,8 +170,11 @@
          "multiplicative_dmg_modifier" : {
             "type" : "basic", 
             "value" : 0
+         },
+         "sleep_duration": {
+            "type" : "derived", 
+            "equation" : "5 - 0.05 * stamina"
          }
-
       },
       "stonehearth:material" : {
          "tags" : "meat"
