@@ -141,6 +141,11 @@ function ConstructionDataComponent:set_project_adjacent_to_base(enabled)
    return self
 end
 
+-- the color region is managed by the blueprint.  we copy it into the
+-- construction_data component to ease the rendering implementation
+-- (otherwise, we'd have to travese the self -> fabricator -> blueprint
+-- construction_data -> color_region graph.  ug!)
+--
 function ConstructionDataComponent:set_color_region(region)
    self._sv.color_region = region
    self.__saved_variables:mark_changed()

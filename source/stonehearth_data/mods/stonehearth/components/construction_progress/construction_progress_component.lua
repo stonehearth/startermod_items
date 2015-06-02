@@ -186,6 +186,12 @@ function ConstructionProgress:create_voxel_brush(brush, origin)
    return voxel_brush_util.create_brush(brush, origin, self._sv.normal)
 end
 
+-- the color region contains the colors for the voxels used to draw the blueprint.
+-- by keeping the colors in a separate location, we can make the regions which
+-- churn a lot (blueprint, fabricator, and project destinations and region collosion
+-- shapes) all homogeneous, which GREATLY speeds up computation (especially for things
+-- like the herribone floor patterns, which cannot be stored efficiently)
+--
 function ConstructionProgress:set_color_region(region)
    self._sv.color_region = region
    self.__saved_variables:mark_changed()
@@ -237,6 +243,7 @@ function ConstructionProgress:paint_on_local_region(brush_uri, local_region, rep
    return self
 end
 
+-- copies the color region, updating the destination
 function ConstructionProgress:copy_color_region(color_region)
    local local_region = Region3()
    local_region:copy_region(color_region)
@@ -272,9 +279,12 @@ function ConstructionProgress:_update_blueprint_regions(update_fn)
    local dst_region = self._entity:get_component('destination')
                                        :get_region()
 
+   -- call `update_fn` to modify dst, and make sure the region
+   -- is still homogeneous after being modified.
    dst_region:modify(update_fn)
    assert(dst_region:get():is_homogeneous())
 
+   -- now apply the same change to the color region
    self._sv.color_region:modify(update_fn)
 
    return self
