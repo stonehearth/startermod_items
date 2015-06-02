@@ -8,9 +8,9 @@
       <RenderTarget id="LightAccumulation" numColBufs="1" depthBufAlias="GBuffers" format="RGBA8" scale="1.0" />
 
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
-      <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       
-      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="SelectedTemp" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="SelectedFixed" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>
       
       <RenderTarget id="WaterTemp" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
 
@@ -27,19 +27,13 @@
    </Setup>
    <CommandQueue>
       <Stage id="Init">
-         <SwitchTarget target="" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0" />
-
          <SwitchTarget target="WaterTemp" />
          <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="0" />
-
-         <SwitchTarget target="Final" />
-         <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="-1"/>
       </Stage>
 
       <Stage id="Attributes">
          <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
+         <ClearTarget colBuf0="false" colBuf1="false" colBuf2="false" depthBuf="true" stencilBuf="0"/>
 
          <SwitchTarget target="GBuffers" />
          <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3"/>
@@ -47,24 +41,6 @@
          <SwitchTarget target="Albedo" />
          <DrawGeometry context="DEFERRED_ALBEDO_LOD" forceLodLevel="-3" frustum_start="0.39" frustum_end="0.41" />
       </Stage>
-
-      <Stage id="Collect SSAO">
-         <SwitchTarget target="SSAOBlur" />
-         <ClearTarget colBuf0="true" depthBuf="false" />
-
-         <SwitchTarget target="SSAOTemp" />
-         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
-         <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
-         <DrawQuad material="materials/ssao.material.json" context="SSAO" />
-         <UnbindBuffers />
-
-         <SwitchTarget target="SSAOBlur"/>
-         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
-         <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
-         <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR" />
-         <UnbindBuffers />
-      </Stage>
-
 
       <Stage id="Light">
          <SwitchTarget target="LightAccumulation" />
@@ -76,10 +52,17 @@
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="SSAO Contribution">
-         <SwitchTarget target="LightAccumulation" />
-         <BindBuffer sampler="buf0" sourceRT="SSAOBlur" bufIndex="0" />
-         <DrawQuad material="materials/fullscreen_quad.material.json" context="SUB" />
+      <Stage id="Collect SSAO">
+         <SwitchTarget target="SSAOTemp" />
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
+         <DrawQuad material="materials/ssao.material.json" context="SSAO" />
+         <UnbindBuffers />
+
+         <SwitchTarget target="LightAccumulation"/>
+         <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
+         <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR_SUB" />
          <UnbindBuffers />
       </Stage>
 
@@ -117,14 +100,16 @@
 
       <Stage id="Selected">
          <SwitchTarget target="SelectedTemp" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
-
-         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="false"/>
          <DrawSelected context="SELECTED_SCREENSPACE" />
 
+         <!-- Nuke this once t junctions go away. -->
+         <SwitchTarget target="SelectedFixed" />
+         <BindBuffer sampler="selections" sourceRT="SelectedTemp" bufIndex="0"/>
+         <DrawQuad material="materials/selectable.material.json" context="SELECTED_SCREENSPACE_TJUNCTIONFIX" />
+
          <SwitchTarget target="Final" />
-         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
-         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
+         <BindBuffer sampler="outlineSampler" sourceRT="SelectedFixed" bufIndex="0"/>
          <DrawQuad material="materials/selectable.material.json" context="SELECTED_SCREENSPACE_OUTLINER" />
          <UnbindBuffers />
       </Stage>
@@ -186,8 +171,8 @@
       <!-- Don't want to anti-alias bloom, so lets put it after the actual AA pass -->
       <Stage id="Bloom">
          <SwitchTarget target="Bloom" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
-
+         <BindBuffer sampler="depthImage" sourceRT="Final" bufIndex="32"/>
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="DEPTH_COPY" />
          <DrawGeometry context="BLOOM" forceLodLevel="0"/>
 
          <SwitchTarget target="BloomTemp" />

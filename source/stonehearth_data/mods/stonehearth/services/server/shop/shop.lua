@@ -276,7 +276,7 @@ function Shop:sell_item(uri, quantity)
       sell_quantity = sell_quantity - 1
    end
 
-   -- deduct gold from the player
+   -- give gold to the player
    self._sv._inventory:add_gold(total_gold)
    return true
 end

@@ -1,6 +1,7 @@
 local Point3 = _radiant.csg.Point3
 local CollectIngredients = require 'services.server.town.orchestrators.collect_ingredients_orchestrator'
 local ClearWorkshop = require 'services.server.town.orchestrators.clear_workshop_orchestrator'
+local constants = require 'constants'
 local rng = _radiant.csg.get_default_rng()
 
 local WorkAtWorkshop = class()
@@ -90,6 +91,19 @@ function WorkAtWorkshop:_process_order(order)
       effect = effect, 
       item_name = recipe.recipe_name
    }
+
+   local work_units = recipe.work_units
+   if work_units > constants.attribute_effects.DILIGENCE_WORK_UNITS_THRESHOLD then
+      local attributes_component = crafter:get_component('stonehearth:attributes')
+      local diligence = attributes_component:get_attribute('diligence')
+      local percentage_deduction = diligence * constants.attribute_effects.DILIGENCE_WORK_UNITS_REDUCTION_MULTIPLER 
+      local work_units_percent = 1 - percentage_deduction
+      work_units = radiant.math.round(work_units * work_units_percent)
+      if work_units < constants.attribute_effects.DILIGENCE_WORK_UNITS_THRESHOLD then
+         work_units = constants.attribute_effects.DILIGENCE_WORK_UNITS_THRESHOLD
+      end
+   end
+
    local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
                                      :set_priority(stonehearth.constants.priorities.crafting.DEFAULT)
                                      :times(recipe.work_units)
@@ -131,6 +145,7 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
    for i, product in ipairs(recipe.produces) do
       --If we're a certain level of crafter, we can make fine versions of objects
       local item = radiant.entities.create_entity(self:_determine_output(product), { owner = self._crafter })
+      local item_uri = item:get_uri()
       local entity_forms = item:get_component('stonehearth:entity_forms')
       if entity_forms then
          local iconic_entity = entity_forms:get_iconic_entity()
@@ -151,7 +166,8 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
       --send event that the carpenter has finished an item
       local crafting_data = {
          recipe_data = recipe, 
-         product = item
+         product = item,
+         product_uri = item_uri,
       }
       radiant.events.trigger_async(self._crafter, 'stonehearth:crafter:craft_item', crafting_data)
 
@@ -165,7 +181,21 @@ function WorkAtWorkshop:_determine_output(product)
    local item_uri = product.item
    local target_num = rng:get_int(1, 100)
    local crafter_component = self._crafter:get_component('stonehearth:crafter')
-   if product.fine and target_num <= crafter_component:get_fine_percentage() then
+   local fine_percentage = crafter_component:get_fine_percentage()
+   if (fine_percentage > 0) then
+      local attributes_component = self._crafter:get_component('stonehearth:attributes')
+      local inventiveness = attributes_component:get_attribute('inventiveness')
+      if (inventiveness >= constants.attribute_effects.INVENTIVENESS_CRAFTING_FINE_THRESHOLD) then
+         local inventiveness_modifier = radiant.math.round(inventiveness * constants.attribute_effects.INVENTIVENESS_CRAFTING_FINE_MULTIPLIER)
+         fine_percentage = fine_percentage + inventiveness_modifier
+      end
+
+      if (fine_percentage < 0) then
+         fine_percentage = 0
+      end
+   end
+
+   if product.fine and target_num <= fine_percentage then
       item_uri = product.fine
    end
    return item_uri

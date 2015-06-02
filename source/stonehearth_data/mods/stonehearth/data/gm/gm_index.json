@@ -8,6 +8,9 @@
       },
       "ambient_threats" : {
          "ambient_threats" : "file(campaigns/ambient_threats/ambient_threats_campaign.json)"
-      }     
+      }, 
+      "game_events" : {
+         "game_events" : "file(campaigns/game_events/game_events_campaign.json)"
+      } 
    }
 }

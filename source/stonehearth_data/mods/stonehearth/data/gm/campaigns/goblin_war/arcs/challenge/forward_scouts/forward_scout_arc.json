@@ -5,6 +5,7 @@
    "encounters" : {
       "wait to start" : "file(encounters/wait_to_start.json)",
       "inital_warning" : "file(encounters/initial_warning.json)", 
+      "wait to create camps" : "file(encounters/wait_to_create_camps.json)", 
       "create_camps" : "file(encounters/create_camps.json)",
       "create_scout_camp" : "file(encounters/create_scout_camp.json)", 
       "wait_for_wakeup" : "file(encounters/wait_for_wakeup.json)",
@@ -15,6 +16,10 @@
       "wolves_escaping_dialog" : "file(encounters/wolves_escaping_dialog.json)",
       "refugees_hint" : "file(encounters/refugees_hint.json)",
       "mysterious_orc_hint" : "file(encounters/mysterious_orc_hint.json)",
-      "destroy_stockpiles" : "file(encounters/destroy_goblin_stockpiles.json)"
+      "destroy_stockpiles" : "file(encounters/destroy_goblin_stockpiles.json)",
+
+      "wait to return" : "file(encounters/wait_to_return.json)", 
+      "temp finish message" : "file(encounters/temp_finish_message.json)",
+      "reward_loot" : "file(encounters/reward_loot.json)"
    }
 }

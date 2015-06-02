@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_to_create_camps",
+   "out_edge" : ["create_camps"],
+
+   "wait_info" :  {
+      "duration" : "1d"
+   }
+}

@@ -145,8 +145,8 @@ var MaterialHelper = SimpleClass.extend({
       self._container.append(toolbar);
 
       // add the tabs...
-      self._addToPalette(toolbar, patterns);
       self._addToPalette(toolbar, colors);
+      self._addToPalette(toolbar, patterns);
 
       self._container.find('.brush').click(function() {
          var brush = $(this).attr('brush');

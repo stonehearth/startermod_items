@@ -46,25 +46,42 @@ function TargetTable:get_top(fitness_fn)
 end
 
 function TargetTable:clear()
-   self._sv.targets = {}
-   self.__saved_variables:mark_changed()
-   self:_signal_changed()
+   if next(self._sv.targets) then
+      self._sv.targets = {}
+      self.__saved_variables:mark_changed()
+      self:_signal_changed()
+   end
+end
+
+function TargetTable:remove_entry(id)
+   local entry = self._sv.targets[id]
+
+   if entry then
+      self._sv.targets[id] = nil
+      self.__saved_variables:mark_changed()
+      self:_signal_changed()
+   end
 end
 
 function TargetTable:get_value(target)
    if not target or not target:is_valid() then
-      return
+      return nil
    end
+
    local id = target:get_id()
    local entry = self._sv.targets[id]
    if not entry then
-      return
+      return nil
    end
    return entry.value
 end
 
 -- modifies the score of the target by delta
 function TargetTable:modify_value(target, delta)
+   if delta == 0 then
+      return
+   end
+
    if not target or not target:is_valid() then
       return
    end

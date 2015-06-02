@@ -231,7 +231,7 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			else if( _stricmp( orderStr, "NONE" ) == 0 ) order = RenderingOrder::None;
          int lodLevel = atoi(node1.getAttribute("forceLodLevel", "-1"));
 			
-			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawGeometry ) );
+			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawSelected ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
 			params.resize( 6 );			
 			params[0].setString( node1.getAttribute( "context" ) );

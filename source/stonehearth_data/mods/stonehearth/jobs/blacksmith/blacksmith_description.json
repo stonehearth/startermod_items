@@ -45,12 +45,12 @@
    "parent_job" : "stonehearth:jobs:worker", 
 
    "xp_rewards" : {
-      "craft_level_0" : 30, 
-      "craft_level_1" : 50, 
-      "craft_level_2" : 75,
-      "craft_level_3" : 100, 
-      "craft_level_4" : 150,
-      "craft_level_5" : 200
+      "craft_level_0" : 50, 
+      "craft_level_1" : 75,
+      "craft_level_2" : 100, 
+      "craft_level_3" : 150,
+      "craft_level_4" : 200,
+      "craft_level_5" : 300
    },
 
    "max_level" : 6, 

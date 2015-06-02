@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Trapper's Knife",
-   "description" : "Promotes a hearthling into a Trapper.",
+   "description" : "Required to promote a hearthling into a Trapper.",
    "portrait"    : "/stonehearth/jobs/trapper/trapper_knife/trapper_knife.png",
    "level_requirement" : 1,
 

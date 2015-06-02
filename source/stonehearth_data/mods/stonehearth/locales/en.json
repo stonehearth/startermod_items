@@ -24,11 +24,6 @@
    "title_screen_quick_start": "Quick Start",
    "title_screen_patch_notes": "Show Patch Notes",
 
-   "starting_pets" : "Starting Pets",
-   "puppy" : "Puppy",
-   "kitten" : "Kitten",
-   "mammoth" : "Mammoth",
-   "dragon_whelp" : "Dragon Whelp",
    "normal_game" : "Normal Game",
    "peaceful_game" : "Peaceful Game",
    "normal_game_description" : "Adventure forth in a world fraught with danger. Your town will be subject to raiding enemies.",
@@ -150,9 +145,16 @@
    "esc_menu_post_bug" : "Post a bug", 
 
    "embark_title" : "Prepare to set out for adventure",
-   "embark_citizen_info" : "Citizens",
-   "embark_citizen_info_name" : "Name",
-   "embark_reroll_citizens" : "Roll new citizens",   
+   "embark_citizen_info" : "Expedition Roster",
+   "embark_reroll_citizens" : "Roll new citizens",
+   "embark_shop_category_talisman" : "Job Talismans",
+   "embark_shop_category_pets": "Starting Pets",
+   "embark_pet_collie" : "Puppy",
+   "embark_pet_kitten" : "Kitten",
+   "embark_pet_mammoth" : "Mammoth",
+   "embark_pet_dragon_whelp" : "Dragon Whelp",
+   "embark_shop_buy_button" : "Buy",
+   "embark_shop_reset_button" : "Reset",
    "embark_finished" : "Embark!",
 
    "select_settlement_title" : "Click the map to choose your settlement's location",
@@ -395,8 +397,13 @@
    "backpack_description" : "The backpack can hold items for safe-keeping while you're away from town.",
    "backpack_full" : "FULL!",
 
-   "building_vision" : "Change vision mode",
-   "building_vision_description" : "Change the visibility of building walls, allowing you to see inside them.",
+   "building_vision" : "Building vision",
+   "building_vision_description" : "Changes the visibility of walls, allowing you to see inside buildings.",
+
+   "terrain_slice_vision" : "Terrain slice vision",
+   "terrain_slice_vision_description" : "Slice the terrain, allowing you to see underground structures. Change the elevation to see different slices.",
+   "terrain_xray_vision" : "Terrain x-ray vision",
+   "terrain_xray_vision_description" : "See through the terrain. Change between full and flat view to show underground walls.",
 
    "pause_title" : "Pause Game",
    "pause_description" : "Pause the game if it's running.",
@@ -516,6 +523,7 @@
 
    "shop_buy" : "Buy",
    "shop_sell" : "Sell",
+   "shop_not_enough_gold" : "Not enough gold",
 
    "huh" : "Huh.",
    "alarm" : "Gagh!", 
@@ -531,5 +539,6 @@
    "no_thanks" : "No. Thanks.",
    "wait_who_are_you" : "Wait! Who are you?", 
    "cool" : "Cool!", 
-   "sounds_ominous" : "Sounds ominous."
+   "sounds_ominous" : "Sounds ominous.",
+   "uneventful_day" : "An Uneventful Day"
 }

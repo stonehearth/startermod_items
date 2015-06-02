@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Farmer's Hoe",
-   "description" : "Promotes a hearthling into a Farmer.",
+   "description" : "Required to promote a hearthling into a Farmer.",
    "flavor"      : "Hoedown time!!!!",
    "portrait"    : "/stonehearth/jobs/farmer/farmer_hoe/farmer_hoe.png",
 

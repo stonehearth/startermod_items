@@ -9,13 +9,50 @@
 
    #citizens {
       position: absolute;
-      top: 150px;
-      left: 100px;
-      width: 1000px;
+      top: 158px;
+      left: 104px;
+      width: 1080px;
+      height: 730px;
       color: #000;
 
-      #citizenInfoTable {
-         padding-top: 20px;
+      #citizenInfoTitle {
+         font-family: @headerFontFamily;
+         font-size: 38px;
+         margin-left: 22px;
+         margin-bottom: 12px;
+      }
+   }
+
+   #embarkShop {
+      position: absolute;
+      top: 368px;
+      left: 1264px;
+      color: #000;
+      width: 428px;
+      height: 550px;
+
+      #buyPallet {
+         position: absolute;
+         top: 8px;
+         bottom: 88px;
+         left: 0px;
+         right: 10px;
+      }
+
+      #playerGold {
+         position: absolute;
+         bottom: 16px;
+         left: 16px;
+         background-image: url(/stonehearth/ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/images/gold.png);
+         background-position: right bottom;
+         background-repeat: no-repeat;
+         padding-right: 30px;
+      }
+
+      #shopButtons {
+         position: absolute;
+         right: 10px;
+         bottom: 10px;
       }
    }
 
@@ -46,3 +83,26 @@
    }
 }
 
+.embarkItem {
+   //display: block !important;
+
+   margin-right: 20px !important;
+
+   div.num {
+      display: none; 
+   }
+
+   div.cost {
+      position: absolute;
+      bottom: 20px;
+      right: -6px;
+      font-family: @controlFontFamily;
+      font-size: 16px;
+      color: #eccd39;  
+   }
+}
+
+h2 {
+  padding-left: 2px;
+  right:0px;
+}

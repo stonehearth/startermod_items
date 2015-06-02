@@ -1,5 +1,6 @@
 local AssaultContext = require 'services.server.combat.assault_context'
 local BatteryContext = require 'services.server.combat.battery_context'
+local constants = require 'constants'
 local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
@@ -128,6 +129,14 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
    end
    local additive_dmg_modifier = attributes_component:get_attribute('additive_dmg_modifier')
    local multiplicative_dmg_modifier = attributes_component:get_attribute('multiplicative_dmg_modifier')
+   local muscle = attributes_component:get_attribute('muscle')
+
+   if muscle then
+      local muscle_dmg_modifier = muscle * constants.attribute_effects.MUSCLE_MELEE_MULTIPLIER
+      muscle_dmg_modifier = muscle_dmg_modifier + constants.attribute_effects.MUSCLE_MELEE_MULTIPLIER_BASE
+      multiplicative_dmg_modifier = multiplicative_dmg_modifier + muscle_dmg_modifier
+   end
+
    if multiplicative_dmg_modifier then
       local dmg_to_add = base_damage * multiplicative_dmg_modifier
       total_damage = dmg_to_add + total_damage
@@ -142,6 +151,7 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
       total_damage = dmg_to_add + total_damage
    end
 
+   total_damage = radiant.math.round(total_damage)
    --Get the damage reduction from armor
    local total_armor = self:_calculate_total_armor(entity)
 

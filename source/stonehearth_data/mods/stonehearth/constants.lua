@@ -55,11 +55,11 @@ local constants = {
       simple_labor = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
-         RESTOCK_FROM_BACKPACK = 3,
          CLEAR              = 3,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,
+         RESTOCK_FROM_BACKPACK = 7,
          PLACE_ITEM         = 8,
          LOOT_ITEM          = 8,
          LIGHT_FIRE         = 10,
@@ -260,6 +260,10 @@ local constants = {
       }
    },
 
+   combat = {
+      ALLY_AGGRO_RATIO = 0.50
+   },
+
    mining = {
       XZ_CELL_SIZE = 4,
       Y_CELL_SIZE = 5,
@@ -288,6 +292,20 @@ local constants = {
 
    shop = {
       RESALE_CONSTANT = 0.6
+   },
+
+   attribute_effects = {
+      MUSCLE_MELEE_MULTIPLIER = 0.01,   -- Multiply an entity's mucle attribute by this to get multiplier on top of base damage.
+      MUSCLE_MELEE_MULTIPLIER_BASE = 1,   -- Add melee multiplier and melee multipler base to get full multiplier
+      INVENTIVENESS_CRAFTING_FINE_THRESHOLD = 20,   -- Inventiveness must be greater than or equal to this to get the bonus multiplier.
+      INVENTIVENESS_CRAFTING_FINE_MULTIPLIER = 0.5,   -- Multiply an entity's inventiveness attribute by this, and then add that to the percentage fine chance when crafting.
+      DILIGENCE_WORK_UNITS_THRESHOLD = 3, -- Craftables with work units above this threshold will get a diligence deduction
+      DILIGENCE_WORK_UNITS_REDUCTION_MULTIPLER = 0.006, -- Multiple entity's diligence attribute by this to get work unit deduction percentage
+      CURIOSITY_NEW_CRAFTABLE_MULTIPLER = 0.05, -- Multiple entity's curiosity attribute by this to get multiplier for xp earned. Min multiplier is 1
+   },
+
+   placement = {
+      DEFAULT_ROTATION = 180
    }
 }
 
@@ -296,7 +314,7 @@ constants.construction.DEFAULT_WOOD_WALL_BRUSH   = constants.construction.brushe
 constants.construction.DEFAULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
 constants.construction.DEFAULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
 constants.construction.DEFAULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
-constants.construction.DEFAULT_STONE_FLOOR_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
+constants.construction.DEFAULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
 constants.construction.DEFAULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
 constants.construction.DEFAULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
 constants.construction.DEFAULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]

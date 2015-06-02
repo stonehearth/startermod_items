@@ -171,7 +171,7 @@ function MiningZoneComponent:_on_region_changed()
 
    self:_update_destination()
    self:_update_designation()
-   self:_create_mining_task()
+   self:_update_mining_task()
 end
 
 function MiningZoneComponent:_trace_location()

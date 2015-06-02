@@ -104,25 +104,19 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          self.$('#playButton').click();
       });
 
-      // tooltip
-      this.$('#pauseButton').tooltipster({
-         position: 'bottom',
-         content: $('<div class=title>' + i18n.t('stonehearth:pause_title') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:pause_description') + '</div>' /*+ 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
-      });
-      this.$('#playButton').tooltipster({
-         position: 'bottom',
-         content: $('<div class=title>' + i18n.t('stonehearth:play_title') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:play_description') + '</div>' /*+ 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
-      });
-      this.$('#ffButton').tooltipster({
-         position: 'bottom',
-         content: $('<div class=title>' + i18n.t('stonehearth:ff_title') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:ff_description') + '</div>' /*+ 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + $(this).attr('hotkey')  + '</span></div>'*/)
-      });
+      self._addHotkeys();
 
+      // tooltip
+      var buttons = ['pause', 'play', 'ff'];
+      radiant.each(buttons, function(i, buttonName) {
+         var button = this.$('#'+ buttonName + 'Button');
+         button.tooltipster({
+         position: 'bottom',
+         content: $('<div class=title>' + i18n.t('stonehearth:' + buttonName + '_title') + '</div>' + 
+                    '<div class=description>' + i18n.t('stonehearth:pause_description') + '</div>' + 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + button.attr('hotkey')  + '</span></div>')
+         });
+
+      });
    }
 });

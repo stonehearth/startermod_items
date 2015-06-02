@@ -51,8 +51,8 @@ class Client : public core::Singleton<Client> {
 
       om::EntityRef GetSelectedEntity();
 
-      void SelectEntity(om::EntityPtr entity);
-      void HilightEntity(om::EntityPtr entity);
+      void SelectEntity(om::EntityPtr entity, csg::Point3f const& color);
+      void HilightEntity(om::EntityPtr entity, csg::Point3f const& color);
 
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
       void DestroyAuthoringEntity(dm::ObjectId id);

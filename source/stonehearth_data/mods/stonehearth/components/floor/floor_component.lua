@@ -57,8 +57,13 @@ function Floor:set_category(category)
       self._mms_trace = fc:get_project():get_component('region_collision_shape'):trace_region('movement modifier', TraceCategories.SYNC_TRACE)
          :on_changed(function(region)
                move_mod:get_region():modify(function(mod_region)
-                     mod_region:copy_region(region:inflated(Point3(0, 1, 0)))
-                     mod_region:optimize_by_merge('road movement modifier shape')
+                     mod_region:copy_region(region)
+                     -- The region_collision_shape and destination regions (same boxed region) are colored by material.
+                     -- Remove the color so we can consolidate the movement_modifier_shape region.
+                     mod_region:set_tag(0)
+                     mod_region:optimize_by_defragmentation('road movement modifier shape')
+                     -- Movement is faster on the blocks above the road/floor.
+                     mod_region:translate(Point3(0, 1, 0))
                   end)
             end)
          :push_object_state()

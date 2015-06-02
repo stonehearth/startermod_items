@@ -65,8 +65,8 @@ public:
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 
 	bool canAttach( SceneNode &parent );
-	int getParamI( int param );
-	void setParamI( int param, int value );
+	virtual int getParamI( int param ) const;
+	virtual void setParamI( int param, int value );
 	bool checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
 	void onAttach( SceneNode &parentNode );

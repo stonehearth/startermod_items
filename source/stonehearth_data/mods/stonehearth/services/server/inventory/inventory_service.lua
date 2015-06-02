@@ -96,17 +96,12 @@ function InventoryService:_register_score_functions()
    end)
 
    --eval function for food (may replace with using filter for type)
+   --We count food that's owned by the player, not just the stuff in their stockpiles
+   --This helps the score function work the same as the town inventory. 
    stonehearth.score:add_aggregate_eval_function('resources', 'edibles', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:stockpile') then
-         local stockpile_component = entity:get_component('stonehearth:stockpile')
-         local items = stockpile_component:get_items()
-         local total_score = 0
-         for id, item in pairs(items) do
-            if radiant.entities.is_material(item, 'food_container') or radiant.entities.is_material(item, 'food') then
-               local item_value = stonehearth.score:get_score_for_entity(item)
-               agg_score_bag.edibles = agg_score_bag.edibles + item_value
-            end
-         end
+      if radiant.entities.is_material(entity, 'food_container') or radiant.entities.is_material(entity, 'food') then
+         local item_value = stonehearth.score:get_score_for_entity(entity)
+         agg_score_bag.edibles = agg_score_bag.edibles + item_value
       end
    end)
 end
@@ -131,6 +126,25 @@ function InventoryService:_get_score_for_stockpile(entity)
       total_score = total_score + item_value
    end
    return total_score / 10
+end
+
+function InventoryService:add_gold_console_command(session, response, gold_amount)
+   local inventory = self:get_inventory(session.player_id)
+
+   if inventory == nil then
+      response:reject('there is no inventory for player ' .. session.player_id)
+      return
+   end
+
+   if (gold_amount > 0) then
+      -- give gold to the player
+      inventory:add_gold(gold_amount)
+   else
+      -- deduct gold from the player
+      gold_amount = -gold_amount;
+      inventory:subtract_gold(gold_amount)
+   end
+   response:resolve({})
 end
 
 return InventoryService

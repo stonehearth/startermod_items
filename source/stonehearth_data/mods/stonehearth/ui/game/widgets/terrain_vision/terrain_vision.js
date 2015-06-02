@@ -1,5 +1,5 @@
 App.StonehearthTerrainVisionWidget = App.View.extend({
-   templateName: 'stoneheartTerrainVision',
+   templateName: 'stonehearthTerrainVision',
    uriProperty: 'context.data',
 
    init: function() {
@@ -97,6 +97,16 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
          }
       });
 
-      this.$('[title]').tooltipster();
+      this.$('#sliceButton').tooltipster({
+         content: $('<div class=title>' + i18n.t('stonehearth:terrain_slice_vision') + '</div>' + 
+                    '<div class=description>' + i18n.t('stonehearth:terrain_slice_vision_description') + '</div>' + 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>&#92;</span></div>')
+      });
+
+      this.$('#xrayButton').tooltipster({
+         content: $('<div class=title>' + i18n.t('stonehearth:terrain_xray_vision') + '</div>' + 
+                    '<div class=description>' + i18n.t('stonehearth:terrain_xray_vision_description') + '</div>' + 
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + this.$('#xrayButton').attr('hotkey')  + '</span></div>')
+      });
    }
 });

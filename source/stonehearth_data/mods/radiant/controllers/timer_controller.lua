@@ -10,7 +10,7 @@ function Timer:initialize(start_time, duration, fn, repeating)
    self._sv._repeating = repeating
    self._fn = fn
 
-   log:debug('start time: %f, expires: %f', self._sv._start_time, self._sv._expire_time)
+   log:debug('Timer is intialized: start time: %f, expires: %f', self._sv._start_time, self._sv._expire_time)
 end
 
 function Timer:destroy()

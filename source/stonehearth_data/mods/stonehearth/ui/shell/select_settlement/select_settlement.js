@@ -22,7 +22,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
             mapGrid: e.map,
 
             click: function(cellX, cellY) {
-               self._chooseLocation(cellX, cellY)
+               self._chooseLocation(cellX, cellY);
             },
 
             hover: function(cellX, cellY) {
@@ -43,10 +43,12 @@ App.StonehearthSelectSettlementView = App.View.extend({
       self.$("#regenerateButton").click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
          self._clearSelection();
+         self.$('#map').stonehearthMap('suspend');
 
          self._newGame(function(e) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
             self.$('#map').stonehearthMap('setMap', e.map);
+            self.$('#map').stonehearthMap('resume');
          });
       });
 

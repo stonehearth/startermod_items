@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Shepherd's Crook",
-         "description" : "Promotes a hearthling into a Shepherd."
+         "description" : "Required to promote a hearthling into a Shepherd."
       },
       "item" : {
          "stacks" : 1

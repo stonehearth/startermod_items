@@ -5,12 +5,12 @@ App.StonehearthNewGameOptions = App.View.extend({
 
    _options: {
       enable_enemies: true,
-      starting_pets: {
-         puppy: false,
-         kitten: false,
-         mammoth: false,
-         dragon_whelp: false,
-      },
+      starting_talismans : [
+         "stonehearth:carpenter:talisman", // Always have at least the carpenter.
+      ],
+      starting_pets: [
+      ],
+      starting_gold: 0,
    },
 
    _doInit: function() {
@@ -32,15 +32,7 @@ App.StonehearthNewGameOptions = App.View.extend({
          if ($(this).attr('id') != 'enemiesOn') {
             self._options.enable_enemies = false
          }
-
-         // check if the ks_pet_options mod is installed. If it is, read from the checkboxes
-         if (self.get('kickstarter_pets')) {
-            self._options.starting_pets.puppy = self.$('#starting_puppy').is(':checked')
-            self._options.starting_pets.kitten = self.$('#starting_kitten').is(':checked')
-            self._options.starting_pets.mammoth = self.$('#starting_mammoth').is(':checked')            
-            self._options.starting_pets.dragon_whelp = self.$('#starting_dragon_whelp').is(':checked')            
-         }
-
+         
          // show the embark view
          App.shellView.addView(App.StonehearthEmbarkView, {_options: self._options});
 

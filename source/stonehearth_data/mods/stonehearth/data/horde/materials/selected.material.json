@@ -1,12 +1,13 @@
 {
 	"shaders" : {
 		"SELECTED_SCREENSPACE" : {
-			"state" : "states/voxel/replace.state",
+			"state" : "states/voxel/replace_nodepth.state",
 			"shader" : "shaders/voxel/flat_color.shader",
 			"inputs" : [
 				{
 					"name" : "flat_color",
-					"default" : [0.9, 0.9, 0.9, 1]
+					"default" : [0.9, 0.9, 0.9, 1],
+					"bind_to_material_input" : "selected_color"				
 				}
 			]
 		},
@@ -17,9 +18,19 @@
 			"inputs" : [
 				{
 					"name" : "flat_color",
-					"default" : [0.4, 0.4, 0.4, 1]
+					"default" : [0.4, 0.4, 0.4, 1], 
+					"bind_to_material_input" : "selected_color_fast"				
 				}
 			]
 		}
-	}
-}
+	},
+	"inputs" : [
+		{
+			"name" : "selected_color_fast",
+			"default" : [0.4, 0.4, 0.4, 1.0]
+		},
+		{
+			"name" : "selected_color",
+			"default" : [0.9, 0.9, 0.9, 1]
+		}
+	]}

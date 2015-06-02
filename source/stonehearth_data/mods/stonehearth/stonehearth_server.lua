@@ -35,7 +35,6 @@ local service_creation_order = {
    'town_patrol',
    'bulletin_board',
    'linear_combat',
-   'interval',
    'farming',
    'trapping',
    'shepherd',
@@ -122,6 +121,10 @@ local function run_on_destroy_effect(entity)
    end
 end
 
+--Review Comment: (@tony) I realize this fn is about generating loot from entity data, and
+--loot_drops_component is about generating loot from a table added at runtime, but maybe it
+--would make sense to consolidate the loot generation somewhere, maybe in entities.lua? 
+--I could add a drop_loot function. (--sdee)
 local function spawn_loot(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    if location then
@@ -131,7 +134,18 @@ local function spawn_loot(entity)
                            :roll_loot()
                            
          local owner_id = radiant.entities.get_player_id(entity)
-         radiant.entities.spawn_items(items, location, 1, 3, { owner = owner_id })
+         local spawned_entities = radiant.entities.spawn_items(items, location, 1, 3, { owner = owner_id })
+      
+         --Add a loot command to each of the spawned items
+         for id, entity in pairs(spawned_entities) do 
+            local target = entity
+            local entity_forms = entity:get_component('stonehearth:entity_forms')
+            if entity_forms then
+               target = entity_forms:get_iconic_entity()
+            end
+            local command_component = target:add_component('stonehearth:commands')
+            command_component:add_command('/stonehearth/data/commands/loot_item')
+         end
       end
    end
 end

@@ -11,7 +11,7 @@
       },
       "unit_info": {
          "name": "Wooden Sword",
-         "description": "Promotes a hearthling into a Footman.",
+         "description": "Required to promote a hearthling into a Footman.",
          "icon" : "file(wooden_sword.png)"
       },
       "item" : {

@@ -12,8 +12,7 @@ function ShopService:initialize()
    if not self._sv.initialized then
       self._sv.initialized = true
    end
-
-   self:_init_sellable_items();
+   self:_init_sellable_items()
 end
 
 ---Creates a new shop with reasonable defaults.  See the shop object for more information.
@@ -40,15 +39,15 @@ end
 -- are all the entities mentioned in the manifest of every mod which have the stonehearth:net_worth 
 -- entity data where shop_info.sellable = true.
 function ShopService:get_sellable_items()
-   return self._sellable_items
+   return self._sv.sellable_items
 end
 
 function ShopService:_init_sellable_items()
-   if self._sellable_items ~= nil then
+   if self._sv.sellable_items ~= nil then
       return
    end
 
-   self._sellable_items = {}
+   self._sv.sellable_items = {}
 
    local mods = radiant.resources.get_mod_list()
 
@@ -65,11 +64,12 @@ function ShopService:_init_sellable_items()
             if path ~= nil and self:_alias_is_sellable_entity(path) then
                -- add the entity to the table of sellable items
                local entity = radiant.entities.create_entity(path)
-               self._sellable_items[full_alias] = entity
+               self._sv.sellable_items[full_alias] = entity
             end
          end
       end
    end
+   self.__saved_variables:mark_changed()
 end
 
 function ShopService:get_entity_value_in_gold(entitiy)

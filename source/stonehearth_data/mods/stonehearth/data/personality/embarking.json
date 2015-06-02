@@ -54,7 +54,11 @@
                "entries" : [
                   "polka", 
                   "yowl",
-                  "cartwheel"
+                  "cartwheel",
+                  "dance",
+                  "jump",
+                  "skip",
+                  "backflip",
                ]
             }
          }

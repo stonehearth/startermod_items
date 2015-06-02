@@ -1,0 +1,31 @@
+{
+   "mixins": "stonehearth:mixins:resources:fur_pelt",
+
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Wolf pelt",
+         "description": "From the hide of a terrifying creature",
+         "icon": "file(wolf_pelt.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wolf_pelt.qb)"
+            ]
+         }
+      }      
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 60,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : false,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }
+}

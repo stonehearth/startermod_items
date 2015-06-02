@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Wooden Practice Sword",
-   "description" : "Promotes a hearthling into a Footman.",
+   "description" : "Required to promote a hearthling into a Footman.",
    "flavor"      : "Just pointy enough to get the job done.",
    "portrait"    : "/stonehearth/entities/weapons/wooden_sword/wooden_sword.png",
 

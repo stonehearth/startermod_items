@@ -78,8 +78,15 @@ function GameCreationService:_set_game_options(options)
       stonehearth.game_master:enable_campaign_type('combat', false)
       stonehearth.game_master:enable_campaign_type('ambient_threats', false)
    end
-
    self.game_options = options
+   
+   if not self.game_options.starting_talismans then
+      self.game_options.starting_talismans = {"stonehearth:carpenter:talisman", "stonehearth:trapper:talisman"}
+   end
+   
+   if not self.game_options.starting_gold then
+       self.game_options.starting_gold = 0
+   end
 end
 
 function GameCreationService:_get_overview_map(tile_margin)
@@ -167,7 +174,6 @@ function GameCreationService:create_camp_command(session, response, pt)
    stonehearth.calendar:start()
    stonehearth.game_master:start()
    stonehearth.hydrology:start()
-   stonehearth.interval:enable(true)
 
    stonehearth.world_generation:set_starting_location(Point2(pt.x, pt.z))
 
@@ -180,54 +186,62 @@ function GameCreationService:create_camp_command(session, response, pt)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = session.player_id })
    radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
-   radiant.entities.turn_to(banner_entity, 180)
+   radiant.entities.turn_to(banner_entity, constants.placement.DEFAULT_ROTATION)
 
    -- build the camp
    local camp_x = pt.x
    local camp_z = pt.z
-
-   local function place_citizen_embark(citizen, x, z)
-      radiant.terrain.place_entity(citizen, Point3(x, 1, z))
-      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
-                             {entity = citizen, description = 'person_embarks'})
-      radiant.entities.turn_to(citizen, 180)
-   end
-
-   place_citizen_embark(self.generated_citizens[1], camp_x-3, camp_z-3)
-   place_citizen_embark(self.generated_citizens[2], camp_x+0, camp_z-3)
-   place_citizen_embark(self.generated_citizens[3], camp_x+3, camp_z-3)
-   place_citizen_embark(self.generated_citizens[4], camp_x-3, camp_z+3)
-   place_citizen_embark(self.generated_citizens[5], camp_x+3, camp_z+3)
-   place_citizen_embark(self.generated_citizens[6], camp_x-3, camp_z+0)
-   place_citizen_embark(self.generated_citizens[7], camp_x+3, camp_z+0)
+   
+   self:_place_citizen_embark(1, pop, camp_x-3, camp_z-3)
+   self:_place_citizen_embark(2, pop, camp_x+0, camp_z-3)
+   self:_place_citizen_embark(3, pop, camp_x+3, camp_z-3)
+   self:_place_citizen_embark(4, pop, camp_x-3, camp_z+3)
+   self:_place_citizen_embark(5, pop, camp_x+3, camp_z+3)
+   self:_place_citizen_embark(6, pop, camp_x-3, camp_z+0)
+   self:_place_citizen_embark(7, pop, camp_x+3, camp_z+0)
    
    self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
 
    radiant.entities.pickup_item(self.generated_citizens[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
    radiant.entities.pickup_item(self.generated_citizens[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(self.generated_citizens[3], pop:create_entity('stonehearth:trapper:talisman'))
-   radiant.entities.pickup_item(self.generated_citizens[4], pop:create_entity('stonehearth:carpenter:talisman'))
+
+   -- Spawn initial talismans
+   for i, talisman_uri in ipairs (self.game_options.starting_talismans) do
+      if i + 2 > NUM_STARTING_CITIZENS then
+         break
+      end
+      radiant.entities.pickup_item(self.generated_citizens[i + 2], pop:create_entity(talisman_uri))
+   end
 
    -- kickstarter pets
    if self.game_options.starting_pets then
-      if self.game_options.starting_pets.puppy then   
-         self:_place_pet(pop, 'stonehearth:squirrel', camp_x-3, camp_z-6)
-      end
-
-      if self.game_options.starting_pets.kitten then   
-         self:_place_pet(pop, 'stonehearth:rabbit', camp_x+0, camp_z-6)
-      end
-
-      if self.game_options.starting_pets.mammoth then   
-         self:_place_pet(pop, 'stonehearth:sheep', camp_x+3, camp_z-6)
-      end
-
-      if self.game_options.starting_pets.dragon_whelp then   
-         --self:_place_pet(pop, 'stonehearth:dragon_whelp', camp_x+3, camp_z-6)
-      end
+       for i, pet_uri in ipairs (self.game_options.starting_pets) do
+          local x_offset = -6 + i * 3;
+          self:_place_pet(pop, pet_uri, camp_x-x_offset, camp_z-6)
+       end
    end
-   
+
+   -- Add starting gold
+   local starting_gold = self.game_options.starting_gold;
+   if (starting_gold > 0) then
+      local inventory = stonehearth.inventory:get_inventory(session.player_id)
+      inventory:add_gold(starting_gold)
+   end
+
    return {random_town_name = random_town_name}
+end
+
+function GameCreationService:_place_citizen_embark(index, pop, x, z)
+   local citizen = self.generated_citizens[index];
+   if not citizen then
+      citizen = self:_generate_citizen(pop)
+      self.generated_citizens[index] = citizen
+   end
+
+   radiant.terrain.place_entity(citizen, Point3(x, 1, z))
+   radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                          {entity = citizen, description = 'person_embarks'})
+   radiant.entities.turn_to(citizen, constants.placement.DEFAULT_ROTATION)
 end
 
 function GameCreationService:_place_pet(pop, uri, x, z)

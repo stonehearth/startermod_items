@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Mason's Hammer & Chisel",
-   "description" : "Promotes a hearthling into a Mason.",
+   "description" : "Required to promote a hearthling into a Mason.",
    "portrait"    : "/stonehearth/jobs/mason/mason_chisel/mason_chisel.png",
    "level_requirement" : 1,
 

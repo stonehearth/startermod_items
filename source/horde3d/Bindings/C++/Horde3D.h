@@ -1814,6 +1814,10 @@ DLL int h3dGetNodeFlags( H3DNode node );
 DLL void h3dSetNodeFlags( H3DNode node, int flags, bool recursive );
 DLL void h3dTwiddleNodeFlags( H3DNode node, int flags, bool on, bool recursive );
 
+// In a real engine, that does not implement its graphics pipeline in XML, we'd just iterate over the set
+// of selected nodes in that part of the pipeline.  But, Horde.  So:
+DLL void h3dSetSelected(H3DNode node, bool selected, float r, float g, float b);
+
 DLL int h3dGetResFlags( H3DRes res );
 
 /* Function: h3dGetNodeAABB

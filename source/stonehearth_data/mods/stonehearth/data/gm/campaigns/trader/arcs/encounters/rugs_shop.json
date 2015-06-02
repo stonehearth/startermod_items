@@ -7,7 +7,7 @@
    "in_edge"  : "spawn_shop",
 
    "shop_info" : {
-      "name" : "Havaad's Fine Rugs and Garmets",
+      "name" : "Havaad's Fine Rugs and Garments",
       "title" : "A simple merchant has arrived with wares to sell",
       "inventory" : {
          "items" : [
