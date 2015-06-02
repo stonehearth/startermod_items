@@ -6,6 +6,7 @@ local PortraitRendererService = class()
 
 function PortraitRendererService:initialize()
    self._created_entities = {}
+   self._existing_entities = {}
    self._lights = {}
 end
 
@@ -22,14 +23,10 @@ function PortraitRendererService:_create_entity(entity_uri, position, rotation)
 end
 
 function PortraitRendererService:_add_existing_entity(ent)
-   local render_ent = _radiant.client.get_render_entity(ent)
-   if not render_ent then
-      ent:add_component('render_info')
-      render_ent = _radiant.client.create_render_entity(_radiant.renderer.get_root_node(2), ent)
-   end
+   ent:add_component('render_info')
+   local render_ent = _radiant.client.create_unmanaged_render_entity(_radiant.renderer.get_root_node(2), ent)
 
-   table.insert(self._created_entities, {
-      entity = ent,
+   table.insert(self._existing_entities, {
       render_entity = render_ent,
    })
 end
@@ -157,6 +154,7 @@ function PortraitRendererService:clear_scene()
       radiant.entities.destroy_entity(entity_data.entity)
    end
    self._created_entities = {}
+   self._existing_entities = {}
 end
 
 function PortraitRendererService:render_scene(scene_json, callback)
