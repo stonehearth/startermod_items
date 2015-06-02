@@ -516,11 +516,23 @@ void NavGrid::UpdateGameTime(int now, int freq)
    }
 }
 
+bool NavGrid::TrackerTracksEntityBounds(CollisionTrackerPtr tracker) const
+{
+   switch (tracker->GetType()) {
+      case TrackerType::MOVEMENT_MODIFIER:
+      case TrackerType::MOVEMENT_GUARD:
+         return false;
+      default:
+         return true;
+   }
+}
+
 /*
  * -- NavGrid::ForEachEntityAtIndex
  *
  * Call the `cb` at least once (but perhaps more!) for all entities which overlap the tile
  * at the specified index.  See NavGridTile::ForEachTracker for a more complete explanation.
+ * Guarantees to visit an entity no more than once.
  *
  * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
  * was stopped early.
@@ -529,12 +541,21 @@ void NavGrid::UpdateGameTime(int now, int freq)
 bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb)
 {
    bool stopped = false;
+   eastl::fixed_set<dm::ObjectId, 64> visited;
+
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
-      stopped = GridTile(index).ForEachTracker([&cb](CollisionTrackerPtr tracker) {
-         ASSERT(tracker);
-         auto e = tracker->GetEntity();
-         ASSERT(e);
-         bool stop = cb(e);
+      stopped = GridTile(index).ForEachTracker([this, &visited, &cb](CollisionTrackerPtr tracker) {
+         if (!TrackerTracksEntityBounds(tracker)) {
+            return false;
+         }
+
+         bool stop = false;
+         om::EntityPtr entity = tracker->GetEntity();
+         if (entity) {
+            if (visited.insert(entity->GetObjectId()).second) {
+               stop = cb(entity);
+            }
+         }
          return stop;
       });
    }
@@ -544,8 +565,8 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb con
 /*
  * -- NavGrid::ForEachEntityInBox
  *
- * Get entities with shapes that intersect the specified world space cube.  As with 
- * ForEachEntityAtIndex, entities may be returned more than once!
+ * Get entities with shapes that intersect the specified world space cube.  Guarantees 
+ * to visit an entity no more than once.
  *
  * Stops iteration whenever a cb returns 'true'.  Itself returns 'true' if the iteration
  * was stopped early.
@@ -554,11 +575,20 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb con
 bool NavGrid::ForEachEntityInBox(csg::CollisionBox const& worldBox, ForEachEntityCb const &cb)
 {
    bool stopped;
-   stopped = ForEachTileInBox(worldBox, [&worldBox, cb](csg::Point3 const& index, NavGridTile &tile) {
-      return tile.ForEachTracker([&worldBox, cb](CollisionTrackerPtr tracker) {
+   eastl::fixed_set<dm::ObjectId, 64> visited;
+
+   stopped = ForEachTileInBox(worldBox, [this, &visited, &worldBox, cb](csg::Point3 const& index, NavGridTile &tile) {
+      return tile.ForEachTracker([this, &visited, &worldBox, cb](CollisionTrackerPtr tracker) {
+         if (!TrackerTracksEntityBounds(tracker)) {
+            return false;
+         }
+
          bool stop = false;
-         if (tracker->Intersects(worldBox)) {
-            stop = cb(tracker->GetEntity());
+         om::EntityPtr entity = tracker->GetEntity();
+         if (entity && tracker->Intersects(worldBox)) {
+            if (visited.insert(entity->GetObjectId()).second) {
+               stop = cb(entity);
+            }
          }
          return stop;
       });
@@ -582,7 +612,11 @@ bool NavGrid::ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEac
    bool stopped;
    eastl::fixed_set<dm::ObjectId, 64> visited;
 
-   stopped = ForEachTrackerInShape(worldShape, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
+   stopped = ForEachTrackerInShape(worldShape, [this, &visited, cb](CollisionTrackerPtr tracker) -> bool {
+      if (!TrackerTracksEntityBounds(tracker)) {
+         return false;
+      }
+
       bool stop = false;
       om::EntityPtr entity = tracker->GetEntity();
       if (entity) {

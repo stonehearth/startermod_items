@@ -4,7 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "create_wolf_riders",
-   "out_edge" : "unique_defeat_hint", 
+   "out_edge" : "", 
 
    "create_mission_info" : {
       "spawn_range" : {
@@ -46,7 +46,6 @@
                   "raid_timeout_variance_minutes" : 30,
                   "health" : 120, 
                   "menace" : 90
-
                }
             },
             "ferocious_wolf_3" : {

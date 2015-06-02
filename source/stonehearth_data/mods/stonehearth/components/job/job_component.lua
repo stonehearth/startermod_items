@@ -506,11 +506,12 @@ end
 
 -- Drop all the equipment and the talisman, if relevant
 function JobComponent:_remove_equipment()
+   local equipment_component = self._entity:add_component('stonehearth:equipment')
+
    if self._sv.equipment then
       -- make sure we only take away what we gave the entity.  otherwise, we may end
       -- up nuking abilities which were given by other parts of the the code (for example,
       -- party abilities)
-      local equipment_component = self._entity:add_component('stonehearth:equipment')
       for i, item in ipairs(self._sv.equipment) do
          equipment_component:unequip_item(item)
          local ep = item:get_component('stonehearth:equipment_piece')
@@ -527,6 +528,11 @@ function JobComponent:_remove_equipment()
       end
       self._sv.equipment = nil
    end
+
+   -- at this point, our new job roles have already been loaded into the job
+   -- component.  drop all equipment which we were wearing which is no unsuitable
+   local next_job_roles = self:get_roles()
+   equipment_component:drop_unsuitable_equipment(next_job_roles)
 
    --TODO: what to do about backpack? Should this be called or triggered via an event?
    --or should this be handled by the demote operation on the specific job controller?

@@ -99,6 +99,7 @@ class NavGrid {
       bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb);
       bool ForEachEntityInBox(csg::CollisionBox const& worldBox, ForEachEntityCb const& cb);
       bool ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEachEntityCb const& cb);
+      bool TrackerTracksEntityBounds(CollisionTrackerPtr tracker) const;
 
       // Clipping
       enum ClippingMode {

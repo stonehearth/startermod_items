@@ -2,10 +2,10 @@
    "type" : "encounter",
    "encounter_type" : "generator",
 
-   "in_edge"  : "nighttime_undead",
+   "in_edge"  : "generate_daily_threat",
 
    "generator_info" :  {
       "delay" : "24h",
-      "spawn_edge" : "randomize_spawn"
+      "spawn_edge" : "randomize_daily_threat"
    }
 }

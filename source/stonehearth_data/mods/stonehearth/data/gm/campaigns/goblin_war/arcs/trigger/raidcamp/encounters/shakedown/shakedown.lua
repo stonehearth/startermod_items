@@ -1,5 +1,6 @@
 local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local rng = _radiant.csg.get_default_rng()
+local Relations = require 'lib.player.relations'
 
 local ShakeDown = class()
 
@@ -44,7 +45,7 @@ function ShakeDown:on_transition(transition)
    -- go to war if the player ever fails or opts out
    if transition == 'shakedown_refused' or
       transition == 'collection_failed' then
-      stonehearth.player:set_amenity(ctx.npc_player_id, ctx.player_id, stonehearth.player.HOSTILE)
+      stonehearth.player:set_amenity(ctx.npc_player_id, ctx.player_id, Relations.HOSTILE)
       return
    end
 end
@@ -75,24 +76,30 @@ function ShakeDown:get_tribute_demand()
       local uri = keys[rng:get_int(1, key_count)]
       local _, entity = next(items[uri].items)
       if entity then 
-         local worth = self:_get_value_in_gold(entity)
-         if worth > 0 then
-            local cap = (remaining_value / worth) + 1
-            local count = rng:get_int(1, cap)
-            if not tribute[uri] then
-               local info = items[uri]
-               tribute[uri] = {
-                  uri = uri,
-                  count = 0, 
-                  icon = info.icon,
-                  display_name = info.display_name,
-               }
+         --excempt food items, since they may be eaten without the player's approval
+         local material_component = entity:get_component('stonehearth:material')
+         if not material_component or 
+            not (material_component:is('food') or material_component:is('food_container')) then
+            
+            local worth = self:_get_value_in_gold(entity)
+            if worth > 0 then
+               local cap = (remaining_value / worth) + 1
+               local count = rng:get_int(1, cap)
+               if not tribute[uri] then
+                  local info = items[uri]
+                  tribute[uri] = {
+                     uri = uri,
+                     count = 0, 
+                     icon = info.icon,
+                     display_name = info.display_name,
+                  }
+               end
+               tribute[uri].count = tribute[uri].count + count
+               remaining_value = remaining_value - (count * worth)
             end
-            tribute[uri].count = tribute[uri].count + count
-            remaining_value = remaining_value - (count * worth)
          end
+         tries = tries + 1            
       end
-      tries = tries + 1
    end
 
    -- make up the rest in oak logs

@@ -2,6 +2,7 @@
    "actions" : [
       "stonehearth:actions:create_entity",
       "stonehearth:actions:destroy_entity",
+      "stonehearth:actions:kill_entity",
       "stonehearth:actions:add_buff",
       "stonehearth:actions:set_posture",
       "stonehearth:actions:start_effect",

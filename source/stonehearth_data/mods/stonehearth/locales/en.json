@@ -397,8 +397,13 @@
    "backpack_description" : "The backpack can hold items for safe-keeping while you're away from town.",
    "backpack_full" : "FULL!",
 
-   "building_vision" : "Change vision mode",
-   "building_vision_description" : "Change the visibility of building walls, allowing you to see inside them.",
+   "building_vision" : "Building vision",
+   "building_vision_description" : "Changes the visibility of walls, allowing you to see inside buildings.",
+
+   "terrain_slice_vision" : "Terrain slice vision",
+   "terrain_slice_vision_description" : "Slice the terrain, allowing you to see underground structures. Change the elevation to see different slices.",
+   "terrain_xray_vision" : "Terrain x-ray vision",
+   "terrain_xray_vision_description" : "See through the terrain. Change between full and flat view to show underground walls.",
 
    "pause_title" : "Pause Game",
    "pause_description" : "Pause the game if it's running.",
@@ -534,5 +539,6 @@
    "no_thanks" : "No. Thanks.",
    "wait_who_are_you" : "Wait! Who are you?", 
    "cool" : "Cool!", 
-   "sounds_ominous" : "Sounds ominous."
+   "sounds_ominous" : "Sounds ominous.",
+   "uneventful_day" : "An Uneventful Day"
 }

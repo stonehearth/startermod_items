@@ -1,4 +1,5 @@
 local CalendarAlarm = require 'services.server.calendar.calendar_alarm'
+local log = radiant.log.create_logger('calendar_service')
 
 local rng = _radiant.csg.get_default_rng()
 
@@ -57,8 +58,13 @@ end
 
 -- Starts the passage of time.  Used to make sure day 1 doesn't begin until the
 -- user has had a chance to pick his location on the map
---
 function CalendarService:start()
+   --The time tracker only works if it's now is correctly set when all the 
+   --timers are created. It's usually set in gameloop, but there's a chance that
+   --timers can be created between when start is called here and when gameloop runs. 
+   --Unless we set_now here, such timers will be off by however much time has passed
+   --between the start of the game and the placing of the banner 
+   self._sv._time_tracker:set_now(self:get_elapsed_time())
    self._sv.start_game_tick = radiant.gamestate.now()
    self:_update_seconds_today()
 end
@@ -264,7 +270,9 @@ end
 -- recompute the game calendar based on the time
 function CalendarService:_on_event_loop(e)
    local start_tick = self._sv.start_game_tick
+   --log:spam("in event loop and start_tick is %s", start_tick)   
    if start_tick == nil then
+      log:spam("not running yet!!!")   
       -- not running yet.  see CalendarService:start()
       return
    end
@@ -297,6 +305,7 @@ function CalendarService:_on_event_loop(e)
 
    self:_fire_alarms()
    self._sv._time_tracker:set_now(self:get_elapsed_time())
+   --log:spam("running game loop, setting time tracker!")   
 
    self.__saved_variables:mark_changed()
 

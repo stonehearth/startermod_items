@@ -953,8 +953,6 @@ end
 -- removes all regions from entities `entity` depends on from `region`
 --
 local function clip_dependant_regions_from_recursive(building, blueprint, region_origin, region, visited)
-   checks('Entity', 'Entity', 'Point3', 'Region3', 'table')
-   
    local id = blueprint:get_id()
    if visited[id] then
       return

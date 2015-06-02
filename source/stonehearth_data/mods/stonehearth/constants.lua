@@ -55,11 +55,11 @@ local constants = {
       simple_labor = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
-         RESTOCK_FROM_BACKPACK = 3,
          CLEAR              = 3,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,
+         RESTOCK_FROM_BACKPACK = 7,
          PLACE_ITEM         = 8,
          LOOT_ITEM          = 8,
          LIGHT_FIRE         = 10,
@@ -260,6 +260,10 @@ local constants = {
       }
    },
 
+   combat = {
+      ALLY_AGGRO_RATIO = 0.50
+   },
+
    mining = {
       XZ_CELL_SIZE = 4,
       Y_CELL_SIZE = 5,
@@ -299,6 +303,10 @@ local constants = {
       DILIGENCE_WORK_UNITS_REDUCTION_MULTIPLER = 0.006, -- Multiple entity's diligence attribute by this to get work unit deduction percentage
       CURIOSITY_NEW_CRAFTABLE_MULTIPLER = 0.05, -- Multiple entity's curiosity attribute by this to get multiplier for xp earned. Min multiplier is 1
    },
+
+   placement = {
+      DEFAULT_ROTATION = 180
+   }
 }
 
 constants.construction.DEFAULT_WOOD_FLOOR_BRUSH = constants.construction.brushes.voxel['wood resource'][1]
@@ -306,7 +314,7 @@ constants.construction.DEFAULT_WOOD_WALL_BRUSH   = constants.construction.brushe
 constants.construction.DEFAULT_WOOD_COLUMN_BRUSH = constants.construction.brushes.column['wood resource'][1]
 constants.construction.DEFAULT_WOOD_ROOF_BRUSH = constants.construction.brushes.roof['wood resource'][1]
 constants.construction.DEFAULT_WOOD_PATTERN_BRUSH = constants.construction.brushes.pattern['wood resource'][1]
-constants.construction.DEFAULT_STONE_FLOOR_BRUSH = constants.construction.brushes.pattern['stone resource'][1]
+constants.construction.DEFAULT_STONE_FLOOR_BRUSH = constants.construction.brushes.voxel['stone resource'][1]
 constants.construction.DEFAULT_STONE_WALL_BRUSH   = constants.construction.brushes.wall['stone resource'][1]
 constants.construction.DEFAULT_STONE_COLUMN_BRUSH = constants.construction.brushes.column['stone resource'][1]
 constants.construction.DEFAULT_STONE_ROOF_BRUSH = constants.construction.brushes.roof['stone resource'][1]

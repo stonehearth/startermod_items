@@ -5,28 +5,34 @@ uniform vec4 frameBufSize;
  * be non-zero red in the places where the mesh exists.
  */
 vec4 compute_outline_color(sampler2D outlineSampler, const vec2 texCoords) {
-	vec2 offset = frameBufSize.zw;
+  vec4 centerColor = texture2D(outlineSampler, texCoords);
+  if (centerColor.a == 0.0) {
+    discard;
+  }
 
-  vec3 centerColor = texture2D(outlineSampler, texCoords).xyz;
-
-  vec3 color1 = texture2D(outlineSampler, texCoords + vec2(offset.x * 2.0, offset.y * 2.0)).xyz;
-  vec3 color2 = texture2D(outlineSampler, texCoords + vec2(-offset.x * 2.0, offset.y * 2.0)).xyz;
-  vec3 color3 = texture2D(outlineSampler, texCoords + vec2(offset.x * 2.0, -offset.y * 2.0)).xyz;
-  vec3 color4 = texture2D(outlineSampler, texCoords + vec2(-offset.x * 2.0, -offset.y * 2.0)).xyz;
-
-  vec3 finalColor = centerColor.x == 0.0 ? (color1 + color2 + color3 + color4) : vec3(0.0, 0.0, 0.0);
-
-  float finalAlpha = finalColor.x > 0.0 ? 1.0 : 0.0;
-  return vec4(finalColor, finalAlpha);
-}
-
-float compute_outline_depth(sampler2D outlineDepth, const vec2 texCoords) {
   vec2 offset = frameBufSize.zw;
 
-  float depth1 = texture2D(outlineDepth, texCoords + vec2(offset.x * 2.0, offset.y * 2.0)).x;
-  float depth2 = texture2D(outlineDepth, texCoords + vec2(-offset.x * 2.0, offset.y * 2.0)).x;
-  float depth3 = texture2D(outlineDepth, texCoords + vec2(offset.x * 2.0, -offset.y * 2.0)).x;
-  float depth4 = texture2D(outlineDepth, texCoords + vec2(-offset.x * 2.0, -offset.y * 2.0)).x;
+  float total = 0.0;
 
-  return min(depth1, min(depth2, min(depth3, depth4))) - 0.0003;
+  vec3 t = texture2D(outlineSampler, texCoords + vec2(offset.x * 2.0, 0.0)).xyz;
+  vec3 dt = centerColor.xyz - t;
+  total += dot(dt, dt);
+
+  t = texture2D(outlineSampler, texCoords + vec2(offset.x * -2.0, 0.0)).xyz;
+  dt = centerColor.xyz - t;
+  total += dot(dt, dt);
+
+  t = texture2D(outlineSampler, texCoords + vec2(0.0, offset.y * -2.0)).xyz;
+  dt = centerColor.xyz - t;
+  total += dot(dt, dt);
+
+  t = texture2D(outlineSampler, texCoords + vec2(0.0, offset.y * 2.0)).xyz;
+  dt = centerColor.xyz - t;
+  total += dot(dt, dt);
+
+  if (total == 0.0) {
+    discard;
+  }
+
+  return centerColor;
 }

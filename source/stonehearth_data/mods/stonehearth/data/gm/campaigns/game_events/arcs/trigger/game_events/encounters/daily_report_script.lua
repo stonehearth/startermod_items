@@ -1,8 +1,3 @@
-local Immigration = class()
-local rng = _radiant.csg.get_default_rng()
-local Point3 = _radiant.csg.Point3
-local log = radiant.log.create_logger('immigration_scenario')
-
 --[[
    Immigration Synopsis
 
@@ -10,26 +5,18 @@ local log = radiant.log.create_logger('immigration_scenario')
    If your settlement meets certain conditions, cool people might want to join up. 
 
    The people who join are now always workers. 
-
-   TODO: improve the UI
 ]]
 
---The scenario always spawns when it is called by the interval_service, once per day. 
-function Immigration:can_spawn()
-   return true
-end
+local Immigration = class()
 
 function Immigration:initialize()
-   --TODO: Test that the notice sticks around even after a save
-
-   self._sv.notice = {}
-   --TODO: get this from caller
-   self._sv.player_id = 'player_1'
-   self:_load_trade_data()
+   --self._sv.notice = {}
+   --self._sv.player_id = 'player_1'
+   --self:_load_trade_data()
 end
 
 function Immigration:restore()
-   self:_load_trade_data()
+   --self:_load_trade_data()
 
    --If we made an expire timer then we're waiting for the player to acknowledge the traveller
    --Start a timer that will expire at that time
@@ -40,16 +27,15 @@ function Immigration:restore()
    end
 end
 
-function Immigration:_load_trade_data()
-   self._immigration_data =  radiant.resources.load_json('stonehearth:scenarios:immigration').scenario_data
-end
 
--- Make a citizen and propose his approach
-function Immigration:start()
+function Immigration:start(ctx, data)
+   self._sv.player_id = ctx.player_id
+   self._sv.immigration_data = data
+
    --TODO: remove when we have better perf!
-   --For Steam EA, don't spawn if we have more than 20 people
+   --For Steam EA, don't spawn if we have more than 40 people
    local num_citizens = stonehearth.population:get_population_size(self._sv.player_id)
-   if num_citizens > self._immigration_data.max_citizens then
+   if num_citizens > self._sv.immigration_data.max_citizens then
       return
    end
 
@@ -60,9 +46,9 @@ function Immigration:start()
          :set_ui_view('StonehearthImmigrationReportDialog')
          :set_callback_instance(self)
          :set_data({
-            title = self._immigration_data.update_title,
+            title = self._sv.immigration_data.update_title,
             message = message,
-            conclusion = self._immigration_data.conclusion_positive,
+            conclusion = self._sv.immigration_data.conclusion_positive,
             accepted_callback = "_on_accepted",
             declined_callback = "_on_declined",
          })
@@ -71,25 +57,21 @@ function Immigration:start()
          :set_ui_view('StonehearthImmigrationReportDialog')
          :set_callback_instance(self)
          :set_data({
-            title = self._immigration_data.update_title,
+            title = self._sv.immigration_data.update_title,
             message = message,
-            conclusion = self._immigration_data.conclusion_negative,
+            conclusion = self._sv.immigration_data.conclusion_negative,
             ok_callback = "_on_declined",
          })
    end
 
    --Make sure it times out if we don't get to it
-   local wait_duration = self._immigration_data.expiration_timeout
+   local wait_duration = self._sv.immigration_data.expiration_timeout
    self:_create_timer(wait_duration)
-
-   --Add something to the event log:
-   --stonehearth.events:add_entry(self._immigration_data.title .. ': ' .. message)
 end
-
 
 function Immigration:_compose_town_report()
    local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
-   local population_line = self._immigration_data.town_line
+   local population_line = self._sv.immigration_data.town_line
    population_line = string.gsub(population_line, '__town_name__', town_name)
    local num_citizens = stonehearth.population:get_population_size(self._sv.player_id)
    population_line = population_line .. num_citizens
@@ -111,6 +93,7 @@ function Immigration:_compose_town_report()
 end
 
 function Immigration:_eval_requirement(num_citizens)
+   --TODO: the score data should come from all food, not just food in stockpiles
    local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
    log:detail('caculating immigration data %s', radiant.util.table_tostring(score_data))
    --Get data for food
@@ -153,10 +136,10 @@ function Immigration:_eval_requirement(num_citizens)
 end
 
 function Immigration:_find_requirments_by_type_and_pop(available, type, num_citizens)
-   local equation = self._immigration_data.growth_requirements[type]
+   local equation = self._sv.immigration_data.growth_requirements[type]
    local equation = string.gsub(equation, 'num_citizens', num_citizens)
    local target = self:_evaluate_equation(equation)
-   local label = self._immigration_data[type .. '_label']
+   local label = self._sv.immigration_data[type .. '_label']
 
    local data = {
       label = label,
@@ -173,9 +156,9 @@ function Immigration:_evaluate_equation(equation)
 end
 
 function Immigration:_compose_message(job)
-   local message_index = rng:get_int(1, #self._immigration_data.messages)
-   local message = self._immigration_data.messages[message_index]
-   local outcome_statement = self._immigration_data.outcome_statement
+   local message_index = rng:get_int(1, #self._sv.immigration_data.messages)
+   local message = self._sv.immigration_data.messages[message_index]
+   local outcome_statement = self._sv.immigration_data.outcome_statement
    local job_name = radiant.resources.load_json(job).name
    local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
 
@@ -219,7 +202,7 @@ function Immigration:_inform_player(citizen)
    --Send another bulletin with the dude's name, etc
    local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
    local citizen_name = radiant.entities.get_name(citizen)
-   local title = self._immigration_data.success_title
+   local title = self._sv.immigration_data.success_title
    title = string.gsub(title, '__name__', citizen_name)
    title = string.gsub(title, '__town_name__', town_name)
    local pop = stonehearth.population:get_population(self._sv.player_id)

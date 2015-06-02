@@ -257,6 +257,10 @@ function ChaseEntity:run(ai, entity, args)
          log:detail('ai resumed for %s', self._entity)
       end
    end
+
+   -- Destroy all traces when we're done.
+   -- Don't wait for the stop which is called when the entire compound action is finished.
+   self:destroy()
 end
 
 function ChaseEntity:_start_run_effect(entity)

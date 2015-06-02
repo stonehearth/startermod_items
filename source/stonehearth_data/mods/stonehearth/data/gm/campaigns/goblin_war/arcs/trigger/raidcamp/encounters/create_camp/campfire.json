@@ -28,12 +28,27 @@
             "min" : 2,
             "max" : 4,
             "location" : { "x": 4, "z": 4 },
-            "range" : 6
+            "range" : 3
          },
          "equipment" : {
             "weapon" : ["stonehearth:mining_pick", "stonehearth:worker_hammer"]
          },
-         "combat_leash_range" : 30
+         "combat_leash_range" : 30,
+         "loot_drops" : {
+            "items" : [
+               {"uri" : "", "weight" : 10 },
+               {"uri" : "stonehearth:rabbit_jerky", "weight" : 1 },
+               {"uri" : "stonehearth:squirrel_jerky", "weight" : 1 },
+               {"uri" : "stonehearth:racoon_jerky", "weight" : 1 },
+               {"uri" : "stonehearth:red_fox_jerky", "weight" : 1 },
+               {"uri" : "stonehearth:resources:red_fox_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:racoon_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:squirrel_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:rabbit_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 1 },
+               {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+            ]
+         }
       },
 
       "guards" : {
@@ -42,12 +57,27 @@
             "min" : 2,
             "max" : 4,
             "location" : { "x": -4, "z": -4 },
-            "range" : 6
+            "range" : 3
          },
 
          "equipment" : {
             "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:iron_mace" ],
             "outfit" : "stonehearth:monsters:goblins:outfits:footman"
+         },
+         "loot_drops" : {
+            "items" : [
+               {"uri" : "", "weight" : 10 },
+               {"uri" : "stonehearth:resources:red_fox_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:racoon_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:squirrel_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:rabbit_pelt", "weight" : 1 },
+               {"uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 1 },
+               {"uri" : "stonehearth:resources:iron:ore", "weight" : 1 },
+               {"uri" : "stonehearth:resources:silver:ore", "weight" : 1 },
+               {"uri" : "stonehearth:resources:gold:ore", "weight" : 1 },
+               {"uri" : "stonehearth:resources:tin:ore", "weight" : 1 },
+               {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+            ]
          }
       }
       

@@ -145,11 +145,12 @@ function CreateCamp:_create_camp(location, camp_region)
       end
    end
    
-   -- carve out the grass around the camp, but only if there's grass there.  this is largely to
+   -- carve out the grass around the camp, but only if there's grass there (and if the encounter
+   -- hasn't specified to keep the grass), The check is largely to
    -- prevent digging a hole in a hole, which causes pathfinding problems (e.g. if we pick the same
    -- camp location twice.)
    local kind = radiant.terrain.get_block_kind_at(location - Point3.unit_y)
-   if kind == 'grass' then
+   if kind == 'grass' and not self._sv._info.keep_grass then
       local terrain_region = camp_region:translated(-Point3.unit_y)
       radiant.terrain.subtract_region(terrain_region)
       location.y = location.y - Point3.unit_y.y

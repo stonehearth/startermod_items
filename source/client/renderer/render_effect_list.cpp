@@ -467,7 +467,7 @@ bool ActivityOverlayEffectTrack::PositionOverlayNode()
    // Because there may be animated textures associated with the material, we clone the resource
    // so that all related nodes can animate at their own pace.
    // This is basically a hack until I put in a material_instance/material_template distinction.
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), H3DResFlags::NoFlush);
    // Can't clone until we load!
    Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");
@@ -501,7 +501,7 @@ UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effe
    float yOffset = cjo.get("yOffset", 0.0f);
    H3DNode n = e.GetSkeleton().GetSceneNode(cjo.get("bone", std::string("head")));
 
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), H3DResFlags::NoFlush);
    // Can't clone until we load!
    Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");

@@ -53,8 +53,16 @@ function CarryBlock:set_carrying(new_item)
    self._entity:add_component('entity_container')
                      :add_child_to_bone(new_item, 'carry')
    radiant.entities.move_to(new_item, Point3.zero)
+
+   --We've touched it! It's now ours
    radiant.entities.set_player_id(new_item, self._entity)
    
+   --If it has a loot command on it, remove that
+   local command_component = new_item:get_component('stonehearth:commands')
+   if command_component then
+      command_component:remove_command('loot_item')
+   end
+
    self:_create_carried_item_trace()
 
    radiant.events.trigger_async(self._entity, 'stonehearth:carry_block:carrying_changed')

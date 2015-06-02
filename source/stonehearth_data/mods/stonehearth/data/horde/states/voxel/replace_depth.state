@@ -1,0 +1,3 @@
+ZWriteEnable = true;
+ZEnable = true;
+ZFunc = Always;

@@ -63,12 +63,16 @@ end
 function EquipmentPieceComponent:_get_roles()
    if self._json.roles then
       return radiant.util.split_string(self._json.roles)
-   else 
-      return {}
    end
 end
 
 function EquipmentPieceComponent:suitable_for_roles(job_roles)
+   if not self._roles then
+      -- if the creator did not specify any roles, assume anyone
+      -- can wear it.
+      return true
+   end
+
    for _, job_role in ipairs(radiant.util.split_string(job_roles)) do
       for _, equipment_piece_role in ipairs(self._roles) do
          if equipment_piece_role == job_role then

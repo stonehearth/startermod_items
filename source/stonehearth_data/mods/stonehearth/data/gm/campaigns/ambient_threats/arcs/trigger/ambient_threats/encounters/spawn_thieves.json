@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "generator",
+
+   "in_edge"  : "spawn_thieves",
+
+   "generator_info" :  {
+      "delay" : "19h+4h",
+      "source_entity" : "create_thief_camp.entities.campfire",
+      "spawn_edge" : "thief_raid"
+   }
+}

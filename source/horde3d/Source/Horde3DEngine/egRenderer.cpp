@@ -672,6 +672,28 @@ void Renderer::setShaderComb( ShaderCombination *sc )
 	}
 }
 
+void Renderer::addSelectedNode(NodeHandle n, float r, float g, float b) {
+   for (SelectedNode& s : _selectedNodes) {
+      if (s.h == n) {
+         return;
+      }
+   }
+
+   _selectedNodes.push_back(SelectedNode(n, Vec3f(r, g, b)));
+}
+
+
+void Renderer::removeSelectedNode(NodeHandle n) {
+   int i = 0;
+   for (SelectedNode& s : _selectedNodes) {
+      if (s.h == n) {
+         _selectedNodes.erase(_selectedNodes.begin() + i);
+         return;
+      }
+      i++;
+   }
+}
+
 void Renderer::commitGlobalUniforms()
 {
    for (auto& e : _uniformFloats)
@@ -2097,6 +2119,65 @@ void Renderer::drawGeometry(SceneId sceneId, std::string const& shaderContext,
    }
 }
 
+void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
+                             RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel, Frustum const* lightFrus)
+{
+   std::vector<NodeHandle> toRemove;
+   _lod_polygon_offset_x = -1.0;
+   _lod_polygon_offset_y = -4.0;
+   Frustum f = _curCamera->getFrustum();
+   for (SelectedNode &n : _selectedNodes) {
+      SceneNode *np = Modules::sceneMan().resolveNodeHandle(n.h);
+      if (np) {
+         // We load up each selected node (and all descendents) and render them, one root at a time.
+         Modules::sceneMan().sceneForId(sceneId).updateQueuesWithNode(*np, f);
+
+         // Update every selected element's selection color.
+         for (auto& q: Modules::sceneMan().sceneForId(sceneId).getRenderableQueues()) {
+            for (auto &rn : q.second) {
+               // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
+               // amongst other necessities, a material, and then everything will Just Work.
+               int matResHandle = rn.node->getParamI(VoxelMeshNodeParams::MatResI);
+               if (matResHandle > 0) {
+	               Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
+
+                  ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
+                  ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
+               }
+            }
+         }
+
+         for (auto& q: Modules::sceneMan().sceneForId(sceneId).getInstanceRenderableQueues()) {
+            for (auto &irq : q.second) {
+               for (auto &rn : irq.second) {
+                  // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
+                  // amongst other necessities, a material, and then everything will Just Work.
+                  int matResHandle = rn.node->getParamI(VoxelMeshNodeParams::MatResI);
+                  if (matResHandle > 0) {
+	                  Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
+
+                     ((MaterialResource *)resObj)->setUniform("selected_color", n.color.x, n.color.y, n.color.z, 1.0);
+                     ((MaterialResource *)resObj)->setUniform("selected_color_fast", n.color.x * 0.5f, n.color.y * 0.5f, n.color.z * 0.5f, 1.0);
+                  }
+               }
+            }
+         }
+         updateLodUniform(0, 0.41f, 0.39f);
+
+	      setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
+	      drawRenderables(sceneId, shaderContext, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1);
+      } else {
+         toRemove.push_back(n.h);
+      }
+   }
+
+   for (NodeHandle nh : toRemove) {
+      removeSelectedNode(nh);
+   }
+   _lod_polygon_offset_x = 0.0;
+   _lod_polygon_offset_y = 0.0;
+}
+
 
 void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags )
 {
@@ -2490,9 +2571,9 @@ void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialReso
          // Set scissor rectangle
          if (bbw == 1.0 && bbh == 1.0)
          {
-            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName + "_INSIDE", curLight->getAbsPos(), curLight->getRadius());
+            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName + "_INSIDE", curLight->getAbsPos(), curLight->getRadius() + 1.0f);
          } else {
-            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, curLight->getAbsPos(), curLight->getRadius());
+            drawMatSphere(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName, curLight->getAbsPos(), curLight->getRadius() + 1.0f);
          }
       }
 
@@ -3496,6 +3577,11 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
                           pc.params[2].getInt(), _curCamera->_occSet, pc.params[3].getFloat(), pc.params[4].getFloat(), pc.params[5].getInt() );
 				break;
 
+			case PipelineCommands::DrawSelected:
+				drawSelected(sceneId, pc.params[0].getString(), (RenderingOrder::List)pc.params[1].getInt(),
+                          pc.params[2].getInt(), _curCamera->_occSet, pc.params[3].getFloat(), pc.params[4].getFloat(), pc.params[5].getInt() );
+				break;
+
          case PipelineCommands::DrawProjections:
             drawProjections(sceneId,pc.params[0].getString(), pc.params[1].getInt());
             break;
@@ -3613,6 +3699,8 @@ void Renderer::renderDebugView()
    }
 
    float tempscale = 1.0f;
+	setShaderComb( &_defColorShader );
+	commitGeneralUniforms();
    gRDI->setShaderConst(_defColorShader.uni_modelScale, CONST_FLOAT, &tempscale);
 	defaultScene.updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, true );
