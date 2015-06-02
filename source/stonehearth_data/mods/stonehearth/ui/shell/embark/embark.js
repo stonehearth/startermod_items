@@ -192,6 +192,7 @@ App.StonehearthEmbarkView = App.View.extend({
          },
          success: function(response) {
             citizen.set('portrait', 'data:image/png;base64,' + response.bytes);
+            self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
          }
       }
 
@@ -220,7 +221,7 @@ App.StonehearthEmbarkView = App.View.extend({
          //self._requestCitizenPortrait(citizen);
       });
 
-      self._citizensRoster.stonehearthRoster('updateRoster', this._citizensArray);
+      self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
    },
 
    _updateBuyButton: function() {

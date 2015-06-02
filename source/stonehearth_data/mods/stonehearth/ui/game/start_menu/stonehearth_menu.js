@@ -91,7 +91,11 @@ $.widget( "stonehearth.stonehearthMenu", {
 
    unlock: function(jobAlias) {
       var alias = jobAlias.split(":").join('\\:');
-      this.element.find('[job=' + alias + ']').removeClass('locked');
+      var item = this.element.find('[job=' + alias + ']');
+      if (item.length > 0) {
+         item.removeClass('locked');
+         this._buildTooltip(item);
+      }
    },
 
    _create: function() {
@@ -245,7 +249,7 @@ $.widget( "stonehearth.stonehearthMenu", {
       var description = node.description;
       var hotkey = node.hotkey;
 
-      if (node.required_job_text) {
+      if (node.required_job_text && item.hasClass('locked')) {
          description = description + '<p>' + '<span class=warn>' + node.required_job_text + '</span></p>';
       };
 
@@ -255,10 +259,8 @@ $.widget( "stonehearth.stonehearthMenu", {
       if (node.hotkey) {
          content = content + '<div class=hotkey>' + i18n.t('stonehearth:hotkey') + ' <span class=key>' + node.hotkey + '</span></div>';
       }
-
-      item.tooltipster({
-         content: $(content)
-      });
+      item.tooltipster();
+      item.tooltipster('content', $(content));
    }
 
 });

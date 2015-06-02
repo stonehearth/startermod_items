@@ -24,6 +24,8 @@ $.widget( "stonehearth.stonehearthRoster", {
          if (!rosterElement) {
             rosterElement = self._addRosterElement(entry);
             self.palette.append(rosterElement);
+         } else {
+            self._updateRosterElement(rosterElement, entry);
          }
 
          rosterElement.attr('updated', 1)
@@ -93,5 +95,10 @@ $.widget( "stonehearth.stonehearthRoster", {
          .append(stats);
 
       return rosterElement;
-   }
+   },
+
+   _updateRosterElement: function(elem, entry) {
+      elem.find('.portrait').attr('src', entry.portrait);
+      elem.find('.name').attr('value', entry.unit_info.name);
+   },
 });
