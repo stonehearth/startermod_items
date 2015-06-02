@@ -254,7 +254,7 @@ end
 function BuildService:add_voxels(fabricator, brush, box)
    local blueprint = build_util.get_blueprint_for(fabricator)
    if blueprint then
-      blueprint:get_component('stonehearth:construction_data')
+      blueprint:get_component('stonehearth:construction_progress')
                   :paint_on_world_region(brush, Region3(box))
    end
    
@@ -300,19 +300,36 @@ function BuildService:_add_floor_type(session, floor_brush, box, category)
                                                     category)
       return floor
    end
-   local merged_floor, merged_cd
+   local merged_floor, merged_cp
    for id, entity in pairs(to_merge) do
-      if not merged_cd then
+      if not merged_cp then
          merged_floor = entity
-         merged_cd = merged_floor:get_component('stonehearth:construction_data')
-         merged_cd:paint_on_world_region(floor_brush, floor_region)
+         merged_cp = merged_floor:get_component('stonehearth:construction_progress')
+         merged_cp:paint_on_world_region(floor_brush, floor_region)
       else
-         local rgn = entity:get_component('destination')
-                              :get_region()
-                                 :get()
-         local origin = radiant.entities.get_world_grid_location(entity)
-         radiant.log.write('', 0, 'merging region %s %s', rgn:get_bounds(), rgn:translated(origin))
-         merged_cd:add_world_region(rgn:translated(origin))
+         local dst_region = entity:get_component('destination')
+                                       :get_region()
+                                          :get()
+         local color_region = entity:get_component('stonehearth:construction_progress')
+                                       :get_color_region()
+
+         local offset = radiant.entities.get_world_grid_location(entity) -
+                        radiant.entities.get_world_grid_location(merged_floor)
+
+         merged_floor:get_component('destination')
+                        :get_region()
+                           :modify(function(cursor)
+                                 assert(cursor:is_homogeneous())
+                                 cursor:add_region(dst_region:translated(offset))
+                                 assert(cursor:is_homogeneous())
+                              end)
+
+         merged_floor:get_component('stonehearth:construction_progress')
+                        :get_color_region()
+                           :modify(function(cursor)
+                                 cursor:add_region(color_region:get():translated(offset))
+                              end)
+
          self:unlink_entity(entity)
       end
    end
@@ -330,7 +347,7 @@ function BuildService:erase_floor(session, box)
       end)
 
    for _, floor in pairs(all_overlapping_floor) do
-      floor:add_component('stonehearth:construction_data')
+      floor:add_component('stonehearth:construction_progress')
                :remove_world_region(Region3(box))
    end
 end
@@ -434,6 +451,9 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    blueprint:add_component('destination')
                :set_region(radiant.alloc_region3())
 
+   blueprint:add_component('stonehearth:construction_progress')
+               :set_color_region(radiant.alloc_region3())
+
    -- if an offset is specified, stick the object in the building.  if not,
    -- the init function must take care of it
    if offset then
@@ -501,7 +521,7 @@ function BuildService:_subtract_region_from_floor(building_ent, category, region
                               :intersects_region(region)
 
       if collides then         
-         entity:get_component('stonehearth:construction_data')
+         entity:get_component('stonehearth:construction_progress')
                   :remove_world_region(region)
          if entry.structure:get_category() == category then
             to_merge[id] = entity
@@ -531,7 +551,7 @@ function BuildService:_add_new_floor_to_building(building, floor_brush, floor_re
    local prototype = (floor_type == constants.floor_category.FLOOR) and 'floor' or 'road'
    
    local floor_ent = self:_create_blueprint(building, 'stonehearth:build:prototypes:' .. prototype, local_origin, function(floor)
-         floor:add_component('stonehearth:construction_data')
+         floor:add_component('stonehearth:construction_progress')
                   :paint_on_world_region(floor_brush, floor_region)
       end)
                

@@ -31,8 +31,8 @@ function Column:layout()
    local origin = radiant.entities.get_world_grid_location(self._entity)
    rgn:translate(origin)
 
-   self._entity:get_component('stonehearth:construction_data')
-            :paint_on_world_region(self._sv.brush, rgn, true)
+   self._entity:get_component('stonehearth:construction_progress')
+                  :paint_on_world_region(self._sv.brush, rgn, true)
 
    return self
 end

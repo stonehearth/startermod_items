@@ -1518,7 +1518,7 @@
       "fixture" : "file(components/fixture/fixture_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_client_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
-      "construction_progress" : "file(components/construction_progress/construction_progress_client_component.lua)",
+      "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
       "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
       "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)",

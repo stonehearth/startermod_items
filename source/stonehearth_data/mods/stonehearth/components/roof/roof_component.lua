@@ -50,11 +50,9 @@ end
 function Roof:layout()
    local collsion_shape = self:_compute_collision_shape()                              
 
-   self._entity:get_component('destination')
-                  :get_region()
-                     :modify(function(cursor)
-                           cursor:copy_region(collsion_shape)
-                        end)
+
+   self._entity:get_component('stonehearth:construction_progress')
+                  :copy_color_region(collsion_shape)
    return self
 end
 
@@ -155,11 +153,8 @@ function Roof:clip_overlapping_structures()
 
    local local_envelope = envelope:translated(offset)
 
-   self._entity:get_component('destination')
-                  :get_region()
-                     :modify(function(cursor)
-                           cursor:subtract_region(local_envelope)
-                        end)
+   self._entity:get_component('stonehearth:construction_progress')
+                  :remove_local_region(local_envelope)
 end
 
 -- changes properties in the construction data component.
