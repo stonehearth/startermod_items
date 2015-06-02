@@ -22,12 +22,12 @@ function radiant.get_realtime()
    return radiant._sv.time_tracker:get_now()
 end
 
-function radiant.set_realtime_timer(delay_ms, fn)
-   return radiant._sv.time_tracker:set_timer(delay_ms / 1000, fn)
+function radiant.set_realtime_timer(reason, delay_ms, fn)
+   return radiant._sv.time_tracker:set_timer(reason, delay_ms / 1000, fn)
 end
 
-function radiant.set_realtime_interval(delay_ms, fn)
-   return radiant._sv.time_tracker:set_interval(delay_ms / 1000, fn)
+function radiant.set_realtime_interval(reason, delay_ms, fn)
+   return radiant._sv.time_tracker:set_interval(reason, delay_ms / 1000, fn)
 end
 
 function radiant.set_performance_counter(name, value, kind)

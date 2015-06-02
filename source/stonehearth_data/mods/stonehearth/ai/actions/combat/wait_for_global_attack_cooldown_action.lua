@@ -24,7 +24,7 @@ function WaitForGlobalAttackCooldown:start_thinking(ai, entity, args)
    -- need to add epsilon to account for rounding errors in the calendar timer
    local duration = time_remaining + epsilon
 
-   self._timer = stonehearth.combat:set_timer(duration,
+   self._timer = stonehearth.combat:set_timer("WaitForGlobalAttackCooldown attack recover", duration,
       function ()
          if not state:in_cooldown('global_attack_recovery') then
             ai:set_think_output()

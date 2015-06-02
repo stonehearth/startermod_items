@@ -31,7 +31,7 @@ function sh_86.verify_no_restocking_after_dragging_around_items(autotest)
             
             -- set a timer to ignore all the queued 'item_added' events we may get as a result of
             -- dragging out the stockpile
-            radiant.set_realtime_timer(100, function()
+            radiant.set_realtime_timer("sh_86 verify_no_restocking_after_dragging_around_items", 100, function()
                   radiant.events.listen(buggy_stockpile, 'stonehearth:stockpile:item_added', function()
                         buggy_count = buggy_count + 1
                         if buggy_count > 3 then

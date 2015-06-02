@@ -24,7 +24,7 @@ function WaitForNetWorthEncounter:start(ctx, info)
       return
    end
 
-   self._sv.timer = stonehearth.calendar:set_interval('1h', function()
+   self._sv.timer = stonehearth.calendar:set_interval("WaitForNetWorthEncounter check_net_worth ", '1h', function()
          self:_check_net_worth()
       end)
    self.__saved_variables:mark_changed()

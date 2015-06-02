@@ -11,27 +11,32 @@
 
 local NutritionScoreObserver = class()
 
-function NutritionScoreObserver:__init(entity)
-end
-
+--Called once on creation
 function NutritionScoreObserver:initialize(entity)
-   self._entity = entity
-   self._sv = self.__saved_variables:get_data()
-   self._score_component = entity:add_component('stonehearth:score')
-
-
-   if not self._sv._initialized then
-      self._sv._initialized = true
-      self._sv.eaten_today = false
-      self._sv.malnourished_today = false
-      self._sv._last_foods = {}
-   end
-
-   self._eat_listener = radiant.events.listen(entity, 'stonehearth:eat_food', self, self._on_eat)
-   self._midnight_listener = stonehearth.calendar:set_alarm('0:00', function()
+   self._sv.entity = entity
+   self._sv.eaten_today = false
+   self._sv.malnourished_today = false
+   self._sv._last_foods = {}
+   self._sv.midnight_listener = stonehearth.calendar:set_alarm('0:00', function()
             self:_on_midnight()
          end)
-   self._malnoursh_listener = radiant.events.listen(entity, 'stonehearth:malnourishment_event', self, self._on_malnourishment)
+end
+
+--Always called. If restore, called after restore.
+function NutritionScoreObserver:activate()
+   self._entity = self._sv.entity
+   self._score_component = self._entity:add_component('stonehearth:score')
+   self._eat_listener = radiant.events.listen(self._entity, 'stonehearth:eat_food', self, self._on_eat)
+   self._malnoursh_listener = radiant.events.listen(self._entity, 'stonehearth:malnourishment_event', self, self._on_malnourishment)
+end
+
+--Called when restoring
+function NutritionScoreObserver:restore()
+   if self._sv.midnight_listener then
+      self._sv.midnight_listener:bind(function()
+            self:_on_midnight()
+         end)
+   end
 end
 
 --Stop listening to all this stuff
@@ -39,8 +44,8 @@ function NutritionScoreObserver:destroy()
    self._eat_listener:destroy()
    self._eat_listener = nil
 
-   self._midnight_listener:destroy()
-   self._midnight_listener = nil
+   self._sv.midnight_listener:destroy()
+   self._sv.midnight_listener = nil
 
    self._malnoursh_listener:destroy()
    self._malnoursh_listener = nil

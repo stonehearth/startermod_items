@@ -42,7 +42,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    wait_time = math.min(MAX_BACKOFF, wait_time)
 
    ai:set_debug_progress('waiting %.2fms to start pathfinder', wait_time)
-   self._timer = radiant.set_realtime_timer(wait_time, function()
+   self._timer = radiant.set_realtime_timer("FindPathToEntity start_thinking", wait_time, function()
          self._timer = nil
          ai:set_debug_progress('starting pathfinder after %.2fms delay', wait_time)
          self:_start_pathfinder(ai)
@@ -66,7 +66,7 @@ function FindPathToEntity:_start_pathfinder(ai)
    self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
                                     :find_path_to_entity(self._location, self._destination, on_success, on_exhausted)
 
-   self._progress_timer = radiant.set_realtime_interval(1000, function()
+   self._progress_timer = radiant.set_realtime_interval("FindPathToEntity progress timer", 1000, function()
          ai:set_debug_progress('searching... ' .. self._pathfinder:get_progress())
       end)
 

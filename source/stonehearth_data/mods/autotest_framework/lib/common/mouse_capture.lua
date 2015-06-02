@@ -95,7 +95,7 @@ end
 
 function RegionSelectorDeferred:_schedule_callback()
    if self._client_attached and self._server_attached then
-      radiant.set_realtime_timer(20, function ()
+      radiant.set_realtime_timer("RegionSelectorDeferred fire_next_callback", 20, function ()
             self:_fire_next_callback()
          end)
    end
@@ -124,7 +124,7 @@ end
 local function start_mouse_queue_timer()
    if not _mouse_queue_timer_set then
       _mouse_queue_timer_set = true
-      radiant.set_realtime_timer(10, function()
+      radiant.set_realtime_timer("RegionSelectorDeferred mouse_queue_timer", 10, function()
             _mouse_queue_timer_set = false
             if #_mouse_queue > 0 then
                local event = table.remove(_mouse_queue, 1)

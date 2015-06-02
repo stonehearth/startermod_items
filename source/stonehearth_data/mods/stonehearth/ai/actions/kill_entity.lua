@@ -22,15 +22,15 @@ function KillEntity:start_thinking(ai, entity, args)
 end
 
 function KillEntity:run(ai, entity, args)
-   log:detail('%s in DestroyEntity:run()', entity)
+   log:detail('%s in KillEntity:run()', entity)
 
    if entity and entity:is_valid() then
       destroy_scheduled[entity:get_id()] = entity
       -- Shouldn't destroy the entity while the AI is running
-      stonehearth.calendar:set_timer(1,
+      stonehearth.calendar:set_timer("KillEntity kill", 1,
          function ()
             if entity:is_valid() then
-               log:detail('Destroying %s', entity)
+               log:detail('Killing %s', entity)
                local id = entity:get_id()
                --TODO: move all this functionality to an observer
                radiant.entities.kill_entity(entity)

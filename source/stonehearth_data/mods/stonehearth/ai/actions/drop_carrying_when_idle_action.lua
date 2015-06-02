@@ -18,7 +18,7 @@ function DropCarryingWhenIdle:start_thinking(ai, entity, args)
 		-- we're carrying this thing, so drop it after a bit.  we use a realtime timer,
 		-- to give the processor time to do "something" with whatever we're carrying
 		-- before giving up (e.g. put it in a stockpile, build more wall with it, etc.)	
-		self._timer = radiant.set_realtime_timer(2000, function()
+		self._timer = radiant.set_realtime_timer("DropCarryingWhenIdle start_thinking", 2000, function()
 				if entity:is_valid() then
 					ai:set_think_output()
 				end

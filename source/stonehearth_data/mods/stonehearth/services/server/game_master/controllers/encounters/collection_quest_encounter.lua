@@ -273,7 +273,7 @@ function CollectionQuest:_start_collection_timer()
       duration = override
    end
 
-   self._sv.collection_timer = stonehearth.calendar:set_timer(duration, function()
+   self._sv.collection_timer = stonehearth.calendar:set_timer("CollectionQuest collection expire", duration, function()
          self:_on_collection_timer_expired()
       end)
    self.__saved_variables:mark_changed()

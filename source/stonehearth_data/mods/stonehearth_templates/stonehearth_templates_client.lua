@@ -93,7 +93,7 @@ end
 
 radiant.events.listen(stonehearth_templates, 'radiant:new_game', function(args)
       _radiant.call('radiant:set_draw_world', true)
-      radiant.set_realtime_timer(1000, function()
+      radiant.set_realtime_timer("stonehearth templates client save_next_template", 1000, function()
             stonehearth_templates.save_next_template()
          end)
    end)

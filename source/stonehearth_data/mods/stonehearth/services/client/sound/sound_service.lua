@@ -176,7 +176,7 @@ end
 function Sound:_on_ui_screen_changed()
    self._current_ui_screen = _radiant.client.get_current_ui_screen()
    if not self._get_pop_timer and self._current_ui_screen == 'game_screen' then
-      self._get_pop_timer = radiant.set_realtime_interval(1000, function()
+      self._get_pop_timer = radiant.set_realtime_interval("Sound population timer", 1000, function()
             self:_get_population()
          end)
    end
@@ -216,7 +216,7 @@ function Sound:_on_population_changed(data)
          -- the next music in the series fade in by recommending on combat
          -- music at all.
          self:recommend_game_music('combat', 'music', KILL_COMBAT_MUSIC)
-         radiant.set_realtime_timer(KILL_COMBAT_MUSIC.fade_in, function()
+         radiant.set_realtime_timer("Sound _on_population_changed", KILL_COMBAT_MUSIC.fade_in, function()
                self:recommend_game_music('combat', 'music',   nil)
                self:recommend_game_music('combat', 'ambient', nil)
                self:_play_sound(COMBAT_FINISHED_SOUND)

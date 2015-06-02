@@ -232,9 +232,9 @@ function CombatService:ms_to_game_seconds(ms)
 end
 
 -- duration is in milliseconds at game speed 1
-function CombatService:set_timer(duration, fn)
+function CombatService:set_timer(reason, duration, fn)
    local game_seconds = self:ms_to_game_seconds(duration)
-   return stonehearth.calendar:set_timer(game_seconds, fn)
+   return stonehearth.calendar:set_timer(reason, game_seconds, fn)
 end
 
 function CombatService:get_primary_target(entity)

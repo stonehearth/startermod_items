@@ -158,7 +158,7 @@ function RaidStockpilesMission:_pick_random_spot(ctx)
       self._sv.update_orders_timer = nil
       self.__saved_variables:mark_changed()
    end   
-   self._sv.update_orders_timer = stonehearth.calendar:set_timer('4h', function()
+   self._sv.update_orders_timer = stonehearth.calendar:set_timer("RaidStockpilesMission update_party_orders", '4h', function()
          self:_update_party_orders()
       end)
    self.__saved_variables:mark_changed()

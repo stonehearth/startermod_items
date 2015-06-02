@@ -27,7 +27,7 @@ function DestroyEntity:run(ai, entity, args)
    if entity and entity:is_valid() then
       destroy_scheduled[entity:get_id()] = entity
       -- Shouldn't destroy the entity while the AI is running
-      stonehearth.calendar:set_timer(1,
+      stonehearth.calendar:set_timer("DestroyEntity destroy", 1,
          function ()
             if entity:is_valid() then
                log:detail('Destroying %s', entity)

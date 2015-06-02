@@ -105,7 +105,7 @@ function ImmigrationFailure:_timer_callback()
 end
 
 function ImmigrationFailure:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer(duration, function()
+   self._sv.timer = stonehearth.calendar:set_timer("ImmigrationFailure remove bulletin", duration, function()
          self:_timer_callback()
       end)
    self.__saved_variables:mark_changed()

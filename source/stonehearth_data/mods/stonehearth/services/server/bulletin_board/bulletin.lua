@@ -112,7 +112,7 @@ end
 
 --If you don't want the bulletin to stick around forever, set this value
 function Bulletin:set_active_duration(duration)
-   self._sv.active_duration_timer = stonehearth.calendar:set_timer(duration, function()
+   self._sv.active_duration_timer = stonehearth.calendar:set_timer("Bulletin remove bulletin", duration, function()
       stonehearth.bulletin_board:remove_bulletin(self._sv.id)
       self:_stop_duration_timer()
       self:_destroy_death_listener()

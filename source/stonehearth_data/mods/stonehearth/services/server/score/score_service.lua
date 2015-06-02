@@ -22,7 +22,7 @@ function ScoreService:initialize()
       self._sv.player_scores = {}
 
       -- Set up the net worth timer
-      self._sv.net_worth_timer = stonehearth.calendar:set_interval(stonehearth.constants.score.NET_WORTH_INTERVAL, function()
+      self._sv.net_worth_timer = stonehearth.calendar:set_interval("Score Service Update Net Worth", stonehearth.constants.score.NET_WORTH_INTERVAL, function()
          self:_calculate_net_worth()
       end)
    else

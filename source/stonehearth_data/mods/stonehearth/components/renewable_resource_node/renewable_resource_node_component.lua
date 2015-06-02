@@ -154,7 +154,7 @@ end
 function RenewableResourceNodeComponent:_start_renew_timer(duration)
    self:_stop_renew_timer()
 
-   self._sv.renew_timer = stonehearth.calendar:set_timer(duration,
+   self._sv.renew_timer = stonehearth.calendar:set_timer("RenewableResourceNodeComponent renew", duration,
       function ()
          self:renew()
       end

@@ -77,12 +77,12 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
                end
             end
             if run_forever then
-               radiant.set_realtime_timer(0, function()
+               radiant.set_realtime_timer("autotest_framework run forever", 0, function()
                      run_autotests()
                   end)
             end
          end)
-      radiant.set_realtime_timer(3000, function()
+      radiant.set_realtime_timer("autotest_framework start autotests", 3000, function()
          run_autotests()
       end)
    end)

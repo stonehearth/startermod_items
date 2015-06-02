@@ -81,7 +81,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       target, '/stonehearth/data/effects/hit_sparks/hit_effect.json', attack_info.time_to_impact
    )
 
-   self._timer = stonehearth.combat:set_timer(attack_info.time_to_impact,
+   self._timer = stonehearth.combat:set_timer("AttackMeleeAdjacent do damage", attack_info.time_to_impact,
       function ()
          if not entity:is_valid() or not target:is_valid() then
             return

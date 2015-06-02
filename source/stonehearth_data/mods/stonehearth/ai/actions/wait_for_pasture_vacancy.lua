@@ -41,7 +41,7 @@ function WaitForPastureVacancy:_on_pasture_count_changed()
       if self._args.wait_timeout == '0m' then
          self._ai:set_think_output()
       else
-         self._timer = stonehearth.calendar:set_timer('5m', function()
+         self._timer = stonehearth.calendar:set_timer("WaitForPastureVacancy pasture_check", '5m', function()
             self._timer = nil
             if self:pasture_check() then
                --TODO: I've seent this fire from a "finished" state. 

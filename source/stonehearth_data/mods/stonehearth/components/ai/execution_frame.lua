@@ -621,7 +621,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
          -- Sigh, don't bind to the variable outside the lexical body....
          local local_units_start = units_start
          local timeout = SLOWSTART_TIMEOUTS[i]
-         local new_timer = radiant.set_realtime_timer(SLOWSTART_TIMEOUTS[i], function()
+         local new_timer = radiant.set_realtime_timer("ExecutionFrame restart_thinking", SLOWSTART_TIMEOUTS[i], function()
                self:_do_slow_thinking(local_args, slow_rethink_units, local_units_start, num_units_used, timeout)
             end)
          table.insert(self._slow_start_timers, new_timer)

@@ -138,19 +138,20 @@ function CalendarService:get_seconds_until(time)
    return duration
 end
 
--- sets a calendar timer.  
+-- sets a calendar timer.
+-- Reason is a name for the timer so we can track each timer's origin.
 -- Either the number of seconds in gametime or a string of the form 1d1h1m1s.  zero
 -- values can be omitted.  For example:
---    set_timer(120, cb)  -- 2 minute timer
---    set_timer('2m', cb) -- also a 2 minute timer
---    set_timer('1d1s', cb) -- a timer for 1 day and 1 second.
+--    set_timer(reason, 120, cb)  -- 2 minute timer
+--    set_timer(reason, '2m', cb) -- also a 2 minute timer
+--    set_timer(reason, '1d1s', cb) -- a timer for 1 day and 1 second.
 --
-function CalendarService:set_timer(duration, fn)
-   return self:_create_timer(duration, fn, false)
+function CalendarService:set_timer(reason, duration, fn)
+   return self:_create_timer(reason, duration, fn, false)
 end
 
-function CalendarService:set_interval(duration, fn)
-   return self:_create_timer(duration, fn, true)
+function CalendarService:set_interval(reason, duration, fn)
+   return self:_create_timer(reason, duration, fn, true)
 end
 
 -- parses a duration string into game seconds
@@ -193,8 +194,8 @@ function CalendarService:parse_time(str)
 end
 
 -- currently zero duration timers will fire on the following game loop
-function CalendarService:_create_timer(duration, fn, repeating)
-   assert(type(fn) == 'function')
+function CalendarService:_create_timer(reason, duration, fn, repeating)
+   assert((type(fn) == 'function' or type(fn) == 'table'))
    
    local timeout_s
 
@@ -205,7 +206,7 @@ function CalendarService:_create_timer(duration, fn, repeating)
    end
    assert(timeout_s >= 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
-   return self._sv._time_tracker:set_timer(timeout_s, fn, repeating)
+   return self._sv._time_tracker:set_timer(reason, timeout_s, fn, repeating)
 end
 
 -- alarms go off once a day

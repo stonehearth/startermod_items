@@ -23,7 +23,7 @@ function alarms_autotest.does_future_alarm_fire(autotest)
          autotest:success()
       end)
       
-   timer = stonehearth.calendar:set_timer('5m', function()
+   timer = stonehearth.calendar:set_timer("alarms_autotest", '5m', function()
          autotest:fail('alarm failed to fire')
       end)
       
@@ -39,7 +39,7 @@ function alarms_autotest.does_past_alarm_not_fire(autotest)
          autotest:fail('alarm in past fired')
       end)
       
-   timer = stonehearth.calendar:set_timer('2m', function()
+   timer = stonehearth.calendar:set_timer("alarms_autotest", '2m', function()
          alarm:destroy()
          timer:destroy()
          autotest:success()
@@ -66,7 +66,7 @@ function alarms_autotest.does_alarm_fire_next_day(autotest)
          end         
       end)
       
-   timer = stonehearth.calendar:set_timer('5m', function()
+   timer = stonehearth.calendar:set_timer("alarms_autotest", '5m', function()
          day = day + 1
          timer:destroy()
       end)
@@ -90,7 +90,7 @@ function alarms_autotest.fuzzy_alarm(autotest)
          autotest:success()
       end)
       
-   timer = stonehearth.calendar:set_timer('5m', function()
+   timer = stonehearth.calendar:set_timer("alarms_autotest", '5m', function()
          autotest:fail('alarm failed to fire')
       end)
       

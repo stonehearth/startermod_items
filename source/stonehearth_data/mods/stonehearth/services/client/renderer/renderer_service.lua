@@ -72,7 +72,7 @@ function Renderer:_install_regions()
    if not self._installing_regions then
       self._installing_regions = true
 
-      self._timer = radiant.set_realtime_interval(100, function()
+      self._timer = radiant.set_realtime_interval("Renderer install_regions", 100, function()
             log:debug('attempting to install regions')
             self._installing_regions = true
 

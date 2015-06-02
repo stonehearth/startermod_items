@@ -6,23 +6,24 @@
 local FreeTimeObserver = class()
 
 function FreeTimeObserver:__init(entity)
+   self._fire_task = nil
 end
 
+--Called once on creation
 function FreeTimeObserver:initialize(entity)
-   self._entity = entity
+   self._sv.entity = entity
+   self._sv._num_fires = 0
+   self._sv.should_find_fires = false
+end
 
-   self._fire_task = nil
-
-   self._sv = self.__saved_variables:get_data()
-   if not self._sv._initialized then
-      self._sv._initialized = true
-      self._sv._num_fires = 0
-      self._sv.should_find_fires = false
-   end
-
-   --Listen on fire added/removed events
+--Always called. If restore, called after restore.
+function FreeTimeObserver:activate()
+   self._entity = self._sv.entity
    self._firepit_listener = radiant.events.listen(stonehearth.events, 'stonehearth:fire:lit', self, self._on_firepit_activity)
+end
 
+--Called when restoring
+function FreeTimeObserver:restore()
    if self._sv.should_find_fires then
       self:_start_admiring_fire_task()
    end

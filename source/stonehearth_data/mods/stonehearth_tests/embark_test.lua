@@ -74,7 +74,7 @@ function EmbarkTest:__init()
    }
 
    -- send in the goblins!!
-   radiant.set_realtime_timer(500, function()
+   radiant.set_realtime_timer("Embark Test game master start", 500, function()
       stonehearth.game_master:start()
    end)
 

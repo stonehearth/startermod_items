@@ -191,11 +191,11 @@ local constants = {
    },
 
    sleep = {
-      BEDTIME_START = 1,
+      BEDTIME_START = 2,
       TIRED = 22,          -- will try to sleep in a bed
       EXHAUSTION = 24,     -- will collapse on the ground
       MAX_SLEEPINESS = 25, 
-      HOURLY_SLEEPINESS = 1, 
+      HOURLY_SLEEPINESS = 1,
       MIN_SLEEPINESS = 0
    },
 
@@ -302,7 +302,8 @@ local constants = {
       INVENTIVENESS_CRAFTING_FINE_MULTIPLIER = 0.5,   -- Multiply an entity's inventiveness attribute by this, and then add that to the percentage fine chance when crafting.
       DILIGENCE_WORK_UNITS_THRESHOLD = 3, -- Craftables with work units above this threshold will get a diligence deduction
       DILIGENCE_WORK_UNITS_REDUCTION_MULTIPLER = 0.006, -- Multiple entity's diligence attribute by this to get work unit deduction percentage
-      CURIOSITY_NEW_CRAFTABLE_MULTIPLER = 0.05, -- Multiple entity's curiosity attribute by this to get multiplier for xp earned. Min multiplier is 1
+      CURIOSITY_NEW_CRAFTABLE_MULTIPLER = 0.05, -- Multiply entity's curiosity attribute by this to get multiplier for xp earned. Min multiplier is 1,
+      STAMINA_SLEEP_ON_GROUND_OKAY_THRESHOLD = 55, -- If your stamina is >= this threshold, then you are not groggy from sleeping on the ground.
    },
 
    placement = {

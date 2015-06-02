@@ -35,7 +35,7 @@ function CreateAnimalForPasture:_try_shepherd_spawn()
       local can_find_real_critter = shepherd_class:can_find_animal_in_world()
       self:_try_spawning_animal(can_find_real_critter)
       if not can_find_real_critter then
-         self._timer = stonehearth.calendar:set_timer('1h', function()
+         self._timer = stonehearth.calendar:set_timer("CreateAnimalForPasture try_shepherd_spawn", '1h', function()
             if self._thinking_started then
                self:_try_shepherd_spawn()
             end
@@ -80,7 +80,7 @@ end
 
 --If we couldn't find a place to put the animal, try again later
 function CreateAnimalForPasture:_try_spawning_later(time)
-   self._timer = stonehearth.calendar:set_timer(time, function()
+   self._timer = stonehearth.calendar:set_timer("CreateAnimalForPasture try_spawning_later", time, function()
       if self._thinking_started then
          self:_try_spawning_animal()
       end

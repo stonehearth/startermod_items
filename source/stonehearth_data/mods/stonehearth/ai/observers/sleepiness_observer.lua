@@ -6,34 +6,27 @@
 
 local SleepinessObserver = class()
 
---TODO: now defunct?
-function SleepinessObserver:__init(entity)
+function SleepinessObserver:__init()
+   self._sleep_task = nil
 end
 
+--Called once on creation
 function SleepinessObserver:initialize(entity)
-   self._entity = entity
-   self._sleep_task = nil
-   self._attributes_component = entity:add_component('stonehearth:attributes')
+   self._sv.entity = entity
+   self._sv.should_be_sleeping = false
+   self._sv.hourly_listener = stonehearth.calendar:set_interval("SleepinessObserver on_hourly", '1h', radiant.bind(self, '_on_hourly'))
 
-   self._sv = self.__saved_variables:get_data()
-   if not self._sv._initialized then
-      self._sv._initialized = true
-      self._sv.should_be_sleeping = false
-      self._sv.hourly_listener = stonehearth.calendar:set_interval('1h', function()
-            self:_on_hourly()
-         end)
-   else
-      self._sv.hourly_listener:bind(function()
-            self:_on_hourly()
-         end)
-   end
+   -- "equation" : "70 * 0.1 - stamina * 0.05"
+end
 
+--Always called. If restore, called after restore.
+function SleepinessObserver:activate()
+   self._entity = self._sv.entity
+   self._attributes_component = self._entity:add_component('stonehearth:attributes')
    self._sleepiness_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
 
    --Should we be sleeping? If so, let's do that
    if self._sv.should_be_sleeping then
-      --TODO: cut sleep up into multiple tasks so we can skip straight to the ZZZ part
-      --Or, pass a 'has yawned' flag or something
       self:_start_sleep_task()
    end
 end
@@ -99,6 +92,5 @@ function SleepinessObserver:_finish_sleeping()
       self._sleep_task = nil
    end
 end
-
 
 return SleepinessObserver

@@ -5,8 +5,14 @@ local log = radiant.log.create_logger('goblin_campaign')
 -- If Mountain is friendly, it kicks off a "hang out" task
 local MountainMammothObserver = class()
 
+--Called once on creation
 function MountainMammothObserver:initialize(entity)
-   self._entity = entity
+   self._sv.entity = entity
+end
+
+--Always called. If restore, called after restore.
+function MountainMammothObserver:activate()
+   self._entity = self._sv.entity
    self:_add_sensor_trace()
 end
 

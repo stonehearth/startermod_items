@@ -23,7 +23,7 @@ function WaitEncounter:start(ctx, info)
 
    self._log:info('setting wait timer for %s', tostring(timeout))
    self._sv.ctx = ctx
-   self._sv.timer = stonehearth.calendar:set_timer(timeout, function()
+   self._sv.timer = stonehearth.calendar:set_timer("WaitEncounter wait timer", timeout, function()
          self:_timer_callback()
       end)
 

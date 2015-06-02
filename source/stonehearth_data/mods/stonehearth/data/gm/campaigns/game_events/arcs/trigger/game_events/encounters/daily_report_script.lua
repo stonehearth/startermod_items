@@ -240,7 +240,7 @@ function Immigration:_on_declined()
 end
 
 function Immigration:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer(duration, function() 
+   self._sv.timer = stonehearth.calendar:set_timer("Immigration remove bulletin", duration, function() 
       self:_timer_callback()
    end)
 end

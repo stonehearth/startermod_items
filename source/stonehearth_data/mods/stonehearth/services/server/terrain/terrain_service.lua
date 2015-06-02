@@ -46,7 +46,7 @@ function TerrainService:_register_events()
             self:_on_tick()
          end)
    else
-      self._sv.tick_timer = stonehearth.calendar:set_interval(110, function()
+      self._sv.tick_timer = stonehearth.calendar:set_interval("Terrain Service", 110, function()
             self:_on_tick()
          end)
    end
@@ -58,7 +58,7 @@ function TerrainService:_register_events()
    else
       -- We want to update the hull every 10 realtime seconds
       local cal_seconds = stonehearth.calendar:realtime_to_calendar_time(10)
-      self._sv.hull_timer = stonehearth.calendar:set_interval(cal_seconds, function()
+      self._sv.hull_timer = stonehearth.calendar:set_interval("Terrain Update Hull", cal_seconds, function()
             self:_update_convex_hull()
          end)
    end

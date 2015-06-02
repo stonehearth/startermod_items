@@ -48,7 +48,7 @@ function HydrologyService:_deferred_initialize()
                self:_on_tick()
             end)
       else
-         self._sv.water_tick = stonehearth.calendar:set_interval(10, function()
+         self._sv.water_tick = stonehearth.calendar:set_interval("HydrologyService on_tick", 10, function()
                self:_on_tick()
             end)
       end

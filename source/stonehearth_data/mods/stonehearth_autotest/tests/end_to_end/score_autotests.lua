@@ -76,7 +76,7 @@ function score_tests.town_score_test(autotest)
 
    --TODO: add a test for some improvements to building
 
-   stonehearth.calendar:set_timer('40m', function()
+   stonehearth.calendar:set_timer("score_tests town_score_test", '40m', function()
       local player_score = stonehearth.score:get_scores_for_player(player_id):get_score_data()
       if player_score.net_worth.total_score >= 4 then
          autotest:success()

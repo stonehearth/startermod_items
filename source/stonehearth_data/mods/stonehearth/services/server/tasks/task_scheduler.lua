@@ -93,7 +93,7 @@ function TaskScheduler:_update()
 end
 
 function TaskScheduler:_start_update_timer()
-   radiant.set_realtime_timer(self._poll_interval, function()
+   radiant.set_realtime_timer("Task Scheduler Update Timer", self._poll_interval, function()
          self:_update()
       end)
 end

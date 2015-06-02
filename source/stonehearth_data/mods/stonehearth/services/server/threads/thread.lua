@@ -360,7 +360,7 @@ function Thread:sleep_realtime(ms)
       if timer then
          timer:destroy()
       end
-      timer = radiant.set_realtime_timer(ms, function()
+      timer = radiant.set_realtime_timer("Thread sleep_realtime", ms, function()
             if not self:is_finished() then
                self:resume()
             end

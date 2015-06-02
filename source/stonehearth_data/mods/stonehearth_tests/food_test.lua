@@ -26,7 +26,7 @@ function FoodTest:__init()
    
    --self:place_item('stonehearth:food:berries:berry_basket', 0, 0)
    --self:place_item('stonehearth:food:corn:corn_basket', 1, 1)
-   radiant.set_realtime_timer(5, function()
+   radiant.set_realtime_timer("Food test set calories", 5, function()
          worker:get_component('stonehearth:attributes')
                   :set_attribute('calories', stonehearth.constants.food.MALNOURISHED)
       end)   

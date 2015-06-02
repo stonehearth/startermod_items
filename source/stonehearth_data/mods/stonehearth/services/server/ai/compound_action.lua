@@ -219,7 +219,7 @@ function CompoundAction:_restart_after_halt()
    -- long enough we'll end up spinning.  the best case is probably to add
    -- some sort of exponential backoff, but until that's proven, err on the side of
    -- responsiveness. -- tony
-   self._restart_after_halt_timer = radiant.set_realtime_timer(20, function()
+   self._restart_after_halt_timer = radiant.set_realtime_timer("CompoundAction restart_after_halt", 20, function()
          self:_spam_current_state('unwinding thinking in all previous frames in _restart_after_halt')
          assert(self._thinking)
          self:stop_thinking()

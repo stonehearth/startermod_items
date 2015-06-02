@@ -95,7 +95,7 @@ function GeneratorEncounter:_start_timer()
       self._sv.timer = nil
    end
 
-   self._sv.timer = stonehearth.calendar:set_timer(delay, function()
+   self._sv.timer = stonehearth.calendar:set_timer("GeneratorEncounter spawn", delay, function()
          self:_spawn_encounter()
       end)
    self.__saved_variables:mark_changed()
