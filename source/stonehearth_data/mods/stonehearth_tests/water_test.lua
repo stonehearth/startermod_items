@@ -22,7 +22,7 @@ function WaterTest:__init()
    -- self:place_citizen(6, 20)
 
    -- wait for watertight region to update before starting
-   stonehearth.calendar:set_timer(10, function()
+   stonehearth.calendar:set_timer("WaterTest water_test", 10, function()
          --self:_water_test()
       end)
 end
@@ -63,7 +63,7 @@ end
 function WaterTest:_water_test()
    local location = radiant.terrain.get_point_on_terrain(Point3(-5, 0, -5))
 
-   stonehearth.calendar:set_interval(10, function()
+   stonehearth.calendar:set_interval("WaterTest add water", 10, function()
          stonehearth.hydrology:add_water(2, location)
       end)
 end

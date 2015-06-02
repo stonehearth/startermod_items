@@ -4,9 +4,15 @@
 
 local KillAtZeroHealthObserver = class()
 
+--Called once on creation
 function KillAtZeroHealthObserver:initialize(entity)
-   self._entity = entity
-   self._attributes_component = entity:add_component('stonehearth:attributes')
+   self._sv.entity = entity
+end
+
+--Always called. If restore, called after restore.
+function KillAtZeroHealthObserver:activate()
+   self._entity = self._sv.entity
+   self._attributes_component = self._entity:add_component('stonehearth:attributes')
    self._listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:health', self, self._on_health_changed)
 end
 

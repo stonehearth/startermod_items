@@ -270,24 +270,38 @@ App.StonehearthTownView = App.View.extend({
    _deriveDateFromPage: function(pageNumber) {
       var journalsByPage = this.journalData.data.journals_by_page;
       var assocPageIndex = pageNumber - 2;
-      var pageDate = "Today";
+      var pageDate = i18n.t('stonehearth:uneventful_day');
 
       if (journalsByPage[assocPageIndex][0] != undefined) {
          pageDate = journalsByPage[assocPageIndex][0].date;
-      } else if (journalsByPage[assocPageIndex + 1] != undefined) {
-         pageDate = journalsByPage[assocPageIndex + 1][0].date;
-      } else if (this.$("#journalDate").html() != "") {
-         pageDate = this.$("#journalDate").html()
+      } else {
+         //Check the adjacent page. Which is us -1 if we are odd, and us plus one if we're even
+         if (assocPageIndex%2 == 1) {
+            assocPageIndex--;
+         } else {
+            assocPageIndex++;
+         }
+         if (journalsByPage[assocPageIndex][0] != undefined) {
+            pageDate = journalsByPage[assocPageIndex][0].date;
+         } 
       }
       return pageDate;
    },
 
    _setDate: function(date) {
+      //var targetText = 
+      //if (date != null) {
+
+      //}
       this.$("#journalDate").html(date.charAt(0).toUpperCase() + date.slice(1));
    },
    
    _turnForward: function() {
-      $('.book').turn('next');
+      var page = $(".book").turn("page");
+
+      if ( page != undefined ) {
+         $('.book').turn('next');
+      }
    },
 
    _turnBack: function() {

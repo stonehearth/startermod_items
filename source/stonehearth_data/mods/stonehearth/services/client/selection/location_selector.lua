@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local selector_util = require 'services.client.selection.selector_util'
 local LocationSelector = class()
 local Point3 = _radiant.csg.Point3
@@ -131,11 +132,9 @@ function LocationSelector:get_rotation()
    return self._rotation
 end
 
-function LocationSelector:set_rotation(rotation)   
+function LocationSelector:set_rotation(rotation)
    self._rotation = rotation
-   if self._cursor_entity then
-      self._cursor_entity:add_component('mob'):turn_to(self._rotation)
-   end
+   self:_update_cursor_rotation()
 
    -- if the user installed a progress handler, go ahead and call it now
    self:notify(self._pt, self._rotation)
@@ -153,7 +152,14 @@ end
 function LocationSelector:set_cursor_entity(cursor_entity)   
    self._cursor_entity = cursor_entity
    self._cursor_render_entity = _radiant.client.create_render_entity(H3DRootNode, cursor_entity)
+   self:_update_cursor_rotation()
    return self
+end
+
+function LocationSelector:_update_cursor_rotation()
+   if self._rotation and self._cursor_entity then
+      self._cursor_entity:add_component('mob'):turn_to(self._rotation)
+   end
 end
 
 -- destroy the location selector.  needs to be called when the user is
@@ -298,7 +304,7 @@ function LocationSelector:go()
    stonehearth.selection:register_tool(self, true)
 
    if self._rotation == nil then
-      self:set_rotation(LocationSelector.last_rotation or 0)
+      self:set_rotation(LocationSelector.last_rotation or constants.placement.DEFAULT_ROTATION)
    end
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in

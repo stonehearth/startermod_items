@@ -24,6 +24,11 @@ function RaidStockpilesMission:can_start(ctx, info)
    if not Mission.can_start(self, ctx, info) then
       return false
    end
+   --Only do this if the players are hostile to each other
+   if ctx.npc_player_id and ctx.player_id and 
+      not stonehearth.player:are_players_hostile(ctx.npc_player_id, ctx.player_id ) then
+      return false
+   end
 
    assert(ctx)
    assert(ctx.enemy_location)
@@ -120,6 +125,7 @@ function RaidStockpilesMission:_raid_stockpile(raid_stockpile, friendly_stockpil
                      from_stockpile = raid_stockpile,
                      to_stockpile = stockpile,
                   })
+                  :set_priority(stonehearth.constants.priorities.combat.IDLE)
                   :start()
       end
    end
@@ -127,6 +133,7 @@ function RaidStockpilesMission:_raid_stockpile(raid_stockpile, friendly_stockpil
    party:add_task('stonehearth:destroy_items_in_stockpile', {
             stockpile = raid_stockpile,
          })
+         :set_priority(stonehearth.constants.priorities.combat.IDLE)
          :start()
 
 end
@@ -151,7 +158,7 @@ function RaidStockpilesMission:_pick_random_spot(ctx)
       self._sv.update_orders_timer = nil
       self.__saved_variables:mark_changed()
    end   
-   self._sv.update_orders_timer = stonehearth.calendar:set_timer('4h', function()
+   self._sv.update_orders_timer = stonehearth.calendar:set_timer("RaidStockpilesMission update_party_orders", '4h', function()
          self:_update_party_orders()
       end)
    self.__saved_variables:mark_changed()

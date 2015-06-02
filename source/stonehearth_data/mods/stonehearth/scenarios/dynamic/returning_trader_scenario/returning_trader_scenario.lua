@@ -204,7 +204,7 @@ end
 
 --Creates the timers used in this function.
 function ReturningTrader:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer(duration, function() 
+   self._sv.timer = stonehearth.calendar:set_timer("ReturningTrader timer", duration, function() 
       self:_timer_callback()
    end)
 end
@@ -259,7 +259,7 @@ function ReturningTrader:_on_accepted()
    --register a callback every hour so we can
    self._sv._waiting_for_return = true
    if not self._sv.hourly_timer then
-      self._sv.hourly_timer = stonehearth.calendar:set_interval('1h', function()
+      self._sv.hourly_timer = stonehearth.calendar:set_interval("ReturningTrader on_hourly", '1h', function()
             self:_on_hourly()
          end)
    end

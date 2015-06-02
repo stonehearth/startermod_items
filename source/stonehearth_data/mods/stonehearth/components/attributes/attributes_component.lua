@@ -124,7 +124,7 @@ end
 function AttributesComponent:_substitute_for_variables(equation)
    return string.gsub(equation, "([%a_]+)", function(variable_name)
       --Find value of variable name. If nothing, return zero
-      local value = self:get_attribute(variable_name)
+      local value = self:_get_attribute(variable_name)
       if value then
          return value
       else
@@ -142,10 +142,7 @@ function AttributesComponent:_evaluate_equation(equation)
    return fn()
 end
 
---- Get the value of an attribute. 
---  If it doesn't exist, create it. If there is json already for it, incoming but
---  not yet processed, process the children first.
-function AttributesComponent:get_attribute(name, default)
+function AttributesComponent:_get_attribute_data(name)
    local attribute_data = self._sv._attribute_data[name]
    if not attribute_data then
       -- check if this attribute just hasn't been processed yet
@@ -154,6 +151,29 @@ function AttributesComponent:get_attribute(name, default)
          attribute_data = self:_add_new_attribute(name,  self._incoming_json[name])
       end
    end
+   return attribute_data
+end
+
+-- Returns the value of the attribute, including private attributes
+function AttributesComponent:_get_attribute(name, default)
+   local attribute_data = self:_get_attribute_data(name)
+   if attribute_data then
+      if attribute_data.effective_value then
+         return attribute_data.effective_value
+      end
+      return self._sv._attribute_data[name].value
+   end
+   if default == nil then
+      return 0
+   end      
+   return default
+end
+
+--- Get the value of an attribute. 
+--  If it doesn't exist, create it. If there is json already for it, incoming but
+--  not yet processed, process the children first.
+function AttributesComponent:get_attribute(name, default)
+   local attribute_data = self:_get_attribute_data(name)
 
    if attribute_data and not attribute_data.private then
       if attribute_data.effective_value then

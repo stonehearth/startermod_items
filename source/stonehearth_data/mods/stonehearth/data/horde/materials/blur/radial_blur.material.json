@@ -3,6 +3,10 @@
 		"BLUR" : {
 			"state" : "states/voxel/replace.state",
 			"shader" : "shaders/blur/blur_radial.shader"
+		},
+		"BLUR_SUB" : {
+			"state" : "states/voxel/sub.state",
+			"shader" : "shaders/blur/blur_radial.shader"
 		}
 	}
 }

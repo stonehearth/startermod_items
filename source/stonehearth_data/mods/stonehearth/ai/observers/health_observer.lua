@@ -4,23 +4,21 @@
 
 local HealthObserver = class()
 
+
+--Called once on creation
 function HealthObserver:initialize(entity)
-   self._entity = entity
-   self._attributes_component = entity:add_component('stonehearth:attributes')
+   self._sv.entity = entity
+   --When everything has been init for the first time, store the max health
+   --Listen on health changes only after we have a base health
+   local attributes_component = entity:add_component('stonehearth:attributes')
+   self._sv.last_health = attributes_component:get_attribute('max_health')
+   self:_calculate_thresholds()
+end
 
-   --After everything has been initialized, then set the current 
-   self._sv = self.__saved_variables:get_data()
-   if not self._sv._initialized then
-      self._sv._initialized = true
-
-      --When everything has been init for the first time, store the max health
-      --Listen on health changes only after we have a base health
-      --radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         self._sv.last_health = self._attributes_component:get_attribute('max_health')
-         self:_calculate_thresholds()
-      --end)
-   end
-
+--Always called. If restore, called after restore.
+function HealthObserver:activate()
+   self._entity = self._sv.entity
+   self._attributes_component = self._entity:add_component('stonehearth:attributes')
    self._health_changed_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:health', self, self._on_health_changed)
 end
 

@@ -237,7 +237,7 @@ function ShepherdPastureComponent:_create_stray_timer()
    if self._sv.stray_interval_timer then
       return
    end
-   self._sv.stray_interval_timer = stonehearth.calendar:set_interval(self._sv.check_for_strays_interval, function()
+   self._sv.stray_interval_timer = stonehearth.calendar:set_interval("ShepherdPastureComponent collect_strays", self._sv.check_for_strays_interval, function()
       self:_collect_strays()
    end)
 end
@@ -299,7 +299,7 @@ function ShepherdPastureComponent:_calculate_reproduction_timer()
    --If we already have a reproduction timer, then don't start a new one
    --if we don't have an interval, don't start the timer
    if not self._sv.reproduction_timer and self._sv.reproduction_time_interval then 
-      self._sv.reproduction_timer = stonehearth.calendar:set_timer(self._sv.reproduction_time_interval, function()
+      self._sv.reproduction_timer = stonehearth.calendar:set_timer("ShepherdPastureComponent reproduce animal", self._sv.reproduction_time_interval, function()
          self:_reproduce_animal()
       end)
    end

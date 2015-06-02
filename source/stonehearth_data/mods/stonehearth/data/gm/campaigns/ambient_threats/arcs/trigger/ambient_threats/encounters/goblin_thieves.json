@@ -1,0 +1,60 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "city_raid",
+   "rarity" : "common",
+
+   "in_edge"  : "thief_raid",
+
+   "city_raid_info" : {
+      "missions" : {
+         "raid_stockpiles" : {
+            "require_free_stockpile_space" : true,
+            "role" : "raid_stockpiles",
+            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+            "sighted_bulletin" : {
+               "title" : "Goblin Thieves!",
+               "message" : "They yearn for comfortable things"
+            },
+
+            "members" : {
+               "thiefs" : {
+                  "from_population" : {
+                     "job" : "stonehearth:jobs:worker",
+                     "min" : 1,
+                     "max" : 5,
+                     "location" : { "x": 3, "z": -3 },
+                     "range" : 2
+                  },
+                  "equipment" : {
+                     "abilities" : "stonehearth:abilities:transient_thief_abilities"
+                  },
+                  "attributes" : {
+                     "speed" : 40,
+                     "raid_timeout_minutes" : 300,
+                     "raid_timeout_variance_minutes" : 180
+                  },
+                  "unit_info" : {
+                     "description" : "Yearns for a life of comfort"
+                  },
+                  "loot_drops" : {
+                     "items" : [
+                        {"uri" : "", "weight" : 10 },
+                        {"uri" : "stonehearth:rabbit_jerky", "weight" : 1 },
+                        {"uri" : "stonehearth:squirrel_jerky", "weight" : 1 },
+                        {"uri" : "stonehearth:racoon_jerky", "weight" : 1 },
+                        {"uri" : "stonehearth:red_fox_jerky", "weight" : 1 },
+                        {"uri" : "stonehearth:resources:red_fox_pelt", "weight" : 1 },
+                        {"uri" : "stonehearth:resources:racoon_pelt", "weight" : 1 },
+                        {"uri" : "stonehearth:resources:squirrel_pelt", "weight" : 1 },
+                        {"uri" : "stonehearth:resources:rabbit_pelt", "weight" : 1 },
+                        {"uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 1 },
+                        {"uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 1 }
+                     ]
+                  }
+               }
+            }
+         }
+      }
+   }
+}

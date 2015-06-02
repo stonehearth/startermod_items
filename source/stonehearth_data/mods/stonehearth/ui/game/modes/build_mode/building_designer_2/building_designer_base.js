@@ -88,6 +88,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       // undo tool
       this.$('#undoTool').click(function() {
          App.stonehearthClient.undo();
+         self.set('context.selection', null);
       });
 
       // delete tool

@@ -21,7 +21,7 @@ function lrbt_util.create_workers(autotest, x, y)
       workers[worker:get_id()] = worker
       
       local timer
-      timer = stonehearth.calendar:set_interval('1m', function()
+      timer = stonehearth.calendar:set_interval("lrbt_util worker update", '1m', function()
             if not worker:is_valid() then
                timer:destroy()
                return

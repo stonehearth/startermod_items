@@ -19,10 +19,14 @@
 		"BLEND" : {
 			"state" : "states/voxel/blend.state",
 			"shader" : "shaders/fullscreen_quad.shader"			
-		},	
+		},
 		"MULT" : {
 			"state" : "states/voxel/mult.state",
 			"shader" : "shaders/fullscreen_quad.shader"			
+		},
+		"DEPTH_COPY" : {
+			"state" : "states/voxel/replace_depth.state",
+			"shader" : "shaders/fullscreen_quad_depth.shader"
 		}
 	}
 }

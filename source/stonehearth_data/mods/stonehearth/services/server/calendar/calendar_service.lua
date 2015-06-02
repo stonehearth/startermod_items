@@ -1,4 +1,5 @@
 local CalendarAlarm = require 'services.server.calendar.calendar_alarm'
+local log = radiant.log.create_logger('calendar_service')
 
 local rng = _radiant.csg.get_default_rng()
 
@@ -57,8 +58,13 @@ end
 
 -- Starts the passage of time.  Used to make sure day 1 doesn't begin until the
 -- user has had a chance to pick his location on the map
---
 function CalendarService:start()
+   --The time tracker only works if it's now is correctly set when all the 
+   --timers are created. It's usually set in gameloop, but there's a chance that
+   --timers can be created between when start is called here and when gameloop runs. 
+   --Unless we set_now here, such timers will be off by however much time has passed
+   --between the start of the game and the placing of the banner 
+   self._sv._time_tracker:set_now(self:get_elapsed_time())
    self._sv.start_game_tick = radiant.gamestate.now()
    self:_update_seconds_today()
 end
@@ -132,19 +138,20 @@ function CalendarService:get_seconds_until(time)
    return duration
 end
 
--- sets a calendar timer.  
+-- sets a calendar timer.
+-- Reason is a name for the timer so we can track each timer's origin.
 -- Either the number of seconds in gametime or a string of the form 1d1h1m1s.  zero
 -- values can be omitted.  For example:
---    set_timer(120, cb)  -- 2 minute timer
---    set_timer('2m', cb) -- also a 2 minute timer
---    set_timer('1d1s', cb) -- a timer for 1 day and 1 second.
+--    set_timer(reason, 120, cb)  -- 2 minute timer
+--    set_timer(reason, '2m', cb) -- also a 2 minute timer
+--    set_timer(reason, '1d1s', cb) -- a timer for 1 day and 1 second.
 --
-function CalendarService:set_timer(duration, fn)
-   return self:_create_timer(duration, fn, false)
+function CalendarService:set_timer(reason, duration, fn)
+   return self:_create_timer(reason, duration, fn, false)
 end
 
-function CalendarService:set_interval(duration, fn)
-   return self:_create_timer(duration, fn, true)
+function CalendarService:set_interval(reason, duration, fn)
+   return self:_create_timer(reason, duration, fn, true)
 end
 
 -- parses a duration string into game seconds
@@ -187,8 +194,8 @@ function CalendarService:parse_time(str)
 end
 
 -- currently zero duration timers will fire on the following game loop
-function CalendarService:_create_timer(duration, fn, repeating)
-   assert(type(fn) == 'function')
+function CalendarService:_create_timer(reason, duration, fn, repeating)
+   assert((type(fn) == 'function' or type(fn) == 'table'))
    
    local timeout_s
 
@@ -199,7 +206,7 @@ function CalendarService:_create_timer(duration, fn, repeating)
    end
    assert(timeout_s >= 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
-   return self._sv._time_tracker:set_timer(timeout_s, fn, repeating)
+   return self._sv._time_tracker:set_timer(reason, timeout_s, fn, repeating)
 end
 
 -- alarms go off once a day
@@ -264,7 +271,9 @@ end
 -- recompute the game calendar based on the time
 function CalendarService:_on_event_loop(e)
    local start_tick = self._sv.start_game_tick
+   --log:spam("in event loop and start_tick is %s", start_tick)   
    if start_tick == nil then
+      log:spam("not running yet!!!")   
       -- not running yet.  see CalendarService:start()
       return
    end
@@ -297,6 +306,7 @@ function CalendarService:_on_event_loop(e)
 
    self:_fire_alarms()
    self._sv._time_tracker:set_now(self:get_elapsed_time())
+   --log:spam("running game loop, setting time tracker!")   
 
    self.__saved_variables:mark_changed()
 

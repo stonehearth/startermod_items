@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter's Saw",
-         "description" : "Promotes a hearthling into a Carpenter."
+         "description" : "Required to promote a hearthling into a Carpenter."
       },
       "item" : {
          "stacks" : 1

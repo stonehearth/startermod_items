@@ -27,6 +27,9 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
             self:_monitor_citizen(citizen)
          end
       end)
+
+   --Listen on amenity changes 
+   radiant.events.listen(self, 'stonehearth:amenity_changed', self, self._on_amenity_changed) 
 end
 
 function PopulationFaction:get_datastore(reason)
@@ -135,6 +138,17 @@ function PopulationFaction:create_new_citizen(role)
    return citizen
 end
 
+--When the amenity changes for this population, citizens should 
+--check the threat level of everyone already in their sight sensors
+function PopulationFaction:_on_amenity_changed(e)
+   self._sv.threat_level = 0
+   self._sv._global_vision = {}
+   for _, trace in pairs(self._sensor_traces) do
+      trace:push_object_state()
+   end
+end
+
+
 function PopulationFaction:_monitor_citizen(citizen)
    local citizen_id = citizen:get_id()
 
@@ -160,10 +174,11 @@ function PopulationFaction:_monitor_citizen(citizen)
 end
 
 function PopulationFaction:_get_threat_level(visitor)
-   if stonehearth.player:are_players_friendly(self._sv.player_id, visitor) then
-      return 0
-   end
-   return radiant.entities.get_attribute(visitor, 'menace', 0)
+   if stonehearth.player:are_players_hostile(self._sv.player_id, visitor) then
+      return radiant.entities.get_attribute(visitor, 'menace', 0)
+   end 
+   return 0
+   
 end
 
 function PopulationFaction:_on_seen_by(spotter_id, visitor_id, visitor)

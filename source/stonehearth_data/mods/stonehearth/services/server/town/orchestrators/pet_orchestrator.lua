@@ -40,7 +40,7 @@ function PetOrchestrator:_run_idle(pet, town)
    task = self._task_group:create_task('stonehearth:idle')
       :start()
 
-   stonehearth.calendar:set_timer(self._idle_time, function()
+   stonehearth.calendar:set_timer("PetOrchestrator stop idle", self._idle_time, function()
          task:destroy()
       end)
 
@@ -69,7 +69,7 @@ function PetOrchestrator:_run_follow_friend(pet, town)
       :start()
 
    -- stop after _follow_time game seconds
-   stonehearth.calendar:set_timer(self._follow_time, function ()
+   stonehearth.calendar:set_timer("PetOrchestrator stop follow", self._follow_time, function ()
          task:destroy()
       end)
 
@@ -95,7 +95,7 @@ end
 function PetOrchestrator:_suspend(duration)
    local thread = stonehearth.threads:get_current_thread()
 
-   stonehearth.calendar:set_timer(duration,
+   stonehearth.calendar:set_timer("PetOrchestrator resume", duration,
       function ()
          -- looks like case is handled if thread was already terminated
          thread:resume()

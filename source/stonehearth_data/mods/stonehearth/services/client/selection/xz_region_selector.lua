@@ -577,9 +577,13 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    if not self._intersection_node then
       local y = self._p0.y
       local d = MAX_RESONABLE_DRAG_DISTANCE
-      local min = self._p0 - Point3(d, 0, d)
-      local max = self._p0 + Point3(d, 1, d)
-      local region = Region3(Cube3(min, max))
+      local cube = Cube3(self._p0):inflated(Point3(d, 0, d))
+      local region = Region3(cube)
+
+      if self._select_front_brick then
+         region:translate(Point3(0, -1, 0))
+      end
+
       self._intersection_node = _radiant.client.create_voxel_node(H3DRootNode, region, '', MODEL_OFFSET)
                                                    :set_name(INTERSECTION_NODE_NAME)
                                                    :set_visible(false)
@@ -683,7 +687,7 @@ function XZRegionSelector:_update_ruler(ruler, p0, p1, dimension)
    local normal = Point3(0, 0, 0)
    normal[dn] = p0[dn] <= p1[dn] and 1 or -1
 
-   ruler:set_points(min_point, max_point, normal, string.format('%d\'', length))
+   ruler:set_points(min_point, max_point, normal, string.format('%d', length))
 end
 
 function XZRegionSelector:_update_selected_cube(box)

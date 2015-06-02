@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "destroy_entity",
+
+   "in_edge"  : "destroy_thief_stockpiles",
+   "out_edge" : "",
+
+   "destroy_entity_info" :  {
+      "target_entities" : ["create_thief_camp.entities.general_stockpile"], 
+      "continue_always" : true
+   }
+}

@@ -29,11 +29,17 @@ function ThreatTracker:destroy()
 end
 
 function AvoidThreateningEntities:initialize(entity)
-   self._entity = entity
+   self._sv._entity = entity
+end
+
+function AvoidThreateningEntities:restore()
+end
+
+function AvoidThreateningEntities:activate()
    self._entity_traces = {}
    self._threats = {}
 
-   local entity_data = radiant.entities.get_entity_data(self._entity, 'stonehearth:observers:avoid_threatening_entities')
+   local entity_data = radiant.entities.get_entity_data(self._sv._entity, 'stonehearth:observers:avoid_threatening_entities')
 
    if entity_data and entity_data.treat_neutral_as_hostile ~= nil then
       self._treat_neutral_as_hostile = entity_data.treat_neutral_as_hostile
@@ -43,7 +49,7 @@ function AvoidThreateningEntities:initialize(entity)
 
    self._min_avoidance_distance = entity_data and entity_data.min_avoidance_distance or 16
    self._max_avoidance_distance = entity_data and entity_data.max_avoidance_distance or 32
-   self._courage = self._entity:add_component('stonehearth:attributes'):get_attribute('courage') or 0
+   self._courage = self._sv._entity:add_component('stonehearth:attributes'):get_attribute('courage') or 0
 
    self:_add_attribute_traces()
    self:_add_sensor_trace()
@@ -67,7 +73,7 @@ function AvoidThreateningEntities:_destroy_entity_traces()
 end
 
 function AvoidThreateningEntities:_add_sensor_trace()
-   local sensor_list = self._entity:add_component('sensor_list')
+   local sensor_list = self._sv._entity:add_component('sensor_list')
    self._sensor = sensor_list:get_sensor('sight')
    assert(self._sensor)
 
@@ -86,12 +92,12 @@ function AvoidThreateningEntities:_add_sensor_trace()
 end
 
 function AvoidThreateningEntities:_add_panic_trace()
-   local panic_trace = radiant.events.listen(self._entity, 'stonehearth:combat:panic_changed', self, self._on_panic_changed)
+   local panic_trace = radiant.events.listen(self._sv._entity, 'stonehearth:combat:panic_changed', self, self._on_panic_changed)
    self._entity_traces['panic'] = panic_trace
 end
 
 function AvoidThreateningEntities:_add_attribute_traces()
-   local courage_trace = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:courage', self, self._on_courage_changed)
+   local courage_trace = radiant.events.listen(self._sv._entity, 'stonehearth:attribute_changed:courage', self, self._on_courage_changed)
    self._entity_traces['courage'] = courage_trace
 end
 
@@ -114,14 +120,14 @@ function AvoidThreateningEntities:_on_removed_from_sensor(id)
 end
 
 function AvoidThreateningEntities:_on_panic_changed()
-   local threat = stonehearth.combat:get_panicking_from(self._entity)
+   local threat = stonehearth.combat:get_panicking_from(self._sv._entity)
    if not threat or not threat:is_valid() then
       self:_check_avoid_entity()
    end
 end
 
 function AvoidThreateningEntities:_on_courage_changed()
-   local new_courage = self._entity:add_component('stonehearth:attributes'):get_attribute('courage') or 0
+   local new_courage = self._sv._entity:add_component('stonehearth:attributes'):get_attribute('courage') or 0
 
    if new_courage == self._courage then
       return
@@ -174,14 +180,14 @@ function AvoidThreateningEntities:_get_menace(other_entity)
 end
 
 function AvoidThreateningEntities:_is_hostile(other_entity)
-   if other_entity == self._entity then
+   if other_entity == self._sv._entity then
       return false
    end
 
    if self._treat_neutral_as_hostile then
-      return not stonehearth.player:are_players_friendly(other_entity, self._entity)
+      return not stonehearth.player:are_players_friendly(other_entity, self._sv._entity)
    else
-      return stonehearth.player:are_players_hostile(other_entity, self._entity)
+      return stonehearth.player:are_players_hostile(other_entity, self._sv._entity)
    end
 end
 
@@ -243,7 +249,7 @@ function AvoidThreateningEntities:_check_avoid_entity(threat)
 
    if threat then
       -- checking this entity only
-      local threat_distance = radiant.entities.distance_between(threat, self._entity)
+      local threat_distance = radiant.entities.distance_between(threat, self._sv._entity)
       local threat_ratio = self:_get_threat_ratio(threat)
       local avoidance_distance = self:_get_avoidance_distance(threat_ratio)
 
@@ -271,7 +277,7 @@ function AvoidThreateningEntities:_get_entity_to_avoid()
 
       -- if not valid, we'll wait for the sensor to remove it
       if threat:is_valid() then
-         local threat_distance = radiant.entities.distance_between(threat, self._entity)
+         local threat_distance = radiant.entities.distance_between(threat, self._sv._entity)
          local threat_ratio = self:_get_threat_ratio(threat)
          local avoidance_distance = self:_get_avoidance_distance(threat_ratio)
 
@@ -290,17 +296,17 @@ function AvoidThreateningEntities:_get_entity_to_avoid()
 end
 
 function AvoidThreateningEntities:_avoid_entity(threat)
-   stonehearth.combat:set_panicking_from(self._entity, threat)
+   stonehearth.combat:set_panicking_from(self._sv._entity, threat)
 end
 
 function AvoidThreateningEntities:_currently_avoiding()
-   local threat = stonehearth.combat:get_panicking_from(self._entity)
+   local threat = stonehearth.combat:get_panicking_from(self._sv._entity)
    return threat and threat:is_valid()
 end
 
 -- consider re-writing all panic as an injected task
 -- function AvoidThreateningEntities:_create_avoid_entity_task(threat, run_distance)
---    self._avoid_entity_task = self._entity:add_component('stonehearth:ai')
+--    self._avoid_entity_task = self._sv._entity:add_component('stonehearth:ai')
 --       :get_task_group('stonehearth:combat')
 --       :create_task('stonehearth:combat:panic', { threat = threat })
 --       :set_priority(stonehearth.constants.priorities.combat.PANIC)

@@ -10,9 +10,10 @@ function SettlementTest:__init()
    --if true then return end
 
    -- build the player camp
-   ---[[
+   --[[
    self:place_citizen(4, 4, 'footman')
    self:place_citizen(4, 7, 'footman')
+   
    self:place_citizen(10, 7, 'footman')
    self:place_citizen(13, 7, 'footman')
    --]]
@@ -36,7 +37,7 @@ function SettlementTest:__init()
    create_stockpile(2, 16)
 
    -- send in the goblins!!
-   radiant.set_realtime_timer(500, function()
+   radiant.set_realtime_timer("SettlementTest game master start", 500, function()
          stonehearth.game_master:start()
       end)
    
@@ -44,7 +45,7 @@ function SettlementTest:__init()
    -- just for fun...
    --[[
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)
-   radiant.set_realtime_timer(2000, function()
+   radiant.set_realtime_timer("Settlement test", 2000, function()
          local location = Point3(-4, 1, -4)
          local size = Point2(4, 4)
          stonehearth.inventory:get_inventory('goblins')

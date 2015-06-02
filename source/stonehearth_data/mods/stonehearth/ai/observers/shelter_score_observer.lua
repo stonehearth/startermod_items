@@ -8,15 +8,18 @@
 
 local ShelterScoreObserver = class()
 
-function ShelterScoreObserver:__init(entity)
+--Called once on creation
+function ShelterScoreObserver:initialize(entity)
+   self._sv.entity = entity
 end
 
-function ShelterScoreObserver:initialize(entity)
-   self._entity = entity
-   self._score_component = entity:add_component('stonehearth:score')
+--Always called. If restore, called after restore.
+function ShelterScoreObserver:activate()
+   self._entity = self._sv.entity
+   self._score_component = self._entity:add_component('stonehearth:score')
 
-   self._sleep_in_bed_listener = radiant.events.listen(entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
-   self._sleep_on_ground_listener = radiant.events.listen(entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
+   self._sleep_in_bed_listener = radiant.events.listen(self._entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
+   self._sleep_on_ground_listener = radiant.events.listen(self._entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
 end
 
 function ShelterScoreObserver:destroy()

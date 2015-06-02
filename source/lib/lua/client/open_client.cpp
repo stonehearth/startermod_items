@@ -31,6 +31,26 @@ using namespace luabind;
 
 namespace fs = boost::filesystem;
 
+om::EntityPtr EntityPtrForObject(luabind::object arg) {
+   om::EntityPtr entity;
+   std::weak_ptr<RenderEntity> result;
+   if (luabind::type(arg) == LUA_TSTRING) {
+      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
+      std::string path = luabind::object_cast<std::string>(arg);
+      dm::Store& store = Client::GetInstance().GetStore();
+      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
+      if (obj && obj->GetObjectType() == om::Entity::DmType) {
+         entity = std::static_pointer_cast<om::Entity>(obj);
+      }
+   } else {
+      try {
+         entity = luabind::object_cast<om::EntityRef>(arg).lock();
+      } catch (luabind::cast_failed&) {
+      }
+   }
+   return entity;
+}
+
 luabind::object Client_GetEntity(lua_State* L, object id)
 {
    Client &client = Client::GetInstance();
@@ -64,24 +84,24 @@ luabind::object Client_GetAuthoringRootEntity(lua_State* L)
    return luabind::object(L, om::EntityRef(std::static_pointer_cast<om::Entity>(obj)));
 }
 
-void Client_SelectEntity(lua_State* L, luabind::object o)
+void Client_SelectEntity(lua_State* L, luabind::object o, csg::Point3f& rgbColor)
 {
    om::EntityPtr entity;
    boost::optional<om::EntityRef> e = object_cast_nothrow<om::EntityRef>(o);
    if (e.is_initialized()) {
       entity = e.get().lock();
    }
-   Client::GetInstance().SelectEntity(entity);
+   Client::GetInstance().SelectEntity(entity, rgbColor);
 }
 
-void Client_HilightEntity(lua_State* L, luabind::object o)
+void Client_HilightEntity(lua_State* L, luabind::object o, csg::Point3f& rgbColor)
 {
    om::EntityPtr entity;
    boost::optional<om::EntityRef> e = object_cast_nothrow<om::EntityRef>(o);
    if (e.is_initialized()) {
       entity = e.get().lock();
    }
-   Client::GetInstance().HilightEntity(entity);
+   Client::GetInstance().HilightEntity(entity, rgbColor);
 }
 
 RenderNodePtr Client_CreateVoxelNode(lua_State* L, 
@@ -240,22 +260,8 @@ void Client_DestroyAuthoringEntity(dm::ObjectId id)
 
 std::weak_ptr<RenderEntity> Client_GetRenderEntity(luabind::object arg)
 {
-   om::EntityPtr entity;
+   om::EntityPtr entity = EntityPtrForObject(arg);
    std::weak_ptr<RenderEntity> result;
-   if (luabind::type(arg) == LUA_TSTRING) {
-      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
-      std::string path = luabind::object_cast<std::string>(arg);
-      dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
-      if (obj && obj->GetObjectType() == om::Entity::DmType) {
-         entity = std::static_pointer_cast<om::Entity>(obj);
-      }
-   } else {
-      try {
-         entity = luabind::object_cast<om::EntityRef>(arg).lock();
-      } catch (luabind::cast_failed&) {
-      }
-   }
 
    if (entity) {
       result = Renderer::GetInstance().GetRenderEntity(entity);
@@ -263,24 +269,23 @@ std::weak_ptr<RenderEntity> Client_GetRenderEntity(luabind::object arg)
    return result;
 }
 
+std::shared_ptr<RenderEntity> Client_CreateUnmanagedRenderEntity(H3DNode parent, luabind::object arg)
+{
+   om::EntityPtr entity = EntityPtrForObject(arg);
+   std::shared_ptr<RenderEntity> result;
+
+   if (entity) {
+      std::shared_ptr<RenderEntity> re = Renderer::GetInstance().CreateUnmanagedRenderEntity(parent, entity);
+      re->SetParentOverride(true);
+      result = re;
+   }
+   return result;
+}
+
 std::weak_ptr<RenderEntity> Client_CreateRenderEntity(H3DNode parent, luabind::object arg)
 {
-   om::EntityPtr entity;
+   om::EntityPtr entity = EntityPtrForObject(arg);
    std::weak_ptr<RenderEntity> result;
-   if (luabind::type(arg) == LUA_TSTRING) {
-      // arg is a path to an object (e.g. /objects/3).  If this leads to a Entity, we're all good
-      std::string path = luabind::object_cast<std::string>(arg);
-      dm::Store& store = Client::GetInstance().GetStore();
-      dm::ObjectPtr obj = store.FetchObject<dm::Object>(path);
-      if (obj && obj->GetObjectType() == om::Entity::DmType) {
-         entity = std::static_pointer_cast<om::Entity>(obj);
-      }
-   } else {
-      try {
-         entity = luabind::object_cast<om::EntityRef>(arg).lock();
-      } catch (luabind::cast_failed&) {
-      }
-   }
 
    if (entity) {
       auto existing_re = Renderer::GetInstance().GetRenderEntity(entity);
@@ -583,6 +588,7 @@ void lua::client::open(lua_State* L)
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
             def("create_render_entity",            &Client_CreateRenderEntity),
+            def("create_unmanaged_render_entity",  &Client_CreateUnmanagedRenderEntity),
             def("create_render_entity",            &Client_CreateRenderEntityUnparented),
             def("get_render_entity",               &Client_GetRenderEntity),
             def("capture_input",                   &Client_CaptureInput),

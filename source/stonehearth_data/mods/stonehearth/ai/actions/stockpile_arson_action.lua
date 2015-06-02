@@ -16,7 +16,7 @@ StockpileArson.priority = 1
 function stockpile_igniter(stockpile_comp)
    local fire_effect = radiant.effects.run_effect(stockpile_comp:get_entity(), '/stonehearth/data/effects/firepit_effect')
 
-   stonehearth.calendar:set_timer(1200,
+   stonehearth.calendar:set_timer("stockpile_igniter destroy items", 1200,
       function ()
          -- We have to simulate the effect of fire (i.e. it doesn't actually burn anything) for now, so we'll
          -- just wait a tad and then destroy the items.

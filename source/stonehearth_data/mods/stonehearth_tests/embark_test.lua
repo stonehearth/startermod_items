@@ -10,8 +10,6 @@ function EmbarkTest:__init()
    self[MicroWorld]:__init(128)
    self:create_world()
 
-   interval_service:enable(true)
-
    local bush = self:place_item('stonehearth:berry_bush', 4, 4)
    local bush = self:place_item('stonehearth:berry_bush', -1, -1)
    local bush = self:place_item('stonehearth:berry_bush', -4, 4)
@@ -76,7 +74,7 @@ function EmbarkTest:__init()
    }
 
    -- send in the goblins!!
-   radiant.set_realtime_timer(500, function()
+   radiant.set_realtime_timer("Embark Test game master start", 500, function()
       stonehearth.game_master:start()
    end)
 

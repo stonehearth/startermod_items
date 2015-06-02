@@ -34,7 +34,7 @@ function CombatTest:place_units()
    self:place_citizen(  9, -15, 'stonehearth:jobs:farmer')
    self:place_citizen(  11, -15, 'stonehearth:jobs:trapper')
 
-   radiant.set_realtime_timer(1000, function()
+   radiant.set_realtime_timer("CombatTest place_enemy", 1000, function()
          self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
       end)
 end

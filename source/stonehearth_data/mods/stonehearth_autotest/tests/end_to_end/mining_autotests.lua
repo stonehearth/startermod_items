@@ -5,6 +5,8 @@ local Region3 = _radiant.csg.Region3
 local mining_tests = {}
 
 function mining_tests.down_and_out_tunnel(autotest)
+   stonehearth.mining:set_insta_mine(false)
+
    local session = autotest.env:get_player_session()
 
    autotest.env:create_person(15, 0, { job = 'worker' })
@@ -14,11 +16,7 @@ function mining_tests.down_and_out_tunnel(autotest)
 
    local point = Point3(20, 9, 4)
    local region = Region3(Cube3(point, point + Point3(1, 1, 1)))
-
    local mining_zone = stonehearth.mining:dig_down(session.player_id, region)
-   if not mining_zone then
-      autotest:fail('Mining test failed. Is insta_mine turned on?')
-   end
 
    for i = 1, 2 do
       region:translate(Point3(4, 0, 0))

@@ -96,17 +96,12 @@ function InventoryService:_register_score_functions()
    end)
 
    --eval function for food (may replace with using filter for type)
+   --We count food that's owned by the player, not just the stuff in their stockpiles
+   --This helps the score function work the same as the town inventory. 
    stonehearth.score:add_aggregate_eval_function('resources', 'edibles', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:stockpile') then
-         local stockpile_component = entity:get_component('stonehearth:stockpile')
-         local items = stockpile_component:get_items()
-         local total_score = 0
-         for id, item in pairs(items) do
-            if radiant.entities.is_material(item, 'food_container') or radiant.entities.is_material(item, 'food') then
-               local item_value = stonehearth.score:get_score_for_entity(item)
-               agg_score_bag.edibles = agg_score_bag.edibles + item_value
-            end
-         end
+      if radiant.entities.is_material(entity, 'food_container') or radiant.entities.is_material(entity, 'food') then
+         local item_value = stonehearth.score:get_score_for_entity(entity)
+         agg_score_bag.edibles = agg_score_bag.edibles + item_value
       end
    end)
 end

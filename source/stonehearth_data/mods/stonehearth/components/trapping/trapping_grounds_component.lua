@@ -350,7 +350,7 @@ end
 function TrappingGroundsComponent:_start_check_trap_timer(duration)
    self:_stop_check_trap_timer()
 
-   self._sv.check_trap_timer = stonehearth.calendar:set_timer(duration,
+   self._sv.check_trap_timer = stonehearth.calendar:set_timer("TrappingGroundsComponent check trap", duration,
       function()
          self:_stop_check_trap_timer()
          self:_create_check_trap_task()
@@ -372,7 +372,7 @@ end
 function TrappingGroundsComponent:_start_spawn_timer(duration)
    self:_stop_spawn_timer()
 
-   self._sv.spawn_timer = stonehearth.calendar:set_timer(duration,
+   self._sv.spawn_timer = stonehearth.calendar:set_timer("TrappingGroundsComponent try spawn", duration,
       function ()
          self:_stop_spawn_timer()
          self:_try_spawn()

@@ -1,5 +1,5 @@
 App.StonehearthBuildingVisionWidget = App.View.extend({
-   templateName: 'stoneheartBuildingVision',
+   templateName: 'stonehearthBuildingVision',
 
    modeChangeClickHandler: function() {
       var self = this;

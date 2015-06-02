@@ -26,6 +26,7 @@ App.StonehearthCreateCampView = App.View.extend({
       App.stonehearthClient.showTip('Now click somewhere in the world');
       var self = this;
       this._hideBanner();
+      radiant.call('stonehearth:dm_pause_game');
       radiant.call('stonehearth:choose_camp_location')
          .done(function(o) {
             App.stonehearthClient.hideTip();
@@ -177,6 +178,7 @@ App.StonehearthNameCampView = App.View.extend({
          var townName = self.$('#name').val()
          App.stonehearthClient.settlementName(townName);
          radiant.call_obj('stonehearth.town', 'set_town_name_command', townName);
+         radiant.call('stonehearth:dm_resume_game');
          App.gameView._addViews(App.gameView.views.complete);
 
          // kick off the tutorials

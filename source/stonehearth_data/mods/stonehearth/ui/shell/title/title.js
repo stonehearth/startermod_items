@@ -36,12 +36,10 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
 
             // sort by creation time
             vals.sort(function(a, b){
-               var keyA = a.key;
-               var keyB = b.key;
-               // Compare the 2 keys
-               if(keyA < keyB) return 1;
-               if(keyA > keyB) return -1;
-               return 0;
+               var tsA = a.gameinfo.timestamp ? a.gameinfo.timestamp : 0;
+               var tsB = b.gameinfo.timestamp ? b.gameinfo.timestamp : 0;
+               // sort most recent games first
+               return tsB - tsA;
             });
 
 

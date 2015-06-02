@@ -83,7 +83,7 @@ function SimpleCaravan:_schedule_next_spawn()
    end
    hours_till_spawn = night_padding + rng:get_int(0, 2)
    --]]
-   --stonehearth.calendar:set_timer(hours_till_spawn..'h', function()
+   --stonehearth.calendar:set_timer("SimpleCaravan spawn timer", hours_till_spawn..'h', function()
    --      self:_on_spawn_caravan()
    --   end)
 end
@@ -289,7 +289,7 @@ function SimpleCaravan:_on_declined()
 end
 
 function SimpleCaravan:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer(duration, function()
+   self._sv.timer = stonehearth.calendar:set_timer("SimpleCaravan remove bulletin", duration, function()
       self:_timer_callback()
    end)
 end

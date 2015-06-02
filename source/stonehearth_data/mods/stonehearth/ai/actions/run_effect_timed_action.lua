@@ -14,7 +14,7 @@ RunEffectTimedAction.priority = 1
 
 function RunEffectTimedAction:run(ai, entity, args)
    self._effect = radiant.effects.run_effect(entity, args.effect, args.delay)
-   self._timer = stonehearth.calendar:set_timer(args.duration, function()
+   self._timer = stonehearth.calendar:set_timer("RunEffectTimedAction ai resume", args.duration, function()
       ai:resume()
    end)
    ai:suspend()

@@ -5,35 +5,28 @@ See the documentation for food/calorie/eating behavior here: http://wiki.rad-ent
 
 local CalorieObserver = class()
 
---TODO: now defunct?
 function CalorieObserver:__init(entity)
+   self._eat_task = nil
+   self._enable_hunger = radiant.util.get_config('enable_hunger', true)
 end
 
+--Called once on creation
 function CalorieObserver:initialize(entity)
-   self._entity = entity
-   self._eat_task = nil
-   self._attributes_component = entity:add_component('stonehearth:attributes')
-
-   self._sv = self.__saved_variables:get_data()
-   if not self._sv._initialized then
-      self._sv._initialized = true
-      self._sv.should_be_eating = false
-   end
-
-   --Hunger is on by default. If it's NOT on, don't do any of this. 
-   self._enable_hunger = radiant.util.get_config('enable_hunger', true)
+   self._sv.entity = entity
+   self._sv.should_be_eating = false
    if self._enable_hunger then
-      if self._sv.hour_listener then
-         self._sv.hour_listener:bind(function()
-               self:_on_hourly()
-            end)
-      else
-         self._sv.hour_listener = stonehearth.calendar:set_interval('1h', function()
-               self:_on_hourly()
-            end)
-      end
+      self._sv.hour_listener = stonehearth.calendar:set_interval("CalorieObserver on_hourly", '1h', 
+         radiant.bind(self, '_on_hourly'))
+   end
+end
+
+--Always called. If restore, called after restore.
+function CalorieObserver:activate()
+   self._entity = self._sv.entity
+   self._attributes_component = self._entity:add_component('stonehearth:attributes')
+   if self._enable_hunger then
       self._calorie_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
-   
+      
       --Also, should we be eating right now? If so, let's do that
       if self._sv.should_be_eating then
          self:_start_eat_task()

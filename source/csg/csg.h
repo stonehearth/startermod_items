@@ -27,6 +27,18 @@ T trunc( const T& value )
    return static_cast<T>((value < 0.0) ? -result : result);
 }
 
+template <typename T>
+T ToDegrees(T radians)
+{
+   return radians / k_pi * 180;
+}
+
+template <typename T>
+T ToRadians(T degrees)
+{
+   return degrees / 180 * k_pi;
+}
+
 void GetAxisAngleNormalized(Quaternion const& q, Point3f& axis, double& angle);
 
 END_RADIANT_CSG_NAMESPACE

@@ -12,7 +12,7 @@ mod = {}
 radiant.events.listen(mod, 'radiant:new_game', function(args)
 	autotest_framework.env.set_world_generator_script('/stonehearth_crushinator/large_world.lua')
 	autotest_framework.env.create_world()
-	radiant.set_realtime_timer(3000, crushinator_tests_maul)
+	radiant.set_realtime_timer("crushinator server crushinator_tests_maul", 3000, crushinator_tests_maul)
 end)
 
 function maintain_stock(workshop, recipe_uri)

@@ -39,12 +39,12 @@ function TimeTracker:increment_now(delta)
    self:set_now(new_time)
 end
 
-function TimeTracker:set_interval(duration, fn)
-   return self:set_timer(duration, fn, true)
+function TimeTracker:set_interval(reason, duration, fn)
+   return self:set_timer(reason, duration, fn, true)
 end
 
-function TimeTracker:set_timer(duration, fn, repeating)   
-   local timer = radiant.create_controller('radiant:controllers:timer', self:get_now(), duration, fn, repeating)
+function TimeTracker:set_timer(reason, duration, fn, repeating)   
+   local timer = radiant.create_controller('radiant:controllers:timer', reason, self:get_now(), duration, fn, repeating)
 
    -- if we're currently firing timers, the _next_timers variable will contain the timers
    -- we'll check next gameloop. stick the timer in there instead of the timers array.  this

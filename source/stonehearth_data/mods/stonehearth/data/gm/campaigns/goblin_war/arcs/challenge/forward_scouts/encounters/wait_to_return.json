@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_to_return",
+   "out_edge" : "temp_finish_message",
+
+   "wait_info" :  {
+      "duration" : "24h"
+   }
+}

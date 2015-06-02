@@ -7,7 +7,19 @@ function FindTargetObserver:__init()
 end
 
 function FindTargetObserver:initialize(entity)
-   self._entity = entity
+   self._sv._entity = entity
+   self._running = true
+end
+
+function FindTargetObserver:restore()
+   self._running = false
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+         self._running = true
+         self:_check_for_target()
+      end)
+end
+
+function FindTargetObserver:activate()
    self._sight_sensor = self:_get_sight_sensor()
 
    self._sight_sensor_trace = self._sight_sensor:trace_contents('find target obs')
@@ -27,7 +39,7 @@ function FindTargetObserver:initialize(entity)
 
    self._log = radiant.log.create_logger('combat')
                            :set_prefix('find_target_obs')
-                           :set_entity(self._entity)
+                           :set_entity(self._sv._entity)
 
    self:_subscribe_to_events()
    self:_check_for_target()
@@ -38,7 +50,7 @@ function FindTargetObserver:destroy()
 end
 
 function FindTargetObserver:_get_sight_sensor()
-   local sensor_list = self._entity:add_component('sensor_list')
+   local sensor_list = self._sv._entity:add_component('sensor_list')
    local sight_sensor = sensor_list:get_sensor('sight')
    -- might be ok for a unit not to have a sight sensor, but assert for now
    assert(sight_sensor and sight_sensor:is_valid())
@@ -46,12 +58,12 @@ function FindTargetObserver:_get_sight_sensor()
 end
 
 function FindTargetObserver:_subscribe_to_events()
-   self._aggro_table = self._entity:add_component('stonehearth:target_tables')
+   self._aggro_table = self._sv._entity:add_component('stonehearth:target_tables')
                                        :get_target_table('aggro')
-   self._combat_state = self._entity:add_component('stonehearth:combat_state')
+   self._combat_state = self._sv._entity:add_component('stonehearth:combat_state')
    self._table_change_listener = radiant.events.listen(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
-   self._stance_change_listener = radiant.events.listen(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
-   self._assault_listener = radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
+   self._stance_change_listener = radiant.events.listen(self._sv._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
+   self._assault_listener = radiant.events.listen(self._sv._entity, 'stonehearth:combat:assault', self, self._on_assault)
    self:_trace_entity_location()
    -- listen for stance change
 end
@@ -108,7 +120,7 @@ function FindTargetObserver:_on_grid_location_changed()
 end
 
 function FindTargetObserver:_trace_entity_location()
-   self._trace_entity_location = radiant.entities.trace_grid_location(self._entity, 'find target observer')
+   self._trace_entity_location = radiant.entities.trace_grid_location(self._sv._entity, 'find target observer')
       :on_changed(function()
             self:_on_grid_location_changed()
          end)
@@ -138,7 +150,11 @@ function FindTargetObserver:_unlisten_from_target_pre_destroy()
 end
 
 function FindTargetObserver:_check_for_target()
-   if not self._entity:is_valid() then
+   if not self._sv._entity:is_valid() then
+      return
+   end
+
+   if not self._running then
       return
    end
 
@@ -175,24 +191,24 @@ function FindTargetObserver:_check_for_target()
 end
 
 function FindTargetObserver:_do_not_disturb()
-   local assaulting = stonehearth.combat:get_assaulting(self._entity)
+   local assaulting = stonehearth.combat:get_assaulting(self._sv._entity)
    return assaulting
 end
 
 function FindTargetObserver:_attack_target(target)
    assert(not self._task)
 
-   self._log:info('setting target to %s', tostring(target))
+   self._log:info('setting target to %s', target)
 
    if target ~= self._target then
       self:_unlisten_from_target_pre_destroy()
-      stonehearth.combat:set_primary_target(self._entity, target)
+      stonehearth.combat:set_primary_target(self._sv._entity, target)
       self._target = target
       self:_listen_for_target_pre_destroy()
    end
 
    if target and target:is_valid() then
-      self._task = self._entity:add_component('stonehearth:ai')
+      self._task = self._sv._entity:add_component('stonehearth:ai')
                          :get_task_group('stonehearth:combat')
                             :create_task('stonehearth:combat:attack_after_cooldown', { target = target })
                                :set_priority(stonehearth.constants.priorities.combat.ACTIVE)
@@ -212,7 +228,7 @@ function FindTargetObserver:_find_target()
       return
    end
 
-   local stance = stonehearth.combat:get_stance(self._entity)
+   local stance = stonehearth.combat:get_stance(self._sv._entity)
    local target
 
    if stance == 'passive' then
@@ -232,9 +248,10 @@ function FindTargetObserver:_find_target()
          end)
    end
 
-   self._log:info('stance is %s.  returning %s as target.', stance, tostring(target))
+   self._log:info('stance is %s.  returning %s as target.', stance, target)
    
    if target ~= nil and target:is_valid() then
+      assert(not stonehearth.player:are_players_friendly(target, self._sv._entity))
       return target
    end
 
@@ -260,7 +277,7 @@ function FindTargetObserver:_target_cost_benefit(target, aggro)
       self._log:spam('considering target %s (aggro:%.2f .. too far away from leash!  ignoring)', target, aggro)
       return
    end
-   local distance = radiant.entities.distance_between(self._entity, target)
+   local distance = radiant.entities.distance_between(self._sv._entity, target)
    local score = aggro / distance
    self._log:spam('considering target %s (score:%.2f - aggro:%.2f distance:%.2f)', target, score, aggro, distance)
    return score

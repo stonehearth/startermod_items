@@ -1,0 +1,13 @@
+{
+   "type" : "camp_piece",
+
+   "script" : "file(thief_stockpile.lua)",
+   "script_info" : {
+      "npc_player_id" : "goblins",
+      "stockpile_size" : { "w" : 5, "h" : 5 }, 
+      "npc_player_id" : "goblins", 
+      "ctx_entity_registration_path" : "create_raider_camp",
+      "entity_name" : "general_stockpile"
+   }
+
+}

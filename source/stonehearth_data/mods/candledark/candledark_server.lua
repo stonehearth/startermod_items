@@ -13,8 +13,8 @@ radiant.events.listen(candledark, 'radiant:init', function()
    --
    local ticks_per_second = 9 
    if radiant.gamestate.now() < 60 * 60 * 4 * ticks_per_second then
-      radiant.set_realtime_timer(1000, function()
-         stonehearth.calendar:set_timer('4h', function()
+      radiant.set_realtime_timer("candledark scenario realtime timer", 1000, function()
+         stonehearth.calendar:set_timer("candledark scenario", '4h', function()
                stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
             end)
          end)

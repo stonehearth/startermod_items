@@ -102,7 +102,7 @@ function AoeDamageComponent:_on_added_to_sensor(id, entity)
 
    -- if there are any entities being tracked and we haven't set the aoe tick timer, then do so.
    if next(self._tracked_entities) and self._aoe_timer == nil then
-      self._aoe_timer = stonehearth.calendar:set_interval('10m',  function()
+      self._aoe_timer = stonehearth.calendar:set_interval("AoeDamageComponent do_aoe_damage ", '10m',  function()
                               self:_do_aoe_damage()
                            end)
    end

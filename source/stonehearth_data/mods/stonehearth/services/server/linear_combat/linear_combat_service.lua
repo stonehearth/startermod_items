@@ -58,7 +58,7 @@ end
 function LinearCombatService:_start_spawn_timer(duration)
    self:_stop_spawn_timer()
 
-   self._spawn_timer = stonehearth.calendar:set_timer(duration, function()
+   self._spawn_timer = stonehearth.calendar:set_timer("LinearCombatService spawn", duration, function()
          self:_stop_spawn_timer()
          self:_spawn()
       end

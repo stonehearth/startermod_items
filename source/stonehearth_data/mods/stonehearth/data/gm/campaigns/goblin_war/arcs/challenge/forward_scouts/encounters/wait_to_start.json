@@ -3,9 +3,9 @@
    "encounter_type" : "wait",
 
    "in_edge"  : "start",
-   "out_edge" : ["inital_warning", "create_camps"],
+   "out_edge" : ["inital_warning", "wait_to_create_camps"],
 
    "wait_info" :  {
-      "duration" : "2d"
+      "duration" : "1d"
    }
 }

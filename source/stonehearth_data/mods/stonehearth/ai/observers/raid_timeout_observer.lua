@@ -2,21 +2,23 @@
 
 local RaidTimeoutObserver = class()
 
+--Called once on creation
 function RaidTimeoutObserver:initialize(entity)
-   self._entity = entity
-   self._sv = self.__saved_variables:get_data()
+   self._sv.entity = entity
+end
 
-   if not self._sv.initialized then
-      self._sv.initialized = true
-      --Make the timer after the dude has been added to the world
-      --so we know that the attributes from items, etc have been added
-      self._added_listener = radiant.events.listen(self._entity, 'stonehearth:game_master:citizen_config_complete', self, self._on_added)
-   else
-      if self._sv.raid_timer then
-         self._sv.raid_timer:bind(function()
+--Always called. If restore, called after restore.
+function RaidTimeoutObserver:activate()
+   self._entity = self._sv.entity
+   self._added_listener = radiant.events.listen(self._entity, 'stonehearth:game_master:citizen_config_complete', self, self._on_added)
+end
+
+--Called when restoring
+function RaidTimeoutObserver:restore()
+   if self._sv.raid_timer then
+      self._sv.raid_timer:bind(function()
             self:_on_timer_expire()
          end)
-      end
    end
 end
 
@@ -28,7 +30,7 @@ function RaidTimeoutObserver:_on_added(e)
       local timeout_variance = attrib_component:get_attribute('raid_timeout_variance_minutes')
       if timeout_base and timeout_variance then
          local timeout = tostring(timeout_base) .. 'm+' .. tostring(timeout_variance) .. 'm'
-         self._sv.raid_timer = stonehearth.calendar:set_timer(timeout, function()
+         self._sv.raid_timer = stonehearth.calendar:set_timer("RaidTimeoutObserver disperse timer", timeout, function()
             self:_on_timer_expire()
          end)
          self.__saved_variables:mark_changed()

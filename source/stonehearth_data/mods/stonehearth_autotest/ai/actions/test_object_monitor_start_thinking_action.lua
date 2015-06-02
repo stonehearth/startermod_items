@@ -21,7 +21,7 @@ function TestObjectMonitorStartThinking:start_thinking(ai, entity, args)
       args.autotest:fail('timer expired!')
    end
 
-   self._timer = radiant.set_realtime_timer(args.delay_ms, function()
+   self._timer = radiant.set_realtime_timer("TestObjectMonitorStartThinking start_thinking", args.delay_ms, function()
          args.autotest:fail('timer expired!')
       end)
 end

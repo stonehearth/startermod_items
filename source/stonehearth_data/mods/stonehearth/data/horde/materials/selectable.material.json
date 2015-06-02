@@ -3,6 +3,10 @@
 		"SELECTED_SCREENSPACE_OUTLINER": {
 			"state" : "states/voxel/blend.state",
 			"shader" : "shaders/voxel/selected_screenspace.shader"
+		},
+		"SELECTED_SCREENSPACE_TJUNCTIONFIX": {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/tjunctionfix.shader"
 		}
 	}
 }

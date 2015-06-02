@@ -124,7 +124,7 @@ function Buff:_create_duration()
    if self._sv.timer then
       self._sv.timer:bind(destroy_func)
    elseif self._sv.duration then
-      self._sv.timer = stonehearth.calendar:set_timer(self._sv.duration, function()
+      self._sv.timer = stonehearth.calendar:set_timer("Buff removal timer", self._sv.duration, function()
             self:destroy()
          end)
       self.__saved_variables:mark_changed()

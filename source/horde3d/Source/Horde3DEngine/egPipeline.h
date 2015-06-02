@@ -43,21 +43,22 @@ struct PipelineResData
 
 struct PipelineCommands
 {
-	enum List
-	{
-		SwitchTarget,
-		BindBuffer,
-		UnbindBuffers,
-		ClearTarget,
-		DrawGeometry,
-		DrawOverlays,
-		DrawQuad,
-		DoForwardLightLoop,
-		DoDeferredLightLoop,
-		SetUniform,
-    BuildMipmap,
-    DrawProjections
-	};
+   enum List
+   {
+      SwitchTarget,
+      BindBuffer,
+      UnbindBuffers,
+      ClearTarget,
+      DrawGeometry,
+      DrawOverlays,
+      DrawQuad,
+      DoForwardLightLoop,
+      DoDeferredLightLoop,
+      SetUniform,
+      BuildMipmap,
+      DrawProjections,
+      DrawSelected
+   };
 };
 
 struct RenderingOrder

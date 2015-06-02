@@ -427,8 +427,9 @@ Point<S, C> Region<S, C>::GetClosestPoint(Point const& from) const
    return closest;
 }
 
+// returns whether the region is composed of a single tag
 template <class S, int C>
-bool Region<S, C>::ContainsAtMostOneTag() const
+bool Region<S, C>::IsHomogeneous() const
 {
    if (IsEmpty()) {
       return true;
@@ -613,7 +614,7 @@ void Region<S, C>::OptimizeTagByMerge()
    }
 
 #if REGION_PARANOIA_LEVEL > 1
-   ASSERT(ContainsAtMostOneTag());
+   ASSERT(IsHomogeneous());
 #endif
    Validate();
    S areaBefore = GetArea();
@@ -729,7 +730,7 @@ bool Region<S, C>::OptimizeByOctTree(const char* reason, S minCubeSize)
       return false;
    }
 
-   if (ContainsAtMostOneTag()) {
+   if (IsHomogeneous()) {
       OptimizeTagByOctTree(minCubeSize);
    } else {
       REGION_LOG(1) << "WARNING: OptimizeByOctTree contains more than one tag type and may perform poorly. Consider OptimizeByMerge instead.";
@@ -757,7 +758,7 @@ void Region<S, C>::OptimizeTagByOctTree(S minCubeSize)
       return;
    }
 #if REGION_PARANOIA_LEVEL >= 2
-   ASSERT(ContainsAtMostOneTag());
+   ASSERT(IsHomogeneous());
 #endif
    Validate();
 
@@ -879,7 +880,7 @@ bool Region<S, C>::OptimizeByDefragmentation(const char* reason)
 {
    S averageVolume = GetArea() / GetCubeCount();
 
-   if (averageVolume > 4) {
+   if (averageVolume > 8) {
       REGION_LOG(7) << "ignoring optimize by defragmentation and calling optimize by merge: " << reason;
       return OptimizeByMerge(reason);
    } else {
@@ -1079,6 +1080,8 @@ void Region<S, C>::SetTag(int tag)
    for (auto &c : cubes_) {
       c.SetTag(tag);
    }
+
+   _churn += (int)cubes_.size();
 }
 
 #if 0

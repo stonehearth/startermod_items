@@ -44,7 +44,7 @@ function SkeletonInvasion:spawn_skeleton_wave(num_skeletons)
    self._sv.wave_complete = false
    self._sv.num_skeletons_remaining = num_skeletons
    for i = 1, num_skeletons do
-      radiant.set_realtime_timer(2000 * i, function()
+      radiant.set_realtime_timer("SkeletonInvasion spawn_skeleton_wave", 2000 * i, function()
          self:_spawn_skeleton(i)
          self._sv.num_skeletons_remaining = num_skeletons - i
          if self._sv.num_skeletons_remaining == 0 then

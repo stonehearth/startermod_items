@@ -43,7 +43,7 @@ function MicroWorld:create_world()
 end
 
 function MicroWorld:at(time, fn)
-   return radiant.set_realtime_timer(time, fn)
+   return radiant.set_realtime_timer("MicroWorld at", time, fn)
 end
 
 function MicroWorld:place_tree(x, z)

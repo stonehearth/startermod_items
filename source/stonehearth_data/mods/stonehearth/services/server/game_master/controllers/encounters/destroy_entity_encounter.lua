@@ -87,7 +87,7 @@ function DestroyEntityEncounter:_destroy_entity_with_effect(entity, info)
          local delay = rng:get_int(info.random_delay.min, info.random_delay.min)
          --Don't bother saving the timer. It should go off always, and will get restarted on load, if that
          --happens in the second between it getting started and it going off
-         stonehearth.calendar:set_timer(delay, function()
+         stonehearth.calendar:set_timer("DestroyEntityEncounter destroy entity", delay, function()
             if entity and entity:is_valid() then
                radiant.entities.destroy_entity(entity)
             end

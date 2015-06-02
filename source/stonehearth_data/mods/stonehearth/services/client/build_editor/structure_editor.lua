@@ -17,9 +17,9 @@ function StructureEditor:destroy()
 
    radiant.entities.destroy_entity(self._building_container)
 
-   if self._fabriator_visibility_handle then
-      self._fabriator_visibility_handle:destroy()
-      self._fabriator_visibility_handle = nil
+   if self._fabricator_visibility_handle then
+      self._fabricator_visibility_handle:destroy()
+      self._fabricator_visibility_handle = nil
    end
 
    if self._project_visibility_handle then
@@ -51,7 +51,7 @@ function StructureEditor:begin_editing(fabricator, blueprint, project, structure
    self._blueprint = blueprint
    self._project = project
 
-   self._fabriator_visibility_handle = self:_get_visibility_handle(self._fabricator)
+   self._fabricator_visibility_handle = self:_get_visibility_handle(self._fabricator)
    self._project_visibility_handle = self:_get_visibility_handle(self._project)
 
    local building = build_util.get_building_for(blueprint)
@@ -120,7 +120,7 @@ end
 
 function StructureEditor:_show_editing_objects(visible)
    if self._fabricator and self._fabricator:is_valid() then
-      self._fabriator_visibility_handle:set_visible(visible)
+      self._fabricator_visibility_handle:set_visible(visible)
    end
    if self._blueprint then
       self._project_visibility_handle:set_visible(visible)

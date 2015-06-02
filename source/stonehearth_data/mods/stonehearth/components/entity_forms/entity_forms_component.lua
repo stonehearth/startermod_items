@@ -24,7 +24,7 @@ function EntityFormsComponent:initialize(entity, json)
             if self._sv.should_restock then
                -- why do we need to set a 1000 ms timer just to get the effect to show up?
                -- this is quite disturbing... investigate! -- tony
-               radiant.set_realtime_timer(1000, function()
+               radiant.set_realtime_timer("EntityFormsComponent update_restock_info", 1000, function()
                      self:_update_restock_info()
                   end)
             end

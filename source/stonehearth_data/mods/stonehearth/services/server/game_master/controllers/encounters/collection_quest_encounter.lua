@@ -123,6 +123,8 @@ function CollectionQuest:_on_shakedown_accepted()
    }
 
    bulletin_data.ok_callback = '_nop' -- we don't do anything when they push ok, but the UI will close the view
+   bulletin_data.collection_cancel_callback = '_on_collection_cancelled' 
+   
    self:_update_bulletin(bulletin_data, { 
          keep_open = false,
          view = 'StonehearthCollectionQuestBulletinDialog',
@@ -271,7 +273,7 @@ function CollectionQuest:_start_collection_timer()
       duration = override
    end
 
-   self._sv.collection_timer = stonehearth.calendar:set_timer(duration, function()
+   self._sv.collection_timer = stonehearth.calendar:set_timer("CollectionQuest collection expire", duration, function()
          self:_on_collection_timer_expired()
       end)
    self.__saved_variables:mark_changed()
@@ -334,6 +336,9 @@ function CollectionQuest:_on_collection_cancelled()
    local bulletin_data = self._sv._info.nodes.collection_failed.bulletin
 
    bulletin_data.ok_callback = '_on_collection_failed_ok'
+   
+   -- destroy the bulletin before updating it to force a new popup
+   self:_destroy_bulletin()
    self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
 end
 

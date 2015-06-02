@@ -756,6 +756,14 @@ DLLEXP int h3dGetNodeFlags( NodeHandle node )
 	return sn->getFlags();
 }
 
+DLLEXP void h3dSetSelected(NodeHandle node, bool selected, float r, float g, float b)
+{
+   if (selected) {
+      Modules::renderer().addSelectedNode(node, r, g, b);
+   } else {
+      Modules::renderer().removeSelectedNode(node);
+   }
+}
 
 DLLEXP void h3dTwiddleNodeFlags( NodeHandle node, int flags, bool on, bool recursive )
 {

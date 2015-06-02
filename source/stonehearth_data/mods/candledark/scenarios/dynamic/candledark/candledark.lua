@@ -135,7 +135,7 @@ end
 
 function Candledark:_spawn_skeletons()
    self._sv.timer_running = true
-   radiant.set_realtime_timer(1000 * 12, function()
+   radiant.set_realtime_timer("Candledark spawn_skeletons", 1000 * 12, function()
          self._sv.timer_running = false
          stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })
       end)
