@@ -1,5 +1,3 @@
-local voxel_brush_util = require 'services.server.build.voxel_brush_util'
-
 local ConstructionDataComponent = class()
 local Point2 = _radiant.csg.Point2
 local Region2 = _radiant.csg.Region2
@@ -127,7 +125,6 @@ function ConstructionDataComponent:set_building_entity(entity)
    return self
 end
 
-
 function ConstructionDataComponent:get_allow_diagonal_adjacency()
    -- coearse to bool 
    return self._sv.allow_diagonal_adjacency and true or false
@@ -146,12 +143,6 @@ end
 
 function ConstructionDataComponent:get_allow_crouching_construction()
    return self._sv.allow_crouching_construction and true or false
-end
-
-function ConstructionDataComponent:create_voxel_brush(brush, origin)
-   checks('self', 'string', '?Point3')
-
-   return voxel_brush_util.create_brush(brush, origin, self._sv.normal)
 end
 
 function ConstructionDataComponent:save_to_template()
@@ -176,63 +167,6 @@ function ConstructionDataComponent:rotate_structure(degrees)
       self._sv.normal = self._sv.normal:rotated(degrees)
    end
    self.__saved_variables:mark_changed()
-end
-
-
--- adds the `region` in world coordinates to the floor
---    @param brush_uri - the uri of the brush used to paint the floor
---    @param region - the region to add to the floor, in world coordinates
---
-function ConstructionDataComponent:paint_on_world_region(brush_uri, world_region, replace)
-   local origin = radiant.entities.get_world_grid_location(self._entity)
-   local brush = self:create_voxel_brush(brush_uri, origin)
-
-   local shape = world_region:translated(-origin)
-   local rgn = brush:paint_through_stencil(shape)
-
-   return self:add_local_region(rgn, replace)
-end
-
-function ConstructionDataComponent:add_world_region(world_region)
-   local origin = radiant.entities.get_world_grid_location(self._entity)
-   local shape = world_region:translated(-origin)
-
-   self:add_local_region(shape)
-   return self
-end
-
-function ConstructionDataComponent:add_local_region(rgn, replace)
-   self._entity:get_component('destination')
-                  :get_region()
-                     :modify(function(c)                           
-                           if replace then
-                              c:copy_region(rgn)
-                           else
-                              c:add_region(rgn)
-                           end
-                           c:optimize_by_merge('growing building structure')
-                        end)         
-
-   return self
-end
-
-function ConstructionDataComponent:remove_world_region(world_region)
-   local origin = radiant.entities.get_world_grid_location(self._entity)
-   local shape = world_region:translated(-origin)
-
-   self:remove_local_region(shape)
-   return self
-end
-
-function ConstructionDataComponent:remove_local_region(shape)
-   local region = self._entity:get_component('destination')
-                                 :get_region()
-
-   region:modify(function(c)                           
-         c:subtract_region(shape)
-         c:optimize_by_merge('shrinking building structure')
-      end)         
-   return self
 end
 
 return ConstructionDataComponent

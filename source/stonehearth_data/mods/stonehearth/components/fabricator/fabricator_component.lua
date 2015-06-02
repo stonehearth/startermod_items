@@ -195,11 +195,7 @@ function FabricatorComponent:accumulate_costs(cost)
    local material = blueprint:get_component('stonehearth:construction_data')
                                     :get_material()
 
-   local rgn = blueprint:get_component('destination')
-                           :get_region()
-                              :get()
-   
-   for cube in rgn:each_cube() do
+   for cube in self._blueprint_color_rgn:get():each_cube() do
       local area = cube:get_area()
       local world_point = radiant.entities.local_to_world(cube.min, self._entity)
       local material = self:get_material(world_point)
@@ -220,6 +216,7 @@ function FabricatorComponent:_initialize_fabricator()
    self._blueprint_dst = blueprint:get_component('destination')
    self._blueprint_construction_data = blueprint:get_component('stonehearth:construction_data')
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
+   self._blueprint_color_rgn = self._blueprint_construction_progress:get_color_region()
    self._mining_zones = {}
    self._mining_traces = {}
    self._fabricate_tasks = {}
@@ -356,8 +353,6 @@ function FabricatorComponent:_create_material_proxies()
       self:_create_material_proxy_trace(proxy)
    end
 
-   local blueprint_rgn = self._blueprint_dst:get_region():get()
-
    -- if there's a resource material specified in the construction_data component,
    -- the entire structure should be built of that material.  only one proxy required!
    if self._resource_material then
@@ -368,7 +363,7 @@ function FabricatorComponent:_create_material_proxies()
    -- run through each cube in the blueprint and make sure we have a proxy
    -- for that material.  the actual regions for the proxy will be filled in in
    -- the trace callbacks.
-   for cube in blueprint_rgn:each_cube() do
+   for cube in self._blueprint_color_rgn:get():each_cube() do
       local material = self:_tag_to_material(cube.tag)
       create_proxy(material)
    end
@@ -407,9 +402,7 @@ function FabricatorComponent:get_material(world_location)
    end
 
    local offset = radiant.entities.world_to_local(world_location, self._entity)
-   local rgn = self._blueprint_dst
-                        :get_region()
-                           :get()
+   local rgn = self._blueprint_color_rgn:get()
                            
    -- xxx: this is 2 lookups.  eek!   
    if not rgn:contains(offset) then
@@ -728,15 +721,11 @@ end
 
 function FabricatorComponent:_update_all_material_proxy_regions()
    self._log:info('updating all proxies')
-   for material, proxy in pairs(self._sv.material_proxies) do
-      self:_update_material_proxy_region(material, proxy)
-   end
-end
 
-function FabricatorComponent:_update_material_proxy_region(material, proxy)
+   local material_regions = {}
    local rcs_rgn = self._fabricator_rcs:get_region():get():to_int()
-   local proxy_dst = proxy:get_component('destination')
-   
+   assert(rcs_rgn:is_homogeneous())
+
    -- build in layers.  stencil out all but the bottom layer of the 
    -- project.  work against the destination region (not rgn - reserved).
    -- otherwise, we'll end up moving to the next row as soon as the last
@@ -744,21 +733,44 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy)
    local bottom = rcs_rgn:get_bounds().min.y
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
-   local dst_region_all_materials = rcs_rgn - clipper
-
-   local dst_region
+   local dst_region = rcs_rgn - clipper
    if self._resource_material then
-      dst_region = dst_region_all_materials
-   else
-      dst_region = Region3()
-      for cube in dst_region_all_materials:each_cube() do
-         local cube_material = self:_tag_to_material(cube.tag)
-         if cube_material == material then
-            dst_region:add_unique_cube(cube)
-         end
-      end
+      assert(radiant.size(self._sv.material_proxies) == 1)
+      self:_update_material_proxy_region(dst_region, self._sv.material_proxies[self._resource_material])
+      return
    end
-   dst_region:set_tag(0)
+
+   local colored_fab_rgn = self._blueprint_color_rgn:get():intersect_region(dst_region)
+   for cube in colored_fab_rgn:each_cube() do
+      local material = self:_tag_to_material(cube.tag)
+      cube.tag = 0
+      if not material_regions[material] then
+         material_regions[material] = Region3(cube)
+      else
+         material_regions[material]:add_unique_cube(cube)
+      end
+      assert(material_regions[material]:is_homogeneous())
+   end
+
+   -- 1) make sure the fab dst rgn, bp dst rgn and prj dst rgnb are all homo
+   -- 2) create a fab color region once, now
+   -- 3) pass it into all these material junkies.
+   -- 4) verify the mat proxy dst rgn is homo
+   for material, proxy in pairs(self._sv.material_proxies) do
+      self:_update_material_proxy_region(material_regions[material], proxy)
+   end
+end
+
+function FabricatorComponent:_update_material_proxy_region(dst_region, proxy)
+   local proxy_dst = proxy:get_component('destination')
+   if not dst_region then
+      proxy_dst:get_region():modify(function (cursor)
+            cursor:clear()
+         end)
+      return      
+   end
+
+   assert(dst_region:is_homogeneous())
 
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
@@ -941,6 +953,9 @@ end
 function FabricatorComponent:_update_fabricator_region()
    local br = self._sv.teardown and emptyRegion or self._blueprint_dst:get_region():get()
    local pr = self._project_dst:get_region():get()
+
+   assert(br:is_homogeneous())
+   assert(pr:is_homogeneous())
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br

@@ -1,4 +1,5 @@
 local build_util = require 'lib.build_util'
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 
 local ConstructionProgress = class()
 local Point2 = _radiant.csg.Point2
@@ -178,5 +179,91 @@ function ConstructionProgress:finish_restoring_template()
                      :finish_restoring_template()
    end
 end
+
+function ConstructionProgress:create_voxel_brush(brush, origin)
+   checks('self', 'string', '?Point3')
+
+   return voxel_brush_util.create_brush(brush, origin, self._sv.normal)
+end
+
+function ConstructionProgress:set_color_region(region)
+   self._sv.color_region = region
+   self.__saved_variables:mark_changed()
+end
+
+function ConstructionProgress:get_color_region()
+   return self._sv.color_region
+end
+
+-- adds the `region` in world coordinates to the floor
+--    @param brush_uri - the uri of the brush used to paint the floor
+--    @param region - the region to add to the floor, in world coordinates
+--
+function ConstructionProgress:paint_on_world_region(brush_uri, world_region, replace)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local brush = self:create_voxel_brush(brush_uri, origin)
+
+   local local_region = world_region:translated(-origin)
+   local color_region = brush:paint_through_stencil(local_region)
+
+   self:_update_destination_region(local_region, replace)
+   self:_update_color_region(color_region, replace)
+
+   return self
+end
+
+function ConstructionProgress:remove_world_region(world_region)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local shape = world_region:translated(-origin)
+
+   self:_update_blueprint_regions(function(c)
+         c:subtract_region(shape)
+         c:optimize_by_merge('shrinking building structure')
+      end)
+
+   return self
+end
+
+function ConstructionProgress:_update_blueprint_regions(update_fn)
+   local dst_region = self._entity:get_component('destination')
+                                       :get_region()
+
+   dst_region:modify(update_fn)
+   assert(dst_region:get():is_homogeneous())
+
+   self._sv.color_region:modify(update_fn)
+
+   return self
+end
+
+function ConstructionProgress:_update_destination_region(rgn, replace)
+   assert(rgn:is_homogeneous())
+
+   local dst_rgn = self._entity:get_component('destination')
+                                 :get_region()
+
+   assert(dst_rgn:get():is_homogeneous())
+   dst_rgn:modify(function(cursor)
+         if replace then
+            cursor:copy_region(rgn)
+         else
+            cursor:add_region(rgn)
+         end
+         cursor:optimize_by_merge('growing building structure')
+      end)
+   assert(dst_rgn:get():is_homogeneous())
+end
+
+function ConstructionProgress:_update_color_region(rgn, replace)
+   self._sv.color_region:modify(function(cursor)
+         if replace then
+            cursor:copy_region(rgn)
+         else
+            cursor:add_region(rgn)
+         end
+         cursor:optimize_by_merge('growing building structure')
+      end)
+end
+
 
 return ConstructionProgress

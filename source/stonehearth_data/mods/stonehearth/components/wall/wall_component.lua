@@ -254,7 +254,7 @@ function Wall:layout()
 
    local function compute_collision_shape()
       local stencil = self:_compute_wall_shape(building)
-      return self._entity:get_component('stonehearth:construction_data')
+      return self._entity:get_component('stonehearth:construction_progress')
                                :create_voxel_brush(self._sv.brush)
                                :paint_through_stencil(stencil)
    end
