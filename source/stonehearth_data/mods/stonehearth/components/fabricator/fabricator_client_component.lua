@@ -23,6 +23,10 @@ function FabricatorClientComponent:get_data()
    return self.__saved_variables:get_data()
 end
 
+function FabricatorClientComponent:get_color_region()
+   return self.__saved_variables:get_data().color_region
+end
+
 function FabricatorClientComponent:get_blueprint()
    return self:get_data().blueprint
 end
@@ -39,13 +43,14 @@ function FabricatorClientComponent:get_total_mining_region()
    return self:get_data().total_mining_region
 end
 
-function FabricatorClientComponent:begin_editing(blueprint, project, editing_region)
+function FabricatorClientComponent:begin_editing(blueprint, project, editing_region, color_region)
    -- xxx: assert we're in a RW store...
    self.__saved_variables:modify(function (o)
          o.blueprint = blueprint
          o.project = project
          o.editing_region = editing_region
          o.editing = true
+         o.color_region = color_region
       end)
       
    local function trace_region(entity)

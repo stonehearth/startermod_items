@@ -141,6 +141,15 @@ function ConstructionDataComponent:set_project_adjacent_to_base(enabled)
    return self
 end
 
+function ConstructionDataComponent:set_color_region(region)
+   self._sv.color_region = region
+   self.__saved_variables:mark_changed()
+end
+
+function ConstructionDataComponent:get_color_region()
+   return self._sv.color_region
+end
+
 function ConstructionDataComponent:get_allow_crouching_construction()
    return self._sv.allow_crouching_construction and true or false
 end

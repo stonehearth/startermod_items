@@ -15,9 +15,10 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
    self._parent_node = render_entity:get_node()
    self._render_entity = render_entity
    self._visibility_handle = render_entity:get_visibility_override_handle()
-
+   
    self._show_preview_mode = fabricator:get_data().editing
 
+   self._fabricator = fabricator
    self._blueprint = fabricator:get_data().blueprint
    assert(self._blueprint)
 
@@ -158,7 +159,11 @@ function FabricatorRenderer:_update_region(stencil)
                                           :get()
                                              :intersect_region(stencil:get())
 
-      self._render_node = _radiant.client.create_voxel_node(self._parent_node, shape, material, Point3(0, 0, 0))
+      local model = self._fabricator:get_color_region()
+                                       :get()
+                                          :intersect_region(shape)
+
+      self._render_node = _radiant.client.create_voxel_node(self._parent_node, model, material, Point3(0, 0, 0))
       self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.json')
 
       if self._show_preview_mode then

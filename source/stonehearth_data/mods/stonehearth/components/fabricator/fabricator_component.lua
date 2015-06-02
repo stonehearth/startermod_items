@@ -164,7 +164,9 @@ function FabricatorComponent:start_project(blueprint)
 
    self._log:debug('starting project for %s', blueprint)
    
-   self._sv.blueprint = blueprint   
+   self._sv.blueprint = blueprint
+   self._sv.color_region = blueprint:add_component('stonehearth:construction_progress')
+                                       :get_color_region()
 
    self:_initialize_fabricator()
    self.__saved_variables:mark_changed()
@@ -198,7 +200,7 @@ function FabricatorComponent:accumulate_costs(cost)
    local material = blueprint:get_component('stonehearth:construction_data')
                                     :get_material()
 
-   for cube in self._blueprint_color_rgn:get():each_cube() do
+   for cube in self._sv.color_region:get():each_cube() do
       local area = cube:get_area()
       local world_point = radiant.entities.local_to_world(cube.min, self._entity)
       local material = self:get_material(world_point)
@@ -218,8 +220,7 @@ function FabricatorComponent:_initialize_fabricator()
    self._fabricator_rcs = self._entity:add_component('region_collision_shape')
    self._blueprint_dst = blueprint:get_component('destination')
    self._blueprint_construction_data = blueprint:get_component('stonehearth:construction_data')
-   self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
-   self._blueprint_color_rgn = self._blueprint_construction_progress:get_color_region()
+   self._blueprint_construction_progress = blueprint:add_component('stonehearth:construction_progress')
    self._mining_zones = {}
    self._mining_traces = {}
    self._fabricate_tasks = {}
@@ -306,7 +307,10 @@ function FabricatorComponent:_create_new_project()
    -- so everything gets rendered correctly.
    local building = build_util.get_building_for(blueprint)
    local state = self._blueprint_construction_data:get_savestate()
-   self._sv.project:add_component('stonehearth:construction_data', state)
+   local project_cd = self._sv.project:add_component('stonehearth:construction_data', state)
+
+   -- copy the color region into the project to ease rendering.
+   project_cd:set_color_region(self._sv.color_region)
 end
 
 function FabricatorComponent:_create_material_proxy_trace(proxy)
@@ -366,7 +370,7 @@ function FabricatorComponent:_create_material_proxies()
    -- run through each cube in the blueprint and make sure we have a proxy
    -- for that material.  the actual regions for the proxy will be filled in in
    -- the trace callbacks.
-   for cube in self._blueprint_color_rgn:get():each_cube() do
+   for cube in self._sv.color_region:get():each_cube() do
       local material = self:_tag_to_material(cube.tag)
       create_proxy(material)
    end
@@ -405,7 +409,7 @@ function FabricatorComponent:get_material(world_location)
    end
 
    local offset = radiant.entities.world_to_local(world_location, self._entity)
-   local rgn = self._blueprint_color_rgn:get()
+   local rgn = self._sv.color_region:get()
                            
    -- xxx: this is 2 lookups.  eek!   
    if not rgn:contains(offset) then
@@ -722,29 +726,10 @@ function FabricatorComponent:_stop_project()
    end
 end
 
-function FabricatorComponent:_has_single_material()
-   local t = self._sv.material_proxies
-   -- are there 2+ values in the table?
-   local result = next(t, next(t)) == nil
-   return result
-end
-
 function FabricatorComponent:_update_all_material_proxy_regions()
    self._log:info('updating all proxies')
-<<<<<<< HEAD
 
    local material_regions = {}
-=======
-
-   local has_single_material = self:_has_single_material()
-
-   for material, proxy in pairs(self._sv.material_proxies) do
-      self:_update_material_proxy_region(material, proxy, has_single_material)
-   end
-end
-
-function FabricatorComponent:_update_material_proxy_region(material, proxy, has_single_material)
->>>>>>> develop
    local rcs_rgn = self._fabricator_rcs:get_region():get():to_int()
    assert(rcs_rgn:is_homogeneous())
 
@@ -755,7 +740,6 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy, has_
    local bottom = rcs_rgn:get_bounds().min.y
    local clipper = Region3(Cube3(Point3(-COORD_MAX, bottom + 1, -COORD_MAX),
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
-<<<<<<< HEAD
    local dst_region = rcs_rgn - clipper
    if self._resource_material then
       assert(radiant.size(self._sv.material_proxies) == 1)
@@ -763,7 +747,7 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy, has_
       return
    end
 
-   local colored_fab_rgn = self._blueprint_color_rgn:get():intersect_region(dst_region)
+   local colored_fab_rgn = self._sv.color_region:get():intersect_region(dst_region)
    for cube in colored_fab_rgn:each_cube() do
       local material = self:_tag_to_material(cube.tag)
       cube.tag = 0
@@ -771,20 +755,6 @@ function FabricatorComponent:_update_material_proxy_region(material, proxy, has_
          material_regions[material] = Region3(cube)
       else
          material_regions[material]:add_unique_cube(cube)
-=======
-   local dst_region_all_materials = rcs_rgn - clipper
-
-   local dst_region
-   if has_single_material then
-      dst_region = dst_region_all_materials
-   else
-      dst_region = Region3()
-      for cube in dst_region_all_materials:each_cube() do
-         local cube_material = self:_tag_to_material(cube.tag)
-         if cube_material == material then
-            dst_region:add_unique_cube(cube)
-         end
->>>>>>> develop
       end
       assert(material_regions[material]:is_homogeneous())
    end
@@ -835,6 +805,7 @@ function FabricatorComponent:_update_material_proxy_region(dst_region, proxy)
       end
       dst_region = dr
    end
+   dst_region:optimize_by_merge('fabricator dst')
 
    --self._log:detail('update dst region')
    --self:_log_region(rcs_rgn, 'region collision shape ->')
@@ -854,8 +825,6 @@ function FabricatorComponent:_update_material_proxy_region(dst_region, proxy)
          dst_region:subtract_region(fab_mining_region)
       end
    end
-
-   dst_region:optimize_by_defragmentation('fabricator dst')
 
    -- copy into the destination region
    proxy_dst:get_region():modify(function (cursor)

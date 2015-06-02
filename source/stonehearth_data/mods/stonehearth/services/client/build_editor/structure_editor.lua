@@ -87,6 +87,7 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
 
    self._proxy_blueprint:add_component('destination')
                            :set_region(_radiant.client.alloc_region3())
+
    self._proxy_fabricator:add_component('destination')
                            :set_region(_radiant.client.alloc_region3())
    self._proxy_fabricator:add_component('region_collision_shape')
@@ -103,12 +104,13 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
                      :layout()
    end
 
+   local color_region = radiant.alloc_region3()
    local editing_reserved_region = self._structure:get_editing_reserved_region()
    self._proxy_fabricator:add_component('stonehearth:fabricator')
-                           :begin_editing(self._proxy_blueprint, self._project, editing_reserved_region)
+                           :begin_editing(self._proxy_blueprint, self._project, editing_reserved_region, color_region)
 
    self._proxy_blueprint:add_component('stonehearth:construction_progress')
-                           :begin_editing(self._building_container, self._proxy_fabricator)
+                           :begin_editing(self._building_container, self._proxy_fabricator, color_region)
    -- hide the fabricator and structure...
    self:_show_editing_objects(false)
 end

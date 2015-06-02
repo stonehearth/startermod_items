@@ -195,6 +195,16 @@ function ConstructionProgress:get_color_region()
    return self._sv.color_region
 end
 
+
+function ConstructionProgress:begin_editing(building, fabricator, color_region)
+   -- xxx: assert we're in a RW store...
+   self.__saved_variables:modify(function (o)
+         o.color_region = color_region
+         o.building_entity = building
+         o.fabricator_entity = fabricator
+      end)
+end
+
 -- adds the `region` in world coordinates to the floor
 --    @param brush_uri - the uri of the brush used to paint the floor
 --    @param region - the region to add to the floor, in world coordinates
@@ -212,12 +222,46 @@ function ConstructionProgress:paint_on_world_region(brush_uri, world_region, rep
    return self
 end
 
+-- adds the `region` in world coordinates to the floor
+--    @param brush_uri - the uri of the brush used to paint the floor
+--    @param region - the region to add to the floor, in world coordinates
+--
+function ConstructionProgress:paint_on_local_region(brush_uri, local_region, replace)
+   local brush = self:create_voxel_brush(brush_uri)
+
+   local color_region = brush:paint_through_stencil(local_region)
+
+   self:_update_destination_region(local_region, replace)
+   self:_update_color_region(color_region, replace)
+
+   return self
+end
+
+function ConstructionProgress:copy_color_region(color_region)
+   local local_region = Region3()
+   local_region:copy_region(color_region)
+   local_region:set_tag(0)
+   local_region:optimize_by_merge('copying color region')
+
+   self:_update_destination_region(local_region, true)
+   self:_update_color_region(color_region, true)
+end
+
 function ConstructionProgress:remove_world_region(world_region)
    local origin = radiant.entities.get_world_grid_location(self._entity)
    local shape = world_region:translated(-origin)
 
    self:_update_blueprint_regions(function(c)
          c:subtract_region(shape)
+         c:optimize_by_merge('shrinking building structure')
+      end)
+
+   return self
+end
+
+function ConstructionProgress:remove_local_region(local_region)
+   self:_update_blueprint_regions(function(c)
+         c:subtract_region(local_region)
          c:optimize_by_merge('shrinking building structure')
       end)
 
