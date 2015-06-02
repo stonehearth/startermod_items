@@ -170,6 +170,17 @@ function ConstructionProgress:load_from_template(template, options, entity_map)
    self.__saved_variables:mark_changed()
 end
 
+function ConstructionProgress:rotate_structure(degrees)
+   if self._sv.color_region then
+      self._sv.color_region:modify(function(cursor)
+            local origin = Point3(0.5, 0, 0.5)
+            cursor:translate(-origin)
+            cursor:rotate(degrees)
+            cursor:translate(origin)
+         end)
+   end
+end
+
 function ConstructionProgress:finish_restoring_template()
    -- this is a weird place to put the fabricator back on, but let's go for it.   
    if self._sv._fabricator_component_name == 'stonehearth:fabricator' then

@@ -80,18 +80,31 @@ local function load_structure_from_template(entity, template, options, entity_ma
    end
    
    if template.shape then
-      local name = options.mode == 'preview' and 'region_collision_shape' or 'destination'
-      local region = radiant.alloc_region3()
-      region:modify(function(cursor)
+      local color_region = radiant.alloc_region3()
+      color_region:modify(function(cursor)
             cursor:load(template.shape)
          end)
-      entity:add_component(name)
-               :set_region(region)
-   end
 
-   if options.mode == 'preview' then
-      entity:add_component('render_info')
-               :set_material('materials/place_template_preview.json')
+      local shape = radiant.alloc_region3()
+      shape:modify(function(cursor)
+            cursor:copy_region(color_region:get())
+            cursor:set_tag(0)
+         end)
+
+      entity:add_component('stonehearth:construction_progress')
+               :set_color_region(color_region)
+      entity:add_component('stonehearth:construction_data')
+               :set_color_region(color_region)
+
+      if options.mode == 'preview' then
+         entity:add_component('region_collision_shape')
+                  :set_region(shape)
+         entity:add_component('render_info')
+                  :set_material('materials/place_template_preview.json')
+      else
+         entity:add_component('destination')
+                  :set_region(shape)
+      end
    end
 
    for name, data in pairs(template) do
@@ -151,9 +164,13 @@ local function save_entity_to_template(entity)
                               :get_transform()
    end
 
-   local destination = entity:get_component('destination')
-   if destination then
-      template.shape = destination:get_region():get()
+   -- find the color bits and save them in `shape`
+   local cp = entity:get_component('stonehearth:construction_progress')
+   if cp then
+      local color_region = cp:get_color_region()
+      if color_region then
+         template.shape = color_region:get()
+      end
    end
 
    for name, _ in pairs(SAVED_COMPONENTS) do
