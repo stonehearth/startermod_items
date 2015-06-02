@@ -1634,16 +1634,11 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::E
       }
       return result;
    }
-
    dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
 
-   R_LOG(5) << "creating render object " << sid << ", " << id;
-   std::shared_ptr<RenderEntity> re = std::make_shared<RenderEntity>(parent, entity);
-   _newRenderEntities.emplace_back(re);
-
    RenderMapEntry entry;
-   entry.render_entity = re;
+   entry.render_entity = CreateUnmanagedRenderEntity(parent, entity);
    entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
                                     ->OnDestroyed([this, sid, id]() { 
                                           R_LOG(5) << "destroying render object in trace callback " << sid << ", " << id;
@@ -1652,6 +1647,20 @@ std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::E
    entities_[sid][id] = entry;
    return entry.render_entity;
 }
+
+
+std::shared_ptr<RenderEntity> Renderer::CreateUnmanagedRenderEntity(H3DNode parent, om::EntityPtr entity)
+{
+   dm::ObjectId id = entity->GetObjectId();
+   int sid = entity->GetStoreId();
+
+   R_LOG(5) << "creating render object " << sid << ", " << id;
+   std::shared_ptr<RenderEntity> re = std::make_shared<RenderEntity>(parent, entity);
+   _newRenderEntities.emplace_back(re);
+
+   return re;
+}
+
 
 std::shared_ptr<RenderEntity> Renderer::GetRenderEntity(om::EntityPtr entity)
 {
