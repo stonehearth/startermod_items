@@ -261,7 +261,8 @@ local constants = {
    },
 
    combat = {
-      ALLY_AGGRO_RATIO = 0.50
+      ALLY_AGGRO_RATIO = 0.50,
+      DEFAULT_PANIC_THRESHOLD = 0.25
    },
 
    mining = {

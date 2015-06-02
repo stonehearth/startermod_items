@@ -4,13 +4,19 @@ local log = radiant.log.create_logger('combat')
 local AggroObserver = class()
 
 function AggroObserver:initialize(entity)
+   self._sv._entity = entity
+end
+
+function AggroObserver:restore()
+end
+
+function AggroObserver:activate()
    self._log = radiant.log.create_logger('combat')
                            :set_prefix('aggro_observer')
-                           :set_entity(entity)
+                           :set_entity(self._sv._entity)
 
-   self._entity = entity
    self._entity_traces = {}
-   self._target_table = radiant.entities.get_target_table(self._entity, 'aggro')
+   self._target_table = radiant.entities.get_target_table(self._sv._entity, 'aggro')
 
    self:_add_sensor_trace()
    self:_add_amenity_trace()
@@ -23,7 +29,7 @@ function AggroObserver:destroy()
 end
 
 function AggroObserver:_add_sensor_trace()
-   local sensor_list = self._entity:add_component('sensor_list')
+   local sensor_list = self._sv._entity:add_component('sensor_list')
    self._sensor = sensor_list:get_sensor('sight')
    assert(self._sensor)
 
@@ -45,7 +51,7 @@ function AggroObserver:_remove_sensor_trace()
 end
 
 function AggroObserver:_add_amenity_trace()
-   local pop = stonehearth.population:get_population(self._entity)
+   local pop = stonehearth.population:get_population(self._sv._entity)
    if pop then
       -- what should we do when our amenity with some other faction changes?  we could easily recompute
       -- aggro for all our friends and foes, but what about people inside the sensor who were neutral that
@@ -131,7 +137,7 @@ end
 
 -- TODO: eventually when the killable state can change, add traces to track that here
 function AggroObserver:_update_target(target)
-   if stonehearth.player:are_players_friendly(target, self._entity) then
+   if stonehearth.player:are_players_friendly(target, self._sv._entity) then
       -- listen for when your ally is hit
       self:_add_battery_trace(target)
       -- if the target was formerly hostile, remove it from the target table
@@ -142,7 +148,7 @@ function AggroObserver:_update_target(target)
    -- target is not friendly, remove the battery trace if there is one
    self:_remove_battery_trace(target)
 
-   if stonehearth.player:are_players_hostile(target, self._entity) then
+   if stonehearth.player:are_players_hostile(target, self._sv._entity) then
       -- make the target eligible to be attacked
       self:_add_hostile_to_aggro_table(target)
    end
@@ -181,17 +187,17 @@ function AggroObserver:_on_ally_battery(context)
    end
 
    -- we must be friendly with the target to care
-   if not stonehearth.player:are_players_friendly(context.target, self._entity) then
+   if not stonehearth.player:are_players_friendly(context.target, self._sv._entity) then
       return
    end
 
    -- we must be hostile with the attacker to care
-   if not stonehearth.player:are_players_hostile(context.attacker, self._entity) then
+   if not stonehearth.player:are_players_hostile(context.attacker, self._sv._entity) then
       return
    end
 
    local aggro = context.damage
-   if context.target ~= self._entity then
+   if context.target ~= self._sv._entity then
       -- aggro from allies getting hit is less than self getting hit
       aggro = aggro * constants.combat.ALLY_AGGRO_RATIO
    end

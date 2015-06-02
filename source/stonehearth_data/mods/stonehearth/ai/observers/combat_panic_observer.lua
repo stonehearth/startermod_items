@@ -2,6 +2,7 @@
 -- @book reference
 -- @section observer
 
+local constants = require 'constants'
 local log = radiant.log.create_logger('combat')
 
 --[[ @markdown
@@ -18,10 +19,16 @@ local CombatPanicObserver = class()
 
 -- On initialize the panic threshold from equipment, and listen to the combat:battery event
 function CombatPanicObserver:initialize(entity)
-   self._entity = entity
+   self._sv._entity = entity
+end
+
+function CombatPanicObserver:restore()
+end
+
+function CombatPanicObserver:activate()
    self._panic_threshold = self:_get_panic_threshold()
 
-   self._battery_listener = radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
+   self._battery_listener = radiant.events.listen(self._sv._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
 -- On destroy, remove the combat:battery listener 
@@ -33,17 +40,17 @@ end
 -- Whenever this entity is attacked, compare health/max_health to the panic threshold. 
 -- This equation just uses health right now, but this could depend on other attributes as well
 function CombatPanicObserver:_on_battery(context)
-   local health = radiant.entities.get_attribute(self._entity, 'health')
-   local max_health = radiant.entities.get_attribute(self._entity, 'max_health')
+   local health = radiant.entities.get_attribute(self._sv._entity, 'health')
+   local max_health = radiant.entities.get_attribute(self._sv._entity, 'max_health')
 
    if health / max_health <= self._panic_threshold then
-      stonehearth.combat:set_panicking_from(self._entity, context.attacker)
+      stonehearth.combat:set_panicking_from(self._sv._entity, context.attacker)
    end
 end
 
 -- Get the panic threshold from the equipment the entity is holding. If nothing, set the default to 0.25
 function CombatPanicObserver:_get_panic_threshold()
-   local equipment_component = self._entity:get_component('stonehearth:equipment')
+   local equipment_component = self._sv._entity:get_component('stonehearth:equipment')
    local data
 
    -- check if any items override the threshold and return the first found
@@ -58,13 +65,13 @@ function CombatPanicObserver:_get_panic_threshold()
    end
 
    -- check if the threshold exists on the entity itself
-   data = radiant.entities.get_entity_data(self._entity, 'stonehearth:panic_threshold')
+   data = radiant.entities.get_entity_data(self._sv._entity, 'stonehearth:panic_threshold')
    if data then
       return data
    end
 
    -- return the default if none found
-   return radiant.util.get_config('default_panic_threshold', 0.25)
+   return constants.combat.DEFAULT_PANIC_THRESHOLD
 end
 
 return CombatPanicObserver
