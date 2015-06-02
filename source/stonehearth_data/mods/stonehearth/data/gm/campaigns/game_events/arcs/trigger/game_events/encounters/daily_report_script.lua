@@ -1,5 +1,6 @@
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('immigration_scenario')
 
 --[[
    Immigration Synopsis
@@ -99,6 +100,7 @@ function Immigration:_eval_requirement(num_citizens)
    --TODO: the score data should come from all food, not just food in stockpiles
    local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
    log:detail('caculating immigration data %s', radiant.util.table_tostring(score_data))
+
    --Get data for food
    local available_food = 0
    if score_data.resources and score_data.resources.edibles then
