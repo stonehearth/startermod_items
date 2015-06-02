@@ -1,3 +1,6 @@
+local Point2 = _radiant.csg.Point2
+local Point3 = _radiant.csg.Point3
+
 --[[
    Immigration Synopsis
 
