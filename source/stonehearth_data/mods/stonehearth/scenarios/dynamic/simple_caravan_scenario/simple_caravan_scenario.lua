@@ -38,14 +38,6 @@ end
 
 function SimpleCaravan:restore()
    self:_load_trade_data()
-
-   --If we made an expire timer then we're waiting for the player to acknowledge the traveller
-   --Start a timer that will expire at that time
-   if self._sv.timer then
-      self._sv.timer:bind(function()
-            self:_timer_callback()
-         end)
-   end
 end
 
 function SimpleCaravan:_load_trade_data()
@@ -289,9 +281,7 @@ function SimpleCaravan:_on_declined()
 end
 
 function SimpleCaravan:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer("SimpleCaravan remove bulletin", duration, function()
-      self:_timer_callback()
-   end)
+   self._sv.timer = stonehearth.calendar:set_timer("SimpleCaravan remove bulletin", duration, radiant.bind(self, '_timer_callback'))
 end
 
 function SimpleCaravan:_timer_callback()

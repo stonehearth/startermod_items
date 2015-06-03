@@ -113,7 +113,11 @@ function ConstructionDataRenderer:_update_region(stencil, mode)
                                        :get()
                                           :intersect_region(stencil:get())
 
-      self._render_node = _radiant.client.create_voxel_node(self._parent_node, shape, material, Point3(0, 0, 0))
+      local model = self._construction_data:get_color_region()
+                                             :get()
+                                                :intersect_region(shape)
+
+      self._render_node = _radiant.client.create_voxel_node(self._parent_node, model, material, Point3(0, 0, 0))
    end
 
    -- if we enter or leave rpg mode, hide all our children that are not

@@ -112,9 +112,19 @@ function radiant.not_yet_implemented(fmt, ...)
    error(string.format('NOT YET IMPLEMENTED (%s:%d)', info.source, info.currentline) .. tail)
 end
 
-function radiant.is_controller(c)
+function radiant.deprecated(str)
+end
+
+function radiant.is_almost_controller(c)
+   radiant.deprecated("Some things aren't controllers. If you're using this function, make c a controller")
    return radiant.util.is_instance(c) and
           radiant.util.is_datastore(c.__saved_variables)
+end
+
+function radiant.is_controller(c)
+   return radiant.util.is_instance(c) and
+          radiant.util.is_datastore(c.__saved_variables) and
+          c.__saved_variables:get_controller_name() ~= ""
 end
 
 -- a nop function.  useful for creating bindings which do nothing.

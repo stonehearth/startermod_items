@@ -34,6 +34,10 @@ App.StonehearthCalendarView = App.View.extend({
       this._moon = $('#clock > #moon');
       this._moonBody = this._moon.find('#body');
       this._moonRays = this._moon.find('.ray');
+
+      $('#clock').tooltipster({
+         updateAnimation: false
+      });
    },
 
    _updateClock: function() {
@@ -117,7 +121,7 @@ App.StonehearthCalendarView = App.View.extend({
       }
 
       this.set('context.hoursRemaining', this._hoursRemaining)
-
+      $('#clock').tooltipster('content', date.time);
       //console.log(hoursRemaining);
    }.observes('context.date')
 

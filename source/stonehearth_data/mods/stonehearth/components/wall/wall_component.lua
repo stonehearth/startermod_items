@@ -252,23 +252,14 @@ function Wall:layout()
       return
    end
 
-   local function compute_collision_shape()
-      local stencil = self:_compute_wall_shape(building)
-      return self._entity:get_component('stonehearth:construction_data')
-                               :create_voxel_brush(self._sv.brush)
-                               :paint_through_stencil(stencil)
-   end
 
-   local collision_shape
-   if not self._editing then
-      -- server side...
-      collision_shape = compute_collision_shape()
-   else
+   local collision_shape = self:_compute_wall_shape(building)
+   if self._editing then
       -- client side...
       if not self._editing_region then
          self._editing_region = _radiant.client.alloc_region3()
          self._editing_region:modify(function(cursor)
-               cursor:copy_region(compute_collision_shape())
+               cursor:copy_region(collision_shape)
             end)
       end
       collision_shape = Region3()
@@ -276,6 +267,7 @@ function Wall:layout()
    end
    
    assert(collision_shape)
+   assert(collision_shape:is_homogeneous())
 
    -- stencil out the portals
    local ec = self._entity:get_component('entity_container')
@@ -289,12 +281,8 @@ function Wall:layout()
       end      
    end
 
-   self._entity:add_component('destination')
-                  :get_region()
-                  :modify(function(cursor)
-                        cursor:copy_region(collision_shape)
-                     end)
-                     
+   self._entity:add_component('stonehearth:construction_progress')
+                  :paint_on_local_region(self._sv.brush, collision_shape, true)
    return self
 end
 
