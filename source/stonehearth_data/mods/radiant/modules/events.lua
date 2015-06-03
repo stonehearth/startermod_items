@@ -20,19 +20,19 @@ function events.create_listeners()
    -- gameloop causing periodic stuttering.
 
    -- Fires five times a second.   
-   radiant.set_realtime_interval("Radiant Listener slow_poll", 200, function()
+   radiant.set_realtime_interval("(not saved) Radiant Listener slow_poll", 200, function()
          local now = { now = radiant.gamestate.now() }
          events.trigger(radiant, 'stonehearth:slow_poll', now)
       end)
 
    --Fires once a second.
-   radiant.set_realtime_interval("Radiant Listener very_slow_poll", 1000, function()
+   radiant.set_realtime_interval("(not saved) Radiant Listener very_slow_poll", 1000, function()
          local now = { now = radiant.gamestate.now() }
          events.trigger(radiant, 'stonehearth:very_slow_poll', now)
       end)
 
    --Fires once a minute.
-   radiant.set_realtime_interval("Radiant Listener minute_poll", 1000 * 60, function()
+   radiant.set_realtime_interval("(not saved) Radiant Listener minute_poll", 1000 * 60, function()
          local now = { now = radiant.gamestate.now() }
          events.trigger(radiant, 'stonehearth:minute_poll', now)
       end)
