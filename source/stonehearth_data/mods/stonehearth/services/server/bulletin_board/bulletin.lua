@@ -19,16 +19,6 @@ function Bulletin:restore()
    self:_listen_for_target_entity_destruction()
 end
 
-function Bulletin:activate()
-   --We were a bulletin that was going to be destroyed at some future point
-   if self._sv.active_duration_timer then
-      self._sv.active_duration_timer:bind(function()
-         stonehearth.bulletin_board:remove_bulletin(self._sv.id)
-         self:_stop_duration_timer()
-      end)
-   end
-end
-
 function Bulletin:destroy()
    self:_stop_duration_timer()
    self:_destroy_death_listener()
@@ -112,11 +102,7 @@ end
 
 --If you don't want the bulletin to stick around forever, set this value
 function Bulletin:set_active_duration(duration)
-   self._sv.active_duration_timer = stonehearth.calendar:set_timer("Bulletin remove bulletin", duration, function()
-      stonehearth.bulletin_board:remove_bulletin(self._sv.id)
-      self:_stop_duration_timer()
-      self:_destroy_death_listener()
-   end)
+   self._sv.active_duration_timer = stonehearth.calendar:set_timer("Bulletin remove bulletin", duration, radiant.bind(self, '_on_remove_bulletin_timer'))
    self.__saved_variables:mark_changed()
 end
 
@@ -126,6 +112,12 @@ function Bulletin:_stop_duration_timer()
       self._sv.active_duration_timer = nil
       self.__saved_variables:mark_changed()
    end
+end
+
+function Bulletin:_on_remove_bulletin_timer()
+   stonehearth.bulletin_board:remove_bulletin(self._sv.id)
+   self:_stop_duration_timer()
+   self:_destroy_death_listener()
 end
 
 -- xxx: this function goes against the grain of the rest of the api.  either rename
@@ -171,15 +163,11 @@ end
 -- the object instance that created the bulletin that may also process callbacks
 -- must be a savable object
 function Bulletin:set_callback_instance(callback_instance)
-   assert(radiant.is_controller(callback_instance))
+   assert(radiant.is_almost_controller(callback_instance))
 
    self._sv.callback_instance = callback_instance
    self.__saved_variables:mark_changed()
    return self
-end
-
-function Bulletin:get_callback_instance(callback_instance)
-   return self._sv.callback_instance
 end
 
 -- not typically called, the creation time is automatically set on construction

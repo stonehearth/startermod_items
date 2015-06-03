@@ -127,6 +127,16 @@ StrongDataStore_CreateController(DataStorePtr ds, std::string const& name)
    return controller;
 }
 
+std::string
+StrongDataStore_GetControllerName(DataStorePtr ds)
+{
+    if (ds) {
+        return ds->GetControllerName();
+    }
+
+    return "";
+}
+
 static void
 StrongDataStore_Restore(DataStoreRef data_store)
 {
@@ -213,6 +223,12 @@ WeakDataStore_CreateController(DataStoreRefWrapper ds, std::string const& name)
    return StrongDataStore_CreateController(ds.lock(), name);
 }
 
+std::string
+WeakDataStore_GetControllerName(DataStoreRefWrapper ds)
+{
+   return StrongDataStore_GetControllerName(ds.lock());
+}
+
 std::string WeakDataStore_ToJson(DataStoreRefWrapper ds)
 {
    return lua::StrongGameObjectToJson<DataStore>(ds.lock());
@@ -273,6 +289,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("restore",        StrongDataStore_Restore)
          .def("set_controller", StrongDataStore_SetController)
          .def("create_controller", StrongDataStore_CreateController)
+         .def("get_controller_name", StrongDataStore_GetControllerName)
          .def("destroy",        StrongDataStore_Destroy)
          .def("mark_changed",   StrongDataStore_MarkChanged)
       ,
@@ -301,6 +318,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("restore",        WeakDataStore_Restore)
          .def("set_controller", WeakDataStore_SetController)
          .def("create_controller", WeakDataStore_CreateController)
+         .def("get_controller_name", WeakDataStore_GetControllerName)
          .def("destroy",        WeakDataStore_Destroy)
          .def("mark_changed",   WeakDataStore_MarkChanged)
          .scope [
