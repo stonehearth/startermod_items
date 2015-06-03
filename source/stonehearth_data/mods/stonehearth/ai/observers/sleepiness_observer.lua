@@ -60,10 +60,18 @@ function SleepinessObserver:_on_hourly()
    end
    self._attributes_component:set_attribute('sleepiness', sleepiness)
 
-   --If it's bedtime, go sleep
-   local now = stonehearth.calendar:get_time_and_date()
-   if now.hour == stonehearth.constants.sleep.BEDTIME_START then
-      self:_start_sleep_task()
+   --If it's bedtime and we haven't already slept recently, go sleep
+   if sleepiness >= stonehearth.constants.sleep.BEDTIME_THRESHOLD then
+      local now = stonehearth.calendar:get_time_and_date()
+      local wake_up_time = self._attributes_component:get_attribute('wake_up_time')
+      local sleep_duration = self._attributes_component:get_attribute('sleep_duration')
+      local bed_time_start = wake_up_time - math.ceil(sleep_duration / 60) + 1;
+      if bed_time_start < 0 then
+         bed_time_start = bed_time_start + 24
+      end
+      if now.hour == bed_time_start then
+         self:_start_sleep_task()
+      end
    end
 end
 
