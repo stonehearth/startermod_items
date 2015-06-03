@@ -11,11 +11,6 @@ end
 function GeneratorEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.generator')
 
-   if self._sv.timer then
-      self._sv.timer:bind(function()
-            self:_spawn_encounter()
-         end)         
-   end
    if self._sv.source_entity then
       self:_start_source_listener()
    end
@@ -95,9 +90,7 @@ function GeneratorEncounter:_start_timer()
       self._sv.timer = nil
    end
 
-   self._sv.timer = stonehearth.calendar:set_timer("GeneratorEncounter spawn", delay, function()
-         self:_spawn_encounter()
-      end)
+   self._sv.timer = stonehearth.calendar:set_timer("GeneratorEncounter spawn", delay, radiant.bind(self, '_spawn_encounter'))
    self.__saved_variables:mark_changed()
 end
 

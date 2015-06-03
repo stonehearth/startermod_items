@@ -4,12 +4,6 @@ local WaitEncounter = class()
 
 function WaitEncounter:activate()
    self._log = radiant.log.create_logger('game_master.encounters.wait')
-   if self._sv.timer then
-
-      self._sv.timer:bind(function()
-         self:_timer_callback()
-      end)
-   end
 end
 
 function WaitEncounter:start(ctx, info)
@@ -23,9 +17,7 @@ function WaitEncounter:start(ctx, info)
 
    self._log:info('setting wait timer for %s', tostring(timeout))
    self._sv.ctx = ctx
-   self._sv.timer = stonehearth.calendar:set_timer("WaitEncounter wait timer", timeout, function()
-         self:_timer_callback()
-      end)
+   self._sv.timer = stonehearth.calendar:set_timer("WaitEncounter wait timer", timeout, radiant.bind(self, '_timer_callback'))
 
    log:spam('Wait Encounter: %s will expire at %s which is in %s', ctx.encounter_name, self._sv.timer:get_expire_time(), stonehearth.calendar:format_remaining_time(self._sv.timer))
    log:spam('It is currently %s', stonehearth.calendar:format_time())

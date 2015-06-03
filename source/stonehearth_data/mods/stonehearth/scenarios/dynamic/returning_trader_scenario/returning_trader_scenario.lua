@@ -61,20 +61,6 @@ end
 
 function ReturningTrader:restore()
    self:_load_data()
-
-   --This is boilerplate across all scenarios. Way to factor it out?
-   --If we made an expire timer then we're waiting for the player to acknowledge the traveller
-   --Start a timer that will expire at that time
-   if self._sv.timer then
-      self._sv.timer:bind(function()
-            self:_timer_callback()
-         end)
-   end
-   if self._sv.hourly_timer then
-      self._sv.hourly_timer:bind(function()
-            self:_on_hourly()
-         end)
-   end
 end
 
 function ReturningTrader:_load_data()
@@ -204,9 +190,7 @@ end
 
 --Creates the timers used in this function.
 function ReturningTrader:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer("ReturningTrader timer", duration, function() 
-      self:_timer_callback()
-   end)
+   self._sv.timer = stonehearth.calendar:set_timer("ReturningTrader timer", duration, radiant.bind(self, '_timer_callback'))
 end
 
 function ReturningTrader:_timer_callback()
@@ -259,9 +243,7 @@ function ReturningTrader:_on_accepted()
    --register a callback every hour so we can
    self._sv._waiting_for_return = true
    if not self._sv.hourly_timer then
-      self._sv.hourly_timer = stonehearth.calendar:set_interval("ReturningTrader on_hourly", '1h', function()
-            self:_on_hourly()
-         end)
+      self._sv.hourly_timer = stonehearth.calendar:set_interval("ReturningTrader on_hourly", '1h', radiant.bind(self, '_on_hourly'))
    end
 end
 

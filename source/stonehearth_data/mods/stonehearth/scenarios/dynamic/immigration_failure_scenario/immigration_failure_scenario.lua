@@ -30,14 +30,6 @@ end
 
 function ImmigrationFailure:restore()
    self:_load_trade_data()
-
-   --If we made an expire timer then we're waiting for the player to acknowledge the traveller
-   --Start a timer that will expire at that time
-   if self._sv.timer then
-      self._sv.timer:bind(function()
-            self:_timer_callback()
-         end)
-   end
 end
 
 function ImmigrationFailure:_load_trade_data()
@@ -105,9 +97,7 @@ function ImmigrationFailure:_timer_callback()
 end
 
 function ImmigrationFailure:_create_timer(duration)
-   self._sv.timer = stonehearth.calendar:set_timer("ImmigrationFailure remove bulletin", duration, function()
-         self:_timer_callback()
-      end)
+   self._sv.timer = stonehearth.calendar:set_timer("ImmigrationFailure remove bulletin", duration, radiant.bind(self, '_timer_callback'))
    self.__saved_variables:mark_changed()
 end
 
