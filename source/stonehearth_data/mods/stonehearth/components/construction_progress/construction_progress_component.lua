@@ -194,7 +194,12 @@ end
 function ConstructionProgress:create_voxel_brush(brush, origin)
    checks('self', 'string', '?Point3')
 
-   return voxel_brush_util.create_brush(brush, origin, self._sv.normal)
+   local normal
+   local cd = self._entity:get_component('stonehearth:construction_data')
+   if cd then
+      normal = cd:get_normal()
+   end
+   return voxel_brush_util.create_brush(brush, origin, normal)
 end
 
 -- the color region contains the colors for the voxels used to draw the blueprint.
