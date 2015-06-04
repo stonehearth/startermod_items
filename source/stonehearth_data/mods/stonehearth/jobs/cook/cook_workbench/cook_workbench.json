@@ -30,15 +30,11 @@
          },
          "ingredients" : [
             {
-               "material" : "fiber resource",
-               "count" : 1
-            },
-            {
-               "material" : "wood resource",
+               "material" : "stone resource",
                "count" : 1
             }
          ],
-         "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_cook_workbench.json"
+         "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_mason_workbench.json"
       }, 
       "region_collision_shape" : {
          "region": [

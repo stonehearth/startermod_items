@@ -12,7 +12,7 @@ function CookTest:__init()
    local player_id = radiant.entities.get_player_id(cook)
 
    -- put some items in the world
-   self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', -10, 0, 2, 2)
+   self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', -10, 0, 2, 2, player_id)
 end
 
 return CookTest
