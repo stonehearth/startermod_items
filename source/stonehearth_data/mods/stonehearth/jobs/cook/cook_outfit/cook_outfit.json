@@ -1,0 +1,31 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "cook Outfit",
+         "description" : "Uniform for all cooks",
+         "icon" : "file(cook_outfit.png)"
+      },
+      "render_info" : {
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(cook_outfit.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(cook_outfit_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "slot" : "torso"
+      }
+   }
+}

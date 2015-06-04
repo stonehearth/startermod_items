@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Upgraded Worker Outfit",
+   "description" : "Double stiching and strategically placed padding improves the worker's efficiency. The worker who dons this upgrade outfit will move 10% faster.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/jobs/worker/worker_outfit_2/worker_outfit_2.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "cloth resource",
+         "count" : 2
+      },
+      {
+         "material" : "thread resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:worker:outfit:2"
+      }
+  ]
+}

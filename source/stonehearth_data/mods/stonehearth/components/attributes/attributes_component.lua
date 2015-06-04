@@ -72,6 +72,18 @@ function AttributesComponent:initialize(entity, json)
       self._incoming_json = nil
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
+   else
+      -- Fix up attributes if json has changed.
+      for name, data in pairs(json) do
+         local existing_attribute = self._sv._attribute_data[name]
+         if not existing_attribute then
+            self:_add_new_attribute(name, data)
+         else
+            if self:_data_has_changed(existing_attribute, data) then
+               self:_update_attribute(name, existing_attribute, data)
+            end
+         end
+      end
    end
    
    -- modifiers don't get saved.  we expect them to be re-applied by whoever
@@ -85,25 +97,51 @@ function AttributesComponent:_add_new_attribute(name, data)
    local new_attribute = self._sv._attribute_data[name]
    if not new_attribute then 
       new_attribute = {}
-      new_attribute.type = data.type
-      new_attribute.private = data.private
-      if new_attribute.type == 'basic' then
-         new_attribute.value = data.value
-      elseif new_attribute.type == 'random_range' then
-         new_attribute.value = rng:get_int(data.base, data.max)
-      elseif new_attribute.type == 'derived' or new_attribute.type == 'variable' then
-         new_attribute.equation = data.equation
-         self:_load_dependencies(data.equation, name)
-         new_attribute.value = self:_evaluate_equation(data.equation)
-      end
-      new_attribute.effective_value = new_attribute.value
-      new_attribute.user_visible_value = new_attribute.value
-      self._sv._attribute_data[name] = new_attribute
-
-      -- update the public one, too!
-      self:_notify_attribute_changed(name, self._sv._attribute_data[name])
+      self:_update_attribute(name, new_attribute, data)
    end
    return new_attribute
+end
+
+-- Returns true if attribute should be recalculated because it's json data
+-- has changed.
+function AttributesComponent:_data_has_changed(attribute, data)
+   if attribute.type ~= data.type then
+      return true
+   end
+
+   if attribute.version ~= data.version then
+      return true
+   end
+
+   -- If equation has changed
+   if (attribute.type == 'derived' or attribute.type == 'variable') and
+       attribute.equation ~= data.equation then
+      return true
+   end
+
+   return false
+end
+
+-- Update attribute
+function AttributesComponent:_update_attribute(name, attribute, data)
+   attribute.type = data.type
+   attribute.private = data.private
+   attribute.version = data.version
+   if attribute.type == 'basic' then
+      attribute.value = data.value
+   elseif attribute.type == 'random_range' then
+      attribute.value = rng:get_int(data.base, data.max)
+   elseif attribute.type == 'derived' or attribute.type == 'variable' then
+      attribute.equation = data.equation
+      self:_load_dependencies(data.equation, name)
+      attribute.value = self:_evaluate_equation(data.equation)
+   end
+   attribute.effective_value = attribute.value
+   attribute.user_visible_value = attribute.value
+   self._sv._attribute_data[name] = attribute
+   
+   -- update the public one, too!
+   self:_notify_attribute_changed(name, self._sv._attribute_data[name])
 end
 
 --- Find all the variables in the string and register this attribute

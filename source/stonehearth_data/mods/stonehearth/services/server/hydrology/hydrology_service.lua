@@ -609,6 +609,10 @@ function HydrologyService:merge_water_bodies(entity1, entity2, allow_uneven_top_
    assert(entity1 ~= entity2)
    local master, mergee = self:_order_entities(entity1, entity2)
    self:_merge_water_bodies_impl(master, mergee, allow_uneven_top_layers)
+
+   -- for testing
+   radiant.events.trigger_async(self, 'stonehearth:hydrology:water_bodies_merged')
+
    return master
 end
 
@@ -682,8 +686,21 @@ function HydrologyService:_on_tick()
    self:_check_for_channel_merge()
    self:_update_channel_types()
 
+   self:_process_water_queue()
+
+   -- some water bodies are created, but water is never added to them, so get rid of them here
+   -- also destroys water bodies that become empty through other processes
+   self:_destroy_unused_water_bodies()
+
+   log:spam('End tick')
+
+   self.__saved_variables:mark_changed()
+end
+
+function HydrologyService:_process_water_queue()
    for i, entry in ipairs(self._water_queue) do
       local unused_volume = self:add_water(entry.volume, entry.to_location, entry.to_entity)
+
       if unused_volume > 0 then
          -- add the water back to where it came from
          self:add_water(unused_volume, entry.from_location, entry.from_entity)
@@ -695,14 +712,6 @@ function HydrologyService:_on_tick()
    end
 
    self._water_queue = nil
-
-   -- some water bodies are created, but water is never added to them, so get rid of them here
-   -- also destroys water bodies that become empty through other processes
-   self:_destroy_unused_water_bodies()
-
-   log:spam('End tick')
-
-   self.__saved_variables:mark_changed()
 end
 
 function HydrologyService:_destroy_unused_water_bodies()
@@ -748,17 +757,27 @@ function HydrologyService:_update_channel_types()
 end
 
 function HydrologyService:_update_performance_counters()
-   local num_water_bodies = 0
-   for id, entity in pairs(self._sv._water_bodies) do
-      num_water_bodies = num_water_bodies + 1
-   end
+   local num_water_bodies = self:num_water_bodies()
    radiant.set_performance_counter('num_water_bodies', num_water_bodies)
 
-   local num_channels = 0
-   self._sv._channel_manager:each_channel(function(channel)
-         num_channels = num_channels + 1
-      end)
+   local num_channels = self:num_channels()
    radiant.set_performance_counter('num_channels', num_channels)
+end
+
+function HydrologyService:num_water_bodies()
+   local count = 0
+   for id in pairs(self._sv._water_bodies) do
+      count = count + 1
+   end
+   return count
+end
+
+function HydrologyService:num_channels()
+   local count = 0
+   self._sv._channel_manager:each_channel(function(channel)
+         count = count + 1
+      end)
+   return count
 end
 
 return HydrologyService

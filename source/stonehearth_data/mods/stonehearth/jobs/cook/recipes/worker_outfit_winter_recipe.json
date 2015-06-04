@@ -1,0 +1,29 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Winter Worker Outfit",
+   "description" : "A heavy wool coat, for cold winter nights. The worker who dons this upgrade outfit will move 10% faster.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/jobs/worker/winter_worker_outfit/winter_worker_outfit.png",
+
+   "ingredients": [
+      {
+         "material" : "cloth resource",
+         "count" : 2
+      },
+      {
+         "material" : "thread resource",
+         "count" : 1
+      },
+      {
+         "uri" : "stonehearth:resources:fiber:wool_bundle",
+         "count" : 1
+      }            
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:worker:outfit:winter"
+      }
+  ]
+}

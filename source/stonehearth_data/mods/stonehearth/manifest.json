@@ -100,7 +100,7 @@
       "build:prototypes:fabricator" : "file(data/build/prototypes/fabricator/fabricator.json)",
       "build:prototypes:building" : "file(data/build/prototypes/building/building.json)",      
 
-      "build:prototypes:building" : "file(data/build/prototypes/building/building.json)",
+      "prototypes:party" : "file(data/prototypes/party.json)",
       "models:arrow" : "file(data/models/arrow.obj)",
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
@@ -1505,6 +1505,7 @@
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
       "ladder" : "file(components/ladder/ladder_component.lua)",
       "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)",
+      "party" : "file(components/party/party_component.lua)",
       "party_member" : "file(components/party_member/party_member_component.lua)",
       "caged_entity" : "file(components/caged_entity/caged_entity_component.lua)", 
       "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
@@ -1655,7 +1656,6 @@
          "file(ui/game/modes/build_mode/building_designer_2/template_view.js)",
          "file(ui/game/modes/build_mode/building_designer_2/material_helper.js)",
          "file(ui/game/modes/build_mode/building_designer_2/draw_floor_tool.js)",
-         "file(ui/game/modes/build_mode/building_designer_2/draw_slab_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/draw_wall_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/grow_walls_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/place_fixture_tool.js)",

@@ -23,7 +23,8 @@
       "Tolem",
       "Tigri",
       "Aibah",
-      "Sayyar"
+      "Sayyar",
+      "Kenaii"
    ],
    "given_names" : {
       "male" : [
@@ -36,9 +37,28 @@
          "Sunur",
          "Ahom",
          "Raj",
-         "Luqar"
+         "Luqar",
+         "Vanduk",
+         "Namir",
+         "Jalib",
+         "Kui",
+         "Kendali",
+         "Velam",
+         "Ta'ir",
+         "Adamor",
+         "Danihar",
+         "Baz",
+         "Tai",
+         "Alu",
+         "Kir'art",
+         "S'maj",
+         "Vehil",
+         "Bogdan"
       ],
       "female" : [
+         "Kestra",
+         "Bumba",
+         "Tai",
          "Uma",
          "Khora",
          "Abhi",
@@ -48,7 +68,25 @@
          "Negan",
          "Atusa",
          "Tira",
-         "Chista"
+         "Chista",
+         "Takaya",
+         "Talli",
+         "Zia",
+         "Arya",
+         "Mooi",
+         "Hiroye",
+         "Liran",
+         "Runa",
+         "Brindi",
+         "Diera",
+         "Raina",
+         "Naiid",
+         "Marana",
+         "Orhana",
+         "Zai",
+         "Taan",
+         "Kenka",
+         "Arabella"
       ]
    }, 
    "town_pieces" : {

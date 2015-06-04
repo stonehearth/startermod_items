@@ -1,0 +1,25 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Pretty Curtains",
+   "description" : "Dresses up an otherwise ordinary window.",
+   "flavor"      : "Light-blocking technology encourages sleeping-in.",
+   "portrait"    : "/stonehearth/entities/decoration/curtains/curtains.png",
+
+   "ingredients": [
+      {
+         "material" : "cloth resource",
+         "count" : 1
+      },
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:curtains"
+      }
+  ]
+}

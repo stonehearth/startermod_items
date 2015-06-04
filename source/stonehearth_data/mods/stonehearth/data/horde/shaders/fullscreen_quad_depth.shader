@@ -25,5 +25,5 @@ varying vec2 texCoords;
 void main( void )
 {
    gl_FragDepth = texture2D(depthImage, texCoords).r;
-   gl_FragColor = vec4(0);
+   gl_FragColor = vec4(0.0);
 }
