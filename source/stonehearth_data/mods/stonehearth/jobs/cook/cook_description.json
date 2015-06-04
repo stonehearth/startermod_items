@@ -1,8 +1,116 @@
 {
-   "alias": "stonehearth:jobs:cook",
-   "name" : "???",
-   "description" : "???",
-   "requirements" : "???",
-   "icon" : "file(../unknown/images/icon.png)",
-   "parent_job" : "stonehearth:jobs:farmer"
+   "job_id": "cook",
+   "alias" : "stonehearth:jobs:cook",
+   "name": "Cook",      
+   "controller" : "stonehearth:class:cook", 
+   "description" : "The cook makes delicious, hearty meals from base vegetables and meats.", 
+   "requirements": "Stone Pot, crafted by the Mason.",
+   "talisman_uri" : "stonehearth:cook:talisman", 
+   "default_stance" : "passive",
+   "promotion_activity_name" : "promote_cook",
+   "worker_defense_opt_out" : true,
+   
+   "abilities" : "file(cook_abilities)",
+
+   "equipment" : {
+      "torso" : "file(cook_outfit)"
+   },
+
+   "roles" : "cook_job crafter", 
+
+   "icon" : "file(images/icon.png)",
+   "bannerIcon" : "file(images/banner.png)",
+
+   "task_groups" : [
+      "stonehearth:task_group:restock",
+      "stonehearth:task_group:placement"
+   ],
+   "crafter" : {
+      "work_effect": "fiddle",
+      "recipe_list": "/stonehearth/jobs/cook/recipes/recipes.json"
+   },
+   "workshop" : {
+      "name": "Cooking Pot",
+      "long_description" : "Humongous, heavy pot, suitable for cooking up a feast at a time!",
+      "portrait" : "file(./images/workshop_portrait_level_1.png)",
+      "workbench_type" : "stonehearth:cook:workbench",
+      "ingredients": [
+         { "material" : "wood resource", "count" : 1 },
+         { "material" : "stone resource", "count" : 1 }
+      ]
+   },
+   "parent_job" : "stonehearth:jobs:farmer",
+
+   "xp_rewards" : {
+      "craft_level_0" : 30, 
+      "craft_level_1" : 50, 
+      "craft_level_2" : 75,
+      "craft_level_3" : 100, 
+      "craft_level_4" : 150,
+      "craft_level_5" : 200
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "1" : {
+         "perks" : [
+            {
+               "name" : "Standard Catalog -- XXX TOM, REVISIT THE COOK PERKS!!!!!!", 
+               "id" : "crafter_recipe_unlock_1", 
+               "icon" : "file(../common/images/standard_catalog.png)", 
+               "description" : "The cook can now make basic hangings and decor.", 
+               "level" : 1
+            }
+         ]
+      }, 
+      "2" : {
+         "perks" : [
+            {
+               "name" : "Collaborative Insight", 
+               "id" : "crafter_recipe_unlock_2", 
+               "icon" : "file(../common/images/collaborative_insight.png)", 
+               "description" : "The cook is now skillful enough to use materials created by other crafters.", 
+               "level" : 2
+            }
+         ]
+      },
+      "3" : {
+         "perks" : [
+            {
+               "type" : "set_fine_percentage",
+               "name" : "Artistic Inspiration", 
+               "id" : "crafter_recipe_unlock_3", 
+               "icon" : "file(../common/images/artistic_inspiration.png)", 
+               "percent_chance" : 10,  
+               "description" : "When inspiration strikes, the cook may embellish his works in unexpected ways.", 
+               "level" : 3, 
+               "demote_fn" : "unset_fine_percentage"
+            }
+         ]
+      },
+      "4" : {
+         "perks" : [
+            {
+               "name" : "Ingenuity Enhancements (not implemented)", 
+               "id" : "crafter_recipe_unlock_4", 
+               "icon" : "file(../common/images/extended_catalog.png)", 
+               "description" : "The cook adds new levels of functionality to classic recipes.", 
+               "level" : 4
+            }
+         ]
+      },
+      "6" : {
+         "title" : "Master cook",
+         "perks" : [
+            {
+               "name" : "10,000 Hours (not implemented)", 
+               "id" : "crafter_recipe_unlock_6", 
+               "icon" : "file(../common/images/master.png)", 
+               "description" : "The cook's mastery of his trade allows him to come up with completely new ways of using wood.", 
+               "level" : 6
+            }
+         ]
+      }
+   }
 }

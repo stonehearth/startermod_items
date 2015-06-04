@@ -159,9 +159,14 @@ function BuildUndoManager:undo()
 end
 
 function BuildUndoManager:unlink_entity(entity)
-   assert(self._in_transaction)
    if not self._in_transaction then
-      log:error('unlinking entity outside of transaction!  clearing undo stack.')
+      -- This currently occurs when we're laying out a roof during deletion of
+      -- a building with patch walls. The patch walls ordinarily need to get unlinked
+      -- and rebuilt if the walls change during design and thus they need to go onto
+      -- the undo stack. In this case, we don't want to support undo after deletion,
+      -- because it gets messy if the building is already partially built, so just
+      -- clear the undo stack.
+      log:info('unlinking entity outside of transaction!  clearing undo stack.')
       self:clear()
       return
    end

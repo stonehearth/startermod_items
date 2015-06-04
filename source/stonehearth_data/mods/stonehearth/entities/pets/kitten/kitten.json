@@ -23,7 +23,7 @@
          }, 
          "speed" : {
             "type" : "basic", 
-            "value": 55
+            "value": 20
          }
       },
 

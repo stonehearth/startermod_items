@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Bundle of Leather",
+   "description" : "Prepared sheets of leather, ready to be put to good use.",
+   "flavor"      : "You can hardly see the individual sources.",
+   "portrait"    : "/stonehearth/entities/refined/leather_bolt/leather_bolt.png",
+
+   "ingredients": [
+      {
+         "material" : "thread resource",
+         "count" : 1
+      },
+      {
+         "material" : "pelt resource",
+         "count" : 2
+      }
+
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:refined:leather_bolt"
+      }
+  ]
+}

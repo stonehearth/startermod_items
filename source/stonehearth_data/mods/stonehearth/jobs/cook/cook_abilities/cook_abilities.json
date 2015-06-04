@@ -1,0 +1,40 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:combat:cower",
+
+               "stonehearth:actions:town_defense:town_defense_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_ready",
+
+               "stonehearth:actions:crafting_task_dispatcher",
+               "stonehearth:actions:work_at_workshop",
+               "stonehearth:actions:move_item_to_available_stockpile",
+               "stonehearth:actions:drop_item_near_workshop",
+               "stonehearth:actions:wait_for_closest_stockpile_space",
+
+               "stonehearth:actions:place_item",
+               "stonehearth:actions:place_item_on_structure",
+               "stonehearth:actions:place_carrying_on_structure_adjacent",
+               "stonehearth:actions:replace_proxy_with_item",
+               "stonehearth:actions:build_ladder",
+               "stonehearth:actions:build_ladder_down",
+               "stonehearth:actions:build_ladder_adjacent",
+               "stonehearth:actions:teardown_ladder",
+               "stonehearth:actions:teardown_ladder_adjacent"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic",
+               "stonehearth:observers:avoid_threatening_entities"
+            ]
+         },
+         "injected_commands" : [
+            "file(/data/commands/build_workshop)"
+         ]
+      }
+   }
+}

@@ -611,7 +611,7 @@ function HydrologyService:merge_water_bodies(entity1, entity2, allow_uneven_top_
    self:_merge_water_bodies_impl(master, mergee, allow_uneven_top_layers)
 
    -- for testing
-   radiant.events.trigger(self, 'stonehearth:hydrology:water_bodies_merged')
+   radiant.events.trigger_async(self, 'stonehearth:hydrology:water_bodies_merged')
 
    return master
 end
@@ -699,17 +699,15 @@ end
 
 function HydrologyService:_process_water_queue()
    for i, entry in ipairs(self._water_queue) do
-      if entry.to_entity and entry.to_entity:is_valid() then
-         local unused_volume = self:add_water(entry.volume, entry.to_location, entry.to_entity)
+      local unused_volume = self:add_water(entry.volume, entry.to_location, entry.to_entity)
 
-         if unused_volume > 0 and entry.from_entity and entry.from_entity:is_valid() then
-            -- add the water back to where it came from
-            self:add_water(unused_volume, entry.from_location, entry.from_entity)
+      if unused_volume > 0 then
+         -- add the water back to where it came from
+         self:add_water(unused_volume, entry.from_location, entry.from_entity)
 
-            -- what else to we need to test for before merging?
-            log:info('%s is fully bounded and is merging with %s', entry.to_entity, entry.from_entity)
-            self:merge_water_bodies(entry.from_entity, entry.to_entity, true)
-         end
+         -- what else to we need to test for before merging?
+         log:info('%s is fully bounded and is merging with %s', entry.to_entity, entry.from_entity)
+         self:merge_water_bodies(entry.from_entity, entry.to_entity, true)
       end
    end
 

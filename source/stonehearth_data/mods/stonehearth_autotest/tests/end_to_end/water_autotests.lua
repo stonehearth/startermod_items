@@ -43,6 +43,8 @@ local function clean_up()
    end
 end
 
+-----
+
 function water_tests.simple_merge1(autotest)
    create_lake(10, 10, 5, 5, 5, 4.5)
    remove_cube_from_terrain(16, 10, 5, 5, 5)
@@ -91,6 +93,56 @@ function water_tests.simple_merge3(autotest)
 
    schedule_command(function()
          radiant.terrain.subtract_point(Point3(15, 6, 12))
+      end)
+
+   radiant.events.listen(stonehearth.hydrology, 'stonehearth:hydrology:water_bodies_merged', function()
+         local num_water_bodies = stonehearth.hydrology:num_water_bodies()
+         local num_channels = stonehearth.hydrology:num_channels()
+         if num_water_bodies == 1 and num_channels == 0 then
+            clean_up()
+            autotest:success()
+            return radiant.events.UNLISTEN
+         end
+      end)
+
+   autotest:sleep(10000)
+end
+
+function water_tests.wall_merge1(autotest)
+   create_lake(10, 10, 5, 5, 5, 4.5)
+   create_lake(16, 10, 5, 5, 5, 1.5)
+
+   schedule_command(function()
+         local cube = Cube3(
+               Point3(15, 5, 10),
+               Point3(16, 10, 15)
+            )
+         radiant.terrain.subtract_cube(cube)
+      end)
+
+   radiant.events.listen(stonehearth.hydrology, 'stonehearth:hydrology:water_bodies_merged', function()
+         local num_water_bodies = stonehearth.hydrology:num_water_bodies()
+         local num_channels = stonehearth.hydrology:num_channels()
+         if num_water_bodies == 1 and num_channels == 0 then
+            clean_up()
+            autotest:success()
+            return radiant.events.UNLISTEN
+         end
+      end)
+
+   autotest:sleep(10000)
+end
+
+function water_tests.wall_merge2(autotest)
+   create_lake(10, 10, 5, 5, 5, 4.5)
+   create_lake(16, 10, 5, 5, 5, 4.5)
+
+   schedule_command(function()
+         local cube = Cube3(
+               Point3(15, 5, 10),
+               Point3(16, 10, 15)
+            )
+         radiant.terrain.subtract_cube(cube)
       end)
 
    radiant.events.listen(stonehearth.hydrology, 'stonehearth:hydrology:water_bodies_merged', function()
