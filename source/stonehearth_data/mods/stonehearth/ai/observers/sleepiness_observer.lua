@@ -65,7 +65,11 @@ function SleepinessObserver:_on_hourly()
       local now = stonehearth.calendar:get_time_and_date()
       local wake_up_time = self._attributes_component:get_attribute('wake_up_time')
       local sleep_duration = self._attributes_component:get_attribute('sleep_duration')
-      local bed_time_start = wake_up_time - math.ceil(sleep_duration / 60) + 1;
+
+      -- add offset for walking to the bed
+      sleep_duration = sleep_duration + stonehearth.constants.sleep.MINS_TO_WALK_TO_BED 
+
+      local bed_time_start = wake_up_time - math.ceil(sleep_duration/60); 
       if bed_time_start < 0 then
          bed_time_start = bed_time_start + 24
       end

@@ -191,7 +191,9 @@ local constants = {
    },
 
    sleep = {
+      BEDTIME_START = 3,
       BEDTIME_THRESHOLD = 8,  -- if sleepiness >= than this, will go to sleep at bedtime.
+      MINS_TO_WALK_TO_BED = 20, -- Number of minutes to account for walking to the bed.
       TIRED = 22,          -- will try to sleep in a bed
       EXHAUSTION = 24,     -- will collapse on the ground
       MAX_SLEEPINESS = 25, 

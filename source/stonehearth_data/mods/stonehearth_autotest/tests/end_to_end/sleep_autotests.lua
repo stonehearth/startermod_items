@@ -16,7 +16,9 @@ function sleep_tests.sleep_in_new_bed(autotest)
    autotest.env:create_entity(10, 10, 'stonehearth:furniture:comfy_bed', { force_iconic = false })
    local worker = autotest.env:create_person(2, 2, {
       job = 'worker',
-      attributes = { sleepiness = 5 },
+      attributes = { sleepiness = stonehearth.constants.sleep.BEDTIME_THRESHOLD,
+                     wake_up_time = stonehearth.constants.sleep.BEDTIME_START + 1,
+                     body = 6, },
    })
 
    stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 1, minute = 58 })
