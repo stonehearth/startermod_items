@@ -1,0 +1,30 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Plushie Toy Rabbit",
+   "description" : "A toy... for children of course.",
+   "flavor"      : "She loves you!",
+   "portrait"    : "/stonehearth/entities/toys/plushie_toy_rabbit/plushie_toy_rabbit.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "thread resource",
+         "count" : 1
+      },
+      {
+         "material" : "cloth resource",
+         "count" : 1
+      },
+      {
+         "material" : "pelt resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:toys:plushie_toy_rabbit"
+      }
+  ]
+}

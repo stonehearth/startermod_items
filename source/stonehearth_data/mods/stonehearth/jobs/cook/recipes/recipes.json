@@ -1,0 +1,70 @@
+{ 
+   "craftable_recipes" : {
+      "crafting_materials" : {
+         "ordinal" : 1, 
+         "name" : "Crafting Materials", 
+         "recipes" : {
+            "thread" : {
+               "recipe" : "file(thread_recipe.json)"
+            },
+            "cloth_bolt" : {
+               "recipe" : "file(cloth_bolt_recipe.json)"
+            },
+            "leather_bolt" : {
+               "recipe" : "file(leather_bolt_recipe.json)"
+            }            
+         }
+      },
+      "clothing_armor" : {
+         "ordinal" : 2, 
+         "name" : "Clothing & Armor",
+         "recipes" : {
+            "worker_outfit_2" : {
+               "recipe" : "file(worker_outfit_2_recipe.json)"
+            },
+            "worker_outfit_winter" : {
+               "recipe" : "file(worker_outfit_winter_recipe.json)"
+            },
+            "cloth_padded_vest" : {
+               "recipe" : "file(cloth_padded_vest_recipe.json)"
+            },
+            "leather_vest" : {
+               "recipe" : "file(leather_vest_recipe.json)"
+            }            
+         }
+      },
+      "decorations" : {
+         "ordinal" : 3, 
+         "name" : "Decorations", 
+         "recipes" : {
+            "banner_wall_big" : {
+               "recipe" : "file(banner_wall_big_recipe.json)"
+            },
+            "banner_wall_small" : {
+               "recipe" : "file(banner_wall_small_recipe.json)"
+            },
+            "tapestry_wall" : {
+               "recipe" : "file(tapestry_wall_recipe.json)"
+            },
+            "curtains" : {
+               "recipe" : "file(curtains_recipe.json)"
+            },
+            "throw_rug" : {
+               "recipe" : "file(throw_rug_recipe.json)"
+            },
+            "fur_rug" : {
+               "recipe" : "file(fur_rug_recipe.json)"
+            }
+         }
+      },
+      "toys" : {
+         "ordinal" : 4, 
+         "name" : "Toys", 
+         "recipes" : {
+            "plushie_toy_rabbit" : {
+               "recipe" : "file(plushie_toy_rabbit_recipe.json)"
+            }            
+         }
+      }
+   }
+}
