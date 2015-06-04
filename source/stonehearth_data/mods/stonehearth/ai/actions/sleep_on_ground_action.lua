@@ -14,22 +14,20 @@ function SleepOnGroundAction:run(ai, entity)
    -- goto sleep
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
 
-   local sleep_duration = 1
+   -- Sleep duration in minutes
+   local sleep_duration = 60
    local attributes_component = entity:get_component('stonehearth:attributes')
    
    if attributes_component then
-      local sleepiness = attributes_component:get_attribute('sleepiness')
-      local stamina = attributes_component:get_attribute('stamina')
       local sleep_duration_attribute = attributes_component:get_attribute('sleep_duration')
       if sleep_duration_attribute then
          sleep_duration = sleep_duration_attribute
       end
    end
 
-   sleep_duration = sleep_duration * 2
-   sleep_duration = radiant.math.round(sleep_duration * 10) / 10
+   sleep_duration = radiant.math.round(sleep_duration * 2)
 
-   local sleep_duration_string = sleep_duration .. 'h'
+   local sleep_duration_string = sleep_duration .. 'm'
 
    ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = sleep_duration_string})
    radiant.entities.set_attribute(entity, 'sleepiness', stonehearth.constants.sleep.MIN_SLEEPINESS)

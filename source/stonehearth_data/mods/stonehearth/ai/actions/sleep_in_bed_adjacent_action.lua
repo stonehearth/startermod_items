@@ -49,7 +49,8 @@ function SleepInBedAdjacent:run(ai, entity, args)
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
    radiant.events.trigger_async(entity, 'stonehearth:sleep_in_bed', { bed_uri = bed:get_uri() })
 
-   local sleep_duration = 1
+   -- calculate sleep duration in minutes
+   local sleep_duration = 60
    local attributes_component = entity:get_component('stonehearth:attributes')
    
    if attributes_component then
@@ -58,13 +59,11 @@ function SleepInBedAdjacent:run(ai, entity, args)
 
       local sleep_duration_attribute = attributes_component:get_attribute('sleep_duration')
       if sleep_duration_attribute then
-         sleep_duration = sleep_duration_attribute
+         sleep_duration = radiant.math.round(sleep_duration_attribute)
       end
    end
 
-   sleep_duration = radiant.math.round(sleep_duration * 10) / 10
-
-   local sleep_duration_string = sleep_duration .. 'h'
+   local sleep_duration_string = sleep_duration .. 'm'
 
    ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = sleep_duration_string})
    radiant.entities.set_attribute(entity, 'sleepiness', 0)

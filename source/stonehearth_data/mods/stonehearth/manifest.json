@@ -1656,7 +1656,6 @@
          "file(ui/game/modes/build_mode/building_designer_2/template_view.js)",
          "file(ui/game/modes/build_mode/building_designer_2/material_helper.js)",
          "file(ui/game/modes/build_mode/building_designer_2/draw_floor_tool.js)",
-         "file(ui/game/modes/build_mode/building_designer_2/draw_slab_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/draw_wall_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/grow_walls_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/place_fixture_tool.js)",

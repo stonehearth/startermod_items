@@ -156,8 +156,8 @@
          },
          "sleepiness": {
             "type" : "random_range", 
-            "base" :  4,
-            "max"  :  7
+            "base" :  0,
+            "max"  :  2
          }, 
          "total_level" : {
             "type" : "basic", 
@@ -173,7 +173,12 @@
          },
          "sleep_duration": {
             "type" : "derived", 
-            "equation" : "5 - 0.05 * stamina"
+            "equation" : "140 - 1.8 * stamina"
+         },
+         "wake_up_time": {
+            "type" : "random_range", 
+            "base" : 5,
+            "max": 6
          }
       },
       "stonehearth:material" : {

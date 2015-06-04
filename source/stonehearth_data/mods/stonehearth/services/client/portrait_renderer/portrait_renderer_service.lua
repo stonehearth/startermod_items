@@ -28,6 +28,7 @@ function PortraitRendererService:_add_existing_entity(ent)
 
    table.insert(self._existing_entities, {
       render_entity = render_ent,
+      entity = ent,
    })
 end
 
@@ -154,6 +155,11 @@ function PortraitRendererService:clear_scene()
       radiant.entities.destroy_entity(entity_data.entity)
    end
    self._created_entities = {}
+
+   for _, entity_data in pairs(self._existing_entities) do
+      entity_data.render_entity:destroy()
+      entity_data.render_entity = nil
+   end
    self._existing_entities = {}
 end
 
@@ -171,6 +177,7 @@ function PortraitRendererService:render_scene(scene_json, callback)
                                              if render_count > 5 then
                                                 render_trace:destroy()
                                                 _radiant.call('radiant:client:get_portrait'):done(function(resp)
+                                                      self:clear_scene()
                                                       callback(resp)
                                                    end)
                                              end

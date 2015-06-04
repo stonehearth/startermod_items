@@ -12,8 +12,18 @@ TameTrappedBeast.priority = 1
 TameTrappedBeast.weight = 1
 
 function TameTrappedBeast:start_thinking(ai, entity, args)
-   -- not allowing entities to own more than one pet at a time
-   if entity:add_component('stonehearth:pet_owner'):num_pets() > 0 then
+   -- hearthlings with more compassion can own more pets
+   local num_pets = entity:add_component('stonehearth:pet_owner'):num_pets()
+   local max_num_pets = 1
+   local attributes = entity:get_component('stonehearth:attributes')
+   if attributes then
+      local compassion = attributes:get_attribute('compassion')
+      if compassion >= stonehearth.constants.attribute_effects.COMPASSION_TRAPPER_TWO_PETS_THRESHOLD then
+         max_num_pets = 2
+      end
+   end
+
+   if num_pets >= max_num_pets then
       return
    end
 
