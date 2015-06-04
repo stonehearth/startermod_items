@@ -131,6 +131,10 @@ end
 
 -- TODO: eventually when the killable state can change, add traces to track that here
 function AggroObserver:_update_target(target)
+   if not target or not target:is_valid() then
+      return
+   end
+   
    if stonehearth.player:are_players_friendly(target, self._entity) then
       -- listen for when your ally is hit
       self:_add_battery_trace(target)
