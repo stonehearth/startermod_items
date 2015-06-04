@@ -35,8 +35,7 @@
       "portrait" : "file(./images/workshop_portrait_level_1.png)",
       "workbench_type" : "stonehearth:cook:workbench",
       "ingredients": [
-         { "material" : "wood resource", "count" : 1 },
-         { "material" : "stone resource", "count" : 1 }
+         { "material" : "stone resource", "count" : 2 }
       ]
    },
    "parent_job" : "stonehearth:jobs:farmer",
