@@ -3,14 +3,20 @@
    "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "Stonewear Spoon",
-         "description" : "Great for cooking up some grub",
-         "icon" : "file(cook_spoon.png)"
+         "name" :  "Cook's Spoon",
+         "description" : "Used by the cook",
+         "icon": "file(cook_spoon.png)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(cook_spoon.qb)"
+               "file(cook_spoon_equipped.qb)"
             ]
          }
       },
@@ -21,9 +27,21 @@
          "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat" ]
-      },
-      "render_info" : {
-         "scale": 0.14
       }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 1,
+         "reach" : 1.50
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }
+      ]
    }
 }
+

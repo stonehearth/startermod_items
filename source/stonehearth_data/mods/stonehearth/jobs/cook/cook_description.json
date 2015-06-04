@@ -4,7 +4,7 @@
    "name": "Cook",      
    "controller" : "stonehearth:class:cook", 
    "description" : "The cook makes delicious, hearty meals from base vegetables and meats.", 
-   "requirements": "Stone Pot, crafted by the Mason.",
+   "requirements": "Stonewear Spoon, crafted by the Mason.",
    "talisman_uri" : "stonehearth:cook:talisman", 
    "default_stance" : "passive",
    "promotion_activity_name" : "promote_cook",
@@ -30,7 +30,7 @@
       "recipe_list": "/stonehearth/jobs/cook/recipes/recipes.json"
    },
    "workshop" : {
-      "name": "Cooking Pot",
+      "name": "Stone Cauldron",
       "long_description" : "Humongous, heavy pot, suitable for cooking up a feast at a time!",
       "portrait" : "file(./images/workshop_portrait_level_1.png)",
       "workbench_type" : "stonehearth:cook:workbench",

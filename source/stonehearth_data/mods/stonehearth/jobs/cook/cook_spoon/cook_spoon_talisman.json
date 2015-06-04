@@ -3,27 +3,27 @@
    "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "Stonewear Spoon",
-         "description" : "Great for cooking up some grub",
+         "name" :  "Cook's Spoon",
+         "description" : "Required to promote a hearthling into a Cook.",
          "icon" : "file(cook_spoon.png)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(cook_spoon_iconic.qb)"
+               "file(cook_spoon.qb)"
             ]
          }
       },
-       "stonehearth:material" : {
-         "tags" : "tool"
-      },      
       "effect_list" : {
          "effects" : [
             "stonehearth:effects:talisman_glow"
          ]  
-      },
-      "render_info" : {
-         "scale": 0.14
       },
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:cook"
@@ -32,3 +32,4 @@
    "entity_data" : {
    }
 }
+
