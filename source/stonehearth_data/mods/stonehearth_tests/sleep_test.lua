@@ -28,6 +28,7 @@ function SleepTest:__init()
 
    --A few seconds in, set the time of day to right before sleepy time
    self:at(3000, function()
+      radiant.entities.set_attribute(w1, 'sleepiness', stonehearth.constants.sleep.BEDTIME_THRESHOLD)
       stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 1, minute = 58 })
    end)
    --Then, make someone super, super sleeply
