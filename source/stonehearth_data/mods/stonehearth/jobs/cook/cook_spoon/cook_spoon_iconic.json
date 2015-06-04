@@ -3,9 +3,9 @@
    "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "The Spindle",
-         "description" : "For spinning fiber into thread",
-         "icon" : "file(weaver_spindle.png)"
+         "name" :  "Stonewear Spoon",
+         "description" : "Great for cooking up some grub",
+         "icon" : "file(cook_spoon.png)"
       },
       "item" : {
          "category" : "tools"
@@ -13,7 +13,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(weaver_spindle_iconic.qb)"
+               "file(cook_spoon_iconic.qb)"
             ]
          }
       },
