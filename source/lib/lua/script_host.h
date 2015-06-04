@@ -51,6 +51,8 @@ public:
    void ReportLuaStackException(std::string const& error, std::string const& traceback);
    void Trigger(std::string const& eventName, luabind::object evt = luabind::object());
    void TriggerOn(luabind::object obj, std::string const& eventName, luabind::object evt = luabind::object());
+   void AsyncTrigger(std::string const& eventName, luabind::object evt = luabind::object());
+   void AsyncTriggerOn(luabind::object obj, std::string const& eventName, luabind::object evt = luabind::object());
 
    typedef std::function<void(::radiant::om::ErrorBrowser::Record const&)> ReportErrorCb;
    void SetNotifyErrorCb(ReportErrorCb const& cb);

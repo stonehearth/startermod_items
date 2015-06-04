@@ -1,5 +1,7 @@
 #include "radiant.h"
 #include "unit_info.ridl.h"
+#include "om/entity.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -25,4 +27,21 @@ void UnitInfo::SerializeToJson(json::Node& node) const
    node.set("description", GetDescription());
    node.set("player_id", GetPlayerId());
    node.set("icon", GetIcon());
+}
+
+UnitInfo& UnitInfo::SetPlayerId(std::string value)
+{ 
+   player_id_ = value;
+   lua_State* L = GetStore().GetInterpreter();
+   if (L) {
+      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
+      if (scriptHost) {
+         luabind::object e(L, GetEntityRef());
+         luabind::object evt(L, luabind::newtable(L));
+         evt["entity"] = e;
+         scriptHost->AsyncTriggerOn(e, "radiant:unit_info:player_id_changed", evt);
+         scriptHost->AsyncTrigger("radiant:unit_info:player_id_changed", evt);
+      }
+   }
+   return *this;
 }

@@ -7,4 +7,4 @@ class UnitInfo(Component):
    display_name = dm.Boxed(std.string())
    description = dm.Boxed(std.string())
    icon = dm.Boxed(std.string())
-   player_id = dm.Boxed(std.string())
+   player_id = dm.Boxed(std.string(), set='declare')

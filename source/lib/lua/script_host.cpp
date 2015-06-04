@@ -890,6 +890,29 @@ void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, lu
    }
 }
 
+void ScriptHost::AsyncTrigger(std::string const& eventName, luabind::object evt)
+{
+   try {
+      luabind::object radiant = globals(cb_thread_)["radiant"];
+      AsyncTriggerOn(radiant, eventName, evt);
+   } catch (std::exception const& e) {
+      ReportCStackThreadException(cb_thread_, e);
+   }
+}
+
+void ScriptHost::AsyncTriggerOn(luabind::object obj, std::string const& eventName, luabind::object evt)
+{
+   try {
+      if (!evt || !evt.is_valid()) {
+         evt = luabind::newtable(L_);
+      }
+      luabind::object radiant = globals(cb_thread_)["radiant"];
+      radiant["events"]["trigger_async"](obj, eventName, evt);
+   } catch (std::exception const& e) {
+      ReportCStackThreadException(cb_thread_, e);
+   }
+}
+
 void ScriptHost::DumpHeap(std::string const& filename) const
 {
    std::unordered_map<std::string, int> keyMap;
