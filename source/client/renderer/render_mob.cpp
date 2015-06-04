@@ -17,7 +17,8 @@ RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
    mob_(mob)
 {
    ASSERT(mob);
-
+   _final = mob->GetTransform();
+   _current = _final;
    entity_id_ = entity.GetObjectId();
 
    show_debug_shape_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](dm::ObjectId id) {
@@ -93,6 +94,7 @@ void RenderMob::Move()
    // epislon is just too small.
    _current.orientation.Normalize();
    ASSERT(_current.orientation.is_unit());
+   ASSERT(_current.position == _current.position);
 
    // Move the local origin of the render entity to the exact position of the mob.
    h3dSetNodeTransform(entity_.GetOriginNode(), (float)_current.position.x, (float)_current.position.y, (float)_current.position.z, 0, 0, 0, 1, 1, 1);
@@ -154,10 +156,12 @@ void RenderMob::UpdateTransform(csg::Transform const& transform)
             _initial = _final;
             _final = mob->GetTransform();
          }
+
          M_LOG(7) << "mob: initial for object " << entity_id_ << " to " << _initial << " in update transform";
          M_LOG(7) << "mob: final   for object " << entity_id_ << " to " << _final << " in update transform (stored value)";
       } else {
          _current = mob->GetTransform();
+
          M_LOG(7) << "mob: current for object " << entity_id_ << " to " << _current << " in update transform (stored value, interp off)";
          Move();
       }
