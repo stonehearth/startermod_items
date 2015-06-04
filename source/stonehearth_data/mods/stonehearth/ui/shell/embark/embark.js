@@ -178,8 +178,8 @@ App.StonehearthEmbarkView = App.View.extend({
          ],
          entity: citizen.__self,
          camera: {
-            position: [2.5, 2, -2.5],
-            look_at: [0,0,0]
+            position: [2, 1, -2],
+            look_at: [0,0.5,0]
          }
       };
 
