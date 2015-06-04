@@ -27,13 +27,18 @@
    </Setup>
    <CommandQueue>
       <Stage id="Init">
-         <SwitchTarget target="WaterTemp" />
-         <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="0" />
-
          <!-- Clear the target, because a resize can leave it dirty.  Therefore, this should really only happen
               on resize.  Fix! -->
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="0" />
+
+         <SwitchTarget target="WaterTemp" />
+         <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="0" />
+      </Stage>
+
+      <Stage id="PortraitClear">
+         <SwitchTarget target="GBuffers" />
+         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0" />
       </Stage>
 
       <Stage id="Attributes">
