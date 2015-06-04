@@ -113,17 +113,17 @@ RenderEntity::~RenderEntity()
 {
    E_LOG(7) << "destroying render entity " << node_name_;
 
-   nodeToRenderEntity.erase(node_);
-
-   Destroy();
-   h3dRemoveNode(offsetNode_);
-   h3dRemoveNode(node_);
-   totalObjectCount_--;
+   if (!destroyed_) {
+      Destroy();
+   }
 }
 
 void RenderEntity::Destroy()
 {
    destroyed_ = true;
+
+   nodeToRenderEntity.erase(node_);
+
    lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
 
    if (!script->IsShutDown()) {
@@ -145,6 +145,13 @@ void RenderEntity::Destroy()
    }
    lua_invariants_.clear();
    components_.clear();
+
+   h3dRemoveNode(offsetNode_);
+   h3dRemoveNode(node_);
+   totalObjectCount_--;
+
+   offsetNode_ = 0;
+   node_ = 0;
 }
 
 void RenderEntity::SetParent(H3DNode parent)
