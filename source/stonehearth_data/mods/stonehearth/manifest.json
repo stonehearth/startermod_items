@@ -260,6 +260,8 @@
       "resources:squirrel_pelt" : "file(entities/resources/pelt/squirrel_pelt)",
       "resources:rabbit_pelt" : "file(entities/resources/pelt/rabbit_pelt)",
       "resources:wolf_pelt" : "file(entities/resources/pelt/wolf_pelt)",
+      
+      "containers:small_crate" : "file(entities/containers/small_crate)",
 
 
       "refined:thread" : "file(entities/refined/thread)",
@@ -597,6 +599,10 @@
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
       "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
 
+      "actions:wait_for_crate_space" : "file(ai/actions/wait_for_crate_space.lua)",
+      "actions:drop_carrying_in_crate" : "file(ai/actions/drop_carrying_in_crate_action.lua)",
+      "actions:fill_crate" : "file(ai/actions/fill_crate_action.lua)",
+
       "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
       "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
       "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
@@ -738,6 +744,7 @@
       "ai_pack:idle:bored:sway" : "file(ai/packs/idle_bored_sway_ai_pack.json)",
       "ai_pack:party" : "file(ai/packs/party_ai_pack.json)",
       "ai_pack:destructable_object" : "file(ai/packs/destructable_object_ai_pack.json)",
+      "ai_pack:fill_crate" : "file(ai/packs/fill_crate_ai_pack.json)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -1425,7 +1432,8 @@
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
       "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)",
-      "observers:goblin_campaign:mountain_mammoth_observer" : "file(ai/observers/mountain_mammoth_observer.lua)", 
+      "observers:goblin_campaign:mountain_mammoth_observer" : "file(ai/observers/mountain_mammoth_observer.lua)",
+      "observers:fill_crate" : "file(ai/observers/fill_crate_observer.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
       "unit_control:party" : "file(services/server/unit_control/party.lua)",
