@@ -17,14 +17,12 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
 
 
          if (!itemSelected.hasClass('selected')) {
-
             if (self.options.canSelect && !self.options.canSelect(itemSelected)) {
                return false;
             }
-
-            itemSelected.addClass('selected');
+            self._selectItem(itemSelected);
          } else {
-            itemSelected.removeClass('selected');
+            self._deselectItem(itemSelected);
          }
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
          
@@ -36,6 +34,7 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
 
       this.element.append(this.palette);
    },
+
 
    updateItems: function(itemMap) {
       var self = this;
@@ -52,12 +51,14 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
             itemElement = self._addItemElement(item);
             self.palette.append(itemElement);
          } else {
-            itemElement.removeClass('selected');
+            self._deselectItem(itemElement);
          }
-         //self._updateItemElement(itemElement, item);
+
          if (i % 2 == 0) {
+            itemElement.removeClass('row1');
             itemElement.addClass('row0');
          } else {
+            itemElement.removeClass('row0');
             itemElement.addClass('row1');
          }
 
@@ -98,7 +99,6 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
       var soldTag = $('<div>')
          .addClass('soldTag');
 
-
       var itemEl = $('<div>')
          .addClass('item')
          .attr('title', item.display_name)
@@ -108,8 +108,17 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
          .append(img)
          .append(displayName)
          .append(cost)
-         .append(soldTag);
+         .append(soldTag)
 
       return itemEl;
-   }
+   },
+   _selectItem: function(itemElement) {
+      itemElement.addClass('selected');
+      itemElement.find('.cost')
+         .html(i18n.t('stonehearth:embark_shop_sold'));
+   },
+   _deselectItem: function(itemElement) {
+      itemElement.removeClass('selected');
+      itemElement.find('.cost').html(itemElement.attr('cost') + 'g');
+   },
 });

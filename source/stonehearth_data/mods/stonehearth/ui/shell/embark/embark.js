@@ -202,7 +202,7 @@ App.StonehearthEmbarkView = App.View.extend({
          citizen.set('portrait', '/stonehearth/ui/shell/embark/images/portrait_not_yet_available.png');
          // TODO(yshan): Uncomment this once we fix the bug where citizens
          // are invisible if we generate their portrait on embark screen.
-         //self._requestCitizenPortrait(citizen);
+         self._requestCitizenPortrait(citizen);
       });
 
       self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
