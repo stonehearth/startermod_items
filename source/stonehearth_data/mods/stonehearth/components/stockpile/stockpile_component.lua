@@ -3,84 +3,12 @@ local priorities = require('constants').priorities.worker_task
 local StockpileComponent = class()
 StockpileComponent.__classname = 'StockpileComponent'
 local log = radiant.log.create_logger('stockpile')
+local TraceCategories = _radiant.dm.TraceCategories
 
 local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
-
-local all_stockpiles = {}
-local ALL_FILTER_FNS = {}
-
-local function _can_stock_entity(entity, filter)
-   if not entity or not entity:is_valid() then
-      log:spam('%s is not a valid entity.  cannot be stocked.', tostring(entity))
-      return false
-   end
-
-   local efc = entity:get_component('stonehearth:entity_forms')
-   if efc and efc:get_should_restock() then
-      local iconic = efc:get_iconic_entity()
-      return _can_stock_entity(iconic, filter) 
-   end
-
-   if not entity:get_component('item') then
-      log:spam('%s is not an item material.  cannot be stocked.', entity)
-      return false
-   end
-
-   local material = entity:get_component('stonehearth:material')
-   if not material then
-      log:spam('%s has no material.  cannot be stocked.', entity)
-      return false
-   end
-
-   -- no filter means anything
-   if not filter then
-      log:spam('stockpile has no filter.  %s item can be stocked!', entity)
-      return true
-   end
-
-   -- must match at least one material in the filter, or this cannot be stocked
-   for i, mat in ipairs(filter) do
-      if material:is(mat) then
-         log:spam('%s matches filter "%s" and can be stocked!', entity, mat)
-         return true
-      end
-   end
-
-   log:spam('%s failed filter.  cannot be stocked.', entity)
-   return false
-end
-
---- Returns the stockpile which contains an item
--- This implementation is super slow, iterating through every stockpile in
--- the world (eek!).  A better idea would be to add a 'owning_stockpile'
--- component or something with a back pointer to the appropriate stockpile.
--- @param entity The entity allegedly in a stockpile
--- @returns The stockpile containing entity, or nil
-
-function get_stockpile_containing_entity(entity)
-   local location = radiant.entities.get_world_grid_location(entity)
-   if location then
-      for id, stockpile in pairs(all_stockpiles) do
-         if stockpile then
-            local name = tostring(stockpile:get_entity())
-            local bounds = stockpile:get_bounds();
-
-            log:spam('checking to see if %s (pos:%s) is inside a %s', entity, location, name)
-            if not bounds:contains(location) then
-               log:spam('  %s -> nope! wrong bounds, %s', name, bounds)
-            elseif not stockpile:can_stock_entity(entity) then
-               log:spam('  %s -> nope! cannot stock', name)
-            else
-               log:spam('  %s -> yup!', name)
-               return stockpile
-            end
-         end        
-      end
-   end
-end
 
 function StockpileComponent:initialize(entity, json)
    self._entity = entity
@@ -95,7 +23,7 @@ function StockpileComponent:initialize(entity, json)
       self._sv.item_locations = {}
       self._sv.player_id = nil
       self:_assign_to_player()
-      self._sv._filter_key = 'stockpile nofilter+' .. self._sv.player_id
+      self._filter = entity:add_component('stonehearth:storage_filter')
       self._destination = entity:add_component('destination')
       self._destination:set_region(_radiant.sim.alloc_region3())
                        :set_reserved(_radiant.sim.alloc_region3())
@@ -104,6 +32,7 @@ function StockpileComponent:initialize(entity, json)
       self:_install_traces()
    else
       -- loading...
+      self._filter = entity:get_component('stonehearth:storage_filter')
       self._destination = entity:get_component('destination')
       self._destination:set_reserved(_radiant.sim.alloc_region3()) -- xxx: clear the existing one from cpp land!
       self:_create_worker_tasks()   
@@ -113,8 +42,6 @@ function StockpileComponent:initialize(entity, json)
             self:_install_traces()
          end)
    end
-        
-   all_stockpiles[self._entity:get_id()] = self
 end
 
 function StockpileComponent:get_entity()
@@ -123,8 +50,6 @@ end
 
 function StockpileComponent:destroy()
    log:info('%s destroying stockpile component', self._entity)
-
-   all_stockpiles[self._entity:get_id()] = nil
 
    for id, item in pairs(self._sv.stocked_items) do
       self:_remove_item_from_stock(id)
@@ -155,93 +80,16 @@ function StockpileComponent:destroy()
    self:_destroy_tasks()
 end
 
-local function get_restock_filter_fn(filter_key, filter, player_id)
-   -- all stockpiles with the same filter must use the same filter function
-   -- to determine whether or not an item can be stocked.  this function is
-   -- uniquely identified by the filter key.  this allows us to use a
-   -- shared 'stonehearth:pathfinder' bfs pathfinder to find items which should
-   -- go in stockpiles rather than creating 1 bfs pathfinder per-stockpile
-   -- per worker (!!)
-   local filter_fn = ALL_FILTER_FNS[filter_key]
 
-   if not filter_fn then
-      -- no function for the current filter has been created yet, so let's make
-      -- one.  capture the current value of the filter in the closure so the
-      -- implementation won't change when someone changes our filter.
-      local captured_filter
-      if filter then
-         captured_filter = {}
-         for _, material in ipairs(filter) do
-            table.insert(captured_filter, material)
-         end
-      end
-      -- now create the filter function.  again, this function must work for
-      -- *ALL* stockpiles with the same filter key, which is why this is
-      -- implemented in terms of global functions, parameters to the filter
-      -- function, and captured local variables.
-      filter_fn = function(item)
-         log:detail('calling filter function on %s', item)
-         local containing_component = get_stockpile_containing_entity(item)
-         local containing_entity = containing_component and containing_component:get_entity()
-
-         local item_player_id = radiant.entities.get_player_id(item)
-         if item_player_id ~= player_id then
-            log:detail('item player id "%s" ~= stockpile id "%s".  returning from filter function', item_player_id, player_id)
-            return false
-         end
-
-         if containing_entity then
-            if stonehearth.game_master:is_enabled() then
-               log:detail('already stocked!  returning false from filter function')
-               return false
-            end
-
-            -- ideally, "restock" would ignore EVERYTHING in other stockpiles.  if someone
-            -- wants to explicitly raid from a stockpile, they can make another action.
-            -- until that happy day, put this extremely weird special case logic
-            local containing_stockpile_owner_id = radiant.entities.get_player_id(containing_entity)
-            log:detail('item:      %s', radiant.entities.get_player_id(item))
-            log:detail('stockpile: %s', containing_stockpile_owner_id)
-            local already_stocked = not stonehearth.player:are_players_hostile(player_id, containing_stockpile_owner_id)
-            if already_stocked then
-               log:detail('already stocked!  returning false from filter function')
-               return false
-            else
-               log:detail('item in stockpile, but not one of ours.')
-            end
-         end
-
-         return _can_stock_entity(item, captured_filter)
-      end
-
-      -- remember the filter function for the future
-      ALL_FILTER_FNS[filter_key] = filter_fn
-   end
-   return filter_fn   
-end
 
 -- returns the filter key and function used to determine whether an item can
 -- be stocked in this stockpile.
 function StockpileComponent:get_filter()
-   -- this intentionally delegates to a helper function to avoid the use of `self`
-   -- in the filter (which must work for ALL stockpiles sharing that filter, and
-   -- therefore should not capture self or any members of self!)
-   return get_restock_filter_fn(self._sv._filter_key, self._sv.filter, self._sv.player_id)
+   return self._filter:get_filter_function()
 end
 
 function StockpileComponent:set_filter(filter)
-   self._sv.filter = filter
-   if self._sv.filter then
-      self._sv._filter_key = 'stockpile filter:'
-      table.sort(self._sv.filter)
-      for _, material in ipairs(self._sv.filter) do
-         self._sv._filter_key = self._sv._filter_key .. '+' .. material
-      end
-   else
-      self._sv._filter_key = 'stockpile nofilter'
-   end
-   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id
-   self.__saved_variables:mark_changed()
+   self._filter:set_filter(filter)
 
    -- for items that no longer match the filter, 
    -- remove then re-add the item from its parent. Other stockpiles
@@ -267,7 +115,11 @@ end
 function StockpileComponent:_install_traces()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 
-   self._ec_trace = ec:trace_children('tracking stockpile')
+   -- This trace needs to be synchronous, so that it fires before the BFS pathfinder
+   -- trace fires (in the case when an item is dropped in a stockpile, we want the
+   -- ownership of the item to change first, so that the BFS pathfinder will ignore
+   -- it when considering it for items.)
+   self._ec_trace = ec:trace_children('tracking stockpile', TraceCategories.SYNC_TRACE)
                            :on_added(function (id, entity)
                               self:_add_item(entity)
                            end)
@@ -407,6 +259,7 @@ function StockpileComponent:_add_item_to_stock(entity)
    self.__saved_variables:mark_changed()
 
    stonehearth.inventory:get_inventory(self._sv.player_id):add_item(entity)
+   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(entity, self._entity)
    
    radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    
@@ -439,8 +292,8 @@ function StockpileComponent:_remove_item_from_stock(id)
    self.__saved_variables:mark_changed()
 
    --Tell the inventory to remove this item
-   stonehearth.inventory:get_inventory(self._sv.player_id)
-                           :remove_item(id)
+   stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
+   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(entity, nil)
       
    --Trigger for scenarios, autotests, etc
    radiant.events.trigger_async(self._entity, "stonehearth:stockpile:item_removed", { 
@@ -516,7 +369,7 @@ end
 -- @return true if the entity can be stocked here, false otherwise.
 --
 function StockpileComponent:can_stock_entity(entity)
-   return _can_stock_entity(entity, self._sv.filter)
+   return self._filter:passes(entity)
 end
 
 function StockpileComponent:_destroy_tasks()
@@ -563,7 +416,7 @@ end
 
 function StockpileComponent:set_active_command(session, response, active)
    self:set_active(active)
-   return true;
+   return true
 end
 
 return StockpileComponent
