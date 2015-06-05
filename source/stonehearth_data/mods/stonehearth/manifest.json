@@ -151,7 +151,7 @@
 
       "cook:workbench" : "file(jobs/cook/cook_workbench)",
       "cook:outfit" : "file(jobs/cook/cook_outfit)",
-      "cook:talisman" : "file(jobs/cook/cook_foo/cook_foo_talisman.json)",
+      "cook:talisman" : "file(jobs/cook/cook_spoon/cook_spoon_talisman.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone/mining_zone.json)",
       "mining_zone_designation" : "file(entities/terrain/mining_zone/mining_zone_designation.json)",
@@ -1638,6 +1638,7 @@
          "file(ui/shell/new_game/new_game.js)",
          "file(ui/shell/embark/embark.js)",
          "file(ui/shell/embark/roster.js)",
+         "file(ui/shell/embark/shop_palette.js)",
          "file(ui/shell/select_settlement/select_settlement.js)",
          "file(ui/shell/select_settlement/map.js)",
          "file(ui/shell/loading_screen/loading_screen.js)",
@@ -1724,6 +1725,7 @@
          "file(jobs/carpenter/skin/workshop.less)",
          "file(jobs/weaver/skin/workshop.less)",
          "file(jobs/mason/skin/workshop.less)",
+         "file(jobs/cook/skin/workshop.less)",
          "file(jobs/blacksmith/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
@@ -1733,6 +1735,7 @@
          "file(ui/shell/new_game/new_game.less)",
          "file(ui/shell/embark/embark.less)",
          "file(ui/shell/embark/roster.less)",
+         "file(ui/shell/embark/shop_palette.less)",
          "file(ui/shell/select_settlement/select_settlement.less)",
          "file(ui/shell/select_settlement/map.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",

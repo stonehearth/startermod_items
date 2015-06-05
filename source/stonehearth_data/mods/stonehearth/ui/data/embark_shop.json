@@ -1,55 +1,65 @@
 {
    "starting_gold" : 150,
-   "starting_talisman" : [
+   "shop_items" : [
       {
          "display_name" : "Trapper's Knife",
          "uri" : "stonehearth:trapper:talisman",
          "icon" : "/stonehearth/jobs/trapper/trapper_knife/trapper_knife.png",
+         "description" : "The Trapper's snares capture and (ahem) \"harvest\" small critters for a reliable source of food and supplies.",
          "cost": 150
       },
       {
          "display_name" : "Farmer's Hoe",
          "uri" : "stonehearth:farmer:talisman",
          "icon" : "/stonehearth/jobs/farmer/farmer_hoe/farmer_hoe.png",
+         "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.",
          "cost": 100
       },
       {
          "display_name" : "Footman's Sword",
          "uri" : "stonehearth:footman:wooden_sword_talisman",
          "icon" : "/stonehearth/entities/weapons/wooden_sword/wooden_sword.png",
+         "description" : "The Footman is a melee fighter. A good choice for the backbone of your town's defense.",
          "cost": 100
       },
       {
          "display_name" : "Weaver's Spindle",
          "uri" : "stonehearth:weaver:talisman",
          "icon" : "/stonehearth/jobs/weaver/weaver_spindle/weaver_spindle.png",
+         "description" : "The Weaver makes thread, fabrics and hangings from fiber and dye.",
          "cost": 100
-      }
-   ],
-   "kickstarter_pets" : [
+      },
       {
-         "display_name" : "embark_pet_kitten",
+         "display_name" : "Pet Kitten",
          "uri" : "stonehearth:kitten",
          "icon" : "/stonehearth/entities/pets/kitten/kitten.png",
-         "cost": 0
+         "description" : "A kitten! It's so cute!",
+         "cost": 0,
+         "is_pet": true
       },
       {
-         "display_name" : "embark_pet_collie",
+         "display_name" : "Pet Collie",
          "uri" : "stonehearth:collie",
          "icon" : "/stonehearth/entities/pets/collie/collie.png",
-         "cost": 0
+         "description" : "A pet collie! The most loyal of companions.",
+         "cost": 0,
+         "is_pet": true
       },
       {
-         "display_name" : "embark_pet_mammoth",
+         "display_name" : "Pet Mammoth",
          "uri" : "stonehearth:mammoth",
          "icon" : "/stonehearth/entities/pets/mammoth/mammoth.png",
-         "cost": 0
+         "description" : "A baby mammoth! Small, but powerful!",
+         "cost": 0,
+         "is_pet": true
       },
       {
-         "display_name" : "embark_pet_dragon_whelp",
+         "display_name" : "Pet Dragon Whelp",
          "uri" : "stonehearth:dragon_whelp",
          "icon" : "/stonehearth/entities/pets/dragon_whelp/dragon_whelp.png",
-         "cost": 0
+         "description" : "A dragon whelp! Are you sure it's mother isn't watching?",
+         "cost": 0,
+         "is_pet": true
       }
    ]
 }

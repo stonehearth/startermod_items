@@ -1,0 +1,20 @@
+<script type="text/x-handlebars" data-template-name="stonehearthEmbarkShopPalette">
+
+	<class id="searchInput" onClick="this.select();" type="text" maxlength="28" value="search" />
+    <div class="shopPalette" id="contents">
+        <div id="shopTitle">{{i18n stonehearth:embark_shop_title}}</div>
+        <div id="playerGold">{{i18n stonehearth:embark_shop_title}}</div>
+
+        <div id="shopItems">
+            {{#each shopData.items}}
+                <div class="item" {{bind-attr id=this.__id uri=this.uri}}>
+                   <img class="shopItemIcon" {{bind-attr src=this.icon}} />
+                   <span class="shopItemName">{{i18n this.display_name}}</span>
+                   <span class="shopItemCost">{{this.cost}}</span>
+                </div>
+            {{/each}}
+        </div>
+
+        <button class="green" id="resetButton">{{i18n embark_shop_reset_button}}</button>
+    </div>
+</script>

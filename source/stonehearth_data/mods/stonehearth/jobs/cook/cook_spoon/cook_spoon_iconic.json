@@ -1,0 +1,26 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Cook's Spoon",
+         "description" : "Required to promote a hearthling into a Cook."
+      },
+      "item" : {
+         "category" : "tools"
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(cook_spoon.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+   }
+}
+
