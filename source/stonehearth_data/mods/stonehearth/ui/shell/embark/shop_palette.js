@@ -62,13 +62,20 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
             itemElement.addClass('row1');
          }
 
+         var tooltipString = '<div class="itemTooltip"> <h2>' + item.displayName
+                                 + '</h2>'+ item.description + '</div>';
+
+         itemElement.tooltipster( {
+            content: $(tooltipString)
+            }
+         );
+
          itemElement.attr('updated', 1)
          
       })
 
       // anything that is not marked as updated needs to be removed
       self.palette.find('[updated=0]').remove();
-      self.palette.find('.item').tooltipster();
    },
 
    _findElementForItem: function(item) {
@@ -90,7 +97,7 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
 
       var displayName = $('<div>')
          .addClass('displayName')
-         .html(item.display_name);
+         .html(item.displayName);
 
       var cost = $('<div>')
          .addClass('cost')
@@ -101,7 +108,6 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
 
       var itemEl = $('<div>')
          .addClass('item')
-         .attr('title', item.display_name)
          .attr('uri', item.uri)
          .attr('cost', item.cost)
          .attr('isPet', item.isPet)

@@ -88,32 +88,23 @@ App.StonehearthEmbarkView = App.View.extend({
          self.set('gold', self._startingGold);
 
          self._shopItemData = []
-         radiant.each(data.starting_talisman, function(i, talismanData) {
-            var category = i18n.t('embark_shop_category_talisman');
-            var talisman = {
-               "display_name" : talismanData.display_name,
-               "uri" : talismanData.uri,
-               "isPet" : false,
-               "icon" : talismanData.icon,
-               "cost" : talismanData.cost
-            };
-            self._shopItemData.push(talisman);
-         })
-
          var modules = App.getModuleData();
-         if (modules.kickstarter_pets) {
-            radiant.each(data.kickstarter_pets, function(i, petData) {
-               var category = i18n.t('embark_shop_category_pets');
-               var pet = {
-                  "display_name" : i18n.t(petData.display_name),
-                  "uri" : petData.uri,
-                  "isPet" : true,
-                  "icon" : petData.icon,
-                  "cost" : petData.cost
+         radiant.each(data.shop_items, function(i, itemData) {
+            var isPet = itemData.is_pet ? true : false;
+            if (!isPet || modules.kickstarter_pets) {
+               // Skip if item is a pet and kickstarter pets not enabled.
+               var item = {
+                  "displayName" : itemData.display_name,
+                  "description": itemData.description,
+                  "uri" : itemData.uri,
+                  "isPet" : isPet,
+                  "icon" : itemData.icon,
+                  "cost" : itemData.cost
                };
-               self._shopItemData.push(pet);
-            })
-         }
+               self._shopItemData.push(item);
+            }
+            
+         })
 
          self._shopPalette.stonehearthEmbarkShopPalette('updateItems', self._shopItemData);
       });
