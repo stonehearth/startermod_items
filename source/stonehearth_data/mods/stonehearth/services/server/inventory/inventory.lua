@@ -329,9 +329,8 @@ function Inventory:container_for(item)
    return self._sv.container_for[item:get_id()]
 end
 
-function Inventory:update_item_container(item, container)
-   assert(item)
-   self._sv.container_for[item:get_id()] = container
+function Inventory:update_item_container(id, container)
+   self._sv.container_for[id] = container
    self.__saved_variables:mark_changed()
 end
 
