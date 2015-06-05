@@ -272,6 +272,15 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
         usableCount++;
     }
 
+    if (usableCount == 0)
+    {
+        _glfwInputError(GLFW_API_UNAVAILABLE,
+                        "WGL: The driver does not appear to support OpenGL");
+
+        free(usableConfigs);
+        return GL_FALSE;
+    }
+
     closest = _glfwChooseFBConfig(desired, usableConfigs, usableCount);
     if (!closest)
     {

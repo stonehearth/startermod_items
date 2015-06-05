@@ -2,7 +2,11 @@
    "actions" : [
       "stonehearth:actions:reserve_stockpile_space",
       "stonehearth:actions:restock_stockpile",
-      "stonehearth:actions:drop_carrying_in_stockpile"
+      "stonehearth:actions:drop_carrying_in_stockpile",
+      "stonehearth:actions:fill_crate",
+      "stonehearth:actions:wait_for_crate_space",
+      "stonehearth:actions:drop_carrying_in_crate",
+      "stonehearth:actions:put_carrying_in_backpack"
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:core",

@@ -322,10 +322,8 @@ void Renderer::MakeRendererResources()
 
 void Renderer::InitHorde()
 {
-   GLFWwindow* window = glfwGetCurrentContext();
-   int numWindowSamples = glfwGetWindowAttrib(window, GLFW_SAMPLES);
    // Init Horde, looking for OpenGL 2.0 minimum.
-   if (!h3dInit(2, 0, numWindowSamples > 0, config_.enable_gl_logging.value)) {
+   if (!h3dInit(2, 0, false, config_.enable_gl_logging.value)) {
       throw std::runtime_error("Unable to initialize renderer.  Check horde log for details.");
    }
 
@@ -363,6 +361,9 @@ csg::Point2 Renderer::InitWindow()
       config_.screen_height.value = size.y;
    }
 
+   glfwWindowHint(GLFW_SAMPLES, 0);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window = glfwCreateWindow(size.x, size.y, "Stonehearth", 
@@ -870,6 +871,7 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, csg::Point2 &pos, csg::Point
       if (*monitor == NULL) {
          // Couldn't find a monitor to contain the window; put us on the first monitor.
          *monitor = glfwGetPrimaryMonitor();
+         ASSERT(*monitor);
          pos.x = 0;
          pos.y = 0;
       }
@@ -881,6 +883,7 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, csg::Point2 &pos, csg::Point
       GLFWmonitor *desiredMonitor = getMonitorAt(config_.last_screen_x.value, config_.last_screen_y.value);
       if (desiredMonitor == NULL) {
          desiredMonitor = glfwGetPrimaryMonitor();
+         ASSERT(desiredMonitor);
       }
       const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
       *monitor = desiredMonitor;

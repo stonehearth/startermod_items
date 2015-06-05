@@ -17,6 +17,7 @@ function Inventory:initialize(player_id)
    self._sv.stockpiles = {}
    self._sv.items = {}
    self._sv.trackers = {}
+   self._sv.container_for = {}
    self.__saved_variables:mark_changed()
 
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
@@ -61,6 +62,8 @@ function Inventory:create_stockpile(location, size)
    entity:get_component('unit_info')
             :set_display_name('Stockpile No.' .. self._sv.next_stockpile_no)
             :set_player_id(self._sv.player_id)
+
+   entity:add_component('stonehearth:storage_filter')
 
    entity:add_component('stonehearth:stockpile')
             :set_size(size.x, size.y)
@@ -318,6 +321,17 @@ function Inventory:trace_gold(reason)
    end
 
    return FilteredTrace(trace, update_gold_fn)
+end
+
+
+function Inventory:container_for(item)
+   assert(item)
+   return self._sv.container_for[item:get_id()]
+end
+
+function Inventory:update_item_container(id, container)
+   self._sv.container_for[id] = container
+   self.__saved_variables:mark_changed()
 end
 
 return Inventory
