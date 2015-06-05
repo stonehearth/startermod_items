@@ -6,6 +6,17 @@ $(document).ready(function(){
    });
    
    // wire up a generic handler to call any registered route.
+   radiant.console.register('help', {
+      call : function(cmdobj, fn, args) {
+         var commands = radiant.console.getCommands();
+         var commands = "<p>Available commands:</p>" + commands;
+         cmdobj.setContent(commands);
+         return;
+      },
+      description : "Prints out all the registered console commands"
+   });
+
+   // wire up a generic handler to call any registered route.
    radiant.console.register('call', {
       call : function(cmdobj, fn, args) {
          var cmd = args[0];
