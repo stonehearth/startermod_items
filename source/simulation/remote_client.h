@@ -1,7 +1,11 @@
 #ifndef _RADIANT_GAME_ENGINE_CLIENT_H
 #define _RADIANT_GAME_ENGINE_CLIENT_H
 
+#pragma warning(push)
+#pragma warning(disable : 4005)
 #include <boost/asio.hpp>
+#pragma warning(pop)
+
 #include "namespace.h"
 #include "protocol.h"
 #include "dm/dm.h"

@@ -1,7 +1,7 @@
 [submodule "modules/breakpad"]
 	path = modules/breakpad
 	url = http://github.com/radent/breakpad.git
-	branch = version_2015_02_09
+	branch = master
 [submodule "modules/chromium-embedded"]
 	path = modules/chromium-embedded
 	url = https://github.com/radent/chromium-embedded.git
@@ -37,7 +37,7 @@
 [submodule "modules/protobuf"]
 	path = modules/protobuf
 	url = https://github.com/radent/protobuf.git
-	branch = 2.6.1
+	branch = master
 [submodule "modules/sfml"]
 	path = modules/sfml
 	url = https://github.com/radent/sfml.git
@@ -69,7 +69,7 @@
 [submodule "modules/boost"]
 	path = modules/boost
 	url = https://github.com/radent/boost.git
-	branch = master
+	branch = 1.58.0
 [submodule "modules/flatbuffers"]
 	path = modules/flatbuffers
 	url = https://github.com/radent/flatbuffers.git

@@ -6,7 +6,11 @@
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
+
+#pragma warning(push)
+#pragma warning(disable : 4005)
 #include <boost/asio.hpp>
+#pragma warning(pop)
 #include <stack>
 #include <queue>
 

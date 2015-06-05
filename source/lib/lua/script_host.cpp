@@ -1399,7 +1399,7 @@ void ScriptHost::ReportProfileData()
 
    int msPerSample = 0;
    if (_profilerSampleCounts) {
-      msPerSample  = _profilerDuration / _profilerSampleCounts;
+      msPerSample  = (int)(_profilerDuration / _profilerSampleCounts);
    }
    LOG(lua.code, 1) << "---- lua cpu profilers stats --------------------------------------";
    if (_cpuProfileMethod == _cpuProfileMethod) {
@@ -1496,7 +1496,8 @@ void ScriptHost::InstallProfileHook(lua_State* L)
    if (_cpuProfileMethod == CpuProfilerMethod::TimeAccumulation) {
       lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCOUNT, _cpuProfileInstructionSamplingRate);
    } else if (_cpuProfileMethod == CpuProfilerMethod::Sampling) {
-      lua_sethook(L, ScriptHost::ProfileSampleHookFn, LUA_MASKSAMPLEPROFILE, (_cpuProfileInstructionSamplingTime * radiant::perfmon::Timer::GetHPCFrequency()) / 1000000);
+      int samples = (int)((_cpuProfileInstructionSamplingTime * radiant::perfmon::Timer::GetHPCFrequency()) / 1000000);
+      lua_sethook(L, ScriptHost::ProfileSampleHookFn, LUA_MASKSAMPLEPROFILE, samples);
    }
 }
 
