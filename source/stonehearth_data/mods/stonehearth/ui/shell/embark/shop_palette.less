@@ -1,0 +1,71 @@
+.itemList {
+   overflow-y: auto;
+   overflow-x: hidden;
+   width: 100%;
+
+   .item {
+      .button;
+      font-family: @baseFontFamily;
+      color: #fff;
+      font-size: 20px;
+      position: relative;
+      height: 90px;
+      diplay: block;
+
+      .image {
+         position: absolute;
+         width: 70px;
+         height: 70px;
+         left: 0px;
+         top: 5px;
+      }
+
+      .displayName {
+         position: absolute;
+         left: 90px;
+         top: 35px;
+      }
+
+      .cost {
+         font-family: @baseFontFamily;
+         position: absolute;
+         right: 22px;
+         color: #ffc600;
+         top: 35px;
+      }
+
+      .soldTag {
+         position: absolute;
+         top: 37px;
+         left: 54px;
+         display: none;
+         width: 50px;
+         height: 50px;
+         background-image: url(/stonehearth/ui/shell/embark/images/sold_tag.png);
+         background-position: right bottom;
+         background-repeat: no-repeat;
+      }
+   }
+
+   .item.selected {
+      .soldTag {
+         display: block;
+      }
+   }
+
+   .row0 {
+      background: #030202;
+   }
+   .row0.selected {
+      background: #071409;
+   }
+
+   .row1 {
+      background: #171616;
+   }
+   .row1.selected {
+      background: #142b18;
+   }
+}
+
+

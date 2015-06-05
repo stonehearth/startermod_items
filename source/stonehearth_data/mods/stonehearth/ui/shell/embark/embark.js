@@ -19,8 +19,10 @@ App.StonehearthEmbarkView = App.View.extend({
       this._super();
       var self = this;
       this._trace = new StonehearthDataTrace(App.population.getUri(), this._components);
+
       this._shopItemData = null;
       this._startingGold = 0;
+      this._shopPalette;
 
       this._requestedPortraits = [];
       this._citizensArray = [];
@@ -57,41 +59,28 @@ App.StonehearthEmbarkView = App.View.extend({
             console.error('generate_citizens failed:', e)
          });
 
-      // Shop setup.
-      self.$('#buyButton').tooltipster();
+      // Citizen Roster
+      this._citizensRoster = this.$('#citizensRoster').stonehearthRoster();
 
-      self.$('#buyButton').click(function() {
-         if (!$(this).hasClass('disabled')) {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
-            self._doBuy();
-            self._updateBuyButton();
-         }
-      });
-
+      // Shop
       self.$('#resetButton').click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
          self._doReset();
-         self._updateBuyButton();
       });
 
-      this._buyPalette = this.$('#buyPallet').stonehearthItemPalette({
-         cssClass: 'embarkItem',
-         itemAdded: function(itemEl, itemData) {
-            itemEl.attr('cost', itemData.cost);
-            itemEl.attr('num', itemData.num);
+      this._shopPalette = this.$('#shopItems').stonehearthEmbarkShopPalette(
+         {
+            canSelect: function(item) {
+               var cost = parseInt(item.attr('cost'));
+               var gold = self.get('gold');
+               return cost <= gold;
+            },
 
-            $('<div>')
-               .addClass('cost')
-               .html(itemData.cost + 'g')
-               .appendTo(itemEl);
-         },
-         click: function(item) {
-            self._updateBuyButton();
-         },
-         removeZeroNumItems: false
-      });
-
-      this._citizensRoster = this.$('#citizensRoster').stonehearthRoster();
+            click: function(item) {
+               self._doBuy(item);
+            }
+         }
+      );
 
       $.getJSON('/stonehearth/ui/data/embark_shop.json', function(data) {
          
@@ -104,9 +93,7 @@ App.StonehearthEmbarkView = App.View.extend({
             var talisman = {
                "display_name" : talismanData.display_name,
                "uri" : talismanData.uri,
-               "category" : category,
-               "is_talisman" : true,
-               "num" : 1,
+               "isPet" : false,
                "icon" : talismanData.icon,
                "cost" : talismanData.cost
             };
@@ -120,9 +107,7 @@ App.StonehearthEmbarkView = App.View.extend({
                var pet = {
                   "display_name" : i18n.t(petData.display_name),
                   "uri" : petData.uri,
-                  "category" : category,
-                  "num" : 1,
-                  "is_talisman" : false,
+                  "isPet" : true,
                   "icon" : petData.icon,
                   "cost" : petData.cost
                };
@@ -130,7 +115,7 @@ App.StonehearthEmbarkView = App.View.extend({
             })
          }
 
-         self._buyPalette.stonehearthItemPalette('updateItems', self._shopItemData);
+         self._shopPalette.stonehearthEmbarkShopPalette('updateItems', self._shopItemData);
       });
 
       $(document).on('keydown', this._clearSelectionKeyHandler);
@@ -149,16 +134,15 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:embark'});
 
-      radiant.each(self._shopItemData, function(i, data) {
-         if (data.num == 0) {
-            // This item was bought.
-            if (data.is_talisman) {
-               self._options.starting_talismans.push(data.uri);
-            } else {
-               self._options.starting_pets.push(data.uri);
-            }
+      // Find the bought items and push them to the options
+      self.$('#shopItems').find(".selected").each(function() {
+         var item = $( this ) ;
+         if (item.attr('isPet') == 'true') {
+            self._options.starting_pets.push(item.attr('uri'));
+         } else {
+            self._options.starting_talismans.push(item.attr('uri'));
          }
-      })
+      });
 
       self._options.starting_gold = self.get('gold');
 
@@ -218,63 +202,30 @@ App.StonehearthEmbarkView = App.View.extend({
          citizen.set('portrait', '/stonehearth/ui/shell/embark/images/portrait_not_yet_available.png');
          // TODO(yshan): Uncomment this once we fix the bug where citizens
          // are invisible if we generate their portrait on embark screen.
-         self._requestCitizenPortrait(citizen);
+         //self._requestCitizenPortrait(citizen);
       });
 
       self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
    },
 
-   _updateBuyButton: function() {
+   _doBuy: function(item) {
       var self = this;
-
-      var item = self.$('#buyPallet').find(".selected");
-      var cost = parseInt(item.attr('cost'));
-      // For some reason, if there's nothing selected
-      // item will still be defined, but its cost will be NaN.
-      if (item) {
-         // update the buy buttons
-         var numAvailable = parseInt(item.attr('num'));
-         var gold = self.get('gold');
-
-         if (cost <= gold) {
-            self.$('#buyButton').removeClass('disabled');
-            self.$('#buyButton').tooltipster('disable');
-         } else  {
-            self.$('#buyButton').addClass('disabled');
-            self.$('#buyButton').tooltipster('content', i18n.t('stonehearth:shop_not_enough_gold'));
-            self.$('#buyButton').tooltipster('enable');
-         }
-      } else {
-         self.$('#buyButton').addClass('disabled');
-         self.$('#buyButton').tooltipster('disable');
-      }
-   },
-
-   _doBuy: function(quantity) {
-      var self = this;
-      var item = self.$('#buyPallet').find(".selected");
       var gold = self.get('gold');
       var cost = parseInt(item.attr('cost'));
-      gold -= cost;
-      var uri = item.attr('uri')
-      radiant.each(self._shopItemData, function(i, data) {
-         if (data.uri == uri) {
-            data.num = 0;
-         };
-      });
+
+      if (item.hasClass('selected')) {
+         gold -= cost;
+      } else {
+         gold += cost;
+      }
 
       self.set('gold', gold);
-      self._buyPalette.stonehearthItemPalette('updateItems', self._shopItemData);
    },
 
    _doReset: function(quantity) {
       var self = this;
       self.set('gold', self._startingGold);
-      radiant.each(self._shopItemData, function(i, data) {
-         data.num = 1;
-      })
-
-      self._buyPalette.stonehearthItemPalette('updateItems', self._shopItemData);
+      self._shopPalette.stonehearthEmbarkShopPalette('updateItems', self._shopItemData);
    },
 
 });
