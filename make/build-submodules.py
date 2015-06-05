@@ -79,6 +79,9 @@ def check_submodule(flag, sha1, submodule):
    if sha1 == last_build_sha1:
       print ' * submodule %s is up-to-date.' % submodule
    else:
+      #print ' * writing sha1 hash to %s.' % last_build_file(submodule)
+      #file(last_build_file(submodule), 'w').write(sha1)
+      #sys.exit(0)
       build_submodule(sha1, submodule)
 
 def check_submodules():

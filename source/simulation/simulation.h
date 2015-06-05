@@ -2,7 +2,10 @@
 #define _RADIANT_SIMULATION_SIMULATION_H
 
 #define BOOST_ASIO_PLACEHOLDERS_HPP
+#pragma warning(push)
+#pragma warning(disable : 4005)
 #include <boost/asio.hpp>
+#pragma warning(pop)
 
 #include "om/om.h"
 #include "core/static_string.h"
