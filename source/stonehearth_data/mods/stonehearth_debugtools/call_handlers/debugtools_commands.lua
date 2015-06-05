@@ -49,6 +49,13 @@ function Commands:create_entity(session, response, uri, iconic, location, rotati
    return true
 end
 
-
+function Commands:add_exp_command(session, response, entity, exp)
+   local job_component = entity:get_component('stonehearth:job')
+   if not job_component then
+      return false
+   end
+   job_component:add_exp(exp)
+   return true
+end
 
 return Commands

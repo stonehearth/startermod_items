@@ -6,6 +6,17 @@ $(document).ready(function(){
    });
    
    // wire up a generic handler to call any registered route.
+   radiant.console.register('help', {
+      call : function(cmdobj, fn, args) {
+         var commands = radiant.console.getCommands();
+         var commands = "<p>Available commands:</p>" + commands;
+         cmdobj.setContent(commands);
+         return;
+      },
+      description : "Prints out all the registered console commands"
+   });
+
+   // wire up a generic handler to call any registered route.
    radiant.console.register('call', {
       call : function(cmdobj, fn, args) {
          var cmd = args[0];
@@ -101,16 +112,6 @@ $(document).ready(function(){
       call: function(cmdobj, fn, args) {
          var time = JSON.parse(args[0]);
          return App.stonehearthClient.setTime(time);
-      }
-   });
-
-   // Usage: add_gold 1000 
-   // OR  add_gold -1000
-   // A negative value will subtract gold.
-   radiant.console.register('add_gold', {
-      call: function(cmdobj, fn, args) {
-         var goldAmount = JSON.parse(args[0]);
-         return radiant.call_obj('stonehearth.inventory', 'add_gold_console_command', goldAmount);
       }
    });
 });
