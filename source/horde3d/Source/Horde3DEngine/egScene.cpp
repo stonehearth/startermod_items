@@ -1443,7 +1443,9 @@ void Scene::removeNodeRec( SceneNode &node )
       node._children.erase(node._children.end() - 1);
 	}
 	
-	// Delete node
+   updateNodeTrackers(&node);
+
+   // Delete node
    if( handle != _rootNodeId )
 	{
 		_spatialGraph->removeNode(node);
@@ -1454,7 +1456,6 @@ void Scene::removeNodeRec( SceneNode &node )
          _nodes.erase(i);
       }
 	}
-   updateNodeTrackers(&node);
 }
 
 
