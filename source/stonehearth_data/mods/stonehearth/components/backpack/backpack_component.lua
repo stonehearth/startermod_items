@@ -5,6 +5,7 @@ local log = radiant.log.create_logger('backpack')
 function BackpackComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
+   self.num_reserved = 0
 
    self._filter = entity:add_component('stonehearth:storage_filter')
    if not self._sv.initialized then
@@ -15,6 +16,20 @@ function BackpackComponent:initialize(entity, json)
    end
 
    self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
+end
+
+function BackpackComponent:reserve_space()
+   if self._sv.num_items + self.num_reserved >= self._sv.capacity then
+      return false
+   end
+   self.num_reserved = self.num_reserved + 1
+   return true
+end
+
+function BackpackComponent:unreserve_space()
+   if self.num_reserved > 0 then
+      self.num_reserved = self.num_reserved - 1
+   end
 end
 
 function BackpackComponent:get_filter()

@@ -42,7 +42,7 @@ function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
 end
 
 function ReserveStockpileSpace:stop_thinking(ai, entity)
-   self._space_listener:destroy();
+   self._space_listener:destroy()
    self._space_listener = nil
 end
 

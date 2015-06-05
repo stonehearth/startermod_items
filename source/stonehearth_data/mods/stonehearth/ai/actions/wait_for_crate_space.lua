@@ -17,30 +17,40 @@ function WaitForCrateSpace:start_thinking(ai, entity, args)
    self._ai = ai
    self._log = ai:get_log()
    self._backpack = args.crate:get_component('stonehearth:backpack')
+   self._ready = false
 
-   self._space_listener = radiant.events.listen(args.crate, 'stonehearth:backpack:item_removed', self, self._on_space_available)
-   self:_on_space_available()
+   self._more_space_listener = radiant.events.listen(args.crate, 'stonehearth:backpack:item_removed', self, self._on_space_changed)
+   self._less_space_listener = radiant.events.listen(args.crate, 'stonehearth:backpack:item_added', self, self._on_space_changed)
+   self:_on_space_changed()
 end
 
-function WaitForCrateSpace:_on_space_available()
+function WaitForCrateSpace:_on_space_changed()
    if not self._backpack then
       self._log:debug('crate destroyed')
       return
    end
 
-   if self._backpack:is_full() then
+   if self._backpack:is_full() and self._ready then
+      self._ready = false
+      self._ai:clear_think_output()
       return
    end
 
-   local filter_fn = self._backpack:get_filter()
-   self._ai:set_think_output({
-      item_filter = filter_fn
-   })
+   if not self._ready then
+      self._ready = true
+      local filter_fn = self._backpack:get_filter()
+      self._ai:set_think_output({
+         item_filter = filter_fn
+      })
+   end
 end
 
 function WaitForCrateSpace:stop_thinking(ai, entity)
-   self._space_listener:destroy()
-   self._space_listener = nil
+   self._more_space_listener:destroy()
+   self._more_space_listener = nil
+
+   self._less_space_listener:destroy()
+   self._less_space_listener = nil
 end
 
 return WaitForCrateSpace

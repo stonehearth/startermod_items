@@ -13,4 +13,5 @@ DropCarryingInCrate.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(DropCarryingInCrate)
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.crate })
+         :execute('stonehearth:reserve_backpack_space', { backpack_entity = ai.ARGS.crate })
          :execute('stonehearth:put_carrying_in_backpack', { backpack_entity = ai.ARGS.crate })
