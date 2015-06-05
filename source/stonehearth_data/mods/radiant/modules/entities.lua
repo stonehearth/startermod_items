@@ -440,6 +440,16 @@ function entities.is_carrying(entity)
    return carry_block:is_carrying()
 end
 
+function entities.is_carried(entity)
+   local parent = radiant.entities.get_parent(entity)
+   if not parent then
+      return false
+   end
+
+   local carrying = radiant.entities.get_carrying(parent)
+   return entity == carrying
+end
+
 -- id here can be an int (e.g. 999) or uri (e.g. '/o/stores/server/objects/999')
 function entities.get_entity(id)
    local entity = radiant.get_entity(id)
