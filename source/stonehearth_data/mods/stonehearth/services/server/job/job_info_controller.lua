@@ -7,17 +7,24 @@ function JobInfoController:initialize(info)
          local crafter = desc.crafter
          if crafter then
             if crafter.recipe_list then
-               self:_build_craftable_recipe_list(crafter.recipe_list)
+               self._sv.recipe_list_location = crafter.recipe_list
             end
          end
       end
    end
-   self.__saved_variables:mark_changed()
+end
+
+function JobInfoController:activate()
+   if self._sv.recipe_list_location then
+      self:_build_craftable_recipe_list(self._sv.recipe_list_location)
+   end
 end
 
 --- Build the list sent to the UI from the json
 --  Load each recipe's data and add it to the table
 function JobInfoController:_build_craftable_recipe_list(recipe_index_url)
+   -- Note: this recipe list is recreated everytime we load the game.
+   -- The reason it's in _sv is so we can easily send the recipe data to the client.
    self._sv.recipe_list = radiant.resources.load_json(recipe_index_url).craftable_recipes
 
    local craftable_recipes = {}
@@ -27,6 +34,7 @@ function JobInfoController:_build_craftable_recipe_list(recipe_index_url)
          self:_initialize_recipe_data(recipe_data.recipe)
       end
    end
+   self.__saved_variables:mark_changed()
    return craftable_recipes
 end
 

@@ -4,8 +4,11 @@
          "ordinal" : 1, 
          "name" : "Tools", 
          "recipes" : {
-            "blacksmith_hammner" : {
+            "blacksmith_hammer" : {
                "recipe" : "file(blacksmith_hammer_recipe.json)"
+            },
+            "cook_spoon" : {
+               "recipe" : "file(cook_spoon_recipe.json)"
             }
          }
       },
