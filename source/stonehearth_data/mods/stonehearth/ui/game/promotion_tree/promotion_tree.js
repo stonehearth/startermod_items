@@ -43,9 +43,25 @@ App.StonehearthPromotionTree = App.View.extend({
 
       var nodeMap = {};
 
+      var arr = radiant.map_to_array(self._jobData);
+      
+      arr.sort(function(a, b){
+          var aName = a.description.alias;
+          var bName = b.description.alias;
+          if (aName > bName) {
+            return 1;
+          }
+          if (aName < bName) {
+            return -1;
+          }
+          // a must be equal to b
+          return 0;
+      });
+
       // for all jobs in the map
-      $.each(self._jobData, function(key, job) {
+      radiant.each(arr, function(i, job) {
          if (job && job.description) {
+            var key = job.description.alias;
             //lookup the node. build it if necessary
             var node = nodeMap[key] || {};
             nodeMap[key] = node;
@@ -319,7 +335,7 @@ App.StonehearthPromotionTree = App.View.extend({
          var parentJobController = self._citizenJobData[jobDescription.parent_job];
          var parentRequiredLevel = jobDescription.parent_level_requirement ? jobDescription.parent_level_requirement : 0;
          
-         if (parentJobController != undefined && parentJobController != "stonehearth:jobs:worker" && parentRequiredLevel > 0) {
+         if (parentJobController != undefined && parentJobController != "stonehearth:jobs:worker") {
             $.each(self._citizenJobData, function(jobUri, jobData) {
                if (jobUri == jobDescription.parent_job && jobData.last_gained_lv >= parentRequiredLevel) {
                   requirementsMet = true;

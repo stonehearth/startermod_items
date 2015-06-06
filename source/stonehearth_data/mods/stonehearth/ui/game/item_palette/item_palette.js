@@ -51,7 +51,16 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       var arr = radiant.map_to_array(itemMap);
       
       arr.sort(function(a, b){
-         return a.display_name - b.display_name
+         var aName = a.display_name;
+          var bName = b.display_name;
+          if (aName > bName) {
+            return 1;
+          }
+          if (aName < bName) {
+            return -1;
+          }
+          // a must be equal to b
+          return 0;
       });
 
       radiant.each(arr, function(i, item) {
