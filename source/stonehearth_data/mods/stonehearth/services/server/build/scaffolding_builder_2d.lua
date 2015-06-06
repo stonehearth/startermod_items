@@ -39,10 +39,13 @@ end
 
 function ScaffoldingBuilder_TwoDim:destroy()
    self._log:info('destroying scaffolding builder')
+
    for id, builder in pairs(self._sv.builders) do
       self._sv.manager:_remove_builder(id)
    end
    self._sv.builders = {}
+
+   self._sv.manager:_remove_builder(self._sv.id)
 end
 
 function ScaffoldingBuilder_TwoDim:activate()
@@ -65,11 +68,11 @@ function ScaffoldingBuilder_TwoDim:activate()
                               :set_prefix('s2d:' .. tostring(self._sv.id) .. ' ' .. self._debug_text)
 
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
-         self._sv.manager:_remove_builder(self._sv.id)
+         self:destroy()
       end)                              
 end
 
-function  ScaffoldingBuilder_TwoDim:set_teardown(teardown)
+function ScaffoldingBuilder_TwoDim:set_teardown(teardown)
    self._sv.teardown = teardown
    self.__saved_variables:mark_changed()
 
@@ -78,7 +81,7 @@ function  ScaffoldingBuilder_TwoDim:set_teardown(teardown)
    end
 end
 
-function  ScaffoldingBuilder_TwoDim:set_active(active)
+function ScaffoldingBuilder_TwoDim:set_active(active)
    checks('self', '?boolean')
 
    if active ~= self._sv.active then
