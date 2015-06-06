@@ -379,12 +379,12 @@
    "terrain_xray_vision" : "Terrain x-ray vision",
    "terrain_xray_vision_description" : "See through the terrain. Change between full and flat view to show underground walls.",
 
-   "pause_title" : "Pause Game",
-   "pause_description" : "Pause the game if it's running.",
-   "play_title" : "Play Game",
-   "play_description" : "Make the game run at normal speed.", 
+   "pause_title" : "Pause",
+   "pause_description" : "Pause the game",
+   "play_title" : "Play",
+   "play_description" : "Run the game at normal speed",
    "ff_title" : "Fast Forward",
-   "ff_description" : "Make the game run at 2x speed.", 
+   "ff_description" : "Run the game at 2x speed",
 
    "town_description" : "The __descriptor__ __noun__ of", 
    "camp" : "Camp", 
