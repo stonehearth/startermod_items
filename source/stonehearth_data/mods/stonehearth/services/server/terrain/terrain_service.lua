@@ -242,15 +242,26 @@ function TerrainService:_get_visible_region(player_id)
    return bounded_visible_region
 end
 
+-- Try to avoid calling this method if possible.
+-- It iterates over thousands of entities and all their trackers.
 function TerrainService:get_entities_in_explored_region(player_id, filter_fn)
+   if self._terrain_component:is_empty() then
+      return {}
+   end
+
+   local terrain_bounds = self._terrain_component:get_bounds()
    local explored_region_boxed = self:get_explored_region(player_id)
-   local explored_region_3d = explored_region_boxed:get():lift(-100, 100)
 
-   local ents = radiant.terrain.get_entities_in_region(explored_region_3d, filter_fn)
+   -- terrain_bounds.max.y is really the world bounds
+   local explored_region_3d = explored_region_boxed:get():lift(terrain_bounds.min.y, terrain_bounds.max.y)
 
-   -- Make sure we don't record the terrain.
-   ents[1] = nil
-   return ents
+   local entities = radiant.terrain.get_entities_in_region(explored_region_3d, filter_fn)
+
+   -- Exclude the root entity
+   local terrain_id = radiant.entities.get_root_entity():get_id()
+   entities[terrain_id] = nil
+
+   return entities
 end
 
 function TerrainService:_get_entity_visible_region(entity)
