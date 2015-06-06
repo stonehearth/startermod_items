@@ -81,12 +81,8 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory)
          end
 
          -- If this item is already in a container for the player, then ignore it.
-         if player_inventory:container_for(item) ~= nil then
-            return false
-         end
-
-         -- If the location isn't even in the world, ignore it.
-         if radiant.entities.get_world_grid_location(item) == nil then
+         local container = player_inventory:container_for(item)
+         if container then
             return false
          end
 
