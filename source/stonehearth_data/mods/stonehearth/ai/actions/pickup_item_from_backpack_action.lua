@@ -5,12 +5,13 @@ PickupItemFromBackpack.name = 'pickup item from backpack'
 PickupItemFromBackpack.does = 'stonehearth:pickup_item_from_backpack'
 PickupItemFromBackpack.args = {
    item = Entity,
+   backpack_entity = Entity
 }
 PickupItemFromBackpack.version = 2
 PickupItemFromBackpack.priority = 1
 
 function PickupItemFromBackpack:start_thinking(ai, entity, args)
-   self._backpack_component = entity:get_component('stonehearth:backpack')
+   self._backpack_component = backpack_entity:get_component('stonehearth:backpack')
 
    if self._backpack_component and self._backpack_component:contains_item(args.item) then
       ai.CURRENT.carrying = args.item
