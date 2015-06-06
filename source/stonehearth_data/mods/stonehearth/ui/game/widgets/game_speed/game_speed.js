@@ -110,10 +110,11 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       var buttons = ['pause', 'play', 'ff'];
       radiant.each(buttons, function(i, buttonName) {
          var button = this.$('#'+ buttonName + 'Button');
+         var description_key = 'stonehearth:' + buttons[i] + '_description';
          button.tooltipster({
          position: 'bottom',
          content: $('<div class=title>' + i18n.t('stonehearth:' + buttonName + '_title') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:pause_description') + '</div>' + 
+                    '<div class=description>' + i18n.t(description_key) + '</div>' + 
                     '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + button.attr('hotkey')  + '</span></div>')
          });
 
