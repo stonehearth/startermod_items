@@ -102,13 +102,6 @@ function FabricatorComponent:destroy()
       radiant.entities.destroy_entity(proxy)
       self._sv.material_proxies[material] = nil
    end
-
-
-   -- destroy all the scaffolding stuff we created.
-   if self._sv.scaffolding then
-      self._sv.scaffolding:destroy()
-      self._sv.scaffolding = nil
-   end
 end
 
 function FabricatorComponent:set_active(enabled)

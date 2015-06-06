@@ -73,7 +73,6 @@ function ScaffoldingManager:_remove_builder(bid)
    local builder = self._sv.builders[bid]
    if builder then
       self._sv.builders[bid] = nil
-      builder:destroy()
    end
    self.__saved_variables:mark_changed()
 end

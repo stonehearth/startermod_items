@@ -53,6 +53,8 @@ function TeardownStructureAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, block)
    ai:execute('stonehearth:run_effect', { effect = 'work' })
 
+   ai:unprotect_argument(fabricator)
+
    if fabricator:remove_block(block) then
       if not radiant.entities.increment_carrying(entity) then
          local resource = radiant.entities.create_entity(MATERIAL_TO_RESOURCE[self._material])
