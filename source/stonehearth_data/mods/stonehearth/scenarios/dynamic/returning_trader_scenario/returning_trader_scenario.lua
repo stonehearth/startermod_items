@@ -426,7 +426,7 @@ function ReturningTrader:_accept_trade()
       local uris = {}
       uris[self._sv._trade_data.reward_uri] = self._sv._trade_data.reward_count
       --TODO: attach a brief particle effect to the new stuff
-      radiant.entities.spawn_items(uris, drop_origin, 1, 3, { owner = self._sv.player_id })
+      radiant.entities.spawn_items(uris, drop_origin, 1, 3, { owner = self._sv._player_id })
    elseif self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'crop' then
       local session = {
          player_id = self._sv._player_id,
