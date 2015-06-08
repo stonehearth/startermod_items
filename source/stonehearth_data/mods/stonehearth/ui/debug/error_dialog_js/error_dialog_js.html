@@ -1,9 +1,11 @@
 <script type="text/x-handlebars" data-template-name="errorDialogJs">
-   <div id="errorDialog">
-      <div class="heading">message <a id="close" {{action close target=view}}>close window</a></div>
-      <div class="value">{{ view.model.message }}</div>
-      <div class="heading">backtrace</div>
-      <div class="value">{{ view.model.error.stack }}</div>
+<div id="errorDialogjs" class="gui">
+   <div class="window">
+      <div class="title">UI Error<div class="closeButton"></div></div>
+      <div id="errorDialog">
+         <div class="heading">{{ view.model.message }}</div>
+         <div class="value">{{ view.model.error.stack }}</div>
+      </div>
    </div>
 </div>
 </script>
