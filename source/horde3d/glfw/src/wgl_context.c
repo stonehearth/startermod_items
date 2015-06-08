@@ -32,6 +32,16 @@
 #include <assert.h>
 
 
+static void LogFbConfig(const char* reason, const _GLFWfbconfig* config)
+{
+    _glfwInputError(0, "%d) %s:  colorbits:%d,%d,%d alphabits:%d depthbits:%d stencilbits:%d srgb:%d stereo:%d samples:%d",
+                    config->wgl, reason,
+                    config->redBits, config->greenBits, config->blueBits,
+                    config->alphaBits, config->depthBits, config->stencilBits,
+                    config->sRGB, config->stereo, config->samples);
+}
+
+
 // Initialize WGL-specific extensions
 // This function is called once before initial context creation, i.e. before
 // any WGL extensions could be present.  This is done in order to have both
@@ -169,6 +179,8 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
         return GL_FALSE;
     }
 
+    _glfwInputError(0, "filtering %d native pixel formats", nativeCount);
+
     usableConfigs = calloc(nativeCount, sizeof(_GLFWfbconfig));
     usableCount = 0;
 
@@ -184,18 +196,22 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
                 !getPixelFormatAttrib(window, n, WGL_DRAW_TO_WINDOW_ARB) ||
                 !getPixelFormatAttrib(window, n, WGL_DOUBLE_BUFFER_ARB))
             {
+                // this happens a LOT.  don't log it...
+                // _glfwInputError(0, "%d) rejected: not opengl, windowable or double buffered", i);
                 continue;
             }
 
             if (getPixelFormatAttrib(window, n, WGL_PIXEL_TYPE_ARB) !=
                 WGL_TYPE_RGBA_ARB)
             {
+                _glfwInputError(0, "%d) rejected: not rgba", i);
                 continue;
             }
 
             if (getPixelFormatAttrib(window, n, WGL_ACCELERATION_ARB) ==
                  WGL_NO_ACCELERATION_ARB)
             {
+                _glfwInputError(0, "%d) rejected: not accelerated", i);
                 continue;
             }
 
@@ -232,6 +248,7 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
                                      sizeof(PIXELFORMATDESCRIPTOR),
                                      &pfd))
             {
+                _glfwInputError(0, "%d) rejected: DescribePixelFormat failed", i);
                 continue;
             }
 
@@ -239,17 +256,22 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
                 !(pfd.dwFlags & PFD_SUPPORT_OPENGL) ||
                 !(pfd.dwFlags & PFD_DOUBLEBUFFER))
             {
+                // this happens a LOT.  don't log it...
+                // _glfwInputError(0, "%d) rejected: not opengl, windowable or double buffered (2)", i);
                 continue;
             }
 
             if (!(pfd.dwFlags & PFD_GENERIC_ACCELERATED) &&
                 (pfd.dwFlags & PFD_GENERIC_FORMAT))
             {
+                _glfwInputError(0, "%d) rejected: not accelerated (2)", i);
                 continue;
             }
 
-            if (pfd.iPixelType != PFD_TYPE_RGBA)
+            if (pfd.iPixelType != PFD_TYPE_RGBA) {
+                _glfwInputError(0, "%d) rejected: not rgba", i);
                 continue;
+            }
 
             u->redBits = pfd.cRedBits;
             u->greenBits = pfd.cGreenBits;
@@ -269,6 +291,7 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
         }
 
         u->wgl = n;
+        LogFbConfig("found valid pixel format", u);
         usableCount++;
     }
 
@@ -281,12 +304,15 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
         return GL_FALSE;
     }
 
+    _glfwInputError(0, "choosing from %d usable pixel formats", usableCount);
     closest = _glfwChooseFBConfig(desired, usableConfigs, usableCount);
     if (!closest)
     {
+        _glfwInputError(0, "failed to choose pixel format!!!");
         free(usableConfigs);
         return GL_FALSE;
     }
+    LogFbConfig("chose pixel format", closest);
 
     *result = closest->wgl;
     free(usableConfigs);

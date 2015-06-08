@@ -17,7 +17,8 @@ function TimeTracker:set_now(now)
    for _, timer in pairs(self._sv._timers) do
       if timer:is_active() then
          if timer:get_expire_time() <= now then
-            timer:fire(now)
+            -- fire the timer in a pcall...
+            xpcall(function() timer:fire(now) end, radiant.report_traceback)
          end
          if timer:is_active() then
             table.insert(self._sv._next_timers, timer)
