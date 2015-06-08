@@ -248,27 +248,30 @@ end
 function ShepherdPastureComponent:_collect_strays()
    for id, critter_data in pairs(self._sv.tracked_critters) do
       local critter = critter_data.entity
-      local critter_location = radiant.entities.get_world_grid_location(critter)
-      local region_shape = self._entity:add_component('region_collision_shape'):get_region():get()
-      
-      local pasture_location = radiant.entities.get_world_grid_location(self._entity)
-      local world_region_shape = region_shape:translated(pasture_location)
 
-      local equipment_component = critter_data.entity:get_component('stonehearth:equipment')
-      local pasture_collar = equipment_component:has_item_type('stonehearth:pasture_tag')
-      local shepherded_animal_component = pasture_collar:get_component('stonehearth:shepherded_animal')
+      if critter and critter:is_valid() then
+         local critter_location = radiant.entities.get_world_grid_location(critter)
+         local region_shape = self._entity:add_component('region_collision_shape'):get_region():get()
+         
+         local pasture_location = radiant.entities.get_world_grid_location(self._entity)
+         local world_region_shape = region_shape:translated(pasture_location)
 
-      if not world_region_shape:contains(critter_location) and not shepherded_animal_component:get_following() then
-         local town = stonehearth.town:get_town(self._entity)
-         town:create_task_for_group(
-            'stonehearth:task_group:herding', 
-            'stonehearth:find_stray_animal', 
-            {animal = critter, pasture = self._entity})
-            :set_source(critter)
-            :set_name('return strays to pasture')
-            :set_priority(stonehearth.constants.priorities.shepherding_animals.RETURN_TO_PASTURE)
-            :once()
-            :start()
+         local equipment_component = critter:get_component('stonehearth:equipment')
+         local pasture_collar = equipment_component:has_item_type('stonehearth:pasture_tag')
+         local shepherded_animal_component = pasture_collar:get_component('stonehearth:shepherded_animal')
+
+         if not world_region_shape:contains(critter_location) and not shepherded_animal_component:get_following() then
+            local town = stonehearth.town:get_town(self._entity)
+            town:create_task_for_group(
+               'stonehearth:task_group:herding', 
+               'stonehearth:find_stray_animal', 
+               {animal = critter, pasture = self._entity})
+               :set_source(critter)
+               :set_name('return strays to pasture')
+               :set_priority(stonehearth.constants.priorities.shepherding_animals.RETURN_TO_PASTURE)
+               :once()
+               :start()
+         end
       end
    end
 end
