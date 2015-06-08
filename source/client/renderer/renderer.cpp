@@ -337,6 +337,18 @@ void Renderer::InitHorde()
    h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false);
 }
 
+void DumpDisplayAdapters() {
+#ifdef WIN32
+   DISPLAY_DEVICE dd;
+   dd.cb = sizeof(dd);
+   int num = 0;
+   while (EnumDisplayDevices(nullptr, num, &dd, 1)) {
+      R_LOG(1) << " Display device " << num << ": " << dd.DeviceString;
+      num++;
+   }
+#endif
+}
+
 csg::Point2 Renderer::InitWindow()
 {
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
@@ -371,6 +383,7 @@ csg::Point2 Renderer::InitWindow()
    if (!window) {
       R_LOG(1) << "Error trying to create glfw window.  (size:" << size << "  fullscreen:" << config_.enable_fullscreen.value << ")";
       glfwTerminate();
+      DumpDisplayAdapters();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
 
