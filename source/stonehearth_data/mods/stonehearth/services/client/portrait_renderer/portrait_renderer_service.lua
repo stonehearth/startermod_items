@@ -1,3 +1,4 @@
+local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('portrait_renderer')
@@ -8,8 +9,45 @@ function PortraitRendererService:initialize()
    self._created_entities = {}
    self._existing_entities = {}
    self._lights = {}
+
+   self._request_queue = {}   
+
+   _radiant.client.set_route_handler('get_portrait', function(uri, form, response)
+         self:_render_portrait(form, response)
+      end)
 end
 
+function PortraitRendererService:_render_portrait(request, response)
+   assert(request)
+   assert(response)
+   
+   table.insert(self._request_queue, {
+         request = request,
+         response = response,
+      })
+   if not self._pending_request then
+      self:_pump_request_queue()
+   end
+end
+
+function PortraitRendererService:_pump_request_queue()
+   assert(not self._pending_request)
+   self._pending_request = table.remove(self._request_queue, 1)
+   if not self._pending_request then
+      return
+   end
+   local request, response = self._pending_request.request, self._pending_request.response
+   assert(request)
+   assert(response)
+
+   self:_stage_scene(request)
+   _radiant.client.get_portrait(function(bytes)
+         self:_clear_scene()
+         self._pending_request = nil
+         response:resolve_with_content(bytes, 'image/png');
+         self:_pump_request_queue()
+      end)
+end
 
 function PortraitRendererService:_create_entity(entity_uri, position, rotation)
    local ent = radiant.entities.create_entity(entity_uri)
@@ -62,90 +100,29 @@ function PortraitRendererService:_add_light(light)
    })
 end
 
---[[
-
-{
-   lights : [
-      {
-         color:Color3,
-         ambient_color: Color3
-         direction: Point3
-      },
-   ],
-   entities: [
-      {
-         uri: string
-      }
-   ],
-
-   camera: {
-      position: Point3,
-      look_at: Point3
-   }
-}
-
-
-]]
-
-
-function _to_point3(p3_array)
+local function to_point3(p3_array)
    return Point3(p3_array[1], p3_array[2], p3_array[3])
 end
 
-function _parse_scene(scene_json)
-   local scene = {}
+function PortraitRendererService:_stage_scene(request)
+   if request.type == 'headshot' then
+      self:_add_light({
+            color =         Point3(0.9,  0.8, 0.9),
+            ambient_color = Point3(0.3,  0.3, 0.3),
+            direction =     Point3(-45, -45, 0)
+         })
+      self:_set_camera_position(Point3(2.5, 2, -2.5))
+      self:_set_camera_look_at(Point3.zero)
 
-   local lights = {}
-   for _, light in pairs(scene_json['lights']) do
-      table.insert(lights, {
-         color = _to_point3(light['color']),
-         ambient_color = _to_point3(light['ambient_color']),
-         direction = _to_point3(light['direction']),
-      })
+      local entity = request.entity
+      if radiant.util.is_a(entity, Entity) and entity:is_valid() then
+         self:_add_existing_entity(entity)
+      end
    end
-   scene['lights'] = lights
-
-   if scene_json['entity_alias'] then
-      scene['entity_alias'] = scene_json['entity_alias']
-   end
-
-   if scene_json['entity'] then
-      scene['entity'] = scene_json['entity']
-   end
-
-   scene['camera'] = {
-      position = _to_point3(scene_json['camera']['position']),
-      look_at = _to_point3(scene_json['camera']['look_at']),
-   }
-
-   return scene
 end
 
-function PortraitRendererService:set_scene(scene_json)
-   local scene = _parse_scene(scene_json)
 
-   for _, light in pairs(scene['lights']) do
-      self:_add_light(light)
-   end
-
-   if scene['entity_alias'] then
-      self:_create_entity(scene['entity_alias'])
-   end
-   local entity = scene['entity']
-   -- Sometimes, the entity will fail to resolve and be
-   -- a string instead, this might happen if the entity
-   -- was destroyed right before the portrait request fired.
-   -- TODO(yshan): this should call back to the response with
-   -- a fail instead of proceeding to render an empty scene.
-   if entity and not (type(entity) == 'string') then
-      self:_add_existing_entity(scene['entity'])
-   end
-   
-   self:_set_camera_position(scene['camera'].position)
-   self:_set_camera_look_at(scene['camera'].look_at)
-end
-
-function PortraitRendererService:clear_scene()
+function PortraitRendererService:_clear_scene()
    for _, light in pairs(self._lights) do
       h3dRemoveNode(light.node)
    end
@@ -161,33 +138,6 @@ function PortraitRendererService:clear_scene()
       entity_data.render_entity = nil
    end
    self._existing_entities = {}
-end
-
-function PortraitRendererService:render_scene(scene_json, callback)
-   self:clear_scene()
-   self:set_scene(scene_json)
-
-   local render_count = 0
-   local render_trace
-   render_trace = _radiant.client.trace_render_frame()
-                                    :on_frame_finished('portrait render wait', function(now, interpolate)
-                                             -- We need to wait a few frames to make sure the model is spawned
-                                             -- and ready to draw.
-                                             render_count = render_count + 1
-                                             if render_count > 5 then
-                                                render_trace:destroy()
-                                                _radiant.call('radiant:client:get_portrait'):done(function(resp)
-                                                      self:clear_scene()
-                                                      callback(resp)
-                                                   end)
-                                             end
-                                       end)
-end
-
-function PortraitRendererService:render_scene_command(session, response, scene_json)
-   self:render_scene(scene_json, function(resp)
-         response:resolve(resp)
-      end)
 end
 
 return PortraitRendererService

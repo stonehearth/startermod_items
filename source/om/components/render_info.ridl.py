@@ -11,6 +11,7 @@ class RenderInfo(Component):
    animation_table = dm.Boxed(std.string())
    material = dm.Boxed(std.string())
    visible = dm.Boxed(c.bool())
+   cache_model_geometry = dm.Boxed(c.bool())
 
    color_map= dm.Boxed(std.string())
    material_maps = dm.Set(std.string(), iterate='define', singular_name='material_map')

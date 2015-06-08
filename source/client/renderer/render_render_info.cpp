@@ -377,7 +377,12 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
 
    Pipeline::MaterialToGeometryMapPtr geometry;
    Pipeline& pipeline = Pipeline::GetInstance();
-   pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing);
+
+   if (render_info->GetCacheModelGeometry()) {
+      pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing);
+   } else {
+      pipeline.CreateGeometryFromGenerator(geometry, _materialMap, generate_matrix, noInstancing);
+   }
 
    H3DNode parent = entity_.GetNode();
    for (auto const& entry : *geometry) {

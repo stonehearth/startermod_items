@@ -1017,7 +1017,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename)
    for (const auto& sample : samples) {
       output(sample.key, sample.allocs, sample.totalBytes);
    }
-   LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
+   LUA_LOG(0) << " wrote lua memory profile data to " << filename;
 }
 
 void ScriptHost::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const

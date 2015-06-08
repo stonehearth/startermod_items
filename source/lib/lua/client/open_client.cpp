@@ -8,7 +8,9 @@
 #include "lib/json/core_json.h"
 #include "lib/rpc/lua_deferred.h"
 #include "lib/rpc/reactor_deferred.h"
+#include "lib/rpc/http_deferred.h"
 #include "lib/voxel/qubicle_brush.h"
+#include "lib/lua/bind.h"
 #include "lib/lua/script_host.h"
 #include "lib/perfmon/perfmon.h"
 #include "client/client.h"
@@ -544,6 +546,27 @@ static const char* Client_GetCurrentUIScreen()
    return Client::GetInstance().GetCurrentUIScreen();
 }
 
+static void Client_SetRouteHandler(const char* route, luabind::object unsafe_cb)
+{
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());
+
+   // XXX: Capturing the callback by value in the lambda passed to SetRouteHandler causes crashing bugs.
+   // I suspect this is a compiler errors in Visual Studio 2012, since we capture luabind::objects
+   // by value all the time elsewhere.  Revist when we upgrade compilers.  If someone ever fixes,
+   // this, please resolve https://redmine/issues/299 . -- tony
+   //
+   luabind::object *cb = new luabind::object(cb_thread, unsafe_cb);
+
+   Client::GetInstance().SetLuaRouteHandler(route, [cb_thread, cb] (chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) mutable {
+      try {
+         luabind::object form = lua::ScriptHost::JsonToLua(cb_thread, req.query);
+         (*cb)(req.path, form, response);
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(cb_thread, e);
+      }
+   });
+}
+
 static std::string Client_SnapScreenShot(const char* tag)
 {
    char date[256];
@@ -567,6 +590,20 @@ static std::string Client_SnapScreenShot(const char* tag)
       return "";
    }
    return pathstr;
+}
+
+static void Client_GetPortrait(lua_State* L, luabind::object unsafe_cb)
+{
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());  
+   luabind::object cb = luabind::object(cb_thread, unsafe_cb);
+
+   Renderer::GetInstance().RequestPortrait([cb_thread, cb](std::string const& bytes) mutable {
+      try {
+         cb(bytes);
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(cb_thread, e);
+      }
+   });
 }
 
 DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
@@ -615,6 +652,8 @@ void lua::client::open(lua_State* L)
             def("get_mouse_position",              &Client_GetMousePosition),
             def("snap_screenshot",                 &Client_SnapScreenShot),
             def("get_current_ui_screen",           &Client_GetCurrentUIScreen),
+            def("set_route_handler",               &Client_SetRouteHandler),
+            def("get_portrait",                    &Client_GetPortrait),
 
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)
@@ -628,6 +667,11 @@ void lua::client::open(lua_State* L)
             ,
             lua::RegisterTypePtr_NoTypeInfo<SetCursorPromise>("SetCursorPromise")
                .def("destroy",           &SetCursorPromise::Destroy)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<rpc::HttpDeferred>("HttpDeferred")
+               .def("resolve_with_file",     &rpc::HttpDeferred::ResolveWithFile)
+               .def("resolve_with_content",  &rpc::HttpDeferred::ResolveWithContent)
+               .def("reject_with_error",     &rpc::HttpDeferred::RejectWithError)
             ,
             // xxx: Input, MouseInput, KeyboardInput, etc. should be in open_core.cpp, right?
             lua::RegisterType_NoTypeInfo<Input>("Input")
