@@ -24,6 +24,7 @@ ZIP_PACKAGE_ROOT   = build/game-package
 DEBUG_PACKAGE_ROOT = build/debug-package
 TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
 TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
+BOOST_ROOT         = $(STONEHEARTH_ROOT)/modules/boost/install/$(RADIANT_BUILD_PLATFORM)/include/boost-1_54
 
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
@@ -87,7 +88,7 @@ init-build:
 submodules:
 	git submodule init
 	git submodule update --remote	
-	$(MAKE_ROOT)/build-submodules.py
+	RADIANT_BOOST_ROOT=$(BOOST_ROOT) $(MAKE_ROOT)/build-submodules.py
 
 %-module:
 	MAKE_ROOT=$(MAKE_ROOT) MAKE_ROOT_DOS=$(MAKE_ROOT_DOS) make -C modules/$*
