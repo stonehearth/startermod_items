@@ -340,15 +340,22 @@ void Renderer::InitHorde()
 csg::Point2 Renderer::InitWindow()
 {
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
-      R_LOG(1) << "GLFW Error (" << errorCode << "): " << errorString;
-      Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
+      if (errorCode != 0) {
+         R_LOG(1) << "GLFW Error (" << errorCode << "): " << errorString;
+         Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
+      } else {
+         // Error code 0 is used to 
+         R_LOG(1) << "glfw: " << errorString;
+      }
    });
 
+   R_LOG(1) << "Initializing OpenGL";
    if (!glfwInit())
    {
       throw std::runtime_error(BUILD_STRING("Unable to initialize glfw: " << lastGlfwError_));
    }
 
+   R_LOG(1) << "Determining window placement";
    inFullscreen_ = config_.enable_fullscreen.value;
    GLFWmonitor* monitor;
    csg::Point2 size, pos;
@@ -366,6 +373,7 @@ csg::Point2 Renderer::InitWindow()
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
+   R_LOG(1) << "Creating OpenGL Window";
    GLFWwindow *window = glfwCreateWindow(size.x, size.y, "Stonehearth", 
                                          config_.enable_fullscreen.value ? monitor : nullptr, nullptr);
    if (!window) {
@@ -374,6 +382,7 @@ csg::Point2 Renderer::InitWindow()
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
 
+   R_LOG(1) << "Creating OpenGL Context";
    glfwMakeContextCurrent(window);
    glfwGetWindowSize(window, &size.x, &size.y);
 
@@ -384,6 +393,7 @@ csg::Point2 Renderer::InitWindow()
    if (config_.minimized.value) {
       glfwIconifyWindow(window);
    }
+   R_LOG(1) << "Finished OpenGL Initialization";
    return size;
 }
 
@@ -866,10 +876,12 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, csg::Point2 &pos, csg::Point
 
    if (!fullscreen) {
       // If we're not fullscreen, then just ensure the size of the window <= the res of the monitor.
+      R_LOG(1) << "Selecting monitor at " << config_.last_screen_x.value << ", " << config_.last_screen_y.value;
       *monitor = getMonitorAt(config_.last_screen_x.value, config_.last_screen_y.value);
 
       if (*monitor == NULL) {
          // Couldn't find a monitor to contain the window; put us on the first monitor.
+         R_LOG(1) << "Could not find monitor.  Using primary.";
          *monitor = glfwGetPrimaryMonitor();
          ASSERT(*monitor);
          pos.x = 0;
@@ -881,7 +893,9 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, csg::Point2 &pos, csg::Point
    } else {
       // In fullscreen, try to find the monitor that contains the window's upper-left coordinate.
       GLFWmonitor *desiredMonitor = getMonitorAt(config_.last_screen_x.value, config_.last_screen_y.value);
+      R_LOG(1) << "Selecting fullscreen monitor at " << config_.last_screen_x.value << ", " << config_.last_screen_y.value;
       if (desiredMonitor == NULL) {
+         R_LOG(1) << "Could not find monitor.  Using primary.";
          desiredMonitor = glfwGetPrimaryMonitor();
          ASSERT(desiredMonitor);
       }
