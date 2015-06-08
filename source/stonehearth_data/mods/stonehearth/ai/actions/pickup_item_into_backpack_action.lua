@@ -10,7 +10,7 @@ PickupItemIntoBackpack.version = 2
 PickupItemIntoBackpack.priority = 1
 
 function PickupItemIntoBackpack:start_thinking(ai, entity, args)
-   local backpack_component = entity:add_component('stonehearth:backpack')
+   local backpack_component = entity:get_component('stonehearth:backpack')
    if backpack_component and not backpack_component:is_full() then
       ai:set_think_output()
    end

@@ -65,6 +65,10 @@ function Inventory:create_stockpile(location, size)
 
    entity:add_component('stonehearth:storage_filter')
 
+   -- We only add this for the 'type' field, which indicates we are a crate/stockpile.
+   -- Kind of gross....
+   entity:add_component('stonehearth:backpack')
+
    entity:add_component('stonehearth:stockpile')
             :set_size(size.x, size.y)
 

@@ -1,5 +1,6 @@
 local BackpackComponent = class()
 
+local constants = require 'constants'
 local log = radiant.log.create_logger('backpack')
 
 function BackpackComponent:initialize(entity, json)
@@ -12,6 +13,7 @@ function BackpackComponent:initialize(entity, json)
       self._sv.items = {}
       self._sv.num_items = 0
       self._sv.capacity = json.capacity or 8
+      self._sv.type = json.type or constants.container_types.CRATE
       self._sv.initialized = true
    end
 
@@ -34,6 +36,14 @@ end
 
 function BackpackComponent:get_filter()
    return self._filter:get_filter_function()
+end
+
+function BackpackComponent:get_type()
+   return self._sv.type
+end
+
+function BackpackComponent:set_type(type)
+   self._sv.type = type
 end
 
 function BackpackComponent:destroy()

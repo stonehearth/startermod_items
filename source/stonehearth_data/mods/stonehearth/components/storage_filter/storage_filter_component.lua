@@ -1,4 +1,5 @@
 local priorities = require('constants').priorities.worker_task
+local constants = require 'constants'
 
 local StorageFilterComponent = class()
 local log = radiant.log.create_logger('storage_filter')
@@ -47,7 +48,7 @@ local function _filter_passes(entity, filter)
 end
 
 
-local function get_filter_fn(filter_key, filter, player_id, player_inventory)
+local function get_filter_fn(filter_key, filter, player_id, player_inventory, container_type)
    -- all containers with the same filter must use the same filter function
    -- to determine whether or not an item can be stored.  this function is
    -- uniquely identified by the filter key.  this allows us to use a
@@ -81,13 +82,23 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory)
          end
 
          -- If this item is already in a container for the player, then ignore it.
-         if player_inventory:container_for(item) ~= nil then
-            return false
-         end
-
-         -- If the location isn't even in the world, ignore it.
-         if radiant.entities.get_world_grid_location(item) == nil then
-            return false
+         local container = player_inventory:container_for(item)
+         if container then
+            local other_container_type = container:get_component('stonehearth:backpack'):get_type()
+            if container_type == constants.container_types.CRATE then
+               -- Crates do not restock from crates.
+               if other_container_type == constants.container_types.CRATE then
+                  return false
+               end
+            elseif container_type == constants.container_types.VAULT then
+               -- Vaults do not restock from vaults or crates.
+               if other_container_type ~= constants.container_types.BACKPACK then
+                  return false
+               end
+            else
+               -- Backpacks don't restock from _any_ containers.
+               return false
+            end
          end
 
          -- If the item is being carried, ignore it.
@@ -140,7 +151,12 @@ function StorageFilterComponent:get_filter_function()
    -- this intentionally delegates to a helper function to avoid the use of `self`
    -- in the filter (which must work for ALL containers sharing that filter, and
    -- therefore should not capture self or any members of self!)
-   return get_filter_fn(self._sv._filter_key, self._sv.filter, self._sv.player_id, stonehearth.inventory:get_inventory(self._sv.player_id))
+   return get_filter_fn(
+      self._sv._filter_key, 
+      self._sv.filter, 
+      self._sv.player_id, 
+      stonehearth.inventory:get_inventory(self._sv.player_id),
+      self._entity:get_component('stonehearth:backpack'):get_type())
 end
 
 function StorageFilterComponent:get_filter()
@@ -163,7 +179,7 @@ function StorageFilterComponent:_update_filter_key()
    else
       self._sv._filter_key = 'nofilter'
    end
-   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id
+   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id .. '+' self._entity:get_component('stonehearth:backpack'):get_type()
    self.__saved_variables:mark_changed()   
 end
 
