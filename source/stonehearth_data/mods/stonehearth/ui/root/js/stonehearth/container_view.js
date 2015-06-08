@@ -14,7 +14,7 @@ $(document).ready(function(){
             }
 
             modal.destroy();
-         } else if (App.startMenu.getMenu()) {
+         } else if (App.startMenu && App.startMenu.getMenu()) {
             // if there's an open menu, close it
             App.startMenu.hideMenu();
          } else if (App.getGameMode() != 'normal') {
