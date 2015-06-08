@@ -16,7 +16,7 @@ GameCreationService = class()
 
 function GameCreationService:initialize()
    self._sv = self.__saved_variables:get_data()
-   self.generated_citizens = {}
+   self._generated_citizens = {}
 end
 
 function GameCreationService:sign_in_command(session, response)
@@ -31,14 +31,14 @@ function GameCreationService:generate_citizens_command(session, response)
 
    --First destroy all existing citizens.
    for i=1, NUM_STARTING_CITIZENS do
-      if self.generated_citizens[i] then
-         radiant.entities.destroy_entity(self.generated_citizens[i])      
+      if self._generated_citizens[i] then
+         radiant.entities.destroy_entity(self._generated_citizens[i])      
       end
    end
 
    --Create a new set of citizens.
    for i=1, NUM_STARTING_CITIZENS do
-      self.generated_citizens[i] = self:_generate_citizen(pop)
+      self._generated_citizens[i] = self:_generate_citizen(pop)
    end
    response:resolve({})
 end
@@ -202,15 +202,15 @@ function GameCreationService:create_camp_command(session, response, pt)
    
    self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
 
-   radiant.entities.pickup_item(self.generated_citizens[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(self.generated_citizens[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(self._generated_citizens[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(self._generated_citizens[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
 
    -- Spawn initial talismans
    for i, talisman_uri in ipairs (self.game_options.starting_talismans) do
       if i + 2 > NUM_STARTING_CITIZENS then
          break
       end
-      radiant.entities.pickup_item(self.generated_citizens[i + 2], pop:create_entity(talisman_uri))
+      radiant.entities.pickup_item(self._generated_citizens[i + 2], pop:create_entity(talisman_uri))
    end
 
    -- kickstarter pets
@@ -232,10 +232,10 @@ function GameCreationService:create_camp_command(session, response, pt)
 end
 
 function GameCreationService:_place_citizen_embark(index, pop, x, z)
-   local citizen = self.generated_citizens[index];
+   local citizen = self._generated_citizens[index];
    if not citizen then
       citizen = self:_generate_citizen(pop)
-      self.generated_citizens[index] = citizen
+      self._generated_citizens[index] = citizen
    end
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
