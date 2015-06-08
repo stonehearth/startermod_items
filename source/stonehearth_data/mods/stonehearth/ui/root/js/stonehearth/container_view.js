@@ -22,7 +22,9 @@ $(document).ready(function(){
             App.stonehearthClient.deactivateAllTools();
             App.setGameMode('normal');
          } else {
-            App.gameView.addView(App.StonehearthEscMenuView);
+            if (App.startMenu) { // TODO (yshan): remove this for better handling of camp selection in the future.
+               App.gameView.addView(App.StonehearthEscMenuView);
+            }
          }
       }
    });
