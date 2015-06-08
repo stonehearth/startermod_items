@@ -135,7 +135,10 @@ end
 
 function WaterfallComponent:_update()
    local target = self._sv.target
-   if not target then
+   if not target or not target:is_valid() then
+      -- TODO: do we need to do anything special when target is not valid?
+      local location = radiant.entities.get_world_grid_location(self._entity)
+      log:warning('waterfall at %s now has an invalid target', location)
       return
    end
 
