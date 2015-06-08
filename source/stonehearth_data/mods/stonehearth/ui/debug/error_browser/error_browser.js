@@ -24,9 +24,9 @@ App.StonehearthErrorBrowserView = App.View.extend({
          data.entries = data.entries.concat(result.entries);
       });
       var current_index = self.get('context.current_index')
-      if (current_index == undefined || current_index >= data.total - 1) {
-         current_index = data.total;
-         self.set('context.current_index', current_index)
+      if (current_index == undefined) {
+         current_index = 1;
+         self.set('context.current_index', 1)
       }
       this.set('context.errors', data);
       this.set('context.current', data.entries[current_index-1])
