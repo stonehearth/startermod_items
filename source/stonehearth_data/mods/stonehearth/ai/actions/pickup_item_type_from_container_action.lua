@@ -9,7 +9,6 @@ PickupItemTypeFromContainer.args = {
 }
 PickupItemTypeFromContainer.think_output = {
    item = Entity,          -- what actually got picked up
-   container = Entity,     -- where are we picking it up from
 }
 PickupItemTypeFromContainer.version = 2
 PickupItemTypeFromContainer.priority = 1
@@ -26,19 +25,21 @@ return ai:create_compound_action(PickupItemTypeFromContainer)
             filter_fn = ai.ARGS.filter_fn,
             description = ai.ARGS.description,
          })
-         :execute('stonehearth:reserve_backpack_entity_type', {
+         :execute('stonehearth:find_backpack_entity_type', {
             filter_fn = ai.ARGS.filter_fn,
             backpack_entity = ai.PREV.destination,
          })
          :execute('stonehearth:goto_entity', {
-            entity = ai.PREV.backpack_entity,
+            entity = ai.BACK(2).destination,
+         })
+         :execute('stonehearth:reserve_entity', { 
+            entity = ai.BACK(2).item,
          })
          :execute('stonehearth:pickup_item_from_backpack', { 
-            item = ai.BACK(2).entity,
-            container = ai.PREV.entity
+            item = ai.BACK(3).item,
+            backpack_entity = ai.BACK(4).destination,
          })
          :set_think_output({ 
-            item = ai.PREV.carrying,
-            container = ai.PREV.container
+            item = ai.PREV.item
          })
          

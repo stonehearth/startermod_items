@@ -11,8 +11,10 @@
       "stonehearth:actions:pickup_item_on_table_adjacent",
       "stonehearth:actions:pickup_item_type",
       "stonehearth:actions:pickup_item_type_trivial",
+      "stonehearth:actions:pickup_item_type_from_container",
       "stonehearth:actions:pickup_item_made_of",
       "stonehearth:actions:pickup_item_with_uri",
+      "stonehearth:actions:pickup_item_from_backpack",
 
       "stonehearth:actions:drop_carrying_at",
       "stonehearth:actions:drop_carrying_now",

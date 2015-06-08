@@ -7,7 +7,9 @@
       "stonehearth:actions:wait_for_crate_space",
       "stonehearth:actions:drop_carrying_in_crate",
       "stonehearth:actions:put_carrying_in_backpack",
-      "stonehearth:actions:reserve_backpack_space"
+      "stonehearth:actions:reserve_backpack_space",
+      "stonehearth:actions:find_path_to_container_with_entity_type",
+      "stonehearth:actions:find_backpack_entity_type"
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:core",

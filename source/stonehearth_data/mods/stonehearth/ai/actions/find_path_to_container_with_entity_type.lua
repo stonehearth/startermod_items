@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 local FindPathToContainerWithEntityType = class()
 
 FindPathToContainerWithEntityType.name = 'find path to entity type'
-FindPathToContainerWithEntityType.does = 'stonehearth:find_path_to_entity_type'
+FindPathToContainerWithEntityType.does = 'stonehearth:find_path_to_container_with_entity_type'
 FindPathToContainerWithEntityType.args = {
    filter_fn = 'function',             -- entity to find a path to
    description = 'string',             -- description of the initiating compound task (for debugging)
