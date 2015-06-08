@@ -598,7 +598,7 @@ function Town:disable_worker_combat()
       local citizen = radiant.entities.get_entity(id)
       if citizen then
          local job_component = citizen:get_component('stonehearth:job')
-         job_component:reset_to_default_comabat_stance()
+         job_component:reset_to_default_combat_stance()
          radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
       end
    end

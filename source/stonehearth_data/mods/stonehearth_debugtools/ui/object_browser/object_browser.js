@@ -82,6 +82,7 @@ App.StonehearthObjectBrowserView = App.View.extend({
    },
 
    destroy: function() {
+      topElement.off("radiant_selection_changed.object_browser");
       this._super();
    },
 

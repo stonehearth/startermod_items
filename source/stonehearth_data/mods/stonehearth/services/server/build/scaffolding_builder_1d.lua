@@ -60,7 +60,7 @@ function ScaffoldingBuilder_OneDim:activate()
                               :set_prefix('s1d:' .. tostring(self._sv.id) .. ' ' .. self._debug_text)
 
    radiant.events.listen(self._sv.entity, 'radiant:entity:pre_destroy', function()
-         self:_remove_scaffolding_region()
+         self:destroy()
       end)
 
    if self._sv.active then
@@ -77,6 +77,7 @@ end
 
 function ScaffoldingBuilder_OneDim:destroy()
    self._log:info('destroying scaffolding builder')
+   self._sv.manager:_remove_builder(self._sv.id)
    self:_untrace_blueprint_and_project()
    self._sv.active = false
    self._sv.scaffolding_rgn = nil
@@ -128,21 +129,24 @@ function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
                                 self._sv.normal)
 end
 
-function ScaffoldingBuilder_OneDim:_remove_scaffolding_region()
-   self._sv.manager:_remove_builder(self._sv.id)
+function ScaffoldingBuilder_OneDim:_clear_scaffolding_region()
+   self._sv.scaffolding_rgn:modify(function(cursor)
+         cursor:clear()
+      end)
+   self.__saved_variables:mark_changed()
 end
 
 function ScaffoldingBuilder_OneDim:_update_status()
    local active = self._sv.active
+   local teardown = self._sv.mode == ScaffoldingBuilder_OneDim.TEAR_DOWN
 
-   if active then
+   if active and not teardown then
       self:_choose_normal()
       self:_trace_blueprint_and_project()
       self:_update_scaffolding_size()
       self:_add_scaffolding_region()
    else
-      self:_untrace_blueprint_and_project()
-      self:_remove_scaffolding_region()
+      self:_clear_scaffolding_region()
    end
 end
 
@@ -168,19 +172,24 @@ end
 function ScaffoldingBuilder_OneDim:_trace_blueprint_and_project()
    assert(self._sv.entity)
    assert(self._sv.active)
-   assert(not self._project_trace)
-   assert(not self._blueprint_trace)
-
-   local building = build_util.get_building_for(self._sv.entity)
-   assert(building)
 
    local function mark_dirty()
       self:_mark_dirty()
    end
 
-   self._project_trace     = self._sv.project_rgn:trace('scaffolding builder'):on_changed(mark_dirty)
-   self._blueprint_trace   = self._sv.blueprint_rgn:trace('scaffolding builder'):on_changed(mark_dirty)
-   self._building_listener = radiant.events.listen(building, 'stonehearth:construction:structure_finished_changed', mark_dirty)
+   if not self._project_trace then
+      self._project_trace = self._sv.project_rgn:trace('scaffolding builder'):on_changed(mark_dirty)
+   end
+
+   if not self._blueprint_trace then
+      self._blueprint_trace = self._sv.blueprint_rgn:trace('scaffolding builder'):on_changed(mark_dirty)
+   end
+
+   if not self._building_listener then
+      local building = build_util.get_building_for(self._sv.entity)
+      assert(building)
+      self._building_listener = radiant.events.listen(building, 'stonehearth:construction:structure_finished_changed', mark_dirty)
+   end
 end
 
 function ScaffoldingBuilder_OneDim:_mark_dirty()
@@ -202,9 +211,7 @@ function ScaffoldingBuilder_OneDim:_update_scaffolding_size()
    
    if self:_building_is_finished() then
       self._log:spam('building is finished.  erasing scaffolding region')
-      self._sv.scaffolding_rgn:modify(function(cursor)
-            cursor:clear()
-         end)
+      self:_clear_scaffolding_region()
       return
    end
 

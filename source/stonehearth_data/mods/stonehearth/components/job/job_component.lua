@@ -190,7 +190,7 @@ function JobComponent:promote_to(job_uri, options)
       end
 
       self._sv._default_stance = self._job_json.default_stance
-      self:reset_to_default_comabat_stance()
+      self:reset_to_default_combat_stance()
 
       --Create the job controller, if we don't yet have one
       if not self._sv.job_controllers[self._sv.job_uri] then
@@ -305,7 +305,7 @@ function JobComponent:demote()
    end
 
    self._sv._default_stance = 'passive'
-   self:reset_to_default_comabat_stance()
+   self:reset_to_default_combat_stance()
 
    if self._job_json and self._job_json.task_groups then
       self:_remove_from_task_groups(self._job_json.task_groups)
@@ -450,7 +450,7 @@ end
 
 -- Reset this person to their class's default combat stance
 -- The stance is set at promotion
-function JobComponent:reset_to_default_comabat_stance()
+function JobComponent:reset_to_default_combat_stance()
    stonehearth.combat:set_stance(self._entity, self._sv._default_stance)
 end
 

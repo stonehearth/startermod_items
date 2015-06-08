@@ -535,6 +535,7 @@
       "actions:find_stockpile_for_backpack_item" : "file(ai/actions/find_stockpile_for_backpack_item_action.lua)",
       "actions:pickup_item_from_backpack" : "file(ai/actions/pickup_item_from_backpack_action.lua)",
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
+      "actions:reserve_backpack_space" : "file(ai/actions/reserve_backpack_space_action.lua)",
 
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:pickup_ingredient_with_material" : "file(ai/actions/pickup_ingredient_with_material_action.lua)",
