@@ -5,6 +5,7 @@ add_library(rpc
             trace.cpp
             untrace.cpp
             core_reactor.cpp
+            http_deferred.cpp
             http_reactor.cpp
             protobuf_reactor.cpp
             lua_router.cpp

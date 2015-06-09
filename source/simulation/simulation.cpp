@@ -199,7 +199,7 @@ void Simulation::OneTimeIninitializtion()
       return result;
    });
    core_reactor_->AddRouteV("radiant:toggle_cpu_profile", [this](rpc::Function const& f) {
-      bool profileLongFrame = core::Config::GetInstance().Get<bool>("simulation.profile_long_frames", true);
+      bool profileLongFrame = core::Config::GetInstance().Get<bool>("simulation.profile_long_frames", false);
       if (profileLongFrame) {
          _profileLongFrames = !_profileLongFrames;
          SIM_LOG(0) << "lua long frame cpu profile is " << (_profileLongFrames ? "on" : "off");
@@ -212,11 +212,12 @@ void Simulation::OneTimeIninitializtion()
       } else {
          scriptHost_->StartCpuProfiling(lua::ScriptHost::CpuProfilerMethod::Default, -1);
       }
+      enabled = scriptHost_->IsCpuProfilerRunning();
       SIM_LOG(0) << "lua cpu profile is " << (enabled ? "on" : "off");
    });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
-      scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
-      scriptHost_->DumpHeap("lua.heap");      
+      scriptHost_->WriteMemoryProfile("lua_memory_profile_server.txt");      
+      scriptHost_->DumpHeap("lua.server.heap");
    });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {

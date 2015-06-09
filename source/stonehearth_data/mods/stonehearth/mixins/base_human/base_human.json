@@ -6,6 +6,9 @@
          "name": "Civilian",
          "description": "Citizen of your town"
       },
+      "render_info" : {
+         "cache_model_geometry" : false
+      },
       "sensor_list": {
          "sensors": {
             "sight": {

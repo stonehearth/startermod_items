@@ -246,7 +246,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          self._showBuffEffects(this, buffsByAttribute);
       }); 
 
-      var healthPercent = Math.floor(self.get('model.stonehearth:attributes.attributes.health.user_visible_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.user_visible_value'))
+      var healthPercent = Math.floor(self.get('model.stonehearth:attributes.attributes.health.user_visible_value') * 100 / self.get('model.stonehearth:attributes.attributes.max_health.user_visible_value'))
       var moralePercent = Math.floor(self.get('model.stonehearth:score.scores.happiness.score'));
       var expPercent = Math.floor(self.get('model.stonehearth:job.current_level_exp') * 100 / self.get('model.stonehearth:job.xp_to_next_lv'))
       self.$('.healthBar').width(healthPercent + '%');

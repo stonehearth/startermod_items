@@ -23,9 +23,14 @@ App.StonehearthErrorBrowserView = App.View.extend({
          });
          data.entries = data.entries.concat(result.entries);
       });
+      var current_index = self.get('context.current_index')
+      if (current_index == undefined) {
+         current_index = 1;
+         self.set('context.current_index', 1)
+      }
       this.set('context.errors', data);
-
-      if (data.total > 0) {
+      this.set('context.current', data.entries[current_index-1])
+      if (data.total > 0 && !self._keepHidden) {
          this.$().show();
       }
    },
@@ -72,6 +77,31 @@ App.StonehearthErrorBrowserView = App.View.extend({
 
       this.$('.close').click(function() {
          self.$().hide();
+      });
+
+      this.$('#closeForever').click(function() {
+         self._keepHidden = true;
+         self.$().hide();
+      });
+
+      this.$('#next').click(function() {
+         var current_index = self.get('context.current_index');
+         var data = self.get('context.errors');
+         if (current_index < data.total) {
+            current_index = current_index + 1
+         }
+         self.set('context.current_index', current_index)
+         self.set('context.current', data.entries[current_index-1])
+      });
+
+      this.$('#prev').click(function() {
+         var current_index = self.get('context.current_index');
+         var data = self.get('context.errors');
+         if (current_index > 1) {
+            current_index = current_index - 1
+         }
+         self.set('context.current_index', current_index)
+         self.set('context.current', data.entries[current_index-1])
       });
    }
 

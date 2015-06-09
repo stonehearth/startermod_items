@@ -219,6 +219,7 @@ const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
         if (desired->stereo > 0 && current->stereo == 0)
         {
             // Stereo is a hard constraint
+            _glfwInputError(0, "%d) stereo mismatch.  ignoring", i);
             continue;
         }
 
@@ -336,13 +337,16 @@ const _GLFWfbconfig* _glfwChooseFBConfig(const _GLFWfbconfig* desired,
         // Least number of missing buffers is the most important heuristic,
         // then color buffer size match and lastly size match for other buffers
 
-        if (missing < leastMissing)
+        if (missing < leastMissing) {
             closest = current;
+            _glfwInputError(0, "%d) missing %d < %d.  using this format.", i, missing, leastMissing);
+        }
         else if (missing == leastMissing)
         {
             if ((colorDiff < leastColorDiff) ||
                 (colorDiff == leastColorDiff && extraDiff < leastExtraDiff))
             {
+                _glfwInputError(0, "%d) extra %d < %d.  using this format.", i, extraDiff, leastExtraDiff);
                 closest = current;
             }
         }

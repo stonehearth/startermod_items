@@ -1,61 +1,30 @@
-Welcome to Stonehearth! Here are the major changes in this release.
+Welcome to Stonehearth! Here are the patch notes for this build.
 
-
-<h2>Water, Part 1</h2>
+<h2>Better Error Window</h2>
 <p>
-Lakes now spawn in the world, and water behaves rationally as the terrain is deformed. There’s still a lot to do here: rivers, improvements to the simulation, swimming, and the ability to use water as a resource.
+The error window is much improved and can now be closed permanently.
 </p>
 
-<h2>Building Improvements, Part 1</h2>
+<h2>Start Up Diagnostics</h2>
 <p>
-The building system has gone through a major upgrade. This is a work-in-progress. Expect bugs and unfinished features.
+We've added a lot more diagnostics to help determine the cause of crashes on start up. Although this build may still crash on start up, the data it provides will help us fix the issue.
 </p>
-<ul>
-<li>You can now create multi-story buildings using the slab, grow-walls, and grow-roof tools!   This is especially buggy at this stage of the Alpha, but feel free to try it out.</li>
-<li>The road and building designers have been merged into a new GUI.</li>
-<li>Hearthlings are smarter about building shapes created out of slabs.</li>
-<li>Many more building patterns</li>
-<li>NOT YET IMPLEMENTED: Voxel editing tools, proper roofs for multi-story buildings.</li>
-</ul>
-
-<h2>Combat Improvements</h2>
-<ul>
-<li>Part 2 of the Goblin Campaign: Wolf Raiders! Send your hearthings to free the wolves from their cages before their trainer can turn them on you. </li>
-<li>Goblin Camp boss and associated minions are now appropriately armed and buffed. </li>
-<li>Wandering undead now spawn at night.</li>
-</ul>
-
-<h2>UI Improvements</h2>
-<ul>
-<li>Building editor redesign. It’s now much easier to place and build buildings based on templates.</li>
-<li>New menu GUI. Reorganized the menu options to make more sense. Some hotkeys have changed.</li>
-<li>In the citizen UI. Clicking a row will not focus the camera on that Hearthling.</li>
-<li>In the embark screen, show star ratings for vegetation, wildlife, and minerals.</li>
-</ul>
-
-<h2>Performance Improvements</h2>
-<uL>
-<li>AI: Stonehearth can now handle many more Hearthlings thinking and working at the same time.</li>
-<li>Mining large regions and building long roads takes much less CPU time.</li>
-<li>Reduced batch-counts for 3D rendering.</li>
-</uL>
-
-
-<h2>Known Issues</h2>
-<ul>
-<li>Altered requirement equations for new citizens, net worth, food calculations.We have identified a slow memory leak introduced in Alpha 9 which makes Stonehearth use an increasingly large amount of memory the longer you play.  This will definitely be fixed before Alpha 10 ships, but is still there as of the current build.</li>
-<li>The water simulation is incomplete and is designed to error when running into an unimplemented geometry.</li>
-<li>Sometimes Hearthlings will build floor or roads before the area has been properly mined out.</li>
-<li>Hearthlings sometimes fall through the scaffolding when it's modified out from underneath them.</li>
-<li>Hearthlings sometimes build a tiny ladder in the hole for the foundation of buildings which never gets destroyed.</li>
-<li>Returning trader encounter text does not show time correctly.</li>
-<li>Immigration currently limited to 20 Hearthlings. Will raise cap with performance optimizations.</li>
-</ul>
 
 <h2>Bug Fixes</h2>
 <ul>
-<li>Hearthlings used to have difficulty mining out ceilings when already underground. They will now reserve stepping stones to allow them to reach and remove ceiling blocks.</li>
-<li>Floating trees are fixed.</li>
-<li>Enemy camps no longer spawn astride cliffs.</li>
-<li>Altered requirement equations for new citizens, net worth, food calculations.</li>
+<li>Lua no longer consumes 100% CPU after multiple errors.</li>
+<li>Removing a building after starting construction no longer generates a scaffolding error.</li>
+<li>Deleting a building after placing template no longer throws errors.</li>
+<li>Workers will now restock items acquired from the trader.</li>
+<li>You can now promote even when the talisman is located at high altitude.</li>
+<li>Items in stockpiles at high altitude are now included in inventory/score.</li>
+<li>Hitting escape while planting banner no longer throws a UI error.</li>
+<li>Fixed errors when shepherd is chasing down sheep.</li>
+<li>Fixed waterfall error when water bodies are merging.</li>
+</ul>
+
+<h2>Other Changes</h2>
+<ul>
+<li>Party menu now has hotkey 'g'.</li>
+<li>Various tooltips fixed</li>
 </ul>

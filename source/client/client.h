@@ -44,7 +44,7 @@ class Client : public core::Singleton<Client> {
    public:
       void run(int server_port);
       lua::ScriptHost* GetScriptHost() const { return scriptHost_.get(); }
-      void BrowserRequestHandler(std::string const& uri, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
+      void BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response);
             
       //om::EntityPtr GetEntity(dm::ObjectId id);
       om::TerrainPtr GetTerrain();
@@ -96,6 +96,8 @@ class Client : public core::Singleton<Client> {
       const char* GetCurrentUIScreen() const;
       void SetCurrentUIScreen(UIScreen screen, bool reloadRequested = true);
 
+      void SetCppRouteHandler(core::StaticString route, chromium::IBrowser::HandleRequestCb cb);
+      void SetLuaRouteHandler(core::StaticString route, chromium::IBrowser::HandleRequestCb cb);
 
    private:
       NO_COPY_CONSTRUCTOR(Client);
@@ -151,7 +153,7 @@ class Client : public core::Singleton<Client> {
       void ProcessBrowserJobQueue();
       void HandleServerCallRequest(std::string const& obj, std::string const& function_name, json::Node const& node, rpc::HttpDeferredPtr response);
       void BrowserCallRequestHandler(json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response);
-      void CallHttpReactor(std::string const& parts, const json::Node& query, std::string const& postdata, rpc::HttpDeferredPtr response);
+      void CallHttpReactor(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response);
       void InitDataModel();
       void RequestReload();
       void ReloadBrowser();
@@ -188,6 +190,8 @@ class Client : public core::Singleton<Client> {
       bool PostRedmineUpload(std::string const& apiKey, std::string const& payload, std::string& uploadToken);
 
 private:
+      typedef std::unordered_map<core::StaticString, chromium::IBrowser::HandleRequestCb, core::StaticString::Hash> BrowserRouteHandlerMap;
+
       /*
        * The type of DestroyCursor is WINUSERAPI BOOL WINAPI (HCURSOR).  Strip off all
        * that windows fu so we can pass it into the Deleter for a core::UniqueResource
@@ -304,6 +308,8 @@ private:
       std::string                 _asyncLoadName;
       bool                        _asyncLoadPending;
 
+      BrowserRouteHandlerMap      _cppRoutes;
+      BrowserRouteHandlerMap      _luaRoutes;
       ShowDebugShapesMode         _showDebugShapesMode;
 };
 

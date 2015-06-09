@@ -24,7 +24,6 @@ App.StonehearthEmbarkView = App.View.extend({
       this._startingGold = 0;
       this._shopPalette;
 
-      this._requestedPortraits = [];
       this._citizensArray = [];
    },
 
@@ -36,8 +35,6 @@ App.StonehearthEmbarkView = App.View.extend({
       });
 
       self.$("#regenerateButton").click(function() {
-         self._cancelAllPortraitRequests();
-
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
 
          radiant.call_obj('stonehearth.game_creation', 'generate_citizens_command')
@@ -116,7 +113,6 @@ App.StonehearthEmbarkView = App.View.extend({
       if (this._trace) {
          this._trace.destroy();
       }
-      this._cancelAllPortraitRequests();
       $(document).off('keydown', this._clearSelectionKeyHandler);
       this._super();
    },
@@ -141,59 +137,13 @@ App.StonehearthEmbarkView = App.View.extend({
       self.destroy();
    },
 
-   _requestCitizenPortrait: function(citizen) {
-      var self = this;
-      var scene = {
-         lights : [
-            {
-               color: [0.9, 0.8, 0.9],
-               ambient_color: [0.3, 0.3, 0.3],
-               direction: [-45, -45, 0]
-            },
-         ],
-         entity: citizen.__self,
-         camera: {
-            position: [2, 1, -2],
-            look_at: [0,0.5,0]
-         }
-      };
-
-      var callback = {
-         fail: function(e) {
-            if (e) {
-               // Actual error occurred.
-               console.error('generate portrait failed:', e)
-            }
-         },
-         success: function(response) {
-            citizen.set('portrait', 'data:image/png;base64,' + response.bytes);
-            self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
-         }
-      }
-
-      self._requestedPortraits.push(App.portraitManager.requestPortrait(scene, callback));
-   },
-
-   _cancelAllPortraitRequests: function() {
-      for (var i=0; i<this._requestedPortraits.length; ++i) {
-         App.portraitManager.cancelRequest(this._requestedPortraits[i]);
-      }
-
-      this._requestedPortraits.length = 0;
-   },
-
    _buildCitizensArray: function() {
       var self = this;
-
-      self._cancelAllPortraitRequests();
 
       var citizenMap = this.get('model.citizens');
       this._citizensArray = radiant.map_to_array(citizenMap, function(citizen_id ,citizen) {
          citizen.set('__id', citizen_id);
-         citizen.set('portrait', '/stonehearth/ui/shell/embark/images/portrait_not_yet_available.png');
-         // TODO(yshan): Uncomment this once we fix the bug where citizens
-         // are invisible if we generate their portrait on embark screen.
-         self._requestCitizenPortrait(citizen);
+         citizen.set('portrait', '/r/get_portrait/?type=headshot&animation=idle_breathe.json&entity=' + citizen.__self);
       });
 
       self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);

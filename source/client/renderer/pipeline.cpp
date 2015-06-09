@@ -371,14 +371,17 @@ bool Pipeline::GetSharedGeometry(ResourceCacheKey const& key, GeometryInfo& geo)
 {
    auto i = geometry_cache_.find(key);
    if (i == geometry_cache_.end()) {
+      LOG(renderer.pipeline, 9) << "(!!) could not find shared geometry for key" << key.GetDescription();
       return false;
    }
+   LOG(renderer.pipeline, 9) << "found shared geometry for key" << key.GetDescription();
    geo = i->second;
    return true;
 }
 
 void Pipeline::SetSharedGeometry(ResourceCacheKey const& key, GeometryInfo const& geo)
 {
+   LOG(renderer.pipeline, 9) << "caching geometry for key " << key.GetDescription();
    ASSERT(geometry_cache_.find(key) == geometry_cache_.end());
    geometry_cache_[key] = geo;
 }
@@ -400,28 +403,8 @@ H3DNode Pipeline::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo, S
    return meshNode;
 }
 
-void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
+void Pipeline::CreateGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
 {
-   // The meshes which get generated are determined greatly by the colormap.  For example, we might have
-   // a colormap which remaps every color to red, which of course would generate different meshes than
-   // one with an empty colormap.  Because of this, we can't cache the individual pieces of geometry we
-   // generate during this process.  We have to cache the whole thing!
-   ResourceCacheKey cacheKey(key);
-
-   // Genearte a cache key.  csg::ColorToMaterialMap is sorted, so we know we'll generate the
-   // same key every time.
-   for (auto const& entry : colormap) {
-      csg::MaterialName material = entry.second;
-      cacheKey.AddElement("color", entry.first);
-      cacheKey.AddElement("material", entry.second);
-   }
-
-   auto i = _materialToGeometryCache.find(cacheKey);
-   if (i != _materialToGeometryCache.end()) {
-      geometryPtr = i->second;
-      return;
-   }
-
    // Create all the geometry and cache it
    geometryPtr = std::make_shared<MaterialToGeometryMap>();
    MaterialToGeometryMap& geometry = *geometryPtr;
@@ -429,7 +412,7 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
    // Accumulate the vertex and index data for all meshes at all LOD levels
    // into `meshes`, remembering offets into buffers as we go
    std::unordered_map<csg::MaterialName, std::vector<VoxelGeometryVertex>, csg::MaterialName::Hash> verticesByMaterial;
-   std::unordered_map<csg::MaterialName, std::vector<unsigned int>,        csg::MaterialName::Hash> indicesByMaterial;
+   std::unordered_map<csg::MaterialName, std::vector<unsigned int>, csg::MaterialName::Hash> indicesByMaterial;
 
    for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
       // For every material, propogate the offset from the previous
@@ -478,9 +461,35 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
       std::vector<VoxelGeometryVertex>& vertices = verticesByMaterial[material];
       ConvertVoxelDataToGeometry(vertices.data(), indices.data(), geo);
    }
+}
+
+void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
+{
+   // The meshes which get generated are determined greatly by the colormap.  For example, we might have
+   // a colormap which remaps every color to red, which of course would generate different meshes than
+   // one with an empty colormap.  Because of this, we can't cache the individual pieces of geometry we
+   // generate during this process.  We have to cache the whole thing!
+   ResourceCacheKey cacheKey(key);
+
+   // Genearte a cache key.  csg::ColorToMaterialMap is sorted, so we know we'll generate the
+   // same key every time.
+   for (auto const& entry : colormap) {
+      csg::MaterialName material = entry.second;
+      cacheKey.AddElement("color", entry.first);
+      cacheKey.AddElement("material", entry.second);
+   }
+
+   auto i = _materialToGeometryCache.find(cacheKey);
+   if (i != _materialToGeometryCache.end()) {
+      LOG(renderer.pipeline, 9) << "(generator) found shared geometry for key" << key.GetDescription();
+      geometryPtr = i->second;
+      return;
+   }
+   CreateGeometryFromGenerator(geometryPtr, colormap, create_mesh_fn, noInstancing);
 
    // Finally, cache it!
    _materialToGeometryCache[key] = geometryPtr;
+   LOG(renderer.pipeline, 9) << "(generator) saving shared geometry for key" << key.GetDescription();
 }
 
 void Pipeline::CreateSharedGeometryFromMesh(GeometryInfo& geo, ResourceCacheKey const& key, csg::Mesh& m, bool noInstancing)

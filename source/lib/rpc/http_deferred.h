@@ -27,6 +27,10 @@ class HttpDeferred : public core::Deferred<HttpResponse, HttpError>
 {
 public:
    HttpDeferred(std::string const& dbg_name) : core::Deferred<HttpResponse, HttpError>(dbg_name) {}
+
+   void RejectWithError(int code, const char* reason);
+   void ResolveWithFile(std::string const& path);
+   void ResolveWithContent(std::string const& content, std::string const& mimetype);
 };
 
 DECLARE_SHARED_POINTER_TYPES(HttpDeferred)
