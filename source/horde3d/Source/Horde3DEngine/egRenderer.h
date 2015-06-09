@@ -236,8 +236,6 @@ public:
 
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
-   void flushInstanceCache();
-
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* sr) const;
    bool isShaderContextSwitch(std::string const& curContext, MaterialResource *materialRes) const;

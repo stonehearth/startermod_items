@@ -2608,11 +2608,6 @@ void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void co
 }
 
 
-void Renderer::flushInstanceCache()
-{
-   _instanceDataCache.clear();
-}
-
 void Renderer::drawRenderables(SceneId sceneId, std::string const& shaderContext, bool debugView,
                                 const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order,
                                 int occSet, int lodLevel )
