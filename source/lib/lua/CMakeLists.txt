@@ -28,16 +28,10 @@ add_library(lua
             dm/set_trace_wrapper.cpp
             dm/boxed_trace_wrapper.cpp
             voxel/open_voxel.cpp
-            pch.cpp
             )
 
 add_dependencies(lua
                  om_generated_headers)
-
-if (MSVC)
-   set_target_properties(client PROPERTIES COMPILE_FLAGS "/Yupch.h")
-   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
-endif(MSVC)
 
 target_link_libraries(lua
                       ${PROTOBUF_LIBRARIES}

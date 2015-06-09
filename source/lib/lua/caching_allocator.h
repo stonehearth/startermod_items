@@ -8,6 +8,7 @@
 
 #include "core/singleton.h"
 #include "lib/lua/lua.h"
+#include "platform/utils.h"
 
 BEGIN_RADIANT_LUA_NAMESPACE
 
