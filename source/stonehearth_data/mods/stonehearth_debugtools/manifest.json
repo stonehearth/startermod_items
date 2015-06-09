@@ -20,6 +20,7 @@
       ],
       "js" : [
          "file(ui/debug_dock/debug_dock.js)",      
+         "file(/ui/console/debug_console_commands.js)",
          "file(/ui/campaign_browser/campaign_browser.js)",
          "file(/ui/entity_inspector/entity_inspector.js)",
          "file(/ui/object_browser/object_browser.js)",
@@ -49,6 +50,10 @@
       "create_entity": {
          "controller" : "file(call_handlers/debugtools_commands.lua)",
          "endpoint" : "server"
-      }      
+      },
+      "add_exp_command": {
+         "controller" : "file(call_handlers/debugtools_commands.lua)",
+         "endpoint" : "server"
+      }
    }
 }

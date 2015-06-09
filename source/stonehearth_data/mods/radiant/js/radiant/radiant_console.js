@@ -260,7 +260,19 @@ var RadiantConsole;
          var cmdid = this._nextCommandId++;
 
          this._running_commands[cmdid] = new Command(this, cmdid, options, cmdline);
+      },
+
+      getCommands : function() {
+         // Print out all available console commands
+         var self = this;
+         var commandsString = "";
+         radiant.each(this._commands, function(key, value) {
+            commandsString = commandsString + "<p>" +  key + ' - ' + value.description + '</p>';
+         });
+
+         return commandsString;
       }
+
    });
 
    radiant.console = new Console();
