@@ -101,10 +101,6 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
             end
          end
 
-         -- If the item is being carried, ignore it.
-         if radiant.entities.is_carried(item) then
-            return false
-         end
          return _filter_passes(item, captured_filter)
       end
 
@@ -130,9 +126,9 @@ function StorageFilterComponent:initialize(entity, json)
    if not self._sv.player_id then
       -- creating...
       self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
-      self._sv._filter_key = 'nofilter+' .. self._sv.player_id
       self.__saved_variables:mark_changed()
    end
+   self:_update_filter_key()
 end
 
 

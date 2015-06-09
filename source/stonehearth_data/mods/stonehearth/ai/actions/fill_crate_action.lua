@@ -18,6 +18,6 @@ return ai:create_compound_action(FillCrate)
          :execute('stonehearth:wait_for_crate_space', { crate = ai.ARGS.crate })
          :execute('stonehearth:pickup_item_type', {
             filter_fn = ai.PREV.item_filter,
-            description = 'items to fill crate',
+            description = 'items to restock',
          })
          :execute('stonehearth:drop_carrying_in_crate', { crate = ai.ARGS.crate })

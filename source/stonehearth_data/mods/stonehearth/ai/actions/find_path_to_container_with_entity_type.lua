@@ -57,7 +57,7 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
    end
 
    self._location = ai.CURRENT.location
-   self._log:info('creating bfs pathfinder for %s @ %s', self._description, self._location)
+   self._log:info('creating bfs pathfinder for %s (container) @ %s', self._description, self._location)
 
    -- many actions in our dispatch tree may be asking to find paths to items of
    -- identical types.  for example, each structure in an all wooden building will
