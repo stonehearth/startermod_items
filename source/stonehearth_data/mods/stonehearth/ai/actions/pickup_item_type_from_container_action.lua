@@ -20,6 +20,20 @@ function PickupItemTypeFromContainer:start_thinking(ai, entity, args)
    end
 end
 
+function PickupItemTypeFromContainer:start(ai, entity, args)
+   self._crate_location_trace = radiant.entities.trace_location(args.backpack_entity, 'crate location trace')
+      :on_changed(function()
+            ai:abort('drop carrying in crate destination moved.')
+         end)
+end
+
+
+function PickupItemTypeFromContainer:stop(ai, entity, args)
+   if self._crate_location_trace then
+      self._crate_location_trace:destroy()
+      self._crate_location_trace = nil
+   end
+end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemTypeFromContainer)
