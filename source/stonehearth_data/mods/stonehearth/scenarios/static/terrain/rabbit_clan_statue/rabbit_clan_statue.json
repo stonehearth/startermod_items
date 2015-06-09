@@ -1,0 +1,21 @@
+{
+   "mixins" : "file(../../entity_cluster)",
+   "name" : "rabbit_clan_statue",
+   "category" : "ruins",
+   "size" : {
+      "width" : 10,
+      "length" : 10
+   },
+   "weight" : 1,
+   "habitat_types" : ["forest"],
+   "data" : {
+      "entity_type" : [
+         "stonehearth:rabbit:statue"
+      ],
+      "entity_footprint_length" : 5,
+      "quantity" : {
+         "min" : 1,
+         "max" : 1
+      }
+   }
+}

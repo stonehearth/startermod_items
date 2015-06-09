@@ -2,7 +2,7 @@
    "type" : "entity",
    "components": {
       "render_info" : {
-         "scale" : 1
+         "scale" : 0.5
       },
       "model_variants": {
          "default": {
@@ -21,24 +21,32 @@
          "durability": 20
       },
       "unit_info": {
-         "name": "An ancient monument",
-         "description": ""
+         "name": "An Ancient Monument",
+         "description": "Mossy, but the stone is still good..."
       }, 
       "mob" : {
          "model_origin" : { "x": -0.5, "y": 0, "z": 0.5 }
       },
       "destination" : {
-         "region": {
-            "region_from_model": {
-               "model" : "file(rabbit_statue_01.qb)"
+         "region": [
+            {
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 15, "z" :  4 }
             }
-         },
-         "auto_update_adjacent" : true
+         ]
       },      
       "region_collision_shape" : {
-         "region_from_model": {
-            "model" : "file(rabbit_statue_01.qb)"
-         }
+         "region": [
+            {
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 15, "z" :  4 }
+            }
+         ]
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:on_destroy" : {
+         "effect": "/stonehearth/data/effects/terrain/tree_harvest.json"
+      }      
+   }      
 }

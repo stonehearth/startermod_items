@@ -16,7 +16,8 @@
          "file(static/terrain/iron_vein)",
          "file(static/terrain/silver_vein)",
          "file(static/terrain/gold_vein)",
-         "file(static/terrain/coal_vein)"
+         "file(static/terrain/coal_vein)",
+         "file(static/terrain/rabbit_clan_statue)"
       ],
       "categories" : {
          "terrain" : {
@@ -32,10 +33,10 @@
             "activation_type" : "revealed"
          },
          "ruins" : {
-            "density" : 0.1,
-            "priority" : 3,
+            "density" : 1,
+            "priority" : 0,
             "location_type" : "surface",
-            "activation_type" : "revealed"
+            "activation_type" : "immediate"
          },
          "ore" : {
             "density" : 5,
