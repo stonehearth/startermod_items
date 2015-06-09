@@ -1,7 +1,7 @@
 <script type="text/x-handlebars" data-template-name="errorBrowser">
    <div id="errorBrowser" class="gui">
    <div class="window">
-      <div class="title">Engine Error<div id="errorCount">{{current_index}}/{{errors.total}}</div><div class="closeButton"></div></div>
+      <div class="title">Engine Error<div id="errorCount">{{current_index}}/{{errors.total}}</div><div class="close"></div></div>
       <div id="errorDialog">         
          <div class="summary">{{ current.summary }}</div>
          {{#if current.backtrace }}

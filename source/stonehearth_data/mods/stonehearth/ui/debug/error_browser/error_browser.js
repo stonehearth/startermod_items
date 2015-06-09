@@ -75,7 +75,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
          self.currentView = App.gameView.addView(App.StonehearthErrorDialogView, { uri : error_uri });
       });
 
-      this.$('.closeButton').click(function() {
+      this.$('.close').click(function() {
          self.$().hide();
       });
 
