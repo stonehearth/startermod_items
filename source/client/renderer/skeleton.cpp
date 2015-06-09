@@ -96,3 +96,24 @@ void Skeleton::SetBoneVisible(std::string const& bone, bool visible)
    }
 }
 
+void Skeleton::SetScale(float scale)
+{
+   if (scale != _scale) {
+      float ratio = scale / _scale;
+
+      _scale = scale;
+
+      for (auto const& entry : _bones) {
+         float rel[16];
+         const float *oldrel;
+         H3DNode node = entry.second;
+
+         h3dGetNodeTransMats(node, &oldrel, nullptr);
+         memcpy(rel, oldrel, sizeof(rel));
+         rel[12] *= ratio;
+         rel[13] *= ratio;
+         rel[14] *= ratio;
+         h3dSetNodeTransMat(node, rel);
+      }
+   }
+}

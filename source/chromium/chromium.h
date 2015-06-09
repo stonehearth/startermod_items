@@ -20,7 +20,13 @@ public:
    typedef std::function<void(csg::Point2 const& size, csg::Region2 const & rgn, const uint32* buff)> PaintCb;
    typedef std::function<void(const HCURSOR cursor)> CursorChangeCb; // xxx: merge this into the command system!
 
-   typedef std::function<void(std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response)> HandleRequestCb;
+   struct Request {
+      std::string          path;
+      JSONNode             query;
+      std::string          postdata;
+   };
+
+   typedef std::function<void(Request const& request, rpc::HttpDeferredPtr response)> HandleRequestCb;
 
    virtual void Navigate(std::string const& uri) = 0;
    virtual bool HasMouseFocus(int screen_x, int screen_y) = 0;

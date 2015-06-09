@@ -54,19 +54,6 @@ int GetStartTime(const JSONNode& node)
    return 0;
 }
 
-static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
-{
-   csg::Matrix4 m(t.orientation);   
-   m[12] = (float)t.position.x;
-   m[13] = (float)t.position.y;
-   m[14] = (float)t.position.z;
-   
-   bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
-   if (!result) {
-      EL_LOG_NOPREFIX(5) << "failed to set transform on node " << node << ".";
-   }
-}
-
 RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effectList) :
    entity_(entity),
    effectList_(effectList)
@@ -226,16 +213,7 @@ RenderAnimationEffectTrack::RenderAnimationEffectTrack(RenderEntity& e, om::Effe
    if (entity) {
       int now = effect->GetStartTime();
       animationName_ = node["animation"].as_string();
-   
-      // compute the location of the animation
-      std::string animationTable = entity->GetComponent<om::RenderInfo>()->GetAnimationTable();
-      std::string animationRoot;
-      res::ResourceManager2::GetInstance().LookupJson(animationTable, [&](const json::Node& json) {
-         animationRoot = json.get<std::string>("animation_root", "");
-      });
-
-      animationName_ = animationRoot + "/" + animationName_;
-      animation_ = res::ResourceManager2::GetInstance().LookupAnimation(animationName_);
+      animation_ = e.GetAnimation(animationName_.c_str());
 
       if (animation_) {
          speed_ = std::max(json::Node(node).get<float>("speed", 1.0f), 0.01f);
@@ -287,14 +265,7 @@ void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finish
       }
    }
 
-   animation_->MoveNodes(offset, entity_.GetSkeleton().GetScale(), [&](std::string const& bone, const csg::Transform &transform) {
-      H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
-      if (node) {
-         float scale = entity_.GetSkeleton().GetScale();
-         EL_LOG(9) << "moving " << bone << " to " << transform << "(node: " << node << " scale:" << entity_.GetSkeleton().GetScale() << ")";
-         MoveSceneNode(node, transform, scale);
-      }
-   });
+   entity_.Pose(animation_, offset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

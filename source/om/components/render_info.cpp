@@ -24,6 +24,7 @@ void RenderInfo::LoadFromJson(json::Node const& obj)
    material_ = obj.get<std::string>("material", "");
    model_variant_ = obj.get<std::string>("model_variant", *model_variant_);
    animation_table_ = obj.get<std::string>("animation_table", *animation_table_);
+   cache_model_geometry_ = obj.get<bool>("cache_model_geometry", true);
 
    color_map_ = obj.get<std::string>("color_map", *color_map_);
    json::Node materialMaps = obj.get<json::Node>("material_maps", json::Node());

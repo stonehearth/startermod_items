@@ -86,7 +86,6 @@ using namespace ::radiant::client;
 namespace fs = boost::filesystem;
 namespace proto = ::radiant::tesseract::protocol;
 
-static const std::regex call_path_regex__("/r/call/?");
 const char *HOTKEY_SAVE_KEY = "hotkey_save";
 const char *SHIFT_F5_SAVE_KEY = "shift_f5_save";
 
@@ -170,8 +169,33 @@ void Client::OneTimeIninitializtion()
          uiCursor_ = NULL;
       }
    });
-   browser_->SetRequestHandler([=](std::string const& uri, JSONNode const& query, std::string const& postdata, rpc::HttpDeferredPtr response) {
-      BrowserRequestHandler(uri, query, postdata, response);
+   browser_->SetRequestHandler([=](chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) {
+      BrowserRequestHandler(req, response);
+   });
+
+   // Install route handlers (e.g. /r/call, /r/screenshot, etc.)
+   SetCppRouteHandler("call", [this](chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) {
+      CallHttpReactor(req, response);
+   });
+
+   SetCppRouteHandler("screenshot", [this](chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) {
+      static const std::regex screenshot_path_regex_("/r/screenshot/(.*)");
+      std::smatch match;
+      if (!std::regex_match(req.path, match, screenshot_path_regex_)) {
+         response->RejectWithError(404, "could not parse screenshot name");
+      }
+      std::string screenshot = (core::Config::GetInstance().GetSaveDirectory() / match[1].str()).string();
+      response->ResolveWithFile(screenshot);
+   });
+
+   SetCppRouteHandler("saved_objects", [this](chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) {
+      static const std::regex saved_object_path_regex_("/r/saved_objects/(.*)");
+      std::smatch match;
+      if (!std::regex_match(req.path, match, saved_object_path_regex_)) {
+         response->RejectWithError(404, "could not parse object name");
+      }
+      std::string object = (core::System::GetInstance().GetTempDirectory() / "saved_objects" / match[1].str()).string();
+      response->ResolveWithFile(object);
    });
 
    browserResizeGuard_ = renderer.OnScreenResize([this](csg::Rect2 const& r) {
@@ -306,7 +330,11 @@ void Client::OneTimeIninitializtion()
          throw std::string("User hit crash key");
       };
 
-      _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
+      _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) {
+         scriptHost_->WriteMemoryProfile("lua_memory_profile_client.txt");
+         scriptHost_->DumpHeap("lua.client.heap");
+         core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile"));
+      };
       _commands[GLFW_KEY_KP_ADD] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
    }
 
@@ -614,19 +642,6 @@ void Client::OneTimeIninitializtion()
       }
    });
 
-   core_reactor_->AddRoute("radiant:client:get_portrait", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:client:get_portrait");
-
-      Renderer::GetInstance().RequestPortrait([this, result](std::vector<unsigned char>& bytes) {
-         json::Node res;
-         res.set("bytes", libbase64::encode<std::string, char, unsigned char, false>(bytes.data(), bytes.size()));
-         result->Resolve(res);
-      });
-
-
-      return result;
-   });
-
    core_reactor_->AddRoute("radiant:client:save_game", [this](rpc::Function const& f) {
       json::Node saveid(json::Node(f.args).get_node(0));
       json::Node gameinfo(json::Node(f.args).get_node(1));
@@ -822,6 +837,7 @@ void Client::Shutdown()
 void Client::InitializeDataObjects()
 {
    scriptHost_.reset(new lua::ScriptHost("client"));
+
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
 
@@ -878,6 +894,7 @@ void Client::ShutdownDataObjectTraces()
 void Client::ShutdownDataObjects()
 {
    radiant_ = luabind::object();
+   _luaRoutes.clear();
 
    // the script host must go last, after all the luabind::objects spread out
    // in the system have been destroyed.
@@ -1083,6 +1100,7 @@ void Client::mainloop()
 
 
    CLIENT_LOG(7) << "rendering one frame";
+   perfmon::SwitchToCounter("rendering frame");
    int game_time;
    float alpha;
    game_clock_->EstimateCurrentGameTime(game_time, alpha);
@@ -1616,38 +1634,39 @@ rpc::ReactorDeferredPtr Client::GetModules(rpc::Function const& fn)
 }
 
 // This function is called on the chrome thread!
-void Client::BrowserRequestHandler(std::string const& path, json::Node const& query, std::string const& postdata, rpc::HttpDeferredPtr response)
+void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response)
 {
    try {
-      int code;      
       std::smatch match;
-      std::string localFilePath, content, mimetype;
 
-      static const std::regex call_path_regex__("/r/call/?");
-      static const std::regex screenshot_path_regex_("/r/screenshot/(.*)");
-      static const std::regex saved_object_path_regex_("/r/saved_objects/(.*)");
-
-      if (std::regex_match(path, match, call_path_regex__)) {
-         std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-         if (!loading_) {
-            browserJobQueue_.emplace_back([=]() {
-               CallHttpReactor(path, query, postdata, response);
-            });
+      // see if this is a special route.
+      static const std::regex special_route_regex__("/r/([^/]*)/.*");
+      if (std::regex_match(req.path, match, special_route_regex__)) {
+         std::string route = match[1].str();
+         auto i = _cppRoutes.find(route);
+         chromium::IBrowser::HandleRequestCb cb;
+         if (i != _cppRoutes.end()) {
+            cb = i->second;
+         } else {
+            auto j = _luaRoutes.find(route);
+            if (j != _luaRoutes.end()) {
+               cb = j->second;
+            }
          }
-         return;
+         if (cb) {
+            std::lock_guard<std::mutex> guard(browserJobQueueLock_);
+            browserJobQueue_.emplace_back([req, response, cb]() mutable {
+               cb(req, response);
+            });
+            return;            
+         }
       }
 
-      // file requests can be dispatched immediately.
-      bool success = false;
-      if (std::regex_match(path, match, screenshot_path_regex_)) {
-         std::string localFilePath = (core::Config::GetInstance().GetSaveDirectory() / match[1].str()).string();
-         success = http_reactor_->HttpGetFile(localFilePath, code, content, mimetype);
-      } else if (std::regex_match(path, match, saved_object_path_regex_)) {
-         std::string localFilePath = (core::System::GetInstance().GetTempDirectory() / "saved_objects" / match[1].str()).string();
-         success = http_reactor_->HttpGetFile(localFilePath, code, content, mimetype);
-      } else {
-         success = http_reactor_->HttpGetResource(path, code, content, mimetype);
-      }
+      //  send it to the reactor.
+      int code;
+      std::string content, mimetype;
+
+      bool success = http_reactor_->HttpGetResource(req.path, code, content, mimetype);
       if (success) {
          response->Resolve(rpc::HttpResponse(code, content, mimetype));
       } else {
@@ -1660,14 +1679,14 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
    }
 }
 
-void Client::CallHttpReactor(std::string const& path, const json::Node& query, std::string const& postdata, rpc::HttpDeferredPtr response)
+void Client::CallHttpReactor(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response)
 {
    JSONNode node;
    int status = 404;
-   rpc::ReactorDeferredPtr d = http_reactor_->Call(query, postdata);
+   rpc::ReactorDeferredPtr d = http_reactor_->Call(req.query, req.postdata);
 
    if (!d) {
-      response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << query)));
+      response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << req.path)));
       return;
    }
    d->Progress([response](JSONNode n) {
@@ -2265,4 +2284,14 @@ bool Client::PostRedmineUpload(std::string const& apiKey, std::string const& pay
       return true;
    }
    return false;
+}
+
+void Client::SetCppRouteHandler(core::StaticString route, chromium::IBrowser::HandleRequestCb cb)
+{
+   _cppRoutes[route] = cb;
+}
+
+void Client::SetLuaRouteHandler(core::StaticString route, chromium::IBrowser::HandleRequestCb cb)
+{
+   _luaRoutes[route] = cb;
 }

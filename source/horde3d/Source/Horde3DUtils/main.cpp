@@ -663,11 +663,11 @@ DLLEXP H3DRes h3dutCreateGeometryRes(
 
 
 static void PngWriteCallback(png_structp  png_ptr, png_bytep data, png_size_t length) {
-   std::vector<unsigned char> *p = (std::vector<unsigned char>*)png_get_io_ptr(png_ptr);
+   std::string *p = (std::string*)png_get_io_ptr(png_ptr);
    p->insert(p->end(), data, data + length);
 }
 
-bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixels, int width, int height)
+bool h3dutCreatePNGImage(std::string& result, unsigned char* pixels, int width, int height)
 {
    // Here's some code I found on the internet!
    png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -698,7 +698,7 @@ bool h3dutCreatePNGImage(std::vector<unsigned char>& result, unsigned char* pixe
 }
 
 
-void h3dutCreatePngImageFromTexture(H3DRes tex, std::vector<unsigned char>& result)
+void h3dutCreatePngImageFromTexture(H3DRes tex, std::string& result)
 {
    int width;
    int height;

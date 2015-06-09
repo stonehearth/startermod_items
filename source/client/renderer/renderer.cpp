@@ -1069,13 +1069,15 @@ void Renderer::Initialize()
 
    portraitCamera_ = new Camera(portraitSceneRoot_, "PortraitCamera");
 
+   int portraitWidth = 128, portraitHeight = 128;
+
    if (portraitTexRes_ == 0) {
-      portraitTexRes_ = h3dCreateTexture("portraitTexture", 512, 512, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
+      portraitTexRes_ = h3dCreateTexture("portraitTexture", portraitWidth, portraitHeight, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
    }
    h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportXI, 0);
    h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportYI, 0);
-   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportWidthI, 512);
-   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportHeightI, 512);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportWidthI, portraitWidth);
+   h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::ViewportHeightI, portraitHeight);
    h3dSetNodeParamI(portraitCamera_->GetNode(), H3DCamera::OutTexResI, portraitTexRes_);
    h3dSetupCameraView(portraitCamera_->GetNode(), 45.0f, 1.0, 2.0f, 500.0f);
 
@@ -1237,6 +1239,8 @@ void Renderer::RequestPortrait(PortraitRequestCb const& fn)
 
 void Renderer::RenderPortraitRT()
 {
+   perfmon::TimelineCounterGuard tcg("render portrait");
+
    // Render and return the image from the portrait scene.  We do this in two stages to give the renderer the chance
    // to actually get some work done before blocking on the texture read.
    if (portrait_requested_) {
@@ -1250,9 +1254,13 @@ void Renderer::RenderPortraitRT()
       SetStageEnable(GetPipeline(worldPipeline_), "PortraitClear", false);
    } else if (portrait_generated_) {
       portrait_generated_ = false;
+      perfmon::SwitchToCounter("encode portrait png");
       h3dutCreatePngImageFromTexture(portraitTexRes_, portraitBytes_);
 
-      portrait_cb_(portraitBytes_);
+      {
+         perfmon::TimelineCounterGuard tcg("render portrait callback");
+         portrait_cb_(portraitBytes_);
+      }
 
       portraitBytes_.clear();
    }
@@ -1260,16 +1268,22 @@ void Renderer::RenderPortraitRT()
 
 void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
 {
+   perfmon::TimelineCounterGuard tcg("render one");
+
    ASSERT(now >= last_render_time_);
 
    // Initialize all the new render entities we created this frame.
    platform::timer t(_maxRenderEntityLoadTime);
 
-   while (!_newRenderEntities.empty() && !t.expired()) {
-      std::shared_ptr<RenderEntity> re = _newRenderEntities.back().lock();
-      _newRenderEntities.pop_back();
-      if (re) {
-         re->FinishConstruction();
+   {
+      perfmon::TimelineCounterGuard tcg("create render entities");
+      
+      while (!_newRenderEntities.empty() && !t.expired()) {
+         std::shared_ptr<RenderEntity> re = _newRenderEntities.back().lock();
+         _newRenderEntities.pop_back();
+         if (re) {
+            re->FinishConstruction();
+         }
       }
    }
 
@@ -1277,7 +1291,6 @@ void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
       return;
    }
 
-   perfmon::TimelineCounterGuard tcg("render one");
 
    bool debug = false;
    bool showStats = false;

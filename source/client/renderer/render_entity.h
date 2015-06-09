@@ -10,6 +10,7 @@
 #include "render_component.h"
 #include "skeleton.h"
 #include "core/guard.h"
+#include "resources/animation.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -87,6 +88,10 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       bool GetVisibleOverride() const;
       VisibilityHandlePtr GetVisibilityOverrideHandle();
 
+      void Pose(const char* animationName, int time);
+      void Pose(res::AnimationPtr const& animation, int offset);
+      res::AnimationPtr GetAnimation(const char* animationName);
+
    private:
       void SetVisibleOverride(bool visible);
       void LoadAspects(om::EntityPtr obj);
@@ -95,7 +100,6 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void RemoveChildren();
       void AddChild(om::EntityPtr child);
       void RemoveChild(om::EntityPtr child);
-      void MoveSceneNode(H3DNode node, const csg::Transform& transform, float scale = 1.0f);
       void UpdateNodeFlags();
       void UpdateInvariantRenderers();
       void AddComponent(core::StaticString key, std::shared_ptr<dm::Object> value);

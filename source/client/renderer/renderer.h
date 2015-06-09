@@ -158,7 +158,7 @@ class Renderer
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
-      typedef std::function<void(std::vector<unsigned char>&)> PortraitRequestCb;
+      typedef std::function<void(std::string const&)> PortraitRequestCb;
       void RequestPortrait(PortraitRequestCb const& fn);
 
       core::Guard OnScreenResize(std::function<void(csg::Rect2)> const& fn);
@@ -270,7 +270,7 @@ class Renderer
       H3DRes            panelMatRes_;
       H3DRes            screenshotTexRes_;
       H3DRes            portraitTexRes_;
-      std::vector<unsigned char> portraitBytes_;
+      std::string       portraitBytes_;
 
       UiBuffer          uiBuffer_;
 

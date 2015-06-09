@@ -55,6 +55,7 @@ void LuaRenderEntity::RegisterType(lua_State* L)
                .def("has_query_flag",        &RenderEntity::HasQueryFlag)
                .def("get_material_path",     &RenderEntity_GetMaterialPathFromKind)
                .def("get_visibility_override_handle", &RenderEntity::GetVisibilityOverrideHandle)
+               .def("pose",                  (void (RenderEntity::*)(const char*, int))&RenderEntity::Pose)
             ,
             class_<RenderEntity::VisibilityHandle, std::shared_ptr<RenderEntity::VisibilityHandle>>("VisibilityHandle")
                .def("get_visible", &RenderEntity::VisibilityHandle::GetVisible)

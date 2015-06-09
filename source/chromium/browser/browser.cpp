@@ -630,14 +630,15 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
       return nullptr;
    }
 
+   Request req;
    const CefString url = request->GetURL();
    
    CefURLParts url_parts;
    CefParseURL(url, url_parts);
-   std::string path = CefString(&url_parts.path);
-   path = UrlDecode(path);
-   JSONNode query = GetQuery(CefString(&url_parts.query));
-   std::string postdata = GetPostData(request);
+   req.path = CefString(&url_parts.path);
+   req.path = UrlDecode(req.path);
+   req.query = GetQuery(CefString(&url_parts.query));
+   req.postdata = GetPostData(request);
 
    // Create a new Response object.  Response implements CefResourceHandler and will
    // be used to communicate the response to chrome.
@@ -658,7 +659,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
       response->SetResponse(r.code, r.response, "text/plain");
    });
 
-   _requestHandler(path, query, postdata, deferred);
+   _requestHandler(req, deferred);
 
    return CefRefPtr<CefResourceHandler>(response);
 }
