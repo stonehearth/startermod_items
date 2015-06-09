@@ -245,7 +245,7 @@ bool BfsPathFinder::IsIdle() const
    // account for phys::TILE_SIZE), then there must be no solution.
    float max_explored_distanced = GetMaxExploredDistance();
    if (explored_distance_ > max_explored_distanced) {
-      BFS_LOG(5) << "explored distance " << explored_distance_ << " exceeds max range of " << max_explored_distanced << ".  returning IDLE.";
+      BFS_LOG(9) << "explored distance " << explored_distance_ << " exceeds max range of " << max_explored_distanced << ".  returning IDLE.";
       return true;
    }
 
@@ -353,6 +353,7 @@ void BfsPathFinder::ConsiderEntity(om::EntityPtr entity)
       ++destinationCount_;
    } else {
       BFS_LOG(7) << *entity << " failed the filter!!";
+      pathfinder_->RemoveDestination(id);
    }
 }
 
