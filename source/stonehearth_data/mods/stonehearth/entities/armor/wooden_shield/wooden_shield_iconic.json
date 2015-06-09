@@ -7,6 +7,9 @@
          "description": "Crude and basic",
          "icon" : "file(wooden_shield.png)"         
       },
+      "item" : {
+         "category" : "armor"   
+      },
       "model_variants": {
          "default": {
             "models": [

@@ -8,7 +8,8 @@
          "icon" : "file(farmer_hoe.png)"
       },
       "item" : {
-         "stacks" : 1
+         "stacks" : 1,
+         "category" : "tools"
       },
        "stonehearth:material" : {
          "tags" : "tool"
