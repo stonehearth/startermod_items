@@ -14,7 +14,7 @@ $(document).ready(function(){
             }
 
             modal.destroy();
-         } else if (App.startMenu.getMenu()) {
+         } else if (App.startMenu && App.startMenu.getMenu()) {
             // if there's an open menu, close it
             App.startMenu.hideMenu();
          } else if (App.getGameMode() != 'normal') {
@@ -22,7 +22,9 @@ $(document).ready(function(){
             App.stonehearthClient.deactivateAllTools();
             App.setGameMode('normal');
          } else {
-            App.gameView.addView(App.StonehearthEscMenuView);
+            if (App.startMenu) { // TODO (yshan): remove this for better handling of camp selection in the future.
+               App.gameView.addView(App.StonehearthEscMenuView);
+            }
          }
       }
    });

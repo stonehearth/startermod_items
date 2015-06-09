@@ -1,16 +1,33 @@
 <script type="text/x-handlebars" data-template-name="errorBrowser">
-   <div id="errorBrowser">
-      <div class='header'>
-            <div id="errorCount">{{errors.total}}</div>
-         <a href='#'><div class=close>close window</div></a>
+   <div id="errorBrowser" class="gui">
+   <div class="window">
+      <div class="title">Engine Error<div id="errorCount">{{current_index}}/{{errors.total}}</div><div class="close"></div></div>
+      <div id="errorDialog">         
+         <div class="summary">{{ current.summary }}</div>
+         {{#if current.backtrace }}
+            <div class="value">{{ current.backtrace }}</div>
+         {{/if}}
+
+         {{#if current.line_number }}
+            <div class="heading">line number</div>
+            <div class="value">{{ current.line_number }}</div>
+         {{/if}}
+
+         {{#if current.char_offset }}
+            <div class="heading">char offset</div>
+            <div class="value">{{ current.char_offset }}</div>
+         {{/if}}
+
+         {{#if current.filename }}
+            <div class="heading">filename</div>
+            <div class="value">{{ current.filename }}</div>
+         {{/if}}
       </div>
-      <div id="entries">
-         {{#each errors.entries}}
-            <div>
-               error {{id}}:
-               <a href="#" {{bind-attr error_uri=__self}}>{{summary}}</a>
-            </div>
-         {{/each}}
+      <br>
+      <div>
+         <button id="closeForever" class="">Close Permanently</button>
+         <button id="prev" class="">Prev</button>
+         <button id="next" class="">Next</button>
       </div>
    </div>
 </script>
