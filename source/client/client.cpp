@@ -1640,7 +1640,7 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
       std::smatch match;
 
       // see if this is a special route.
-      static const std::regex special_route_regex__("/r/(.*)/.*");
+      static const std::regex special_route_regex__("/r/([^/]*)/.*");
       if (std::regex_match(req.path, match, special_route_regex__)) {
          std::string route = match[1].str();
          auto i = _cppRoutes.find(route);

@@ -68,6 +68,7 @@ function PortraitRendererService:_add_existing_entity(ent)
       render_entity = render_ent,
       entity = ent,
    })
+   return render_ent
 end
 
 function PortraitRendererService:_set_camera_position(position)
@@ -111,12 +112,15 @@ function PortraitRendererService:_stage_scene(request)
             ambient_color = Point3(0.3,  0.3, 0.3),
             direction =     Point3(-45, -45, 0)
          })
-      self:_set_camera_position(Point3(2.5, 2, -2.5))
-      self:_set_camera_look_at(Point3.zero)
+      self:_set_camera_position(Point3(1.8, 2.4, -3.0))
+      self:_set_camera_look_at(Point3(0, 2.4, 0))
 
       local entity = request.entity
       if radiant.util.is_a(entity, Entity) and entity:is_valid() then
-         self:_add_existing_entity(entity)
+         local render_entity = self:_add_existing_entity(entity)
+         if request.animation then
+            render_entity:pose(request.animation, request.time or 0)
+         end
       end
    end
 end

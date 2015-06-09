@@ -34,6 +34,20 @@ int RenderEntity::totalObjectCount_ = 0;
 
 #define E_LOG(level)      LOG(renderer.entity, level)
 
+
+static void MoveSceneNode(H3DNode node, const csg::Transform& t)
+{
+   csg::Matrix4 m(t.orientation);
+   m[12] = (float)t.position.x;
+   m[13] = (float)t.position.y;
+   m[14] = (float)t.position.z;
+
+   bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
+   if (!result) {
+      E_LOG(9) << "failed to set transform on node " << node << ".";
+   }
+}
+
 // Contains a map from H3DNodes to RenderEntities.  This map is maintained by the
 // RenderEntities, adding themselves to the map in the constructor and removing
 // themselves in the destructor.  Since we only render on one thread for now,
@@ -544,4 +558,46 @@ bool RenderEntity::VisibilityHandle::GetVisible()
 void RenderEntity::VisibilityHandle::Destroy()
 {
    SetVisible(true);
+}
+
+void RenderEntity::Pose(const char* animationName, int time)
+{
+   res::AnimationPtr animation = GetAnimation(animationName);
+   if (animation) {
+      Pose(animation, time);
+   }
+}
+
+void RenderEntity::Pose(res::AnimationPtr const& animation, int offset)
+{
+   float scale = skeleton_.GetScale();
+   animation->MoveNodes(offset, scale, [this, scale](std::string const& bone, const csg::Transform &transform) {
+      H3DNode node = skeleton_.GetSceneNode(bone);
+      if (node) {
+         E_LOG(9) << "moving " << bone << " to " << transform << "(node: " << node << " scale:" << scale << ")";
+         MoveSceneNode(node, transform);
+      }
+   });
+}
+
+res::AnimationPtr RenderEntity::GetAnimation(const char* animationName)
+{
+   om::EntityPtr entity = entity_.lock();
+   if (!entity) {
+      return nullptr;
+   }
+   om::RenderInfoPtr renderInfo = entity->GetComponent<om::RenderInfo>();
+   if (!renderInfo) {
+      return nullptr;
+   }
+
+   // compute the location of the animation
+   std::string animationTable = renderInfo->GetAnimationTable();
+   std::string animationRoot;
+   res::ResourceManager2::GetInstance().LookupJson(animationTable, [&](const json::Node& json) {
+      animationRoot = json.get<std::string>("animation_root", "");
+   });
+
+   std::string path = animationRoot + "/" + animationName;
+   return res::ResourceManager2::GetInstance().LookupAnimation(path);
 }

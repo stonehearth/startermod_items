@@ -21,7 +21,7 @@ class Skeleton {
       int GetNumBones() const;
 
       void Clear();
-      void SetScale(float scale) { _scale = scale; }
+      void SetScale(float scale);
       float GetScale() const { return _scale; }
 
    private:

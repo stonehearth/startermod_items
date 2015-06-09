@@ -143,7 +143,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var citizenMap = this.get('model.citizens');
       this._citizensArray = radiant.map_to_array(citizenMap, function(citizen_id ,citizen) {
          citizen.set('__id', citizen_id);
-         citizen.set('portrait', '/r/get_portrait/?type=headshot&entity=' + citizen.__self);
+         citizen.set('portrait', '/r/get_portrait/?type=headshot&animation=idle_breathe.json&entity=' + citizen.__self);
       });
 
       self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
