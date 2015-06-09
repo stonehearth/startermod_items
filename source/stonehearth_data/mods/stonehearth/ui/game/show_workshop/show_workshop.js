@@ -478,7 +478,7 @@ App.StonehearthCrafterView = App.View.extend({
          connectWith: "#garbageList",
          beforeStop: function (event, ui) {
             //Called right after an object is dropped
-            if(ui.item[0].parentNode.id == "garbageList") {
+            if(ui.item[0].parentNode && ui.item[0].parentNode.id == "garbageList") {
                ui.item.addClass("hiddenOrder");
                var workshop = self.getWorkshop();
                var id = parseInt(ui.item.attr("data-orderid"))
@@ -501,13 +501,19 @@ App.StonehearthCrafterView = App.View.extend({
          start: function(event, ui) {
             // on drag start, creates a temporary attribute on the element with the old index
             $(this).attr('data-previndex', ui.item.index(".orderListItem")+1);
+            self.is_sorting = ui.item[0];
          },
-         update: function (event, ui) {
-            //Called right when we're sorting
+         stop: function(event, ui) {
+            //if we're not sorting anymore, don't do anything
+            if (self.is_sorting == null) {
+               return;
+            } 
             //Don't update objects inside the garbage list
-            if(ui.item[0].parentNode.id == "garbageList") {
+            if(ui.item[0].parentNode && ui.item[0].parentNode.id == "garbageList") {
                return;
             }
+
+            //If we're still sorting, then update the order list
             var workshop = self.getWorkshop();
             var newPos = ui.item.index(".orderListItem") + 1;            
             var id =  parseInt(ui.item.attr("data-orderid"));
@@ -517,7 +523,10 @@ App.StonehearthCrafterView = App.View.extend({
                return;
             }
 
-            radiant.call_obj(workshop, 'move_order', id, newPos);
+            radiant.call_obj(workshop, 'move_order', id, newPos);               
+            
+            //Let people know we're no longer sorting
+            self.is_sorting = null;
          }
       }).disableSelection();
 
@@ -555,6 +564,34 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    _orderListObserver: function() {
+      //If we're sorting as an order completes, cancel the sorting
+      //or when the order list updates, the sortable element complains
+      if (this.is_sorting != null) {
+         var orderID = this.is_sorting.getAttribute("data-orderID");
+         var sortedOrder = this.is_sorting;
+
+         this.is_sorting = null;
+         this.$( "#orders, #garbageList" ).sortable("cancel");
+
+         //If we were sorting the very thing that got deleted in this update, we
+         //need to remove it from the order list because the cancel will have re-added it. 
+         //Note: this makes me feel  dirty. I mean, why doesn't ember/handlebars
+         //wipe the re-added thing when the UI updates? These 2 frameworks DO play together
+         //they just feel like they're having an ideological argument IN OUR CODE.
+         var found = false;
+         var orders = this.get('context.data.stonehearth:workshop.order_list.orders');
+         for (i = 0; i < orders.length; i++) {
+            if (orders[0].id == orderID) {
+               found = true;
+               break;
+            }
+         }
+         if (!found) {
+            //The thing we're sorting is no longer here. Remove it.
+            $(sortedOrder).remove();
+         }
+      }
+
       this._enableDisableTrash();
    }.observes('context.data.stonehearth:workshop.order_list.orders'),
 
