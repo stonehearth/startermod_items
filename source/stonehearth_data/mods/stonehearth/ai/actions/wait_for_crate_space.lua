@@ -17,6 +17,7 @@ function WaitForCrateSpace:start_thinking(ai, entity, args)
    self._ai = ai
    self._log = ai:get_log()
    self._backpack = args.crate:get_component('stonehearth:backpack')
+   self._storage = args.crate:get_component('stonehearth:storage_filter')
    self._ready = false
 
    self._more_space_listener = radiant.events.listen(args.crate, 'stonehearth:backpack:item_removed', self, self._on_space_changed)
@@ -38,7 +39,7 @@ function WaitForCrateSpace:_on_space_changed()
 
    if not self._ready then
       self._ready = true
-      local filter_fn = self._backpack:get_filter()
+      local filter_fn = self._storage:get_filter_function()
       self._ai:set_think_output({
          item_filter = filter_fn
       })

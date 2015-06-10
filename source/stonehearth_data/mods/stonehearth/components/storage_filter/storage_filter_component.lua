@@ -84,7 +84,7 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
          -- If this item is already in a container for the player, then ignore it.
          local container = player_inventory:container_for(item)
          if container then
-            local other_container_type = container:get_component('stonehearth:backpack'):get_type()
+            local other_container_type = container:get_component('stonehearth:storage_filter'):get_type()
             if container_type == constants.container_types.CRATE then
                -- Crates do not restock from crates.
                if other_container_type == constants.container_types.CRATE then
@@ -115,6 +115,7 @@ function StorageFilterComponent:initialize(entity, json)
    self._entity = entity
 
    self._sv = self.__saved_variables:get_data()
+   self._sv.type = json.type or constants.container_types.CRATE
 
    self._unit_info_trace = self._entity:add_component('unit_info'):trace_player_id('filter observer')
       :on_changed(function()
@@ -141,6 +142,10 @@ function StorageFilterComponent:passes(entity)
    return _filter_passes(entity, self._sv.filter)
 end
 
+function StorageFilterComponent:get_type()
+   return self._sv.type
+end
+
 -- returns the filter key and function used to determine whether an item can
 -- be stored in the owning container.
 function StorageFilterComponent:get_filter_function()
@@ -152,7 +157,7 @@ function StorageFilterComponent:get_filter_function()
       self._sv.filter, 
       self._sv.player_id, 
       stonehearth.inventory:get_inventory(self._sv.player_id),
-      self._entity:get_component('stonehearth:backpack'):get_type())
+      self._sv.type)
 end
 
 function StorageFilterComponent:get_filter()
@@ -175,7 +180,7 @@ function StorageFilterComponent:_update_filter_key()
    else
       self._sv._filter_key = 'nofilter'
    end
-   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id .. '+' self._entity:get_component('stonehearth:backpack'):get_type()
+   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id .. '+' .. self._sv.type
    self.__saved_variables:mark_changed()   
 end
 

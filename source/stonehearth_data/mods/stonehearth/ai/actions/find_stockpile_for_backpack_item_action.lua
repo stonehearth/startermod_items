@@ -39,7 +39,7 @@ function FindStockpileForBackpackItem:start_thinking(ai, entity, args)
       end
       local items = self._backpack_component:get_items()
       for id, item in pairs(items) do
-         local filter_fn = stockpile_component:get_filter()
+         local filter_fn = candidate:get_component('stonehearth:storage_filter'):get_filter_function()
          if filter_fn(item) then
             return true
          end

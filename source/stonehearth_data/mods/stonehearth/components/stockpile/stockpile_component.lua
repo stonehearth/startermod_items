@@ -81,13 +81,6 @@ function StockpileComponent:destroy()
 end
 
 
-
--- returns the filter key and function used to determine whether an item can
--- be stocked in this stockpile.
-function StockpileComponent:get_filter()
-   return self._filter:get_filter_function()
-end
-
 function StockpileComponent:set_filter(filter)
    self._filter:set_filter(filter)
 

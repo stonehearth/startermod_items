@@ -63,12 +63,6 @@ function Inventory:create_stockpile(location, size)
             :set_display_name('Stockpile No.' .. self._sv.next_stockpile_no)
             :set_player_id(self._sv.player_id)
 
-   -- We only add this for the 'type' field, which indicates we are a crate/stockpile.
-   -- Kind of gross....
-   -- Oh, even worse: the backpack must come before the storage_filter, in order for the
-   -- filter to get the backpack type on init.  This is begging to be fixed.
-   entity:add_component('stonehearth:backpack')
-
    entity:add_component('stonehearth:storage_filter')
 
    entity:add_component('stonehearth:stockpile')

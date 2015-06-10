@@ -17,6 +17,7 @@ function ReserveStockpileSpace:start_thinking(ai, entity, args)
    self._ai = ai
    self._log = ai:get_log()
    self._stockpile = args.stockpile:get_component('stonehearth:stockpile')
+   self._storage = args.stockpile:get_component('stonehearth:storage_filter')
    self._ready = false
 
    self._space_listener = radiant.events.listen(args.stockpile, 'stonehearth:stockpile:space_available', self, self._on_space_available)
@@ -31,7 +32,7 @@ function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
 
    if space_available and not self._ready then
       self._ready = true
-      local filter_fn = self._stockpile:get_filter()
+      local filter_fn = self._storage:get_filter_function()
       self._ai:set_think_output({
          item_filter = filter_fn
       })
