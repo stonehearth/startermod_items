@@ -74,3 +74,7 @@
 	path = modules/flatbuffers
 	url = https://github.com/radent/flatbuffers.git
 	branch = master
+[submodule "source/stonehearth_data/mods/debugtools"]
+	path = source/stonehearth_data/mods/debugtools
+	url = https://github.com/stonehearth/debugtools
+	branch = master
