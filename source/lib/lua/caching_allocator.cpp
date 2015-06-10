@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "radiant.h"
+#include "radiant_macros.h"
 #include "caching_allocator.h"
 #include "core/config.h"
 #include "core/system.h"
@@ -96,7 +97,9 @@ void CachingAllocator::InitializeLowMemoryAllocator()
 
    SetLastError(olderr);
    _lowMemoryHeapSize = actualSize;
+#if defined(_WIN64)
    _lowMemoryAllocator = Allocator(boost::interprocess::create_only_t(), _lowMemoryHeap, _lowMemoryHeapSize);
+#endif
    _state = Started;
 }
 
@@ -240,6 +243,7 @@ void *CachingAllocator::Allocate(size_t size)
    // either we shouldn't be using the free list or it's empty.  either way, alloc.
    if (!ptr) {
       if (IsUsingLowMemory()) {
+#if defined(_WIN64)
          try {
             ptr = _lowMemoryAllocator.allocate(size);
          } catch (boost::interprocess::bad_alloc const& e) {
@@ -254,6 +258,9 @@ void *CachingAllocator::Allocate(size_t size)
             ::MessageBox(NULL, msg.c_str(), "Stonehearth Assertion Failed", MB_OK | MB_ICONEXCLAMATION);
             *(int *)0 = 0;    // crash harder!!!
          }
+#else
+         ptr = malloc(size);
+#endif
       } else {
          if (size > 50000000) {
             std::string msg = BUILD_STRING("Allocating " << size  << " bytes for lua.");
@@ -282,7 +289,11 @@ void CachingAllocator::Deallocate(void *ptr, size_t size)
       _freelistByteCount += size;
    } else {
       if (IsUsingLowMemory()) {
+#if defined(_WIN64)
          _lowMemoryAllocator.deallocate(ptr);
+#else
+         free(ptr);
+#endif
       } else {
          delete [] ptr;
       }

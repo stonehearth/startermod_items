@@ -221,6 +221,8 @@
       "monsters:undead:zombie" : "file(entities/monsters/undead/zombie/male/zombie_male.json)",
       "monsters:undead:zombie_female" : "file(entities/monsters/undead/zombie/female/zombie_female.json)",
 
+      "rabbit:statue" : "file(entities/rabbit/rabbit_statue)",
+
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
      
