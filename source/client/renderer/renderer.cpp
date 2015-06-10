@@ -408,12 +408,10 @@ csg::Point2 Renderer::InitWindow()
                                          config_.enable_fullscreen.value ? monitor : nullptr, nullptr);
    if (!window) {
       R_LOG(1) << "Error trying to create glfw window.  (size:" << size << "  fullscreen:" << config_.enable_fullscreen.value << ")";
-
-
       glfwTerminate();
       DumpDisplayAdapters();
-   }
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
+   }
 
    R_LOG(1) << "Creating OpenGL Context";
    glfwMakeContextCurrent(window);
