@@ -125,6 +125,15 @@
                "recipe" : "file(window_box_frostsnap_recipe.json)" 
             }         
          }
+      },
+      "storage" : {
+         "ordinal" : 6,
+         "name" : "Storage",
+         "recipes" : {
+            "small_crate" : {
+               "recipe" : "file(small_crate_recipe.json)"
+            }
+         }
       }
    }
 }
