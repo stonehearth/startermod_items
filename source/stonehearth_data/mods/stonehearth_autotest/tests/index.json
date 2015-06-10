@@ -94,7 +94,8 @@
                   "file(regression/sh_86.lua)",
                   "file(regression/sh_99.lua)", 
                   "file(regression/sh_107.lua)",
-                  "file(regression/sh_108.lua)"
+                  "file(regression/sh_108.lua)",
+                  "file(regression/redmine_320.lua)"
                ]
             },
 
