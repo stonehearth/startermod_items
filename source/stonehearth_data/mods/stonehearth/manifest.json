@@ -1465,7 +1465,7 @@
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
-      "storage_filter" : "file(components/storage_filter/storage_filter_component.lua)",
+      "storage" : "file(components/storage/storage_component.lua)",
       "mining_zone" : "file(components/mining_zone/mining_zone_component.lua)",
       "trapping_grounds" : "file(components/trapping/trapping_grounds_component.lua)",
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",

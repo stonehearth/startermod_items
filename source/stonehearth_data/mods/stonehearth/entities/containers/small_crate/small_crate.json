@@ -6,7 +6,7 @@
       "stonehearth:backpack" : {
 
       },
-      "stonehearth:storage_filter" : {
+      "stonehearth:storage" : {
          "type" : "crate"
       },
       "stonehearth:entity_forms" : {

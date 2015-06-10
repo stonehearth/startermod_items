@@ -1,8 +1,8 @@
 local priorities = require('constants').priorities.worker_task
 local constants = require 'constants'
 
-local StorageFilterComponent = class()
-local log = radiant.log.create_logger('storage_filter')
+local StorageComponent = class()
+local log = radiant.log.create_logger('storage')
 
 local ALL_FILTER_FNS = {}
 
@@ -84,7 +84,7 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
          -- If this item is already in a container for the player, then ignore it.
          local container = player_inventory:container_for(item)
          if container then
-            local other_container_type = container:get_component('stonehearth:storage_filter'):get_type()
+            local other_container_type = container:get_component('stonehearth:storage'):get_type()
             if container_type == constants.container_types.CRATE then
                -- Crates do not restock from crates.
                if other_container_type == constants.container_types.CRATE then
@@ -111,7 +111,7 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
 end
 
 
-function StorageFilterComponent:initialize(entity, json)
+function StorageComponent:initialize(entity, json)
    self._entity = entity
 
    self._sv = self.__saved_variables:get_data()
@@ -133,22 +133,22 @@ function StorageFilterComponent:initialize(entity, json)
 end
 
 
-function StorageFilterComponent:destroy()
+function StorageComponent:destroy()
    self._unit_info_trace:destroy()
    self._unit_info_trace = nil
 end
 
-function StorageFilterComponent:passes(entity)
+function StorageComponent:passes(entity)
    return _filter_passes(entity, self._sv.filter)
 end
 
-function StorageFilterComponent:get_type()
+function StorageComponent:get_type()
    return self._sv.type
 end
 
 -- returns the filter key and function used to determine whether an item can
 -- be stored in the owning container.
-function StorageFilterComponent:get_filter_function()
+function StorageComponent:get_filter_function()
    -- this intentionally delegates to a helper function to avoid the use of `self`
    -- in the filter (which must work for ALL containers sharing that filter, and
    -- therefore should not capture self or any members of self!)
@@ -160,17 +160,17 @@ function StorageFilterComponent:get_filter_function()
       self._sv.type)
 end
 
-function StorageFilterComponent:get_filter()
+function StorageComponent:get_filter()
    return self._sv.filter
 end
 
-function StorageFilterComponent:set_filter(filter)
+function StorageComponent:set_filter(filter)
    self._sv.filter = filter
    self:_update_filter_key()
    self.__saved_variables:mark_changed()
 end
 
-function StorageFilterComponent:_update_filter_key()
+function StorageComponent:_update_filter_key()
    if self._sv.filter then
       self._sv._filter_key = 'filter:'
       table.sort(self._sv.filter)
@@ -184,4 +184,4 @@ function StorageFilterComponent:_update_filter_key()
    self.__saved_variables:mark_changed()   
 end
 
-return StorageFilterComponent
+return StorageComponent

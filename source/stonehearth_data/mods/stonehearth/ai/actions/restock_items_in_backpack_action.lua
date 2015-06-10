@@ -18,7 +18,7 @@ return ai:create_compound_action(RestockItemsInBackpack)
       location = ai.BACK(2).path:get_destination_point_of_interest()
    })
    :execute('stonehearth:pickup_item_type_from_backpack', {
-      filter_fn = ai.BACK(3).stockpile:get_component('stonehearth:storage_filter'):get_filter_function()
+      filter_fn = ai.BACK(3).stockpile:get_component('stonehearth:storage'):get_filter_function()
    })
    :execute('stonehearth:drop_carrying_adjacent', { location = ai.BACK(2).location })
    -- Immediately after dropping the item into the stockpile, notify it that we've added something

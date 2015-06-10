@@ -22,7 +22,7 @@ end
 function TrapperClass:promote(json, options)
    job_helper.promote(self._sv, json)
 
-   self._sv._entity:add_component('stonehearth:storage_filter'):set_type(constants.container_types.BACKPACK)
+   self._sv._entity:add_component('stonehearth:storage'):set_type(constants.container_types.BACKPACK)
 
    self:_create_xp_listeners()
    self.__saved_variables:mark_changed()

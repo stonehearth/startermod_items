@@ -23,7 +23,7 @@ function StockpileComponent:initialize(entity, json)
       self._sv.item_locations = {}
       self._sv.player_id = nil
       self:_assign_to_player()
-      self._filter = entity:add_component('stonehearth:storage_filter')
+      self._filter = entity:add_component('stonehearth:storage')
       self._destination = entity:add_component('destination')
       self._destination:set_region(_radiant.sim.alloc_region3())
                        :set_reserved(_radiant.sim.alloc_region3())
@@ -32,7 +32,7 @@ function StockpileComponent:initialize(entity, json)
       self:_install_traces()
    else
       -- loading...
-      self._filter = entity:get_component('stonehearth:storage_filter')
+      self._filter = entity:get_component('stonehearth:storage')
       self._destination = entity:get_component('destination')
       self._destination:set_reserved(_radiant.sim.alloc_region3()) -- xxx: clear the existing one from cpp land!
       self:_create_worker_tasks()   
