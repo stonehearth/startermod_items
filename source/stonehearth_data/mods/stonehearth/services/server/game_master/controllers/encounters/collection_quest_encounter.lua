@@ -257,6 +257,8 @@ function CollectionQuest:_update_progress(items)
          if item.progress < item.count then
             self._sv.have_enough = false
          end
+      else
+         self._sv.have_enough = false
       end
    end
    self.__saved_variables:mark_changed()
