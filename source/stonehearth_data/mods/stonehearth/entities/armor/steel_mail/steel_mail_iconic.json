@@ -7,6 +7,12 @@
          "description": "A full suit of steel armor",
          "icon" : "file(steel_mail.png)"
       },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" : "steel armor heavy_armor"
+      },
       "model_variants": {
          "default": {
             "models": [
@@ -16,9 +22,6 @@
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
-      },
-      "stonehearth:material" : {
-         "tags" : "steel armor heavy_armor"
       }
    }
 }

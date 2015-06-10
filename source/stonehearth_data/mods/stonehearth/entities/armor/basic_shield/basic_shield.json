@@ -1,14 +1,17 @@
 {
-   "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
+   "type": "entity",
    "components" : {
-      "item" : {
-         "category" : "armor"   
-      },
       "unit_info" : {
          "name": "Trusty Shield",
          "description": "Armor",
          "icon" : "file(basic_shield.png)"         
+      },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" : "metal armor heavy_armor"
       },
       "model_variants": {
          "default": {
@@ -16,9 +19,6 @@
                "file(basic_shield.qb)"
             ]
          }
-      },
-      "stonehearth:material" : {
-         "tags" : "metal armor heavy_armor"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(basic_shield_iconic.json)"
