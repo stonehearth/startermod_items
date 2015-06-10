@@ -41,6 +41,10 @@ App.StonehearthEmbarkView = App.View.extend({
       });
 
       self.$("#regenerateButton").click(function() {
+         if (self.$("#regenerateButton").hasClass('disabled')) {
+            return;
+         }
+
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
          self._clearSelection();
          self.$('#map').stonehearthMap('suspend');
@@ -94,13 +98,18 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
       var seed = self._generate_seed();
 
+      self.$("#regenerateButton").addClass('disabled');
+
       radiant.call('stonehearth:new_game', 12, 8, seed, self.options)
          .done(function(e) {
-            self._map_info = e.map_info
+            self._map_info = e.map_info;
             fn(e);
          })
          .fail(function(e) {
-            console.error('new_game failed:', e)
+            console.error('new_game failed:', e);
+         })
+         .always(function() {
+            self.$("#regenerateButton").removeClass('disabled');
          });
    },
 
@@ -127,7 +136,7 @@ App.StonehearthEmbarkView = App.View.extend({
          mineralDescription = cell.mineral_density;
 
          if (cell.terrain_code != this._prevTerrainCode) {
-            var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)'
+            var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)';
 
             self.$('#terrainType').html(terrainType);
             //self.$('#terrainPortrait').css('content', portrait);   
