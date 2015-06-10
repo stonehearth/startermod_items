@@ -1,7 +1,8 @@
 local priorities = require('constants').priorities.worker_task
+local constants = require 'constants'
 
-local StorageFilterComponent = class()
-local log = radiant.log.create_logger('storage_filter')
+local StorageComponent = class()
+local log = radiant.log.create_logger('storage')
 
 local ALL_FILTER_FNS = {}
 
@@ -47,7 +48,7 @@ local function _filter_passes(entity, filter)
 end
 
 
-local function get_filter_fn(filter_key, filter, player_id, player_inventory)
+local function get_filter_fn(filter_key, filter, player_id, player_inventory, container_type)
    -- all containers with the same filter must use the same filter function
    -- to determine whether or not an item can be stored.  this function is
    -- uniquely identified by the filter key.  this allows us to use a
@@ -83,13 +84,23 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory)
          -- If this item is already in a container for the player, then ignore it.
          local container = player_inventory:container_for(item)
          if container then
-            return false
+            local other_container_type = container:get_component('stonehearth:storage'):get_type()
+            if container_type == constants.container_types.CRATE then
+               -- Crates do not restock from crates.
+               if other_container_type == constants.container_types.CRATE then
+                  return false
+               end
+            elseif container_type == constants.container_types.VAULT then
+               -- Vaults do not restock from vaults or crates.
+               if other_container_type ~= constants.container_types.BACKPACK then
+                  return false
+               end
+            else
+               -- Backpacks don't restock from _any_ containers.
+               return false
+            end
          end
 
-         -- If the item is being carried, ignore it.
-         if radiant.entities.is_carried(item) then
-            return false
-         end
          return _filter_passes(item, captured_filter)
       end
 
@@ -100,10 +111,11 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory)
 end
 
 
-function StorageFilterComponent:initialize(entity, json)
+function StorageComponent:initialize(entity, json)
    self._entity = entity
 
    self._sv = self.__saved_variables:get_data()
+   self._sv.type = json.type or constants.container_types.CRATE
 
    self._unit_info_trace = self._entity:add_component('unit_info'):trace_player_id('filter observer')
       :on_changed(function()
@@ -115,41 +127,50 @@ function StorageFilterComponent:initialize(entity, json)
    if not self._sv.player_id then
       -- creating...
       self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
-      self._sv._filter_key = 'nofilter+' .. self._sv.player_id
       self.__saved_variables:mark_changed()
    end
+   self:_update_filter_key()
 end
 
 
-function StorageFilterComponent:destroy()
+function StorageComponent:destroy()
    self._unit_info_trace:destroy()
    self._unit_info_trace = nil
 end
 
-function StorageFilterComponent:passes(entity)
+function StorageComponent:passes(entity)
    return _filter_passes(entity, self._sv.filter)
+end
+
+function StorageComponent:get_type()
+   return self._sv.type
 end
 
 -- returns the filter key and function used to determine whether an item can
 -- be stored in the owning container.
-function StorageFilterComponent:get_filter_function()
+function StorageComponent:get_filter_function()
    -- this intentionally delegates to a helper function to avoid the use of `self`
    -- in the filter (which must work for ALL containers sharing that filter, and
    -- therefore should not capture self or any members of self!)
-   return get_filter_fn(self._sv._filter_key, self._sv.filter, self._sv.player_id, stonehearth.inventory:get_inventory(self._sv.player_id))
+   return get_filter_fn(
+      self._sv._filter_key, 
+      self._sv.filter, 
+      self._sv.player_id, 
+      stonehearth.inventory:get_inventory(self._sv.player_id),
+      self._sv.type)
 end
 
-function StorageFilterComponent:get_filter()
+function StorageComponent:get_filter()
    return self._sv.filter
 end
 
-function StorageFilterComponent:set_filter(filter)
+function StorageComponent:set_filter(filter)
    self._sv.filter = filter
    self:_update_filter_key()
    self.__saved_variables:mark_changed()
 end
 
-function StorageFilterComponent:_update_filter_key()
+function StorageComponent:_update_filter_key()
    if self._sv.filter then
       self._sv._filter_key = 'filter:'
       table.sort(self._sv.filter)
@@ -159,8 +180,8 @@ function StorageFilterComponent:_update_filter_key()
    else
       self._sv._filter_key = 'nofilter'
    end
-   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id
+   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id .. '+' .. self._sv.type
    self.__saved_variables:mark_changed()   
 end
 
-return StorageFilterComponent
+return StorageComponent

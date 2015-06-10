@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Small Crate",
+   "description" : "A crate that can store a few things",
+   "flavor"      : "Does the crate that stores all the things that do not store themselves, store itself?",
+   "portrait"    : "/stonehearth/entities/decoration/wooden_sign/wooden_sign.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item": "stonehearth:containers:small_crate"
+      }
+  ]
+}

@@ -311,6 +311,12 @@ local constants = {
 
    placement = {
       DEFAULT_ROTATION = 180
+   },
+
+   container_types = {
+      BACKPACK = 'backpack',
+      VAULT = 'vault',
+      CRATE = 'crate',
    }
 }
 

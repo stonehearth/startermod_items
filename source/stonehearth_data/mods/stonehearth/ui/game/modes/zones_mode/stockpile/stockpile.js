@@ -5,7 +5,7 @@ App.StonehearthStockpileView = App.View.extend({
    components: {
       "unit_info": {},
       "stonehearth:stockpile" : {},
-      "stonehearth:storage_filter" : {}
+      "stonehearth:storage" : {}
    },
 
    didInsertElement: function() {
@@ -76,7 +76,7 @@ App.StonehearthStockpileView = App.View.extend({
       }
 
       var self = this;
-      var stockpileFilter = this.get('context.stonehearth:storage_filter.filter');
+      var stockpileFilter = this.get('context.stonehearth:storage.filter');
 
       $('.category').removeClass('on');
 
@@ -102,7 +102,7 @@ App.StonehearthStockpileView = App.View.extend({
          this.groups.prop('checked', true)
          this.items.addClass('on');
       }
-   }.observes('context.stonehearth:storage_filter.filter'),
+   }.observes('context.stonehearth:storage.filter'),
 
    _onGroupClick : function(element) {
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );

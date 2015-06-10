@@ -63,7 +63,7 @@ function Inventory:create_stockpile(location, size)
             :set_display_name('Stockpile No.' .. self._sv.next_stockpile_no)
             :set_player_id(self._sv.player_id)
 
-   entity:add_component('stonehearth:storage_filter')
+   entity:add_component('stonehearth:storage')
 
    entity:add_component('stonehearth:stockpile')
             :set_size(size.x, size.y)

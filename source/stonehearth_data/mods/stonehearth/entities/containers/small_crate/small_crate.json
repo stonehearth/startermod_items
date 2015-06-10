@@ -6,6 +6,9 @@
       "stonehearth:backpack" : {
 
       },
+      "stonehearth:storage" : {
+         "type" : "crate"
+      },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(small_crate_iconic.json)",
          "ghost_form" : "file(small_crate_ghost.json)",

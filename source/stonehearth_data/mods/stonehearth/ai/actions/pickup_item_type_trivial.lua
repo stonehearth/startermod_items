@@ -16,7 +16,7 @@ PickupItemTypeTrivial.priority = 1
 function PickupItemTypeTrivial:start_thinking(ai, entity, args)
    local item = ai.CURRENT.carrying
 
-   if item and args.filter_fn(item, entity) then
+   if item and args.filter_fn(item) then
       ai:set_think_output({ item = item })
    end
 end

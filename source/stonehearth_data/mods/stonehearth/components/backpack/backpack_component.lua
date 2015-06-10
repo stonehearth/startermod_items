@@ -1,5 +1,6 @@
 local BackpackComponent = class()
 
+local constants = require 'constants'
 local log = radiant.log.create_logger('backpack')
 
 function BackpackComponent:initialize(entity, json)
@@ -7,7 +8,6 @@ function BackpackComponent:initialize(entity, json)
    self._entity = entity
    self.num_reserved = 0
 
-   self._filter = entity:add_component('stonehearth:storage_filter')
    if not self._sv.initialized then
       self._sv.items = {}
       self._sv.num_items = 0
@@ -32,8 +32,8 @@ function BackpackComponent:unreserve_space()
    end
 end
 
-function BackpackComponent:get_filter()
-   return self._filter:get_filter_function()
+function BackpackComponent:set_type(type)
+   self._sv.type = type
 end
 
 function BackpackComponent:destroy()
