@@ -28,6 +28,10 @@
 #include "horde3d\Source\Shared\utMath.h"
 #include "gfxcard_db.h"
 
+#ifdef WIN32
+#include <Shellapi.h>
+#endif
+
 using namespace ::radiant;
 using namespace ::radiant::client;
 
@@ -349,12 +353,26 @@ void DumpDisplayAdapters() {
 #endif
 }
 
+void ShowDriverUpdateWindow() {
+#ifdef WIN32
+   int id = MessageBox(NULL, "Press 'okay' to go to stonehearth.net to learn how to upgrade your graphics card drivers.", "Could not find OpenGL.",  MB_OKCANCEL);
+   if (id == IDOK) {
+      ShellExecute(NULL, "open", "http://stonehearth.net/some-technical-stuff/", NULL, NULL, SW_SHOWMAXIMIZED);
+   }
+#endif
+}
+
+
 csg::Point2 Renderer::InitWindow()
 {
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       if (errorCode != 0) {
          R_LOG(1) << "GLFW Error (" << errorCode << "): " << errorString;
          Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
+         
+         if (errorCode == GLFW_API_UNAVAILABLE) {
+            ShowDriverUpdateWindow();
+         }
       } else {
          // Error code 0 is used to 
          R_LOG(1) << "glfw: " << errorString;
@@ -390,10 +408,12 @@ csg::Point2 Renderer::InitWindow()
                                          config_.enable_fullscreen.value ? monitor : nullptr, nullptr);
    if (!window) {
       R_LOG(1) << "Error trying to create glfw window.  (size:" << size << "  fullscreen:" << config_.enable_fullscreen.value << ")";
+
+
       glfwTerminate();
       DumpDisplayAdapters();
-      throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
+      throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
 
    R_LOG(1) << "Creating OpenGL Context";
    glfwMakeContextCurrent(window);
