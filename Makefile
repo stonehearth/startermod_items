@@ -254,3 +254,16 @@ docs:
 update-templates:
 	cd $(STONEHEARTH_ROOT)/source/stonehearth_data/ && $(SCRIPTS_ROOT)/update_templates.py
 
+#
+# Used to synchronize our public repositories on https://github.com/stonehearth/ with the
+# copies pulled into the tree with 'git subtree'
+#
+.PHONY: radent-to-gareth
+radent-to-gareth:
+	-rm $(STONEHEARTH_ROOT)/.git/hooks/pre-push
+	git subtree push --prefix source/stonehearth_data/mods/debugtools debugtools master
+	cp $(SCRIPTS_ROOT)/git_hooks/pre-push $(STONEHEARTH_ROOT)/.git/hooks/
+
+.PHONY: gareth-to-radent
+gareth-to-radent:
+	git subtree pull --prefix source/stonehearth_data/mods/debugtools debugtools master
