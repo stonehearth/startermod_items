@@ -8,7 +8,8 @@
          "icon" : "file(trapper_knife.png)"
       },
       "item" : {
-         "stacks" : 1
+         "stacks" : 1,
+         "category" : "tools"
       },
        "stonehearth:material" : {
          "tags" : "tool bone"

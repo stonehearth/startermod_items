@@ -80,35 +80,42 @@ function AggroObserver:_on_added_to_sensor(id, target)
 
    self._log:spam('aggro sensor tracking %s', target)
 
-   self:_add_entity_traces(target)
+   self:_trace_entity_in_sensor(target)
 end
 
 function AggroObserver:_on_removed_from_sensor(id)
    self:_remove_entity_traces(id)
 
    local target = radiant.entities.get_entity(id)
-
    if not target or not target:is_valid() then
       self._target_table:remove_entry(id)
    end
 end
 
-function AggroObserver:_add_entity_traces(target)
+function AggroObserver:_trace_entity_in_sensor(target)
    local unit_info = target:get_component('unit_info')
    if not unit_info then
       return
    end
 
-   local traces = {}
+   local traces = self:_get_entity_traces(target:get_id())
+   if not traces.unit_info_trace then
+      traces.unit_info_trace = unit_info:trace_player_id('aggro observer')
+         :on_changed(function()
+               self:_update_target(target)
+            end)
 
-   traces.unit_info_trace = unit_info:trace_player_id('aggro observer')
-      :on_changed(function()
-            self:_update_target(target)
-         end)
+      self:_update_target(target)
+   end
+end
 
-   self._entity_traces[target:get_id()] = traces
-
-   self:_update_target(target)
+function AggroObserver:_get_entity_traces(id)
+   local traces = self._entity_traces[id]
+   if not traces then
+      traces = {}
+      self._entity_traces[id] = traces
+   end
+   return traces
 end
 
 function AggroObserver:_remove_entity_traces(id)
@@ -153,7 +160,7 @@ function AggroObserver:_update_target(target)
 end
 
 function AggroObserver:_add_battery_trace(target)
-   local traces = self._entity_traces[target:get_id()]
+   local traces = self:_get_entity_traces(target:get_id())
 
    if not traces.battery_trace then
       traces.battery_trace = radiant.events.listen(target, 'stonehearth:combat:battery', self, self._on_ally_battery)
@@ -162,7 +169,6 @@ end
 
 function AggroObserver:_remove_battery_trace(target)
    local traces = self._entity_traces[target:get_id()]
-
    if traces.battery_trace then
       traces.battery_trace:destroy()
       traces.battery_trace = nil

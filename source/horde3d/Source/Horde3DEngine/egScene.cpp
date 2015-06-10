@@ -1266,6 +1266,10 @@ void Scene::updateQueues( const char* reason, const Frustum &frustum1, const Fru
     // distinct spatial queries.
     if (_queryCacheCount < QueryCacheSize) {
        _queryCacheCount++;
+    } else {
+       // Force the render queues for instanced data to be flushed, as well.  THIS IS A TEMPORARY HACK, as 
+       // the upcoming scene performance factoring work fixes all this the right way.
+       Modules::renderer().flushInstanceCache();
     }
     _currentQuery = _queryCacheCount - 1;
     SpatialQueryResult& sqr = _queryCache[_currentQuery];
