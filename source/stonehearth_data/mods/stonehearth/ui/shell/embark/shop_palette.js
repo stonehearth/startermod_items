@@ -1,10 +1,9 @@
 $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
    options: {
-      canSelect: function(item) {
-         return true
-      },
+      // Return whether to select the item.
       click: function(item) {
-         console.log('Clicked item: ' + item);
+         console.log('successfully selected item: ' + item);
+         return true;
       },
    },
 
@@ -14,20 +13,15 @@ $.widget( "stonehearth.stonehearthEmbarkShopPalette", {
 
       this.palette.on( 'click', '.item', function() {
          var itemSelected = $(this);
+         var shouldSelect = false;
+         if (self.options.click) {
+            shouldSelect = self.options.click(itemSelected);
+         }
 
-
-         if (!itemSelected.hasClass('selected')) {
-            if (self.options.canSelect && !self.options.canSelect(itemSelected)) {
-               return false;
-            }
+         if (shouldSelect) {
             self._selectItem(itemSelected);
          } else {
             self._deselectItem(itemSelected);
-         }
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
-         
-         if (self.options.click) {
-            self.options.click(itemSelected);
          }
          return false;
       });
