@@ -7,6 +7,12 @@
          "description": "A full suit of iron armor",
          "icon" : "file(iron_mail.png)"
       },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" : "iron armor heavy_armor"
+      },
       "model_variants": {
          "default": {
             "models": [
@@ -16,9 +22,6 @@
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
-      },
-      "stonehearth:material" : {
-         "tags" : "iron armor heavy_armor"
       }
    }
 }

@@ -2,25 +2,23 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "item" : {
-         "category" : "tools"
-       },
-       "model_variants": {
-         "default": {
-            "models": [
-               "file(wooden_sword.qb)"
-            ]
-         }
-      },
       "unit_info": {
          "name": "Wooden Sword",
          "description": "Basic wooden sword.",
          "icon" : "file(wooden_sword.png)"
       },
+      "item" : {
+         "category" : "weapons"
+      },
       "stonehearth:material" : {
-         "tags" : "wood melee_weapon crafted"
+         "tags" : "wood melee_weapon"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_sword.qb)"
+            ]
+         }
       }
-   },
-   "entity_data" : {
    }
 }

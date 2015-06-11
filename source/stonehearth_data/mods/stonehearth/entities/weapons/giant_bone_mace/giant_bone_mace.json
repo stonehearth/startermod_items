@@ -2,9 +2,17 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Giant Bone Mace",
+         "description": "Heavy, it packs a whallop.",
+         "icon" : "file(giant_bone_mace.png)"
+      },
       "item" : {
          "category" : "weapons"
       },    
+      "stonehearth:material" : {
+         "tags" : "bone animal_part melee_weapon crafted"
+      },
        "model_variants": {
          "default" : {
             "models": [
@@ -22,15 +30,6 @@
          "ilevel" : 12,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
-      },
-
-      "unit_info": {
-         "name": "Giant Bone Mace",
-         "description": "Heavy, it packs a whallop.",
-         "icon" : "file(giant_bone_mace.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "giant_bone melee_weapon"
       }
    },
    "entity_data" : {

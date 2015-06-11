@@ -96,7 +96,7 @@ var RadiantConsole;
       },
 
       _terminate : function() {
-         if (this._options.terminate) {
+         if (this._options && this._options.terminate) {
             this._options.terminate();
          }
       },

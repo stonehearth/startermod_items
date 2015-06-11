@@ -10,7 +10,7 @@
       "item" : {
          "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -28,7 +28,5 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:mason"
       }
-   },
-   "entity_data" : {
    }
 }

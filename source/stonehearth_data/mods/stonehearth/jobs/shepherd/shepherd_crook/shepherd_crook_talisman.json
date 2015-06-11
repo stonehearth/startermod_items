@@ -8,10 +8,9 @@
          "icon" : "file(shepherd_crook.png)"     
       },
       "item" : {
-         "stacks" : 1, 
          "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -29,8 +28,6 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:shepherd"
       }
-   },
-   "entity_data" : {
    }
 }
 

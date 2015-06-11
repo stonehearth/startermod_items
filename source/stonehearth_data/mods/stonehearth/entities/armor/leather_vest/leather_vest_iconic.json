@@ -7,6 +7,12 @@
          "description": "Hardened leather provides study protection.",
          "icon" : "file(leather_vest.png)"
       },
+      "item" : {
+         "category" : "armor"
+      },
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor"
+      },
       "model_variants": {
          "default": {
             "models": [
@@ -16,9 +22,6 @@
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
-      },
-      "stonehearth:material" : {
-         "tags" : "leather armor"
       }
    }
 }

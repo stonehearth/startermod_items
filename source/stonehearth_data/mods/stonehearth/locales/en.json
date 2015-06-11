@@ -182,7 +182,8 @@
    "hint_camera_orbit_1": "Right click and drag to rotate the camera",
    "hint_camera_orbit_2": "Q and E work too",
    "hint_camera_zoom_title": "To zoom in and out",
-   "hint_camera_zoom": "Use the mouse scroll wheel",
+   "hint_camera_zoom_1": "Use the mouse scroll wheel",
+   "hint_camera_zoom_2": "Or use the + and - keys",
 
    "character_sheet_title" : "Character Info", 
    "health" : "health",

@@ -2,25 +2,23 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "item" : {
-         "category" : "tools"
-       },
-       "model_variants": {
-         "default": {
-            "models": [
-               "file(iron_pike.qb)"
-            ]
-         }
-      },
       "unit_info": {
          "name": "Iron pike",
          "description": "Sharp. Long. Pointy.",
          "icon" : "file(iron_pike.png)"
       },
+      "item": {
+         "category" : "weapons"
+      },
       "stonehearth:material" : {
          "tags" : "iron melee_weapon crafted"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(iron_pike.qb)"
+            ]
+         }
       }
-   },
-   "entity_data" : {
    }
 }
