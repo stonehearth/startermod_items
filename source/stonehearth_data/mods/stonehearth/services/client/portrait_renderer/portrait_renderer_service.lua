@@ -107,14 +107,6 @@ end
 
 function PortraitRendererService:_stage_scene(request)
    if request.type == 'headshot' then
-      self:_add_light({
-            color =         Point3(0.9,  0.8, 0.9),
-            ambient_color = Point3(0.3,  0.3, 0.3),
-            direction =     Point3(-45, -45, 0)
-         })
-      self:_set_camera_position(Point3(1.8, 2.4, -3.0))
-      self:_set_camera_look_at(Point3(0, 2.4, 0))
-
       local entity = request.entity
       if radiant.util.is_a(entity, Entity) and entity:is_valid() then
          local render_entity = self:_add_existing_entity(entity)
@@ -122,6 +114,28 @@ function PortraitRendererService:_stage_scene(request)
             render_entity:pose(request.animation, request.time or 0)
          end
       end
+
+      -- Calculate the height of the camera based on the head bone of the entity.
+      local render_info = entity:get_component('render_info')
+      local camera_pos_y = 2.4
+      if render_info then
+         local animation_table_location = render_info:get_animation_table()
+         local animation_table = radiant.resources.load_json(animation_table_location)
+         local headPos = animation_table.skeleton.head
+         local scale = render_info:get_scale()
+         camera_pos_y = headPos[2] * scale
+         camera_pos_y = camera_pos_y * 1.8
+      end
+
+      self:_add_light({
+            color =         Point3(0.9,  0.8, 0.9),
+            ambient_color = Point3(0.5,  0.5, 0.5),
+            -- Direction is in degrees with yaw and pitch as the first 2 params. Ignore 3rd param
+            -- -180 yaw will have light going from -z to positive z
+            direction =     Point3(-160, 15, 0)
+         })
+      self:_set_camera_position(Point3(1.7, camera_pos_y, -2.7))
+      self:_set_camera_look_at(Point3(0, camera_pos_y - 0.3, 0))
    end
 end
 
