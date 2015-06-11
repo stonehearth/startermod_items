@@ -72,6 +72,7 @@ App.StonehearthHelpCameraView = App.View.extend({
 
       var allDone = this._zoomDone && this._panDone && this._orbitDone;
       if (allDone) {
+         radiant.call('radiant:set_config', 'tutorial', { hideStartingTutorial: true});
          this._createCamp();
       }
    },
