@@ -41,7 +41,8 @@ local service_creation_order = {
    'shop',
    'tutorial',
    'unit_control',
-   'game_creation'
+   'game_creation',
+   'food_decay'
 }
 
 local function create_service(name)
