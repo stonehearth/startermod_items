@@ -9,6 +9,9 @@
             scale *= .01;
             scale += 1;
             $(this).css('-webkit-transform','scale('+scale+','+scale+')'); 
+         },
+         complete: function() {
+            this.bounce = 0;
          }
       });
    }

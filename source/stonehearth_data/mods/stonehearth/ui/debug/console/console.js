@@ -64,6 +64,10 @@ App.StonehearthConsoleView = App.View.extend({
          }
       });
 
+      this.$("#closeConsoleButton").click(function() {
+         self.$().hide();
+      });
+
       this.$().hide();
       radiant.console.setContainer(self.$('.output'));
    },
