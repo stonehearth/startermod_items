@@ -67,7 +67,7 @@ App.StonehearthHelpCameraView = App.View.extend({
             if (!self._zoomDone) {
                self._updateHints({ zoom: true});
             }
-         }, 3000);
+         }, 10000);
       }
 
       var allDone = this._zoomDone && this._panDone && this._orbitDone;
