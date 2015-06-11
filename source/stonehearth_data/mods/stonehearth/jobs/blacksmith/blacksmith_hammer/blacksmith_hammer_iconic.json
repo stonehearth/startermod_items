@@ -4,12 +4,13 @@
    "components" : {
       "unit_info" : {
          "name" :  "Blacksmith's Hammer",
-         "description" : "Tools of the trade for a blacksmith."
+         "description" : "Tools of the trade for a blacksmith.",
+         "icon": "file(blacksmith_hammer.png)"
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -19,7 +20,5 @@
             ]
          }
       }
-   },
-   "entity_data" : {
    }
 }

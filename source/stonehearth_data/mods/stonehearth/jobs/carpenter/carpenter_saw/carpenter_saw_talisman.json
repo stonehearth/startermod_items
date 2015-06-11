@@ -3,12 +3,11 @@
    "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "Carpenter's Saw",
+         "name" : "Carpenter's Saw",
          "description" : "Promotes a hearthling into a Carpenter.", 
          "icon" : "file(carpenter_saw.png)"
       },
       "item" : {
-         "stacks" : 1,
          "category" : "tools"
       },
        "stonehearth:material" : {
