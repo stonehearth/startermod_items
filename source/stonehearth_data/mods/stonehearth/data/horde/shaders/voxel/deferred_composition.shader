@@ -29,7 +29,6 @@ void main(void)
 #version 120
 #include "shaders/utilityLib/camera_transforms.glsl"
 #include "shaders/utilityLib/fragLighting.glsl" 
-#include "shaders/shadows.shader"
 
 uniform sampler2D lighting;
 uniform sampler2D albedo;
