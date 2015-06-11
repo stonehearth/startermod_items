@@ -108,8 +108,6 @@ json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
    return n;
 }
 
-static const std::string SAVE_TEMP_DIR("tmp_save");
-
 Client::Client() :
    _tcp_socket(_io_service),
    store_(nullptr),
@@ -660,6 +658,8 @@ void Client::OneTimeIninitializtion()
       }
 
       for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+         static const std::string SAVE_TEMP_DIR("tmp_save");
+
          std::string name = it->path().filename().string();
          if (name == SAVE_TEMP_DIR) {
             CLIENT_LOG(3) << "ignoring temporary save directory: " << SAVE_TEMP_DIR;
@@ -1787,44 +1787,37 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
 
    ASSERT(!server_save_deferred_);
 
-   fs::path tmpdir  = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR;
-   if (fs::is_directory(tmpdir)) {
-      remove_all(tmpdir);
+   fs::path savedir  = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (fs::is_directory(savedir)) {
+      remove_all(savedir);
    }
-   fs::create_directories(tmpdir);
+   fs::create_directories(savedir);
 
-   SaveClientScreenShot(tmpdir);
-   SaveClientState(tmpdir);
+   SaveClientScreenShot(savedir);
+   SaveClientState(savedir);
 
    json::Node args;
-   args.set("saveid", SAVE_TEMP_DIR);
+   args.set("saveid", saveid);
 
    client_save_deferred_ = d;
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
-   server_save_deferred_->Done([this, saveid, tmpdir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Done([this, saveid, savedir, gameinfo](JSONNode const&n) {
       // Wait until both the client and server state have been saved to write
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
-      SaveClientMetadata(tmpdir, gameinfo);
-
-      // finally. move the save game to the correct direcory
-      fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
-      DeleteSaveGame(saveid);
-      rename(tmpdir, savedir);
-      CLIENT_LOG(1) << "moving " << tmpdir.string() << " to " << savedir;
-
+      SaveClientMetadata(savedir, gameinfo);
       client_save_deferred_->Resolve(n);
    });
-   server_save_deferred_->Fail([this, tmpdir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Fail([this, savedir, gameinfo](JSONNode const&n) {
       client_save_deferred_->Reject(n);
+      remove_all(savedir);
    });
 
-   server_save_deferred_->Always([this, tmpdir] {
+   server_save_deferred_->Always([this, savedir] {
       CLIENT_LOG(1) << "clearing save deferred pointers";
       client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
-      remove_all(tmpdir);
    });
 
    return client_save_deferred_;

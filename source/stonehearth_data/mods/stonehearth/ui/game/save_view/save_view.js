@@ -79,9 +79,30 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
       this.send('enableAutoSave', enabled);
    }.observes('auto_save'),
 
-   // the action interface
-   actions: {
-      saveGame: function(saveid) {
+   _showSaveModal: function() {
+      // show the "saving.... message"
+      this.set('opInProgress', true);
+      this.triggerAction({
+         action:'openInOutlet',               
+         actionContext: {
+            viewName: 'savePopup',   
+            outletName: 'modalmodal'
+         }
+      });
+   },
+   
+   _hideSaveModal: function() {
+      // hide the "saving.... message"
+      this.set('opInProgress', false);
+      this.triggerAction({
+         action:'closeOutlet',               
+         actionContext: {
+            outletName: 'modalmodal'
+         }
+      });               
+   },
+
+   _saveGame: function(saveid) {
          var self = this;
          var d = new Date();
          var gameDate = App.gameView.getDate().date 
@@ -90,20 +111,7 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
          if (!saveid) {
             saveid = String(d.getTime());
          }
-
-         self.set('opInProgress', true);
-
-
-         // show the "saving.... message"
-         self.triggerAction({
-            action:'openInOutlet',               
-            actionContext: {
-               viewName: 'savePopup',   
-               outletName: 'modalmodal'
-            }
-         });
-
-         radiant.call("radiant:client:save_game", saveid, { 
+         return radiant.call("radiant:client:save_game", saveid, { 
                name: saveid == 'auto_save' ? i18n.t('stonehearth:auto_save_prefix') : '',
                town_name: App.stonehearthClient.settlementName(),
                game_date: gameDate,
@@ -115,19 +123,38 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
                   workers: App.population.getNumWorkers(),
                   soldiers: App.population.getNumSoldiers(),
                }
-            })
-            .always(function() {
-               self.set('opInProgress', false);
-               self._getSaves();
-
-               // hide the "saving.... message"
-               self.triggerAction({
-                  action:'closeOutlet',               
-                  actionContext: {
-                     outletName: 'modalmodal'
-                  }
-               });               
             });
+   },
+
+   // the action interface
+   actions: {
+      overwriteSaveGame: function(saveid) {
+         var self = this;
+
+         self._showSaveModal();
+         self._saveGame()
+               .done(function() {
+                  radiant.call("radiant:client:delete_save_game", saveid)
+                     .always(function() {
+                        self._hideSaveModal();
+                        self._getSaves();
+                     })
+               })
+               .fail(function() {
+                  self._hideSaveModal();
+                  self._getSaves();
+               });
+      },
+
+      saveGame: function(saveid) {
+         var self = this;
+
+         self._showSaveModal();
+         self._saveGame(saveid)
+               .always(function() {
+                  self._hideSaveModal();
+                  self._getSaves();
+               });
       },
 
       loadGame: function(key) {
@@ -262,7 +289,7 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
                         label: i18n.t('stonehearth:yes'),
                         click: function() {
                            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash' });
-                           self.get("controller").send('saveGame', key);
+                           self.get("controller").send('overwriteSaveGame', key);
                         }
                      },
                      {
