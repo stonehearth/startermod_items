@@ -6,6 +6,7 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
 
    _compatibleVersions: {
       "0.1.0.375" : true,
+      "0.1.0.393" : true,
    },
 
    _doInit: function() {
