@@ -1,4 +1,5 @@
 local build_util = require 'stonehearth.lib.build_util'
+local csg_lib = require 'lib.csg.csg_lib'
 
 local Point2  = _radiant.csg.Point2
 local Point3  = _radiant.csg.Point3
@@ -80,9 +81,15 @@ end
 function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, blueprint_region, blueprint_clip_box, region, normal)
    checks('self', 'number', 'string', 'Entity', 'Point3', 'Region3Boxed', '?Cube3', 'Region3Boxed', 'Point3')
 
-   assert(not self._sv.regions[rid])
+   local rblock = self._sv.regions[rid]
 
-   local rblock = {
+   if rblock then
+      log:error('scaffolding region for rid:%d already exists', rid)
+      debug.traceback()
+      assert(csg_lib.are_equivalent_regions(rblock.region, region))
+   end
+
+   rblock = {
       rid    = rid,
       entity = entity,
       origin = origin,
