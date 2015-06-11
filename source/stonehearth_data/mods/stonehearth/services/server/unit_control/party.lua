@@ -235,7 +235,7 @@ function Party:_update_tasks()
       else
          priority = stonehearth.constants.priorities.combat.PARTY_AGGRESSIVE_FORMATION
       end
-      radiant.log.write('', 0, 'priority is %d', priority)
+      --radiant.log.write('', 0, 'priority is %d', priority)
       self._movement_task = self._party_tg:create_task(activity, args)
                                                    :set_priority(priority)
                                                    :start()
