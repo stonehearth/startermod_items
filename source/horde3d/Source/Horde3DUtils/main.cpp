@@ -719,10 +719,7 @@ void h3dutCreatePngImageFromTexture(H3DRes tex, std::string& result)
          pixels[(y * width + x) * 4 + 0] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
          pixels[(y * width + x) * 4 + 1] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
          pixels[(y * width + x) * 4 + 2] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 4 + 3] = 0;//Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 3], 0.f, 1.f ) * 255.f );
-         if (*pixelValue > 0) {
-            pixels[(y * width + x) * 4 + 3] = 255;
-         }
+         pixels[(y * width + x) * 4 + 3] = Horde3D::ftoi_r( Horde3D::clamp( pixelsF[(y * width + x) * 4 + 3], 0.f, 1.f ) * 255.f );
       }
    }
    delete[] pixelsF;

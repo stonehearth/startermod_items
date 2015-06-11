@@ -18,11 +18,12 @@ void main()
 {
   float u_offset = frameBufSize.z;
 
-  vec3 result = texture2D(image, texCoords + vec2(u_offset * -2.0, 0)).xyz * 0.061;
+  vec4 col = texture2D(image, texCoords + vec2(u_offset * -2.0, 0));
+  vec3 result = col.xyz * 0.061;
   result += texture2D(image, texCoords + vec2(u_offset * -1.0, 0)).xyz * 0.242;
   result += texture2D(image, texCoords).xyz * 0.383;
   result += texture2D(image, texCoords + vec2(u_offset * 1.0, 0)).xyz * 0.242;
   result += texture2D(image, texCoords + vec2(u_offset * 2.0, 0)).xyz * 0.061;
 
-  gl_FragColor = vec4(result, 1.0);
+  gl_FragColor = vec4(result, col.a);
 }
