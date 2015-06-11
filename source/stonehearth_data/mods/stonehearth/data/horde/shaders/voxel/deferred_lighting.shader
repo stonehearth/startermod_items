@@ -29,7 +29,11 @@ void main(void)
 #version 120
 #include "shaders/utilityLib/camera_transforms.glsl"
 #include "shaders/utilityLib/fragLighting.glsl" 
+
+#ifndef DISABLE_SHADOWS
+varying vec4 projShadowPos[3];
 #include "shaders/shadows.shader"
+#endif
 
 uniform vec3 lightAmbientColor;
 uniform sampler2D normals;

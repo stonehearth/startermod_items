@@ -6,7 +6,6 @@ uniform float shadowMapSize;
 
 uniform mat4 camViewMat;
 
-varying vec4 projShadowPos[3];
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private Functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,14 +117,10 @@ float getShadowValue(const vec3 worldSpace_fragmentPos)
 {
   float shadowTerm;
 
-#ifdef DISABLE_SHADOWS
-  shadowTerm = 1.0;
-#else
   //vec4 projCoords = _shadowCoordsByDistance(worldSpace_fragmentPos, cascadeNum);
   vec4 projCoords = _shadowCoordsByMap(worldSpace_fragmentPos);
 
   shadowTerm = shadow2DProj(shadowMap, projCoords).r;
-#endif
 
   return shadowTerm;
 }
