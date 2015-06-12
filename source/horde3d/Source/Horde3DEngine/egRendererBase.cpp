@@ -960,6 +960,7 @@ uint32 RenderDevice::createRenderBuffer(uint32 width, uint32 height, TextureForm
                                          bool depth, uint32 numColBufs, uint32 samples, uint32 numMips, bool cubeMap)
 {
    std::vector<RenderBufferAlias> aliases;
+   // No aliases for this render buffer, so load up a bunch of empties, + 1 for the possible depth buffer.
    for (uint32 i = 0; i < numColBufs + 1; i++) {
       aliases.push_back(RenderBufferAlias());
    }
@@ -977,7 +978,7 @@ uint32 RenderDevice::createRenderBufferWithAliases(uint32 width, uint32 height, 
 	if( numColBufs > RDIRenderBuffer::MaxColorAttachmentCount ) return 0;
 
    RDIRenderBuffer rb;
-   rb.cubeMap = false;
+   rb.cubeMap = cubeMap;
    rb.width = width;
    rb.height = height;
    rb.samples = samples;
