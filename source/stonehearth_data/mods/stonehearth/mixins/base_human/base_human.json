@@ -35,6 +35,11 @@
             "attribute_up_desc" : "All attributes increased!" 
          }
       },
+      "stonehearth:storage" : {
+         "type" : "backpack"
+      },
+      "stonehearth:backpack" : {
+      },
       "stonehearth:attributes" : {
          "mind": {
             "type" : "random_range",
