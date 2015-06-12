@@ -314,6 +314,55 @@ void Renderer::MakeRendererResources()
          }
          h3dUnmapResStream(veclookup, 0);
       }
+
+      H3DRes sampleLookup = h3dCreateTexture("SampleVectorLookup", 1, 16, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+
+      data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+
+      if (data2) {
+         data2[0] = 0.120735723f;
+         data2[1] = 0.154695181f;
+         data2[2] = 0.095559036f;
+         data2[3] = 0.0;
+
+         data2[4] = -0.17934270f;
+         data2[5] = -0.133400726f;
+         data2[6] = 0.180391080f;
+         data2[7] = 0.0;
+
+         data2[8] = -0.183279236f;
+         data2[9] = -0.260888325f;
+         data2[10] = 0.179007574f;
+         data2[11] = 0.0;
+
+         data2[12] = -0.209957821f;
+         data2[13] = 0.303312696f;
+         data2[14] = 0.263813869f;
+         data2[15] = 0.0;
+
+         data2[16] = 0.250082046f;
+         data2[17] = 0.32981852f;
+         data2[18] = 0.363463802f;
+         data2[19] = 0.0;
+
+         data2[20] = 0.4226088961f;
+         data2[21] = -0.058862660f;
+         data2[22] = 0.500400324f;
+         data2[23] = 0.0;
+
+         data2[24] = 0.3573904081f;
+         data2[25] = -0.473313856f;
+         data2[26] = 0.497081545f;
+         data2[27] = 0.0;
+
+         data2[28] = 0.5012853241f;
+         data2[29] = -0.470811146f;
+         data2[30] = 0.579836830f;
+         data2[31] = 0.0;
+
+         h3dUnmapResStream(sampleLookup, 0);
+      }
+
       CreateTextureResource("SMAA_AreaTex", resourcePath_ + "/textures/smaa/smaa_area.raw", 160, 560, H3DFormats::TEX_RG8, 2);
       CreateTextureResource("SMAA_SearchTex", resourcePath_ + "/textures/smaa/smaa_search.raw", 66, 33, H3DFormats::TEX_R8, 1);
    }
@@ -337,6 +386,7 @@ void Renderer::InitHorde()
    h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+   h3dSetOption(H3DOptions::SRGBLinearization, 0);
 
    h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false);
 }
@@ -398,6 +448,7 @@ csg::Point2 Renderer::InitWindow()
       config_.screen_height.value = size.y;
    }
 
+   glfwWindowHint(GLFW_SRGB_CAPABLE, 0);
    glfwWindowHint(GLFW_SAMPLES, 0);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);

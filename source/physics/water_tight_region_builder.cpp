@@ -8,6 +8,8 @@
 using namespace ::radiant;
 using namespace ::radiant::phys;
 
+#define WATER_TIGHT_REGION_LOG(level)    LOG(simulation.water_tight_region, level)
+
 WaterTightRegionBuilder::WaterTightRegionBuilder(NavGrid const& ng) :
    _navgrid(ng),
    _deltaAccumulator(nullptr)
@@ -37,16 +39,25 @@ void WaterTightRegionBuilder::OnTileDirty(csg::Point3 const& addr)
 
 void WaterTightRegionBuilder::UpdateRegion()
 {
+   int const BATCH_SIZE = 256;
    DirtyTileSet dirty = std::move(_dirtyTiles);
+   csg::Region3 batch;
+
    for (csg::Point3 const& addr : dirty) {
-      // Run through all the dirty tiles computing the change from the
-      // previous iteration.  Clock these through the deltaAccumulator object
-      // a tile at a time so we don't need to make one GIGANTIC region when the
-      // terrain changes a lot (like at startup!)
+      // Batch the dirty tiles together, but limit the batch size so we don't send
+      // a gigantic region when the terrain changes a lot (like during world generation).
       csg::Region3 delta = GetTileDelta(addr);
-      if (!delta.IsEmpty()) {
-         _deltaAccumulator->Set(csg::ToFloat(delta));
+      batch.Add(delta);
+
+      if (batch.GetCubeCount() >= BATCH_SIZE) {
+         _deltaAccumulator->Set(csg::ToFloat(batch));
+         batch.Clear();
       }
+   }
+
+   if (!batch.IsEmpty()) {
+      _deltaAccumulator->Set(csg::ToFloat(batch));
+      batch.Clear();
    }
 }
 

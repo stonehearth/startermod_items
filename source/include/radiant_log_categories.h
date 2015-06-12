@@ -61,6 +61,7 @@
       ADD_CATEGORY(goto_location) \
       ADD_CATEGORY(free_motion) \
       ADD_CATEGORY(terrain) \
+      ADD_CATEGORY(water_tight_region) \
    END_GROUP(simulation) \
    \
    BEGIN_GROUP(horde) \

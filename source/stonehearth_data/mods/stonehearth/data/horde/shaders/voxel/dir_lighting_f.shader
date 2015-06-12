@@ -36,7 +36,11 @@ attribute vec4 color;
 varying vec4 pos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
+
+#ifndef DISABLE_SHADOWS
 varying vec4 projShadowPos[3];
+#endif
+
 varying vec4 projFowPos;
 varying vec3 gridLineCoords;
 
@@ -68,7 +72,11 @@ void main( void )
 // =================================================================================================
 
 #include "shaders/utilityLib/fragLighting.glsl" 
+
+#ifndef DISABLE_SHADOWS
+varying vec4 projShadowPos[3];
 #include "shaders/shadows.shader"
+#endif
 
 uniform sampler3D gridMap;
 uniform sampler2D cloudMap;
@@ -84,10 +92,15 @@ varying vec3 albedo;
 varying vec3 tsbNormal;
 varying vec3 gridLineCoords;
 
+
 void main( void )
 {
   // Shadows.
-  float shadowTerm = getShadowValue(pos.xyz);
+  float shadowTerm = 1.0;
+
+#ifndef DISABLE_SHADOWS
+  shadowTerm = getShadowValue(pos.xyz);
+#endif
 
   // Light Color.
   vec3 lightColor = calcSimpleDirectionalLight(normalize(tsbNormal));
