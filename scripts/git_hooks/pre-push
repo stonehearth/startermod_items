@@ -4,7 +4,7 @@ branch_name=`git rev-parse --abbrev-ref HEAD`
 top_level=`git rev-parse --show-toplevel`
 
 if [[ "$branch_name" == "develop" || "$branch_name" == "release" ]]; then
-  /c/python27/python ./radsub.py $top_level
+  /c/python27/python ./radsub.py -p $top_level
 fi
 
 exit $!
