@@ -1,0 +1,46 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 40,
+         "max_stacks" : 40,
+         "category" : "food"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(meat_stew.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Savory Meat Stew",
+         "description": "Warm and delicious",
+         "icon" : "file(meat_stew.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource meat food_container refined"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:food:meat_stew:meat_stew_serving",
+         "stacks_per_serving": 6
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 15,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : false,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }      
+   }
+}

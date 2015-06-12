@@ -35,7 +35,11 @@
             "name" : "Bolt of Leather",
             "icon" : "/stonehearth/entities/refined/leather_bolt/leather_bolt.png",
             "stacks" : 1
-         }         
+         },
+         "food meat raw" : {
+            "name" : "Raw Meat",
+            "icon" : "/stonehearth/mixins/food/jerky/jerky.png"
+         }
       }
    }
 }

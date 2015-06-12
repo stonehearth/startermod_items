@@ -1,0 +1,29 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 1,
+   "recipe_name" : "Tasty Vegetable Stew",
+   "description" : "A warm, savory broth, fortified with braised pumpkin!",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/food/veggie_stew/veggie_stew/veggie_stew.png",
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:carrot_basket",
+         "count" : 1
+      },
+      {
+         "uri" : "stonehearth:turnip_basket",
+         "count" : 1
+      },      
+      {
+         "uri" : "stonehearth:food:pumpkin:pumpkin_basket",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item" : "stonehearth:food:veggie_stew"
+      }
+  ]
+}
