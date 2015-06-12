@@ -142,6 +142,7 @@ parser.add_argument('-s', '--script', help='runs the specified test script')
 parser.add_argument('-g', '--group', help='runs the specified test group')
 parser.add_argument('-i', '--interactive', action='store_true', help='run in interactive mode (maximizes the window)')
 parser.add_argument('-t', '--timeout', help='Sets a timeout for the test-running process')
+parser.add_argument('-p', '--toplevel', help='Set the top-level directory for running radsub')
 parser.add_argument('settings', nargs=argparse.REMAINDER, help='settings to pass to Stonehearth (e.g. --mods.foo.bar=7 --mods.foo.baz=bing)')
 
 args = parser.parse_args(sys.argv[1:])
@@ -153,9 +154,8 @@ if os.environ.has_key('RADIANT_ROOT'):
 else:
   rad_root = '../'
 
-num_args = len(sys.argv)
-if num_args > 1:
-   sh_root = sys.argv[1] + '/'
+if args.toplevel:
+   sh_root = args.toplevel + '/'
 else:
    sh_root = os.getcwd() + '/'
 
