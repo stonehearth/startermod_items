@@ -8,10 +8,10 @@
          "icon" : "file(trapper_knife.png)"
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"
       },
-       "stonehearth:material" : {
-         "tags" : "tool bone"
+      "stonehearth:material" : {
+         "tags" : "tool bone melee_weapon"
       },
       "model_variants": {
          "default": {
@@ -28,8 +28,6 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:trapper"
       }
-   },
-   "entity_data" : {
    }
 }
 

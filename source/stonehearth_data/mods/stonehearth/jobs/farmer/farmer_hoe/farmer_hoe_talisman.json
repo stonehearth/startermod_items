@@ -8,9 +8,9 @@
          "icon" : "file(farmer_hoe.png)"
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -28,8 +28,6 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:farmer"
       }
-   },
-   "entity_data" : {
    }
 }
 

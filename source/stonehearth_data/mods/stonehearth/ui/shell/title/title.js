@@ -3,6 +3,11 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
    i18nNamespace: 'stonehearth',
    components: {},
 
+   _compatibleVersions: {
+      "0.1.0.375" : true,
+      "0.1.0.393" : true,
+   },
+
    init: function() {
       this._super();
    },
@@ -45,9 +50,16 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
 
             if (vals.length > 0) {
                var save = vals[0];
-               if (save.gameinfo.version != App.stonehearthVersion) {
-                  save.gameinfo.differentVersions = true;
+               var version = save.gameinfo.version;
+               if (!version || version != App.stonehearthVersion) {
+                  // SUPER hack save game compatibility code so we can push a build
+                  // to Steam without real save game compatibility - tonyc
+                  if (!self._compatibleVersions[version]) {
+                     // For now, just blindly warn if versions are different.
+                     save.gameinfo.differentVersions = true;
+                  }
                }
+
                self.$('#continue').show();
                self.$('#continueGameButton').show();
                self.$('#loadGameButton').show();

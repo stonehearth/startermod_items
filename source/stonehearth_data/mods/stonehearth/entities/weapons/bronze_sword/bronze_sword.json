@@ -2,8 +2,16 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Bronze Short Sword",
+         "description": "Basic, but better than fighting with a sharpened stick!",
+         "icon" : "file(bronze_sword.png)"
+      },
       "item": {
          "category" : "weapons"
+      },
+      "stonehearth:material" : {
+         "tags" : "bronze melee_weapon crafted"
       },
       "model_variants": {
          "default" : {
@@ -22,15 +30,6 @@
          "ilevel" : 4,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
-      },
-
-      "unit_info": {
-         "name": "Bronze Short Sword",
-         "description": "Basic, but better than fighting with a sharpened stick!",
-         "icon" : "file(bronze_sword.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "bronze melee_weapon"
       }
    },
    "entity_data" : {

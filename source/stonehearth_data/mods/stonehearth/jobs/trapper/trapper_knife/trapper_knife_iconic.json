@@ -5,13 +5,13 @@
       "unit_info" : {
          "name" :  "Trapper's Knife",
          "description" : "Basic trapper's knife.",
-         "icon" : "file(/entities/generic/default_object/default_object.png)"
+         "icon" : "file(trapper_knife.png)"
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"   
       },
-       "stonehearth:material" : {
-         "tags" : "tool bone"
+      "stonehearth:material" : {
+         "tags" : "tool bone melee_weapon"
       },
       "model_variants": {
          "default": {
@@ -20,8 +20,6 @@
             ]
          }
       }
-   },
-   "entity_data" : {
    }
 }
 

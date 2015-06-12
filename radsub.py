@@ -153,7 +153,11 @@ if os.environ.has_key('RADIANT_ROOT'):
 else:
   rad_root = '../'
 
-sh_root = rad_root + 'stonehearth/'
+num_args = len(sys.argv)
+if num_args > 1:
+   sh_root = sys.argv[1] + '/'
+else:
+   sh_root = os.getcwd() + '/'
 
 if args.debug:
   build_type = 'Debug'

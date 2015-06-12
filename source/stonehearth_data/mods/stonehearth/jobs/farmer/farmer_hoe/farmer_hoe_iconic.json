@@ -4,12 +4,13 @@
    "components" : {
       "unit_info" : {
          "name" :  "Farmer's Hoe",
-         "description" : "Required to promote a hearthling into a Farmer."
+         "description" : "Required to promote a hearthling into a Farmer.",
+         "icon": "file(farmer_hoe.png)"
       },
       "item" : {
          "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -19,8 +20,6 @@
             ]
          }
       }
-   },
-   "entity_data" : {
    }
 }
 

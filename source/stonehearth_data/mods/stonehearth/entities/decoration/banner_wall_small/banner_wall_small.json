@@ -3,9 +3,6 @@
    "mixins" : "file(banner_wall_small_ghost.json)",
 
    "components": {
-      "item" : {
-         "category" : "decoration"
-      },
       "stonehearth:material" : {
          "tags" : "decoration crafted cloth"
       },

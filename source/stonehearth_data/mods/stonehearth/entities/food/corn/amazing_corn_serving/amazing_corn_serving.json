@@ -6,6 +6,9 @@
          "name": "Amazing Maize",
          "description": "Heavenly nutritious."
       },      
+      "item" : {
+         "category" : "food"
+      },
       "stonehearth:material" : {
          "tags" : "food"
       },

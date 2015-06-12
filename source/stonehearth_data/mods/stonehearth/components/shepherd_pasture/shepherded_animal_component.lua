@@ -12,14 +12,11 @@ function ShepherdedAnimalComponent:initialize(entity, json)
 end
 
 function ShepherdedAnimalComponent:destroy()
-   self._kill_listener:destroy()
-   self._kill_listener = nil
-end
-
---When we've been killed, remove ourselves from our pasture, if we have one
---Remove ourselves from the trailing shepherd, if that's appropriate
-function ShepherdedAnimalComponent:_on_kill_event()
-   self:free_animal()
+   --If the shepherded animal component is removed, free this animal.
+   --Note, this will work both for animal being freed and also for animal dying.
+   if self._sv.animal then
+      self:free_animal()
+   end
 end
 
 function ShepherdedAnimalComponent:free_animal()
@@ -27,7 +24,6 @@ function ShepherdedAnimalComponent:free_animal()
    if self._sv.pasture then
       local pasture_component = self._sv.pasture:get_component('stonehearth:shepherd_pasture')
       pasture_component:remove_animal(self._sv.animal:get_id())
-      
    end
 
    --Free self from shepherd
@@ -50,6 +46,7 @@ function ShepherdedAnimalComponent:free_animal()
 
    self._sv.pasture = nil
    self._sv.last_shepherd_entity = nil
+   self._sv.animal = nil
 end
 
 --Remember the animal that this component is following
@@ -57,7 +54,6 @@ end
 function ShepherdedAnimalComponent:set_animal(animal_entity)
    self._sv.animal = animal_entity
    self._sv.original_player_id = radiant.entities.get_player_id(animal_entity)
-   self._kill_listener = radiant.events.listen(self._sv.animal, 'stonehearth:kill_event', self, self._on_kill_event)
 end
 
 function ShepherdedAnimalComponent:set_pasture(pasture_entity)

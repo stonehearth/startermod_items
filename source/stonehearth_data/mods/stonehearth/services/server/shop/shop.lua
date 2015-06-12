@@ -205,6 +205,11 @@ function Shop:stock_shop()
 end
 
 function Shop:buy_item(uri, quantity)
+   -- is the uri actually in the shop inventory?
+   if not uri or not self._sv.shop_inventory[uri] then
+      return
+   end
+
    local buy_quantity = quantity or 1
    local all_sellable_items = stonehearth.shop:get_sellable_items()
    

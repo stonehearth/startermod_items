@@ -13,6 +13,12 @@ end
 function EquipmentComponent:destroy()
    -- xxx, revoke injected ais for all equipped items
    --stonehearth.ai:revoke_injected_ai(self._injected_ai_token)
+   
+   -- Drop all remaining equipment, force destroying all of them.
+   self:_drop_equipment(function(item)
+            return item:is_valid()
+         end, true)
+         
    self._kill_listener:destroy()
    self._kill_listener = nil
 end
@@ -33,13 +39,13 @@ function EquipmentComponent:drop_unsuitable_equipment(roles)
       end)
 end
 
-function EquipmentComponent:_drop_equipment(should_drop_cb)
+function EquipmentComponent:_drop_equipment(should_drop_cb, force_destroy)
    if self._sv.equipped_items then
       for key, item in pairs(self._sv.equipped_items) do
          if should_drop_cb(item) then
             self:unequip_item(item)
             local ep = item:get_component('stonehearth:equipment_piece')
-            if ep and ep:get_should_drop() then 
+            if ep and ep:get_should_drop() and not force_destroy then 
                local location = radiant.entities.get_world_grid_location(self._entity)
                local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
                radiant.terrain.place_entity(item, placement_point)

@@ -405,7 +405,6 @@
       "armor:wooden_shield" : "file(entities/armor/wooden_shield)",
       "armor:basic_shield" : "file(entities/armor/basic_shield)",
 
-
       "loot:gold" : "file(entities/loot/gold)",
       
       "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
