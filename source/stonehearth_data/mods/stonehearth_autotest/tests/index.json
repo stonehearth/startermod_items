@@ -68,7 +68,6 @@
                   "file(blackbox/dm_map_autotests.lua)",
                   "file(end_to_end/ai_autotests.lua)",
                   "file(end_to_end/stockpile_autotests.lua)",
-                  "file(end_to_end/rotation_autotests.lua)",
                   "file(end_to_end/combat_autotests.lua)",
                   "file(end_to_end/trapper_autotests.lua)",
                   "file(end_to_end/luabind_autotests.lua)",
@@ -112,7 +111,8 @@
                "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
                "scripts" : [
                   "file(end_to_end/scenario_autotests.lua)",
-                  "file(end_to_end/score_autotests.lua)"
+                  "file(end_to_end/score_autotests.lua)",
+                  "file(end_to_end/rotation_autotests.lua)"
                ]
             },
 
