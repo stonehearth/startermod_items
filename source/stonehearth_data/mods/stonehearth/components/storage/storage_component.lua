@@ -129,13 +129,39 @@ function StorageComponent:initialize(entity, json)
       self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
       self.__saved_variables:mark_changed()
    end
+
+   if self._sv.type == constants.container_types.CRATE then
+      -- crates can't undeploy when they have stuff in them.
+      self._item_added_listener = radiant.events.listen(entity, 'stonehearth:backpack:item_added', self, self._on_contents_changed)
+      self._item_removed_listener = radiant.events.listen(entity, 'stonehearth:backpack:item_removed', self, self._on_contents_changed)
+   end
+
+   self:_on_contents_changed()
    self:_update_filter_key()
 end
-
 
 function StorageComponent:destroy()
    self._unit_info_trace:destroy()
    self._unit_info_trace = nil
+
+   if self._item_removed_listener then
+      self._item_removed_listener:destroy()
+      self._item_removed_listener = nil
+   end
+
+   if self._item_added_listener then
+      self._item_added_listener:destroy()
+      self._item_added_listener = nil
+   end
+end
+
+function StorageComponent:_on_contents_changed()
+   local bp = self._entity:get_component('stonehearth:backpack')
+   
+   if bp then
+      local commands_component = self._entity:add_component('stonehearth:commands')
+      commands_component:enable_command('undeploy_item', bp:is_empty())
+   end
 end
 
 function StorageComponent:passes(entity)
