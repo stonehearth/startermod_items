@@ -122,6 +122,8 @@ void DataStore::RestoreController(DataStorePtr self, int flags)
    }
    flags_ = (*flags_) | flags;
 
+   DS_LOG(9) << "restoring controller";
+
    lua_State* L = GetData().interpreter();
    lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
    std::string uri = GetControllerUri();
