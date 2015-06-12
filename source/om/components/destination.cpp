@@ -37,7 +37,8 @@ void Destination::LoadFromJson(json::Node const& obj)
       region_ = radiant::om::LoadRegion(obj, GetStore());
    }
    if (obj.has("adjacent")) {
-      region_ = radiant::om::LoadRegion(obj.get_node("adjacent"), GetStore());
+      adjacent_ = GetStore().AllocObject<Region3fBoxed>();
+      (*adjacent_)->Set(obj.get("adjacent", csg::Region3f()));
    }
    bool dflt = *region_ != nullptr && *adjacent_ == nullptr;
    auto_update_adjacent_ =  obj.get<bool>("auto_update_adjacent", dflt);
