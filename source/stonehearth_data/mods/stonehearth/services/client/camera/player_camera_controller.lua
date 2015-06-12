@@ -3,6 +3,7 @@ local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 local log = radiant.log.create_logger('camera')
 local input_constants = require('constants').input
+local KeyboardInput = _radiant.client.KeyboardInput
 
 local gutter_size = -1
 local smoothness = 0.0175
@@ -79,13 +80,13 @@ end
 
 function PlayerCameraController:_calculate_keyboard_orbit()
 
-   if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) or
-      _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_E) then
+   if _radiant.client.is_key_down(KeyboardInput.KEY_Q) or
+      _radiant.client.is_key_down(KeyboardInput.KEY_E) then
 
       local deg_x = 0;
       local deg_y = 0;
      
-      if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_Q) then
+      if _radiant.client.is_key_down(KeyboardInput.KEY_Q) then
          deg_x = -3
       else
          deg_x = 3
@@ -166,7 +167,7 @@ function PlayerCameraController:_on_input(e)
 end
 
 function PlayerCameraController:_on_keyboard_input(e)
-   local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SPACE)
+   local drag_key_down = _radiant.client.is_key_down(KeyboardInput.KEY_SPACE)
   
    if drag_key_down and not self._drag_cursor then
       self._drag_cursor = _radiant.client.set_cursor('stonehearth:cursors:camera_pan')
@@ -220,8 +221,10 @@ function PlayerCameraController:_calculate_mouse_dead_zone(e)
 end
 
 function PlayerCameraController:_calculate_zoom(e)
-   local zoomInKeyDown = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SEMICOLON)
-   local zoomOutKeyDown = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_EQUAL)
+   local zoomInKeyDown = _radiant.client.is_key_down(KeyboardInput.KEY_EQUAL) or
+                         _radiant.client.is_key_down(KeyboardInput.KEY_KP_ADD)
+   local zoomOutKeyDown = _radiant.client.is_key_down(KeyboardInput.KEY_MINUS) or
+                          _radiant.client.is_key_down(KeyboardInput.KEY_KP_SUBTRACT)
 
    if not zoomInKeyDown and not zoomOutKeyDown and e.wheel == 0 then
       return
@@ -253,7 +256,14 @@ function PlayerCameraController:_calculate_zoom(e)
       factor = med_factor
    end
 
-   local distance_to_cover = distance_to_target * factor * math.abs(e.wheel)
+   local input_scale
+   if e.wheel ~= 0 then
+      input_scale = math.abs(e.wheel)
+   else
+      input_scale = 0.2
+   end
+
+   local distance_to_cover = distance_to_target * factor * input_scale
 
    if e.wheel > 0 or zoomInKeyDown then
       -- Moving towards the target.
@@ -297,7 +307,7 @@ function PlayerCameraController:_find_target()
 end
 
 function PlayerCameraController:_calculate_drag(e)
-   local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SPACE)
+   local drag_key_down = _radiant.client.is_key_down(KeyboardInput.KEY_SPACE)
   
    if drag_key_down and not self._dragging then
       local r = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
@@ -358,22 +368,22 @@ function PlayerCameraController:_calculate_keyboard_pan()
    local y_scale = 0
    local speed = stonehearth.camera:get_position().y -- surprisingly this feels good with no modifiers!
   
-   if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_A) or 
-      _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_LEFT) then
+   if _radiant.client.is_key_down(KeyboardInput.KEY_A) or 
+      _radiant.client.is_key_down(KeyboardInput.KEY_LEFT) then
       x_scale = -speed
-   elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_D) or
-          _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_RIGHT) then
+   elseif _radiant.client.is_key_down(KeyboardInput.KEY_D) or
+          _radiant.client.is_key_down(KeyboardInput.KEY_RIGHT) then
       x_scale = speed
    end
 
    left = stonehearth.camera:get_left()
    left:scale(x_scale)
 
-   if _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_W) or 
-      _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_UP) then
+   if _radiant.client.is_key_down(KeyboardInput.KEY_W) or 
+      _radiant.client.is_key_down(KeyboardInput.KEY_UP) then
       y_scale = speed
-   elseif _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_S) or
-          _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_DOWN) then
+   elseif _radiant.client.is_key_down(KeyboardInput.KEY_S) or
+          _radiant.client.is_key_down(KeyboardInput.KEY_DOWN) then
       y_scale = -speed
    end
 

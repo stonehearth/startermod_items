@@ -2,7 +2,7 @@
    "formatting" : {
       "resources" : {
          "wood resource" : {
-            "name" : "Wood log",
+            "name" : "Wood Log",
             "icon" : "/stonehearth/entities/resources/wood/log.png",
             "stacks" : 80
          },
@@ -17,7 +17,7 @@
             "stacks" : 1
          },         
          "fiber resource" : {
-            "name" : "Bundle of fiber",
+            "name" : "Bundle of Fiber",
             "icon" : "/stonehearth/entities/resources/fiber/fiber.png",
             "stacks" : 1
          },
@@ -27,15 +27,19 @@
             "stacks" : 1
          },         
          "cloth resource" : {
-            "name" : "Bolt of cloth",
+            "name" : "Bolt of Cloth",
             "icon" : "/stonehearth/entities/refined/cloth_bolt/cloth_bolt.png",
             "stacks" : 1
          },         
          "leather resource" : {
-            "name" : "Bolt of leather",
+            "name" : "Bolt of Leather",
             "icon" : "/stonehearth/entities/refined/leather_bolt/leather_bolt.png",
             "stacks" : 1
-         }         
+         },
+         "food meat raw" : {
+            "name" : "Raw Meat",
+            "icon" : "/stonehearth/mixins/food/jerky/jerky.png"
+         }
       }
    }
 }

@@ -287,6 +287,12 @@
       "food:pumpkin:pumpkin_serving" : "file(entities/food/pumpkin/pumpkin_serving)",
       "food:pumpkin:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
 
+      "food:veggie_stew" : "file(entities/food/veggie_stew/veggie_stew)",
+      "food:veggie_stew:veggie_stew_serving" : "file(entities/food/veggie_stew/veggie_stew_serving)",
+
+      "food:meat_stew" : "file(entities/food/meat_stew/meat_stew)",
+      "food:meat_stew:meat_stew_serving" : "file(entities/food/meat_stew/meat_stew_serving)",
+
       "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
       "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 
       "crops:carrot_crop"   : "file(entities/crops/carrot_crop)",
@@ -404,7 +410,6 @@
       "armor:steel_mail" : "file(entities/armor/steel_mail)",
       "armor:wooden_shield" : "file(entities/armor/wooden_shield)",
       "armor:basic_shield" : "file(entities/armor/basic_shield)",
-
 
       "loot:gold" : "file(entities/loot/gold)",
       

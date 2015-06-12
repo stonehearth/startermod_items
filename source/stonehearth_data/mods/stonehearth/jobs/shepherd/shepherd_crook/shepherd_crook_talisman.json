@@ -4,12 +4,13 @@
    "components" : {
       "unit_info" : {
          "name" :  "Shepherd's Crook",
-         "description" : "Required to promote a hearthling into a Shepherd."
+         "description" : "Required to promote a hearthling into a Shepherd.",
+         "icon" : "file(shepherd_crook.png)"     
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -27,8 +28,6 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:shepherd"
       }
-   },
-   "entity_data" : {
    }
 }
 

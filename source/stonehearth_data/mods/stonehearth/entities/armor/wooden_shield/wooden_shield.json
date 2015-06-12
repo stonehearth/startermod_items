@@ -1,14 +1,17 @@
 {
-   "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
+   "type": "entity",
    "components" : {
-      "item" : {
-         "category" : "armor"   
-      },
       "unit_info" : {
          "name": "Rough Wooden Buckler",
          "description": "Crude and basic",
          "icon" : "file(wooden_shield.png)"         
+      },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" : "wood armor heavy_armor"
       },
       "model_variants": {
          "default": {
@@ -16,9 +19,6 @@
                "file(wooden_shield.qb)"
             ]
          }
-      },
-      "stonehearth:material" : {
-         "tags" : "wood armor heavy_armor"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_shield_iconic.json)"

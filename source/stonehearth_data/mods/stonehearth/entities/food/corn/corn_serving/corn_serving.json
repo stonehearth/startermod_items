@@ -2,14 +2,14 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "item" : {
-         "category" : "junk"
-      },
       "unit_info": {
          "name": "Corn Cob",
          "description": "Crunch and spray.",
          "icon": "file(corn_serving.png)"
       },      
+      "item" : {
+         "category" : "food"
+      },
       "stonehearth:material" : {
          "tags" : "food"
       },

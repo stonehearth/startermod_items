@@ -2,10 +2,18 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Two Handed Sword",
+         "description": "Double the hands, double the trouble.",
+         "icon" : "file(two_handed_sword.png)"
+      },
       "item" : {
          "category" : "weapons"
       },    
-       "model_variants": {
+      "stonehearth:material" : {
+         "tags" : "metal melee_weapon crafted"
+      },
+      "model_variants": {
          "default" : {
             "models": [
                "file(two_handed_sword_equipped.qb)"
@@ -22,15 +30,6 @@
          "ilevel" : 13,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
-      },
-
-      "unit_info": {
-         "name": "Two Handed Sword",
-         "description": "Double the hands, double the trouble.",
-         "icon" : "file(two_handed_sword.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "metal melee_weapon"
       }
    },
    "entity_data" : {

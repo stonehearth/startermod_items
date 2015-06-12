@@ -7,6 +7,12 @@
          "description" : "For spinning fiber into thread",
          "icon" : "file(weaver_spindle.png)"
       },
+      "item" : {
+         "category" : "tools"
+      },
+      "stonehearth:material" : {
+         "tags" : "tool"
+      },      
       "model_variants": {
          "default": {
             "models": [
@@ -14,9 +20,6 @@
             ]
          }
       },
-       "stonehearth:material" : {
-         "tags" : "tool"
-      },      
       "effect_list" : {
          "effects" : [
             "stonehearth:effects:talisman_glow"
@@ -28,7 +31,5 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:weaver"
       }
-   },
-   "entity_data" : {
    }
 }
