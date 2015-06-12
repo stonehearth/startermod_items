@@ -82,7 +82,8 @@
                   "file(end_to_end/sensor_autotests.lua)",
                   "file(end_to_end/roads_autotests.lua)",
                   "file(end_to_end/gravity_autotests.lua)",
-                  "file(end_to_end/immigration_autotests.lua)" 
+                  "file(end_to_end/immigration_autotests.lua)",
+                  "file(end_to_end/crate_autotests.lua)"
                ]
             },
 
