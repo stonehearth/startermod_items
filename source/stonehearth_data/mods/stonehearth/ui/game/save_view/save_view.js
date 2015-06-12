@@ -4,10 +4,6 @@
 
 App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
 
-   _compatibleVersions: {
-      "0.1.0.375" : true,
-   },
-
    _doInit: function() {
       this._super();
       this._getSaves();
@@ -39,14 +35,12 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
          if (k == saveKey) {
             v.current = true;
          }
-         var version = v.gameinfo.version;
-         if (!version || version != App.stonehearthVersion) {
-            // SUPER hack save game compatibility code so we can push a build
-            // to Steam without real save game compatibility - tonyc
-            if (!self._compatibleVersions[version]) {
-               // For now, just blindly warn if versions are different.
-               v.differentVersions = true;
-            }
+         var version = v.gameinfo.save_version;
+         if (!version) {
+            version = 0;
+         }
+         if (version != App.currentSaveVersion) {
+            v.differentVersions = true;
          }
       });
 

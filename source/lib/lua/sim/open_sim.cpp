@@ -9,6 +9,7 @@
 #include "simulation/jobs/a_star_path_finder.h"
 #include "simulation/jobs/direct_path_finder.h"
 #include "simulation/jobs/filter_result_cache.h"
+#include "simulation/save_versions.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/data_store.ridl.h"
@@ -29,9 +30,14 @@ std::ostream& operator<<(std::ostream& os, Simulation const&s)
    return (os << "[radiant simulation]");
 }
 
-std::string Sim_GetVersion(lua_State* L)
+std::string Sim_GetProductVersionString(lua_State* L)
 {
    return PRODUCT_FILE_VERSION_STR;
+}
+
+int Sim_GetCurrentSaveVersion(lua_State* L)
+{
+   return CURRENT_SAVE_VERSION;
 }
 
 template <typename T>
@@ -325,7 +331,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
-            def("get_version",               &Sim_GetVersion),
+            def("get_product_version_string",&Sim_GetProductVersionString),
+            def("get_current_save_version",  &Sim_GetCurrentSaveVersion),
             def("create_entity",             &Sim_CreateEntity),
             def("get_entity",                &Sim_GetEntity),
             def("destroy_entity",            &Sim_DestroyEntity),

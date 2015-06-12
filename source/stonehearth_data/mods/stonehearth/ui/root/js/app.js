@@ -10,7 +10,8 @@ App = Ember.Application.createWithMixins({
       this.deferReadiness();
       var deferreds = []
       radiant.call_obj('stonehearth.game_creation', 'sign_in_command').done(function(r) {
-        App.stonehearthVersion = r.version;
+        App.currentSaveVersion = r.current_save_version;
+        App.stonehearthVersion = r.product_version_string;
         self._loadModules()
       });
      

@@ -22,7 +22,8 @@ end
 function GameCreationService:sign_in_command(session, response)
    stonehearth.player:add_player(session.player_id, 'stonehearth:kingdoms:ascendancy')   
    return {
-      version = _radiant.sim.get_version()
+      product_version_string  = _radiant.sim.get_product_version_string(),
+      current_save_version    = _radiant.sim.get_current_save_version(),
    }
 end
 

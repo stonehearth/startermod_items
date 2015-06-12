@@ -45,9 +45,14 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
 
             if (vals.length > 0) {
                var save = vals[0];
-               if (save.gameinfo.version != App.stonehearthVersion) {
+               var version = save.gameinfo.save_version;
+               if (!version) {
+                  version = 0;
+               }
+               if (version != App.currentSaveVersion) {
                   save.gameinfo.differentVersions = true;
                }
+
                self.$('#continue').show();
                self.$('#continueGameButton').show();
                self.$('#loadGameButton').show();

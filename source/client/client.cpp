@@ -80,6 +80,7 @@
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/URI.h"
+#include "simulation/save_versions.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -646,6 +647,7 @@ void Client::OneTimeIninitializtion()
       json::Node saveid(json::Node(f.args).get_node(0));
       json::Node gameinfo(json::Node(f.args).get_node(1));
       gameinfo.set("version", PRODUCT_FILE_VERSION_STR);
+      gameinfo.set("save_version", (int)simulation::CURRENT_SAVE_VERSION);
       return SaveGame(saveid.as<std::string>(), gameinfo);
    });
 
