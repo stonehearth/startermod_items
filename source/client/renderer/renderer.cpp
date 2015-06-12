@@ -337,6 +337,7 @@ void Renderer::InitHorde()
    h3dSetOption(H3DOptions::MaxAnisotropy, 1);
    h3dSetOption(H3DOptions::FastAnimation, 1);
    h3dSetOption(H3DOptions::DumpFailedShaders, 1);
+   h3dSetOption(H3DOptions::SRGBLinearization, 0);
 
    h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false);
 }
@@ -398,6 +399,7 @@ csg::Point2 Renderer::InitWindow()
       config_.screen_height.value = size.y;
    }
 
+   glfwWindowHint(GLFW_SRGB_CAPABLE, 0);
    glfwWindowHint(GLFW_SAMPLES, 0);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);

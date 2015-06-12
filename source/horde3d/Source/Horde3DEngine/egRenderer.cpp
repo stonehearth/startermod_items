@@ -1954,7 +1954,7 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
                       float r, float g, float b, float a, int stencilVal )
 {
 	uint32 mask = 0;
-	uint32 prevBuffers[4] = { 0 };
+	uint32 prevBuffers[4] = { GL_NONE, GL_NONE, GL_NONE, GL_NONE };
 	float clrColor[] = { r, g, b, a };
 
 	glDisable( GL_BLEND );	// Clearing floating point buffers causes problems when blending is enabled on Radeon 9600
@@ -1962,12 +1962,13 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 
 	if( gRDI->_curRendBuf != 0x0 )
 	{
-		// Store state of glDrawBuffers
+		RDIRenderBuffer &rb = gRDI->_rendBufs.getRef( gRDI->_curRendBuf );
+		// Store state of glDrawBuffers.  We can't trust glGetIntegerV on some intel hardware, apparently.
 		for( uint32 i = 0; i < 4; ++i ) {
-         glGetIntegerv( GL_DRAW_BUFFER0 + i, (int *)&prevBuffers[i] );
+         prevBuffers[i] = rb.colTexs[i] != 0 ? GL_COLOR_ATTACHMENT0_EXT + i : GL_NONE;
+         //glGetIntegerv( GL_DRAW_BUFFER0 + i, (int *)&prevBuffers[i] );
       }
 		
-		RDIRenderBuffer &rb = gRDI->_rendBufs.getRef( gRDI->_curRendBuf );
 		uint32 buffers[4], cnt = 0;
 
 		if( depth && rb.depthTex != 0 ) mask |= CLR_DEPTH;
