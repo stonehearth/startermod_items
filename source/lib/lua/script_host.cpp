@@ -365,13 +365,12 @@ ScriptHost::ScriptHost(std::string const& site) :
    _lastHookL(nullptr),
    _cpuProfileMethod(CpuProfilerMethod::None),
    _cpuProfilerRunning(false),
-   _lastHookTimestamp(0)
+   _lastHookTimestamp(0),
+   _suspendGCCount(0)
 {
    current_line = 0;
    *current_file = '\0';
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
-
-   bytes_allocated_ = 0;
 
    throw_on_lua_exceptions_ = core::Config::GetInstance().Get<bool>("lua.throw_on_lua_exceptions", false);
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
@@ -501,7 +500,10 @@ ScriptHost::~ScriptHost()
    _luaPromises.clear();
    required_.clear();
    lua_close(L_);
-   ASSERT(this->bytes_allocated_ == 0);
+
+   //    Cannot work until we can track byte-count by thread
+   //    ASSERT(GetAllocBytesCount() == 0);
+
    LUA_LOG(1) << "Script host destroyed.";
 
    // At this point, we've cleared the _luaPromises array and destroyed the interpreter.
@@ -739,14 +741,38 @@ lua_State* ScriptHost::GetCallbackThread()
 
 void ScriptHost::FullGC()
 {
-   lua_gc(L_, LUA_GCCOLLECT, 0);
+   if (L_) {
+      lua_gc(L_, LUA_GCCOLLECT, 0);
+   }
+}
+
+void ScriptHost::EnableGC(bool enabled)
+{
+   _suspendGCCount += enabled ? -1 : 1; 
+
+   ASSERT(L_);
+   ASSERT(_suspendGCCount >= 0);
+
+   SH_LOG(5) << "enable gc request (enabled:" << enabled << " count:" << _suspendGCCount << ")";
+
+   if (enabled && _suspendGCCount == 0) {
+      SH_LOG(3) << "restarting gc";
+      lua_gc(L_, LUA_GCHIBERNATE, false);
+   } else if (!enabled && _suspendGCCount == 1) {
+      SH_LOG(3) << "suspending gc";
+      lua_gc(L_, LUA_GCHIBERNATE, true);
+   }
 }
 
 void ScriptHost::GC(platform::timer &timer)
 {
    if (_gc_setting == 0) {
       return;
-   } else if (_gc_setting == 1) {
+   } 
+   if (_suspendGCCount > 0) {
+      lua_gc(L_, LUA_GCHIBERNATE, false);
+   }
+   if (_gc_setting == 1) {
       bool finished = false;
 
       while (!timer.expired() && !finished) {
@@ -754,6 +780,9 @@ void ScriptHost::GC(platform::timer &timer)
       }
    } else {
       FullGC();
+   }
+   if (_suspendGCCount > 0) {
+      lua_gc(L_, LUA_GCHIBERNATE, true);
    }
 }
 
@@ -864,7 +893,9 @@ void ScriptHost::SetNotifyErrorCb(ReportErrorCb const& cb)
 
 int ScriptHost::GetAllocBytesCount() const
 {
-   return bytes_allocated_;
+   // xxx: this returns ALL the process lua memory, not just the memory for this script host
+   // booo!!!!!!!! -- tony
+   return CachingAllocator::GetInstance().GetAllocBytesCount();
 }
 
 void ScriptHost::Trigger(std::string const& eventName, luabind::object evt)

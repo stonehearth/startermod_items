@@ -346,6 +346,13 @@ void Simulation::InitializeGameObjects()
 
    scriptHost_.reset(new lua::ScriptHost("server"));
 
+   // Turn off the GC right away.  This will prevent odd side effects.  For example, everytime we
+   // create a luabind::object, a tiny bit of lua code runs which has the potential to invoke the
+   // GC.  The GC may remove the last reference to a shared pointer to a cpp object.  Best case,
+   // that will just run a destructor.  Worst case, a sync destory trace on a managed object will fire
+   // with potentially unlimited side-effects (!!!).  So we only allow the GC to run during "update".
+   scriptHost_->EnableGC(false);
+
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
    store_->SetInterpreter(callback_thread); // xxx move to dm open or something
@@ -542,12 +549,16 @@ void Simulation::UpdateGameState()
 
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
+
+   // Turn the GC back on.  Run update, then turn it off again.
+   GetScript().EnableGC(true);
    try {
       radiant_["update"]();
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
+   GetScript().EnableGC(false);
 }
 
 void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
