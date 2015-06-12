@@ -141,7 +141,7 @@
 
       _start_poll : function() {
          var self = this;
-         var deferred = self._docall('/r/call?fn=radiant:get_events&long_poll=1', []).deferred
+         var deferred = self._docall('/r/call/?fn=radiant:get_events&long_poll=1', []).deferred
          deferred
             .done(function (data) {
                $.each(data, function (_, o) {
