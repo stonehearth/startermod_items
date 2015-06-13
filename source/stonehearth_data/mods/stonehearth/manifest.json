@@ -637,6 +637,7 @@
 
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
       "actions:till_entire_field" : "file(ai/actions/till_entire_field_action.lua)",
+      "actions:harvest_field" : "file(ai/actions/harvest_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
       "actions:trapping_dispatcher" : "file(ai/actions/trapping/trapping_dispatcher.lua)",
