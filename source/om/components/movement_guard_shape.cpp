@@ -36,6 +36,10 @@ void MovementGuardShape::SetGuardCb(luabind::object const& unsafe_cb)
 {
    //_guardCb = luabind::object(cb_thread, unsafe_cb);
    if (!_frc) {
+      // xxx: There's currently no way tor this filter to get invalidated!  The
+      // proper fix probably involves getting FRC's to listen on something and
+      // automatically do the invalidate themselves, but we have no way to
+      // listen from cpp. =(
       int flags = simulation::FilterResultCache::INVALIDATE_ON_PLAYER_ID_CHANGED;
       _frc = std::make_shared<simulation::FilterResultCache>(flags);
    }
