@@ -15,7 +15,8 @@
                "stonehearth:actions:till_entire_field", 
                "stonehearth:actions:plant_crop",
                "stonehearth:actions:harvest_crop",
-               "stonehearth:actions:harvest_crop_adjacent"
+               "stonehearth:actions:harvest_crop_adjacent",
+               "stonehearth:actions:harvest_field"
             ],
             "observers" : [
                "stonehearth:observers:combat_panic",
