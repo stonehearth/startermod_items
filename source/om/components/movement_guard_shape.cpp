@@ -31,10 +31,15 @@ void MovementGuardShape::SerializeToJson(json::Node& node) const
    }
 }
 
+
 void MovementGuardShape::SetGuardCb(luabind::object const& unsafe_cb)
 {
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());  
-   _guardCb = luabind::object(cb_thread, unsafe_cb);
+   //_guardCb = luabind::object(cb_thread, unsafe_cb);
+   if (!_frc) {
+      int flags = simulation::FilterResultCache::INVALIDATE_ON_PLAYER_ID_CHANGED;
+      _frc = std::make_shared<simulation::FilterResultCache>(flags);
+   }
+   _frc ->SetLuaFilterFn(unsafe_cb);
 }
 
 bool MovementGuardShape::CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& pt)
@@ -44,23 +49,15 @@ bool MovementGuardShape::CanPassThrough(om::EntityPtr const& entity, csg::Point3
       return true;
    }
 
+   if (!_frc) {
+      return true;
+   }
+
    csg::Point3f location = csg::ToFloat(pt);
    csg::Region3f r = phys::LocalToWorld(region->Get(), GetEntityPtr());
    if (!r.Contains(location)) {
       return true;
    }
-   if (luabind::type(_guardCb) == LUA_TNIL) {
-      return false;
-   }
 
-   bool canPass = false;
-   try {
-      luabind::object result = _guardCb(om::EntityRef(entity), location);
-      if (luabind::type(result) == LUA_TBOOLEAN) {
-         canPass = luabind::object_cast<bool>(result);
-      }
-   } catch (std::exception const& e) {
-      lua::ScriptHost::ReportCStackException(_guardCb.interpreter(), e);
-   }
-   return canPass;
+   return _frc->ConsiderEntity(std::static_pointer_cast<om::Entity>(entity));
 }
