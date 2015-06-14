@@ -78,10 +78,10 @@
    "settings_effects_volume" : "Effects Volume",
 
    "settings_system" : "System",
-   "settings_enable_64bit" : "Use 64-bit (Requires Restart)",
+   "settings_force_32_bit" : "* Force 32-bit (Requires Restart)",
+   "settings_force_32_bit_note" : "* Force 32-bit only if absolutely necessary. 64-bit is faster and supports larger towns.",
    "settings_enable_lua_jit" : "Use Lua JIT (Requires Restart)",
    "settings_send_anon_data" : "Send anonymous feedback to help improve Stonehearth!",
-
 
    "new_game_embark_button" : "Embark!",
    "new_game_founding_charter" : "Founder's Manual",
