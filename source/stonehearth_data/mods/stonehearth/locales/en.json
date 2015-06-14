@@ -78,10 +78,10 @@
    "settings_effects_volume" : "Effects Volume",
 
    "settings_system" : "System",
-   "settings_enable_64bit" : "Use 64-bit (Requires Restart)",
+   "settings_force_32_bit" : "* Force 32-bit (Requires Restart)",
+   "settings_force_32_bit_note" : "* Force 32-bit only if absolutely necessary. 64-bit is faster and supports larger towns.",
    "settings_enable_lua_jit" : "Use Lua JIT (Requires Restart)",
    "settings_send_anon_data" : "Send anonymous feedback to help improve Stonehearth!",
-
 
    "new_game_embark_button" : "Embark!",
    "new_game_founding_charter" : "Founder's Manual",
@@ -177,7 +177,8 @@
 
    "hint_camera_pan_title": "To move the camera",
    "hint_camera_pan_1": "Hold down the space bar, then move the mouse",
-   "hint_camera_pan_2": "Or just use the WASD keys",
+   "hint_camera_pan_2": "Or use the WASD keys",
+   "hint_camera_pan_3": "Or press the mouse wheel and move the mouse",
    "hint_camera_orbit_title": "To rotate the camera",
    "hint_camera_orbit_1": "Right click and drag to rotate the camera",
    "hint_camera_orbit_2": "Q and E work too",
