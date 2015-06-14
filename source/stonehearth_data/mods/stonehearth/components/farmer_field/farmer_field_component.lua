@@ -22,7 +22,6 @@ function FarmerFieldComponent:initialize(entity, json)
       -- creating for the 1st time...
       self._sv.crops = {}
 
-      self._sv.harvestable_layer = radiant.entities.create_entity('', { owner = self._entity })
       self._sv.soil_layer = radiant.entities.create_entity('', { owner = self._entity })
       self._sv.tilled_soil_region = _radiant.sim.alloc_region3()
 
@@ -40,26 +39,37 @@ function FarmerFieldComponent:initialize(entity, json)
       self._sv.auto_harvest = true
       self._sv.auto_replant = true
 
+      self:_create_harvestable_layer()
+
       self._sv.soil_layer:add_component('destination')
                            :set_region(_radiant.sim.alloc_region3())
                            :set_reserved(_radiant.sim.alloc_region3())
                            :set_auto_update_adjacent(true)
 
-      self._sv.harvestable_layer:add_component('destination')
-                                 :set_region(_radiant.sim.alloc_region3())
-                                 :set_reserved(_radiant.sim.alloc_region3())
-                                 :set_auto_update_adjacent(true)
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
          self._sv.soil_layer:get_component('destination')
                               :set_reserved(_radiant.sim.alloc_region3()) -- xxx: clear the existing one from cpp land!
+
+         self._sv.harvestable_layer:get_component('destination')
+                              :set_reserved(_radiant.sim.alloc_region3()) -- xxx: clear the existing one from cpp land!
+
          if #self._sv.contents > 0 then
             self:_create_till_task()
+            self:_create_harvest_task()
          end
       end)
    end
    --self.__saved_variables:mark_changed()
    --TODO: listen on changes to faction, like stockpile?
+end
+
+function FarmerFieldComponent:_create_harvestable_layer()
+   self._sv.harvestable_layer = radiant.entities.create_entity('', { owner = self._entity })
+   self._sv.harvestable_layer:add_component('destination')
+                              :set_region(_radiant.sim.alloc_region3())
+                              :set_reserved(_radiant.sim.alloc_region3())
+                              :set_auto_update_adjacent(true)
 end
 
 function FarmerFieldComponent:_add_crop(region)
@@ -136,7 +146,15 @@ function FarmerFieldComponent:destroy()
    radiant.entities.destroy_entity(self._sv.harvestable_layer)
    self._sv.harvestable_layer = nil
 
-   self._till_task:destroy()
+   if self._harvest_task then
+      self._harvest_task:destroy()
+      self._harvest_task = nil
+   end
+
+   if self._till_task then
+      self._till_task:destroy()
+      self._till_task = nil
+   end
 end
 
 
@@ -150,6 +168,9 @@ function FarmerFieldComponent:_create_till_task()
 end
 
 function FarmerFieldComponent:_create_harvest_task()
+   if self._harvest_task then
+      return
+   end
    local town = stonehearth.town:get_town(self:get_entity())
    self._harvest_task = town:create_task_for_group('stonehearth:task_group:simple_farming','stonehearth:harvest_field', { field = self })
                              :set_source(self:get_harvestable_layer())
@@ -259,7 +280,6 @@ function FarmerFieldComponent:determine_auto_harvest(dirt_component)
    end
    if do_harvest then
       local town = stonehearth.town:get_town(self._entity)
-      local crop = dirt_component:get_contents()
       self:get_harvestable_layer_region():modify(function(cursor)
          local l = dirt_component:get_location()
          cursor:add_point(Point3(l.x - 1, 0, l.y - 1))
