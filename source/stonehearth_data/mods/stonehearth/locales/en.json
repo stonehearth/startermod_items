@@ -177,7 +177,8 @@
 
    "hint_camera_pan_title": "To move the camera",
    "hint_camera_pan_1": "Hold down the space bar, then move the mouse",
-   "hint_camera_pan_2": "Or just use the WASD keys",
+   "hint_camera_pan_2": "Or use the WASD keys",
+   "hint_camera_pan_3": "Or press the mouse wheel and move the mouse",
    "hint_camera_orbit_title": "To rotate the camera",
    "hint_camera_orbit_1": "Right click and drag to rotate the camera",
    "hint_camera_orbit_2": "Q and E work too",
