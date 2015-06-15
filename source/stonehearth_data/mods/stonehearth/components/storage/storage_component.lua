@@ -84,11 +84,15 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
          -- If this item is already in a container for the player, then ignore it.
          local container = player_inventory:container_for(item)
          if container then
-            local other_container_type = container:get_component('stonehearth:storage'):get_type()
+            local other_storage = container:get_component('stonehearth:storage')
+            local other_container_type = other_storage:get_type()
             if container_type == constants.container_types.CRATE then
-               -- Crates do not restock from crates.
+               -- Crates do not restock from crates...
                if other_container_type == constants.container_types.CRATE then
-                  return false
+                  -- ... unless those crates no longer store items of that type.
+                  if other_storage:passes(item) then
+                     return false
+                  end
                end
             elseif container_type == constants.container_types.VAULT then
                -- Vaults do not restock from vaults or crates.
@@ -194,6 +198,8 @@ function StorageComponent:set_filter(filter)
    self._sv.filter = filter
    self:_update_filter_key()
    self.__saved_variables:mark_changed()
+
+   radiant.events.trigger(self._entity, 'stonehearth:storage:filter_changed', self, filter)
 end
 
 function StorageComponent:_update_filter_key()

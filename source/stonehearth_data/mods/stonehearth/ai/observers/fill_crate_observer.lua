@@ -25,6 +25,13 @@ function FillCrateObserver:activate()
             end)
 
    end
+
+   self._filter_listener = radiant.events.listen(self._sv.entity, 'stonehearth:storage:filter_changed', self, self._on_filter_changed)
+end
+
+function FillCrateObserver:_on_filter_changed(filter_component, fitler)
+   self:_destroy_worker_task()
+   self:_create_worker_task()
 end
 
 function FillCrateObserver:_on_parent_changed(new_parent)

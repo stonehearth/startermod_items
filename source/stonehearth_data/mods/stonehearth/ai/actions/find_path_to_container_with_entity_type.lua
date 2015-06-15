@@ -1,6 +1,7 @@
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
 local FindPathToContainerWithEntityType = class()
+local constants = require 'constants'
 
 FindPathToContainerWithEntityType.name = 'find path to entity type'
 FindPathToContainerWithEntityType.does = 'stonehearth:find_path_to_container_with_entity_type'
@@ -39,13 +40,19 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
 
    if not filter_fn then
       filter_fn = function(entity)
-         local storage = entity:get_component('stonehearth:backpack')
+         local backpack = entity:get_component('stonehearth:backpack')
+         local storage = entity:get_component('stonehearth:storage')
 
-         if not storage then
+         if not backpack or not storage then
             return false
          end
 
-         for _, item in pairs(storage:get_items()) do
+         -- We NEVER go to someone else's backpack to pick things up (steal!)
+         if storage:get_type() == constants.container_types.BACKPACK then
+            return false
+         end
+
+         for _, item in pairs(backpack:get_items()) do
             if args.filter_fn(item) then
                return true
             end

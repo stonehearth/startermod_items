@@ -77,13 +77,15 @@ function StockpileComponent:destroy()
       self._destroy_listener:destroy()
       self._destroy_listener = nil
    end
+   if self._filter_listener then
+      self._filter_listener:destroy()
+      self._filter_listener = nil
+   end
    self:_destroy_tasks()
 end
 
 
-function StockpileComponent:set_filter(filter)
-   self._filter:set_filter(filter)
-
+function StockpileComponent:_on_filter_changed(filter_component, filter)
    -- for items that no longer match the filter, 
    -- remove then re-add the item from its parent. Other stockpiles
    -- will be notified when it is added to the world and will
@@ -94,15 +96,12 @@ function StockpileComponent:set_filter(filter)
       local is_stocked = self._sv.stocked_items[id] ~= nil
       if can_stock and not is_stocked then
          self:_add_item_to_stock(item)
-      end
-      if not can_stock and is_stocked then
+      elseif not can_stock and is_stocked then
          self:_remove_item_from_stock(item:get_id())
       end
    end
 
    self:_create_worker_tasks()
-   radiant.events.trigger_async(self._entity, 'stonehearth:stockpile:filter_changed')
-   return self
 end
 
 function StockpileComponent:_install_traces()
@@ -132,6 +131,8 @@ function StockpileComponent:_install_traces()
                                              self:_assign_to_player()
                                           end)
    self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:post_destroy', self, self._on_item_destroyed)
+
+   self._filter_listener = radiant.events.listen(self._entity, 'stonehearth:storage:filter_changed', self, self._on_filter_changed)
 end
 
 function StockpileComponent:get_items()

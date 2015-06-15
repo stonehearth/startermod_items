@@ -16,6 +16,7 @@ function BackpackComponent:initialize(entity, json)
    end
 
    self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
+   self._filter_listener = radiant.events.listen(entity, 'stonehearth:storage:filter_changed', self, self._on_filter_changed)
 end
 
 function BackpackComponent:reserve_space()
@@ -39,12 +40,27 @@ end
 function BackpackComponent:destroy()
    self._kill_listener:destroy()
    self._kill_listener = nil
+
+   self._filter_listener:destroy()
+   self._filter_listener = nil
 end
 
 -- Call to increase/decrease backpack size
 -- @param capacity_change - add this number to capacity. For decrease, us a negative number
 function BackpackComponent:change_max_capacity(capacity_change)
    self._sv.capacity = self._sv.capacity + capacity_change
+end
+
+function BackpackComponent:_on_filter_changed(filter_component, filter)
+   -- If this backpack is on an entity that has a filter, and that filter changes, let the ai
+   -- know about entities that no longer pass the filter, so that they can take another swipe at
+   -- doing something with them.
+   for id, item in pairs(self._sv.items) do
+      if item:is_valid() and not filter_component:passes(item) then
+         radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      end
+   end
+   radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._entity)
 end
 
 --If we're killed, dump the things in our backpack
