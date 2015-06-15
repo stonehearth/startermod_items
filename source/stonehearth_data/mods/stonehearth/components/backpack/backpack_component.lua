@@ -85,6 +85,7 @@ function BackpackComponent:add_item(item)
 
    if not self._sv.items[id] then
       local player_id = radiant.entities.get_player_id_from_entity(self._entity)
+      stonehearth.inventory:get_inventory(player_id):add_item(item)
       stonehearth.inventory:get_inventory(player_id):update_item_container(id, self._entity)
       self._sv.items[id] = item
       self._sv.num_items = self._sv.num_items + 1
@@ -100,6 +101,7 @@ function BackpackComponent:remove_item(item)
 
    if self._sv.items[id] then
       local player_id = radiant.entities.get_player_id_from_entity(self._entity)
+      stonehearth.inventory:get_inventory(player_id):remove_item(item)
       stonehearth.inventory:get_inventory(player_id):update_item_container(id, nil)
       self._sv.items[id] = nil
       self._sv.num_items = self._sv.num_items - 1
