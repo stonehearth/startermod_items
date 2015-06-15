@@ -87,7 +87,7 @@ function stockpile_tests.restock_items_when_falling_out_of_filter(autotest)
    -- wait a little bit and change a's filter to include nothing.  this should
    -- make the worker pick it up and move it to b
    autotest:sleep(100)
-   stockpile_a:get_component('stonehearth:stockpile'):set_filter({})
+   stockpile_a:get_component('stonehearth:storage'):set_filter({})
 
    autotest:sleep(5000)
    autotest:fail('worker failed to move item when stockpile filter changes')
