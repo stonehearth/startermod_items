@@ -54,6 +54,12 @@ function HarvestCropAdjacent:run(ai, entity, args)
    --Fire the event that describes the harvest
    radiant.events.trigger(entity, 'stonehearth:harvest_crop', {crop_uri = args.crop:get_uri()})
 
+   -- Inform the field that this crop has been harvested.  Yikes.
+   local dirt_plot = crop_component:get_dirt_plot()
+   local dirt_comp = dirt_plot:get_component('stonehearth:dirt_plot')
+   dirt_comp:get_field():get_component('stonehearth:farmer_field')
+               :harvest_crop(args.crop)
+
    ai:unprotect_argument(args.crop)
    radiant.entities.destroy_entity(args.crop)
 end

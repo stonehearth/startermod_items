@@ -139,19 +139,14 @@ function StockpileComponent:get_items()
 end
 
 function StockpileComponent:_get_bounds()
-   local size = self:get_size()
-   local bounds = Cube3(Point3(0, 0, 0), Point3(size.x, 1, size.y))
-   return bounds
+   assert(self._sv.local_bounds)
+   return self._sv.local_bounds
 end
+local cc = 0
 
 function StockpileComponent:get_bounds()
-   local size = self:get_size()
-   local origin = radiant.entities.get_world_grid_location(self._entity)
-   if not origin then
-      return nil
-   end
-   local bounds = Cube3(origin, Point3(origin.x + size.x, origin.y + 1, origin.z + size.y))
-   return bounds
+   assert(self._sv.world_bounds)
+   return self._sv.world_bounds
 end
 
 function StockpileComponent:is_full()
@@ -176,7 +171,13 @@ function StockpileComponent:get_size()
 end
 
 function StockpileComponent:set_size(x, y)
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+
+   assert(origin)
    self._sv.size = Point2(x, y)
+   self._sv.local_bounds = Cube3(Point3(0, 0, 0), Point3(x, 1, y))
+   self._sv.world_bounds = self._sv.local_bounds:translated(origin)
+
    self:_rebuild_item_sv()
    self:_create_worker_tasks()
 end

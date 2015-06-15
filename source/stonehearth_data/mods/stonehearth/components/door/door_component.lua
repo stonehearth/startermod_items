@@ -51,8 +51,12 @@ function DoorComponent:_add_collision_shape()
             end
          end)
 
-      mgs:set_guard_cb(function(entity, location)
+      mgs:set_guard_cb(function(entity)
+
+
             return stonehearth.player:are_players_friendly(self._entity, entity)
+
+            
          end)
    end
 end

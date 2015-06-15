@@ -81,7 +81,7 @@ void LuaFileMapper::IndexFile(core::StaticString filename, std::string const& co
       return;
    }
 
-   LOG(script_host, 1) << "indexing " << filename;
+   LOG(script_host, 0) << "indexing " << filename;
 
    try {
       luabind::object mapping = _mapSourceFunctionsFn(_flameGraphObj, contents, (const char*)filename);

@@ -8,7 +8,7 @@ local rng = _radiant.csg.get_default_rng()
 local FarmerCrop = class()
 
 --[[
-   This class manages the plantable/harvestable aspect of a crop in a field. 
+   This class manages the plantable/planted aspect of a crop in a field. 
    When a field is created, this crop manager is created as well, with the type of crop (including fallow)
    that will be planted in the field. 
    When a crop is first assigned, this manager creates the plant task for the farmers. 
@@ -37,9 +37,9 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
    d:set_region(_radiant.sim.alloc_region3())
      :set_auto_update_adjacent(true)
 
-   self._sv.harvestable_region_entity = radiant.entities.create_entity('', { owner = self._entity })
-   radiant.terrain.place_entity(self._sv.harvestable_region_entity, location)
-   d = self._sv.harvestable_region_entity:add_component('destination')
+   self._sv.planted_region_entity = radiant.entities.create_entity('', { owner = self._entity })
+   radiant.terrain.place_entity(self._sv.planted_region_entity, location)
+   d = self._sv.planted_region_entity:add_component('destination')
    d:set_region(_radiant.sim.alloc_region3())
      :set_auto_update_adjacent(true)
    
@@ -74,13 +74,13 @@ function FarmerCrop:_on_start_do_always()
    local d = self._sv.plantable_region_entity:get_component('destination')
    d:set_reserved(_radiant.sim.alloc_region3())
 
-   d = self._sv.harvestable_region_entity:get_component('destination')
+   d = self._sv.planted_region_entity:get_component('destination')
    d:set_reserved(_radiant.sim.alloc_region3())
 
    self._plot_listeners = {}
    -- We have to re-listen to each dirt plot on load, to figure out when harvesting
    -- has been completed.
-   for pt in self:get_harvestable_region():get():each_point() do
+   for pt in self:get_planted_region():get():each_point() do
       local plot = self:get_field_spacer(pt + self._sv.location)
       table.insert(self._plot_listeners, radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done))
    end
@@ -102,8 +102,8 @@ function FarmerCrop:destroy()
    radiant.entities.destroy_entity(self._sv.plantable_region_entity)
    self._sv.plantable_region_entity = nil
 
-   radiant.entities.destroy_entity(self._sv.harvestable_region_entity)
-   self._sv.harvestable_region_entity = nil
+   radiant.entities.destroy_entity(self._sv.planted_region_entity)
+   self._sv.planted_region_entity = nil
 
    self._sv.farm_tilled_region = nil
 
@@ -141,8 +141,8 @@ function FarmerCrop:get_plantable_entity()
 end
 
 
-function FarmerCrop:get_harvestable_region()
-   local dc = self._sv.harvestable_region_entity:get_component('destination')
+function FarmerCrop:get_planted_region()
+   local dc = self._sv.planted_region_entity:get_component('destination')
    if dc then
       return dc:get_region()
    end
@@ -150,22 +150,22 @@ function FarmerCrop:get_harvestable_region()
 end
 
 
-function FarmerCrop:get_harvestable_entity()
-   return self._sv.harvestable_region_entity
+function FarmerCrop:get_planted_entity()
+   return self._sv.planted_region_entity
 end
 
 
 function FarmerCrop:_update_plantable_region()
    self:get_plantable_region():modify(function(cursor)
       cursor:clear()
-      cursor:add_region(self:get_tilled_region() - self:get_harvestable_region():get())
+      cursor:add_region(self:get_tilled_region() - self:get_planted_region():get())
    end)
    self.__saved_variables:mark_changed()
 end
 
 
-function FarmerCrop:_update_harvestable_region()
-   self:get_harvestable_region():modify(function(cursor)
+function FarmerCrop:_update_planted_region()
+   self:get_planted_region():modify(function(cursor)
       cursor:clear()
       cursor:add_region(self:get_tilled_region() - self:get_plantable_region():get())
    end)
@@ -214,7 +214,7 @@ function FarmerCrop:notify_planting_done(location)
       cursor:subtract_point(p)
    end)
 
-   self:get_harvestable_region():modify(function(cursor)
+   self:get_planted_region():modify(function(cursor)
       cursor:add_point(p)
    end)
    self.__saved_variables:mark_changed()
@@ -234,7 +234,7 @@ function FarmerCrop:_clear_location(p)
       cursor:add_point(p)
    end)
 
-   self:get_harvestable_region():modify(function(cursor)
+   self:get_planted_region():modify(function(cursor)
       cursor:subtract_point(p)
    end)
 end

@@ -90,6 +90,8 @@ namespace radiant {
    };
 };
 
+#define LOG_SCOPED_INDENT()    ::radiant::log::Indent logIndent ## __line__
+
 #define LOG_LEVEL(l)    (log_levels_.l)
 
 // _LOG writes to the logfile unconditionally.  This is not the macro

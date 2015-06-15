@@ -30,11 +30,11 @@ function CropComponent:get_product()
 end
 
 function CropComponent:set_dirt_plot(dirt_plot)
-   self._dirt_plot = dirt_plot
+   self._sv.dirt_plot = dirt_plot
 end
 
 function CropComponent:get_dirt_plot()
-   return self._dirt_plot
+   return self._sv.dirt_plot
 end
 
 function CropComponent:destroy()
