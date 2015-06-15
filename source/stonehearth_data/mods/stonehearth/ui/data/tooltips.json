@@ -75,7 +75,7 @@
       {
          "score" : "nutrition",
          "display_name" : "Food",
-         "description" : "How your citizens feel about the town's food situation. Is there enough to eat? Try to obtain variety of foods!"
+         "description" : "How your citizens feel about the town's food situation. Is there enough to eat? Try to obtain a variety of foods!"
       },
       {
          "score" : "shelter",

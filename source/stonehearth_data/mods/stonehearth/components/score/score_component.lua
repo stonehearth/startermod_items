@@ -15,26 +15,35 @@ function ScoreComponent:initialize(entity, json)
       self._sv._initialized = true
       self._sv.scores = {}
       self._sv._aggregate_dependencies = {}
-
-      --parse the json into scores.
-      self:_parse_initial_score_data(json)
    end
+
+   --parse the json into scores.
+   self:_parse_score_data(json)
 end
 
 --- On recieving the initial json, calculate all scores and aggregate scores
-function ScoreComponent:_parse_initial_score_data(json)
+function ScoreComponent:_parse_score_data(json)
    --Make score entries for each contributing score type
    for key, data in pairs(json) do
-      self:_add_new_score_type(key, data)
+      if not self:has_score(key) then
+         self:_add_new_score_type(key, data)
+      end
    end
+
+   --Sort aggregate dependencies
 
    --Now that we've read in all basic scores, 
    --calculate score for each aggregate dependency
-   for aggregate, dependencies in pairs(self._sv._aggregate_dependencies) do
-      local data = {
-         starting_score = self:_calculate_score_for_aggregate(aggregate)
-      }
-      self:_add_new_score_type(aggregate, data)
+   for aggregate, _ in pairs(self._sv._aggregate_dependencies) do
+      local score = self:_calculate_score_for_aggregate(aggregate)
+      if not self._sv.scores[aggregate] then 
+         local data = {
+            starting_score = score
+         }
+         self:_add_new_score_type(aggregate, data)
+      else
+         self._sv.scores[aggregate].score = score
+      end
    end
 end
 
@@ -55,7 +64,7 @@ end
 --  @param key - the name of the score
 --  @param data - json about the score, which should incude starting score,
 --                weight, and whether it contributes to any aggregates, if any
-function ScoreComponent:_add_new_score_type(key, data) 
+function ScoreComponent:_add_new_score_type(key, data)
    if not self._sv.scores[key] then
       self._sv.scores[key] = data
       self._sv.scores[key].score = data.starting_score
@@ -115,7 +124,11 @@ function ScoreComponent:change_score(key, modifier, journal_data)
       --Change dependent scores
       if score_data.contributes_to then
          --TODO: accomodate more than 1 score
-         self._sv.scores[score_data.contributes_to].score = self:_calculate_score_for_aggregate(score_data.contributes_to)
+         local current_aggregate_score = self._sv.scores[score_data.contributes_to].score
+         local aggregate_new_score = self:_calculate_score_for_aggregate(score_data.contributes_to)
+         local difference = aggregate_new_score - current_aggregate_score
+         self:change_score(score_data.contributes_to, difference)
+         --self._sv.scores[score_data.contributes_to].score = self:_calculate_score_for_aggregate(score_data.contributes_to)
       end
    end
 
@@ -157,6 +170,11 @@ function ScoreComponent:get_score(key)
       self:_add_new_score_type(key, score_data)
    end
    return score_data.score
+end
+
+--- Given a key, get the score associated with it and return it
+function ScoreComponent:has_score(key)
+   return self._sv.scores[key] ~= nil
 end
 
 function ScoreComponent:_add_score_event(path, value, journal_type)
