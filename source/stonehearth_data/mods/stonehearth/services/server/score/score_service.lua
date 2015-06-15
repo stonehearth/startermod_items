@@ -278,7 +278,6 @@ function ScoreService:_calculate_aggregate(player_id, citizens)
    for name, score_data in pairs(aggregate_scores) do
       average_aggregate_score[name] = score_data.score/score_data.num_people
    end
-   --TODO: rename this aggregate and change the town UI
    self._sv.player_scores[player_id]:set_score_type('aggregate', average_aggregate_score)
 
    self.__saved_variables:mark_changed()
