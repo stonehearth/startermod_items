@@ -75,6 +75,12 @@ App.StonehearthStockpileView = App.View.extend({
          return;
       }
 
+      if (this.get('context.stonehearth:backpack')) {
+         this.$('button.warn').css('visibility', 'hidden');
+      } else {         
+         this.$('button.warn').css('visibility', 'visible');
+      }
+
       var self = this;
       var stockpileFilter = this.get('context.stonehearth:storage.filter');
 
