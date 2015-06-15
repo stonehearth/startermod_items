@@ -16,7 +16,7 @@ App.StonehearthHelpCameraView = App.View.extend({
             pan: true,
             orbit: true
          });
-      }, 10000);
+      }, 15000);
 
       radiant.call('stonehearth:get_camera_tracker')
          .done(function(o) {
@@ -67,7 +67,7 @@ App.StonehearthHelpCameraView = App.View.extend({
             if (!self._zoomDone) {
                self._updateHints({ zoom: true});
             }
-         }, 10000);
+         }, 15000);
       }
 
       var allDone = this._zoomDone && this._panDone && this._orbitDone;

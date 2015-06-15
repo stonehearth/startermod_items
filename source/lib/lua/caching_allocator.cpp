@@ -299,3 +299,10 @@ void CachingAllocator::Deallocate(void *ptr, size_t size)
       }
    }
 }
+
+int CachingAllocator::GetAllocBytesCount()
+{
+   tbb::spin_mutex::scoped_lock lock(__lock);
+
+   return static_cast<int>(_byteCount);
+}

@@ -392,9 +392,13 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("destroy",            &Pathfinder_Destroy<BfsPathFinder>)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FilterResultCache>("FilterResultCache")
-               .def(constructor<>())
+               .enum_("constants") [
+                  value("INVALIDATE_ON_MOVE",               FilterResultCache::INVALIDATE_ON_MOVE),
+                  value("INVALIDATE_ON_PLAYER_ID_CHANGED",  FilterResultCache::INVALIDATE_ON_PLAYER_ID_CHANGED)
+               ]
+               .def(constructor<int>())
                .def("clear_cache_entry",  &FilterResultCache::ClearCacheEntry)     
-               .def("set_filter_fn",      &FilterResultCache_SetFilterFn)
+               .def("set_filter_fn",      &FilterResultCache::SetLuaFilterFn)
             ,
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)

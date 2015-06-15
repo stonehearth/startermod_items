@@ -19,6 +19,7 @@ public:
 
    void Start(bool useLowMemory);
    void ReportMemoryStats(bool force = false);
+   int GetAllocBytesCount();
 
    inline bool IsUsingLowMemory() const { return _lowMemoryHeap != nullptr; }
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
