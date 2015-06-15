@@ -455,9 +455,10 @@
    "10_score" : "Incandescent", 
 
    "town_net_worth" : "Net worth",
-   "town_overall_happiness" : "Overall Happiness",
+   "town_overall_happiness" : "Overall Morale",
    "town_food_happiness" : "Food",
    "town_shelter_happiness" : "Shelter",
+   "town_safety_happiness" : "Safety",
    "town_overview" : "Town Overview",
    "town_inventory" : "Inventory",
    "town_happiness_tab" : "Journal",

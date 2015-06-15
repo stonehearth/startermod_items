@@ -274,12 +274,12 @@ function ScoreService:_calculate_aggregate(player_id, citizens)
    end
 
    --Calculate final scores for each score available and save them
-   local happiness_score = {}
+   local average_aggregate_score = {}
    for name, score_data in pairs(aggregate_scores) do
-      happiness_score[name] = score_data.score/score_data.num_people
+      average_aggregate_score[name] = score_data.score/score_data.num_people
    end
    --TODO: rename this aggregate and change the town UI
-   self._sv.player_scores[player_id]:set_score_type('happiness', happiness_score)
+   self._sv.player_scores[player_id]:set_score_type('aggregate', average_aggregate_score)
 
    self.__saved_variables:mark_changed()
 end

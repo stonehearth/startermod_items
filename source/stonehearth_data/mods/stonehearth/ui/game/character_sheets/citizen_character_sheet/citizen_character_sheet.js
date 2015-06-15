@@ -280,7 +280,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       var attributeData = App.tooltipHelper.getAttributeData(attrib_name);
       if (attributeData) {
-         var tooltipString = '<div class="attributeTooltip"> <h2>' + attributeData.display_name
+         var tooltipString = '<div class="detailedTooltip"> <h2>' + attributeData.display_name
                                  + '</h2><p>'+ attributeData.description + '</p>';
 
          //For each buff and debuff that's associated with this attribute, 

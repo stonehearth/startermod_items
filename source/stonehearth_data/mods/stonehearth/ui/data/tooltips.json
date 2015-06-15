@@ -60,5 +60,32 @@
          "display_name" : "Compassion",
          "description" : "How likely this hearthling will help out a fellow villager or befriend others."
       }
+   ],
+   "score_tooltips": [
+      {
+         "score" : "net_worth",
+         "display_name" : "Net Worth",
+         "description" : "The gold value of everything in the town's inventory."
+      },
+      {
+         "score" : "happiness",
+         "display_name" : "Overall Moral",
+         "description" : "How happy your citizens are overall. Aim for 10!"
+      },
+      {
+         "score" : "nutrition",
+         "display_name" : "Food",
+         "description" : "How your citizens feel about the town's food situation. Is there enough to eat? Try to obtain variety of foods!"
+      },
+      {
+         "score" : "shelter",
+         "display_name" : "Shelter",
+         "description" : "How your citizens feel about their lodging situation. Are there beds to sleep in?"
+      },
+      {
+         "score" : "safety",
+         "display_name" : "Safety",
+         "description" : "How your citizens feel about the town's security. Is the town well protected or getting pillaged by goblins?"
+      }
    ]
 }
