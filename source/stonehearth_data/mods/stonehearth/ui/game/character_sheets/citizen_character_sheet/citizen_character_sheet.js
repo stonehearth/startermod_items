@@ -197,7 +197,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
         this.set('model.buffs', vals);
     }.observes('model.stonehearth:buffs'),
 
-    
    _grabEquipment: function() {
       var self = this;
       var slots = ['torso', 'mainhand', 'offhand'];
@@ -279,6 +278,9 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       }
 
       var attributeData = App.tooltipHelper.getAttributeData(attrib_name);
+      if (!attributeData) {
+         attributeData = App.tooltipHelper.getScoreData(attrib_name);
+      }
       if (attributeData) {
          var tooltipString = '<div class="detailedTooltip"> <h2>' + attributeData.display_name
                                  + '</h2><p>'+ attributeData.description + '</p>';
@@ -310,7 +312,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             });
          $(obj).tooltipster('content', $(tooltipString));
          $(obj).tooltipster('enable');
-
       }
    },
 
@@ -358,6 +359,15 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       }
       return buffsByAttribute;
    },
+
+   _updateMorale: function() {
+      var self = this;
+      var scoresToUpdate = ['happiness', 'food', 'shelter', 'safety'];
+      radiant.each(scoresToUpdate, function(i, score_name) {
+         var score_value = self.get('model.stonehearth:score.scores.' + score_name + '.score');
+         self.set('score_' + score_name, Math.round(score_value) / 10);
+      });
+   }.observes('model.stonehearth:score'),
 
    didInsertElement: function() {
       var self = this;

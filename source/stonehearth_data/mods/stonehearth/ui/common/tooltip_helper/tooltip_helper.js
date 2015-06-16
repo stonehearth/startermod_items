@@ -36,14 +36,18 @@ var StonehearthTooltipHelper;
          return this._attributeTooltips[attributeName];
       },
 
-      getScoreTooltip: function(scoreName) {
+      getScoreTooltip: function(scoreName, isTownDescription) {
          if (scoreName in this._scoreTooltips) {
             var scoreData = this._scoreTooltips[scoreName];
+            var description = isTownDescription? scoreData.town_description : scoreData.description;
             var tooltipString = '<div class="detailedTooltip"> <h2>' + scoreData.display_name
-                                 + '</h2>'+ scoreData.description + '</div>';
+                                 + '</h2>'+ description + '</div>';
             return tooltipString;
          }
          return null;
+      },
+      getScoreData: function(scoreName) {
+         return this._scoreTooltips[scoreName];
       },
    });
 })();

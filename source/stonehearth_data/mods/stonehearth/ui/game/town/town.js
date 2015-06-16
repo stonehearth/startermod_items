@@ -106,7 +106,7 @@ App.StonehearthTownView = App.View.extend({
       var rows = self.$('#scores .row').each(function( index ) {
          var row =  $( this );
          var scoreName = row.attr('id');
-         var tooltipString = App.tooltipHelper.getScoreTooltip(scoreName);
+         var tooltipString = App.tooltipHelper.getScoreTooltip(scoreName, true); // True for town description.
          if (tooltipString) {
             row.tooltipster({
                   content: $(tooltipString)
@@ -189,7 +189,7 @@ App.StonehearthTownView = App.View.extend({
       var netWorthLevel = self.get('context.score_data.net_worth.level')
 
       // Update moral scores.
-      var scoresToUpdate = ['happiness', 'nutrition', 'shelter', 'safety'];
+      var scoresToUpdate = ['happiness', 'food', 'shelter', 'safety'];
       radiant.each(scoresToUpdate, function(i, score_name) {
          var score_value = self.get('context.score_data.aggregate.' + score_name);
          self.set('score_' + score_name, Math.round(score_value) / 10);
@@ -213,16 +213,6 @@ App.StonehearthTownView = App.View.extend({
 
       element.find('.ui-progressbar-value').html(text.toFixed(1));
    },
-
-   /*
-   _set_happiness: function() {
-      this.scores.happiness = this.get('context.score_data.aggregate.happiness');
-      this.scores.nutrition = this.get('context.score_data.aggregate.nutrition');
-      this.scores.shelter = this.get('context.score_data.aggregate.shelter');
-      this._updateScores();
-   }.observes('context.score_data.happiness'),
-   */
-
 
    //Journal related stuff
    

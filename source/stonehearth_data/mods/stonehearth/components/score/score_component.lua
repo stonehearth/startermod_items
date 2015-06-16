@@ -25,16 +25,43 @@ end
 function ScoreComponent:_parse_score_data(json)
    --Make score entries for each contributing score type
    for key, data in pairs(json) do
-      if not self:has_score(key) then
-         self:_add_new_score_type(key, data)
+      self:_add_or_update_score_type(key, data)
+   end
+
+   --Sort aggregate dependencies topologically. This makes sure we
+   --calculate the dependencies in the correct order.
+   self._sorted_aggregates = {}
+   local working_set = {}
+   for aggregate, dependencies in pairs(self._sv._aggregate_dependencies) do
+      local hasDependencyWithDependency = false
+      for i, dependency in pairs(dependencies) do
+         if self._sv._aggregate_dependencies[dependency] then
+            hasDependencyWithDependency = true
+            break
+         end
+      end
+      if not hasDependencyWithDependency then
+         table.insert(working_set, aggregate)
+      end
+   end
+   while table.getn(working_set) > 0 do
+      local aggregate = table.remove(working_set)
+      table.insert(self._sorted_aggregates, aggregate)
+      local score_data = self._sv.scores[aggregate]
+      if score_data and score_data.contributes_to then
+         table.insert(working_set, score_data.contributes_to)
       end
    end
 
-   --Sort aggregate dependencies
-
    --Now that we've read in all basic scores, 
    --calculate score for each aggregate dependency
-   for aggregate, _ in pairs(self._sv._aggregate_dependencies) do
+   self:_recalculate_all_aggregates()
+   self.__saved_variables:mark_changed()
+end
+
+--Iterates through the sorted list of aggregates and calls calculate score on each.
+function ScoreComponent:_recalculate_all_aggregates()
+   for i, aggregate in ipairs(self._sorted_aggregates) do
       local score = self:_calculate_score_for_aggregate(aggregate)
       if not self._sv.scores[aggregate] then 
          local data = {
@@ -73,6 +100,37 @@ function ScoreComponent:_add_new_score_type(key, data)
       --TODO: if more than one, split the string and call once per word in split string 
       if data.contributes_to then
          self:_add_aggregate_dependencies(data.contributes_to, key)
+      end
+   end
+end
+
+-- Helper function in initializing
+function ScoreComponent:_add_or_update_score_type(key, data)
+   if not self._sv.scores[key] then
+      self:_add_new_score_type(key, data)
+   else
+      local old_data = self._sv.scores[key];
+      self._sv.scores[key] = data
+      self._sv.scores[key].score = old_data.score
+
+      -- If the contributes to field has changed, make sure we update that
+      if old_data.contributes_to ~= data.contributes_to then
+         if old_data.contributes_to then
+            -- Remove the old dependency
+            local index = 0
+               for i, dep in ipairs (self._sv._aggregate_dependencies[old_data.contributes_to]) do
+                  if dep == key then
+                     index = i
+                     break
+                  end
+               end
+               if index > 0 then
+                  table.remove(self._sv._aggregate_dependencies[old_data.contributes_to], index)
+               end
+         end
+         if data.contributes_to then
+            self:_add_aggregate_dependencies(data.contributes_to, key)
+         end
       end
    end
 end
@@ -187,5 +245,14 @@ function ScoreComponent:_change_eval_function(uri)
 --look into carpetner promote/demote, etc
 end
 
+-- Used for cheats. Iterates through all the scores and resets them to
+-- their default values.
+function ScoreComponent:reset_all_scores()
+   for score_name, score_data in pairs(self._sv.scores) do
+      score_data.score = score_data.starting_score
+   end
+   self:_recalculate_all_aggregates()
+   self.__saved_variables:mark_changed()
+end
 
 return ScoreComponent
