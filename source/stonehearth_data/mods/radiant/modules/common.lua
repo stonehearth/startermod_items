@@ -20,11 +20,17 @@ function RADIANT_CLASS_MT:__call(...)
    return obj
 end
 
-function radiant.class()
+-- defines a new radiant class.  classes passed to `radiant.class` will automatically
+-- be mixed-into the definition (like subclassing!)
+function radiant.class(...)
    local c = {}
    c.__index = c
    c.__class = c
    setmetatable(c, RADIANT_CLASS_MT)
+
+   for _, cls in ipairs({...}) do
+      radiant.mixin(c, cls)
+   end
    return c
 end
 

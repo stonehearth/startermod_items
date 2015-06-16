@@ -1,8 +1,8 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local UnitStatusEffect = class(EffectTrack)
+local UnitStatusEffect = radiant.class(EffectTrack)
 
 function UnitStatusEffect:__init(info, start_time)
-   self[EffectTrack]:__init(info)
+   EffectTrack.__init(self, info)
 
    if info.duration then
       self._end_time = start_time + self:_get_end_time()
