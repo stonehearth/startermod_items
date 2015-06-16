@@ -1,8 +1,8 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local AnimationEffect = class(EffectTrack)
+local AnimationEffect = radiant.class(EffectTrack)
 
 function AnimationEffect:__init(animation_path, start_time, info)  
-   self[EffectTrack]:__init(info)
+   EffectTrack.__init(self, info)
 
    self._start_time = start_time + self:_get_start_time()
 

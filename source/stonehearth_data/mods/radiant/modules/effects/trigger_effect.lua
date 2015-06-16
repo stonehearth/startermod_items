@@ -1,8 +1,8 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local TriggerEffect = class(EffectTrack)
+local TriggerEffect = radiant.class(EffectTrack)
 
 function TriggerEffect:__init(start_time, handler, track, effect, entity, args)
-   self[EffectTrack]:__init(track)
+   EffectTrack.__init(self, track)
    --May be redundant with above?
    self._info = track.info
    self._entity = entity
