@@ -1,5 +1,5 @@
 {
-   "mixins": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:food_decay",
    "type": "entity",
    "components": {
       "item": {
@@ -13,12 +13,12 @@
                "file(corn_basket.qb)"
             ]
          },
-         "corn_bad_1": {
+         "decay_1": {
             "models": [
                "file(corn_basket.qb)"
             ]
          },
-         "corn_bad_2": {
+         "decay_2": {
             "models": [
                "file(corn_basket.qb)"
             ]
@@ -34,37 +34,13 @@
       },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
-      },
-      "stonehearth:attributes" : {
-         "health" : {
-            "type" : "basic", 
-            "value" : 36
-         }
       }
    },
    "entity_data" : {
       "stonehearth:food_container" : {
          "effect": "fiddle",
          "food": "stonehearth:food:corn:corn_serving",
-         "stacks_per_serving": 3,
-         "decay" : {
-            "health_per_hour" : {
-               "min" : 1,
-               "max" : 2
-            },
-            "decay_stages" : [
-               {
-                  "trigger_health_value": 10,
-                  "model_name" : "corn_bad_1",
-                  "description": "Starting to Rot. Doesn't look so fresh anymore."
-               },
-               {
-                  "trigger_health_value": 5,
-                  "model_name" : "corn_bad_2",
-                  "description": "Nearly Rotten. Better eat it fast."
-               }
-            ]
-         }
+         "stacks_per_serving": 3
       },
       "stonehearth:net_worth" : {
          "value_in_gold" : 12,
@@ -75,6 +51,6 @@
             "shopkeeper_level" : 1,
             "shopkeeper_type" : "caravan"
          }
-      }            
+      }
    }
 }

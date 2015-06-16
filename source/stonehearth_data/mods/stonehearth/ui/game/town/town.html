@@ -22,28 +22,32 @@
             </div>
          </div>
          <div id="scores" class="downSection">
-            <div class="row">
-            <div id="netWorthIcon" />
+            <div class="row" id="net_worth">
+               <div id="netWorthIcon" />
                <div>{{i18n town_net_worth}}</div>
                <div>{{score_data.net_worth.total_score}}</div>
             </div>
 
-            <div class="row">
+            <div class="row" id="happiness">
                <div id="happinessIcon" {{bind-attr class=view.happinessIconClass}} />
                <div>{{i18n town_overall_happiness}}</div>
-               <div>{{view.overall_happiness}}</div>
+               <div>{{view.score_happiness}}</div>
             </div>
-            <div class="row">
-               <div id="happinessIcon" {{bind-attr class=view.foodHappinessIconClass}} />
+            <div class="row indented" id="nutrition">
+               <div id="happinessIcon" {{bind-attr class=view.nutritionIconClass}} />
                <div>{{i18n town_food_happiness}}</div>
-               <div>{{view.food_happiness}}</div>
+               <div>{{view.score_nutrition}}</div>
             </div>
-            <div class="row">
-               <div id="happinessIcon" {{bind-attr class=view.shelterHappinessIconClass}} />
+            <div class="row indented" id="shelter">
+               <div id="happinessIcon" {{bind-attr class=view.shelterIconClass}} />
                <div>{{i18n town_shelter_happiness}}</div>
-               <div>{{view.shelter_happiness}}</div>
+               <div>{{view.score_shelter}}</div>
             </div>
-
+            <div class="row indented" id="safety">
+               <div id="happinessIcon" {{bind-attr class=view.safetyIconClass}} />
+               <div>{{i18n town_safety_happiness}}</div>
+               <div>{{view.score_safety}}</div>
+            </div>
          </div>
       </div>
 

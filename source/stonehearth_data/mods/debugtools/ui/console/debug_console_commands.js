@@ -28,7 +28,7 @@ $(document).ready(function(){
       call: function(cmdobj, fn, args) {
          var attribute = args[0];
          var val = parseInt(args[1]);
-         if (selected && attribute && val > 0) {
+         if (selected && attribute && val != NaN) {
             return radiant.call('debugtools:set_attr_command', selected, attribute, val);
          }
          return false;
@@ -47,6 +47,18 @@ $(document).ready(function(){
          return false;
       },
       description: "Resets the entity's location to a proper one on the ground. Can also pass in a new location. Usage: reset_location {optional x y z}"
+   });
+
+   radiant.console.register('change_score', {
+      call: function(cmdobj, fn, args) {
+         var scoreName = args[0];
+         var val = parseInt(args[1]);
+         if (selected && scoreName) {
+            return radiant.call('debugtools:change_score_command', selected, scoreName, val);
+         }
+         return false;
+      },
+      description: "Changes the specified score on the selected entity by the specified amount. Usage: change_score nutrition -10"
    });
 
 });

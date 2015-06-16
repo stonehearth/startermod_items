@@ -73,3 +73,6 @@ source/stonehearth_data/saved_objects/
 
 # Lua profile dumps
 source/stonehearth_data/lua_profile*.*
+source/stonehearth_data/eu_stats*.*
+source/stonehearth_data/ef_stats*.*
+source/stonehearth_data/compiled_resources/

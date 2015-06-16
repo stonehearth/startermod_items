@@ -34,9 +34,9 @@ function FoodDecayService:_on_decay()
    for _, entity in pairs(self._sv._decaying_food) do
       local food_container = radiant.entities.get_entity_data(entity, 'stonehearth:food_container')
       local decay_tuning = food_container.decay
-      local health = radiant.entities.get_attribute(entity, 'health')
+      local initial_health = radiant.entities.get_attribute(entity, 'health')
       local decayed_value = rng:get_int(decay_tuning.health_per_hour.min, decay_tuning.health_per_hour.max)
-      health = health - decayed_value;
+      local health = initial_health - decayed_value;
       radiant.entities.set_attribute(entity, 'health', health)
       if health <= 0 then
          -- Food is rotten beyond recognition. Destroy it.
@@ -47,13 +47,15 @@ function FoodDecayService:_on_decay()
 
          local model = 'default'
          local new_description = unit_info:get_description()
+         local lowest_trigger_value = initial_health + 1
          for _, decay_stage in pairs(decay_tuning.decay_stages) do
             -- Find the decay stage most suited for our health value.
-            if health <= decay_stage.trigger_health_value then
-               model = decay_stage.model_name
+            -- Unfortunately this means iterating through all the stages,
+            -- but there should only be 2 stages or so.
+            if health <= decay_stage.trigger_health_value and decay_stage.trigger_health_value < lowest_trigger_value then
+               lowest_trigger_value = decay_stage.trigger_health_value
+               model = decay_stage.model_variant
                new_description = decay_stage.description
-            else
-                break
             end
          end
 

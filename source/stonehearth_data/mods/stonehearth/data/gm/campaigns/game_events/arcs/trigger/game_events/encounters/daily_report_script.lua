@@ -108,8 +108,8 @@ function Immigration:_eval_requirement(num_citizens)
 
    --Get data for morale
    local morale_score = 0
-   if score_data.happiness and score_data.happiness.happiness then
-      morale_score = score_data.happiness.happiness/10
+   if score_data.aggregate and score_data.aggregate.happiness then
+      morale_score = score_data.aggregate.happiness/10
    end
    local morale_success, morale_data = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
    morale_data.available =  radiant.math.round(morale_data.available*10)*0.1
