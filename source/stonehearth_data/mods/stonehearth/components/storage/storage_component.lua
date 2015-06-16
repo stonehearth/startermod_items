@@ -175,8 +175,8 @@ function StorageComponent:add_item_for_tracking(item)
    self.__saved_variables:mark_changed()
 end
 
-function StorageComponent:remove_item_from_tracking(item)
-   self._sv.item_tracker:remove_item(item:get_id())
+function StorageComponent:remove_item_from_tracking(id)
+   self._sv.item_tracker:remove_item(id)
    self.__saved_variables:mark_changed()
 end
 

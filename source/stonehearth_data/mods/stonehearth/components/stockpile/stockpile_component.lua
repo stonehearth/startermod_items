@@ -290,7 +290,7 @@ function StockpileComponent:_remove_item_from_stock(id)
    --Tell the inventory to remove this item
    stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
    stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, nil)
-   self._entity:get_component('stonehearth:storage'):remove_item_from_tracking(entity)
+   self._entity:get_component('stonehearth:storage'):remove_item_from_tracking(id)
       
    --Trigger for scenarios, autotests, etc
    radiant.events.trigger_async(self._entity, "stonehearth:stockpile:item_removed", { 

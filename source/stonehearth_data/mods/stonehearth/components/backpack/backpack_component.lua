@@ -102,7 +102,7 @@ function BackpackComponent:remove_item(item)
 
    if self._sv.items[id] then
       local player_id = radiant.entities.get_player_id_from_entity(self._entity)
-      stonehearth.inventory:get_inventory(player_id):remove_item(item)
+      stonehearth.inventory:get_inventory(player_id):remove_item(id)
       stonehearth.inventory:get_inventory(player_id):update_item_container(id, nil)
       self._entity:get_component('stonehearth:storage'):remove_item_from_tracking(id)
       self._sv.items[id] = nil
