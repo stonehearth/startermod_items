@@ -110,9 +110,9 @@ private:
    JSONNode LuaToJsonImpl(luabind::object obj);
    void ProfileHook(lua_State *L, lua_Debug *ar);
    void ProfileSampleHook(lua_State *L, lua_Debug *ar);
-   void DumpFusedFrames(perfmon::FusedFrames& fusedFrames);
    void ReportProfileData();
    void ResetProfileData();
+   void AddStackToProfile(lua_State *L, lua_Debug *ar, perfmon::CounterValueType selfTime);
 
 private:
    luabind::object GetManifest(std::string const& mod_name);

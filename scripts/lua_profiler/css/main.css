@@ -1,0 +1,67 @@
+body {
+	background-color: white;
+	font-family: "Inconsolata", "Consolas", "Tahoma";
+	font-size: 12px;
+}
+
+table{
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th {
+   text-align: center;   
+}
+
+td {
+	font-size: 12px;
+	text-indent:5px;
+	color:#444;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #bbb;
+}
+
+li {
+	display: inline;
+}
+
+.grip{
+	width:20px;
+	height:30px;
+	margin-top:-3px;
+	background-image:url('../img/grip.png');
+	margin-left:-5px;
+	position:relative;
+	z-index:88;
+	cursor:e-resize;
+}
+
+.grip:hover{
+	background-position-x:-20px;
+}
+
+.dragging .grip{
+	background-position-x:-40px;
+}
+
+.sampleText{
+	position:relative;
+	width:100%;
+}
+
+.dotted{
+	background-image:url('../img/dotted.png');
+	background-repeat:repeat-y;
+}
+
+input.check{
+	
+}
+
+#sample2Txt{
+	float:right;	
+}
+label{
+	color:#0361ae;
+}
