@@ -1,0 +1,396 @@
+<head>
+   <script src="jquery-2.1.3.min.js"></script>
+   <script src="colResizable-1.5.min.js"></script>
+   <script src="ember-template-compiler.js"></script>
+   <script src="ember.debug.js"></script>
+   <link rel="stylesheet" type="text/css" href="css/main.css" />   
+   <link rel="stylesheet" type="text/css" href="font-awesome-4.3.0/css/font-awesome.min.css" />  
+</head>
+
+<script>
+   // Hello, Ember 2.0.  You're supposed to be fast (ala Glimmer.)  Let's find out!
+   Profiler = Ember.Application.create();
+
+   // The router creates the model and controller for the / route.
+   Profiler.Router.map(function() {
+      this.resource('data', { path: '/' });
+   });
+
+   // It's magic!  The faact that '/' is mapped to 'data' means there will be a
+   // Profiler.Data model and a Profiler.DataController controller.
+   Profiler.Data = Ember.Object.extend({
+      init : function() {
+         this._super();
+         this.set('topdown', Profiler.TopDownNode.create());
+      },
+
+      // Add a json file dumped by the profiler to the set.  You can keep calling
+      // this over and over again to accumulate multiple runs (or multiple interpreters
+      // from a single run)
+      addJsonDump : function(data) {
+         this.get('topdown').addJsonDump(1, data);
+      },
+
+      // Sort a map of entries in to an array where `selfTime` is the key
+      _sortNodeMapByTime : function(map) {
+         var sorted = [];
+         $.each(map, function(k, v) {
+            if (map.hasOwnProperty(k)) {
+               sorted.push(v);
+            }
+         });
+         sorted.sort(function(l, r) {
+            return r.selfTime - l.selfTime;
+         });
+         return sorted;
+      },
+
+      // Create the bottom up nodes from the topdown tree (rooted at `topdown`)
+      createBottomUpNodes: function() {
+         var topdown = this.get('topdown');
+
+         this._bottomUpMap = {}
+         this._createBottomUp(topdown, []);
+         var bottomUp = this._sortNodeMapByTime(this._bottomUpMap);
+         this._bottomUpMap = undefined;
+
+         this.set('bottomup', bottomUp);
+      },
+
+      _createBottomUp : function(tnode, traceback) {
+         var key = tnode.get('fileline');
+         var bnode = this._bottomUpMap[key];
+
+         // The traceback is the inverted stack of how we got to
+         // this bottom up node.  To build it, put the tnode on the
+         // front of the list (and remove it when we're done)
+         traceback.unshift(tnode);
+
+         if (!bnode) {
+            bnode = Profiler.BottomUpNode.create({ tnode: tnode });
+            this._bottomUpMap[key] = bnode;
+         }
+         bnode.addTraceback(tnode.selfTime, traceback);
+
+         var children = tnode.get('children');
+         for (var i = 0; i < children.length; i++) {
+            this._createBottomUp(children[i], traceback);
+         }
+
+         traceback.shift();
+      },
+   });
+
+   // The traceback node contains the inverted stack tree for all
+   // the ways of reaching a sponsoring BottomUpNode.  We us it to
+   // render the paths in the bottom up view.
+   Profiler.TracebackNode = Ember.Object.extend({
+      init : function() {
+         this._super();
+         this.depth = 0;
+         this.selfTime = 0;
+         this.children = [];
+         this.childrenLookup = {};
+
+         // Not sure why this requires a set... Probably because
+         // we stick an observer on it.  Oh well!
+         this.set('collapsed', true);
+
+         if (this.tnode) {
+            this.fn = this.tnode.fn;
+            this.fileline = this.tnode.get('fileline');
+         }
+      },
+
+      // Add a topdown node to the traceback.  The caller is responsible
+      // for iterating over the stack in reverse order and building the
+      // TrackbackNode map in an inverted fashion.  Our job is just to return
+      // the child node we added/looked-up to enable that.
+      addNode: function(time, tnode) {
+         this.selfTime = this.selfTime + time;
+         var fileline = tnode.get('fileline');
+         var child = this.childrenLookup[fileline]
+
+         this._dirty = true;
+
+         if (!child) {
+            child = Profiler.TracebackNode.create({
+               tnode: tnode,
+            });
+            this.childrenLookup[fileline] = child;
+            this.children.push(child);
+         }
+         return child;
+      },
+
+      // Compute the head and tails for this part of the tree.  The head is
+      // the partial stack for which there is exactly 1 caller for the previous
+      // frame.  The tails are all the children of the last frame which didn't
+      // make it into the head.  This is used to compact the call stack views
+      // in the bottom up pane.
+      computeHead: function() {
+         var head = [];
+         var tails = [];
+
+         if (!this._dirty) {
+            return;
+         }
+         this._dirty = false;
+
+         console.log('computing head...', this);
+
+         var tbnode = this;
+         head.push(tbnode);
+         while (tbnode && tbnode.children.length == 1) {
+            tbnode = tbnode.children[0];
+            head.push(tbnode);
+         }
+         if (tbnode) {
+            tails = tbnode.children;
+         }
+         tails.sort(function(l, r) {
+            return r.selfTime - l.selfTime;
+         });
+
+         this.set('head', head);
+         this.set('tails', tails);
+      },
+
+      // Compute the heads of all our tails.  Used to render the next layer
+      // when we open a collapsed node.
+      _computeHeadsOfTails: function() {
+         if (!this.collapsed) {
+            this.computeHead();
+            var tails = this.get('tails');
+            for (var i = 0; i < tails.length; i++) {
+               tails[i].set('depth', this.get('depth') + 1);
+               tails[i].computeHead();
+            }
+         }
+      }.observes('collapsed'),
+
+      // How much padding do we need?
+      dynamicStyle : function() {
+         return ("padding-left: " + (this.get('depth') * 16) + 'px;').htmlSafe();;
+      }.property('depth'),
+   });
+
+   // The BottomUpNode stores the bottom up information.  There's just a flat
+   // list of these (one for every function which gets called).  Each BottomUpNode
+   // has a `traceback` which contains the stacks used to reach this node.
+   Profiler.BottomUpNode = Ember.Object.extend({
+      init : function() {
+         this._super();
+         this.selfTime = 0;
+         this.set('collapsed', true);
+         this.traceback = Profiler.TracebackNode.create({
+               tnode: this.tnode,
+            });
+      },
+
+      // `traceback` is an inverted stack of how we reached the node.
+      // This function accumulates many `tracebacks` into a tree of TracebackNodes
+      // which will eventually be used to render the stacks in the bottom up pane
+      addTraceback: function(time, traceback) {
+         this.selfTime = time + this.selfTime;
+         var tbnode = this.traceback;
+
+         for (var i = 1; i < traceback.length; i++) {
+            tbnode = tbnode.addNode(time, traceback[i]);
+         }
+      },
+
+      // Open/close the traceback node when we're opened/closed
+      _computeTraceback: function() {
+         this.traceback.set('collapsed', this.get('collapsed'));
+      }.observes('collapsed'),
+
+   });
+
+   // The TopDownNode represents a single call and all calls that function made.
+   // There's 1 TopDownNode for every call in the JSON objects we shoved into
+   // the view.
+   Profiler.TopDownNode = Ember.Object.extend({
+      opened: false,
+
+      addJsonDump : function(depth, data) {
+         var children = this.get('children');
+         if (!children) {
+            children = [];
+         }
+         this.set('file',     data.file);
+         this.set('fn',       data['function']);
+         this.set('line',     data.line);
+         this.set('selfTime', data.selfTime);
+         this.set('depth',    depth);
+         if (data.callers) {
+            for (var i = 0; i < data.callers.length; i++) {
+               var node = Profiler.TopDownNode.create();
+               node.addJsonDump(depth + 1, data.callers[i]);
+               children.push(node);
+            };
+         }
+         this.set('children', children);
+      },
+
+      fileline : function() {
+         return this.get('file') + ':' + this.get('line');
+      }.property('file', 'line'),
+
+      dynamicStyle : function() {
+         return ("padding-left: " + (this.get('depth') * 4) + 'px;').htmlSafe();
+      }.property('depth'),
+   })
+
+   // Ember boilerplate.  Not sure if we really need it...
+   Profiler.DataRoute = Ember.Route.extend({
+      model: function() {
+         return Profiler.Data.create();
+      },
+
+      setupController: function(controller, model) {
+         controller.set("data", model);
+      }
+   });
+
+   // Defines actions for manipulating our data
+   Profiler.DataController = Ember.Controller.extend({
+      actions: {
+         addJsonDump: function(filename, data) {
+            this.get('data').addJsonDump(data);
+         },
+         createBottomUpNodes: function(data) {
+            this.get('data').createBottomUpNodes();
+         },
+      }
+   });
+
+   // Views are deprecated, but where else am I suppose to run code which
+   // needs to muck with the HTML!?
+   Profiler.DataView = Ember.View.extend({
+      didInsertElement : function() {
+         var self = this;
+         var handleFileSelect = function(evt) {
+            var files = evt.target.files; // FileList object
+            var needed = files.length;
+            var perfData = {};
+
+            var expected = files.length;
+            var controller = self.get('controller');
+            for (var i = 0; i < files.length; i++) {
+               var reader = new FileReader();
+               // Closure to capture the file information.
+               reader.onload = function(e) {
+                  var data = JSON.parse(e.target.result);
+                  controller.send('addJsonDump', files[i], data);
+                  expected--;
+                  if (expected == 0) {
+                     controller.send('createBottomUpNodes');
+                  }
+               };
+               reader.readAsText(files[i]);
+            }
+         };
+         document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+         // This is cool, but OH MY GOD HORRIBLY SLOW!!!
+         // $("#bottomup").colResizable({ liveDrag: true });
+      },
+   });
+
+   // Just renders the + or - based on some node's "collapsed" state,
+   // as well as toggling it.
+   Profiler.CollapseDivComponent = Ember.Component.extend({
+      tagName: 'span',
+      actions: {
+         open: function() {
+            this.get('node').set('collapsed', false);
+         },
+         close: function() {
+            this.get('node').set('collapsed', true);
+         }
+      }
+   });
+
+   // Make sure we don't stick a <div> around these, since they're making
+   // table rows.
+   Profiler.BottomUpTracebackComponent = Ember.Component.extend({
+      tagName: ''
+   });
+</script>
+
+<script type="text/x-handlebars" data-template-name='components/collapse-div'>
+   {{#if node.collapsed}}
+      <i {{ action 'open' }} class="fa fa-plus-square-o"></i>
+   {{else}}
+      <i {{ action 'close' }} class="fa fa-minus-square-o"></i>
+   {{/if}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='components/top-down-row'>
+   <div style={{node.dynamicStyle}}>
+   file: {{ node.fn }}
+   </div>
+   {{#each node.children key="@index" as |child|}}
+      {{top-down-row node=child}}
+   {{/each}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='components/top-down'>
+   {{top-down-row node=root}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='components/bottom-up-traceback'>
+   <tr>
+      <td>
+         <span style={{tbnode.dynamicStyle}}><nobr>
+         {{ collapse-div node=tbnode }}
+         {{#each tbnode.head key="@index" as |head|}}
+            <i class="fa fa-angle-left"></i> {{ head.fn }}
+         {{/each}}
+         </nobr></span>
+      </td>
+      <td> {{ tbnode.selfTime }} </td>
+      <td> {{ tbnode.percentTime }} % </td>
+      <td> {{ tbnode.fileline }} </td>
+   </tr>
+   {{#unless tbnode.collapsed}} 
+      {{#each tbnode.tails key="@index" as |tail|}}
+         {{ bottom-up-traceback tbnode=tail }}
+      {{/each}}         
+   {{/unless}}
+</script>
+
+<script type="text/x-handlebars" data-template-name='components/bottom-up'>
+   <table id="bottomup">
+      <tr>
+         <th width=50%>Function / Call Stack</th>
+         <th width= 5%>Time</th>
+         <th width=15%>Percentage</th>
+         <th width=30%>File</th>
+      </tr>
+   {{#each root key="@index" as |node|}}
+      <tr>
+         <td>
+            {{collapse-div node=node }}
+            {{node.tnode.fn}}
+         </td>
+         <td> {{ node.selfTime }} </td>
+         <td> {{ node.percentTime }} % </td>
+         <td> {{ node.tnode.file }}:{{ node.tnode.line }} </td>
+      </tr>
+      {{#unless node.collapsed}} 
+         {{#each node.traceback.tails key="@index" as |tail|}}
+            {{ bottom-up-traceback tbnode=tail }}
+         {{/each}}
+      {{/unless}}
+   {{/each}}
+   </table>
+</script>
+
+<script type="text/x-handlebars" data-template-name='data'>
+   {{input type="file" id="files" name="stuff" multiple=true style="width:500px;"}}
+   {{bottom-up root=data.bottomup }}
+   {{top-down root=data.topdown }}
+</script>
+ 

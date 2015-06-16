@@ -23,14 +23,11 @@ public:
 
    core::StaticString GetName() const { return _fnName; }
    CounterValueType GetSelfTime() const { return _selfTime; }
-   void IncrementTimes(CounterValueType selfTime, CounterValueType totalTime, int lineNum);
+   void IncrementTimes(CounterValueType selfTime, int lineNum);
 
    StackFrame* AddStackFrame(const char* name, unsigned int fnDefLine);
 
-   void ComputeTotalTime(CounterValueType time);
    void FinalizeCollection(res::ResourceManager2& resMan);
-   void CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const;
-   void CollectBottomUpStats(FunctionAtLineTimes &stats, FunctionNameStack& stack, int remainingDepth) const;
 
    struct LineCount {
       LineCount() : line(0), count(0) { }
@@ -40,31 +37,17 @@ public:
       CounterValueType  count;
    };
 
-   struct SmallFrame {
-      std::unordered_map<core::StaticString, unsigned int, core::StaticString::Hash> callers;
-      int totalTime;
-      int selfTime;
-      int totalSamples;
-      std::vector<LineCount>    lines;
-   };
-
-   void Fuse(std::unordered_map<core::StaticString, SmallFrame, core::StaticString::Hash> &lookup);
-
+   void WriteJson(std::ostream& os) const;
 
 private:
    unsigned int               _fnDefLine;
    const char*                _sourceName;
    core::StaticString         _fnName;
    CounterValueType           _selfTime;
-   CounterValueType           _totalTime;
    std::vector<StackFrame>    _callers;
-   std::vector<LineCount >    _lines;
+   std::vector<LineCount>     _lines;
    unsigned int               _callCount;
-
-   friend class SamplingProfiler;
 };
-
-typedef std::unordered_map<core::StaticString, StackFrame::SmallFrame, core::StaticString::Hash> FusedFrames;
 
 class SamplingProfiler
 {
@@ -72,13 +55,10 @@ public:
    SamplingProfiler();
 
 public:
-   StackFrame* GetTopInvertedStackFrame();
+   StackFrame* GetStackTop();
 
-   void Fuse(FusedFrames &lookup);
    void FinalizeCollection(res::ResourceManager2& resMan);
-   void CollectStats(FunctionTimes& stats) const;
-   void CollectBottomUpStats(FunctionAtLineTimes &stats, int maxDepth) const;
-   void ComputeTotalTime();
+   void WriteJson(std::ostream& os) const;
 
 private:
    struct StackEntry {
@@ -90,7 +70,7 @@ private:
    };
 private:
    StackFrame              *_current;
-   StackFrame              _invertedStack;
+   StackFrame              _stack;
 };
 
 END_RADIANT_PERFMON_NAMESPACE

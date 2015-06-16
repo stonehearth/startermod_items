@@ -283,7 +283,6 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
 {
    perfmon::CounterValueType now = perfmon::Timer::GetCurrentCounterValueType();
    if (_lastHookL == L) {
-      lua_Debug f;
       int count = 0;
       res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
       perfmon::CounterValueType selfTime = now - _lastHookTimestamp;
@@ -291,15 +290,7 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
       _profilerDuration += perfmon::CounterToMilliseconds(selfTime * 1000);
       _profilerSampleCounts++;
 
-      perfmon::StackFrame* current = _profilers[L].GetTopInvertedStackFrame();
-      while (lua_getstack(L, count++, &f)) {
-         lua_getinfo(L, "Sl", &f);
-         if (strcmp(f.source, C_MODULE)) {
-            current = current->AddStackFrame(f.source, f.linedefined);
-            current->IncrementTimes(selfTime, 0, f.currentline);
-         }
-         selfTime = 0;
-      }
+      AddStackToProfile(L, ar, selfTime);
    }
    _lastHookL = L;
    _lastHookTimestamp = now;
@@ -309,27 +300,51 @@ void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
    }
 }
 
+void ScriptHost::AddStackToProfile(lua_State *L, lua_Debug *ar, perfmon::CounterValueType selfTime)
+{
+   struct StackEntry {
+      const char* source;
+      int   linedefined;
+      int   currentline;
+      int   selfTime;
+   };
+
+   lua_Debug f;
+   StackEntry invertedStack[1024];
+   int count = 0, isc = 0;
+
+   while (count < ARRAY_SIZE(invertedStack) - 1 && lua_getstack(L, count++, &f)) {
+      lua_getinfo(L, "Sl", &f);
+      if (strcmp(f.source, C_MODULE)) {
+         StackEntry& si = invertedStack[isc++];
+         si.source = f.source;
+         si.linedefined = f.linedefined;
+         si.currentline = f.currentline;
+         si.selfTime = selfTime;
+      }
+      selfTime = 0;
+   }
+
+   perfmon::StackFrame* current = _profilers[L].GetStackTop();
+   while (isc) {
+      StackEntry& si = invertedStack[--isc];
+      current = current->AddStackFrame(si.source, si.linedefined);
+      current->IncrementTimes(si.selfTime, si.currentline);
+   }
+}
+
 void ScriptHost::ProfileSampleHook(lua_State *L, lua_Debug *ar)
 {
    // Okay, 'currentline' *might* be a little overloaded....
    int numSamples = ar->currentline;
-   lua_Debug f;
    res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
    perfmon::CounterValueType selfTime = _cpuProfileInstructionSamplingTime * numSamples;
       
    _profilerDuration += selfTime;
    _profilerSampleCounts += numSamples;
 
-   perfmon::StackFrame* current = _profilers[L].GetTopInvertedStackFrame();
-   int count = 0;
-   while (lua_getstack(L, count++, &f)) {
-      lua_getinfo(L, "Sl", &f);
-      if (strcmp(f.source, C_MODULE)) {
-         current = current->AddStackFrame(f.source, f.linedefined);
-         current->IncrementTimes(selfTime, 0, f.currentline);
-      }
-      selfTime = 0;
-   }
+   AddStackToProfile(L, ar, selfTime);
+
    if (perfmon::Timer::GetCurrentTimeMs () - _cpuProfileStart >= max_profile_length_) {
       StopCpuProfiling(true);
    }
@@ -1335,66 +1350,6 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
    return module;
 }
 
-void ScriptHost::DumpFusedFrames(perfmon::FusedFrames& fusedFrames)
-{
-   json::Node root;
-
-   json::Node metadata;
-   metadata.set("profiling_time", (int)(_profilerDuration / 1000));
-   metadata.set("run_time", (int)(perfmon::Timer().GetCurrentTimeMs() - _cpuProfileStart));
-   root.set("metadata", metadata);
-
-   json::Node profileData;
-   for (auto& frame : fusedFrames) {
-      json::Node frameNode;
-      frameNode.set("tt", frame.second.totalTime);
-      frameNode.set("st", frame.second.selfTime);
-      frameNode.set("n", frame.second.totalSamples);
-
-      json::Node lineNodes(JSON_ARRAY);
-      for (auto const& lineInfo : frame.second.lines) {
-         json::Node lineNode;
-
-         lineNode.set("#", lineInfo.line);
-         lineNode.set("t", (int)lineInfo.count);
-
-         lineNodes.add(lineNode);
-      }
-      frameNode.set("lns", lineNodes);
-
-      json::Node fnNodes(JSON_ARRAY);
-      for (auto const c : frame.second.callers) {
-         // libjson treats '.' as a child node.  Wonderful!
-         std::string fnname((const char*)c.first);
-         boost::replace_all(fnname, ".", "&#46;");
-         
-         json::Node callerNode;
-         callerNode.set("nm", fnname);
-         callerNode.set("n", c.second);
-         fnNodes.add(callerNode);
-      }
-      frameNode.set("clrs", fnNodes);
-
-      // libjson treats '.' as a child node.  Wonderful!
-      std::string fnname((const char*)frame.first);
-      boost::replace_all(fnname, ".", "&#46;");
-
-      profileData.set(fnname, frameNode);
-   }
-
-   root.set("profile_data", profileData);
-
-   char date[256];
-   std::time_t t = std::time(NULL);
-   if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
-      *date = 0;
-   }
-   std::string filename = BUILD_STRING("lua_profile_data_" << date << ".json");
-   std::ofstream f(filename);
-   f << root;
-   f.close();
-}
-
 void ScriptHost::ReportCPUDump(luabind::object profTable, std::string const& name)
 {
    char date[256];
@@ -1411,49 +1366,29 @@ void ScriptHost::ReportCPUDump(luabind::object profTable, std::string const& nam
 void ScriptHost::ReportProfileData()
 {
    Trigger("radiant:report_cpu_profile");
-   int bottomUpDepth = 2;
 
-   perfmon::FunctionTimes stats;
-   perfmon::FunctionAtLineTimes bottomUpStats;
    res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
 
-   perfmon::FusedFrames fusedFrames;
+   char date[256];
+   std::time_t t = std::time(NULL);
+   std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t));
+
+   // clean the profiler output directory
+   fs::path profiler_output(BUILD_STRING("profiler_output/" << date));
+   if (fs::is_directory(profiler_output)) {
+      remove_all(profiler_output);
+   }
+   fs::create_directories(profiler_output);
+
    for (auto& entry : _profilers) {
       perfmon::SamplingProfiler &sp = entry.second;
       sp.FinalizeCollection(rm);
-      sp.CollectStats(stats);
-      sp.CollectBottomUpStats(bottomUpStats, bottomUpDepth);
-      sp.Fuse(fusedFrames);
-   }
 
-   DumpFusedFrames(fusedFrames);
-
-   int msPerSample = 0;
-   if (_profilerSampleCounts) {
-      msPerSample  = (int)(_profilerDuration / _profilerSampleCounts);
+      std::string filename = (profiler_output / BUILD_STRING(entry.first << ".json")).string();
+      std::ofstream f(filename);
+      sp.WriteJson(f);
+      f.close();
    }
-   LOG(lua.code, 1) << "---- lua cpu profilers stats --------------------------------------";
-   if (_cpuProfileMethod == _cpuProfileMethod) {
-      LOG(lua.code, 1) << "   profiler_instruction_sampling_rate: " << _cpuProfileInstructionSamplingRate << " instructions";
-   } else if (_cpuProfileMethod == Sampling) {
-      LOG(lua.code, 1) << "   profiler_instruction_sampling_time: " << _cpuProfileInstructionSamplingTime << " ms";
-   }
-   LOG(lua.code, 1) << "   profiling duration:                 " << _profilerDuration / 1000 << " ms";
-   LOG(lua.code, 1) << "   samples taken:                      " << _profilerSampleCounts;
-   LOG(lua.code, 1) << "   average ms per sample interval:     " << msPerSample << " ms";
-   LOG(lua.code, 1) << "---- total lua time -----------------------------------------------";
-   perfmon::ReportCounters<perfmon::FunctionTimes, 30>(stats, [](core::StaticString const& name, perfmon::CounterValueType const& duration, size_t rows) {
-      LOG(lua.code, 1) << std::setw(120) << name << " : "
-                        << std::setw(8) << duration << " us : "
-                        << std::string(rows, '#');
-   });
-
-   LOG(lua.code, 1) << "---- bottom up time (" << bottomUpDepth << " deep) -----------------------------------------------";
-   perfmon::ReportCounters<perfmon::FunctionAtLineTimes, 30>(bottomUpStats, [](std::string const& name, perfmon::CounterValueType const& duration, size_t rows) {
-      LOG(lua.code, 1) << std::setw(120) << name << " : "
-                        << std::setw(8) << duration << " us : "
-                        << std::string(rows, '#');
-   });
 
    // The act of reporting is destructive, so we need to start over if the
    // profiler is still running
