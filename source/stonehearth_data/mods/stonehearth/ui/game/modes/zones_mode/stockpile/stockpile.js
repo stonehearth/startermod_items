@@ -58,6 +58,23 @@ App.StonehearthStockpileView = App.View.extend({
       this.items.find('img').tooltipster();
 
       self._refreshGrids();
+      //inventory tab
+      this._inventoryPalette = this.$('#inventoryPalette').stonehearthItemPalette({
+         cssClass: 'inventoryItem',
+      });
+
+      radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:basic_inventory_tracker')
+         .done(function(response) {
+            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, {})
+               .progress(function(response) {
+                  self._inventoryPalette.stonehearthItemPalette('updateItems', response.tracking_data);
+               });
+         })
+         .fail(function(response) {
+            console.error(response);
+         });
+      this.$('#filterTab').show();
+
    },
 
    _selectAll : function() {
