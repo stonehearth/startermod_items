@@ -306,7 +306,7 @@ void ScriptHost::AddStackToProfile(lua_State *L, lua_Debug *ar, perfmon::Counter
       const char* source;
       int   linedefined;
       int   currentline;
-      int   selfTime;
+      perfmon::CounterValueType selfTime;
    };
 
    lua_Debug f;
