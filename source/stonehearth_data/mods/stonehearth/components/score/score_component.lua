@@ -28,50 +28,7 @@ function ScoreComponent:_parse_score_data(json)
       self:_add_or_update_score_type(key, data)
    end
 
-   --Sort aggregate dependencies topologically. This makes sure we
-   --calculate the dependencies in the correct order.
-   self._sorted_aggregates = {}
-   local working_set = {}
-   for aggregate, dependencies in pairs(self._sv._aggregate_dependencies) do
-      local hasDependencyWithDependency = false
-      for i, dependency in pairs(dependencies) do
-         if self._sv._aggregate_dependencies[dependency] then
-            hasDependencyWithDependency = true
-            break
-         end
-      end
-      if not hasDependencyWithDependency then
-         table.insert(working_set, aggregate)
-      end
-   end
-   while table.getn(working_set) > 0 do
-      local aggregate = table.remove(working_set)
-      table.insert(self._sorted_aggregates, aggregate)
-      local score_data = self._sv.scores[aggregate]
-      if score_data and score_data.contributes_to then
-         table.insert(working_set, score_data.contributes_to)
-      end
-   end
-
-   --Now that we've read in all basic scores, 
-   --calculate score for each aggregate dependency
-   self:_recalculate_all_aggregates()
    self.__saved_variables:mark_changed()
-end
-
---Iterates through the sorted list of aggregates and calls calculate score on each.
-function ScoreComponent:_recalculate_all_aggregates()
-   for i, aggregate in ipairs(self._sorted_aggregates) do
-      local score = self:_calculate_score_for_aggregate(aggregate)
-      if not self._sv.scores[aggregate] then 
-         local data = {
-            starting_score = score
-         }
-         self:_add_new_score_type(aggregate, data)
-      else
-         self._sv.scores[aggregate].score = score
-      end
-   end
 end
 
 --Given a score name, see if it is built of out any dependencies. If so, average them by
@@ -80,10 +37,12 @@ function ScoreComponent:_calculate_score_for_aggregate(name)
    local dependencies = self._sv._aggregate_dependencies[name]
    assert (#dependencies > 0, 'problem: no dependencies for this aggregate score')
    local sum = 0
+   local weight_sum = 0
    for i, dependency in pairs(dependencies) do
       sum = sum + self._sv.scores[dependency].score * self._sv.scores[dependency].weight
+      weight_sum = weight_sum + self._sv.scores[dependency].weight
    end
-   sum = sum / #dependencies
+   sum = sum / weight_sum
    return sum
 end
 
@@ -94,44 +53,48 @@ end
 function ScoreComponent:_add_new_score_type(key, data)
    if not self._sv.scores[key] then
       self._sv.scores[key] = data
-      self._sv.scores[key].score = data.starting_score
-
+      
       --Assuming that we contribute to a single entity
       --TODO: if more than one, split the string and call once per word in split string 
       if data.contributes_to then
          self:_add_aggregate_dependencies(data.contributes_to, key)
       end
+
+      -- This will take care of updating the aggregate dependencies
+      self:_set_score(key, data.starting_score)
    end
 end
 
--- Helper function in initializing
+-- Helper function in initializing to either add a score if it doesn't exist
+-- or update that score's data
 function ScoreComponent:_add_or_update_score_type(key, data)
    if not self._sv.scores[key] then
       self:_add_new_score_type(key, data)
    else
       local old_data = self._sv.scores[key];
       self._sv.scores[key] = data
-      self._sv.scores[key].score = old_data.score
-
       -- If the contributes to field has changed, make sure we update that
       if old_data.contributes_to ~= data.contributes_to then
          if old_data.contributes_to then
             -- Remove the old dependency
-            local index = 0
-               for i, dep in ipairs (self._sv._aggregate_dependencies[old_data.contributes_to]) do
-                  if dep == key then
-                     index = i
-                     break
-                  end
-               end
-               if index > 0 then
-                  table.remove(self._sv._aggregate_dependencies[old_data.contributes_to], index)
-               end
+            local old_aggregate = self._sv._aggregate_dependencies[old_data.contributes_to]
+            local index = radiant.util.table_indexof(old_aggregate, key)
+            if index > 0 then
+               table.remove(old_aggregate, index)
+            end
+            if #old_aggregate <= 0 then
+               -- Old aggregate doesn't even have any contributors anymore
+               -- Is is still an aggregate?
+               self._sv._aggregate_dependencies[old_data.contributes_to] = nil
+            end
          end
          if data.contributes_to then
             self:_add_aggregate_dependencies(data.contributes_to, key)
          end
       end
+
+      -- This will take care of updating dependencies
+      self:_set_score(key, old_data.score)
    end
 end
 
@@ -161,8 +124,42 @@ function ScoreComponent:change_score(key, modifier, journal_data)
       }
       self:_add_new_score_type(key, score_data)
    else
-      --If the score data does exist, 
-      score_data.score = score_data.score + modifier
+      --If the score data does exist
+      self:_set_score(key, score_data.score + modifier)
+   end
+
+   --Since the score should trigger a journal entry, have that pop in
+   --If every score-related thing is going to prompt a journal entry, make an assert instead of an if statement
+   if journal_data then
+      local score_metadata = {score_name = key, score_mod = modifier}
+      stonehearth.personality:log_journal_entry(journal_data, score_metadata)   
+   end
+
+   --Mostly for autotests, trigger that the score has changed
+   radiant.events.trigger_async(self._entity, 'stonehearth:score_changed', {
+         key = key, 
+         modifier = modifier, 
+         new_score = score_data.score
+      })
+   
+   --Tell the score service that the score has changed
+   local player_id = radiant.entities.get_player_id(self._entity)
+   if player_id then
+      stonehearth.score:update_aggregate_score(player_id)
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
+--- Updates the score of the given key to the specified value
+--- Then, ensure value is between min and max and update dependencies
+--- if key contributes to another score.
+--  @param key - the name of the score to update
+--  @param value - the value to set the score to
+function ScoreComponent:_set_score(key, value)
+   local score_data = self._sv.scores[key]
+   if score_data then
+      score_data.score = value
       
       --Adjust for max and min
       local max = score_data.max
@@ -180,38 +177,20 @@ function ScoreComponent:change_score(key, modifier, journal_data)
       end
 
       --Change dependent scores
-      if score_data.contributes_to then
+      local aggregate = score_data.contributes_to
+      if aggregate then
          --TODO: accomodate more than 1 score
-         local current_aggregate_score = self._sv.scores[score_data.contributes_to].score
-         local aggregate_new_score = self:_calculate_score_for_aggregate(score_data.contributes_to)
-         local difference = aggregate_new_score - current_aggregate_score
-         self:change_score(score_data.contributes_to, difference)
-         --self._sv.scores[score_data.contributes_to].score = self:_calculate_score_for_aggregate(score_data.contributes_to)
+         local new_score = self:_calculate_score_for_aggregate(aggregate)
+         if not self._sv.scores[aggregate] then 
+            local data = {
+               starting_score = new_score
+            }
+            self:_add_new_score_type(aggregate, data)
+         else
+            self:_set_score(aggregate, new_score)
+         end
       end
    end
-
-   --Since the score should trigger a journal entry, have that pop in
-   --If every score-related thing is going to prompt a journal entry, make an assert instead of an if statement
-   if journal_data then
-      local score_metadata = {score_name = key, score_mod = modifier}
-      stonehearth.personality:log_journal_entry(journal_data, score_metadata)   
-   end
-
-
-   --Mostly for autotests, trigger that the score has changed
-   radiant.events.trigger_async(self._entity, 'stonehearth:score_changed', {
-         key = key, 
-         modifier = modifier, 
-         new_score = score_data.score
-      })
-   
-   --Tell the score service that the score has changed
-   local player_id = radiant.entities.get_player_id(self._entity)
-   if player_id then
-      stonehearth.score:update_aggregate_score(player_id)
-   end
-
-   self.__saved_variables:mark_changed()
 end
 
 function ScoreComponent:get_all_scores()
@@ -249,9 +228,8 @@ end
 -- their default values.
 function ScoreComponent:reset_all_scores()
    for score_name, score_data in pairs(self._sv.scores) do
-      score_data.score = score_data.starting_score
+      self:_set_score(score_name, score_data.starting_score)
    end
-   self:_recalculate_all_aggregates()
    self.__saved_variables:mark_changed()
 end
 
