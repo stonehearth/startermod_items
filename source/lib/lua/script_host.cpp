@@ -771,10 +771,10 @@ void ScriptHost::EnableGC(bool enabled)
    SH_LOG(5) << "enable gc request (enabled:" << enabled << " count:" << _suspendGCCount << ")";
 
    if (enabled && _suspendGCCount == 0) {
-      SH_LOG(3) << "restarting gc";
+      SH_LOG(5) << "restarting gc";
       lua_gc(L_, LUA_GCHIBERNATE, false);
    } else if (!enabled && _suspendGCCount == 1) {
-      SH_LOG(3) << "suspending gc";
+      SH_LOG(5) << "suspending gc";
       lua_gc(L_, LUA_GCHIBERNATE, true);
    }
 }
