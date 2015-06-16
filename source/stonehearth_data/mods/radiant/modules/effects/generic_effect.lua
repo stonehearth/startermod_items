@@ -1,8 +1,8 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local GenericEffect = class(EffectTrack)
+local GenericEffect = radiant.class(EffectTrack)
 
 function GenericEffect:__init(start_time, handler, info, effect)
-   self[EffectTrack]:__init(info)
+   EffectTrack.__init(self, info)
 
    self._loops = info.loop;
    if not self._loops then

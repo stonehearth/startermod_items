@@ -1,12 +1,12 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local TriggerEffect = class(EffectTrack)
+local TriggerEffect = radiant.class(EffectTrack)
 
 function TriggerEffect:__init(start_time, handler, track, effect, entity, args)
-   self[EffectTrack]:__init(track)
-   --May be redundant with above?
-   self._info = track.info
+   EffectTrack.__init(self, track)
+   
    self._entity = entity
    self._args = args
+   self._track_info = track.info
 
    self._effect = effect
    local proposed_start = self:_get_start_time()
@@ -17,10 +17,10 @@ end
 function TriggerEffect:update(e)
    if self._trigger_time and self._trigger_time <= e.now then
       if self._handler then
-         self._handler(self._info, self._effect, self._entity)
+         self._handler(self._track_info, self._effect, self._entity)
       else
          if self._effect._trigger_cb then
-            self._effect._trigger_cb(self._info, self._args)
+            self._effect._trigger_cb(self._track_info, self._args)
          end
       end
       self._trigger_time = nil

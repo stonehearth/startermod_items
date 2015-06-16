@@ -1,4 +1,4 @@
-local EffectTrack = class()
+local EffectTrack = radiant.class()
 
 function EffectTrack:__init(info)
    assert(info)
