@@ -104,21 +104,21 @@
             <div id="attributesTab" class="tabPage">
                <h2>{{i18n stonehearth:attributes}}</h2>
                <table>
-                  <tr><td id="diligence" class="value">{{i18n stonehearth:diligence_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.diligence.user_visible_value}}</div>
-                  <tr><td id="curiosity" class="value">{{i18n stonehearth:curiosity_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.curiosity.user_visible_value}}</div>
-                  <tr><td id="inventiveness"class="value">{{i18n stonehearth:inventiveness_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.inventiveness.user_visible_value}}</div>
+                  <tr id="diligence" class="value"><td>{{i18n stonehearth:diligence_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.diligence.user_visible_value}}</div>
+                  <tr id="curiosity" class="value"><td>{{i18n stonehearth:curiosity_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.curiosity.user_visible_value}}</div>
+                  <tr id="inventiveness" class="value"><td>{{i18n stonehearth:inventiveness_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.inventiveness.user_visible_value}}</div>
                </table>
                <br>
                <table>
-                  <tr><td id="muscle" class="value">{{i18n stonehearth:muscle_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.muscle.user_visible_value}}</div>
-                  <tr><td id="speed" class="value">{{i18n stonehearth:speed_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.speed.user_visible_value}}</div>
-                  <tr><td id="stamina" class="value">{{i18n stonehearth:stamina_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.stamina.user_visible_value}}</div>
+                  <tr id="muscle" class="value"><td>{{i18n stonehearth:muscle_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.muscle.user_visible_value}}</div>
+                  <tr id="speed" class="value"><td>{{i18n stonehearth:speed_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.speed.user_visible_value}}</div>
+                  <tr id="stamina" class="value"><td>{{i18n stonehearth:stamina_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.stamina.user_visible_value}}</div>
                </table>
                <br>
                <table>
-                  <tr><td id="courage" class="value">{{i18n stonehearth:courage_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.courage.user_visible_value}}</div>
-                  <tr><td id="willpower" class="value">{{i18n stonehearth:willpower_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.willpower.user_visible_value}}</div>
-                  <tr><td id="compassion" class="value">{{i18n stonehearth:compassion_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.compassion.user_visible_value}}</div>
+                  <tr id="courage" class="value"><td >{{i18n stonehearth:courage_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.courage.user_visible_value}}</div>
+                  <tr id="willpower" class="value"><td>{{i18n stonehearth:willpower_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.willpower.user_visible_value}}</div>
+                  <tr id="compassion" class="value"><td>{{i18n stonehearth:compassion_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.compassion.user_visible_value}}</div>
                </table>
             </div>
             <div id="abilitiesTab" class = "tabPage">
@@ -143,10 +143,10 @@
                <div id="persona" class="column">
                   <h2>{{i18n stonehearth:happiness}}</h2>
                   <table>
-                     <tr><td>{{i18n stonehearth:overall_happiness}}<td><div id="happiness" class="value">{{view.model.stonehearth:score.scores.happiness.score}}</div>
-                     <tr><td>{{i18n stonehearth:happiness_nutrition}}<td><div id="nutrition" class="value">{{view.model.stonehearth:score.scores.nutrition.score}}</div>
-                     <tr><td>{{i18n stonehearth:happiness_shelter}}<td><div id="shelter" class="value">{{view.model.stonehearth:score.scores.shelter.score}}</div>
-                     <tr><td>{{i18n stonehearth:happiness_safety}}<td><div id="safety"class="value">{{view.model.stonehearth:score.scores.safety.score}}</div>
+                     <tr id="happiness" class="value"><td>{{i18n stonehearth:overall_happiness}}<td><div>{{view.score_happiness}}</div>
+                     <tr id="food" class="value"><td>{{i18n stonehearth:happiness_food}}<td><div>{{view.score_food}}</div>
+                     <tr id="shelter" class="value"><td>{{i18n stonehearth:happiness_shelter}}<td><div>{{view.score_shelter}}</div>
+                     <tr id="safety" class="value"><td>{{i18n stonehearth:happiness_safety}}<td><div>{{view.score_safety}}</div>
                   </table>
                </div>
                <div id="journal" class="column">

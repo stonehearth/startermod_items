@@ -25,22 +25,43 @@ end
 function ScoreComponent:_parse_score_data(json)
    --Make score entries for each contributing score type
    for key, data in pairs(json) do
-      if not self:has_score(key) then
-         self:_add_new_score_type(key, data)
+      self:_add_or_update_score_type(key, data)
+   end
+
+   --Sort aggregate dependencies topologically. This makes sure we
+   --calculate the dependencies in the correct order.
+   self._sorted_aggregates = {}
+   local all_aggregates = {}
+   for aggregate, _ in pairs(self._sv._aggregate_dependencies) do
+      local score_data = self._sv.scores[aggregate]
+      if score_data.contributes_to then
+         table.insert(all_aggregates, aggregate)
+      end
+   end
+   while table.getn(all_aggregates) > 0 do
+      local aggregate = table.remove(all_aggregates)
+      table.insert(self._sorted_aggregates, aggregate)
+      local score_data = self._sv.scores[aggregate]
+      if score_data.contributes_to then
+         table.insert(all_aggregates, score_data.contributes_to)
       end
    end
 
-   --Sort aggregate dependencies
-
    --Now that we've read in all basic scores, 
    --calculate score for each aggregate dependency
-   for aggregate, _ in pairs(self._sv._aggregate_dependencies) do
+   self:_recalculate_all_aggregates()
+   self.__saved_variables:mark_changed()
+end
+
+--Iterates through the sorted list of aggregates and calls calculate score on each.
+function ScoreComponent:_recalculate_all_aggregates()
+   for i, aggregate in ipairs(self._sorted_aggregates) do
       local score = self:_calculate_score_for_aggregate(aggregate)
       if not self._sv.scores[aggregate] then 
          local data = {
             starting_score = score
          }
-         self:_add_new_score_type(aggregate, data)
+         self:_add_or_update_score_type(aggregate, data)
       else
          self._sv.scores[aggregate].score = score
       end
@@ -64,7 +85,7 @@ end
 --  @param key - the name of the score
 --  @param data - json about the score, which should incude starting score,
 --                weight, and whether it contributes to any aggregates, if any
-function ScoreComponent:_add_new_score_type(key, data)
+function ScoreComponent:_add_or_update_score_type(key, data)
    if not self._sv.scores[key] then
       self._sv.scores[key] = data
       self._sv.scores[key].score = data.starting_score
@@ -73,6 +94,30 @@ function ScoreComponent:_add_new_score_type(key, data)
       --TODO: if more than one, split the string and call once per word in split string 
       if data.contributes_to then
          self:_add_aggregate_dependencies(data.contributes_to, key)
+      end
+   else
+      local old_data = self._sv.scores[key];
+      self._sv.scores[key] = data
+      self._sv.scores[key].score = old_data.score
+
+      -- If the contributes to field has changed, make sure we update that
+      if old_data.contributes_to ~= data.contributes_to then
+         if old_data.contributes_to then
+            -- Remove the old dependency
+            local index = 0
+               for i, dep in ipairs (self._sv._aggregate_dependencies[old_data.contributes_to]) do
+                  if dep == key then
+                     index = i
+                     break
+                  end
+               end
+               if index > 0 then
+                  table.remove(self._sv._aggregate_dependencies[old_data.contributes_to], index)
+               end
+         end
+         if data.contributes_to then
+            self:_add_aggregate_dependencies(data.contributes_to, key)
+         end
       end
    end
 end
@@ -101,7 +146,7 @@ function ScoreComponent:change_score(key, modifier, journal_data)
       score_data = {
          starting_score = stonehearth.constants.score.DEFAULT_VALUE + modifier
       }
-      self:_add_new_score_type(key, score_data)
+      self:_add_or_update_score_type(key, score_data)
    else
       --If the score data does exist, 
       score_data.score = score_data.score + modifier
@@ -167,7 +212,7 @@ function ScoreComponent:get_score(key)
       score_data = {
          starting_score = stonehearth.constants.score.DEFAULT
       }
-      self:_add_new_score_type(key, score_data)
+      self:_add_or_update_score_type(key, score_data)
    end
    return score_data.score
 end
@@ -187,5 +232,14 @@ function ScoreComponent:_change_eval_function(uri)
 --look into carpetner promote/demote, etc
 end
 
+-- Used for cheats. Iterates through all the scores and resets them to
+-- their default values.
+function ScoreComponent:reset_all_scores()
+   for score_name, score_data in pairs(self._sv.scores) do
+      score_data.score = score_data.starting_score
+   end
+   self:_recalculate_all_aggregates()
+   self.__saved_variables:mark_changed()
+end
 
 return ScoreComponent
