@@ -13,7 +13,7 @@ PickupItemFromBackpack.priority = 1
 function PickupItemFromBackpack:start_thinking(ai, entity, args)
    self._backpack_component = args.backpack_entity:get_component('stonehearth:backpack')
 
-   if self._backpack_component and self._backpack_component:contains_item(args.item) and not ai.CURRENT.carrying then
+   if self._backpack_component and self._backpack_component:contains_item(args.item:get_id()) and not ai.CURRENT.carrying then
       ai.CURRENT.carrying = args.item
       ai:set_think_output()
    end

@@ -9,8 +9,6 @@ function BackpackComponent:initialize(entity, json)
    self.num_reserved = 0
 
    if not self._sv.initialized then
-      self._sv.items = {}
-      self._sv.num_items = 0
       self._sv.capacity = json.capacity or 8
       self._sv.initialized = true
    end
@@ -20,21 +18,21 @@ function BackpackComponent:initialize(entity, json)
 end
 
 function BackpackComponent:reserve_space()
-   if self._sv.num_items + self.num_reserved >= self._sv.capacity then
+   if self:_get_storage():get_num_items() + self.num_reserved >= self._sv.capacity then
       return false
    end
    self.num_reserved = self.num_reserved + 1
    return true
 end
 
+function BackpackComponent:_get_storage()
+   return self._entity:get_component('stonehearth:storage')
+end
+
 function BackpackComponent:unreserve_space()
    if self.num_reserved > 0 then
       self.num_reserved = self.num_reserved - 1
    end
-end
-
-function BackpackComponent:set_type(type)
-   self._sv.type = type
 end
 
 function BackpackComponent:destroy()
@@ -51,15 +49,15 @@ function BackpackComponent:change_max_capacity(capacity_change)
    self._sv.capacity = self._sv.capacity + capacity_change
 end
 
-function BackpackComponent:_on_filter_changed(filter_component, filter)
+function BackpackComponent:_on_filter_changed(filter_component, newly_filtered, newly_passed)
    -- If this backpack is on an entity that has a filter, and that filter changes, let the ai
    -- know about entities that no longer pass the filter, so that they can take another swipe at
    -- doing something with them.
-   for id, item in pairs(self._sv.items) do
-      if item:is_valid() and not filter_component:passes(item) then
-         radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
-      end
+   for id, item in pairs(newly_filtered) do
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end
+
+   -- Let the AI know that _we_ (the backpack) have changed, so reconsider us, too!
    radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._entity)
 end
 
@@ -81,18 +79,12 @@ function BackpackComponent:add_item(item)
       return false
    end
 
-   local id = item:get_id()
-
-   if not self._sv.items[id] then
-      local player_id = radiant.entities.get_player_id_from_entity(self._entity)
-      stonehearth.inventory:get_inventory(player_id):add_item(item)
-      stonehearth.inventory:get_inventory(player_id):update_item_container(id, self._entity)
-      self._entity:get_component('stonehearth:storage'):add_item_for_tracking(item)
-      self._sv.items[id] = item
-      self._sv.num_items = self._sv.num_items + 1
-      self.__saved_variables:mark_changed()
-      radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_added')
+   if self:contains_item(item:get_id()) then
+      return true
    end
+
+   self:_get_storage():add_item(item)
+   radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_added')
 
    return true
 end
@@ -100,37 +92,26 @@ end
 function BackpackComponent:remove_item(item)
    local id = item:get_id()
 
-   if self._sv.items[id] then
-      local player_id = radiant.entities.get_player_id_from_entity(self._entity)
-      stonehearth.inventory:get_inventory(player_id):remove_item(id)
-      stonehearth.inventory:get_inventory(player_id):update_item_container(id, nil)
-      self._entity:get_component('stonehearth:storage'):remove_item_from_tracking(id)
-      self._sv.items[id] = nil
-      self._sv.num_items = self._sv.num_items - 1
-      self.__saved_variables:mark_changed()
-      radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_removed')
-      return true
+   if not self:contains_item(id) then
+      return false
    end
 
-   return false
+   self:_get_storage():remove_item(id)
+   radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_removed')
+
+   return true
 end
 
-function BackpackComponent:contains_item(item)
-   for id, backpack_item in pairs(self._sv.items) do
-      if backpack_item == item then
-         return true
-      end
-   end
-   
-   return false
+function BackpackComponent:contains_item(id)
+   return self:_get_storage():item_with_id(id) ~= nil
 end
 
 function BackpackComponent:get_items()
-   return self._sv.items
+   return self:_get_storage():get_items()
 end
 
 function BackpackComponent:num_items()
-   return self._sv.num_items
+   return self:_get_storage():get_num_items()
 end
 
 function BackpackComponent:capacity()
@@ -138,15 +119,15 @@ function BackpackComponent:capacity()
 end
 
 function BackpackComponent:is_empty()
-   return self._sv.num_items == 0
+   return self:num_items() == 0
 end
 
 function BackpackComponent:is_full()
-   return self._sv.num_items >= self._sv.capacity
+   return self:num_items() >= self._sv.capacity
 end
 
 function BackpackComponent:remove_first_item()
-   local id, item = next(self._sv.items)
+   local id, item = next(self:get_items())
 
    if item then
       self:remove_item(item)

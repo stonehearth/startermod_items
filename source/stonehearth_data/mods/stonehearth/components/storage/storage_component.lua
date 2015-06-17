@@ -130,16 +130,14 @@ function StorageComponent:initialize(entity, json)
    if not self._sv.type then
       -- creating...
       local basic_tracker = radiant.create_controller('stonehearth:basic_inventory_tracker')
+      self._sv.num_items = 0
+      self._sv.items = {}
+      self._sv.passed_items = {}
+      self._sv.filtered_items = {}
       self._sv.item_tracker = radiant.create_controller('stonehearth:inventory_tracker', basic_tracker)
       self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
       self._sv.type = json.type or constants.container_types.CRATE
       self.__saved_variables:mark_changed()
-   end
-
-   if self._sv.type == constants.container_types.CRATE then
-      -- crates can't undeploy when they have stuff in them.
-      self._item_added_listener = radiant.events.listen(entity, 'stonehearth:backpack:item_added', self, self._on_contents_changed)
-      self._item_removed_listener = radiant.events.listen(entity, 'stonehearth:backpack:item_removed', self, self._on_contents_changed)
    end
 
    self:_on_contents_changed()
@@ -150,34 +148,75 @@ function StorageComponent:destroy()
    self._unit_info_trace:destroy()
    self._unit_info_trace = nil
 
-   if self._item_removed_listener then
-      self._item_removed_listener:destroy()
-      self._item_removed_listener = nil
-   end
+   self._sv.items = nil
+end
 
-   if self._item_added_listener then
-      self._item_added_listener:destroy()
-      self._item_added_listener = nil
+function StorageComponent:get_num_items()
+   return self._sv.num_items
+end
+
+function StorageComponent:get_items()
+   return self._sv.items
+end
+
+function StorageComponent:get_passed_items()
+   return self._sv.passed_items
+end
+
+function StorageComponent:item_with_id(id)
+   return self._sv.items[id]
+end
+
+function StorageComponent:add_item(item)
+   local id = item:get_id()
+   self._sv.items[id] = item
+   self._sv.num_items = self._sv.num_items + 1
+   self:_filter_item(item)
+   self._sv.item_tracker:add_item(item)
+
+   stonehearth.inventory:get_inventory(self._sv.player_id):add_item(item)
+   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, self._entity)
+
+   self:_on_contents_changed()
+
+   self.__saved_variables:mark_changed()
+end
+
+function StorageComponent:remove_item(id)
+   assert(self._sv.items[id])
+
+   self._sv.num_items = self._sv.num_items - 1
+   self._sv.items[id] = nil
+   self._sv.passed_items[id] = nil
+   self._sv.filtered_items[id] = nil
+   self._sv.item_tracker:remove_item(id)
+
+   stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
+   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, nil)
+
+   self:_on_contents_changed()
+
+   self.__saved_variables:mark_changed()
+end
+
+function StorageComponent:_filter_item(item)
+   if self:passes(item) then
+      self._sv.passed_items[item:get_id()] = item
+   else
+      self._sv.filtered_items[item:get_id()] = item
    end
 end
 
 function StorageComponent:_on_contents_changed()
-   local bp = self._entity:get_component('stonehearth:backpack')
-   
-   if bp then
-      local commands_component = self._entity:add_component('stonehearth:commands')
-      commands_component:enable_command('undeploy_item', bp:is_empty())
+   -- Crates cannot undeploy when they are carrying stuff.
+   if self._sv.type == constants.container_types.CRATE then
+      local bp = self._entity:get_component('stonehearth:backpack')
+      
+      if bp then
+         local commands_component = self._entity:add_component('stonehearth:commands')
+         commands_component:enable_command('undeploy_item', bp:is_empty())
+      end
    end
-end
-
-function StorageComponent:add_item_for_tracking(item)
-   self._sv.item_tracker:add_item(item)
-   self.__saved_variables:mark_changed()
-end
-
-function StorageComponent:remove_item_from_tracking(id)
-   self._sv.item_tracker:remove_item(id)
-   self.__saved_variables:mark_changed()
 end
 
 function StorageComponent:passes(entity)
@@ -209,9 +248,27 @@ end
 function StorageComponent:set_filter(filter)
    self._sv.filter = filter
    self:_update_filter_key()
+
+   local old_passed = self._sv.passed_items
+   local old_filtered = self._sv.filtered_items
+   local newly_passed = {}
+   local newly_filtered = {}
+   self._sv.passed_items = {}
+   self._sv.filtered_items = {}
+
+   for id, item in pairs(self._sv.items) do
+      self:_filter_item(item)
+
+      if old_passed[id] and self._sv.filtered_items[id] then
+         newly_filtered[id] = item
+      elseif old_filtered[id] and self._sv.passed_items[id] then
+         newly_passed[id] = item
+      end
+   end
+
    self.__saved_variables:mark_changed()
 
-   radiant.events.trigger(self._entity, 'stonehearth:storage:filter_changed', self, filter)
+   radiant.events.trigger(self._entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
 end
 
 function StorageComponent:_update_filter_key()

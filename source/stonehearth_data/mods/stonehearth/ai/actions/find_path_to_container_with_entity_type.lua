@@ -40,10 +40,9 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
 
    if not filter_fn then
       filter_fn = function(entity)
-         local backpack = entity:get_component('stonehearth:backpack')
          local storage = entity:get_component('stonehearth:storage')
 
-         if not backpack or not storage then
+         if not storage or not entity:get_component('stonehearth:backpack') then
             return false
          end
 
@@ -52,7 +51,7 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
             return false
          end
 
-         for _, item in pairs(backpack:get_items()) do
+         for _, item in pairs(storage:get_items()) do
             if args.filter_fn(item) then
                return true
             end
