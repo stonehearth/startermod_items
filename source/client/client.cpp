@@ -840,6 +840,13 @@ void Client::InitializeDataObjects()
 {
    scriptHost_.reset(new lua::ScriptHost("client"));
 
+   // Turn off the GC right away.  This will prevent odd side effects.  For example, everytime we
+   // create a luabind::object, a tiny bit of lua code runs which has the potential to invoke the
+   // GC.  The GC may remove the last reference to a shared pointer to a cpp object.  Best case,
+   // that will just run a destructor.  Worst case, a sync destory trace on a managed object will fire
+   // with potentially unlimited side-effects (!!!).  So we only allow the GC to run during "update".
+   scriptHost_->EnableGC(false);
+
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
 
@@ -1062,12 +1069,14 @@ void Client::mainloop()
 
    if (!loading_) {
       perfmon::SwitchToCounter("update lua");
+      GetScriptHost()->EnableGC(true);
       try {
          radiant_["update"]();
       } catch (std::exception const& e) {
          CLIENT_LOG(3) << "error in client update: " << e.what();
          GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
       }
+      GetScriptHost()->EnableGC(false);
    }
 
    perfmon::SwitchToCounter("flush http events");
