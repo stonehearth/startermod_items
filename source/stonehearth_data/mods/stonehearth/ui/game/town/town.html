@@ -22,10 +22,10 @@
             </div>
          </div>
          <div id="scores" class="downSection">
-            <div class="row" id="net_worth">
-               <div id="netWorthIcon" />
-               <div>{{i18n town_net_worth}}</div>
-               <div>{{score_data.net_worth.total_score}}</div>
+            <div class="row" id="edibles">
+               <div id="ediblesIcon" />
+               <div>{{i18n town_edibles}}</div>
+               <div>{{score_data.resources.edibles}}</div>
             </div>
 
             <div class="row" id="happiness">
@@ -47,6 +47,12 @@
                <div id="happinessIcon" {{bind-attr class=view.safetyIconClass}} />
                <div>{{i18n town_safety_happiness}}</div>
                <div>{{view.score_safety}}</div>
+            </div>
+
+            <div class="row" id="net_worth">
+               <div id="netWorthIcon" />
+               <div>{{i18n town_net_worth}}</div>
+               <div>{{score_data.net_worth.total_score}}</div>
             </div>
          </div>
       </div>
