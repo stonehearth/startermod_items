@@ -71,6 +71,11 @@ App.StonehearthStockpileView = App.View.extend({
    _updateStockedItems : function() {
       var self = this;
       Ember.run.scheduleOnce('afterRender', this, function() {
+         if (!self._inventoryPalette) {
+            // When moving a crate, this function will fire, but no UI will be present.  For now, be lazy
+            // and just ignore this case.
+            return;
+         }
          var tracker = self.get('context.stonehearth:storage.item_tracker');
          self._inventoryPalette.stonehearthItemPalette('updateItems', tracker.tracking_data);
       });
