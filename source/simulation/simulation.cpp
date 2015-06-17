@@ -1004,8 +1004,8 @@ void Simulation::Idle()
          } else {
             std::string objectName = objType.name();
             if (objType == typeid(dm::Trace)) {
-               for (auto const& entry : am.allocs) {
-                  dm::Trace* trace = (dm::Trace*)entry.first;
+               for (auto const& allocEntry : am.allocs) {
+                  dm::Trace* trace = (dm::Trace*)allocEntry.first;
                   std::string reason = trace->GetReason();
                   traceCounts[reason] += 1;
                }
