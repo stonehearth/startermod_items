@@ -76,7 +76,7 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
    log_prefix_ = BUILD_STRING("[" << *entity.GetEntity() << " effect_list" << "]");
 
    effects_list_trace_ = \
-      effectList->TraceEffects("render", dm::RENDER_TRACES)
+      effectList->TraceEffects("RenderEffectList", dm::RENDER_TRACES)
                      ->OnUpdated([this](om::EffectList::EffectChangeMap const& added,
                                         std::vector<int> const& removed) {
                         for (auto const& entry : added) {

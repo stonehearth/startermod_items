@@ -78,7 +78,7 @@ void RenderEntity::FinishConstruction()
 
    auto entity = GetEntity();
    if (entity) {
-      components_trace_ = entity->TraceComponents("render", dm::RENDER_TRACES)
+      components_trace_ = entity->TraceComponents("RenderEntity c++ components", dm::RENDER_TRACES)
                                        ->OnAdded([this](core::StaticString name, std::shared_ptr<dm::Object> obj) {
                                           AddComponent(name, obj);
                                        })
@@ -87,7 +87,7 @@ void RenderEntity::FinishConstruction()
                                        })
                                        ->PushObjectState();
 
-      lua_components_trace_ = entity->TraceLuaComponents("render", dm::RENDER_TRACES)
+      lua_components_trace_ = entity->TraceLuaComponents("RenderEntity lua components", dm::RENDER_TRACES)
                                        ->OnAdded([this](core::StaticString name, om::DataStorePtr obj) {
                                           AddLuaComponent(name, obj);
                                        })
