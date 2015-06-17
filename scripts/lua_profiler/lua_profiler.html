@@ -1,6 +1,5 @@
 <head>
    <script src="jquery-2.1.3.min.js"></script>
-   <script src="colResizable-1.5.min.js"></script>
    <script src="ember-template-compiler.js"></script>
    <script src="ember.debug.js"></script>
    <link rel="stylesheet" type="text/css" href="css/main.css" />   
@@ -61,10 +60,7 @@
          var key = tnode.get('fileline');
          var bnode = this._bottomUpMap[key];
 
-         // The traceback is the inverted stack of how we got to
-         // this bottom up node.  To build it, put the tnode on the
-         // front of the list (and remove it when we're done)
-         traceback.unshift(tnode);
+         traceback.push(tnode);
 
          if (!bnode) {
             bnode = Profiler.BottomUpNode.create({ tnode: tnode });
@@ -76,8 +72,7 @@
          for (var i = 0; i < children.length; i++) {
             this._createBottomUp(children[i], traceback);
          }
-
-         traceback.shift();
+         traceback.pop();
       },
    });
 
@@ -87,7 +82,7 @@
    Profiler.TracebackNode = Ember.Object.extend({
       init : function() {
          this._super();
-         this.depth = 0;
+         this.depth = 1;
          this.selfTime = 0;
          this.children = [];
          this.childrenLookup = {};
@@ -137,14 +132,13 @@
          }
          this._dirty = false;
 
-         console.log('computing head...', this);
-
          var tbnode = this;
-         head.push(tbnode);
          while (tbnode && tbnode.children.length == 1) {
             tbnode = tbnode.children[0];
             head.push(tbnode);
          }
+         console.log('computing head...', this, head);
+
          if (tbnode) {
             tails = tbnode.children;
          }
@@ -173,6 +167,10 @@
       dynamicStyle : function() {
          return ("padding-left: " + (this.get('depth') * 16) + 'px;').htmlSafe();;
       }.property('depth'),
+
+      hasTails : function() {
+         return this.get('tails').length > 0;
+      }.property('tails')
    });
 
    // The BottomUpNode stores the bottom up information.  There's just a flat
@@ -180,7 +178,7 @@
    // has a `traceback` which contains the stacks used to reach this node.
    Profiler.BottomUpNode = Ember.Object.extend({
       init : function() {
-         this._super();
+         this._super();         
          this.selfTime = 0;
          this.set('collapsed', true);
          this.traceback = Profiler.TracebackNode.create({
@@ -195,8 +193,16 @@
          this.selfTime = time + this.selfTime;
          var tbnode = this.traceback;
 
-         for (var i = 1; i < traceback.length; i++) {
+         // Don't go back more than maxStackLength.  Some of these stacks are
+         // insanely deep and will blow up the browser =(
+         var maxStackLength = 10;
+
+         // Make sure we invert the stack
+         for (var i = traceback.length - 1; i >= 0; i--) {
             tbnode = tbnode.addNode(time, traceback[i]);
+            if (--maxStackLength == 0) {
+               break;
+            }
          }
       },
 
@@ -246,28 +252,10 @@
    Profiler.DataRoute = Ember.Route.extend({
       model: function() {
          return Profiler.Data.create();
-      },
-
-      setupController: function(controller, model) {
-         controller.set("data", model);
       }
    });
 
-   // Defines actions for manipulating our data
-   Profiler.DataController = Ember.Controller.extend({
-      actions: {
-         addJsonDump: function(filename, data) {
-            this.get('data').addJsonDump(data);
-         },
-         createBottomUpNodes: function(data) {
-            this.get('data').createBottomUpNodes();
-         },
-      }
-   });
-
-   // Views are deprecated, but where else am I suppose to run code which
-   // needs to muck with the HTML!?
-   Profiler.DataView = Ember.View.extend({
+   Profiler.ProfViewComponent = Ember.Component.extend({
       didInsertElement : function() {
          var self = this;
          var handleFileSelect = function(evt) {
@@ -276,25 +264,39 @@
             var perfData = {};
 
             var expected = files.length;
+            var count = 0;
             var controller = self.get('controller');
             for (var i = 0; i < files.length; i++) {
                var reader = new FileReader();
+               var file = files[i];
                // Closure to capture the file information.
                reader.onload = function(e) {
                   var data = JSON.parse(e.target.result);
-                  controller.send('addJsonDump', files[i], data);
-                  expected--;
-                  if (expected == 0) {
+                  controller.send('addJsonDump', file, data);
+                  count = count + 1
+                  console.log('(' + count + '/' + expected +') loading ' + file.name);
+                  if (count == expected) {
+                     console.log('creating bottom up nodes...');
                      controller.send('createBottomUpNodes');
+                     console.log('done!');
                   }
                };
-               reader.readAsText(files[i]);
+               reader.readAsText(file);
             }
          };
          document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
          // This is cool, but OH MY GOD HORRIBLY SLOW!!!
          // $("#bottomup").colResizable({ liveDrag: true });
+      },
+
+      actions: {
+         addJsonDump: function(filename, data) {
+            this.get('data').addJsonDump(data);
+         },
+         createBottomUpNodes: function(data) {
+            this.get('data').createBottomUpNodes();
+         },
       },
    });
 
@@ -344,7 +346,9 @@
    <tr>
       <td>
          <span style={{tbnode.dynamicStyle}}><nobr>
-         {{ collapse-div node=tbnode }}
+         {{#if tbnode.hasTails}}
+            {{ collapse-div node=tbnode }}
+         {{/if}}
          {{#each tbnode.head key="@index" as |head|}}
             <i class="fa fa-angle-left"></i> {{ head.fn }}
          {{/each}}
@@ -388,9 +392,14 @@
    </table>
 </script>
 
-<script type="text/x-handlebars" data-template-name='data'>
+<script type="text/x-handlebars" data-template-name='components/prof-view'>
    {{input type="file" id="files" name="stuff" multiple=true style="width:500px;"}}
    {{bottom-up root=data.bottomup }}
+   <!--
    {{top-down root=data.topdown }}
+   -->
 </script>
  
+ <script type="text/x-handlebars" data-template-name='data'>
+   {{prof-view data=content}}
+</script>
