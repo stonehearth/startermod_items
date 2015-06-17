@@ -8,6 +8,10 @@
 </head>
 
 <script>
+   // this is a global.  it accumulates the total time taken by all the nodes.
+   // take caution when reading or writing it!!!
+   var totalTime = 0;
+
    // Hello, Ember 2.0.  You're supposed to be fast (ala Glimmer.)  Let's find out!
    Profiler = Ember.Application.create();
 
@@ -211,7 +215,6 @@
       _computeTraceback: function() {
          this.traceback.set('collapsed', this.get('collapsed'));
       }.observes('collapsed'),
-
    });
 
    // The TopDownNode represents a single call and all calls that function made.
@@ -225,6 +228,9 @@
          if (!children) {
             children = [];
          }
+
+         totalTime += data.selfTime;
+
          this.set('file',     data.file);
          this.set('fn',       data['function']);
          this.set('line',     data.line);
@@ -258,16 +264,6 @@
 
    Profiler.ProfViewComponent = Ember.Component.extend({
       didInsertElement : function() {
-         console.log('file name', luaFileMap);
-         
-         $.get('foo.json')
-            .done(function(o) {
-               console.log('got file', o)
-            })
-            .fail(function(o) {
-               console.log('failed to get file', o)
-            });
-
          var self = this;
          var handleFileSelect = function(evt) {
             var files = evt.target.files; // FileList object
@@ -310,6 +306,7 @@
          },
          createBottomUpNodes: function(data) {
             this.get('data').createBottomUpNodes();
+            this.set('totalTime', totalTime);
          },
          selectPage: function(page) {
             this._showPage(page);
@@ -337,6 +334,14 @@
       }
    });
 
+   Profiler.PercentBarComponent = Ember.Component.extend({
+      tagName: 'span',
+
+      percentTime : function() {
+         return (this.get('node.selfTime') * 100 / totalTime).toFixed(1);
+      }.property('node.selfTime'),
+   });
+
    // Make sure we don't stick a <div> around these, since they're making
    // table rows.
    Profiler.BottomUpTracebackComponent = Ember.Component.extend({
@@ -361,6 +366,10 @@
    {{/each}}
 </script>
 
+<script type="text/x-handlebars" data-template-name='components/percent-bar'>
+   {{ this.percentTime }}%
+</script>
+
 <script type="text/x-handlebars" data-template-name='components/top-down'>
    {{top-down-row node=root}}
 </script>
@@ -378,7 +387,7 @@
          </nobr></span>
       </td>
       <td> {{ tbnode.selfTime }} </td>
-      <td> {{ tbnode.percentTime }} % </td>
+      <td> {{ percent-bar node=tbnode }} </td>
       <td> {{ tbnode.fileline }} </td>
    </tr>
    {{#unless tbnode.collapsed}} 
@@ -403,7 +412,7 @@
             <span {{ action "inspectFn" node on="doubleClick" target=profiler }}>{{node.tnode.fn}}</span>
          </td>
          <td> {{ node.selfTime }} </td>
-         <td> {{ node.percentTime }} % </td>
+         <td> {{ percent-bar node=node }} </td>
          <td> {{ node.tnode.file }}:{{ node.tnode.line }} </td>
       </tr>
       {{#unless node.collapsed}} 
