@@ -543,6 +543,7 @@
       "actions:restock_items_in_backpack" : "file(ai/actions/restock_items_in_backpack_action.lua)",
       "actions:find_stockpile_for_backpack_item" : "file(ai/actions/find_stockpile_for_backpack_item_action.lua)",
       "actions:pickup_item_from_backpack" : "file(ai/actions/pickup_item_from_backpack_action.lua)",
+      "actions:drop_carrying_in_backpack" : "file(ai/actions/drop_carrying_in_backpack_action.lua)",
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
       "actions:reserve_backpack_space" : "file(ai/actions/reserve_backpack_space_action.lua)",
       "actions:pickup_item_type_from_any_container" : "file(ai/actions/pickup_item_type_from_any_container.lua)",

@@ -24,6 +24,7 @@
       "stonehearth:actions:drop_carrying_into_entity_adjacent",
       "stonehearth:actions:drop_carrying_into_entity_adjacent_at",
       "stonehearth:actions:drop_carrying_if_stacks_full",
+      "stonehearth:actions:drop_carrying_in_backpack",
 
       "stonehearth:actions:set_hangable_adjacent"
    ],

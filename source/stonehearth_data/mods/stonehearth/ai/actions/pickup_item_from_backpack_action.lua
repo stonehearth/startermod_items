@@ -28,6 +28,8 @@ function PickupItemFromBackpack:run(ai, entity, args)
       return
    end
 
+   radiant.entities.turn_to_face(entity, args.backpack_entity)
+
    local success = self._backpack_component:remove_item(args.item)
 
    if not success then
@@ -35,6 +37,8 @@ function PickupItemFromBackpack:run(ai, entity, args)
    end
    
    radiant.entities.pickup_item(entity, args.item)
+ 
+   ai:execute('stonehearth:run_effect', { effect = 'carry_pickup' })
 end
 
 return PickupItemFromBackpack
