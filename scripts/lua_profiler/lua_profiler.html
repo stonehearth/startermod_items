@@ -133,9 +133,10 @@
          this._dirty = false;
 
          var tbnode = this;
+         head.push(tbnode);
          while (tbnode && tbnode.children.length == 1) {
-            tbnode = tbnode.children[0];
             head.push(tbnode);
+            tbnode = tbnode.children[0];
          }
          console.log('computing head...', this, head);
 
