@@ -26,6 +26,8 @@ TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
 TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
 BOOST_ROOT         = $(STONEHEARTH_ROOT)/modules/boost/install/$(RADIANT_BUILD_PLATFORM)/include/boost-1_58
 
+PROFILER_LUA_FILE_MAP = scripts/lua_profiler/lua_file_map.js
+
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
   RUN_ROOT=$(STONEHEARTH_ROOT)/source/stonehearth_data
@@ -253,6 +255,19 @@ docs:
 .PHONY: update-templates
 update-templates:
 	cd $(STONEHEARTH_ROOT)/source/stonehearth_data/ && $(SCRIPTS_ROOT)/update_templates.py
+
+.PHONY: lua-file-map
+lua-file-map:
+	echo -n -e "var luaFileMap = {" > $(PROFILER_LUA_FILE_MAP)						# echo the header
+	find source/stonehearth_data/mods/ -name '*.lua' 								\ 	# for each lua file..
+		-exec echo -n -e "  \"@{}\" : \"" >> $(PROFILER_LUA_FILE_MAP) \; 		\  # echo the "@file" : "
+		-exec sed  -e 's/\"/\\"/g'  {}  >> $(PROFILER_LUA_FILE_MAP) \; 		\  # echo the entire file, escaping quotes
+		-exec echo -n -e "\"," >> $(PROFILER_LUA_FILE_MAP) \;						   # echo the ", 
+	echo -n -e "  \"@\" : null }" >> $(PROFILER_LUA_FILE_MAP)
+
+	# this monstrosity comes from  http://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
+	sed ':a;N;$$!ba;s/\n/\\n/g' $(PROFILER_LUA_FILE_MAP) > tmpfile					# replace all newlines with \n
+	mv tmpfile $(PROFILER_LUA_FILE_MAP)
 
 #
 # Used to synchronize our public repositories on https://github.com/stonehearth/ with the
