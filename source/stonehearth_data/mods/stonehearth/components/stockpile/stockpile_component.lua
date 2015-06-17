@@ -290,7 +290,7 @@ function StockpileComponent:_remove_item(id)
    end
    if self._storage:get_passed_items()[id] then
       self:_remove_item_from_stock(id)
-   else
+   elseif self._storage:get_items()[id] then
       -- We're removing an item that resides in the stockpile, but is not
       -- actually part of the stockpile (in that it has been filtered-out).
       -- All we need to do is inform storage.
