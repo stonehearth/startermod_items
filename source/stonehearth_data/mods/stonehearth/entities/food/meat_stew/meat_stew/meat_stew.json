@@ -1,5 +1,5 @@
 {
-   "mixins": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:prepared_food_decay",
    "type": "entity",
    "components": {
       "item": {
@@ -20,7 +20,7 @@
          "icon" : "file(meat_stew.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "resource meat food_container refined"
+         "tags" :  "resource meat food_container refined prepared_food"
       },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0.05 }

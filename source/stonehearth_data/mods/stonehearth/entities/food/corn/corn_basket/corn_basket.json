@@ -30,7 +30,7 @@
          "icon" : "file(corn_basket.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "resource vegetable food_container corn"
+         "tags" :  "resource vegetable food_container corn raw_food"
       },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
