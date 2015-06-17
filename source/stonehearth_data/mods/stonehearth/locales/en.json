@@ -542,5 +542,16 @@
    "wait_who_are_you" : "Wait! Who are you?", 
    "cool" : "Cool!", 
    "sounds_ominous" : "Sounds ominous.",
-   "uneventful_day" : "An Uneventful Day"
+   "uneventful_day" : "An Uneventful Day",
+
+   "item_categories_food" : "Food",
+   "item_categories_resources" : "Resources",
+   "item_categories_furniture" : "Furniture",
+   "item_categories_armor" : "Armor",
+   "item_categories_decoration" : "Decoration",
+   "item_categories_construction" : "Construction",
+   "item_categories_plants" : "Plants",
+   "item_categories_weapons" : "Weapons",
+   "item_categories_tools" : "Tools",
+   "item_categories_uncategorized" : "Uncategorized"
 }
