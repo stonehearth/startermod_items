@@ -558,9 +558,8 @@ RenderAttachItemEffectTrack::RenderAttachItemEffectTrack(RenderEntity& e, om::Ef
 #endif
       }
    } else {
-      item = authored_entity_ = Client::GetInstance().GetAuthoringStore().AllocObject<om::Entity>();
       try {
-         om::Stonehearth::InitEntity(item, kind.c_str(), Client::GetInstance().GetScriptHost()->GetInterpreter());
+         item = authored_entity_ = Client::GetInstance().CreateAuthoringEntity(kind);
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
          EL_LOG(1) << "failed to initialize entity:" << e.what();
@@ -599,6 +598,10 @@ RenderAttachItemEffectTrack::~RenderAttachItemEffectTrack()
    if (use_model_variant_override_) {
       use_model_variant_override_ = false;
       render_item_->SetModelVariantOverride("");
+   }
+
+   if (authored_entity_) {
+      Client::GetInstance().DestroyAuthoringEntity(authored_entity_->GetObjectId());
    }
 }
 
