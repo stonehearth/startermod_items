@@ -961,14 +961,30 @@ void Simulation::LuaGC()
    scriptHost_->GC(game_loop_timer_);
 }
 
+typedef std::pair<std::string, int> NameCount;
+typedef std::unordered_map<std::string, int> CountMap;
+static std::vector<NameCount> MapToOrderedVector(CountMap const& map)
+{
+   std::vector<NameCount> result;
+   for (auto const& entry : map) {
+      result.push_back(entry);
+   }
+   std::sort(result.begin(), result.end(), [](NameCount const& lhs, NameCount const& rhs) {
+         return lhs.second > rhs.second;
+      });
+   return result;
+}
+
 void Simulation::Idle()
 {
 #if defined(ENABLE_OBJECT_COUNTER)
    static int nextAuditTime = 0;
-
    int now = platform::get_current_time_in_ms();
+
    if (nextAuditTime == 0 || nextAuditTime < now) {
-      std::unordered_map<std::string, int> counts;
+      CountMap objectCounts;
+      CountMap traceCounts;
+
       for (auto const& entry : core::ObjectCounterBase::GetObjects()) {
          std::type_index const& objType = entry.first;
          core::ObjectCounterBase::AllocationMap const& am = entry.second;
@@ -977,36 +993,38 @@ void Simulation::Idle()
             for (auto const& alloc : am.allocs) {
                om::DataStore const* ds = static_cast<om::DataStore const*>(alloc.first);
                std::string const& controllerName = ds->GetControllerName();
+               std::string objectName;
                if (!controllerName.empty()) {
-                  counts[controllerName + std::string(" controller")] += 1;
+                  objectName = controllerName + std::string(" controller");
                } else {
-                  counts[std::string(objType.name())] += 1;
+                  objectName = objType.name();
                }
+               objectCounts[objectName] += 1;
             }
          } else {
-            counts[std::string(objType.name())] += am.allocs.size();
+            std::string objectName = objType.name();
+            if (objType == typeid(dm::Trace)) {
+               for (auto const& entry : am.allocs) {
+                  dm::Trace* trace = (dm::Trace*)entry.first;
+                  std::string reason = trace->GetReason();
+                  traceCounts[reason] += 1;
+               }
+            }
+            objectCounts[objectName] += am.allocs.size();
          }
       };
-      typedef std::pair<std::string, int> NameCount;
-      std::vector<NameCount> sortedCounts;
-      for (auto const& entry : counts) {
-         sortedCounts.push_back(entry);
-      }
-      std::sort(sortedCounts.begin(), sortedCounts.end(), [](NameCount const& lhs, NameCount const& rhs) {
-         return lhs.second > rhs.second;
-      });
+      std::vector<NameCount> orderedCounts = MapToOrderedVector(objectCounts);
       SIM_LOG(0) << "== Object Count Audit at " << now << " ============================";
-      for (auto const& entry : sortedCounts) {
+      for (auto const& entry : orderedCounts) {
          SIM_LOG(0) << "     " << std::setw(10) << entry.second << " " << entry.first;
       }
 
       SIM_LOG(0) << "-- Traces -----------------------------------";
       int total = 0;
-      for (auto const& entry : store_->GetTraceReasons()) {
-         const char* reason = entry.first;
-         int count = entry.second;
-         SIM_LOG(0) << "     " << std::setw(10) << count << " : "  << reason;
-         total += count;
+      orderedCounts = MapToOrderedVector(traceCounts);
+      for (auto const& entry : orderedCounts) {
+         SIM_LOG(0) << "     " << std::setw(10) << entry.second << " " << entry.first;
+         total += entry.second;
       }
       SIM_LOG(0) << "     " << std::setw(10) << total << " : "  << "TOTAL";
 
