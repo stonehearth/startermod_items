@@ -61,7 +61,8 @@
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
       "mixins:destructable_object" : "file(mixins/destructable_object)",
-      "mixins:food_decay" : "file(mixins/food/decay)",
+      "mixins:food_decay" : "file(mixins/food/food_decay)",
+      "mixins:prepared_food_decay" : "file(mixins/food/prepared_food_decay)",
       
       "data:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
