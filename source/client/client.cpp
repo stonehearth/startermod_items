@@ -304,8 +304,8 @@ void Client::OneTimeIninitializtion()
          throw std::string("User hit crash key");
       };
 
-      _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
-      _commands[GLFW_KEY_KP_ADD] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
+      _commands[GLFW_KEY_KP_1] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
+      _commands[GLFW_KEY_KP_2] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
    }
 
    // Reactors...
