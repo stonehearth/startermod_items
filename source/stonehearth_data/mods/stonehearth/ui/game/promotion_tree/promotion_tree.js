@@ -1,7 +1,12 @@
 $(document).ready(function(){
+    var existingPromotionTree = null;
    $(top).on("radiant_promote_to_job", function (_, e) {
+      if (existingPromotionTree) {
+        existingPromotionTree.destroy();
+        existingPromotionTree = null;
+      }
 
-      App.gameView.addView(App.StonehearthPromotionTree, { 
+      existingPromotionTree = App.gameView.addView(App.StonehearthPromotionTree, { 
          citizen: e.entity
       });
    });

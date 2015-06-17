@@ -69,6 +69,12 @@
          "description" : "The gold value of everything in the town's inventory."
       },
       {
+         "score" : "edibles",
+         "display_name" : "Edibles",
+         "town_description" : "The gold value of all the food in the town's inventory",
+         "description" : "The gold value of all the food in the town's inventory."
+      },
+      {
          "score" : "happiness",
          "display_name" : "Overall Moral",
          "town_description" : "How happy your citizens are overall. Aim for a value of 10 for ultimate happiness!",

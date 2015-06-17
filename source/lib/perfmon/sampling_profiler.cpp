@@ -19,7 +19,7 @@ StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDef
 {
    // O(n), but much more cache-friendly then a hashtable.
    for (StackFrame& c : _callers) {
-      if (c._fnDefLine == fnDefLine && !strcmp(c._sourceName, sourceName)) {
+      if (c._fnDefLine == fnDefLine && c._sourceName == core::StaticString(sourceName)) {
          c._callCount++;
          return &c;
       }

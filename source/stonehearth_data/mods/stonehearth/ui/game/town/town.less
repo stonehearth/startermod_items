@@ -81,9 +81,12 @@
       .row {
          font-family: @controlFontFamily;
          font-size: 22px;
+         padding-top: 2px;
+         padding-bottom: 2px;
 
          div {
-            display: inline-block;
+            display: table-cell;
+            vertical-align: middle;
          }
 
          div:nth-of-type(1) {
@@ -94,6 +97,7 @@
          div:nth-of-type(2) {
             color: #a8935d;
             width: 300px;
+            padding-left: 10px;
          }
 
          div:nth-of-type(3) {
@@ -102,9 +106,7 @@
       }
 
       .row.indented {
-         div:nth-of-type(1) {
-            margin-left: 20px;
-         }
+         padding-left: 20px;
 
          div:nth-of-type(2) {
             width: 280px;
@@ -112,20 +114,26 @@
       }
 
       #netWorthIcon {
-         position: relative;
-         top: 4px;
+         height: 40px;
+         width: 40px;
          background-image: url(images/net_worth_icon.png);
          background-position: center center;
          background-repeat: no-repeat;
       }
 
+      #ediblesIcon {
+         width: 40px;
+         height: 40px;
+         background-image: url(images/edibles_icon.png);
+         background-position: center center;
+         background-repeat: no-repeat;
+      }
+
       #happinessIcon {
-         position: relative;
-         top: 6px;
-         left: 6px;
          width: 40px;
          height: 30px;
          background-repeat: no-repeat;
+         background-position: center center;
          background-image: url(/stonehearth/ui/game/widgets/hud_score/images/happiness_icon.png);
       }
    }

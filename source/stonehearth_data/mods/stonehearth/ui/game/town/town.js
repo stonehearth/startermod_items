@@ -176,6 +176,9 @@ App.StonehearthTownView = App.View.extend({
       
       var overallMoral = self.get('context.score_data.aggregate.happiness')
 
+      // Update net worth
+      var netWorthLevel = self.get('context.score_data.net_worth.level')
+
       // Update town label.
       var settlementSize = i18n.t('stonehearth:' + netWorthLevel);
       if (settlementSize != 'stonehearth:undefined') {
@@ -184,9 +187,6 @@ App.StonehearthTownView = App.View.extend({
                "noun": settlementSize
             }));
       }
-
-      // Update net worth
-      var netWorthLevel = self.get('context.score_data.net_worth.level')
 
       // Update moral scores.
       var scoresToUpdate = ['happiness', 'food', 'shelter', 'safety'];

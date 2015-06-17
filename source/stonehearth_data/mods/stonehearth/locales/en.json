@@ -457,6 +457,7 @@
    "10_score" : "Incandescent", 
 
    "town_net_worth" : "Net worth",
+   "town_edibles" : "Edibles",
    "town_overall_happiness" : "Overall Morale",
    "town_food_happiness" : "Food",
    "town_shelter_happiness" : "Shelter",

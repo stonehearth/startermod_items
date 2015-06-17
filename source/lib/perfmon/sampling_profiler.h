@@ -41,7 +41,7 @@ public:
 
 private:
    unsigned int               _fnDefLine;
-   const char*                _sourceName;
+   core::StaticString         _sourceName;
    core::StaticString         _fnName;
    CounterValueType           _selfTime;
    std::vector<StackFrame>    _callers;
