@@ -259,6 +259,14 @@ local constants = {
          NEAR_DEATH_PENALTY = -10,
          FOOTMAN_BONUS = 5,        --this is per-footman
          TOWN_DEATH = -20,
+      },
+
+      food = { -- Used for Food score, different from calories food.
+         RAW_FOOD_COUNT_MULTIPLIER = 1,      --Multiply count of raw food by this multiplier to get the score for raw_food.
+         PREPARED_FOOD_COUNT_MULTIPLIER = 1, --Multiply count of prepared food by this multiplier to get the score for prepared_food.
+         LUXURY_FOOD_COUNT_MULTIPLIER = 1,   --Multiply count of luxury food by this multiplier to get the score for luxury_food.
+         NO_PREPARED_FOOD_PENALTY = -10,     --When you eat, if no prepared food is available, you get this penalty to prepared_food.
+         NO_LUXURY_FOOD_PENALTY = -10,       --When you eat, if no luxury food is available, you get this penalty to luxury_food.
       }
    },
 

@@ -4,14 +4,16 @@ local rng = _radiant.csg.get_default_rng()
 FoodDecayService = class()
 
 function FoodDecayService:initialize()
-   self._sv = self.__saved_variables:get_data()
+   self.food_type_tags = {"raw_food", "prepared_food", "luxury_food"}
 
+   self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
       self._sv.initialized = true
       self._sv._decaying_food = {}
       self._sv.decay_listener = stonehearth.calendar:set_interval("FoodDecayService on_decay", '1h', function()
             self:_on_decay()
          end)
+      self._sv.food_type_counts = {}
    else
       self._sv.decay_listener:bind(function() 
          self:_on_decay()
@@ -30,8 +32,21 @@ function FoodDecayService:initialize()
       end)
 end
 
+function FoodDecayService:get_raw_food_count()
+   return self._sv.food_type_counts[self.food_type_tags[1]] or 0
+end
+
+function FoodDecayService:get_prepared_food_count()
+   return self._sv.food_type_counts[self.food_type_tags[2]] or 0
+end
+
+function FoodDecayService:get_luxury_food_count()
+   return self._sv.food_type_counts[self.food_type_tags[3]] or 0
+end
+
 function FoodDecayService:_on_decay()
-   for _, entity in pairs(self._sv._decaying_food) do
+   for _, food_decay_data in pairs(self._sv._decaying_food) do
+      local entity = food_decay_data.entity
       local food_container = radiant.entities.get_entity_data(entity, 'stonehearth:food_container')
       local decay_tuning = food_container.decay
       local initial_health = radiant.entities.get_attribute(entity, 'health')
@@ -65,15 +80,38 @@ function FoodDecayService:_on_decay()
    end
 end
 
+function FoodDecayService:_get_food_type(entity)
+   for _, food_type in ipairs(self.food_type_tags) do
+      if radiant.entities.is_material(entity, food_type) then
+         return food_type
+      end
+   end
+   return 'unknown'
+end
+
 function FoodDecayService:_on_entity_added_to_world(entity)
    local food_container = radiant.entities.get_entity_data(entity, 'stonehearth:food_container')
    if food_container and food_container.decay then
-      self._sv._decaying_food[entity:get_id()] = entity
+      local food_type = self:_get_food_type(entity)
+      self._sv._decaying_food[entity:get_id()] = { entity = entity, food_type = food_type }
+
+      local count = self._sv.food_type_counts[food_type] or 0
+      count = count + 1
+      self._sv.food_type_counts[food_type] = count
    end
 end
 
 function FoodDecayService:_on_entity_destroyed(entity_id)
-   self._sv._decaying_food[entity_id] = nil
+   local decay_data = self._sv._decaying_food[entity_id]
+   if decay_data then -- If what's being destroyed is a food
+      local food_type = decay_data.food_type
+      local count = self._sv.food_type_counts[food_type]
+      if count then
+         count = count - 1
+         self._sv.food_type_counts[food_type] = count
+      end
+      self._sv._decaying_food[entity_id] = nil
+   end
 end
 
 return FoodDecayService
