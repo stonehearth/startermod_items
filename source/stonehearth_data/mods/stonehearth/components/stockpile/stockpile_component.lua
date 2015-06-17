@@ -51,10 +51,6 @@ end
 function StockpileComponent:destroy()
    log:info('%s destroying stockpile component', self._entity)
 
-   for id, item in pairs(self._filter:get_items()) do
-      self:_remove_item_from_stock(id)
-   end
-
    local player_id = self._entity:add_component('unit_info')
                                     :get_player_id()
 

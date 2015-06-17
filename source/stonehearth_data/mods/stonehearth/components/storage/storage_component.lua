@@ -148,6 +148,10 @@ function StorageComponent:destroy()
    self._unit_info_trace:destroy()
    self._unit_info_trace = nil
 
+   for id, _ in pairs(self._sv.items) do
+      self:remove_item(id)
+   end
+
    self._sv.items = nil
 end
 
