@@ -258,16 +258,7 @@ update-templates:
 
 .PHONY: lua-file-map
 lua-file-map:
-	echo -n -e "var luaFileMap = {" > $(PROFILER_LUA_FILE_MAP)						# echo the header
-	find source/stonehearth_data/mods/ -name '*.lua' 								\ 	# for each lua file..
-		-exec echo -n -e "  \"@{}\" : \"" >> $(PROFILER_LUA_FILE_MAP) \; 		\  # echo the "@file" : "
-		-exec sed  -e 's/\"/\\"/g'  {}  >> $(PROFILER_LUA_FILE_MAP) \; 		\  # echo the entire file, escaping quotes
-		-exec echo -n -e "\"," >> $(PROFILER_LUA_FILE_MAP) \;						   # echo the ", 
-	echo -n -e "  \"@\" : null }" >> $(PROFILER_LUA_FILE_MAP)
-
-	# this monstrosity comes from  http://stackoverflow.com/questions/1251999/how-can-i-replace-a-newline-n-using-sed
-	sed ':a;N;$$!ba;s/\n/\\n/g' $(PROFILER_LUA_FILE_MAP) > tmpfile					# replace all newlines with \n
-	mv tmpfile $(PROFILER_LUA_FILE_MAP)
+	$(PYTHON) scripts/lua_profiler/collect_lua_file_map.py
 
 #
 # Used to synchronize our public repositories on https://github.com/stonehearth/ with the

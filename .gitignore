@@ -76,3 +76,5 @@ source/stonehearth_data/lua_profile*.*
 source/stonehearth_data/eu_stats*.*
 source/stonehearth_data/ef_stats*.*
 source/stonehearth_data/compiled_resources/
+source/stonehearth_data/profiler_output/
+scripts/lua_profiler/lua_file_map.js
