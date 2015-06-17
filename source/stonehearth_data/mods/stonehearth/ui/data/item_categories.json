@@ -1,0 +1,12 @@
+{
+   "food" : "Food",
+   "resources" : "Resources",
+   "furniture" : "Furniture",
+   "armor" : "Armor",
+   "decoration" : "Decoration",
+   "construction" : "Construction",
+   "plants" : "Plants",
+   "weapons" : "Weapons",
+   "tools" : "Tools",
+   "uncategorized" : "Uncategorized"
+}

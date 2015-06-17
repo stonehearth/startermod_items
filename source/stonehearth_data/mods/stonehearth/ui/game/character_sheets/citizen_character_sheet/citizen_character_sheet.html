@@ -77,26 +77,10 @@
 
                <div id="slots">
                   <div class="downSection slot" id="mainhandSlot">
-                     {{#if view.equipment.mainhand}}
-                        {{#with view.equipment.mainhand}}
-                           <img {{bind-attr src=this.unit_info.icon title=this.unit_info.name}} />
-                        {{/with}}
-                     {{/if}}
                   </div>
-
                   <div class="downSection slot" id="torsoSlot">
-                     {{#if view.equipment.torso}}
-                        {{#with view.equipment.torso}}
-                           <img {{bind-attr src=this.unit_info.icon title=this.unit_info.name}} />
-                        {{/with}}
-                     {{/if}}
                   </div>
                   <div class="downSection slot" id="offhandSlot">
-                     {{#if view.equipment.offhand}}
-                        {{#with view.equipment.offhand}}
-                           <img {{bind-attr src=this.unit_info.icon title=this.unit_info.name}} />
-                        {{/with}}
-                     {{/if}}
                   </div>
                </div>
             </div>
