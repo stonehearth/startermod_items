@@ -2,6 +2,7 @@
    <script src="jquery-2.1.3.min.js"></script>
    <script src="ember-template-compiler.js"></script>
    <script src="ember.debug.js"></script>
+   <script src="lua_file_map.js"></script>
    <link rel="stylesheet" type="text/css" href="css/main.css" />   
    <link rel="stylesheet" type="text/css" href="font-awesome-4.3.0/css/font-awesome.min.css" />  
 </head>
@@ -138,7 +139,6 @@
             head.push(tbnode);
             tbnode = tbnode.children[0];
          }
-         console.log('computing head...', this, head);
 
          if (tbnode) {
             tails = tbnode.children;
@@ -258,6 +258,16 @@
 
    Profiler.ProfViewComponent = Ember.Component.extend({
       didInsertElement : function() {
+         console.log('file name', luaFileMap);
+         
+         $.get('foo.json')
+            .done(function(o) {
+               console.log('got file', o)
+            })
+            .fail(function(o) {
+               console.log('failed to get file', o)
+            });
+
          var self = this;
          var handleFileSelect = function(evt) {
             var files = evt.target.files; // FileList object
@@ -286,9 +296,12 @@
             }
          };
          document.getElementById('files').addEventListener('change', handleFileSelect, false);
+         this._showPage('#bottomup');
+      },
 
-         // This is cool, but OH MY GOD HORRIBLY SLOW!!!
-         // $("#bottomup").colResizable({ liveDrag: true });
+      _showPage: function(page) {
+         this.$('.page').hide();
+         this.$(page).show();
       },
 
       actions: {
@@ -298,6 +311,15 @@
          createBottomUpNodes: function(data) {
             this.get('data').createBottomUpNodes();
          },
+         selectPage: function(page) {
+            this._showPage(page);
+         },
+         inspectFn: function(bnode) {
+            var filename = bnode.tnode.filename;
+            console.log('inspecting function', bnode, filename);
+
+            this._showPage('#fn-inspector');
+         }
       },
    });
 
@@ -311,7 +333,7 @@
          },
          close: function() {
             this.get('node').set('collapsed', true);
-         }
+         },
       }
    });
 
@@ -378,7 +400,7 @@
       <tr>
          <td>
             {{collapse-div node=node }}
-            {{node.tnode.fn}}
+            <span {{ action "inspectFn" node on="doubleClick" target=profiler }}>{{node.tnode.fn}}</span>
          </td>
          <td> {{ node.selfTime }} </td>
          <td> {{ node.percentTime }} % </td>
@@ -393,12 +415,25 @@
    </table>
 </script>
 
+<script type="text/x-handlebars" data-template-name='components/fn-inspector'>
+   Hi!
+</script>
+
 <script type="text/x-handlebars" data-template-name='components/prof-view'>
    {{input type="file" id="files" name="stuff" multiple=true style="width:500px;"}}
-   {{bottom-up root=data.bottomup }}
-   <!--
-   {{top-down root=data.topdown }}
-   -->
+   <ul>
+      <li {{ action "selectPage" "#bottomup" }}>Bottom-up</li>
+      <li {{ action "selectPage" "#topdown" }}>Top-down Tree</li>
+   </ul>
+   <div class='page' id='bottomup'>
+      {{bottom-up root=data.bottomup profiler=this }}
+   </div>
+   <div class='page' id='topdown'>
+      {{top-down root=data.topdown profiler=this }}
+   </div>
+   <div class='page' id='fn-inspector'>
+      {{fn-inspector bnode=data.fnbnode }}
+   </div>
 </script>
  
  <script type="text/x-handlebars" data-template-name='data'>
