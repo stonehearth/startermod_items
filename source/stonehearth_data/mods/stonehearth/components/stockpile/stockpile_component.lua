@@ -255,6 +255,7 @@ function StockpileComponent:_add_item_to_stock(entity)
 
    stonehearth.inventory:get_inventory(self._sv.player_id):add_item(entity)
    stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, self._entity)
+   self._entity:get_component('stonehearth:storage'):add_item_for_tracking(entity)
    
    radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    
@@ -289,6 +290,7 @@ function StockpileComponent:_remove_item_from_stock(id)
    --Tell the inventory to remove this item
    stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
    stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, nil)
+   self._entity:get_component('stonehearth:storage'):remove_item_from_tracking(id)
       
    --Trigger for scenarios, autotests, etc
    radiant.events.trigger_async(self._entity, "stonehearth:stockpile:item_removed", { 

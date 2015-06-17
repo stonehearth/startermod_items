@@ -119,7 +119,6 @@ function StorageComponent:initialize(entity, json)
    self._entity = entity
 
    self._sv = self.__saved_variables:get_data()
-   self._sv.type = json.type or constants.container_types.CRATE
 
    self._unit_info_trace = self._entity:add_component('unit_info'):trace_player_id('filter observer')
       :on_changed(function()
@@ -128,9 +127,12 @@ function StorageComponent:initialize(entity, json)
          end)
 
 
-   if not self._sv.player_id then
+   if not self._sv.type then
       -- creating...
+      local basic_tracker = radiant.create_controller('stonehearth:basic_inventory_tracker')
+      self._sv.item_tracker = radiant.create_controller('stonehearth:inventory_tracker', basic_tracker)
       self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
+      self._sv.type = json.type or constants.container_types.CRATE
       self.__saved_variables:mark_changed()
    end
 
@@ -166,6 +168,16 @@ function StorageComponent:_on_contents_changed()
       local commands_component = self._entity:add_component('stonehearth:commands')
       commands_component:enable_command('undeploy_item', bp:is_empty())
    end
+end
+
+function StorageComponent:add_item_for_tracking(item)
+   self._sv.item_tracker:add_item(item)
+   self.__saved_variables:mark_changed()
+end
+
+function StorageComponent:remove_item_from_tracking(id)
+   self._sv.item_tracker:remove_item(id)
+   self.__saved_variables:mark_changed()
 end
 
 function StorageComponent:passes(entity)

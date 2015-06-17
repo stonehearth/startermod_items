@@ -4,8 +4,11 @@ App.StonehearthStockpileView = App.View.extend({
 
    components: {
       "unit_info": {},
-      "stonehearth:stockpile" : {},
-      "stonehearth:storage" : {}
+      "stonehearth:stockpile" : {
+      },
+      "stonehearth:storage" : {
+         "item_tracker" : {}
+      },
    },
 
    didInsertElement: function() {
@@ -62,20 +65,16 @@ App.StonehearthStockpileView = App.View.extend({
       this._inventoryPalette = this.$('#inventoryPalette').stonehearthItemPalette({
          cssClass: 'inventoryItem',
       });
-
-      radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:basic_inventory_tracker')
-         .done(function(response) {
-            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, {})
-               .progress(function(response) {
-                  self._inventoryPalette.stonehearthItemPalette('updateItems', response.tracking_data);
-               });
-         })
-         .fail(function(response) {
-            console.error(response);
-         });
       this.$('#filterTab').show();
-
    },
+
+   _updateStockedItems : function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         var tracker = self.get('context.stonehearth:storage.item_tracker');
+         self._inventoryPalette.stonehearthItemPalette('updateItems', tracker.tracking_data);
+      });
+   }.observes('context.stonehearth:storage.item_tracker'),
 
    _selectAll : function() {
       this.items.addClass('on');

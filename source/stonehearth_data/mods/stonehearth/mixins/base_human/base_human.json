@@ -218,7 +218,7 @@
             },
          "nutrition" : {
             "starting_score" : 50,
-            "weight" : 1,
+            "weight" : 4,
             "contributes_to" : "food",
             "max" : 100,
             "min" : 1
