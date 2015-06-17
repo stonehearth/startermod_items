@@ -20,6 +20,12 @@ $.widget( "stonehearth.stonehearthItemPalette", {
    _create: function() {
       var self = this;
 
+      self._categoryDisplayNames = {};
+
+      $.getJSON('/stonehearth/ui/data/item_categories.json', function(data) {
+            self._categoryDisplayNames = data;
+         });
+
       this.palette = $('<div>').addClass('itemPalette');
 
       this.palette.on( 'click', '.item', function() {
@@ -92,8 +98,14 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       } else {
 
          // new title element for the category
+         var categoryDisplayName = this._categoryDisplayNames[item.category];
+         if (!categoryDisplayName) {
+            console.log("No category display name found for item category " + item.category);
+            categoryDisplayName = item.category;
+         }
+
          $('<h2>')
-            .html(item.category)
+            .html(categoryDisplayName)
             .appendTo(this.palette);
 
          // the category container element that items are inserted into
