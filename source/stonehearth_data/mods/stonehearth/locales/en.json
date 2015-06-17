@@ -223,6 +223,8 @@
    "happiness_food" : "Food",
    "happiness_shelter" : "Shelter",
    "happiness_safety" : "Safety",
+
+   "storage_remaining_spaces" : "Available space:",
    
    "stockpile_all" : "All",
    "stockpile_none" : "None",

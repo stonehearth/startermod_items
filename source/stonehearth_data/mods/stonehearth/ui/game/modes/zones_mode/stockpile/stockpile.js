@@ -9,6 +9,8 @@ App.StonehearthStockpileView = App.View.extend({
       "stonehearth:storage" : {
          "item_tracker" : {}
       },
+      "stonehearth:backpack" : {
+      }
    },
 
    didInsertElement: function() {
@@ -78,8 +80,27 @@ App.StonehearthStockpileView = App.View.extend({
          }
          var tracker = self.get('context.stonehearth:storage.item_tracker');
          self._inventoryPalette.stonehearthItemPalette('updateItems', tracker.tracking_data);
+
+         var backpackCapacity = self.get('context.stonehearth:backpack.capacity');
+
+         if (backpackCapacity) {
+            self.set('remaining_spaces', backpackCapacity - self.get('context.stonehearth:storage.num_items'));
+            self.set('capacity', backpackCapacity);
+         }
       });
    }.observes('context.stonehearth:storage.item_tracker'),
+
+   _updateRemainingCounter : function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         var backpackCapacity = self.get('context.stonehearth:backpack.capacity');
+
+         if (backpackCapacity) {
+            self.set('remaining_spaces', backpackCapacity - self.get('context.stonehearth:storage.num_items'));
+            self.set('capacity', backpackCapacity);
+         }
+      });
+   }.observes('context.stonehearth:storage.num_items'),
 
    _selectAll : function() {
       this.items.addClass('on');
