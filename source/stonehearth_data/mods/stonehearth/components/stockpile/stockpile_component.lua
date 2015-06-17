@@ -88,6 +88,7 @@ end
 function StockpileComponent:_on_filter_changed(filter_component, newly_filtered, newly_passed)
    for id, item in pairs(newly_filtered) do
       self:_trigger_item_removed_events(item)
+      self._sv.item_locations[id] = nil
    end
 
    for id, item in pairs(newly_passed) do
@@ -289,6 +290,11 @@ function StockpileComponent:_remove_item(id)
    end
    if self._storage:get_passed_items()[id] then
       self:_remove_item_from_stock(id)
+   else
+      -- We're removing an item that resides in the stockpile, but is not
+      -- actually part of the stockpile (in that it has been filtered-out).
+      -- All we need to do is inform storage.
+      self._storage:remove_item(id)      
    end
 end
 
