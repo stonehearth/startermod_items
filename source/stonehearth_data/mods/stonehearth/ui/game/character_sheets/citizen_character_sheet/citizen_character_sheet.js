@@ -14,7 +14,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       'stonehearth:equipment' : {
          'equipped_items' : {
             '*' : {
-               'unit_info' : {}   
+               'unit_info' : {}
             }
          }
       },
@@ -197,32 +197,39 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
         this.set('model.buffs', vals);
     }.observes('model.stonehearth:buffs'),
 
-   _grabEquipment: function() {
+   _setEquipmentData: function() {
+      Ember.run.scheduleOnce('afterRender', this, '_updateEquipmentNow');
+    }.observes('model.stonehearth:equipment.equipped_items'),
+
+   _updateEquipmentNow: function() {
       var self = this;
       var slots = ['torso', 'mainhand', 'offhand'];
       var equipment = self.get('model.stonehearth:equipment.equipped_items');
       radiant.each(slots, function(i, slot) {
          var equipmentPiece = equipment[slot];
-         /*
+         
          var slotDiv = self.$('#' + slot + 'Slot');
 
          if (slotDiv.length == 0) {
             return;
          }
 
+         var image = slotDiv.find(".equipmentImg");
+         image.remove();
+
          if (equipmentPiece) {
-            slotDiv.html(equipmentPiece.unit_info.name);
-         } else {
-            slotDiv.html('');
-         }*/
+            var img = $('<img>')
+            .addClass('equipmentImg')
+            .attr('src', equipmentPiece.unit_info.icon);
+            var tooltipString = '<div class="detailedTooltip"> <h2>' + equipmentPiece.unit_info.name
+                                 + '</h2>'+ equipmentPiece.unit_info.description + '</div>';
+            img.tooltipster({content: $(tooltipString)});
+            slotDiv.append(img);
+         }
 
-         
-         self.set('equipment.' + slot, equipmentPiece);
+         //self.set('equipment.' + slot, equipmentPiece);
       });
-
-    }.observes('model.stonehearth:equipment.equipped_items'),
-   
-
+   },
     //When the attribute data changes, update the bars
    _setAttributeData: function() {
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
@@ -394,8 +401,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
                $(this).blur();
            }
          });
-
-      this.$('.slot img').tooltipster();
       
       if (p) {
          $('#personality').html($.t(p.personality));   
