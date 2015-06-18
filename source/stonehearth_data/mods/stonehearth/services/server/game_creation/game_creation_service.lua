@@ -16,7 +16,6 @@ GameCreationService = class()
 
 function GameCreationService:initialize()
    self._sv = self.__saved_variables:get_data()
-   self._generated_citizens = {}
 end
 
 function GameCreationService:sign_in_command(session, response)
@@ -31,15 +30,18 @@ function GameCreationService:generate_citizens_command(session, response)
    local pop = stonehearth.population:get_population(session.player_id)
 
    --First destroy all existing citizens.
-   for i=1, NUM_STARTING_CITIZENS do
-      if self._generated_citizens[i] then
-         radiant.entities.destroy_entity(self._generated_citizens[i])      
+   if self._sv._generated_citizens then
+      for _, entity in pairs(self._sv._generated_citizens) do
+         radiant.entities.destroy_entity(entity)
       end
    end
 
+   self._sv._generated_citizens = {}
+
    --Create a new set of citizens.
    for i=1, NUM_STARTING_CITIZENS do
-      self._generated_citizens[i] = self:_generate_citizen(pop)
+      local citizen = self:_generate_citizen(pop)
+      self._sv._generated_citizens[citizen:get_id()] = citizen
    end
    response:resolve({})
 end
@@ -79,14 +81,14 @@ function GameCreationService:_set_game_options(options)
       stonehearth.game_master:enable_campaign_type('combat', false)
       stonehearth.game_master:enable_campaign_type('ambient_threats', false)
    end
-   self.game_options = options
+   self._sv._game_options = options
    
-   if not self.game_options.starting_talismans then
-      self.game_options.starting_talismans = {"stonehearth:carpenter:talisman", "stonehearth:trapper:talisman"}
+   if not self._sv._game_options.starting_talismans then
+      self._sv._game_options.starting_talismans = {"stonehearth:carpenter:talisman", "stonehearth:trapper:talisman"}
    end
    
-   if not self.game_options.starting_gold then
-       self.game_options.starting_gold = 0
+   if not self._sv._game_options.starting_gold then
+       self._sv._game_options.starting_gold = 0
    end
 end
 
@@ -192,38 +194,66 @@ function GameCreationService:create_camp_command(session, response, pt)
    -- build the camp
    local camp_x = pt.x
    local camp_z = pt.z
-   
-   self:_place_citizen_embark(1, pop, camp_x-3, camp_z-3)
-   self:_place_citizen_embark(2, pop, camp_x+0, camp_z-3)
-   self:_place_citizen_embark(3, pop, camp_x+3, camp_z-3)
-   self:_place_citizen_embark(4, pop, camp_x-3, camp_z+3)
-   self:_place_citizen_embark(5, pop, camp_x+3, camp_z+3)
-   self:_place_citizen_embark(6, pop, camp_x-3, camp_z+0)
-   self:_place_citizen_embark(7, pop, camp_x+3, camp_z+0)
-   
+
+   local citizen_locations = {
+      {x=camp_x-3, y=camp_z-3},
+      {x=camp_x+0, y=camp_z-3},
+      {x=camp_x+3, y=camp_z-3},
+      {x=camp_x-3, y=camp_z+3},
+      {x=camp_x+3, y=camp_z+3},
+      {x=camp_x-3, y=camp_z+0},
+      {x=camp_x+3, y=camp_z+0},
+   }
+
+   local index = 1
+   local citizens_list = {}
+   if not self._sv._generated_citizens then
+      self._sv._generated_citizens = {}
+   end
+
+   for _, citizen in pairs(self._sv._generated_citizens) do
+      local location = citizen_locations[index]
+      self:_place_citizen_embark(citizen, location.x, location.y)
+      citizens_list[index] = citizen
+      index = index + 1
+   end
+
+   -- Generate any additional citizens that we might need
+   local num_additional_to_generate = NUM_STARTING_CITIZENS - index + 1
+   if num_additional_to_generate > 0 then
+      for i=1, num_additional_to_generate do
+         local citizen = self:_generate_citizen(pop)
+         self._sv._generated_citizens[citizen:get_id()] = citizen
+         local location = citizen_locations[index]
+         self:_place_citizen_embark(citizen, location.x, location.y)
+         citizens_list[index] = citizen
+         index = index + 1
+      end
+   end
+
    self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
 
-   radiant.entities.pickup_item(self._generated_citizens[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(self._generated_citizens[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(citizens_list[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(citizens_list[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
 
    -- Spawn initial talismans
-   for i, talisman_uri in ipairs (self.game_options.starting_talismans) do
+   for i, talisman_uri in ipairs (self._sv._game_options.starting_talismans) do
       if i + 2 > NUM_STARTING_CITIZENS then
          break
       end
-      radiant.entities.pickup_item(self._generated_citizens[i + 2], pop:create_entity(talisman_uri))
+      radiant.entities.pickup_item(citizens_list[i + 2], pop:create_entity(talisman_uri))
    end
 
    -- kickstarter pets
-   if self.game_options.starting_pets then
-       for i, pet_uri in ipairs (self.game_options.starting_pets) do
+   if self._sv._game_options.starting_pets then
+       for i, pet_uri in ipairs (self._sv._game_options.starting_pets) do
           local x_offset = -6 + i * 3;
           self:_place_pet(pop, pet_uri, camp_x-x_offset, camp_z-6)
        end
    end
 
    -- Add starting gold
-   local starting_gold = self.game_options.starting_gold;
+   local starting_gold = self._sv._game_options.starting_gold;
    if (starting_gold > 0) then
       local inventory = stonehearth.inventory:get_inventory(session.player_id)
       inventory:add_gold(starting_gold)
@@ -232,13 +262,7 @@ function GameCreationService:create_camp_command(session, response, pt)
    return {random_town_name = random_town_name}
 end
 
-function GameCreationService:_place_citizen_embark(index, pop, x, z)
-   local citizen = self._generated_citizens[index];
-   if not citizen then
-      citizen = self:_generate_citizen(pop)
-      self._generated_citizens[index] = citizen
-   end
-
+function GameCreationService:_place_citizen_embark(citizen, x, z)
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                           {entity = citizen, description = 'person_embarks'})

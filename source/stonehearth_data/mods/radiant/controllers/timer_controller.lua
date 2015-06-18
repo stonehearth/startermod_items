@@ -17,6 +17,7 @@ end
 
 function Timer:destroy()
    self._sv._active = false
+   self._sv._fn = nil
    self.__saved_variables:mark_changed()
 end
 

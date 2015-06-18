@@ -56,7 +56,7 @@ function WorldGenerationService:create_new_game(seed, async)
    self.blueprint_generator = BlueprintGenerator()
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
 
-   self._starting_location = nil
+   self._sv._starting_location = nil
 end
 
 function WorldGenerationService:get_terrain_info()
@@ -137,15 +137,19 @@ function WorldGenerationService:get_blueprint()
    return self._blueprint
 end
 
+function WorldGenerationService:needs_camp_placement_command(session, response)
+   return self._sv.seed ~= nil and self._sv._starting_location == nil
+end
+
 function WorldGenerationService:set_starting_location(location)
-   self._starting_location = location
+   self._sv._starting_location = location
 
    local exclusion_radius = stonehearth.static_scenario:get_reveal_distance()
    local exclusion_region = Region2(Rect2(
          Point2(-exclusion_radius,  -exclusion_radius),
          Point2( exclusion_radius+1, exclusion_radius+1)
       ))
-   exclusion_region:translate(self._starting_location)
+   exclusion_region:translate(self._sv._starting_location)
 
    -- clear the starting location of all revealed scenarios
    stonehearth.static_scenario:reveal_region(exclusion_region, function()
@@ -158,7 +162,7 @@ function WorldGenerationService:set_starting_location(location)
             Point2(-radius,  -radius),
             Point2( radius+1, radius+1)
          ))
-      region:translate(self._starting_location)
+      region:translate(self._sv._starting_location)
       stonehearth.static_scenario:reveal_region(region)
    end
 end

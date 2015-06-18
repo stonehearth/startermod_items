@@ -1,9 +1,12 @@
 local immigration_tests = {}
 
 function immigration_tests.get_one_citizen_encounter(autotest)
-   autotest.env:create_person(2, 2, { job = 'worker' })
-
+   -- Make sure we're in a good state by clearing out all bulletins
+   -- and resetting the game event campaign
    stonehearth.bulletin_board:remove_all_bulletins()
+   stonehearth.game_master:debug_clear_campaign('game_events')
+   
+   autotest.env:create_person(2, 2, { job = 'worker' })
 
    local num_corn = 0
    local required_corn = 430
@@ -96,7 +99,7 @@ function immigration_tests.get_one_citizen_encounter(autotest)
       end
    end)
 
-   autotest:sleep(600*1000)
+   autotest:sleep(10*1000)
    autotest:fail('failed to get person')
 end
 
