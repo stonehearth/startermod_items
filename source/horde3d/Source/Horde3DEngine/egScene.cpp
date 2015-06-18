@@ -1173,25 +1173,32 @@ std::vector<QueryResult> const& Scene::queryNode(SceneNode& node)
 }
 
 
-std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes) 
+std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached) 
 {
    radiant::perfmon::TimelineCounterGuard uq("queryScene");
 
-   for (int i = 0; i < _queryCacheCount; i++)
-   {
-      CachedQueryResult& r = _queryCache[i];
+   if (cached) {
+      for (int i = 0; i < _queryCacheCount; i++)
+      {
+         CachedQueryResult& r = _queryCache[i];
 
-      if (r.frust == frust && r.queryTypes == queryTypes && r.singleNode == nullptr) {
-         return r.result;
+         if (r.frust == frust && r.queryTypes == queryTypes && r.singleNode == nullptr) {
+            return r.result;
+         }
       }
-   }
 
-   if (_queryCacheCount < QueryCacheSize) {
-      _queryCacheCount++;
+      if (_queryCacheCount < QueryCacheSize - 2) {
+         _queryCacheCount++;
+      } else {
+         ASSERT(false);
+      }
+      _currentQuery = _queryCacheCount - 1;
    } else {
-      ASSERT(false);
+      // Second last element is reused for uncached queries.
+      _currentQuery = QueryCacheSize - 2;
+      _queryCache[_currentQuery].result.clear();
    }
-   _currentQuery = _queryCacheCount - 1;
+   
    CachedQueryResult& r = _queryCache[_currentQuery];
 
    r.frust = frust;
@@ -1206,8 +1213,7 @@ std::vector<QueryResult> const& Scene::subQuery(std::vector<QueryResult> const& 
 {
    radiant::perfmon::TimelineCounterGuard uq("subQuery");
 
-   // Just store the sub query in the last place of the cache, since that is effectively a 'scratch'
-   // location anyway.
+   // Store the sub query in the last place of the cache.
    CachedQueryResult& r = _queryCache[QueryCacheSize - 1];
 
    r.result.clear();

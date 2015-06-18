@@ -483,7 +483,7 @@ public:
 
    void setNodeHidden(SceneNode& node, bool hide);
 
-   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes);
+   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached = true);
    std::vector<QueryResult> const& subQuery(std::vector<QueryResult> const& queryResults, SceneNodeFlags::List ignoreFlags);
    std::vector<QueryResult> const& queryNode(SceneNode& node);
 	

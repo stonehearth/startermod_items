@@ -1591,7 +1591,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Find AABB of lit geometry
       Vec3f lightAbsPos;
 
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables, false);
 
       for (const auto& result : results) {
          litAabb.makeUnion(result.bounds);
@@ -1643,7 +1643,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Build optimized light projection matrix
 		frustum.buildViewFrustum(lightViewMat, lightProjMat);
       
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables, false);
       std::vector<QueryResult> const& subResults = Modules::sceneMan().sceneForId(sceneId).subQuery(results, SceneNodeFlags::NoCastShadow);
       composeRenderables(subResults, frustum, RenderingOrder::None, QueryTypes::CullableRenderables, nullptr, false);
 
@@ -2213,7 +2213,7 @@ void Renderer::computeTightCameraBounds(SceneId sceneId, float* minDist, float* 
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
-   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables);
+   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, false);
 
    for (const auto& r : results) {
 	   visibleAabb.makeUnion(r.bounds);
@@ -2382,7 +2382,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel)
 {
-   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, false);
 
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(sceneId, &prioritizedLights, lights);
@@ -2488,7 +2488,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
 
 void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource *deferredMaterial)
 {
-   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, false);
    
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(sceneId, &prioritizedLights, lights);
