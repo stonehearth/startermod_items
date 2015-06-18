@@ -19,13 +19,13 @@ RenderEntityContainer::RenderEntityContainer(const RenderEntity& entity, om::Ent
    // to some other Entity which is a descendant of the Root Node.  This component only
    // does the initial creation of the RenderEntity.  If it gets reparented, the RenderMob
    // class will take care of it.
-   _childrenTrace = container->TraceChildren("render", dm::RENDER_TRACES)
+   _childrenTrace = container->TraceChildren("RenderEntityContainer children", dm::RENDER_TRACES)
                            ->OnAdded([=](dm::ObjectId id, om::EntityRef child) {
                               CreateEntity(child);
                            })
                            ->PushObjectState();
 
-   _attachedItemsTrace = container->TraceAttachedItems("render", dm::RENDER_TRACES)
+   _attachedItemsTrace = container->TraceAttachedItems("RenderEntityContainer attached items", dm::RENDER_TRACES)
                            ->OnAdded([=](dm::ObjectId id, om::EntityRef child) {
                               CreateEntity(child);
                            })
