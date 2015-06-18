@@ -7,6 +7,9 @@ local Point3 = _radiant.csg.Point3
 --TODO: factor out "jump to challenge"
 function goblin_campaign_autotests.wolf_escape_test(autotest)
 
+   stonehearth.bulletin_board:remove_all_bulletins()
+   stonehearth.game_master:debug_clear_campaign('combat')
+   
    local party = stonehearth.unit_control:get_controller('player_1')
                                              :create_party()
    for i=1, 4 do 
