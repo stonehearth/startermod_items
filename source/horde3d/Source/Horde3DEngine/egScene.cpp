@@ -228,9 +228,6 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 {
 	if( relMat != 0x0 )
 	{
-		if(_dirty != SceneNodeDirtyState::Clean) {
-         Modules::sceneMan().sceneForNode(_handle).updateNodes();
-      }
 		*relMat = &_relTrans.x[0];
 	}
 	
