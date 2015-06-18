@@ -74,6 +74,13 @@ float* Renderer::_vbInstanceVoxelBuf;
 std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
 Matrix4f Renderer::_defaultBoneMat;
 
+struct RendQueueItemCompFunc
+{
+	bool operator()( const RendQueueItem &a, const RendQueueItem &b ) const
+		{ return a.sortKey < b.sortKey; }
+};
+
+
 const std::string Renderer::DRAW_SKINNED_FLAG("DRAW_SKINNED");
 const std::string Renderer::DRAW_WITH_INSTANCING_FLAG("DRAW_WITH_INSTANCING");
 const std::string Renderer::INSTANCE_SUPPORT_FLAG("INSTANCE_SUPPORT");
@@ -1928,15 +1935,20 @@ void Renderer::clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3,
 
 void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes, SceneNode* singleNode, bool cacheResults)
 {
-   // Has this query been cached?  Set those renderable queues, if so.
    radiant::perfmon::TimelineCounterGuard uq("composeRenderables");
 
    if (cacheResults) {
+      // Has this query been cached?  Set those renderable queues, if so.
       for (int i = 0; i < _renderCacheCount; i++) {
          CachedRenderResult& r = _renderCache[i];
 
-         if ((singleNode && r.singleNode == singleNode) ||
-           (!singleNode && !r.singleNode && r.frust == frust && r.queryTypes == queryTypes && r.order == order)) {
+         bool singleNodeMatch = (singleNode && r.singleNode == singleNode);
+
+         // If the order specified is 'none', then any order will do.
+         bool orderMatch = (order == RenderingOrder::None || r.order == order);
+
+         if (singleNodeMatch ||
+           (!singleNode && !r.singleNode && r.frust == frust && r.queryTypes == queryTypes && orderMatch)) {
             _activeRenderCache = i;
             return;
          }
@@ -1963,25 +1975,36 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
    r.order = order;
    r.singleNode = singleNode;
 
-   // Seriously consider/profile breaking this into 4 (not 3) seperate loops.
-   for (auto const& result : queryResults) {
-      BoundingBox const& bounds = result.bounds;
-      float sortKey = 0;
-
-      switch(order)
-      {
-      case RenderingOrder::StateChanges:
-         sortKey = result.sortKey;
-         break;
-      case RenderingOrder::FrontToBack:
-         sortKey = nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
-         break;
-      case RenderingOrder::BackToFront:
-         sortKey = -nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
-         break;
+   if (order != RenderingOrder::None && order != RenderingOrder::StateChanges) {
+      for (auto const& result : queryResults) {
+         BoundingBox const& bounds = result.bounds;
+         float sortKey;
+         switch(order)
+         {
+         case RenderingOrder::FrontToBack:
+            sortKey = nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
+            break;
+         case RenderingOrder::BackToFront:
+            sortKey = -nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
+            break;
+         }
+         result.renderQueues[_activeRenderCache]->emplace_back(sortKey, result.node);
       }
+   } else {
+      for (auto const& result : queryResults) {
+         result.renderQueues[_activeRenderCache]->emplace_back(result.sortKey, result.node);
+      }
+   }
 
-      result.renderQueues[_activeRenderCache]->emplace_back(sortKey, result.node);
+   if (order != RenderingOrder::None) {
+      for (auto& iq : _instanceQueues[_activeRenderCache]) {
+         for (auto& rq : iq.second) {
+            std::sort(rq.second->begin(), rq.second->end(), RendQueueItemCompFunc());
+         }
+      }
+      for (auto& rq : _singularQueues[_activeRenderCache]) {
+         std::sort(rq.second->begin(), rq.second->end(), RendQueueItemCompFunc());
+      }
    }
 }
 
