@@ -137,8 +137,8 @@ function WorldGenerationService:get_blueprint()
    return self._blueprint
 end
 
-function WorldGenerationService:has_starting_location_command(session, response)
-   return self._sv._starting_location ~= nil
+function WorldGenerationService:needs_camp_placement_command(session, response)
+   return self._sv.seed ~= nil and self._sv._starting_location == nil
 end
 
 function WorldGenerationService:set_starting_location(location)

@@ -113,9 +113,10 @@ App.RootView = Ember.ContainerView.extend({
 
       this.get('controller').send('tryAutoSave', true);
       
-      radiant.call_obj('stonehearth.world_generation', 'has_starting_location_command')
+      radiant.call_obj('stonehearth.world_generation', 'needs_camp_placement_command')
          .done(function(e) {
-            if (e.result === false) {
+            if (e.result === true) {
+               // If we need camp placement, start the camp placement
                radiant.call('radiant:get_config', 'tutorial')
                   .done(function(o) {
                      if (o.tutorial && o.tutorial.hideStartingTutorial) {
