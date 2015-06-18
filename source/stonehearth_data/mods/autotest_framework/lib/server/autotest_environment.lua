@@ -7,6 +7,8 @@ local env = {}
 
 local PLAYER_ID = 'player_1'
 
+local _is_clearing_world = false
+
 function env.set_world_generator_script(world_generator_script)
    env.create_world_fn = radiant.mods.load_script(world_generator_script)
 
@@ -22,6 +24,10 @@ function env.set_world_generator_script(world_generator_script)
          local entity = e.entity
          local id = entity:get_id()
          _all_entities[id] = entity
+
+         if _is_clearing_world then
+            radiant.log.write('radiant', 0, 'Entity %s was created while clearing world', entity)
+         end
       end)
 
    radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
@@ -30,10 +36,16 @@ function env.set_world_generator_script(world_generator_script)
 end
 
 function env.create_world(world_generator_script)
+   if radiant.size(_all_entities) ~= 0 then
+      radiant.log.write('autotest', 0, "Entities already in existence before autotest create world. They should have been destroyed")
+   end
+
+   _all_entities = {}
    radiant.terrain.clear()
    env.world = env.create_world_fn(env)
    env._reset_camera()
    stonehearth.hydrology:start()
+
 end
 
 function env.get_player_id()
@@ -51,17 +63,25 @@ end
 function env.clear()
    -- stop all the ais first so they don't freak out when we start destroying
    -- things willy nilly
+   _is_clearing_world = true
+
    for id, entity in pairs(_all_entities) do
       local ai = entity:get_component('stonehearth:ai')
       if ai then
          ai:stop()
       end
    end
-
-   for id, entity in pairs(_all_entities) do
-      radiant.entities.destroy_entity(entity)      
+   local id, entity = next(_all_entities)
+   while entity do
+      radiant.entities.destroy_entity(entity)
+      _all_entities[id] = nil
+      id, entity = next(_all_entities)
    end
-   _all_entities = {}
+   
+   _is_clearing_world = false
+   if radiant.size(_all_entities) ~= 0 then
+      radiant.log.write('autotest', 0, "Not all entities were destroyed upon autotest environment clear")
+   end
 end
 
 function env.get_town()
