@@ -16,7 +16,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
       this._super();
       var self = this;
 
-      self._newGame(function(e) {
+      self._newGame(self._generate_seed(), function(e) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
          self.$('#map').stonehearthMap({
             mapGrid: e.map,
@@ -49,12 +49,29 @@ App.StonehearthSelectSettlementView = App.View.extend({
          self._clearSelection();
          self.$('#map').stonehearthMap('suspend');
 
-         self._newGame(function(e) {
+         self._newGame(self._generate_seed(), function(e) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
             self.$('#map').stonehearthMap('setMap', e.map);
             self.$('#map').stonehearthMap('resume');
          });
       });
+
+      // World Seed
+      $('#worldSeedInput')
+         .keypress(function (e) {
+            if (e.which == 13) {
+               var seed = parseInt($(this).val());
+               if (seed != NaN) {
+                  self._newGame(seed ,function(e) {
+                     radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
+                     self.$('#map').stonehearthMap('setMap', e.map);
+                     self.$('#map').stonehearthMap('resume');
+                  });
+                  $(this).blur();
+               }
+            }
+         })
+         .tooltipster({content: i18n.t('input_text_tooltip')});
 
       $(document).on('keydown', this._clearSelectionKeyHandler);
    },
@@ -94,9 +111,9 @@ App.StonehearthSelectSettlementView = App.View.extend({
       self.$('#selectSettlementPin').tooltipster('show');
    },
 
-   _newGame: function(fn) {
+   _newGame: function(seed, fn) {
       var self = this;
-      var seed = self._generate_seed();
+      self.set('world_seed', seed);
 
       self.$("#regenerateButton").addClass('disabled');
 
