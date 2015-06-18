@@ -39,11 +39,9 @@ VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 {
 	_renderable = true;
    _noInstancing = false;
-   _instanceKey.node = this;
-   _instanceKey.matResource = _materialRes;
-   _instanceKey.geoResource = _geometryRes;
+   _instanceKey.updateMat(_materialRes);
+   _instanceKey.updateGeo(_geometryRes);
 	if( _materialRes != 0x0 && _geometryRes != 0x0) {
-      _instanceKey.updateHash();
 		_sortKey = (float)_materialRes->getHandle();
    }
 }
@@ -110,8 +108,7 @@ void VoxelMeshNode::setParamI( int param, int value )
 		{
 			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DVoxelMesh::MatResI" );
 		}
-      _instanceKey.matResource = _materialRes;
-      _instanceKey.updateHash();
+      _instanceKey.updateMat(_materialRes);
 		return;
    case VoxelMeshNodeParams::NoInstancingI:
       _noInstancing = (value != 0);
@@ -216,8 +213,7 @@ void VoxelMeshNode::onAttach( SceneNode &parentNode )
 	while( node->getType() != SceneNodeTypes::VoxelModel ) node = node->getParent();
 	_parentModel = (VoxelModelNode *)node;
 	_parentModel->markNodeListDirty();
-   _instanceKey.scale = _parentModel->getModelScale();
-   _instanceKey.updateHash();
+   _instanceKey.updateScale(_parentModel->getModelScale());
 }
 
 
@@ -229,9 +225,8 @@ void VoxelMeshNode::onDetach( SceneNode &/*parentNode*/ )
 
 void VoxelMeshNode::onPostUpdate()
 {
-   if (_parentModel && _instanceKey.scale != _parentModel->getModelScale()) {
-      _instanceKey.scale = _parentModel->getModelScale();
-      _instanceKey.updateHash();
+   if (_parentModel) {
+      _instanceKey.updateScale(_parentModel->getModelScale());
    }
 }
 

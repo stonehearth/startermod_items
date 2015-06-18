@@ -34,17 +34,32 @@ const int QueryCacheSize = 32;
 
 class SceneNode;
 class InstanceKey {
+
 public:
+   InstanceKey(SceneNode* s);
+   InstanceKey(SceneNode* s, Resource* g, MaterialResource* m, float sc);
+
+   void updateGeo(Resource* r);
+   void updateMat(MaterialResource* r);
+   void updateScale(float s);
+   bool operator==(const InstanceKey& other) const;
+   bool operator!=(const InstanceKey& other) const;
+   bool valid() const;
+
+   MaterialResource* getMaterial() const;
+   Resource* getGeometry() const;
+
+private:
+   inline size_t computeHash(Resource* g, MaterialResource* r, float s) const;
+   void updateHash(InstanceKey& ik);
+
    Resource* geoResource;
    MaterialResource* matResource;
    SceneNode* node;
    float scale;
    size_t hash;
 
-   InstanceKey();
-   void updateHash();
-   bool operator==(const InstanceKey& other) const;
-   bool operator!=(const InstanceKey& other) const;
+   friend struct hash_InstanceKey;
 };
 
 struct hash_InstanceKey {
@@ -179,7 +194,7 @@ public:
    virtual bool checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const;
 
    inline const InstanceKey* getInstanceKey() const { 
-      if (_noInstancing || _instanceKey.geoResource == nullptr || _instanceKey.matResource == nullptr) {
+      if (_noInstancing || !_instanceKey.valid()) {
          return nullptr;
       }
       return &_instanceKey; 

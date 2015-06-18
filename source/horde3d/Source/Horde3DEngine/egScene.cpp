@@ -49,17 +49,66 @@ static std::string FlagsToString(int flags)
    return s.str();
 };
 
-InstanceKey::InstanceKey() {
+InstanceKey::InstanceKey(SceneNode* n) {
    geoResource = nullptr;
    matResource = nullptr;
-   node = nullptr;
-   scale = 1.0;
+   node = n;
+   scale = -1.0;
 }
 
-void InstanceKey::updateHash() {
-   ASSERT(node != nullptr);
-   hash = (uint32)(((uintptr_t)(geoResource) ^ (uintptr_t)(matResource)) >> 2) ^ (uint32)(101 * scale);
-   Modules::sceneMan().sceneForNode(node->getHandle()).updateNodeInstanceKey(*node);
+InstanceKey::InstanceKey(SceneNode* s, Resource* g, MaterialResource* m, float sc) {
+   geoResource = g;
+   matResource = m;
+   node = s;
+   scale = sc;
+}
+
+bool InstanceKey::valid() const {
+   return geoResource && matResource && node && scale >= 0;
+}
+
+void InstanceKey::updateGeo(Resource* r) {
+   InstanceKey ik(node, geoResource, matResource, scale);
+   geoResource = r;
+
+   updateHash(ik);
+}
+
+Resource* InstanceKey::getGeometry() const {
+   return geoResource;
+}
+
+MaterialResource* InstanceKey::getMaterial() const {
+   return matResource;
+}
+
+void InstanceKey::updateMat(MaterialResource* r) {
+   InstanceKey ik(node, geoResource, matResource, scale);
+   matResource = r;
+
+   updateHash(ik);
+}
+
+void InstanceKey::updateScale(float s) {
+   InstanceKey ik(node, geoResource, matResource, scale);
+   scale = s;
+
+   updateHash(ik);
+}
+
+size_t InstanceKey::computeHash(Resource* g, MaterialResource* r, float s) const {
+   return (uint32)(((uintptr_t)(g) ^ (uintptr_t)(r)) >> 2) ^ (uint32)(101 * s);
+}
+
+void InstanceKey::updateHash(InstanceKey& oldKey) {
+   if (valid()) {
+      size_t newHash = computeHash(geoResource, matResource, scale);
+
+      if (!oldKey.valid() || hash != newHash) {
+         hash = newHash;
+         Modules::sceneMan().sceneForNode(node->getHandle()).updateNodeInstanceKey(*node);
+      }
+   }
 }
 
 bool InstanceKey::operator==(const InstanceKey& other) const {
@@ -80,7 +129,7 @@ SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
    _dirty( SceneNodeDirtyState::Dirty ), _transformed( true ), _renderable( false ),
    _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0),
-   _gridId(-1), _gridPos(-1), _noInstancing(true)
+   _gridId(-1), _gridPos(-1), _noInstancing(true), _instanceKey(this)
 {
 	_relTrans = Matrix4f::ScaleMat( tpl.scale.x, tpl.scale.y, tpl.scale.z );
 	_relTrans.rotate( degToRad( tpl.rot.x ), degToRad( tpl.rot.y ), degToRad( tpl.rot.z ) );

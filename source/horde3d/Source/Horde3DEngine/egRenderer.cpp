@@ -2988,7 +2988,7 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
    // Loop over mesh queue
    for (auto const& instanceKind : Modules::renderer().getInstanceQueue(SceneNodeTypes::VoxelMesh)) {
       const InstanceKey& instanceKey = instanceKind.first;
-      const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.geoResource;
+      const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.getGeometry();
       VoxelMeshNode* vmn = nullptr;
 		// Check that mesh is valid
 		if (curVoxelGeoRes == 0x0) {
@@ -3017,14 +3017,14 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 		if( !debugView )
 		{
 			// Set material
-			if (curMatRes != instanceKey.matResource)
+         if (curMatRes != instanceKey.getMaterial())
 			{
-            if (!Modules::renderer().canSetMaterial(instanceKey.matResource, shaderContext)) {
+            if (!Modules::renderer().canSetMaterial(instanceKey.getMaterial(), shaderContext)) {
                RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
                continue;
             }
-            Modules::renderer().setMaterial(instanceKey.matResource, shaderContext);
-            curMatRes = instanceKey.matResource;
+            Modules::renderer().setMaterial(instanceKey.getMaterial(), shaderContext);
+            curMatRes = instanceKey.getMaterial();
 			}
 		} else {
 			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
