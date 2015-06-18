@@ -81,7 +81,7 @@ void DecalNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderCo
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_DecalNode)) {
+   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_DecalNode)) {
       DecalNode *decal = (DecalNode *)entry.node;
 
       MaterialResource* material = decal->GetMaterial();

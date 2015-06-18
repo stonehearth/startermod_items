@@ -195,13 +195,12 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 	}
 }
 
-void EngineConfig::setGlobalShaderFlag(const char* name, bool value)
+void EngineConfig::setGlobalShaderFlag(std::string const& name, bool value)
 {
-   std::string flag(name);
 
-   if (shaderFlags.find(flag) != shaderFlags.end()) {
+   if (shaderFlags.find(name) != shaderFlags.end()) {
       if (!value) {
-         shaderFlags.erase(flag);
+         shaderFlags.erase(name);
       }
       return;
    }
@@ -210,14 +209,13 @@ void EngineConfig::setGlobalShaderFlag(const char* name, bool value)
       return;
    }
 
-   shaderFlags.insert(flag);
+   shaderFlags.insert(name);
 }
 
-bool EngineConfig::isGlobalShaderFlagSet(const char* name)
+bool EngineConfig::isGlobalShaderFlagSet(std::string const& name)
 {
-   std::string flag(name);
 
-   if (shaderFlags.find(flag) != shaderFlags.end()) {
+   if (shaderFlags.find(name) != shaderFlags.end()) {
       return true;
    }
 

@@ -63,8 +63,8 @@ public:
 
 	float getOption( EngineOptions::List param );
 	bool setOption( EngineOptions::List param, float value );
-   void setGlobalShaderFlag(const char* name, bool value);
-   bool isGlobalShaderFlagSet(const char* name);
+   void setGlobalShaderFlag(std::string const& name, bool value);
+   bool isGlobalShaderFlagSet(std::string const& name);
 
 public:
 	int   maxLogLevel;

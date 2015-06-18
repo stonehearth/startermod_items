@@ -39,6 +39,7 @@ VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 {
 	_renderable = true;
    _noInstancing = false;
+   _instanceKey.node = this;
    _instanceKey.matResource = _materialRes;
    _instanceKey.geoResource = _geometryRes;
 	if( _materialRes != 0x0 && _geometryRes != 0x0) {

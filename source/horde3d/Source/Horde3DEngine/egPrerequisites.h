@@ -19,6 +19,8 @@
 
 namespace Horde3D {
 
+const uint32 RenderCacheSize = 8;
+
 typedef int ResHandle;
 
 typedef unsigned int NodeHandle;
