@@ -335,7 +335,7 @@
    });
 
    Profiler.PercentBarComponent = Ember.Component.extend({
-      tagName: 'span',
+      tagName: 'div',
 
       percentTime : function() {
          return (this.get('node.selfTime') * 100 / totalTime).toFixed(1);
@@ -367,7 +367,7 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/percent-bar'>
-   {{ this.percentTime }}%
+   <div id="progress" class="graph"><div id="bar" style="width:{{ this.percentTime }}%"><p>{{ this.percentTime }}%</p></div></div>
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/top-down'>
