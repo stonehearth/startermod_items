@@ -1988,22 +1988,23 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
             sortKey = -nearestDistToAABB(frust.getOrigin(), bounds.min(), bounds.max());
             break;
          }
-         result.renderQueues[_activeRenderCache]->emplace_back(sortKey, result.node);
+         result.renderQueues[_activeRenderCache]->emplace_back(sortKey, result.node, result.absTrans);
       }
    } else {
       for (auto const& result : queryResults) {
-         result.renderQueues[_activeRenderCache]->emplace_back(result.sortKey, result.node);
+         result.renderQueues[_activeRenderCache]->emplace_back(0.0f, result.node, result.absTrans);
       }
    }
 
    if (order != RenderingOrder::None) {
+      RendQueueItemCompFunc f = RendQueueItemCompFunc();
       for (auto& iq : _instanceQueues[_activeRenderCache]) {
          for (auto& rq : iq.second) {
-            std::sort(rq.second->begin(), rq.second->end(), RendQueueItemCompFunc());
+            std::sort(rq.second->begin(), rq.second->end(), f);
          }
       }
       for (auto& rq : _singularQueues[_activeRenderCache]) {
-         std::sort(rq.second->begin(), rq.second->end(), RendQueueItemCompFunc());
+         std::sort(rq.second->begin(), rq.second->end(), f);
       }
    }
 }
@@ -2893,7 +2894,7 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
       {
          RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
 
-         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &modelNode->_absTrans.x[0] );
+         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &entry.absTrans.x[0] );
       }
       if( curShader->uni_worldNormalMat >= 0 )
       {
@@ -3110,11 +3111,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
-         VoxelMeshNode const* meshNode = (VoxelMeshNode*)node.node;
-         const SceneNode *transNode = meshNode->getParentModel();
-		
-         memcpy(transformBuffer, &transNode->_absTrans.x[0], sizeof(float) * 16);
-         RENDER_LOG() << "adding world matrix (" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ")";
+         memcpy(transformBuffer, &node.absTrans.x[0], sizeof(float) * 16);
          transformBuffer += 16;
          numQueued++;
 
@@ -3172,7 +3169,7 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
       RENDER_LOG() << "setting (mesh handle:" << meshNode->getHandle() << " mesh name:" << meshNode->getName() << ") world matrix to " 
                    << "(" << transNode->_absTrans.c[3][0] << ", " << transNode->_absTrans.c[3][1] << ", " << transNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&transNode->_absTrans.c;
 
-      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &transNode->_absTrans.x[0] );
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &node.absTrans.x[0] );
       gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(lodLevel), vmn->getBatchCount(lodLevel),
          vmn->getVertRStart(lodLevel), vmn->getVertREnd(lodLevel) - vmn->getVertRStart(lodLevel) + 1);
 

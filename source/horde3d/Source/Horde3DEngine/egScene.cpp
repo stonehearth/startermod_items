@@ -719,7 +719,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
    if (sceneNode.getFlags() & SceneNodeFlags::NoCull) {
       ASSERT(sceneNode._gridId == -1);
       if (sceneNode._gridPos == -1) {
-         _noCullNodes.emplace_back(GridItem(sceneBox, &sceneNode));
+         _noCullNodes.emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
          sceneNode._gridPos = (int)(_noCullNodes.size() - 1);
          updateNodeInstanceKey(sceneNode);
       } else { 
@@ -745,6 +745,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
             _gridElements.at(gridId).bounds.addPoint(boundsMax);
          }
          vec->at(sceneNode._gridPos).bounds = sceneBox;
+         vec->at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
          return;
       }
 
@@ -781,7 +782,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
          swapAndRemove(*oldVec, sceneNode._gridPos);
       }
 
-      newVec->emplace_back(GridItem(sceneBox, &sceneNode));
+      newVec->emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
       sceneNode._gridId = gridId;
       sceneNode._gridPos = (int)(newVec->size() - 1);
 
@@ -815,7 +816,7 @@ void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum co
          continue;
       }
 
-      results.emplace_back(QueryResult(bounds, g.node, g.renderQueues));
+      results.emplace_back(QueryResult(bounds, g.node, g.absTrans, g.renderQueues));
    }
 }
 
@@ -829,7 +830,7 @@ void GridSpatialGraph::_queryGridLight(std::vector<GridItem> const& nodes, Frust
             continue;
          }
       }
-      results.emplace_back(QueryResult(g.bounds, g.node, g.renderQueues));
+      results.emplace_back(QueryResult(g.bounds, g.node, g.absTrans, g.renderQueues));
    }
 }
 
@@ -860,7 +861,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
 
    if (queryTypes & QueryTypes::UncullableRenderables) {
       for (auto const& n : _noCullNodes) {
-         results.emplace_back(QueryResult(n.bounds, n.node, n.renderQueues));
+         results.emplace_back(QueryResult(n.bounds, n.node, n.absTrans, n.renderQueues));
       }
    }
 
@@ -870,7 +871,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
 
    if (queryTypes & QueryTypes::Lights) {
       for (auto& d : _directionalLights) {
-         results.emplace_back(QueryResult(d.second->_bBox, (LightNode*)d.second));
+         results.emplace_back(QueryResult(d.second->_bBox, (LightNode*)d.second, d.second->_absTrans));
       }
    }   
 }
@@ -1138,7 +1139,11 @@ void Scene::_queryNode(SceneNode& node, std::vector<QueryResult>& results)
 {
    if (node._renderable) {
       GridItem* gi = _spatialGraph->gridItemForNode(node);
-      results.emplace_back(QueryResult(node.getBBox(), &node, gi->renderQueues));
+
+      // For example, the node could be invisible (NoDraw).
+      if (gi) {
+         results.emplace_back(QueryResult(node.getBBox(), &node, node._absTrans, gi->renderQueues));
+      }
    }
 
    for (SceneNode* child : node.getChildren()) {

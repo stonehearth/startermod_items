@@ -304,9 +304,10 @@ struct RendQueueItem
 {
 	SceneNode  const*node;
 	float      sortKey;
+   Matrix4f   absTrans;
 
 	RendQueueItem() {}
-	RendQueueItem(float sortKey, SceneNode const*node) : node(node), sortKey(sortKey) {}
+	RendQueueItem(float sortKey, SceneNode const* node, Matrix4f const& m) : node(node), sortKey(sortKey), absTrans(m) {}
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
@@ -316,12 +317,12 @@ typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRender
 
 
 struct GridItem {
-   GridItem(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) 
+   GridItem(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m)
    {
    }
    BoundingBox bounds;
    SceneNode* node;
-   float sortKey;
+   Matrix4f absTrans;
    RenderableQueue* renderQueues[RenderCacheSize];
 };
 
@@ -345,9 +346,9 @@ struct QueryTypes
 struct QueryResult
 {
    QueryResult() {}
-   QueryResult(BoundingBox const& b, SceneNode* n) : bounds(b), node(n) {
+   QueryResult(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m) {
    }
-   QueryResult(BoundingBox const& b, SceneNode* n, RenderableQueue* const queues[]) : bounds(b), node(n) {
+   QueryResult(BoundingBox const& b, SceneNode* n, Matrix4f const& m, RenderableQueue* const queues[]) : bounds(b), node(n), absTrans(m) {
       for (int i = 0; i < RenderCacheSize; i++) {
          renderQueues[i] =  queues[i];
       }
@@ -355,7 +356,7 @@ struct QueryResult
 
    BoundingBox bounds;
    SceneNode* node;
-   float sortKey;
+   Matrix4f absTrans;
    RenderableQueue* renderQueues[RenderCacheSize];
 };
 
