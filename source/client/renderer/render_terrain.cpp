@@ -46,14 +46,14 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       MarkDirty(location);
    };
 
-   tiles_trace_ = terrain->TraceTiles("render", dm::RENDER_TRACES)
+   tiles_trace_ = terrain->TraceTiles("RenderTerrain tiles", dm::RENDER_TRACES)
                               ->OnAdded(on_add_tile)
                               ->OnRemoved([this](csg::Point3 const& location) {
                                  NOT_YET_IMPLEMENTED();
                               })
                               ->PushObjectState();
 
-   terrain_config_trace_ = terrain->TraceConfigFileName("render", dm::RENDER_TRACES)
+   terrain_config_trace_ = terrain->TraceConfigFileName("RenderTerrain config file", dm::RENDER_TRACES)
                                     ->OnModified([this]() {
                                        LoadColorMap();
                                     })

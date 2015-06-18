@@ -63,7 +63,7 @@ RenderEffectList::RenderEffectList(RenderEntity& entity, om::EffectListPtr effec
    log_prefix_ = BUILD_STRING("[" << *entity.GetEntity() << " effect_list" << "]");
 
    effects_list_trace_ = \
-      effectList->TraceEffects("render", dm::RENDER_TRACES)
+      effectList->TraceEffects("RenderEffectList", dm::RENDER_TRACES)
                      ->OnUpdated([this](om::EffectList::EffectChangeMap const& added,
                                         std::vector<int> const& removed) {
                         for (auto const& entry : added) {
@@ -529,9 +529,8 @@ RenderAttachItemEffectTrack::RenderAttachItemEffectTrack(RenderEntity& e, om::Ef
 #endif
       }
    } else {
-      item = authored_entity_ = Client::GetInstance().GetAuthoringStore().AllocObject<om::Entity>();
       try {
-         om::Stonehearth::InitEntity(item, kind.c_str(), Client::GetInstance().GetScriptHost()->GetInterpreter());
+         item = authored_entity_ = Client::GetInstance().CreateAuthoringEntity(kind);
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
          EL_LOG(1) << "failed to initialize entity:" << e.what();
@@ -570,6 +569,10 @@ RenderAttachItemEffectTrack::~RenderAttachItemEffectTrack()
    if (use_model_variant_override_) {
       use_model_variant_override_ = false;
       render_item_->SetModelVariantOverride("");
+   }
+
+   if (authored_entity_) {
+      Client::GetInstance().DestroyAuthoringEntity(authored_entity_->GetObjectId());
    }
 }
 

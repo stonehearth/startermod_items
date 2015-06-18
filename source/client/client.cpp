@@ -329,12 +329,12 @@ void Client::OneTimeIninitializtion()
          throw std::string("User hit crash key");
       };
 
-      _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) {
+      _commands[GLFW_KEY_KP_1] = [=](KeyboardInput const& kb) {
          scriptHost_->WriteMemoryProfile("lua_memory_profile_client.txt");
          scriptHost_->DumpHeap("lua.client.heap");
          core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile"));
       };
-      _commands[GLFW_KEY_KP_ADD] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
+      _commands[GLFW_KEY_KP_2] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
    }
 
    // Reactors...
@@ -1739,16 +1739,35 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
    auto i = authoredEntities_.find(id);
    if (i != authoredEntities_.end()) {
       om::EntityPtr entity = i->second;
-
       CLIENT_LOG(7) << "destroying authoring entity " << *entity;
-      entity->Destroy();
-      if (entity) {
-         auto render_entity = Renderer::GetInstance().GetRenderEntity(entity);
-         if (render_entity) {
-            render_entity->Destroy();
-         }
-      }
+
+      // remove from the map before triggering so lookups will fail
       authoredEntities_.erase(i);
+
+      // destroy the RenderEntity
+      auto render_entity = Renderer::GetInstance().GetRenderEntity(entity);
+      if (render_entity) {
+         render_entity->Destroy();
+      }
+
+      // trigger lifecycle events
+      lua_State* L = scriptHost_->GetInterpreter();
+      luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+      luabind::object id(L, entity->GetObjectId());
+      luabind::object evt(L, luabind::newtable(L));
+      evt["entity"] = e;
+      evt["entity_id"] = id;
+
+      scriptHost_->TriggerOn(e, "radiant:entity:pre_destroy", evt);
+      scriptHost_->Trigger("radiant:entity:pre_destroy", evt);
+
+      evt = luabind::object(L, luabind::newtable(L));
+      evt["entity_id"] = id;
+
+      entity->Destroy();
+      entity = nullptr;
+
+      scriptHost_->Trigger("radiant:entity:post_destroy", evt);
    }
 }
 
