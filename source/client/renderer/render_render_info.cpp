@@ -43,21 +43,21 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    };
 
    if (render_info) {
-      scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+      scale_trace_ = render_info->TraceScale("RenderRenderInfo scale", dm::RENDER_TRACES)
                                     ->OnModified(set_scale_dirty_bit);
 
-      visible_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+      visible_trace_ = render_info->TraceVisible("RenderRenderInfo visible", dm::RENDER_TRACES)
                                     ->OnModified(set_visible_dirty_bit);
 
       // if the variant we want to render changes...
-      model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      model_variant_trace_ = render_info->TraceModelVariant("RenderRenderInfo model variant", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
       // if any entry in the attached items thing changes...
-      attached_trace_ = render_info->TraceAttachedEntities("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      attached_trace_ = render_info->TraceAttachedEntities("RenderRenderInfo attached entities", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
       // if the material changes...
-      material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
-      material_map_trace_ = render_info->TraceMaterialMaps("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      material_trace_ = render_info->TraceMaterial("RenderRenderInfo material", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      material_map_trace_ = render_info->TraceMaterialMaps("RenderRenderInfo material maps", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
    }
 
    // Manually update immediately on construction.
@@ -88,7 +88,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr lay
    if (layer) {
       om::ModelLayer::Layer level = layer->GetLayer();
 
-      variant_trace_ = layer->TraceModels("render", dm::RENDER_TRACES)
+      variant_trace_ = layer->TraceModels("RenderRenderInfo models", dm::RENDER_TRACES)
                               ->OnModified([this]() {
                                  SetDirtyBits(MODEL_DIRTY);
                               });

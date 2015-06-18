@@ -35,7 +35,7 @@ RenderTerrainTile::RenderTerrainTile(RenderTerrain& terrain, csg::Point3 const& 
    }
 
    if (region) {
-      _trace = region->TraceChanges("render", dm::RENDER_TRACES)
+      _trace = region->TraceChanges("RenderTerrainTile", dm::RENDER_TRACES)
                                     ->OnChanged([this](csg::Region3 const& region) {
                                        _terrain.MarkDirty(_location);
                                     });
