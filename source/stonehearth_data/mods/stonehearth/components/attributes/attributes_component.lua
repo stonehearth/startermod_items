@@ -331,7 +331,7 @@ function AttributesComponent:_recalculate(name)
             if mods['add'] then
                add_factor = add_factor + mods['add']
                if not modifier:get_private() then
-                  user_visible_add_factor = user_visible_add_factor * mods['add']
+                  user_visible_add_factor = user_visible_add_factor + mods['add']
                end
             end
 

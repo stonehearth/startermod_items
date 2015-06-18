@@ -7,6 +7,11 @@
 
       <div id="regenerateButton">{{i18n stonehearth:select_settlement_regenerate_map}}</div>
 
+      <div id="worldSeed">
+            {{i18n stonehearth:select_settlement_seed}}
+            <input id="worldSeedInput" onClick="this.select();" type="text" {{bind-attr value=view.world_seed}} />
+      </div>
+
       <div id="scroll">
          <img id="terrainPortrait"></img>
          <div id="terrainType"></div>

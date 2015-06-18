@@ -395,12 +395,14 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          radiant.call('stonehearth:enable_camera_movement', true)
       });
 
-      this.$('#name').keypress(function (e) {
+      this.$('#name')
+         .keypress(function (e) {
             if (e.which == 13) {
                radiant.call('stonehearth:set_display_name', self.uri, $(this).val())
                $(this).blur();
            }
-         });
+         })
+         .tooltipster({content: i18n.t('input_text_tooltip')});
       
       if (p) {
          $('#personality').html($.t(p.personality));   

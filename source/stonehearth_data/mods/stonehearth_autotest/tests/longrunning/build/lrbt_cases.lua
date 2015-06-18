@@ -89,6 +89,18 @@ function lrbt_cases.simple_wall(autotest, session)
 end
 
 
+function lrbt_cases.wall_with_window(autotest, session)
+   local wall
+   return {
+      function()
+         wall = lrbt_util.create_wooden_wall(session, Point3(0, 10, 0), Point3(6, 10, 0))
+      end,
+      function()
+         stonehearth.build:add_fixture(wall, 'stonehearth:portals:wooden_window_frame', Point3(-2, 3, 0), Point3(0, 0, -1))
+      end,
+   }   
+end
+
 function lrbt_cases.wall_with_banner_by_item(autotest, session)
    local sign = autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
    local wall

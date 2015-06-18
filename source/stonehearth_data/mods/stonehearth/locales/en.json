@@ -157,6 +157,8 @@
    "select_settlement_at_this_location" : "Settle here!",
    "select_settlement_clear_selection" : "Choose another location",
    "select_settlement_regenerate_map" : "Roll new map",
+   "select_settlement_seed" : "World Seed: ",
+   "input_text_tooltip" : "Click to edit",
 
    "loading_map": "Generating World",
    "loading_map_1": "sharpening right angles...",
