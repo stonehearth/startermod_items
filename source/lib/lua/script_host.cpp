@@ -1183,6 +1183,11 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
       try {
          luabind::object controller = datastore->GetController();
          if (controller.is_valid() && luabind::type(controller) == LUA_TTABLE) {
+            if (datastore->IsDestroyed()) {
+               SH_LOG(3) << "not restoring destroyed datastore " << datastore->GetControllerName();
+               continue;
+            }
+
             object restore_fn = controller["restore"];
             if (type(restore_fn) == LUA_TFUNCTION) {
                restore_fn(controller);
