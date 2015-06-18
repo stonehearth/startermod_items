@@ -553,10 +553,10 @@ GridItem* GridSpatialGraph::gridItemForNode(SceneNode const& node)
       if (node._accumulatedFlags & SceneNodeFlags::NoCull) {
          gi = &_noCullNodes[node._gridPos];
       } else {
-         gi = &_spilloverNodes[RENDER_NODES].at(node._gridPos);
+         gi = &_spilloverNodes[node._renderable ? RENDER_NODES : LIGHT_NODES].at(node._gridPos);
       }
    } else {
-      gi = &_gridElements.at(node._gridId).nodes[RENDER_NODES].at(node._gridPos);
+      gi = &_gridElements.at(node._gridId).nodes[node._renderable ? RENDER_NODES : LIGHT_NODES].at(node._gridPos);
    }
 
    return gi;
