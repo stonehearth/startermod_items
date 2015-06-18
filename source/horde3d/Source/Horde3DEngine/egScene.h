@@ -362,13 +362,13 @@ public:
 protected:
    void swapAndRemove(std::vector<GridItem>& vec, int index);
    int boundingBoxToGrid(BoundingBox const& aabb) const;
-   inline uint32 hashGridPoint(int x, int y) const;
-   inline void unhashGridHash(uint32 hash, int* x, int* y) const;
+   inline int hashGridPoint(int x, int y) const;
+   inline void unhashGridHash(int hash, int* x, int* y) const;
    void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    void _queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
 
-   std::unordered_map<uint32, GridElement> _gridElements;
+   std::unordered_map<int, GridElement> _gridElements;
    std::vector<GridItem> _noCullNodes;
    
    std::vector<GridItem> _spilloverNodes[2];

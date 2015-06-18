@@ -3088,7 +3088,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel, bool cached)
 {
    // Collect transform data for every node of this mesh/material kind.
-   radiant::perfmon::SwitchToCounter("copy mesh instances");
+   radiant::perfmon::TimelineCounterGuard dvm("drawVoxelMeshes_Instances_WithInstancing");
+
    // Set vertex layout
 	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
 
@@ -3104,6 +3105,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       numQueued = (unsigned int)renderableQueue.size();
       RENDER_LOG() << "using cached instance data " << vbInstanceData;
    } else {
+      radiant::perfmon::TimelineCounterGuard cmi("copy mesh instances");
       vbInstanceData = gRDI->acquireBuffer((int)(sizeof(float) * 16 * renderableQueue.size()));
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
       float* transformBuffer = _vbInstanceVoxelBuf;
@@ -3136,12 +3138,11 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
    }
 
    if (numQueued > 0) {
-      radiant::perfmon::SwitchToCounter("draw mesh instances");
+      radiant::perfmon::TimelineCounterGuard dmi("draw mesh instances");
       // Draw instanced meshes.
       gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
       gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), numQueued);
    }
-   radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
 
 	// Render
 	Modules::stats().incStat( EngineStats::BatchCount, 1 );
@@ -3154,7 +3155,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
 void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel)
 {
    // Collect transform data for every node of this mesh/material kind.
-   radiant::perfmon::SwitchToCounter("draw mesh instances");
+   radiant::perfmon::TimelineCounterGuard dmi("draw mesh instances");
    // Set vertex layout
    gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
    ShaderCombination* curShader = Modules::renderer().getCurShader();
@@ -3419,7 +3420,7 @@ void Renderer::drawParticles(SceneId sceneId, std::string const& shaderContext, 
 
 void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 {
-   radiant::perfmon::SwitchToCounter("render scene");
+   radiant::perfmon::TimelineCounterGuard rs("render scene");
 	_curCamera = camNode;
    _curPipeline = pRes;
 	if( _curCamera == 0x0 ) return;
@@ -3466,7 +3467,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 		if( !stage->enabled ) continue;
 		_curStageMatLink = stage->matLink;
 
-      radiant::perfmon::SwitchToCounter (stage->debug_name.c_str());
+      radiant::perfmon::TimelineCounterGuard stg(stage->debug_name.c_str());
 		R_LOG(5) << "running pipeline stage " << stage->id;
 		for( uint32 j = 0; j < stage->commands.size(); ++j )
 		{

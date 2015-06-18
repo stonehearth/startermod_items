@@ -49,7 +49,6 @@ static std::string FlagsToString(int flags)
    return s.str();
 };
 
-
 InstanceKey::InstanceKey() {
    geoResource = nullptr;
    matResource = nullptr;
@@ -200,9 +199,9 @@ void SceneNode::updateAccumulatedFlags()
    int parentFlags = _parent ? _parent->_accumulatedFlags : 0;
 
    int oldFlags = _accumulatedFlags;
-   _accumulatedFlags = _flags | parentFlags;
+   int newFlags = _flags | parentFlags;
 
-   if (_accumulatedFlags & SceneNodeFlags::NoDraw) {
+   if (newFlags & SceneNodeFlags::NoDraw) {
       if ((oldFlags & SceneNodeFlags::NoDraw) == 0) {
          Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, true);
       }
@@ -211,6 +210,7 @@ void SceneNode::updateAccumulatedFlags()
          Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, false);
       }
    }
+   _accumulatedFlags = newFlags;
 }
 
 void SceneNode::setFlags( int flags, bool recursive )
@@ -572,7 +572,7 @@ void GridSpatialGraph::updateNodeInstanceKey(SceneNode& sceneNode)
       }
    }
 }
-
+ 
 void GridSpatialGraph::swapAndRemove(std::vector<GridItem>& vec, int index) {
    if (vec.size() > 1) {
       vec[index] = vec.back();
@@ -601,7 +601,7 @@ void GridSpatialGraph::removeNode(SceneNode& sceneNode)
          if (sceneNode._gridId == -1) {
             vec = &_spilloverNodes[nodeType];
          } else {
-            vec = &_gridElements[sceneNode._gridId].nodes[nodeType];
+            vec = &_gridElements.at(sceneNode._gridId).nodes[nodeType];
          }
       }
 
@@ -638,7 +638,7 @@ int GridSpatialGraph::boundingBoxToGrid(BoundingBox const& aabb) const
 }
 
 
-inline uint32 GridSpatialGraph::hashGridPoint(int x, int y) const
+inline int GridSpatialGraph::hashGridPoint(int x, int y) const
 {
    uint32 lx = x + 0x8000;
    uint32 ly = y + 0x8000;
@@ -646,7 +646,7 @@ inline uint32 GridSpatialGraph::hashGridPoint(int x, int y) const
 }
 
 
-inline void GridSpatialGraph::unhashGridHash(uint32 hash, int* x, int* y) const
+inline void GridSpatialGraph::unhashGridHash(int hash, int* x, int* y) const
 {
    *x = (hash & 0xFFFF) - 0x8000;
    *y = (hash >> 16) - 0x8000;
@@ -718,7 +718,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
             newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE, sceneBox.min().y, (float)gY * GRIDSIZE));
             newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, (float)gY * GRIDSIZE + GRIDSIZE));
             
-            std::pair<uint32, GridElement> p(gridId, newGridElement);
+            std::pair<int, GridElement> p(gridId, newGridElement);
             e = _gridElements.insert(e, p);
          }
          const Vec3f& boundsMin = sceneBox.min();
@@ -786,6 +786,7 @@ void GridSpatialGraph::_queryGridLight(std::vector<GridItem> const& nodes, Frust
 
 void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes)
 {
+   radiant::perfmon::TimelineCounterGuard un("gsg:query");
    Modules::sceneMan().sceneForId(_sceneId).updateNodes();
 
    for (auto const& ge : _gridElements) {
