@@ -201,10 +201,10 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			if( !node1.getAttribute( "context" ) ) return "Missing DrawGeometry attribute 'context'";
 			
 			const char *orderStr = node1.getAttribute( "order", "" );
-			int order = RenderingOrder::StateChanges;
+			int order = RenderingOrder::None;
 			if( _stricmp( orderStr, "FRONT_TO_BACK" ) == 0 ) order = RenderingOrder::FrontToBack;
 			else if( _stricmp( orderStr, "BACK_TO_FRONT" ) == 0 ) order = RenderingOrder::BackToFront;
-			else if( _stricmp( orderStr, "NONE" ) == 0 ) order = RenderingOrder::None;
+			else if( _stricmp( orderStr, "STATE" ) == 0 ) order = RenderingOrder::StateChanges;
 
          float frustStart = (float)atof(node1.getAttribute("frustum_start", "0.0"));
          float frustEnd = (float)atof(node1.getAttribute("frustum_end", "1.0"));
@@ -226,10 +226,10 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			if( !node1.getAttribute( "context" ) ) return "Missing DrawSelected attribute 'context'";
 			
 			const char *orderStr = node1.getAttribute( "order", "" );
-			int order = RenderingOrder::StateChanges;
+			int order = RenderingOrder::None;
 			if( _stricmp( orderStr, "FRONT_TO_BACK" ) == 0 ) order = RenderingOrder::FrontToBack;
 			else if( _stricmp( orderStr, "BACK_TO_FRONT" ) == 0 ) order = RenderingOrder::BackToFront;
-			else if( _stricmp( orderStr, "NONE" ) == 0 ) order = RenderingOrder::None;
+         else if( _stricmp( orderStr, "STATE" ) == 0 ) order = RenderingOrder::StateChanges;
          int lodLevel = atoi(node1.getAttribute("forceLodLevel", "-1"));
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DrawSelected ) );
@@ -278,10 +278,10 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 		else if( strcmp( node1.getName(), "DoForwardLightLoop" ) == 0 )
 		{
 			const char *orderStr = node1.getAttribute( "order", "" );
-			int order = RenderingOrder::StateChanges;
+			int order = RenderingOrder::None;
 			if( _stricmp( orderStr, "FRONT_TO_BACK" ) == 0 ) order = RenderingOrder::FrontToBack;
 			else if( _stricmp( orderStr, "BACK_TO_FRONT" ) == 0 ) order = RenderingOrder::BackToFront;
-			else if( _stricmp( orderStr, "NONE" ) == 0 ) order = RenderingOrder::None;
+         else if( _stricmp( orderStr, "STATE" ) == 0 ) order = RenderingOrder::StateChanges;
 
 			stage->commands.push_back( PipelineCommand( PipelineCommands::DoForwardLightLoop ) );
 			vector< PipeCmdParam > &params = stage->commands.back().params;
