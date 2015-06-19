@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "lauxlib.h"
 #include "radiant_file.h"
+#include "core/guard.h"
 #include "core/config.h"
 #include "core/system.h"
 #include "core/static_string.h"
@@ -262,6 +263,7 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
+IMPLEMENT_TRIVIAL_TOSTRING(core::Guard);
 
 void ScriptHost::ProfileHookFn(lua_State *L, lua_Debug *ar)
 {
@@ -458,7 +460,9 @@ ScriptHost::ScriptHost(std::string const& site) :
          def("is_profiler_enabled",    &core::IsProfilerEnabled),
          def("is_profiler_available",  &core::IsProfilerAvailable),
          namespace_("core") [
-            lua::RegisterType<core::StaticString>("StaticString")               
+            lua::RegisterType<core::StaticString>("StaticString"),
+            lua::RegisterTypePtr_NoTypeInfo<core::Guard>("Guard")
+               .def("destroy",         &core::Guard::Clear)
          ],
          namespace_("lua") [
             lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
