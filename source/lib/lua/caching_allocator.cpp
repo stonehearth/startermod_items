@@ -29,6 +29,7 @@ tbb::spin_mutex __lock;
 
 CachingAllocator::CachingAllocator() :
    _byteCount(0),
+   _totalByteCount(0),
    _lowMemoryHeapSize(0),
    _freelistByteCount(0),
    _state(UnInitialized),
@@ -268,6 +269,7 @@ void *CachingAllocator::Allocate(size_t size)
          }
          ptr = new char[size];
       }
+      _totalByteCount += size;
    }
 
    return ptr;
@@ -297,6 +299,7 @@ void CachingAllocator::Deallocate(void *ptr, size_t size)
       } else {
          delete [] ptr;
       }
+      _totalByteCount -= size;
    }
 }
 
@@ -305,4 +308,11 @@ int CachingAllocator::GetAllocBytesCount()
    tbb::spin_mutex::scoped_lock lock(__lock);
 
    return static_cast<int>(_byteCount);
+}
+
+int CachingAllocator::GetTotalMemoryFootprint()
+{
+   tbb::spin_mutex::scoped_lock lock(__lock);
+
+   return static_cast<int>(_totalByteCount);
 }

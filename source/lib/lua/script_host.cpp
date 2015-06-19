@@ -1069,6 +1069,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename)
 void ScriptHost::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const
 {
    addCounter("lua:alloced_bytes", GetAllocBytesCount(), "memory");
+   addCounter("lua:total_alloced_bytes", CachingAllocator::GetInstance().GetTotalMemoryFootprint(), "memory");
    for (auto const& entry : performanceCounters_) {
       addCounter(entry.first.c_str(), entry.second.first, entry.second.second.c_str());
    }
