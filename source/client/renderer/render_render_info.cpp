@@ -377,7 +377,7 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
    // turn off LOD and instancing.
    bool hasBones = skeleton.GetNumBones() > 1;
    bool noInstancing = hasBones;
-   int lodCount = hasBones ? 1 : 4;
+   int lodCount = hasBones ? 1 : GeometryInfo::MAX_LOD_LEVELS;
 
    Pipeline::MaterialToGeometryMapPtr geometry;
    Pipeline& pipeline = Pipeline::GetInstance();
