@@ -11,7 +11,9 @@ StackFrame::StackFrame(const char* sourceName, unsigned int fnDefLine) :
    _sourceName(sourceName),
    _fnDefLine(fnDefLine),
    _selfTime(0),
-   _callCount(1)
+   _callCount(1),
+   _startLine(0),
+   _endLine(0)
 {
 }
 
@@ -45,7 +47,10 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
 {
    // Figure out the name of the function
    if (strcmp(_sourceName, TOP_FRAME)) {
-      _fnName = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
+      auto fn = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
+      _fnName = fn.functionName;
+      _startLine = fn.startLine;
+      _endLine = fn.endLine;
    } else {
       _fnName = TOP_FRAME;
    }
@@ -57,11 +62,12 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
 void StackFrame::WriteJson(std::ostream& os) const
 {
    os << "{" << std::endl
-      << "   \"file\": \""       << _sourceName    << "\"," << std::endl
-      << "   \"function\": \""   << _fnName        << "\"," << std::endl
-      << "   \"line\":   "       << _fnDefLine     << "," << std::endl
-      << "   \"selfTime\":   "   << _selfTime      << "," << std::endl
-      << "   \"callCount\":   "  << _callCount     << "," << std::endl;
+      << "   \"file\":        \"" << _sourceName << "\"," << std::endl
+      << "   \"function\":    \"" << _fnName << "\"," << std::endl
+      << "   \"lineStart\":   "   << _startLine << "," << std::endl
+      << "   \"lineEnd\":     "   << _endLine << "," << std::endl
+      << "   \"selfTime\":    "   << _selfTime      << "," << std::endl
+      << "   \"callCount\":   "   << _callCount     << "," << std::endl;
 
    // lines...
    os << "   \"lines\": [" << std::endl;

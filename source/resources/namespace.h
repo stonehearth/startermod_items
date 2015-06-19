@@ -16,6 +16,12 @@ namespace fbs {
    struct LuaFileMapper;
 };
 
+struct LuaFunctionInfo {
+   int startLine;
+   int endLine;
+   const char* functionName;
+};
+
 DECLARE_SHARED_POINTER_TYPES(LuaFileMapper);
 DECLARE_SHARED_POINTER_TYPES(ResourceCompiler)
 

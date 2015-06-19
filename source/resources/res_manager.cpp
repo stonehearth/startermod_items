@@ -761,7 +761,7 @@ luabind::object ResourceManager2::LoadScript(lua_State* L, std::string const& pa
 }
 
 
-core::StaticString ResourceManager2::MapFileLineToFunction(core::StaticString file, int line)
+LuaFunctionInfo ResourceManager2::MapFileLineToFunction(core::StaticString file, int line)
 {
    DelayLoadCompiler();
    return _compiler->MapFileLineToFunction(file, line);

@@ -67,7 +67,7 @@ void LuaFileMapper::Load(fbs::LuaFileMapper const* lfi)
    }
 }
 
-core::StaticString LuaFileMapper::MapFileLineToFunction(core::StaticString file, int line)
+LuaFunctionInfo LuaFileMapper::MapFileLineToFunction(core::StaticString file, int line)
 {
    return Find(file).GetFunction(line);
 }
@@ -161,10 +161,23 @@ void LuaFileIndex::AddFunction(core::StaticString fn, int min, int max)
    }
 }
 
-core::StaticString LuaFileIndex::GetFunction(int line)
+LuaFunctionInfo LuaFileIndex::GetFunction(int line)
 {
    ASSERT(line >= 0 && line < (int)_lines.size());
-   return _lines[line];
+   LuaFunctionInfo result;
+
+   result.functionName = _lines[line];
+   result.startLine = line;
+   result.endLine = line;
+
+   while (result.startLine > 1 && _lines[result.startLine - 1] == result.functionName) {
+      --result.startLine;
+   }
+   int c = (int)_lines.size();
+   while (result.endLine < (c-1) && _lines[result.endLine + 1] == result.functionName) {
+      ++result.endLine;
+   }
+   return result;
 }
 
 std::string const& LuaFileIndex::GetHash() const
