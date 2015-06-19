@@ -94,9 +94,5 @@ LuaFunctionInfo ResourceCompiler::MapFileLineToFunction(core::StaticString file,
    if (_luaFileMapper) {
       return _luaFileMapper->MapFileLineToFunction(file, line);
    }
-   LuaFunctionInfo result;
-   result.functionName = "cpu profiler not enabled";
-   result.startLine = 0;
-   result.endLine = 0;
-   return result;
+   return LuaFunctionInfo("cpu profiler not enabled", 0, 0);
 }
