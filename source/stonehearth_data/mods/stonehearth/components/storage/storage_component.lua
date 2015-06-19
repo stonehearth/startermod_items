@@ -181,6 +181,9 @@ function StorageComponent:add_item(item)
    stonehearth.inventory:get_inventory(self._sv.player_id):add_item(item)
    stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, self._sv.entity)
 
+   if item:is_valid() then
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+   end
    self:_on_contents_changed()
 
    self.__saved_variables:mark_changed()
@@ -189,6 +192,7 @@ end
 function StorageComponent:remove_item(id)
    assert(self._sv.items[id])
 
+   local item = self._sv.items[id]
    self._sv.num_items = self._sv.num_items - 1
    self._sv.items[id] = nil
    self._sv.passed_items[id] = nil
@@ -197,6 +201,9 @@ function StorageComponent:remove_item(id)
 
    stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
    stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, nil)
+   if item:is_valid() then
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+   end
 
    self:_on_contents_changed()
 
