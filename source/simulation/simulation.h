@@ -11,7 +11,6 @@
 #include "core/static_string.h"
 #include "lib/lua/bind.h"
 #include "physics/octtree.h"
-#include "physics/free_motion.h"
 #include "platform/utils.h"
 #include "dm/store.h"
 #include "core/guard.h"
@@ -140,7 +139,6 @@ private:
    void ShutdownLuaObjects();
 
    void CreateGame();
-   void CreateFreeMotionTrace(om::MobPtr mob);
    void LogJobPerfCounters(perfmon::Frame* frame);
    std::string GetProgressForJob(core::StaticString name) const;
    void ForEachPathFinder(std::function<void(PathFinderPtr const&)> cb);
@@ -159,7 +157,6 @@ private:
 private:
    std::unique_ptr<dm::Store>                            store_;
    std::unique_ptr<phys::OctTree>                        octtree_;
-   std::unique_ptr<phys::FreeMotion>                     freeMotion_;
    std::unique_ptr<phys::WaterTightRegionBuilder>        waterTightRegionBuilder_;
    std::unique_ptr<lua::ScriptHost>                      scriptHost_;
 
@@ -223,7 +220,6 @@ private:
    om::ModListPtr                      modList_;
    om::ClockPtr                        clock_;
    float                               game_speed_;
-   FreeMotionTaskMap                   freeMotionTasks_;
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
    std::vector<std::function<void()>>  _bottomLoopFns;
