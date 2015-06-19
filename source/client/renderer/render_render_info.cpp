@@ -373,15 +373,19 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
          csg::RegionToMeshMap(all_models, meshes, -meshOrigin, _materialMap, defaultMaterial, skeleton.GetBoneNumber(boneName));
       }
    };
-   bool noInstancing = skeleton.GetNumBones() > 1;
+   // If the thing has bones, we assume it has an animation.  If it has an animation, we
+   // turn off LOD and instancing.
+   bool hasBones = skeleton.GetNumBones() > 1;
+   bool noInstancing = hasBones;
+   int lodCount = hasBones ? 1 : GeometryInfo::MAX_LOD_LEVELS;
 
    Pipeline::MaterialToGeometryMapPtr geometry;
    Pipeline& pipeline = Pipeline::GetInstance();
 
    if (render_info->GetCacheModelGeometry()) {
-      pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing);
+      pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing, lodCount);
    } else {
-      pipeline.CreateGeometryFromGenerator(geometry, _materialMap, generate_matrix, true);
+      pipeline.CreateGeometryFromGenerator(geometry, _materialMap, generate_matrix, true, lodCount);
    }
 
    H3DNode parent = entity_.GetNode();

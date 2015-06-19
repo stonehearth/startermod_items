@@ -403,7 +403,7 @@ H3DNode Pipeline::CreateVoxelMeshNode(H3DNode parent, GeometryInfo const& geo, S
    return meshNode;
 }
 
-void Pipeline::CreateGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
+void Pipeline::CreateGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing, int lodLevel)
 {
    // Create all the geometry and cache it
    geometryPtr = std::make_shared<MaterialToGeometryMap>();
@@ -414,7 +414,7 @@ void Pipeline::CreateGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr
    std::unordered_map<csg::MaterialName, std::vector<VoxelGeometryVertex>, csg::MaterialName::Hash> verticesByMaterial;
    std::unordered_map<csg::MaterialName, std::vector<unsigned int>, csg::MaterialName::Hash> indicesByMaterial;
 
-   for (int i = 0; i < GeometryInfo::MAX_LOD_LEVELS; i++) {
+   for (int i = 0; i < lodLevel; i++) {
       // For every material, propogate the offset from the previous
       // stage to the next.  This is important in the case whre the LOD
       // process removes entire materials from the mesh.
@@ -437,7 +437,7 @@ void Pipeline::CreateGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr
          std::vector<unsigned int>& indices = indicesByMaterial[material];
          std::vector<VoxelGeometryVertex>& vertices = verticesByMaterial[material];
 
-         geo.levelCount = GeometryInfo::MAX_LOD_LEVELS;
+         geo.levelCount = lodLevel;
          geo.noInstancing = noInstancing;
          geo.vertexIndices[i + 1] = geo.vertexIndices[i] + (int)buffers.vertexCount;
          geo.indexIndicies[i + 1] = geo.indexIndicies[i] + (int)buffers.indexCount;
@@ -463,7 +463,7 @@ void Pipeline::CreateGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr
    }
 }
 
-void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing)
+void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geometryPtr, ResourceCacheKey const& key, csg::ColorToMaterialMap const& colormap, CreateMeshLodLevelFn const& create_mesh_fn, bool noInstancing, int lodLevel)
 {
    // The meshes which get generated are determined greatly by the colormap.  For example, we might have
    // a colormap which remaps every color to red, which of course would generate different meshes than
@@ -485,7 +485,7 @@ void Pipeline::CreateSharedGeometryFromGenerator(MaterialToGeometryMapPtr& geome
       geometryPtr = i->second;
       return;
    }
-   CreateGeometryFromGenerator(geometryPtr, colormap, create_mesh_fn, noInstancing);
+   CreateGeometryFromGenerator(geometryPtr, colormap, create_mesh_fn, noInstancing, lodLevel);
 
    // Finally, cache it!
    _materialToGeometryCache[key] = geometryPtr;

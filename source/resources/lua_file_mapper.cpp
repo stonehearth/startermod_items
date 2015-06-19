@@ -166,16 +166,17 @@ LuaFunctionInfo LuaFileIndex::GetFunction(int line)
    ASSERT(line >= 0 && line < (int)_lines.size());
    LuaFunctionInfo result;
 
-   result.functionName = _lines[line];
-   result.startLine = line;
-   result.endLine = line;
-
-   while (result.startLine > 1 && _lines[result.startLine - 1] == result.functionName) {
-      --result.startLine;
-   }
    int c = (int)_lines.size();
-   while (result.endLine < (c-1) && _lines[result.endLine + 1] == result.functionName) {
-      ++result.endLine;
+
+   result.functionName = _lines[line];
+   result.startLine = 0;
+   result.endLine = c - 1;
+
+   while (result.startLine < c && _lines[result.startLine] != result.functionName) {
+      ++result.startLine;
+   }
+   while (result.endLine > 0 && _lines[result.endLine] != result.functionName) {
+      --result.endLine;
    }
    return result;
 }

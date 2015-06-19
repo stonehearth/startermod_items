@@ -20,6 +20,8 @@ struct LuaFunctionInfo {
    int startLine;
    int endLine;
    const char* functionName;
+   LuaFunctionInfo() : functionName(""), startLine(0), endLine(0) {}
+   LuaFunctionInfo(const char* f, int a, int z) : functionName(f), startLine(a), endLine(z) {}
 };
 
 DECLARE_SHARED_POINTER_TYPES(LuaFileMapper);

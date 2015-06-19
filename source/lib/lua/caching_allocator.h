@@ -20,6 +20,7 @@ public:
    void Start(bool useLowMemory);
    void ReportMemoryStats(bool force = false);
    int GetAllocBytesCount();
+   int GetTotalMemoryFootprint();
 
    inline bool IsUsingLowMemory() const { return _lowMemoryHeap != nullptr; }
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
@@ -59,6 +60,7 @@ private:
 
    State                      _state;
    size_t                     _byteCount;
+   size_t                     _totalByteCount;
    bool                       _warnedHeapFull;
    platform::timer            _reportTimer;
 
