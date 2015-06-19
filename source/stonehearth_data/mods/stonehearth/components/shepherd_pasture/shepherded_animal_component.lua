@@ -28,7 +28,9 @@ function ShepherdedAnimalComponent:free_animal()
 
    --Free self from shepherd
    if self._sv.should_follow then
-      if self._sv.last_shepherd_entity then
+      -- It's possible we're being freed by a destroyed shepherd, in which case we don't need to tell the
+      -- shepherd to remove us.
+      if self._sv.last_shepherd_entity and self._sv.last_shepherd_entity:is_valid() then
          local shepherd_class = self._sv.last_shepherd_entity:get_component('stonehearth:job'):get_curr_job_controller()
          if shepherd_class and shepherd_class.remove_trailing_animal then
             shepherd_class:remove_trailing_animal(self._sv.animal:get_id())

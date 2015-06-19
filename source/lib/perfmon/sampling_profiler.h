@@ -46,6 +46,8 @@ private:
    CounterValueType           _selfTime;
    std::vector<StackFrame>    _callers;
    std::vector<LineCount>     _lines;
+   int                        _startLine;
+   int                        _endLine;
    unsigned int               _callCount;
 };
 

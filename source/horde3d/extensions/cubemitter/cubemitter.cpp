@@ -436,26 +436,29 @@ bool CubemitterNode::hasFinished()
 void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderContext, bool debugView,
                                  const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
-	if( frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0 ) return;
-	if( debugView ) return;  // Don't render particles in debug view
+   if (frust1 == 0x0 || Modules::renderer().getCurCamera() == 0x0) {
+      return;
+   }
+   if (debugView ) {
+      return;  // Don't render particles in debug view
+   }
+   MaterialResource *curMatRes = 0x0;
 
-	MaterialResource *curMatRes = 0x0;
+   // Loop through and find all Cubemitters.
+   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_CubemitterNode)) {
+      CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
-	// Loop through and find all Cubemitters.
-	for( const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_CubemitterNode) )
-	{
-		CubemitterNode *emitter = (CubemitterNode *)entry.node;
-
-      if( emitter->_maxCubes == 0 ) continue;
+      if (emitter->_maxCubes == 0) {
+         continue;
+      }
 				
-		// Set material
-		if( curMatRes != emitter->_materialRes )
-		{
-			if( !Modules::renderer().setMaterial( emitter->_materialRes, shaderContext ) ) {
+      // Set material
+      if (curMatRes != emitter->_materialRes) {
+         if (!Modules::renderer().setMaterial( emitter->_materialRes, shaderContext)) {
             continue;
          }
-			curMatRes = emitter->_materialRes;
-		}
+         curMatRes = emitter->_materialRes;
+      }
 
       if (gRDI->getCaps().hasInstancing) {
          emitter->renderWithInstancing();
@@ -464,9 +467,9 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
       }
       
       emitter->_wasVisible = true;
-	}
+   }
 	
-	gRDI->setVertexLayout( 0 );
+   gRDI->setVertexLayout( 0 );
 }
 
 void CubemitterNode::renderWithInstancing()

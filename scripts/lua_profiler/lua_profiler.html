@@ -70,6 +70,8 @@
          if (!bnode) {
             bnode = Profiler.BottomUpNode.create({ tnode: tnode });
             this._bottomUpMap[key] = bnode;
+         } else {
+            bnode.addTnode(tnode);
          }
          bnode.addTraceback(tnode.selfTime, traceback);
 
@@ -175,7 +177,12 @@
 
       hasTails : function() {
          return this.get('tails').length > 0;
-      }.property('tails')
+      }.property('tails'),
+
+      percentTime : function() {
+         return (this.get('selfTime') * 100 / totalTime).toFixed(1);
+      }.property('selfTime'),
+
    });
 
    // The BottomUpNode stores the bottom up information.  There's just a flat
@@ -189,13 +196,25 @@
          this.traceback = Profiler.TracebackNode.create({
                tnode: this.tnode,
             });
+         this.set('lines', {});
+      },
+
+      addTnode: function(tnode) {         
+         var lines = this.get('lines')
+         var tnodeLines = tnode.get('lines');
+         $.each(tnodeLines, function(k, v) {
+            if (tnodeLines.hasOwnProperty(k)) {
+               lines[k] = (lines[k] || 0) + v;
+            }
+         });
+         this.set('selfTime', this.get('selfTime') + tnode.get('selfTime'));
+         this.set('lines', lines)
       },
 
       // `traceback` is an inverted stack of how we reached the node.
       // This function accumulates many `tracebacks` into a tree of TracebackNodes
       // which will eventually be used to render the stacks in the bottom up pane
       addTraceback: function(time, traceback) {
-         this.selfTime = time + this.selfTime;
          var tbnode = this.traceback;
 
          // Don't go back more than maxStackLength.  Some of these stacks are
@@ -215,6 +234,48 @@
       _computeTraceback: function() {
          this.traceback.set('collapsed', this.get('collapsed'));
       }.observes('collapsed'),
+
+      file: function() {
+         var tnode = this.get('tnode');
+         if (tnode) {
+            var file = luaFileMap[tnode.file];
+            file = file.replace(/&#92;/g,  '\\');
+            file = file.replace(/&quot;/g, '\"');
+            file = file.replace(/\\n/g,    '\n');
+
+            var lines = this.get('lines');
+            var totalLines = this.get('tnode.totalLines');
+
+            var fileLines = file.split('\n');
+            fileLines.unshift("");     // 1 index
+
+            var functionLines = [];
+            var startLine = this.get('tnode.line');
+            var lineCount = this.get('tnode.lineCount');
+
+            var totalCount = 0;
+            $.each(lines, function(k, v) {
+               if (lines.hasOwnProperty(k)) {
+                  totalCount += v;
+               }
+            });
+
+            for (var i = 0; i < lineCount + 1; i++) {
+               var count = lines[i] || 0;
+               functionLines[i] = {
+                  text:          fileLines[startLine + i],
+                  percentTime:   (count * 100 / totalCount).toFixed(2),
+               }
+            }
+            return functionLines
+         }
+         return 'no file';
+      }.property('tnode'),
+
+      percentTime: function() {
+         return (this.get('selfTime') * 100 / totalTime).toFixed(1);
+      }.property('selfTime'),
+
    });
 
    // The TopDownNode represents a single call and all calls that function made.
@@ -233,7 +294,8 @@
 
          this.set('file',     data.file);
          this.set('fn',       data['function']);
-         this.set('line',     data.line);
+         this.set('line',     data.lineStart);
+         this.set('lineCount',data.lineEnd - data.lineStart);
          this.set('selfTime', data.selfTime);
          this.set('depth',    depth);
          if (data.callers) {
@@ -244,6 +306,16 @@
             };
          }
          this.set('children', children);
+
+         if (data.lines) {
+            var startLine = this.get('line');
+            var lines = {}
+            for (var i = 0; i < data.lines.length; i++) {
+               var lineOffset = data.lines[i].line - startLine;
+               lines[lineOffset] = data.lines[i].count;
+            }
+            this.set('lines', lines);
+         }
       },
 
       fileline : function() {
@@ -315,6 +387,7 @@
             var filename = bnode.tnode.filename;
             console.log('inspecting function', bnode, filename);
 
+            this.set('fnbnode', bnode);
             this._showPage('#fn-inspector');
          }
       },
@@ -332,14 +405,6 @@
             this.get('node').set('collapsed', true);
          },
       }
-   });
-
-   Profiler.PercentBarComponent = Ember.Component.extend({
-      tagName: 'div',
-
-      percentTime : function() {
-         return (this.get('node.selfTime') * 100 / totalTime).toFixed(1);
-      }.property('node.selfTime'),
    });
 
    // Make sure we don't stick a <div> around these, since they're making
@@ -367,7 +432,7 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/percent-bar'>
-   <div id="progress" class="graph"><div id="bar" style="width:{{ this.percentTime }}%"><p>{{ this.percentTime }}%</p></div></div>
+   <div id="progress" class="graph"><div id="bar" style="width:{{ node.percentTime }}%"><p>{{ node.percentTime }}%</p></div></div>
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/top-down'>
@@ -425,7 +490,14 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/fn-inspector'>
-   Hi!
+   <table>
+      {{#each bnode.file key="@index" as |line|}}
+      <tr>
+         <td style="min-width:100px">{{ percent-bar node=line }}</td>
+         <td><pre>{{ line.text }}</pre></td>
+      </tr>
+      {{/each}}
+   </table>
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/prof-view'>
@@ -441,7 +513,7 @@
       {{top-down root=data.topdown profiler=this }}
    </div>
    <div class='page' id='fn-inspector'>
-      {{fn-inspector bnode=data.fnbnode }}
+      {{fn-inspector bnode=this.fnbnode }}
    </div>
 </script>
  

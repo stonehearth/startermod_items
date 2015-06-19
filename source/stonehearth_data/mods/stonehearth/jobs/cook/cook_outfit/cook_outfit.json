@@ -3,7 +3,7 @@
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "cook Outfit",
+         "name" :  "Cook Outfit",
          "description" : "Uniform for all cooks",
          "icon" : "file(cook_outfit.png)"
       },

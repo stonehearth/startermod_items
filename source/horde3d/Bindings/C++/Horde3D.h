@@ -476,8 +476,7 @@ struct H3DNodeFlags
 		NoCastShadow = 2,
 		NoRayQuery = 4,
 		Inactive = 7,  // NoDraw | NoCastShadow | NoRayQuery
-		Selected = 8,
-      NoCull = 16
+      NoCull = 8
 	};
 };
 

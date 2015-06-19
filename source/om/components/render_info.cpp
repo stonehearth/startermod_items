@@ -16,6 +16,7 @@ void RenderInfo::ConstructObject()
    Component::ConstructObject();
    scale_ = 0.1f;
    visible_ = true;
+   cache_model_geometry_ = true;
 }
 
 void RenderInfo::LoadFromJson(json::Node const& obj)
@@ -43,6 +44,7 @@ void RenderInfo::SerializeToJson(json::Node& node) const
    node.set("model_variant", GetModelVariant());
    node.set("animation_table", GetAnimationTable());
    node.set("colorindex", GetColorMap());
+   node.set("cache_model_geometry", GetCacheModelGeometry());
 
    JSONNode materialMaps(JSON_ARRAY);
    for (std::string const& map : EachMaterialMap()) {

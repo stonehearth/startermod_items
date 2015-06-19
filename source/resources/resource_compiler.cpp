@@ -88,11 +88,15 @@ luabind::object ResourceCompiler::CompileScript(lua_State* L, std::string const&
    return obj;
 }
 
-core::StaticString ResourceCompiler::MapFileLineToFunction(core::StaticString file, int line)
+LuaFunctionInfo ResourceCompiler::MapFileLineToFunction(core::StaticString file, int line)
 {
    ASSERT(_luaFileMapper);
    if (_luaFileMapper) {
       return _luaFileMapper->MapFileLineToFunction(file, line);
    }
-   return "cpu profiler not enabled";
+   LuaFunctionInfo result;
+   result.functionName = "cpu profiler not enabled";
+   result.startLine = 0;
+   result.endLine = 0;
+   return result;
 }

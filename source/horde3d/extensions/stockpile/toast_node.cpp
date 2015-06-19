@@ -155,7 +155,7 @@ void ToastNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderCo
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
-   for (const auto &entry : Modules::sceneMan().sceneForId(sceneId).getRenderableQueue(SNT_ToastNode)) {
+   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_ToastNode)) {
       ToastNode *toast = (ToastNode *)entry.node;
 
       if (!fontMaterial_) {

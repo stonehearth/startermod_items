@@ -39,7 +39,7 @@ public:
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
 
    luabind::object LoadScript(lua_State* L, std::string const& path);
-   core::StaticString MapFileLineToFunction(core::StaticString file, int line);
+   LuaFunctionInfo MapFileLineToFunction(core::StaticString file, int line);
 
 private:
    enum MixinMode {

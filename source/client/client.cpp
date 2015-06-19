@@ -2049,6 +2049,13 @@ void Client::CreateGame()
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->CreateGame(localModList_, _allocDataStoreFn);
    initialUpdate_ = true;
+
+   core::Config const& config = core::Config::GetInstance();
+   std::string loadGame = config.Get<std::string>("game.load_game", "");
+   if (loadGame != "") {
+      _asyncLoadName = loadGame;
+      _asyncLoadPending = true;      
+   }
 }
 
 void Client::InitializeUIScreen()

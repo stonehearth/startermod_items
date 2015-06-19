@@ -32,11 +32,6 @@
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Projections">
-         <!-- '1' is UserFlags::Terrain only (see pipeline.h for enum definition). -->
-         <DrawProjections context="PROJECTION" userFlags="1" />
-      </Stage>
-
       <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry context="FOG" noShadows="true" frustum_start="0.7"/>
@@ -46,11 +41,11 @@
       <Stage id="Translucent">
          <DrawGeometry context="WATER_LOWQ" order="BACK_TO_FRONT" forceLodLevel="0"/>
 
-         <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
-         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
-         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
-         <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
-         <DrawGeometry context="DEBUG_SHAPES" />
+         <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" forceLodLevel="0"/>
+         <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" forceLodLevel="0"/>
+         <DrawGeometry context="BLUEPRINTS_DEPTH_PASS" forceLodLevel="0"/>
+         <DrawGeometry context="BLUEPRINTS_COLOR_PASS" forceLodLevel="0"/>
+         <DrawGeometry context="DEBUG_SHAPES" forceLodLevel="0"/>
       </Stage>
 
       <Stage id="Emissive">
@@ -58,7 +53,7 @@
       </Stage>
 
       <Stage id="Selected_Fast">
-         <DrawSelected context="SELECTED_FAST" />
+         <DrawSelected context="SELECTED_FAST" forceLodLevel="0"/>
       </Stage>
 
       <Stage id="Overlays">

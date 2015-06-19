@@ -43,17 +43,25 @@ end
 
 -- On destroy, nuke the listeners
 function SafetyScoreObserver:destroy()
-   self._panic_listener:destroy()
-   self._panic_listener = nil
+   if self._panic_listener then
+      self._panic_listener:destroy()
+      self._panic_listener = nil
+   end
 
-   self._midnight_listener:destroy()
-   self._midnight_listener = nil
+   if self._midnight_listener then
+      self._midnight_listener:destroy()
+      self._midnight_listener = nil
+   end
 
-   self._combat_battery_listener:destroy()
-   self._combat_battery_listener = nil
+   if self._combat_battery_listener then
+      self._combat_battery_listener:destroy()
+      self._combat_battery_listener = nil
+   end
 
-   self._kill_event_listener:destroy()
-   self._kill_event_listener = nil
+   if self._kill_event_listener then
+      self._kill_event_listener:destroy()
+      self._kill_event_listener = nil
+   end
 end
 
 -- Once a day, when we're panicking, lower our safety score

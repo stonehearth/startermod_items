@@ -1,15 +1,13 @@
 $(document).ready(function(){
-    var existingPromotionTree = null;
    $(top).on("radiant_promote_to_job", function (_, e) {
-      if (existingPromotionTree) {
-        existingPromotionTree.destroy();
-        existingPromotionTree = null;
+      if (App.stonehearth.promotionTreeView) {
+         App.stonehearth.promotionTreeView.destroy();
+      } else {
+         App.stonehearth.promotionTreeView = App.gameView.addView(App.StonehearthPromotionTree, { 
+           citizen: e.entity
+        });
       }
-
-      existingPromotionTree = App.gameView.addView(App.StonehearthPromotionTree, { 
-         citizen: e.entity
-      });
-   });
+    });
 });
 
 App.StonehearthPromotionTree = App.View.extend({
@@ -404,6 +402,8 @@ App.StonehearthPromotionTree = App.View.extend({
       if (this._citizenTrace) {
          this._citizenTrace.destroy();
       }
+
+      App.stonehearth.promotionTreeView = null;
 
       this._super();
    },
