@@ -1937,6 +1937,8 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
 {
    radiant::perfmon::TimelineCounterGuard uq("composeRenderables");
 
+   cacheResults = cacheResults && Modules::config().enableRenderCaching;
+
    if (cacheResults) {
       // Has this query been cached?  Set those renderable queues, if so.
       for (int i = 0; i < _renderCacheCount; i++) {
@@ -2973,6 +2975,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
       return;
    }
 	
+   cached = cached && Modules::config().enableRenderCaching;
+
 	MaterialResource *curMatRes = 0x0;
 
    bool useInstancing = gRDI->getCaps().hasInstancing;

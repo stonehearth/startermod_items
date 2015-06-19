@@ -50,7 +50,8 @@ struct EngineOptions
       EnableStatsLogging,
       DisablePinnedMemory,
       MaxLights,
-      DumpCompiledShaders
+      DumpCompiledShaders,
+      EnableRenderCaching
 	};
 };
 
@@ -86,6 +87,7 @@ public:
    bool  disablePinnedMemory;
    int   maxLights;
    bool dumpCompiledShaders;
+   bool enableRenderCaching;
    std::set<std::string> shaderFlags;
 };
 
