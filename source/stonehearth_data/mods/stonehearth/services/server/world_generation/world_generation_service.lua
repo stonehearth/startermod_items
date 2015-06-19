@@ -141,6 +141,10 @@ function WorldGenerationService:needs_camp_placement_command(session, response)
    return self._sv.seed ~= nil and self._sv._starting_location == nil
 end
 
+function WorldGenerationService:get_world_seed_command(session, response)
+   response:resolve({seed=self._sv.seed})
+end
+
 function WorldGenerationService:set_starting_location(location)
    self._sv._starting_location = location
 
