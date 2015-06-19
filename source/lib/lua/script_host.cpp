@@ -446,6 +446,10 @@ ScriptHost::ScriptHost(std::string const& site) :
       lua_setalloc2f(L_, LuaAllocFnWithState, this);
    }
 
+   // Both values default to 200 in lua, but we need something more aggressive to clear our garbage!
+   lua_gc(L_, LUA_GCSETPAUSE, core::Config::GetInstance().Get<int>("lua.gc_step_pause", 125));
+   lua_gc(L_, LUA_GCSETSTEPMUL, core::Config::GetInstance().Get<int>("lua.gc_step_mul", 400));
+
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
 
