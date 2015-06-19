@@ -5,12 +5,14 @@ local log = radiant.log.create_logger('backpack')
 
 function BackpackComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
-   self._entity = entity
+   
+   -- We don't hold reservations across saves.
    self.num_reserved = 0
 
    if not self._sv.initialized then
       self._sv.capacity = json.capacity or 8
       self._sv.initialized = true
+      self._sv.entity = entity
    end
 
    self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
@@ -26,7 +28,7 @@ function BackpackComponent:reserve_space()
 end
 
 function BackpackComponent:_get_storage()
-   return self._entity:get_component('stonehearth:storage')
+   return self._sv.entity:get_component('stonehearth:storage')
 end
 
 function BackpackComponent:unreserve_space()
@@ -50,24 +52,17 @@ function BackpackComponent:change_max_capacity(capacity_change)
 end
 
 function BackpackComponent:_on_filter_changed(filter_component, newly_filtered, newly_passed)
-   -- If this backpack is on an entity that has a filter, and that filter changes, let the ai
-   -- know about entities that no longer pass the filter, so that they can take another swipe at
-   -- doing something with them.
-   for id, item in pairs(newly_filtered) do
-      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
-   end
-
    -- Let the AI know that _we_ (the backpack) have changed, so reconsider us, too!
-   radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._entity)
+   radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.entity)
 end
 
 --If we're killed, dump the things in our backpack
 function BackpackComponent:_on_kill_event()
    -- npc's don't drop what's in their pack
-   if not stonehearth.player:is_npc(self._entity) then
+   if not stonehearth.player:is_npc(self._sv.entity) then
       while not self:is_empty() do
          local item = self:remove_first_item()
-         local location = radiant.entities.get_world_grid_location(self._entity)
+         local location = radiant.entities.get_world_grid_location(self._sv.entity)
          local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
          radiant.terrain.place_entity(item, placement_point)
       end
@@ -84,7 +79,7 @@ function BackpackComponent:add_item(item)
    end
 
    self:_get_storage():add_item(item)
-   radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_added')
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:backpack:item_added')
 
    return true
 end
@@ -97,7 +92,7 @@ function BackpackComponent:remove_item(item)
    end
 
    self:_get_storage():remove_item(id)
-   radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_removed')
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:backpack:item_removed')
 
    return true
 end
