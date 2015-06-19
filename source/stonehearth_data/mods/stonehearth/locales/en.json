@@ -555,5 +555,8 @@
    "item_categories_plants" : "Plants",
    "item_categories_weapons" : "Weapons",
    "item_categories_tools" : "Tools",
-   "item_categories_uncategorized" : "Uncategorized"
+   "item_categories_uncategorized" : "Uncategorized",
+
+   "unit_info_show_character_sheet": "Show character sheet",
+   "unit_info_focus_camera": "Focus camera on this unit"
 }

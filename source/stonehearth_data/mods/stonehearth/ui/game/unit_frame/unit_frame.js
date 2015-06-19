@@ -62,7 +62,9 @@ App.StonehearthUnitFrameView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      self.$("[title]").tooltipster();
+      self.$("#nameBlock .name").tooltipster({content: i18n.t('unit_info_focus_camera')});
+      self.$("#jobButton").tooltipster({content: i18n.t('unit_info_show_character_sheet')});
+      self.$("#portrait").tooltipster({content: i18n.t('unit_info_show_character_sheet')});
 
       this.$('#unitFrame #buffs').find('.item').each(function() {
         $(this).tooltipster({
@@ -87,6 +89,11 @@ App.StonehearthUnitFrameView = App.View.extend({
          App.stonehearthClient.showCharacterSheet(self.get('uri')); 
       });
 
+      this.$('#portrait').click(function (){
+         App.stonehearthClient.showCharacterSheet(self.get('uri')); 
+      });
+
+
       this._updateCommandButtons();
    },
 
@@ -100,6 +107,25 @@ App.StonehearthUnitFrameView = App.View.extend({
         }
       }
    }.observes('context.stonehearth:commands.commands'),
+
+   _jobObserver: function() {
+
+      Ember.run.scheduleOnce('afterRender', this, '_updatePortrait');
+   }.observes('context.stonehearth:job'),
+
+   _updatePortrait: function() {
+      if (this.$()) {
+        var uri = this.uri;
+        if (uri && this.get('context.stonehearth:job')) {
+          var portrait_url = '/r/get_portrait/?type=headshot&animation=idle_breathe.json&entity=' + uri;
+          this.set('portraitSrc', portrait_url);
+          this.$('#portrait').show();
+        } else {
+          this.set('portraitSrc', "");
+          this.$('#portrait').hide();
+        }
+      }
+    }
 });
 
 App.StonehearthCommandButtonView = App.View.extend({
