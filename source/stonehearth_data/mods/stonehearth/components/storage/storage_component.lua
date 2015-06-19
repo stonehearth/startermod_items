@@ -265,8 +265,14 @@ function StorageComponent:set_filter(filter)
 
       if old_passed[id] and self._sv.filtered_items[id] then
          newly_filtered[id] = item
+         if item:is_valid() then
+            radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+         end
       elseif old_filtered[id] and self._sv.passed_items[id] then
          newly_passed[id] = item
+         if item:is_valid() then
+            radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+         end
       end
    end
 

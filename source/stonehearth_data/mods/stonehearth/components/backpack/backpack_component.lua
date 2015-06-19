@@ -52,13 +52,6 @@ function BackpackComponent:change_max_capacity(capacity_change)
 end
 
 function BackpackComponent:_on_filter_changed(filter_component, newly_filtered, newly_passed)
-   -- If this backpack is on an entity that has a filter, and that filter changes, let the ai
-   -- know about entities that no longer pass the filter, so that they can take another swipe at
-   -- doing something with them.
-   for id, item in pairs(newly_filtered) do
-      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
-   end
-
    -- Let the AI know that _we_ (the backpack) have changed, so reconsider us, too!
    radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.entity)
 end
