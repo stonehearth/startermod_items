@@ -4,12 +4,15 @@ function AutotestUtil:__init(autotest)
 	self._autotest = autotest
 end
 
-function AutotestUtil:succeed_when_destroyed(entity)
+function AutotestUtil:succeed_when_destroyed(entity, callback)
    if not entity:is_valid() then
       self._autotest:success()
    else
       radiant.events.listen(radiant, 'radiant:entity:post_destroy', function()
             if not entity:is_valid() then
+               if (callback) then
+                  callback()
+               end
                self._autotest:success()
                return radiant.events.UNLISTEN
             end
