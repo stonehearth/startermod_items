@@ -167,6 +167,11 @@ bool Sim_IsValidMove(lua_State *L, om::EntityRef entityRef, bool reversible, csg
    }
 }
 
+int Sim_GetGameTickInterval(lua_State *L)
+{
+   return Simulation::GetInstance().GetGameTickInterval();
+}
+
 AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
 {
    AStarPathFinderPtr pf;
@@ -350,6 +355,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_tracer",             &Sim_CreateTracer),
             def("get_base_walk_speed",       &Sim_GetBaseWalkSpeed),
             def("is_valid_move",             &Sim_IsValidMove),
+            def("get_game_tick_interval",    &Sim_GetGameTickInterval),
             lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
                .def("get_distance",       &Path::GetDistance)

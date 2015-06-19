@@ -116,26 +116,26 @@ end
 
 
 function StorageComponent:initialize(entity, json)
-   self._entity = entity
 
    self._sv = self.__saved_variables:get_data()
 
-   self._unit_info_trace = self._entity:add_component('unit_info'):trace_player_id('filter observer')
+   self._unit_info_trace = entity:add_component('unit_info'):trace_player_id('filter observer')
       :on_changed(function()
-            self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
+            self._sv.player_id = entity:add_component('unit_info'):get_player_id()
             self:_update_filter_key()
          end)
 
 
-   if not self._sv.type then
+   if not self._sv.entity then
       -- creating...
       local basic_tracker = radiant.create_controller('stonehearth:basic_inventory_tracker')
+      self._sv.entity = entity
       self._sv.num_items = 0
       self._sv.items = {}
       self._sv.passed_items = {}
       self._sv.filtered_items = {}
       self._sv.item_tracker = radiant.create_controller('stonehearth:inventory_tracker', basic_tracker)
-      self._sv.player_id = self._entity:add_component('unit_info'):get_player_id()
+      self._sv.player_id = entity:add_component('unit_info'):get_player_id()
       self._sv.type = json.type or constants.container_types.CRATE
       self.__saved_variables:mark_changed()
    end
@@ -179,8 +179,11 @@ function StorageComponent:add_item(item)
    self._sv.item_tracker:add_item(item)
 
    stonehearth.inventory:get_inventory(self._sv.player_id):add_item(item)
-   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, self._entity)
+   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, self._sv.entity)
 
+   if item:is_valid() then
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+   end
    self:_on_contents_changed()
 
    self.__saved_variables:mark_changed()
@@ -189,6 +192,7 @@ end
 function StorageComponent:remove_item(id)
    assert(self._sv.items[id])
 
+   local item = self._sv.items[id]
    self._sv.num_items = self._sv.num_items - 1
    self._sv.items[id] = nil
    self._sv.passed_items[id] = nil
@@ -197,6 +201,9 @@ function StorageComponent:remove_item(id)
 
    stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
    stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, nil)
+   if item:is_valid() then
+      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+   end
 
    self:_on_contents_changed()
 
@@ -214,10 +221,10 @@ end
 function StorageComponent:_on_contents_changed()
    -- Crates cannot undeploy when they are carrying stuff.
    if self._sv.type == constants.container_types.CRATE then
-      local bp = self._entity:get_component('stonehearth:backpack')
+      local bp = self._sv.entity:get_component('stonehearth:backpack')
       
       if bp then
-         local commands_component = self._entity:add_component('stonehearth:commands')
+         local commands_component = self._sv.entity:add_component('stonehearth:commands')
          commands_component:enable_command('undeploy_item', bp:is_empty())
       end
    end
@@ -265,14 +272,20 @@ function StorageComponent:set_filter(filter)
 
       if old_passed[id] and self._sv.filtered_items[id] then
          newly_filtered[id] = item
+         if item:is_valid() then
+            radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+         end
       elseif old_filtered[id] and self._sv.passed_items[id] then
          newly_passed[id] = item
+         if item:is_valid() then
+            radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+         end
       end
    end
 
    self.__saved_variables:mark_changed()
 
-   radiant.events.trigger(self._entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
+   radiant.events.trigger(self._sv.entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
 end
 
 function StorageComponent:_update_filter_key()

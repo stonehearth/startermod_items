@@ -1937,6 +1937,8 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
 {
    radiant::perfmon::TimelineCounterGuard uq("composeRenderables");
 
+   cacheResults = cacheResults && Modules::config().enableRenderCaching;
+
    if (cacheResults) {
       // Has this query been cached?  Set those renderable queues, if so.
       for (int i = 0; i < _renderCacheCount; i++) {
@@ -2138,7 +2140,7 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
       SceneNode *np = Modules::sceneMan().resolveNodeHandle(n.h);
       if (np) {
          // We load up each selected node (and all descendents) and render them, one root at a time.
-         std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryNode(*np);
+         std::vector<QueryResult> const& results = Modules::sceneMan().sceneForNode(n.h).queryNode(*np);
 
          for (QueryResult const& q : results) {
             // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
@@ -2157,7 +2159,7 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
          updateLodUniform(0, 0.41f, 0.39f);
 
 	      setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-	      drawRenderables(sceneId, shaderContext, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1, false);
+         drawRenderables(Modules::sceneMan().sceneIdFor(n.h), shaderContext, false, &_curCamera->getFrustum(), 0x0, order, occSet, 1, false);
       } else {
          toRemove.push_back(n.h);
       }
@@ -2973,6 +2975,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
       return;
    }
 	
+   cached = cached && Modules::config().enableRenderCaching;
+
 	MaterialResource *curMatRes = 0x0;
 
    bool useInstancing = gRDI->getCaps().hasInstancing;

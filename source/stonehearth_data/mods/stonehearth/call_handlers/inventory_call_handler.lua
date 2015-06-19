@@ -39,13 +39,33 @@ function InventoryCallHandler:get_inventory(session, response, location, size)
 end
 
 function InventoryCallHandler:get_talismans_in_explored_region(session, response)
+   local get_talismans_from_container_fn = function(container)
+      local result = {}
+      local storage = container:get_component('stonehearth:storage')
+      if not storage then
+         return result
+      end
+
+      for id, item in pairs(storage:get_items()) do
+         if item:get_component('stonehearth:promotion_talisman') then
+            result[id] = item
+         end
+      end
+
+      return result
+   end
+
    local talisman_filter_fn = function(entity)
       if entity:get_component('stonehearth:promotion_talisman') then
          return true
+      elseif entity:get_component('stonehearth:backpack') then 
+         return next(get_talismans_from_container_fn(entity)) ~= nil
       else 
          return false
       end
    end
+
+
 
    local entities = stonehearth.terrain:get_entities_in_explored_region(session.player_id, talisman_filter_fn)
 
@@ -54,8 +74,18 @@ function InventoryCallHandler:get_talismans_in_explored_region(session, response
 
    for id, entity in pairs(entities) do
       local talisman_component = entity:get_component('stonehearth:promotion_talisman')
-      local job = talisman_component:get_job()
-      available_jobs[id] = job
+
+      if not talisman_component then
+         local talismans = get_talismans_from_container_fn(entity)
+         for id, item in pairs(talismans) do
+            talisman_component = item:get_component('stonehearth:promotion_talisman')
+            local job = talisman_component:get_job()
+            available_jobs[id] = job
+         end
+      else
+         local job = talisman_component:get_job()
+         available_jobs[id] = job
+      end
    end
 
    return({ 

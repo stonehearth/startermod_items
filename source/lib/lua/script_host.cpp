@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "lauxlib.h"
 #include "radiant_file.h"
+#include "core/guard.h"
 #include "core/config.h"
 #include "core/system.h"
 #include "core/static_string.h"
@@ -262,6 +263,7 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
+IMPLEMENT_TRIVIAL_TOSTRING(core::Guard);
 
 void ScriptHost::ProfileHookFn(lua_State *L, lua_Debug *ar)
 {
@@ -446,6 +448,10 @@ ScriptHost::ScriptHost(std::string const& site) :
       lua_setalloc2f(L_, LuaAllocFnWithState, this);
    }
 
+   // Both values default to 200 in lua, but we need something more aggressive to clear our garbage!
+   lua_gc(L_, LUA_GCSETPAUSE, core::Config::GetInstance().Get<int>("lua.gc_step_pause", 125));
+   lua_gc(L_, LUA_GCSETSTEPMUL, core::Config::GetInstance().Get<int>("lua.gc_step_mul", 400));
+
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
 
@@ -458,7 +464,9 @@ ScriptHost::ScriptHost(std::string const& site) :
          def("is_profiler_enabled",    &core::IsProfilerEnabled),
          def("is_profiler_available",  &core::IsProfilerAvailable),
          namespace_("core") [
-            lua::RegisterType<core::StaticString>("StaticString")               
+            lua::RegisterType<core::StaticString>("StaticString"),
+            lua::RegisterTypePtr_NoTypeInfo<core::Guard>("Guard")
+               .def("destroy",         &core::Guard::Clear)
          ],
          namespace_("lua") [
             lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")

@@ -100,8 +100,6 @@ function StockpileComponent:_on_filter_changed(filter_component, newly_filtered,
 end
 
 function StockpileComponent:_trigger_item_added_events(item)
-   radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
-   
    --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
    --Trigger this anyway so various scenarios, tests, etc, can still use it
    radiant.events.trigger_async(self._entity, "stonehearth:stockpile:item_added", { 
@@ -116,11 +114,6 @@ function StockpileComponent:_trigger_item_removed_events(item)
       stockpile = self._entity,
       item = item
    })
-
-   --Remove items that have been taken out of the stockpile
-   if item and item:is_valid() then
-      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
-   end
 end
 
 function StockpileComponent:_install_traces()

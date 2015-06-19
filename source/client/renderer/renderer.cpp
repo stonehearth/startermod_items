@@ -1319,8 +1319,10 @@ void Renderer::RenderPortraitRT()
       // Turn off the UI to render the portrait.
       SetStageEnable(GetPipeline(worldPipeline_), "Overlays", false);
       SetStageEnable(GetPipeline(worldPipeline_), "PortraitClear", true);
+      h3dSetOption(H3DOptions::EnableRenderCaching, false);
       h3dRender(portraitCamera_->GetNode(), GetPipeline(worldPipeline_));
       SetStageEnable(GetPipeline(worldPipeline_), "PortraitClear", false);
+      h3dSetOption(H3DOptions::EnableRenderCaching, true);
    } else if (portrait_generated_) {
       portrait_generated_ = false;
       perfmon::SwitchToCounter("encode portrait png");
