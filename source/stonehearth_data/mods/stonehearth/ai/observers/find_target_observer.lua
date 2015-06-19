@@ -243,9 +243,12 @@ function FindTargetObserver:_find_target()
    else
       assert(stance == 'aggressive')
       -- find the best target to attack
-      target = self._aggro_table:get_top(function(entity, aggro)
-            return self:_target_cost_benefit(entity, aggro)
-         end)
+      local current_position = radiant.entities.get_world_grid_location(self._sv._entity)
+      if current_position then
+         target = self._aggro_table:get_top(function(entity, aggro)
+               return self:_target_cost_benefit(current_position, entity, aggro)
+            end)
+      end
    end
 
    self._log:info('stance is %s.  returning %s as target.', stance, target)
@@ -266,7 +269,7 @@ function FindTargetObserver:_can_see_target(target)
    return visible
 end
 
-function FindTargetObserver:_target_cost_benefit(target, aggro)
+function FindTargetObserver:_target_cost_benefit(current_position, target, aggro)
    if not self:_can_see_target(target) then
       -- can't see?  not a candidate
       self._log:spam('considering target %s (aggro:%.2f .. cannot see!  ignoring)', target, aggro)
@@ -277,7 +280,9 @@ function FindTargetObserver:_target_cost_benefit(target, aggro)
       self._log:spam('considering target %s (aggro:%.2f .. too far away from leash!  ignoring)', target, aggro)
       return
    end
-   local distance = radiant.entities.distance_between(self._sv._entity, target)
+   local pos = radiant.entities.get_world_grid_location(target)
+   local distance = current_position:distance_to(pos)
+
    local score = aggro / distance
    self._log:spam('considering target %s (score:%.2f - aggro:%.2f distance:%.2f)', target, score, aggro, distance)
    return score
