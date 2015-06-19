@@ -18,7 +18,19 @@
             },
             "shepherd_crook" : {
                "recipe" : "file(shepherds_crook_recipe.json)"
-            }  
+            }
+         }
+      },
+      "storage" : {
+         "ordinal" : 2, 
+         "name" : "Storage", 
+         "recipes" : {
+            "small_crate" : {
+               "recipe" : "file(small_crate_recipe.json)"
+            },
+            "large_crate" : {
+               "recipe" : "file(large_crate_recipe.json)"
+            }                       
          }
       },
       "building_parts" : {
@@ -51,7 +63,28 @@
             },
             "picket_fence_gate" : {
                "recipe" : "file(picket_fence_gate_recipe.json)"
-            }            
+            },
+            "wooden_sign" : {
+               "recipe" : "file(wooden_sign_recipe.json)" 
+            },
+            "wooden_sign_carpenter" : {
+               "recipe" : "file(wooden_sign_carpenter_recipe.json)" 
+            },
+            "wooden_sign_weaver" : {
+               "recipe" : "file(wooden_sign_weaver_recipe.json)" 
+            },
+            "wooden_sign_mason" : {
+               "recipe" : "file(wooden_sign_mason_recipe.json)" 
+            },
+            "wooden_sign_blacksmith" : {
+               "recipe" : "file(wooden_sign_blacksmith_recipe.json)" 
+            },
+            "window_box_brightbell" : {
+               "recipe" : "file(window_box_brightbell_recipe.json)" 
+            },
+            "window_box_frostsnap" : {
+               "recipe" : "file(window_box_frostsnap_recipe.json)" 
+            }                     
          }
       },
       "furniture" : {
@@ -97,42 +130,6 @@
             "wooden_shield" : {
                "recipe" : "file(wooden_shield_recipe.json)"
             }  
-         }
-      },      
-      "signage_decoration" : {
-         "ordinal" : 5, 
-         "name" : "Signage & Decoration", 
-         "recipes" : {
-            "wooden_sign" : {
-               "recipe" : "file(wooden_sign_recipe.json)" 
-            },
-            "wooden_sign_carpenter" : {
-               "recipe" : "file(wooden_sign_carpenter_recipe.json)" 
-            },
-            "wooden_sign_weaver" : {
-               "recipe" : "file(wooden_sign_weaver_recipe.json)" 
-            },
-            "wooden_sign_mason" : {
-               "recipe" : "file(wooden_sign_mason_recipe.json)" 
-            },
-            "wooden_sign_blacksmith" : {
-               "recipe" : "file(wooden_sign_blacksmith_recipe.json)" 
-            },
-            "window_box_brightbell" : {
-               "recipe" : "file(window_box_brightbell_recipe.json)" 
-            },
-            "window_box_frostsnap" : {
-               "recipe" : "file(window_box_frostsnap_recipe.json)" 
-            }         
-         }
-      },
-      "storage" : {
-         "ordinal" : 6,
-         "name" : "Storage",
-         "recipes" : {
-            "small_crate" : {
-               "recipe" : "file(small_crate_recipe.json)"
-            }
          }
       }
    }

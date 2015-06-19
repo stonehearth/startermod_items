@@ -1,22 +1,22 @@
 {
    "type":"recipe",
 
-   "work_units"  : 3,
-   "recipe_name" : "Small Crate",
-   "description" : "For compactly storing up to 16 items",
+   "work_units"  : 6,
+   "recipe_name" : "Large Crate",
+   "description" : "For compactly storing up to 32 items",
    "flavor"      : "Does the crate that stores all the things that do not store themselves, store itself?",
-   "portrait"    : "/stonehearth/entities/containers/small_crate/small_crate.png",
+   "portrait"    : "/stonehearth/entities/containers/large_crate/large_crate.png",
    "level_requirement" : 0,
 
    "ingredients": [
       {
          "material" : "wood resource",
-         "count" : 1
+         "count" : 2
       }
   ],
   "produces": [
       {
-         "item": "stonehearth:containers:small_crate"
+         "item": "stonehearth:containers:large_crate"
       }
   ]
 }
