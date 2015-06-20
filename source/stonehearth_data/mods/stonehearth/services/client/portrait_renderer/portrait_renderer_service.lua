@@ -118,6 +118,9 @@ function PortraitRendererService:_stage_scene(request)
       end
       
       local entity_location = radiant.entities.get_world_grid_location(entity)
+      if not entity_location then
+         entity_location = Point3(0, 0, 0)
+      end
 
       -- Calculate the height of the camera based on the head bone of the entity.
       local render_info = entity:get_component('render_info')
