@@ -1692,7 +1692,6 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
 
 void Client::CallHttpReactor(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response)
 {
-   JSONNode node;
    int status = 404;
    rpc::ReactorDeferredPtr d = http_reactor_->Call(req.query, req.postdata);
 
