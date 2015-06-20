@@ -22,13 +22,14 @@
             {{/if}}
             <div id="nameBlock">
                <div class="name">{{unit_info.name}}</div>
+               {{#if stonehearth:job}}
+                  <div id="jobButton">
+                     <img {{bind-attr src="stonehearth:job.class_icon"}} />
+                  </div>
+               {{/if}}
                <div class="description">{{unit_info.description}}</div>
             </div>
-            {{#if stonehearth:job}}
-               <div id="jobButton">
-                  <img {{bind-attr src="stonehearth:job.class_icon"}} />
-               </div>
-            {{/if}}
+
          </div>
 
          <div id="commandButtons">
