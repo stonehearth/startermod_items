@@ -7,43 +7,23 @@
    //-webkit-transform: scale(0.5,0.5);
 
    #buffs {
-
       position: absolute;
-      top: -38px;
-      left: 0px;
+      top: -32px;
+      left: 154px;
       width: 300px;
 
       .item {
          float: left;
-         width: 46px;
-         height: 51px;
+         width: 40px;
+         height: 100%px;
          margin-right: 4px;
 
          img {
-            width: 46px;
-            height: 51px;
+            width: 40px;
          }
       }
-
    }
 
-   #portrait {
-      display:none;
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      width: 116px;
-      height: 121px;
-      background: url('./images/portrait_frame.png');
-
-      img {
-         position: absolute;
-         top: 15px;
-         left: 15px;
-         width: 87px;
-         height: 87px;
-      }
-   }
 
    #info {
       .controlFont;
@@ -64,12 +44,35 @@
          position: relative;
          top: -16px;
          left: 12px;
+         
+         #portrait {
+            .button;
+            display: inline-block;
+            position:relative;
+            top: -40px;
+            left: -16px;
+            margin-right: -20px;
+            width: 128px;
+            height: 128px;
+
+            img {
+               width: 128px;
+               height: 128px;
+            }
+         }
 
          #jobButton {
             .button;
             display: inline-block;
             vertical-align: top;
-            margin-left: -20px;
+            margin-top: -6px;
+            margin-left: -6px;
+            margin-bottom: -50px;
+
+            img {
+               width: 50px;
+               height: 50px;
+            }
          }
 
          #nameBlock {
@@ -78,6 +81,7 @@
          }
 
          .name {
+            display: inline-block;
             .button;
             font-size: 27px;
          }

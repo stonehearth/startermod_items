@@ -161,6 +161,10 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register3<Point3>(L, "Point3i")
          .def("to_float",           &Pointi_ToFloat<3>),
       lua::RegisterType<Transform>("Transform")
+         .def(constructor<>())
+         .def(constructor<Point3f const&, Quaternion const&>())
+         .def_readwrite("position",    &Transform::position)
+         .def_readwrite("orientation", &Transform::orientation)
          .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, double alpha))&csg::Interpolate),
       lua::RegisterType<Color3>("Color3")
          .def(constructor<>())

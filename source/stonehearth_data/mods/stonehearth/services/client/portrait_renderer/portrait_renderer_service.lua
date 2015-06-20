@@ -113,6 +113,13 @@ function PortraitRendererService:_stage_scene(request)
          if request.animation then
             render_entity:pose(request.animation, request.time or 0)
          end
+      else
+        return -- Not an entity?
+      end
+      
+      local entity_location = radiant.entities.get_world_grid_location(entity)
+      if not entity_location then
+         entity_location = Point3(0, 0, 0)
       end
 
       -- Calculate the height of the camera based on the head bone of the entity.
@@ -128,14 +135,20 @@ function PortraitRendererService:_stage_scene(request)
       end
 
       self:_add_light({
-            color =         Point3(0.9,  0.8, 0.9),
+            color =         Point3(0.9, 0.8, 0.9),
             ambient_color = Point3(0.5,  0.5, 0.5),
             -- Direction is in degrees with yaw and pitch as the first 2 params. Ignore 3rd param
             -- -180 yaw will have light going from -z to positive z
             direction =     Point3(-160, 15, 0)
          })
-      self:_set_camera_position(Point3(1.7, camera_pos_y, -2.7))
-      self:_set_camera_look_at(Point3(0, camera_pos_y - 0.3, 0))
+         
+      local mob = entity:get_component('mob')
+      local rotation = mob and mob:get_facing()
+      local camera_original_pos = Point3(1.7, camera_pos_y, -2.7)
+      local camera_pos = radiant.math.rotate_about_y_axis(camera_original_pos, rotation)
+
+      self:_set_camera_position(camera_pos + entity_location)
+      self:_set_camera_look_at(Point3(0, camera_pos_y - 0.3, 0) + entity_location)
    end
 end
 

@@ -8,6 +8,7 @@ stonehearth = {
 local service_creation_order = {
    'threads',
    'ai',
+   'physics',
    'events',
    'calendar',
    'game_speed',

@@ -8,7 +8,7 @@
 #include "simulation.h"
 #include "jobs/bfs_path_finder.h"
 #include "jobs/a_star_path_finder.h"
-#include "jobs/apply_free_movement.h"
+#include "jobs/task.h"
 #include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
@@ -92,7 +92,6 @@ void Simulation::OneTimeIninitializtion()
    game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
    net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
    base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
-   game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
@@ -310,8 +309,6 @@ void Simulation::InitializeDataObjectTraces()
       dm::ObjectType type = obj->GetObjectType();
       if (type == om::EntityObjectType) {
          entityMap_[id] = std::static_pointer_cast<om::Entity>(obj);
-      } else if (type == om::MobObjectType) {
-         CreateFreeMotionTrace(std::static_pointer_cast<om::Mob>(obj));
       }
    })->PushStoreState();   
 }
@@ -340,7 +337,6 @@ void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
-   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
    if (core::Config::GetInstance().Get<bool>("mods.stonehearth.enable_water", true)) {
       waterTightRegionBuilder_ = std::unique_ptr<phys::WaterTightRegionBuilder>(new phys::WaterTightRegionBuilder(octtree_->GetNavGrid()));
    }
@@ -395,7 +391,6 @@ void Simulation::ShutdownGameObjects()
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
-   freeMotionTasks_.clear();
 
    SIM_LOG(1) << "All entities and datastores have been destroyed.";
 
@@ -419,7 +414,6 @@ void Simulation::ShutdownGameObjects()
    scriptHost_.reset();
 
    waterTightRegionBuilder_.reset();
-   freeMotion_.reset();
    octtree_.reset();
 }
 
@@ -726,8 +720,6 @@ void Simulation::ProcessTaskList()
 {
    MEASURE_TASK_TIME(perf_timeline_, "native tasks")
    SIM_LOG_GAMELOOP(7) << "processing task list";
-
-   freeMotion_->ProcessDirtyTiles(game_loop_timer_);
 
    auto i = tasks_.begin();
    while (i != tasks_.end()) {
@@ -1321,37 +1313,6 @@ void Simulation::Reset()
 int Simulation::GetGameTickInterval() const
 {
    return game_tick_interval_;
-}
-
-void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
-{
-   dm::ObjectId id = mob->GetObjectId();
-   om::MobRef m = mob;
-
-   // If the mob ever goes into free-motion, create a task to move it around.
-   // When it leaves free-motion, destroy the task.
-   freeMotionTasks_[id].trace = mob->TraceInFreeMotion("free motion task", dm::OBJECT_MODEL_TRACES)
-      ->OnChanged([this, id, m](bool inFreeMotion) {
-         FreeMotionTaskMapEntry& entry = freeMotionTasks_[id];
-         if (inFreeMotion) {
-            if (!entry.task) {
-               om::MobPtr mob = m.lock();
-               if (mob) {
-                  LOG(simulation.free_motion, 7) << "creating free motion task for entity " << id << " (no tasks exists yet)";
-                  entry.task = std::make_shared<ApplyFreeMotionTask>(mob);
-                  tasks_.push_back(entry.task);
-               }
-            }
-         } else {
-            LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (left free motion state)";
-            entry.task.reset();
-         }
-      })
-      ->OnDestroyed([this, id]() {
-         LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (mob destroyed)";
-         freeMotionTasks_.erase(id);
-      })
-      ->PushObjectState();
 }
 
 perfmon::Timeline& Simulation::GetOverviewPerfTimeline()

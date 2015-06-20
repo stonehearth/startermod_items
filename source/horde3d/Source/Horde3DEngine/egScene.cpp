@@ -1175,6 +1175,7 @@ std::vector<QueryResult> const& Scene::queryNode(SceneNode& node)
 
 std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached) 
 {
+   cached = cached && Modules::config().enableRenderCaching;
    radiant::perfmon::TimelineCounterGuard uq("queryScene");
 
    if (cached) {

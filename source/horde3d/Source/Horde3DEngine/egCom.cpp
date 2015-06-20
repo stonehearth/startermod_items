@@ -104,6 +104,8 @@ float EngineConfig::getOption( EngineOptions::List param )
       return (float)maxLights;
 	case EngineOptions::DumpCompiledShaders:
 		return dumpCompiledShaders ? 1.0f : 0.0f;
+   case EngineOptions::EnableRenderCaching:
+      return enableRenderCaching ? 1.0f : 0.0f;
 	default:
 		Modules::setError( "Invalid param for h3dGetOption" );
 		return Math::NaN;
@@ -188,6 +190,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
       return true;
 	case EngineOptions::DumpCompiledShaders:
 		dumpCompiledShaders = (value != 0);
+		return true;
+   case EngineOptions::EnableRenderCaching:
+		enableRenderCaching = (value != 0);
 		return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );

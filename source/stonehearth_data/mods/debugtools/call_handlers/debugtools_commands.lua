@@ -107,4 +107,33 @@ function Commands:add_buff_command(session, response, entity, buff_uri)
    return true
 end
 
+function Commands:promote_to_command(session, response, entity, job)
+   if not string.find(job, ':') and not string.find(job, '/') then
+      -- as a convenience for autotest writers, stick the stonehearth:job on
+      -- there if they didn't put it there to begin with
+      job = 'stonehearth:jobs:' .. job
+   end
+   entity:get_component('stonehearth:job')
+         :promote_to(job)
+   return true
+end
+
+function Commands:add_citizen_command(session, response, entity, job)
+   local player_id = session.player_id
+   local pop = stonehearth.population:get_population(player_id)
+   local citizen = pop:create_new_citizen()
+
+   citizen:add_component('stonehearth:job')
+               :promote_to('stonehearth:jobs:worker')
+
+   local explored_region = stonehearth.terrain:get_visible_region(player_id):get()
+   local centroid = _radiant.csg.get_region_centroid(explored_region):to_closest_int()
+   local town_center = radiant.terrain.get_point_on_terrain(Point3(centroid.x, 0, centroid.y))
+
+   local spawn_point = radiant.terrain.find_placement_point(town_center, 20, 30)
+   radiant.terrain.place_entity(citizen, spawn_point)
+
+   return true
+end
+
 return Commands

@@ -112,7 +112,8 @@ struct H3DOptions
       EnableStatsLogging,
       DisablePinnedMemory,
       MaxLights,
-      DumpCompiledShaders
+      DumpCompiledShaders,
+      EnableRenderCaching
 	};
 };
 
