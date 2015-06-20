@@ -1693,6 +1693,7 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
 void Client::CallHttpReactor(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response)
 {
    int status = 404;
+   // Failure on req.query.decRef. Any chance req is no longer a valid reference?
    rpc::ReactorDeferredPtr d = http_reactor_->Call(req.query, req.postdata);
 
    if (!d) {
@@ -1749,24 +1750,16 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
          render_entity->Destroy();
       }
 
-      // trigger lifecycle events
       lua_State* L = scriptHost_->GetInterpreter();
-      luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-      luabind::object id(L, entity->GetObjectId());
-      luabind::object evt(L, luabind::newtable(L));
-      evt["entity"] = e;
-      evt["entity_id"] = id;
-
-      scriptHost_->TriggerOn(e, "radiant:entity:pre_destroy", evt);
-      scriptHost_->Trigger("radiant:entity:pre_destroy", evt);
-
-      evt = luabind::object(L, luabind::newtable(L));
-      evt["entity_id"] = id;
-
-      entity->Destroy();
+      om::Stonehearth::TriggerPreDestroy(entity, L);
+      om::Stonehearth::DestroyEntity(entity);
+      om::EntityRef entityRef = entity;
       entity = nullptr;
-
-      scriptHost_->Trigger("radiant:entity:post_destroy", evt);
+      if (!entityRef.expired()) {
+         entity = entityRef.lock();
+         CLIENT_LOG(5) << "Reference still exists to " << entity << " after destroy_entity was called";
+      }
+      om::Stonehearth::TriggerPostDestroy(id, L);
    }
 }
 

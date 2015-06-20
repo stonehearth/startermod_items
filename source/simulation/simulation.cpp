@@ -622,30 +622,24 @@ void Simulation::DestroyEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    if (i != entityMap_.end()) {
-      // remove from the map before triggering so lookups will fail
       om::EntityPtr entity = i->second;
+      dm::ObjectId id = entity->GetObjectId();
+
+      // remove from the map before triggering so lookups will fail
       entityMap_.erase(i);
 
       lua_State* L = scriptHost_->GetInterpreter();
-      luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-      luabind::object id(L, entity->GetObjectId());
-      luabind::object evt(L, luabind::newtable(L));
-      evt["entity"] = e;
-      evt["entity_id"] = id;
-
-      scriptHost_->TriggerOn(e, "radiant:entity:pre_destroy", evt);
-      scriptHost_->Trigger("radiant:entity:pre_destroy", evt);
-
-      evt = luabind::object(L, luabind::newtable(L));
-      evt["entity_id"] = id;
-
-      entity->Destroy();
+      om::Stonehearth::TriggerPreDestroy(entity, L);
+      om::Stonehearth::DestroyEntity(entity);
+      om::EntityRef entityRef = entity;
       entity = nullptr;
-
-      scriptHost_->Trigger("radiant:entity:post_destroy", evt);
+      if (!entityRef.expired()) {
+         entity = entityRef.lock();
+         SIM_LOG(5) << "Reference still exists to " << entity << " after destroy_entity was called";
+      }
+      om::Stonehearth::TriggerPostDestroy(id, L);
    }
 }
-
 
 dm::Store& Simulation::GetStore()
 {
