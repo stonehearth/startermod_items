@@ -269,17 +269,15 @@ function SubterraneanViewService:_create_entity_traces()
                      end
                   end)
 
-            local destroyed_trace = radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
-                  self:_destroy_entity_traces(e.entity_id)
-               end)
-
             self._entity_traces[id] = {
                location = location_trace,
                parent = parent_trace,
-               destroyed = destroyed_trace
             }
 
             self:_update_visiblity(entity)
+         end)
+      :on_removed(function(id, entity)
+            self:_destroy_entity_traces(id)
          end)
       :push_object_state()
 end
