@@ -10,11 +10,11 @@ function LeaseComponent:initialize(entity, json)
                               :set_entity(entity)
    if not self._sv.factions then
       self._sv.factions = {}
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_remove_nonpersistent_leases()
+         end)
    end
-
-   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         self:_remove_nonpersistent_leases()
-      end)
 end
 
 function LeaseComponent:_remove_nonpersistent_leases()
