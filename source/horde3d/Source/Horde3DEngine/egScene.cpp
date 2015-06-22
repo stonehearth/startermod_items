@@ -245,18 +245,16 @@ void SceneNode::updateAccumulatedFlags()
    int parentFlags = _parent ? _parent->_accumulatedFlags : 0;
 
    int oldFlags = _accumulatedFlags;
-   int newFlags = _flags | parentFlags;
-
-   if (newFlags & SceneNodeFlags::NoDraw) {
+   _accumulatedFlags = _flags | parentFlags;
+   if (_accumulatedFlags & SceneNodeFlags::NoDraw) {
       if ((oldFlags & SceneNodeFlags::NoDraw) == 0) {
-         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, true);
+         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, true, (SceneNodeFlags::List)oldFlags);
       }
    } else {
       if (oldFlags & SceneNodeFlags::NoDraw) {
-         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, false);
+         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, false, (SceneNodeFlags::List)oldFlags);
       }
    }
-   _accumulatedFlags = newFlags;
 }
 
 void SceneNode::setFlags( int flags, bool recursive )
@@ -563,7 +561,7 @@ GridItem* GridSpatialGraph::gridItemForNode(SceneNode const& node)
 }
 
 
-void GridSpatialGraph::addNode(SceneNode& sceneNode)
+void GridSpatialGraph::addNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags)
 {	
    radiant::perfmon::TimelineCounterGuard un("gsg:addNode");
    const NodeHandle nh = sceneNode.getHandle();
@@ -574,7 +572,7 @@ void GridSpatialGraph::addNode(SceneNode& sceneNode)
    if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights[nh] = &sceneNode;
    } else {
-      updateNode(sceneNode);
+      updateNode(sceneNode, oldFlags);
    }
 }
 
@@ -628,31 +626,20 @@ void GridSpatialGraph::swapAndRemove(std::vector<GridItem>& vec, int index) {
    vec.pop_back();
 }
 
-void GridSpatialGraph::removeNode(SceneNode& sceneNode)
+void GridSpatialGraph::removeNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:removeNode");
    NodeHandle h = sceneNode.getHandle();
    if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights.erase(h);
    } else {
-      if (sceneNode._gridPos == -1) {
-         return;
-      }
-
-      std::vector<GridItem>* vec;
-      if (sceneNode._accumulatedFlags & SceneNodeFlags::NoCull) {
-         vec = &_noCullNodes;
+      std::vector<GridItem>* oldGrid = findGridFor(sceneNode, oldFlags);
+      
+      if (oldGrid != nullptr) {
+         swapAndRemove(*oldGrid, sceneNode._gridPos);
       } else {
-         const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
-         if (sceneNode._gridId == -1) {
-            vec = &_spilloverNodes[nodeType];
-         } else {
-            vec = &_gridElements.at(sceneNode._gridId).nodes[nodeType];
-         }
+         ASSERT(sceneNode._gridId == -1 && sceneNode._gridPos == -1);
       }
-
-      swapAndRemove(*vec, sceneNode._gridPos);
-
       sceneNode._gridId = -1;
       sceneNode._gridPos = -1;
    }
@@ -698,13 +685,54 @@ inline void GridSpatialGraph::unhashGridHash(int hash, int* x, int* y) const
    *y = (hash >> 16) - 0x8000;
 }
 
-void GridSpatialGraph::updateNode(SceneNode& sceneNode)
+std::vector<GridItem>* GridSpatialGraph::findGridFor(SceneNode const& node, SceneNodeFlags::List oldFlags) {
+   if (node._gridPos == -1) {
+      return nullptr;
+   }
+
+   if (oldFlags & SceneNodeFlags::NoCull) {
+      ASSERT(node._gridId == -1 && node._gridPos >= 0);
+      return &_noCullNodes;
+   }
+
+   if (node._gridId == -1) {
+      return &_spilloverNodes[node._renderable ? RENDER_NODES : LIGHT_NODES];
+   }
+   return &_gridElements.at(node._gridId).nodes[node._renderable ? RENDER_NODES : LIGHT_NODES];
+}
+
+void GridSpatialGraph::_addNode(SceneNode& sceneNode, int gridId) {
+   BoundingBox const& sceneBox = sceneNode.getBBox();
+   std::vector<GridItem>* newVec;
+   const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
+
+   if (gridId == -1) {
+      newVec = &_spilloverNodes[nodeType];
+   } else {
+      auto& e = _gridElements.find(gridId);
+      if (e == _gridElements.end()) {
+         GridElement newGridElement;
+         int gX, gY;
+         unhashGridHash(gridId, &gX, &gY);
+         newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE, sceneBox.min().y, (float)gY * GRIDSIZE));
+         newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, (float)gY * GRIDSIZE + GRIDSIZE));
+            
+         std::pair<int, GridElement> p(gridId, newGridElement);
+         e = _gridElements.insert(e, p);
+      }
+      e->second.bounds.addPoint(sceneBox.min());
+      e->second.bounds.addPoint(sceneBox.max());
+      newVec = &e->second.nodes[nodeType];
+   }
+
+   newVec->emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
+   sceneNode._gridId = gridId;
+   sceneNode._gridPos = (int)(newVec->size() - 1);
+}
+
+void GridSpatialGraph::updateNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:updateNode");
-
-   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoDraw) {
-      return;
-   }
 
    if (!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
       return;
@@ -712,80 +740,67 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
 
    BoundingBox const& sceneBox = sceneNode.getBBox();
    const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
-   
-   if (sceneNode.getFlags() & SceneNodeFlags::NoCull) {
-      ASSERT(sceneNode._gridId == -1);
-      if (sceneNode._gridPos == -1) {
+   std::vector<GridItem>* oldGrid = findGridFor(sceneNode, oldFlags);
+
+   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoDraw) {
+      // We don't ever remove on update; only sethidden makes the direct call to remove.
+      ASSERT(oldGrid == nullptr);
+      return;
+   }
+
+   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoCull) {
+      // If the node was on a grid that wasn't the no cull, remove.
+      if (oldGrid && oldGrid != &_noCullNodes) {
+         ASSERT(sceneNode._gridPos >= 0);
+         swapAndRemove(*oldGrid, sceneNode._gridPos);
+      }
+
+      // If the node was not on the no cull grid, add it.
+      if (oldGrid != &_noCullNodes) {
          _noCullNodes.emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
+         sceneNode._gridId = -1;
          sceneNode._gridPos = (int)(_noCullNodes.size() - 1);
          updateNodeInstanceKey(sceneNode);
-      } else { 
-         _noCullNodes.at(sceneNode._gridPos).bounds = sceneBox;
       }
-   } else {
-      if (!sceneBox.isValid()) {
-         return;
-      }
-      int gridId = boundingBoxToGrid(sceneBox);
+      // Update the bounds of the node at that pos in the no-cull grid.
+      _noCullNodes.at(sceneNode._gridPos).bounds = sceneBox;
+      _noCullNodes.at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
+      return;
+   }
 
-      if (sceneNode._gridPos >= 0 && gridId == sceneNode._gridId) {
-         // We haven't moved; update the bounds and go away.
-         std::vector<GridItem>* vec;
-         if (gridId == -1) {
-            vec = &_spilloverNodes[nodeType];
-         } else {
-            vec = &_gridElements.at(gridId).nodes[nodeType];
-            const Vec3f& boundsMin = sceneBox.min();
-            const Vec3f& boundsMax = sceneBox.max();
+   // Questionable line....
+   if (!sceneBox.isValid()) {
+      return;
+   }
 
-            _gridElements.at(gridId).bounds.addPoint(boundsMin);
-            _gridElements.at(gridId).bounds.addPoint(boundsMax);
-         }
-         vec->at(sceneNode._gridPos).bounds = sceneBox;
-         vec->at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
-         return;
-      }
+   int gridId = boundingBoxToGrid(sceneBox);
 
-      std::vector<GridItem>* oldVec;
-      std::vector<GridItem>* newVec;
-      if (sceneNode._gridId == -1) {
-         oldVec = &_spilloverNodes[nodeType];
-      } else {
-         oldVec = &_gridElements.at(sceneNode._gridId).nodes[nodeType];
-      }
-      
-      if (gridId == -1) {
-         newVec = &_spilloverNodes[nodeType];
-      } else {
-         auto& e = _gridElements.find(gridId);
-         if (e == _gridElements.end()) {
-            GridElement newGridElement;
-            int gX, gY;
-            unhashGridHash(gridId, &gX, &gY);
-            newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE, sceneBox.min().y, (float)gY * GRIDSIZE));
-            newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, (float)gY * GRIDSIZE + GRIDSIZE));
-            
-            std::pair<int, GridElement> p(gridId, newGridElement);
-            e = _gridElements.insert(e, p);
-         }
+   if (oldGrid && gridId == sceneNode._gridId) {
+      // We haven't moved; update the bounds (if this is not the spillover).
+      if (gridId != -1) {
          const Vec3f& boundsMin = sceneBox.min();
          const Vec3f& boundsMax = sceneBox.max();
-         e->second.bounds.addPoint(boundsMin);
-         e->second.bounds.addPoint(boundsMax);
-         newVec = &e->second.nodes[nodeType];
-      }
-      // Remove the node from the old grid list by swapping with the rear element;
-      if (sceneNode._gridPos >= 0) {
-         swapAndRemove(*oldVec, sceneNode._gridPos);
+
+         _gridElements.at(gridId).bounds.addPoint(boundsMin);
+         _gridElements.at(gridId).bounds.addPoint(boundsMax);
       }
 
-      newVec->emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
-      sceneNode._gridId = gridId;
-      sceneNode._gridPos = (int)(newVec->size() - 1);
-
-      // We moved to a new grid element, so initialize those render queues appropriately.
-      updateNodeInstanceKey(sceneNode);
+      // Update the bounds and pos of that node.
+      oldGrid->at(sceneNode._gridPos).bounds = sceneBox;
+      oldGrid->at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
+      return;
    }
+   
+   // We've moved onto a new grid, possibly from an old one.
+   if (oldGrid) {
+      ASSERT(sceneNode._gridPos >= 0);
+      swapAndRemove(*oldGrid, sceneNode._gridPos);
+   }
+
+   _addNode(sceneNode, gridId);
+
+   // We moved to a new grid element, so initialize those render queues appropriately.
+   updateNodeInstanceKey(sceneNode);
 }
 
 
@@ -1102,13 +1117,13 @@ NodeRegEntry *Scene::findType( std::string const& typeString )
 }
 
 
-void Scene::setNodeHidden(SceneNode& node, bool hidden) {
+void Scene::setNodeHidden(SceneNode& node, bool hidden, SceneNodeFlags::List oldFlags) {
    if (hidden) {
       if (node._gridPos >= 0) {
-         _spatialGraph->removeNode(node);
+         _spatialGraph->removeNode(node, oldFlags);
       }
    } else {
-      _spatialGraph->addNode(node);
+      _spatialGraph->addNode(node, oldFlags);
    }
 }
 
@@ -1122,7 +1137,7 @@ void Scene::updateNodes()
 
 void Scene::updateSpatialNode(SceneNode& node) 
 {
-   _spatialGraph->updateNode(node);
+   _spatialGraph->updateNode(node, (SceneNodeFlags::List)node._accumulatedFlags);
    updateNodeTrackers(&node);
 }
 
@@ -1296,7 +1311,7 @@ NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
 
 	// Register node in spatial graph
    if ((node->_accumulatedFlags & SceneNodeFlags::NoDraw) == 0) {
-      _spatialGraph->addNode(*node);
+      _spatialGraph->addNode(*node, (SceneNodeFlags::List)node->_accumulatedFlags);
    }
    return node->_handle;
 }
@@ -1333,7 +1348,7 @@ void Scene::removeNodeRec( SceneNode &node )
    // Delete node
    if( handle != _rootNodeId )
 	{
-		_spatialGraph->removeNode(node);
+      _spatialGraph->removeNode(node, (SceneNodeFlags::List)node._accumulatedFlags);
       auto i = _nodes.find(node._handle), end = _nodes.end();
       ASSERT(i != _nodes.end());
       if (i != _nodes.end()) {
