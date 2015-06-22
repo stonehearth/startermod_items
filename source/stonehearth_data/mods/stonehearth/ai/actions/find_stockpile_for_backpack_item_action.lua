@@ -37,7 +37,7 @@ function FindStockpileForBackpackItem:start_thinking(ai, entity, args)
       if not stockpile_component or stockpile_component:is_full() then
          return false
       end
-      local items = self._backpack_component:get_items()
+      local items = self._storage_component:get_items()
       for id, item in pairs(items) do
          local filter_fn = candidate:get_component('stonehearth:storage'):get_filter_function()
          if filter_fn(item) then
@@ -68,8 +68,8 @@ function FindStockpileForBackpackItem:_create_listeners()
             end)
       end
    end
-   if not self._backpack_listener then
-      self._backpack_listener = radiant.events.listen(self._entity, 'stonehearth:backpack:item_added', self, self._start_searching)
+   if not self._storage_listener then
+      self._storage_listener = radiant.events.listen(self._entity, 'stonehearth:storage:item_added', self, self._start_searching)
    end
 end
 
@@ -78,9 +78,9 @@ function FindStockpileForBackpackItem:_destroy_listeners()
       self._stockpile_item_listener:destroy()
       self._stockpile_item_listener = nil
    end
-   if self._backpack_listener then
-      self._backpack_listener:destroy()
-      self._backpack_listener = nil
+   if self._storage_listener then
+      self._storage_listener:destroy()
+      self._storage_listener = nil
    end
 end
 
@@ -94,8 +94,8 @@ function FindStockpileForBackpackItem:_start_searching()
    local entity = self._entity
 
    -- if we don't have a backpack or there's nothing in it, bail.
-   self._backpack_component = entity:get_component('stonehearth:backpack')
-   if not self._backpack_component or self._backpack_component:is_empty() then
+   self._storage_component = entity:get_component('stonehearth:storage')
+   if not self._storage_component or self._storage_component:is_empty() then
       return
    end
 

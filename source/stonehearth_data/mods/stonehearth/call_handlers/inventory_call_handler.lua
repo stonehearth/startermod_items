@@ -58,7 +58,7 @@ function InventoryCallHandler:get_talismans_in_explored_region(session, response
    local talisman_filter_fn = function(entity)
       if entity:get_component('stonehearth:promotion_talisman') then
          return true
-      elseif entity:get_component('stonehearth:backpack') then 
+      elseif entity:get_component('stonehearth:storage') then 
          return next(get_talismans_from_container_fn(entity)) ~= nil
       else 
          return false

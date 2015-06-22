@@ -3,13 +3,13 @@
       "stonehearth:actions:reserve_stockpile_space",
       "stonehearth:actions:restock_stockpile",
       "stonehearth:actions:drop_carrying_in_stockpile",
-      "stonehearth:actions:fill_crate",
-      "stonehearth:actions:wait_for_crate_space",
-      "stonehearth:actions:drop_carrying_in_crate",
+      "stonehearth:actions:fill_storage",
+      "stonehearth:actions:wait_for_storage_space",
+      "stonehearth:actions:drop_carrying_in_storage",
       "stonehearth:actions:put_carrying_in_backpack",
-      "stonehearth:actions:reserve_backpack_space",
-      "stonehearth:actions:find_path_to_container_with_entity_type",
-      "stonehearth:actions:find_backpack_entity_type"
+      "stonehearth:actions:reserve_storage_space",
+      "stonehearth:actions:find_path_to_storage_containing_entity_type",
+      "stonehearth:actions:find_entity_type_in_storage"
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:core",

@@ -4,6 +4,7 @@ local constants = require 'constants'
 local StorageComponent = class()
 local log = radiant.log.create_logger('storage')
 
+local INFINITE = 1000000
 local ALL_FILTER_FNS = {}
 
 local function _filter_passes(entity, filter)
@@ -126,10 +127,14 @@ function StorageComponent:initialize(entity, json)
          end)
 
 
+   -- We don't hold reservations across saves.
+   self.num_reserved = 0
+
    if not self._sv.entity then
       -- creating...
       local basic_tracker = radiant.create_controller('stonehearth:basic_inventory_tracker')
       self._sv.entity = entity
+      self._sv.capacity = json.capacity or 8
       self._sv.num_items = 0
       self._sv.items = {}
       self._sv.passed_items = {}
@@ -140,8 +145,23 @@ function StorageComponent:initialize(entity, json)
       self.__saved_variables:mark_changed()
    end
 
+   self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
+
    self:_on_contents_changed()
    self:_update_filter_key()
+end
+
+--If we're killed, dump the things in our backpack
+function StorageComponent:_on_kill_event()
+   -- npc's don't drop what's in their pack
+   if not stonehearth.player:is_npc(self._sv.entity) then
+      while not self:is_empty() do
+         local item = self:remove_first_item()
+         local location = radiant.entities.get_world_grid_location(self._sv.entity)
+         local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+         radiant.terrain.place_entity(item, placement_point)
+      end
+   end
 end
 
 function StorageComponent:destroy()
@@ -152,7 +172,32 @@ function StorageComponent:destroy()
       self:remove_item(id)
    end
 
+   if self._kill_listener then
+      self._kill_listener:destroy()
+      self._kill_listener = nil
+   end
+
    self._sv.items = nil
+end
+
+function StorageComponent:reserve_space()
+   if self:get_num_items() + self.num_reserved >= self:get_capacity() then
+      return false
+   end
+   self.num_reserved = self.num_reserved + 1
+   return true
+end
+
+function StorageComponent:unreserve_space()
+   if self.num_reserved > 0 then
+      self.num_reserved = self.num_reserved - 1
+   end
+end
+
+-- Call to increase/decrease backpack size
+-- @param capacity_change - add this number to capacity. For decrease, us a negative number
+function StorageComponent:change_max_capacity(capacity_change)
+   self._sv.capacity = self:get_capacity() + capacity_change
 end
 
 function StorageComponent:get_num_items()
@@ -167,12 +212,17 @@ function StorageComponent:get_passed_items()
    return self._sv.passed_items
 end
 
-function StorageComponent:item_with_id(id)
-   return self._sv.items[id]
-end
-
 function StorageComponent:add_item(item)
+   if self:is_full() then
+      return false
+   end
+
    local id = item:get_id()
+
+   if self._sv.items[id] then
+      return true
+   end
+
    self._sv.items[id] = item
    self._sv.num_items = self._sv.num_items + 1
    self:_filter_item(item)
@@ -185,11 +235,16 @@ function StorageComponent:add_item(item)
       radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end
    self:_on_contents_changed()
-
    self.__saved_variables:mark_changed()
+
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_added')
 end
 
 function StorageComponent:remove_item(id)
+   if not self._sv.items[id] then
+      return
+   end
+
    assert(self._sv.items[id])
 
    local item = self._sv.items[id]
@@ -206,9 +261,40 @@ function StorageComponent:remove_item(id)
    end
 
    self:_on_contents_changed()
+   self.__saved_variables:mark_changed()
 
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed')   
+end
+
+function StorageComponent:contains_item(id)
+   return self._sv.items[id] ~= nil
+end
+
+function StorageComponent:get_items()
+   return self._sv.items
+end
+
+function StorageComponent:num_items()
+   return self._sv.num_items
+end
+
+function StorageComponent:get_capacity()
+   return self._sv.capacity or INFINITE
+end
+
+function StorageComponent:set_capacity(value)
+   self._sv.capacity = value
    self.__saved_variables:mark_changed()
 end
+
+function StorageComponent:is_empty()
+   return self._sv.num_items == 0
+end
+
+function StorageComponent:is_full()
+   return self._sv.num_items >= self:get_capacity()
+end
+
 
 function StorageComponent:_filter_item(item)
    if self:passes(item) then
@@ -221,12 +307,8 @@ end
 function StorageComponent:_on_contents_changed()
    -- Crates cannot undeploy when they are carrying stuff.
    if self._sv.type == constants.container_types.CRATE then
-      local bp = self._sv.entity:get_component('stonehearth:backpack')
-      
-      if bp then
-         local commands_component = self._sv.entity:add_component('stonehearth:commands')
-         commands_component:enable_command('undeploy_item', bp:is_empty())
-      end
+      local commands_component = self._sv.entity:add_component('stonehearth:commands')
+      commands_component:enable_command('undeploy_item', self:is_empty())
    end
 end
 
@@ -284,6 +366,9 @@ function StorageComponent:set_filter(filter)
    end
 
    self.__saved_variables:mark_changed()
+   
+   -- Let the AI know that _we_ (the backpack) have changed, so reconsider us, too!
+   radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.entity)
 
    radiant.events.trigger(self._sv.entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
 end

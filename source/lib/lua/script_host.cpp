@@ -1158,6 +1158,8 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
 
 void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores)
 {
+   // XXX: doesn't this whole thing need to be MUCH more resiliant to lua errors?
+
    // Two passes: First create all the controllers for the datastores we just
    // created.
 
