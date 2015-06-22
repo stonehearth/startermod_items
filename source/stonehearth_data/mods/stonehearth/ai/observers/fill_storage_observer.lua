@@ -77,12 +77,12 @@ end
 
 function FillStorageObserver:destroy()
    if self._unit_info_trace then
-      self._unit_info_trace:detroy()
+      self._unit_info_trace:destroy()
       self._unit_info_trace = nil
    end
 
    if self._parent_trace then
-      self._parent_trace:detroy()
+      self._parent_trace:destroy()
       self._parent_trace = nil
    end
 

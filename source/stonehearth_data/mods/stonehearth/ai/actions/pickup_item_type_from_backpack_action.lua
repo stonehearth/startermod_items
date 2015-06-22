@@ -30,8 +30,12 @@ function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
 end
 
 function PickupItemTypeFromBackpack:run(ai, entity, args)
-   self._storage_component:remove_item(self._item)
-   radiant.entities.pickup_item(entity, self._item)
+   local id = self._item:get_id()
+   local item = self._storage_component:remove_item(id)
+   if not item then
+      ai:abort('failed to pull item out of backpack')
+   end
+   radiant.entities.pickup_item(entity, item)
 end
 
 return PickupItemTypeFromBackpack
