@@ -22,11 +22,12 @@ function FixtureFabricator:initialize(entity, json)
       self._sv.finished = false
       self._sv.always_show_ghost = false
       self._sv.intitialized = true
+      self.__saved_variables:mark_changed()
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_restore()
+         end)
    end
-
-   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         self:_restore()
-      end)
 end
 
 function FixtureFabricator:_restore()
