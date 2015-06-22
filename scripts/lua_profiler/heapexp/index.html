@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='Content-type' content='text/html; charset=utf-8'>
+    <title>LUA Heap Explorer</title>
+  </head>
+  <body>
+    <input type="file" id="files" name="stuff" multiple=false style="width:500px;"/>    
+    <div id="container">
+    </div>
+    <script src="build/react.js"></script>
+    <script src="build/JSXTransformer.js"></script>
+
+    <script type="text/jsx;harmony=true">
+
+
+
+/*go from heap bits to :
+
+KEEP map(alloc_string -> list_of_ptrs)
+
+KEEP map(ptr -> heap_object), heap_object(name, ptr, fields)
+
+
+
+const class HeapObjectField {
+  constructor(fieldType, fieldValue) {
+
+  }
+}
+
+class Heap {
+  constructor(heapBits) {
+
+  }
+}
+
+class HeapObject {
+  constructor(allocLoc, ptr, bytes){
+    private 
+  }
+}*/
+
+class HeapPtr {
+  constructor(low, hi) {
+    this.low = low;
+    this.hi = hi;
+  }
+
+  eq(otherPtr) {
+    return otherPtr.low == this.low && otherPtr.hi == this.hi;
+  }
+
+  looksValid() {
+    // Lua table data is completely (I think???) un-annotated, so best guess is to look
+    // for something that couldn't possibly be a pointer to something.
+    if (this.low < 0x01000000 || this.hi > 0x00000010) {
+      return false;
+    }
+    return true;
+  }
+}
+
+class ArrayReader {
+  constructor(array) {
+    this.array = array;
+    this.offset = 0;
+    this.view = new DataView(this.array);
+  }
+
+  nextU8() {
+    var v = this.view.getUint8(this.offset);
+    this.offset++;
+    return v;
+  }
+
+  nextU32() {
+    var v = this.view.getUint32(this.offset, true);
+    this.offset += 4;
+    return v;
+  }
+
+  nextPtr() {
+    var v = new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));
+    this.offset += 8;
+    return v;
+  }
+
+  peekPtr() {
+    return new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));    
+  }
+
+  skip(numBytes) {
+    this.offset += numBytes;
+  }
+
+  getOffset() {
+    return this.offset;
+  }
+
+  nextStr() {
+    var result = "";
+
+    var c = this.nextU8();
+    while (c != 0) {
+      result += String.fromCharCode(c);
+      c = this.nextU8();
+    }
+
+    return result;
+  }
+}
+
+class HeapExpApplication extends React.Component {
+
+  constructor() {
+    this.strs = [];
+  }
+
+  _processAllocLocationStrings(reader) {
+    let numStrs = reader.nextU32();
+    for (var i = 0; i < numStrs; i++) {
+      this.strs.push(reader.nextStr());
+    }
+  }
+
+  _processClosure(reader) {
+    let isCFunc = reader.nextU8();
+    let numUpVals = reader.nextU8();
+  
+    // Padding.
+    reader.nextU32();
+
+    let gclist = reader.nextPtr();
+    let env = reader.nextPtr();
+
+    if (isCFunc == 0) {
+      let proto = reader.nextPtr();
+      for (var i = 0; i < numUpVals; i++) {
+        reader.nextPtr();
+      }
+    } else {
+      let cfunc = reader.nextPtr();
+
+      for (var i = 0; i < numUpVals; i++) {
+        let val = reader.nextPtr();
+        let tt = reader.nextU32();
+        reader.nextU32();
+      }
+    }
+  }
+
+  _processFuncPrototype(reader) {
+    // PADDING
+    reader.nextU8();reader.nextU8();
+
+    let constants = reader.nextPtr();
+
+    // PADDING
+    reader.nextU32();
+    let code = reader.nextPtr();
+    let proto = reader.nextPtr();
+    let lineInfo = reader.nextPtr();
+    let localVars = reader.nextPtr();
+    let upvalNames = reader.nextPtr();
+    let source = reader.nextPtr();
+
+    let numUps = reader.nextU32();
+    let numConstants = reader.nextU32();
+    let codeSize = reader.nextU32();
+    let lineInfSize = reader.nextU32();
+    let protoSize = reader.nextU32();
+    let lineDef = reader.nextU32();
+    let lastLineDef = reader.nextU32();
+
+    // PADDING
+    reader.nextU32();
+
+    let gclist = reader.nextPtr();
+
+    let numUps2 = reader.nextU8();
+    let numParams = reader.nextU8();
+    let isVarArgMask = reader.nextU8();
+    let maxStackSize = reader.nextU8();
+
+    // PADDING
+    reader.nextU32();
+  }
+
+  _processTable(reader) {
+    let flags = reader.nextU8();
+    let lsizenode = reader.nextU8();
+    let metaTablePtr = reader.nextPtr();
+
+    // PADDING
+    reader.nextU32();
+    let arrayPtr = reader.nextPtr();
+    let node = reader.nextPtr();
+    let lastFree = reader.nextPtr();
+    let gclist = reader.nextPtr();
+    let sizeArray = reader.nextU32();
+
+    // PADDING
+    reader.nextU32();
+  }
+
+  _processUserData(reader, numBytes) {
+    reader.skip(6);
+    let metatable = reader.nextPtr();
+    let env = reader.nextPtr();
+    let len = reader.nextU32();
+    
+    // The user bytes.
+    reader.skip(len);
+
+    // Any padding ((8 + 1 + 1) + 26).  This might be unnecessary: maybe only 4?
+    reader.skip(numBytes - (36 + len));
+  }
+
+  _processUpValue(reader) {
+    // PADDING.
+    reader.nextU32();
+    reader.nextU8();
+    reader.nextU8();
+
+    let valPtr = reader.nextPtr();
+    
+    // Fixme: NASTY UNIONS
+    let val = reader.nextPtr();
+    let next = reader.nextPtr();
+  }
+
+  _processBytes(reader, numBytes) {
+    if (reader.peekPtr().looksValid()) {
+
+      let gcNext = reader.nextPtr(); 
+
+      let typ = reader.nextU8();
+
+      let marked = reader.nextU8();
+
+      //console.log('type: ' + typ + '.  size: ' + numBytes + '. loc: ' + (reader.getOffset() - 10));
+
+      if (marked == 0) {
+        // A good question might be to ask: if we call FullGC before dumping the heap, then what the
+        // heck is this stuff doing here?
+        //console.log('marked = 0');
+        reader.skip(numBytes - 10);
+        return;
+      }
+
+      switch(typ) {
+        case 0:
+          //NIL
+          reader.skip(numBytes - 10);
+          break;
+        case 1:
+          //BOOL
+          reader.skip(numBytes - 10);
+          break;
+        case 2:
+          // 'light' user data.  huh?
+          console.assert(false);
+          break;
+        case 3:
+          // number
+          reader.skip(numBytes - 10);
+          break;
+        case 4:
+          // string
+          reader.skip(numBytes - 10);
+          break;
+        case 5:
+          // table
+          console.assert(numBytes == 64);
+          this._processTable(reader);
+          break;
+        case 6:
+          // A closure of some kind
+          this._processClosure(reader);
+          break;
+        case 7:
+          // user data
+          this._processUserData(reader, numBytes);
+          break;
+        case 8:
+          // thread
+          reader.skip(numBytes - 10);
+          break;    
+        case 9:
+          // Function prototype
+          console.assert(numBytes == 120);
+          this._processFuncPrototype(reader);
+          break;
+
+        case 10:
+          // up value
+          this._processUpValue(reader);
+          break;
+
+        default:
+          console.log('unknown type: ' + typ + ' at ' + reader.getOffset());
+          reader.skip(numBytes - 10);
+          break;
+      };
+    } else {
+      // Table data, I think?
+      console.log('skipping probable table (' + numBytes + ' bytes) at ' + reader.getOffset());
+      reader.skip(numBytes);
+    }
+  }
+
+  _processAlloc(reader) {    
+    let strIdx = reader.nextU32();
+
+    let ptr = reader.nextU32();
+
+    let bytesLen = reader.nextU32();
+
+    this._processBytes(reader, bytesLen);
+  }
+
+  _processAllocs(reader) {
+    let numAllocs = reader.nextU32();
+
+    for (var i = 0; i < numAllocs; i++) {
+      this._processAlloc(reader);
+    }
+  }
+
+  _processHeapDump(heapBytes) {
+    var offset = 0;
+    var heapReader = new ArrayReader(heapBytes);
+
+    this._processAllocLocationStrings(heapReader);
+    this._processAllocs(heapReader);
+  }
+
+  componentDidMount() {
+    let handleFileSelect = (evt) => {
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        this._processHeapDump(e.target.result);
+      };
+      reader.readAsArrayBuffer(evt.target.files[0])
+    };
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);    
+  }
+
+  render() {
+    return <p>Working</p>;
+  }
+}
+
+
+React.render(
+  <HeapExpApplication  />,
+  document.getElementById('container')
+);
+
+    </script>
+  </body>
+</html>
