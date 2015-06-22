@@ -19,7 +19,7 @@ class Quaternion
       Quaternion(const protocol::quaternion& c) {
          LoadValue(c);
       }
-      explicit Quaternion(Point3f const& vector);
+      explicit Quaternion(Point3f const& eulerAngle); // Construct from Euler Angle
       explicit Quaternion(const Matrix3& rotation);
       explicit Quaternion(const Matrix4& rotation);
       inline ~Quaternion() {}
@@ -56,6 +56,9 @@ class Quaternion
       void lookAt(const Point3f& from, const Point3f& target);
 
       void get_axis_angle(Point3f& axis, double& angle) const;
+
+      // Returns Euler Angle as yaw, pitch, roll
+      Point3f GetEulerAngle() const;
 
       void clean();       // sets near-zero elements to 0
       void Normalize();   // sets to unit Quaternion
@@ -124,6 +127,7 @@ inline Quaternion Interpolate(const Quaternion &q0, const Quaternion &q1, double
    slerp(result, q0, q1, alpha);
    return result;
 }
+
 
 std::ostream& operator<<(std::ostream& out, const Quaternion& source);
 

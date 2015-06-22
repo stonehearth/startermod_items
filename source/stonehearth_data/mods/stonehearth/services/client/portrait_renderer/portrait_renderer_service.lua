@@ -134,16 +134,24 @@ function PortraitRendererService:_stage_scene(request)
          camera_pos_y = camera_pos_y * 1.8
       end
 
+      local mob = entity:get_component('mob')
+      local rotation = mob and mob:get_facing()
+    
+      -- Rotate the lighting so it will always shine in the direction of the hearthling.
+      local desired_light_direction = _radiant.csg.Quaternion(Point3(math.rad(15), math.rad(160), math.rad(0)))
+      local mob_rotation = mob and mob:get_rotation()
+      local rotated_direction = mob_rotation * desired_light_direction
+      local euler = rotated_direction:get_euler_angle()
+      local euler_degrees = Point3(math.deg(euler.x), math.deg(euler.y), math.deg(euler.z))
+
       self:_add_light({
             color =         Point3(0.9, 0.8, 0.9),
             ambient_color = Point3(0.5,  0.5, 0.5),
             -- Direction is in degrees with yaw and pitch as the first 2 params. Ignore 3rd param
             -- -180 yaw will have light going from -z to positive z
-            direction =     Point3(-160, 15, 0)
+            direction =     euler_degrees,
          })
          
-      local mob = entity:get_component('mob')
-      local rotation = mob and mob:get_facing()
       local camera_original_pos = Point3(1.7, camera_pos_y, -2.7)
       local camera_pos = radiant.math.rotate_about_y_axis(camera_original_pos, rotation)
 
