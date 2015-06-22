@@ -228,9 +228,12 @@ function StorageComponent:add_item(item)
    self:_filter_item(item)
    self._sv.item_tracker:add_item(item)
 
-   stonehearth.inventory:get_inventory(self._sv.player_id):add_item(item)
-   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, self._sv.entity)
-
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+   if inventory then
+      inventory:add_item(item)
+      inventory:update_item_container(id, self._sv.entity)
+   end
+   
    if item:is_valid() then
       radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end
@@ -241,13 +244,13 @@ function StorageComponent:add_item(item)
 end
 
 function StorageComponent:remove_item(id)
-   if not self._sv.items[id] then
-      return
+   assert(type(id) == 'number', 'expected entity id')
+   
+   local item = self._sv.items[id] 
+   if not item then
+      return nil
    end
-
-   assert(self._sv.items[id])
-
-   local item = self._sv.items[id]
+   
    self._sv.num_items = self._sv.num_items - 1
    self._sv.items[id] = nil
    self._sv.passed_items[id] = nil
@@ -263,7 +266,8 @@ function StorageComponent:remove_item(id)
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
 
-   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed')   
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed')
+   return item
 end
 
 function StorageComponent:contains_item(id)

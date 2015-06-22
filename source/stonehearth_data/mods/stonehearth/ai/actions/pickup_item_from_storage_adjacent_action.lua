@@ -34,7 +34,7 @@ function PickupItemFromStorageAdjacent:run(ai, entity, args)
 
    radiant.entities.turn_to_face(entity, args.storage)
 
-   local success = self._storage_component:remove_item(args.item)
+   local success = self._storage_component:remove_item(args.item:get_id())
    if not success then
       ai:abort('item not found in storage')
    end  
