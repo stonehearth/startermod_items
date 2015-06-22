@@ -36,9 +36,8 @@
          }
       },
       "stonehearth:storage" : {
-         "type" : "backpack"
-      },
-      "stonehearth:backpack" : {
+         "type" : "backpack",
+         "capacity" : 8
       },
       "stonehearth:attributes" : {
          "mind": {

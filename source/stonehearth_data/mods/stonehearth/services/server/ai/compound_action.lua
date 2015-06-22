@@ -41,6 +41,9 @@ function CompoundAction:__init(entity, action_ctor, activities, think_output_pla
          set_cost = function(_, cost)
             self._action_cost = cost
          end,
+         set_debug_progress = function(_, ...)
+            self._ai:set_debug_progress(...)
+         end,
          set_think_output = function(_, think_output)
             self:_spam_current_state('compound action became ready!')
             think_output = think_output or self._args

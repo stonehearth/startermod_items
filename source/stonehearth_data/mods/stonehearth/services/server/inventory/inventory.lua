@@ -64,6 +64,7 @@ function Inventory:create_stockpile(location, size)
             :set_player_id(self._sv.player_id)
 
    entity:add_component('stonehearth:storage')
+            :set_capacity(nil)
 
    entity:add_component('stonehearth:stockpile')
             :set_size(size.x, size.y)

@@ -1,11 +1,11 @@
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
-local FindPathToContainerWithEntityType = class()
+local FindPathToStorageContainingEntityType = class()
 local constants = require 'constants'
 
-FindPathToContainerWithEntityType.name = 'find path to entity type'
-FindPathToContainerWithEntityType.does = 'stonehearth:find_path_to_container_with_entity_type'
-FindPathToContainerWithEntityType.args = {
+FindPathToStorageContainingEntityType.name = 'find path to entity type'
+FindPathToStorageContainingEntityType.does = 'stonehearth:find_path_to_storage_containing_entity_type'
+FindPathToStorageContainingEntityType.args = {
    filter_fn = 'function',             -- entity to find a path to
    description = 'string',             -- description of the initiating compound task (for debugging)
    range = {
@@ -13,17 +13,16 @@ FindPathToContainerWithEntityType.args = {
       type = 'number',
    },
 }
-FindPathToContainerWithEntityType.think_output = {
+FindPathToStorageContainingEntityType.think_output = {
    destination = Entity,   -- the destination (container)
    path = Path,            -- the path to destination, from the current Entity
 }
-FindPathToContainerWithEntityType.version = 2
-FindPathToContainerWithEntityType.priority = 1
+FindPathToStorageContainingEntityType.version = 2
+FindPathToStorageContainingEntityType.priority = 1
 
-local ALL_BACKPACK_FILTER_FNS = {}
+local ALL_FILTER_FNS = {}
 
-
-function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
+function FindPathToStorageContainingEntityType:start_thinking(ai, entity, args)
    self._description = args.description
    self._log = ai:get_log()
 
@@ -36,13 +35,13 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
          })
    end
 
-   local filter_fn = ALL_BACKPACK_FILTER_FNS[args.filter_fn]
+   local filter_fn = ALL_FILTER_FNS[args.filter_fn]
 
    if not filter_fn then
       filter_fn = function(entity)
          local storage = entity:get_component('stonehearth:storage')
 
-         if not storage or not entity:get_component('stonehearth:backpack') then
+         if not storage then
             return false
          end
 
@@ -59,7 +58,7 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
 
          return false
       end
-      ALL_BACKPACK_FILTER_FNS[args.filter_fn] = filter_fn
+      ALL_FILTER_FNS[args.filter_fn] = filter_fn
    end
 
    self._location = ai.CURRENT.location
@@ -77,11 +76,11 @@ function FindPathToContainerWithEntityType:start_thinking(ai, entity, args)
                                                            solved)              -- our solved callback
 end
 
-function FindPathToContainerWithEntityType:stop_thinking(ai, entity, args)
+function FindPathToStorageContainingEntityType:stop_thinking(ai, entity, args)
    self:_destroy_pathfinder('stop_thinking')
 end
 
-function FindPathToContainerWithEntityType:_destroy_pathfinder(reason)
+function FindPathToStorageContainingEntityType:_destroy_pathfinder(reason)
    if self._pathfinder then
       local count = self._pathfinder:destroy()
       self._pathfinder = nil
@@ -89,4 +88,4 @@ function FindPathToContainerWithEntityType:_destroy_pathfinder(reason)
    end
 end
 
-return FindPathToContainerWithEntityType
+return FindPathToStorageContainingEntityType

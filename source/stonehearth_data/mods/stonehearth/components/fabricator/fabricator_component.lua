@@ -61,14 +61,14 @@ function FabricatorComponent:initialize(entity, json)
       self._sv.material_proxies = {}
       self._sv.total_mining_region = _radiant.sim.alloc_region3()
       self.__saved_variables:mark_changed()
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            if self._sv.blueprint and self._sv.project then
+               self:_restore()
+            end
+         end)
    end
    self.__saved_variables:set_controller(self)
-
-   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         if self._sv.blueprint and self._sv.project then
-            self:_restore()
-         end
-      end)
 end
 
 function FabricatorComponent:_restore()

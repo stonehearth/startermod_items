@@ -23,15 +23,16 @@ function WorkshopComponent:initialize(entity, json)
       self._sv.close_sound = json.close_sound
       self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list', self._entity)
       self._sv.is_paused = false
+      self.__saved_variables:mark_changed()
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            if self._sv.crafter then
+               self:_create_workshop_orchestrator()
+            end
+         end)
    end
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
-
-   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         if self._sv.crafter then
-            self:_create_workshop_orchestrator()
-         end
-      end)
 end
 
 function WorkshopComponent:destroy()

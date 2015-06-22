@@ -4,14 +4,11 @@
    
    "components": {
       "mob" : {
-         "interpolate_movement" : false,
-         "mob_collision_type" : "tiny"
-      },
-      "stonehearth:backpack" : {
-         "capacity" : 32
+         "interpolate_movement" : false
       },
       "stonehearth:storage" : {
-         "type" : "crate"
+         "type" : "crate",
+         "capacity" : 32
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(large_crate_iconic.json)",
@@ -38,7 +35,7 @@
    "entity_data" : {
       "stonehearth:ai_packs" : {
          "packs" : [
-            "stonehearth:ai_pack:fill_crate"
+            "stonehearth:ai_pack:fill_storage"
          ]
       }
    }

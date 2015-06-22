@@ -75,7 +75,7 @@ function ObjectMonitor:_on_destroyed(name)
    end
 
    if not self._destroyed_cb then
-      self._log:debug('ignoring detroy of %s (no destroy cb!)', name)
+      self._log:debug('ignoring destroy of %s (no destroy cb!)', name)
    end
 
    self._log:debug('object monitor calling destroyed cb (%s is no more!)',  name)

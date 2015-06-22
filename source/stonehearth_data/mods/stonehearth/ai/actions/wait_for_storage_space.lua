@@ -2,13 +2,13 @@ local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 
 local WaitForCrateSpace = class()
-WaitForCrateSpace.name = 'wait for crate space'
-WaitForCrateSpace.does = 'stonehearth:wait_for_crate_space'
+WaitForCrateSpace.name = 'wait for storage space'
+WaitForCrateSpace.does = 'stonehearth:wait_for_storage_space'
 WaitForCrateSpace.args = {
-   crate = Entity,        -- the crate that needs stuff
+   storage = Entity,          -- the storage that needs stuff
 }
 WaitForCrateSpace.think_output = {
-   item_filter = 'function',  -- the filter function for crate items
+   item_filter = 'function',  -- the filter function for storage items
 }
 WaitForCrateSpace.version = 2
 WaitForCrateSpace.priority = 1
@@ -16,22 +16,21 @@ WaitForCrateSpace.priority = 1
 function WaitForCrateSpace:start_thinking(ai, entity, args)
    self._ai = ai
    self._log = ai:get_log()
-   self._backpack = args.crate:get_component('stonehearth:backpack')
-   self._storage = args.crate:get_component('stonehearth:storage')
+   self._storage = args.storage:get_component('stonehearth:storage')
    self._ready = false
 
-   self._more_space_listener = radiant.events.listen(args.crate, 'stonehearth:backpack:item_removed', self, self._on_space_changed)
-   self._less_space_listener = radiant.events.listen(args.crate, 'stonehearth:backpack:item_added', self, self._on_space_changed)
+   self._more_space_listener = radiant.events.listen(args.storage, 'stonehearth:storage:item_removed', self, self._on_space_changed)
+   self._less_space_listener = radiant.events.listen(args.storage, 'stonehearth:storage:item_added', self, self._on_space_changed)
    self:_on_space_changed()
 end
 
 function WaitForCrateSpace:_on_space_changed()
-   if not self._backpack then
-      self._log:debug('crate destroyed')
+   if not self._storage then
+      self._log:debug('storage destroyed')
       return
    end
 
-   if self._backpack:is_full() and self._ready then
+   if self._storage:is_full() and self._ready then
       self._ready = false
       self._ai:clear_think_output()
       return
