@@ -46,6 +46,7 @@ function PhysicsService:_update_dirty_tiles()
    self._dirty_tiles = {}
 
    for _, pt in pairs(dirty_tiles) do
+      log:debug('updating dirty tile %s', pt)
       _physics:for_each_entity_in_tile(pt, function(entity)
             if entity:get_id() ~= 1 then
                self:_unstick_entity(entity)
@@ -63,6 +64,9 @@ function PhysicsService:_unstick_entity(entity)
    if not current then
       return
    end
+   
+   log:debug('unsticking %s', entity)
+   
    local collision_type = mob:get_mob_collision_type()
    if collision_type == Mob.TINY or
       collision_type == Mob.HUMANOID or
@@ -79,7 +83,6 @@ function PhysicsService:_unstick_entity(entity)
          mob:set_velocity(Transform())
          self._sv.in_motion_entities[entity:get_id()] = entity
       end
-
    elseif collision_type == Mob.CLUTTER then
       radiant.entities.destroy_entity(entity)
    end

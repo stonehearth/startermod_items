@@ -95,6 +95,9 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                end
             end
 
+            local rotation = selector:get_rotation()
+            radiant.entities.turn_to(placement_test_entity, rotation)
+
             if radiant.terrain.is_blocked(placement_test_entity, location) then
                -- if the space occupied by the cursor is blocked, we definitely can't
                -- place the item there
