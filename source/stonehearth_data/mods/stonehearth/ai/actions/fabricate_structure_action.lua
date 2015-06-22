@@ -28,6 +28,12 @@ return ai:create_compound_action(FabricateStructure)
          :execute('stonehearth:fabricate_structure_adjacent', { fabricator = ai.ARGS.fabricator,
                                                                 block = ai.BACK(4).path:get_destination_point_of_interest() })
 ]]
+
+function FabricateStructure:start_thinking(ai, entity, args)
+  ai:set_debug_progress('fabricator for %s', args.fabricator:get_entity())
+  ai:set_think_output({})
+end
+
 return ai:create_compound_action(FabricateStructure)
          :execute('stonehearth:pickup_item_made_of', { material = ai.ARGS.material })
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.fabricator:get_material_proxy(ai.ARGS.material) })
