@@ -6,14 +6,17 @@ local Mission = require 'services.server.game_master.controllers.missions.missio
 local RaidStockpilesMission = class()
 radiant.mixin(RaidStockpilesMission, Mission)
 
+function RaidStockpilesMission:restore()
+   if not self._sv.update_orders_timer and self._sv.ctx then
+      -- if we're loading, then update the party orders once the game is loaded
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+            self:_update_party_orders()
+         end)
+   end
+end
+
 function RaidStockpilesMission:activate()
    Mission.activate(self)
-   if not self._sv.update_orders_timer and self._sv.ctx then
-      --if we're loading, then update the party orders once the game is loaded
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-         self:_update_party_orders()
-      end)
-   end
 end
 
 function RaidStockpilesMission:can_start(ctx, info)

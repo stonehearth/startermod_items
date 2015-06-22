@@ -8,25 +8,6 @@ local CreateWorkshop = require 'services.server.town.orchestrators.create_worksh
 local Town = class()
 
 function Town:initialize(player_id)
-   self._sv.player_id = player_id
-   self._sv._saved_calls = {}
-   self._sv._next_saved_call_id = 1
-   self._sv.worker_combat_enabled = false
-   self._sv.rally_to_battle_standard = false
-   self._sv.mining_zones = {}
-
-   self._sv.entity = radiant.entities.create_entity('', { owner = player_id })
-   
-   self.__saved_variables:mark_changed()
-
-   self:restore()
-end
-
-function Town:restore()
-   self._log = radiant.log.create_logger('town', self._sv.player_id)
-
-   self:_create_task_groups()
-
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
@@ -39,12 +20,27 @@ function Town:restore()
    self._mining_zone_destroy_listeners = {}
    self._temporary_effects = {}
 
-   self:_restore_mining_zone_listeners()
+   self._sv.player_id = player_id
+   self._sv._saved_calls = {}
+   self._sv._next_saved_call_id = 1
+   self._sv.worker_combat_enabled = false
+   self._sv.rally_to_battle_standard = false
+   self._sv.mining_zones = {}
+   self._sv.entity = radiant.entities.create_entity('', { owner = player_id })
+   self.__saved_variables:mark_changed()
+end
+
+function Town:restore()
+   self:_trace_mining_zones()
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          self:_on_game_loaded()
-      end
-   )
+      end)
+end
+
+function Town:activate()
+   self._log = radiant.log.create_logger('town', self._sv.player_id)
+   self:_create_task_groups()
 end
 
 function Town:_on_game_loaded()
@@ -638,7 +634,7 @@ function Town:_listen_for_mining_zone_destroyed(mining_zone)
    self._mining_zone_destroy_listeners[id] = listener
 end
 
-function Town:_restore_mining_zone_listeners()
+function Town:_trace_mining_zones()
    for id, mining_zone in pairs(self._sv.mining_zones) do
       self:_listen_for_mining_zone_destroyed(mining_zone)
    end
