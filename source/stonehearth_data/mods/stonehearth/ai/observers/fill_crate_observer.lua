@@ -51,6 +51,11 @@ function FillCrateObserver:_create_worker_task()
       return
    end
 
+   local parent = radiant.entities.get_parent(self._sv.entity)
+   if not parent or parent:get_component('terrain') == nil then
+      return
+   end
+
    local player_id = radiant.entities.get_player_id_from_entity(self._sv.entity)
    local town = stonehearth.town:get_town(player_id)
    if town then 
