@@ -19,6 +19,7 @@ WaitForPastureVacancy.priority = 1
 function WaitForPastureVacancy:start_thinking(ai, entity, args)
    self._args = args
    self._ai = ai
+   self._timer = nil
    self._pasture_listener = radiant.events.listen(args.pasture, 'stonehearth:on_pasture_animals_changed', self, self._on_pasture_count_changed)
    self:_on_pasture_count_changed()
 end
@@ -37,6 +38,11 @@ end
 -- If so, and if we have a wait timer, WAIT the specified time, check again, and then set think output.
 -- If we don't have a wait timer, then just set think output immediately.
 function WaitForPastureVacancy:_on_pasture_count_changed()
+   if self._timer then
+      -- We're already waiting from a prior successful pasture check
+      return
+   end
+
    if self:pasture_check() then
       if self._args.wait_timeout == '0m' then
          self._ai:set_think_output()
@@ -44,7 +50,6 @@ function WaitForPastureVacancy:_on_pasture_count_changed()
          self._timer = stonehearth.calendar:set_timer("WaitForPastureVacancy pasture_check", '5m', function()
             self._timer = nil
             if self:pasture_check() then
-               --TODO: I've seent this fire from a "finished" state. 
                self._ai:set_think_output()
             end
          end)
