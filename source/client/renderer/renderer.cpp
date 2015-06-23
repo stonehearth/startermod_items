@@ -71,6 +71,7 @@ Renderer::Renderer() :
    show_debug_shapes_changed_slot_("show debug shapes", 0),
    lastGlfwError_("none"),
    currentPipeline_(""),
+   portraitPipeline_("pipelines/portrait.pipeline.xml"),
    iconified_(false),
    resize_pending_(false),
    drawWorld_(true),
@@ -1317,13 +1318,8 @@ void Renderer::RenderPortraitRT()
       portrait_generated_ = true;
 
       // Turn off the UI to render the portrait.
-      SetStageEnable(GetPipeline(worldPipeline_), "Overlays", false);
-      SetStageEnable(GetPipeline(worldPipeline_), "Selected", false);
-      SetStageEnable(GetPipeline(worldPipeline_), "PortraitClear", true);
       h3dSetOption(H3DOptions::EnableRenderCaching, false);
-      h3dRender(portraitCamera_->GetNode(), GetPipeline(worldPipeline_));
-      SetStageEnable(GetPipeline(worldPipeline_), "Selected", true);
-      SetStageEnable(GetPipeline(worldPipeline_), "PortraitClear", false);
+      h3dRender(portraitCamera_->GetNode(), GetPipeline(portraitPipeline_));
       h3dSetOption(H3DOptions::EnableRenderCaching, true);
    } else if (portrait_generated_) {
       portrait_generated_ = false;
