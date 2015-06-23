@@ -1,14 +1,17 @@
 {
-   "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
+   "type": "entity",
    "components" : {
-      "item" : {
-         "category" : "armor"   
-      },
       "unit_info" : {
          "name" :  "Winter Worker Outfit",
          "description" : "A heavy wool coat, for cold winter nights",
          "icon" : "file(winter_worker_outfit.png)"
+      },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" :  "cloth armor light_armor"
       },
       "model_variants": {
          "default": {
@@ -23,9 +26,6 @@
                "file(winter_worker_outfit_female.qb)"
             ]
          }
-      },
-      "stonehearth:material" : {
-         "tags" :  "cloth armor light_armor"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(winter_worker_outfit_iconic.json)"

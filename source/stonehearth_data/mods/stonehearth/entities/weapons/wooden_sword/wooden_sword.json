@@ -2,7 +2,18 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "model_variants": {
+      "unit_info": {
+         "name": "Wooden Sword",
+         "description": "Thacks thine enemies with oaken might",
+         "icon" : "file(wooden_sword.png)"
+      },
+      "item" : {
+         "category" : "weapons"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood melee_weapon"
+      },
+      "model_variants": {
          "default" : {
             "models": [
                "file(wooden_sword_equipped.qb)"
@@ -16,14 +27,6 @@
          "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat", "stonehearth:patrol" ]
-      },
-      "unit_info": {
-         "name": "Wooden Sword",
-         "description": "Thacks thine enemies with oaken might",
-         "icon" : "file(wooden_sword.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood melee_weapon"
       }
    },
    "entity_data" : {

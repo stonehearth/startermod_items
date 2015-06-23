@@ -8,7 +8,7 @@ PlaceItemOnStructure.args = {
    item = Entity,       -- the item to place.  must have a 'stonehearth:entity_forms' component!
    location = Point3,   -- where to take it.  the ghost should already be there
    rotation = 'number', -- the rotation
-   structure = Entity,  -- the structure
+   structure = Entity,  -- the structure.  note that this is also used to place items on the ground 'terrain structure'
    ignore_gravity = {      -- turn off gravity when placing
       type = 'boolean',
       default = false,
@@ -16,6 +16,10 @@ PlaceItemOnStructure.args = {
 }
 PlaceItemOnStructure.version = 2
 PlaceItemOnStructure.priority = 1
+
+function PlaceItemOnStructure:start(ai, entity, args)
+   ai:set_status_text('placing ' .. radiant.entities.get_name(args.item))
+end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PlaceItemOnStructure)

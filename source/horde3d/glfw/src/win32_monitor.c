@@ -49,6 +49,7 @@
 //
 GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, const GLFWvidmode* desired)
 {
+    LONG result;
     GLFWvidmode current;
     const GLFWvidmode* best;
     DEVMODE dm;
@@ -71,13 +72,14 @@ GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, const GLFWvidmode* desired)
     if (dm.dmBitsPerPel < 15 || dm.dmBitsPerPel >= 24)
         dm.dmBitsPerPel = 32;
 
-    if (ChangeDisplaySettingsEx(monitor->win32.name,
+    result = ChangeDisplaySettingsEx(monitor->win32.name,
                                 &dm,
                                 NULL,
                                 CDS_FULLSCREEN,
-                                NULL) != DISP_CHANGE_SUCCESSFUL)
+                                NULL);
+    if (result != DISP_CHANGE_SUCCESSFUL)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "Win32: Failed to set video mode");
+        _glfwInputError(GLFW_PLATFORM_ERROR, "Win32: Failed to set video mode on adapter %s (error: %d)", monitor->win32.name, result);
         return GL_FALSE;
     }
 

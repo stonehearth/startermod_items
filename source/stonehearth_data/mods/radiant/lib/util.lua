@@ -322,6 +322,17 @@ function util.table_tostring(t, ...)
    return table.concat (acc_list)
 end
 
+-- Given a table array, return the index of obj if it is in table
+-- return 0 if obj is not in the table
+function util.table_indexof(table, obj)
+   for i, x in ipairs (table) do
+      if x == obj then
+         return i
+      end
+   end
+   return 0
+end
+
 -- when a check fails, use util.typename to get the type of the
 -- argument
 checkers.__get_typename = util.typename

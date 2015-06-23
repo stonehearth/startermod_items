@@ -47,17 +47,6 @@ function ReserveEntity:start_thinking(ai, entity, args)
    ai:set_think_output()
 end
 
-function ReserveEntity:stop_thinking(ai, entity, args)
-   -- if the start thinking timer is still valid when stop_thinking is called, some
-   -- other sibling or cousin action won the election and is getting ready to run.
-   -- kill the timer since it's no longer needed (and we have absoultely *no* desire
-   -- to run if the timer exists!)
-   if self._start_thinking_timer then
-      self._start_thinking_timer:destroy()
-      self._start_thinking_timer = nil
-   end
-end
-
 function ReserveEntity:start(ai, entity, args)
    local target = args.entity
 
@@ -75,7 +64,6 @@ function ReserveEntity:stop(ai, entity, args)
       stonehearth.ai:release_ai_lease(args.entity, entity)
       self._acquired_lease = false
    end
-   self._lease_component = nil
 end
 
 return ReserveEntity

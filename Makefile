@@ -26,6 +26,8 @@ TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
 TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
 BOOST_ROOT         = $(STONEHEARTH_ROOT)/modules/boost/install/$(RADIANT_BUILD_PLATFORM)/include/boost-1_58
 
+PROFILER_LUA_FILE_MAP = scripts/lua_profiler/lua_file_map.js
+
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
   RUN_ROOT=$(STONEHEARTH_ROOT)/source/stonehearth_data
@@ -254,3 +256,20 @@ docs:
 update-templates:
 	cd $(STONEHEARTH_ROOT)/source/stonehearth_data/ && $(SCRIPTS_ROOT)/update_templates.py
 
+.PHONY: lua-file-map
+lua-file-map:
+	$(PYTHON) scripts/lua_profiler/collect_lua_file_map.py
+
+#
+# Used to synchronize our public repositories on https://github.com/stonehearth/ with the
+# copies pulled into the tree with 'git subtree'
+#
+.PHONY: radent-to-gareth
+radent-to-gareth:
+	-rm $(STONEHEARTH_ROOT)/.git/hooks/pre-push
+	git subtree push --prefix source/stonehearth_data/mods/debugtools debugtools master
+	cp $(SCRIPTS_ROOT)/git_hooks/pre-push $(STONEHEARTH_ROOT)/.git/hooks/
+
+.PHONY: gareth-to-radent
+gareth-to-radent:
+	git subtree pull --prefix source/stonehearth_data/mods/debugtools debugtools master

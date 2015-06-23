@@ -95,8 +95,7 @@ App.RootView = Ember.ContainerView.extend({
       var currentScreen = App.options['current_screen'];
       if (currentScreen == "title_screen") {
          App.gotoShell();
-      } else {                  
-         App.gameView._addViews(App.gameView.views.complete);
+      } else {
          App.gotoGame();
       }
       $(document).trigger('stonehearthReady');
@@ -114,10 +113,23 @@ App.RootView = Ember.ContainerView.extend({
 
       this.get('controller').send('tryAutoSave', true);
       
-      setTimeout(function() {
-         App.stonehearthTutorials.start();
-      }, 1000);
-      
+      radiant.call_obj('stonehearth.world_generation', 'needs_camp_placement_command')
+         .done(function(e) {
+            if (e.result === true) {
+               // If we need camp placement, start the camp placement
+               radiant.call('radiant:get_config', 'tutorial')
+                  .done(function(o) {
+                     if (o.tutorial && o.tutorial.hideStartingTutorial) {
+                        App.gameView.addView(App.StonehearthCreateCampView, { hideStartingTutorial: true});
+                     } else {
+                        App.gameView.addView(App.StonehearthHelpCameraView)
+                     }
+                  });
+            } else {
+               App.gameView._addViews(App.gameView.views.complete);
+               App.stonehearthTutorials.start();
+            }
+         });
    },
 
    gotoShell: function() {
@@ -126,5 +138,4 @@ App.RootView = Ember.ContainerView.extend({
 
       this.get('controller').send('tryAutoSave', false);
    }
-
 });

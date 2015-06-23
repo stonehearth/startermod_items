@@ -125,4 +125,11 @@ $(document).ready(function(){
       },
       description : "Sets the time with options passed in through Arg 0 (Note you can't have any spaces and you have to include the quotes so is valid JSON). Usage: set_time {\"hour\":12,\"minute\":0}"
    });
+
+   radiant.console.register('world_seed', {
+      call: function(cmdobj, fn, args) {
+         return radiant.call_obj('stonehearth.world_generation', 'get_world_seed_command');
+      },
+      description : "Returns the world seed of the current world. Usage: world_seed"
+   });
 });

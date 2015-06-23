@@ -13,9 +13,9 @@
                   <td>Activity goes here...</td>
                   <td>
                      {{#if this.stonehearth:crafter.workshop}}
-                        <a {{action showWorkshop this target="view"}} ><button>{{i18n stonehearth:crafters_show_workshop}}</button></a>
+                        <a {{action 'showWorkshop' this target="view"}} ><button>{{i18n stonehearth:crafters_show_workshop}}</button></a>
                      {{else}}
-                        <a {{action placeWorkshop this target="view"}} ><button>{{i18n stonehearth:crafters_place_workshop}}</button></a>
+                        <a {{action 'placeWorkshop' this target="view"}} ><button>{{i18n stonehearth:crafters_place_workshop}}</button></a>
                      {{/if}}
                   </td>
                </tr>

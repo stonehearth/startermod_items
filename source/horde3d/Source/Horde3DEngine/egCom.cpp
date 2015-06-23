@@ -104,6 +104,8 @@ float EngineConfig::getOption( EngineOptions::List param )
       return (float)maxLights;
 	case EngineOptions::DumpCompiledShaders:
 		return dumpCompiledShaders ? 1.0f : 0.0f;
+   case EngineOptions::EnableRenderCaching:
+      return enableRenderCaching ? 1.0f : 0.0f;
 	default:
 		Modules::setError( "Invalid param for h3dGetOption" );
 		return Math::NaN;
@@ -189,19 +191,21 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 	case EngineOptions::DumpCompiledShaders:
 		dumpCompiledShaders = (value != 0);
 		return true;
+   case EngineOptions::EnableRenderCaching:
+		enableRenderCaching = (value != 0);
+		return true;
 	default:
 		Modules::setError( "Invalid param for h3dSetOption" );
 		return false;
 	}
 }
 
-void EngineConfig::setGlobalShaderFlag(const char* name, bool value)
+void EngineConfig::setGlobalShaderFlag(std::string const& name, bool value)
 {
-   std::string flag(name);
 
-   if (shaderFlags.find(flag) != shaderFlags.end()) {
+   if (shaderFlags.find(name) != shaderFlags.end()) {
       if (!value) {
-         shaderFlags.erase(flag);
+         shaderFlags.erase(name);
       }
       return;
    }
@@ -210,14 +214,13 @@ void EngineConfig::setGlobalShaderFlag(const char* name, bool value)
       return;
    }
 
-   shaderFlags.insert(flag);
+   shaderFlags.insert(name);
 }
 
-bool EngineConfig::isGlobalShaderFlagSet(const char* name)
+bool EngineConfig::isGlobalShaderFlagSet(std::string const& name)
 {
-   std::string flag(name);
 
-   if (shaderFlags.find(flag) != shaderFlags.end()) {
+   if (shaderFlags.find(name) != shaderFlags.end()) {
       return true;
    }
 

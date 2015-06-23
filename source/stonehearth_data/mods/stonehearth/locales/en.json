@@ -83,10 +83,10 @@
    "settings_effects_volume" : "Effects Volume",
 
    "settings_system" : "System",
-   "settings_enable_64bit" : "Use 64-bit (Requires Restart)",
+   "settings_force_32_bit" : "* Force 32-bit (Requires Restart)",
+   "settings_force_32_bit_note" : "* Force 32-bit only if absolutely necessary. 64-bit is faster and supports larger towns.",
    "settings_enable_lua_jit" : "Use Lua JIT (Requires Restart)",
    "settings_send_anon_data" : "Send anonymous feedback to help improve Stonehearth!",
-
 
    "new_game_embark_button" : "Embark!",
    "new_game_founding_charter" : "Founder's Manual",
@@ -157,6 +157,8 @@
    "select_settlement_at_this_location" : "Settle here!",
    "select_settlement_clear_selection" : "Choose another location",
    "select_settlement_regenerate_map" : "Roll new map",
+   "select_settlement_seed" : "World Seed: ",
+   "input_text_tooltip" : "Click to edit",
 
    "loading_map": "Generating World",
    "loading_map_1": "sharpening right angles...",
@@ -191,12 +193,14 @@
 
    "hint_camera_pan_title": "To move the camera",
    "hint_camera_pan_1": "Hold down the space bar, then move the mouse",
-   "hint_camera_pan_2": "Or just use the WASD keys",
+   "hint_camera_pan_2": "Or use the WASD keys",
+   "hint_camera_pan_3": "Or press the mouse wheel and move the mouse",
    "hint_camera_orbit_title": "To rotate the camera",
    "hint_camera_orbit_1": "Right click and drag to rotate the camera",
    "hint_camera_orbit_2": "Q and E work too",
    "hint_camera_zoom_title": "To zoom in and out",
-   "hint_camera_zoom": "Use the mouse scroll wheel",
+   "hint_camera_zoom_1": "Use the mouse scroll wheel",
+   "hint_camera_zoom_2": "Or use the + and - keys",
 
    "character_sheet_title" : "Character Info", 
    "health" : "health",
@@ -218,9 +222,11 @@
 
    "happiness" : "Morale",
    "overall_happiness" : "Overall Morale",
-   "happiness_nutrition" : "Nutrition",
+   "happiness_food" : "Food",
    "happiness_shelter" : "Shelter",
    "happiness_safety" : "Safety",
+
+   "storage_remaining_spaces" : "Available space:",
    
    "stockpile_all" : "All",
    "stockpile_none" : "None",
@@ -453,9 +459,11 @@
    "10_score" : "Incandescent", 
 
    "town_net_worth" : "Net worth",
-   "town_overall_happiness" : "Overall Happiness",
+   "town_edibles" : "Edibles",
+   "town_overall_happiness" : "Overall Morale",
    "town_food_happiness" : "Food",
    "town_shelter_happiness" : "Shelter",
+   "town_safety_happiness" : "Safety",
    "town_overview" : "Town Overview",
    "town_inventory" : "Inventory",
    "town_happiness_tab" : "Journal",
@@ -536,5 +544,19 @@
    "wait_who_are_you" : "Wait! Who are you?", 
    "cool" : "Cool!", 
    "sounds_ominous" : "Sounds ominous.",
-   "uneventful_day" : "An Uneventful Day"
+   "uneventful_day" : "An Uneventful Day",
+
+   "item_categories_food" : "Food",
+   "item_categories_resources" : "Resources",
+   "item_categories_furniture" : "Furniture",
+   "item_categories_armor" : "Armor",
+   "item_categories_decoration" : "Decoration",
+   "item_categories_construction" : "Construction",
+   "item_categories_plants" : "Plants",
+   "item_categories_weapons" : "Weapons",
+   "item_categories_tools" : "Tools",
+   "item_categories_uncategorized" : "Uncategorized",
+
+   "unit_info_show_character_sheet": "Show character sheet",
+   "unit_info_focus_camera": "Focus camera on this unit"
 }

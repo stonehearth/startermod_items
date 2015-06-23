@@ -1,0 +1,11 @@
+{   
+   "mixins": "stonehearth:mixins:food_decay",
+   "components": {
+      "stonehearth:attributes" : {
+         "health" : {
+            "type" : "basic", 
+            "value" : 120
+         }
+      }
+   }
+}

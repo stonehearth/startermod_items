@@ -16,7 +16,7 @@ TeardownWoodenStructure.priority = 1
 -- Only do this task if we're building something made of wood. 
 function TeardownWoodenStructure:should_start_thinking(ai, entity, args)
    local material = args.fabricator:get_material(args.block)
-   if string.find(material, 'wood') then
+   if material and string.find(material, 'wood') then
       return true
    end
    return false

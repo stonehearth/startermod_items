@@ -6,6 +6,12 @@ sampler2D randomVectorLookup = sampler_state
   Filter = None;
 };
 
+sampler2D sampleVectorLookup = sampler_state
+{
+  Address = Wrap;
+  Filter = None;
+};
+
 sampler2D normalBuffer = sampler_state
 {
   Address = Clamp;
@@ -26,13 +32,13 @@ sampler2D depthBuffer = sampler_state
 #version 130
 #include "shaders/utilityLib/camera_transforms.glsl"
 #include "shaders/utilityLib/vertCommon_400.glsl"
-#include "shaders/utilityLib/ssaoSamplerKernel.glsl"
 
 #define LOG_MAX_OFFSET 3
 #define MAX_MIP_LEVEL 5
 #define NUM_SAMPLES 8
 
 uniform sampler2D randomVectorLookup;
+uniform sampler2D sampleVectorLookup;
 uniform sampler2D normalBuffer;
 uniform sampler2D depthBuffer;
 uniform vec4 frameBufSize;
@@ -79,7 +85,7 @@ void main()
   float occlusion = 0.0;
   for (int i = 0; i < NUM_SAMPLES; i++) {
     // get sample position:
-    vec3 cameraSpaceSample = tbn * samplerKernel[i * 4];
+    vec3 cameraSpaceSample = tbn * texture2D(sampleVectorLookup, vec2(0.0, float(i) / 16.0)).xyz;
     vec3 ssaoSample = (cameraSpaceSample * radius) + origin;
 
     // project sample position:

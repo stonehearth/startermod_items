@@ -1,5 +1,5 @@
 local Timer = require 'services.server.world_generation.timer'
-
+local csg_lib = require 'lib.csg.csg_lib'
 local Point2 = _radiant.csg.Point2
 local Point2f = _radiant.csg.Point2f
 local Rect2 = _radiant.csg.Rect2
@@ -166,7 +166,7 @@ function TerrainService:_update_regions()
       old_visible_region = visible_region_boxed:get()
       new_visible_region = self:_get_visible_region(player_id)
 
-      if not self:_are_equivalent_regions(old_visible_region, new_visible_region) then
+      if not csg_lib.are_equivalent_regions(old_visible_region, new_visible_region) then
          visible_region_boxed:modify(function(region2)
                region2:copy_region(new_visible_region)
             end)
@@ -299,21 +299,6 @@ function TerrainService:_get_entity_visible_region(entity)
    end
 
    return region
-end
-
--- ignores tags on the cubes
-function TerrainService:_are_equivalent_regions(region_a, region_b)
-   local area_a = region_a:get_area()
-   local area_b = region_b:get_area()
-   local intersection
-
-   if area_a ~= area_b then
-      return false
-   end
-
-   intersection = region_a:intersect_region(region_b)
-
-   return intersection:get_area() == area_a
 end
 
 function TerrainService:get_visible_region(player_id)

@@ -2,25 +2,23 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "item" : {
-         "category" : "tools"
-       },
-       "model_variants": {
-         "default": {
-            "models": [
-               "file(bronze_mace.qb)"
-            ]
-         }
-      },
       "unit_info": {
          "name": "Bronze Mace",
          "description": "For flattening faces",
          "icon" : "file(bronze_mace.png)"
       },
+      "item" : {
+         "category" : "weapons"
+      },
       "stonehearth:material" : {
          "tags" : "bronze melee_weapon crafted"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(bronze_mace.qb)"
+            ]
+         }
       }
-   },
-   "entity_data" : {
    }
 }

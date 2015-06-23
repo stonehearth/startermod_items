@@ -1,0 +1,27 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(large_crate.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.10
+      },
+      "unit_info": {
+         "name": "Large Crate",
+         "description": "Storage container",
+         "icon" : "file(large_crate.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.0, "y": 0, "z": 0.0 },
+         "region_origin" : { "x": -1.0, "y": 0, "z": 1.0 },
+         "align_to_grid" : [ "x", "z" ]
+      }
+   }
+}

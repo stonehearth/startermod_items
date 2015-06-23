@@ -35,6 +35,10 @@
             "attribute_up_desc" : "All attributes increased!" 
          }
       },
+      "stonehearth:storage" : {
+         "type" : "backpack",
+         "capacity" : 8
+      },
       "stonehearth:attributes" : {
          "mind": {
             "type" : "random_range",
@@ -190,7 +194,35 @@
       "stonehearth:carry_block" : {
       },
       "stonehearth:score" : {
+         "raw_food" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "food",
+            "max" : 100,
+            "min" : 1
+            },
+         "prepared_food" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "food",
+            "max" : 100,
+            "min" : 1
+            },
+         "luxury_food" : {
+            "starting_score" : 50,
+            "weight" : 1,
+            "contributes_to" : "food",
+            "max" : 100,
+            "min" : 1
+            },
          "nutrition" : {
+            "starting_score" : 50,
+            "weight" : 4,
+            "contributes_to" : "food",
+            "max" : 100,
+            "min" : 1
+            },
+         "food" : {
             "starting_score" : 50,
             "weight" : 1,
             "contributes_to" : "happiness",

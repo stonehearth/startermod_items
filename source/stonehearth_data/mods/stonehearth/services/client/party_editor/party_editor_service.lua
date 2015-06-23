@@ -34,6 +34,7 @@ function PartyEditorService:place_party_banner_command(session, response, party,
                         :always(function()
                               selector:destroy()
                            end)
+            response:resolve({})
          end)
       :fail(function(selector)
             selector:destroy()

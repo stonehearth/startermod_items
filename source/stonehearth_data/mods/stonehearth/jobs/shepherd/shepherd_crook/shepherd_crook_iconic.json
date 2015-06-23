@@ -8,10 +8,9 @@
          "icon" : "file(shepherd_crook.png)"      
       },
       "item" : {
-         "stacks" : 1, 
          "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -21,8 +20,6 @@
             ]
          }
       }
-   },
-   "entity_data" : {
    }
 }
 

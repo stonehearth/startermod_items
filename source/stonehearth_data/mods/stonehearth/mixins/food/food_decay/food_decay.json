@@ -1,0 +1,33 @@
+{   
+   "mixins": "stonehearth:mixins:item_properties",
+   "components": {
+      "stonehearth:attributes" : {
+         "health" : {
+            "type" : "basic", 
+            "value" : 36
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "decay" : {
+            "health_per_hour" : {
+               "min" : 1,
+               "max" : 2
+            },
+            "decay_stages" : {
+               "decay_1" : {
+                  "trigger_health_value": 12,
+                  "model_variant" : "decay_1",
+                  "description": "Starting to Rot. Doesn't look so fresh anymore."
+               },
+               "decay_2" : {
+                  "trigger_health_value": 5,
+                  "model_variant" : "decay_2",
+                  "description": "Nearly Rotten. Better eat it fast."
+               }
+            }
+         }
+      }
+   }
+}

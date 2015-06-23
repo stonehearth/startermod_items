@@ -1,8 +1,9 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local SoundEffect = class(EffectTrack)
+local SoundEffect = radiant.class(EffectTrack)
 
 function SoundEffect:__init(start_time, info)
-   self[EffectTrack]:__init(info)
+   EffectTrack.__init(self, info)
+
    self._info = info
    self._loop = false
    self._start_time = start_time + self:_get_start_time()

@@ -100,7 +100,7 @@ $.widget( "stonehearth.stonehearthMenu", {
 
    _create: function() {
       var self = this;
-      App.startMenu = this;
+      App.gameMenu = this;
 
       this._dataToMenuItemMap = {};
       this.menu = $('<div>').addClass('stonehearthMenu');

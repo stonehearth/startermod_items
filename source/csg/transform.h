@@ -15,7 +15,7 @@ public:
    Point3f            position;
    Quaternion        orientation;
 
-   Transform() { }
+   Transform() : position(0, 0, 0) { }
    Transform(const Transform &t) : position(t.position), orientation(t.orientation) { }
    Transform(const Point3f &p, const Quaternion &q) : position(p), orientation(q) { }
 

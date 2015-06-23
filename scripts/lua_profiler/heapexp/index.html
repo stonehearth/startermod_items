@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv='Content-type' content='text/html; charset=utf-8'>
+    <title>LUA Heap Explorer</title>
+  </head>
+  <body>
+    <input type="file" id="files" name="stuff" multiple=false style="width:500px;"/>    
+    <div id="container">
+    </div>
+    <script src="build/react.js"></script>
+    <script src="build/JSXTransformer.js"></script>
+
+    <script type="text/jsx;harmony=true">
+
+
+
+/*go from heap bits to :
+
+KEEP map(alloc_string -> list_of_ptrs)
+
+KEEP map(ptr -> heap_object), heap_object(name, ptr, fields)
+
+
+
+const class HeapObjectField {
+  constructor(fieldType, fieldValue) {
+
+  }
+}
+
+class Heap {
+  constructor(heapBits) {
+
+  }
+}
+
+class HeapObject {
+  constructor(allocLoc, ptr, bytes){
+    private 
+  }
+}*/
+
+class HeapPtr {
+  constructor(low, hi) {
+    this.low = low;
+    this.hi = hi;
+  }
+
+  eq(otherPtr) {
+    return otherPtr.low == this.low && otherPtr.hi == this.hi;
+  }
+
+  hsh() {
+    return this.low + ':' + this.hi;
+  }
+
+  looksValid() {
+    // Lua table data is completely (I think???) un-annotated, so best guess is to look
+    // for something that couldn't possibly be a pointer to something.
+    if ((this.low > 0 && this.low < 0x01000000) || this.low < 0 || this.hi > 0x00000010 || this.hi < 0) {
+      return false;
+    }
+    return true;
+  }
+}
+
+class HeapObject {
+  constructor(selfPtr, allocIdx) {
+    this.selfPtr = selfPtr;
+    this.allocIdx = allocIdx;
+  }
+
+  toString() {
+    return '';
+  }
+}
+
+
+class StringHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, str) {
+    super(selfPtr, allocIdx);
+    this.str = str;
+  }
+
+  toString() {
+    return 'STR[' + this.selfPtr + '] ' + this.str; 
+  }
+}
+
+class ClosureHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, upVals) {
+    super(selfPtr, allocIdx);
+    this.upVals = upVals;
+  }
+
+  toString() {
+    return 'CLS[' + this.selfPtr + '] (' + this.upVals.length + ')';
+  }
+}
+
+class TableHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, metaTable, arrayPtr, nodePtr) {
+    super(selfPtr, allocIdx);
+    this.metaTable = metaTable;
+    this.arrayPtr = arrayPtr;
+    this.nodePtr = nodePtr;
+  }
+
+  getArrayPtr() { return this.arrayPtr; }
+  getNodePtr() { return this.nodePtr; }
+
+  toString() {
+    return 'TBL[' + this.selfPtr + '] ' + this.arrayPtr;
+  }
+}
+
+class ArrayHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, entries) {
+    super(selfPtr, allocIdx);
+    this.entries = entries;
+  }
+
+  toString() {
+    return 'ARR[' + this.selfPtr + '] ' + this.entries.length;
+  }
+}
+
+class UpValueHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, valPtr) {
+    super(selfPtr, allocIdx);
+    this.valPtr = valPtr;
+  }
+
+  toString() {
+    return 'UPV[' + this.selfPtr + '] ' + this.valPtr;
+  }
+}
+
+class UserDataHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, metaTable) {
+    super(selfPtr, allocIdx);
+    this.metaTable = metaTable;
+  }
+
+  toString() {
+    return 'UDA[' + this.selfPtr + ']';
+  }
+}
+
+class UnknownHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, bytes) {
+    super(selfPtr, allocIdx);
+    this.bytes = bytes;
+  }
+}
+
+class ArrayReader {
+  constructor(array, opt_offset) {
+    this.array = array;
+    this.offset = opt_offset || 0;
+    this.view = new DataView(this.array);
+  }
+
+  nextU8() {
+    var v = this.view.getUint8(this.offset);
+    this.offset++;
+    return v;
+  }
+
+  nextU32() {
+    var v = this.view.getUint32(this.offset, true);
+    this.offset += 4;
+    return v;
+  }
+
+  nextPtr() {
+    var v = new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));
+    this.offset += 8;
+    return v;
+  }
+
+  peekPtr() {
+    return new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));    
+  }
+
+  peekByte(offset) {
+    return this.view.getUint8(this.offset + offset);
+  }
+
+  skip(numBytes) {
+    this.offset += numBytes;
+  }
+
+  readBytes(numBytes) {
+    var v = new DataView(this.array, this.offset, numBytes);
+    this.skip(numBytes);
+    return v;
+  }
+
+  getOffset() {
+    return this.offset;
+  }
+
+  nextStr() {
+    var result = "";
+
+    var c = this.nextU8();
+    while (c != 0) {
+      result += String.fromCharCode(c);
+      c = this.nextU8();
+    }
+
+    return result;
+  }
+}
+
+class HeapExpApplication extends React.Component {
+
+  constructor() {
+    this.strs = [];
+
+    this.heapObjs = {};
+    this.unknownObjs = {};
+    this.tableObjs = {};
+  }
+
+  _processAllocLocationStrings(reader) {
+    let numStrs = reader.nextU32();
+    for (var i = 0; i < numStrs; i++) {
+      this.strs.push(reader.nextStr());
+    }
+  }
+
+  _processClosure(reader, ptr, allocIdx) {
+    let isCFunc = reader.nextU8();
+    let numUpVals = reader.nextU8();
+
+    if (isCFunc) {
+      // Don't bother with C funcs, since I don't think they can
+      // keep anything alive.  (They close on values, not pointers).
+      reader.skip(4 + 8 + 8 + 8 + (numUpVals * 16));
+      return null;
+    }
+
+
+    if (numUpVals == 0) {
+      // No upvals means we aren't keeping anything leakable alive (I think!)
+      reader.skip(4 + 8 + 8 + 8);
+      return null;
+    }
+  
+    // Padding.
+    reader.nextU32();
+
+    let gclist = reader.nextPtr();
+    let env = reader.nextPtr();
+
+    let proto = reader.nextPtr();
+    let ptrs = [];
+    for (var i = 0; i < numUpVals; i++) {
+      ptrs.push(reader.nextPtr());
+    }
+
+    return new ClosureHeapObject(ptr, allocIdx, ptrs);
+  }
+
+  _processFuncPrototype(reader) {
+    // Don't think prototypes can keep leakable stuff alive....
+    // PADDING
+    reader.nextU8();reader.nextU8();
+
+    let constants = reader.nextPtr();
+
+    // PADDING
+    reader.nextU32();
+    let code = reader.nextPtr();
+    let proto = reader.nextPtr();
+    let lineInfo = reader.nextPtr();
+    let localVars = reader.nextPtr();
+    let upvalNames = reader.nextPtr();
+    let source = reader.nextPtr();
+
+    let numUps = reader.nextU32();
+    let numConstants = reader.nextU32();
+    let codeSize = reader.nextU32();
+    let lineInfSize = reader.nextU32();
+    let protoSize = reader.nextU32();
+    let lineDef = reader.nextU32();
+    let lastLineDef = reader.nextU32();
+
+    // PADDING
+    reader.nextU32();
+
+    let gclist = reader.nextPtr();
+
+    let numUps2 = reader.nextU8();
+    let numParams = reader.nextU8();
+    let isVarArgMask = reader.nextU8();
+    let maxStackSize = reader.nextU8();
+
+    // PADDING
+    reader.nextU32();
+    return null;
+  }
+
+  _processTable(reader, ptr, allocIdx) {
+    let flags = reader.nextU8();
+    let lsizenode = reader.nextU8();
+    let metaTablePtr = reader.nextPtr();
+
+    // PADDING
+    reader.nextU32();
+    let arrayPtr = reader.nextPtr();
+    let node = reader.nextPtr();
+    let lastFree = reader.nextPtr();
+    let gclist = reader.nextPtr();
+    let sizeArray = reader.nextU32();
+
+    // PADDING
+    reader.nextU32();
+
+    return new TableHeapObject(ptr, allocIdx, metaTablePtr, arrayPtr, node);
+  }
+
+  _processArray(ptr, allocIdx, bytes) {
+    let numBytes = bytes.byteLength;
+    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
+
+    console.assert((numBytes % 32) == 0);
+
+    var entries = [];
+    for (var i = 0; i < numBytes / 32; i++) {
+      let key = reader.nextPtr();
+      let keyType = reader.nextU32();
+      reader.nextU32();
+      if (keyType >= 5 && keyType <= 7) {
+        entries.push(key);
+      }
+      let val = reader.nextPtr();
+      let valType = reader.nextU32();
+      reader.nextU32();
+
+      if (valType >= 5 && valType <= 7) {
+        entries.push(val);
+      }
+    }
+    return new ArrayHeapObject(ptr, allocIdx, entries);
+  }
+
+  _processMap(ptr, allocIdx, bytes) {
+    let numBytes = bytes.byteLength;
+    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
+
+    console.assert((numBytes % 40) == 0);
+
+    var entries = [];
+    for (var i = 0; i < numBytes / 40; i++) {
+      let val = reader.nextPtr();
+      let valType = reader.nextU32();
+      reader.nextU32();
+
+      if (valType >= 5 && valType <= 7) {
+        entries.push(val);
+      }
+
+      let key = reader.nextPtr();
+      let keyType = reader.nextU32();
+      reader.nextU32();
+      if (keyType >= 5 && keyType <= 7) {
+        entries.push(key);
+      }
+      // Ignore 'next' ptr.
+      reader.nextPtr();
+    }
+    return new ArrayHeapObject(ptr, allocIdx, entries);
+
+  }
+
+  _processUserData(reader, numBytes, ptr, allocIdx) {
+    reader.skip(6);
+    let metatable = reader.nextPtr();
+    let env = reader.nextPtr();
+    let len = reader.nextU32();
+    reader.nextU32();  // len is a size_t!
+    
+    // The user bytes.
+    reader.skip(len);
+
+    // Any padding ((8 + 1 + 1) + 26).  This might be unnecessary.
+    reader.skip(numBytes - (40 + len));
+
+    return new UserDataHeapObject(ptr, allocIdx, metatable);
+  }
+
+  _processUpValue(reader, ptr, allocIdx) {
+    // PADDING.
+    reader.nextU32();
+    reader.nextU8();
+    reader.nextU8();
+
+    let valPtr = reader.nextPtr();
+    
+    // Fixme: NASTY UNIONS
+    let val = reader.nextPtr();
+    let next = reader.nextPtr();
+
+    // No idea if this is sufficient....
+    return new UpValueHeapObject(ptr, allocIdx, valPtr);
+  }
+
+  _processString(reader, ptr, allocIdx) {
+    let reserved = reader.nextU8();
+    let hash = reader.nextU32();
+
+    // PADDING
+    reader.nextU8();
+    let size = reader.nextU32(); reader.nextU32(); // size_t
+    let str = reader.nextStr();
+
+    return new StringHeapObject(ptr, allocIdx, str);
+  }
+
+  _processObject(reader) {
+    let strIdx = reader.nextU32();
+
+    let ptr = reader.nextU32();
+
+    let numBytes = reader.nextU32();
+
+    var typ = reader.peekByte(8);
+    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid()) {
+
+      let gcNext = reader.nextPtr(); 
+
+      typ = reader.nextU8();
+
+      let marked = reader.nextU8();
+
+      //console.log('type: ' + typ + '.  size: ' + numBytes + '. loc: ' + (reader.getOffset() - 10));
+
+      if (marked == 0) {
+        // A good question might be to ask: if we call FullGC before dumping the heap, then what the
+        // heck is this stuff doing here?
+        //console.log('marked = 0');
+        reader.skip(numBytes - 10);
+        return;
+      }
+
+      var obj = null;
+      switch(typ) {
+        case 0:
+          //NIL
+          reader.skip(numBytes - 10);
+          break;
+        case 1:
+          //BOOL
+          reader.skip(numBytes - 10);
+          break;
+        case 2:
+          // 'light' user data.  huh?
+          console.assert(false);
+          break;
+        case 3:
+          // number
+          reader.skip(numBytes - 10);
+          break;
+        case 4:
+          // string
+          obj = this._processString(reader, ptr, strIdx);
+          break;
+        case 5:
+          // table
+          console.assert(numBytes == 64);
+          obj = this._processTable(reader, ptr, strIdx);
+          this.tableObjs[ptr] = obj;
+          break;
+        case 6:
+          // A closure of some kind
+          obj = this._processClosure(reader, ptr, strIdx);
+          break;
+        case 7:
+          // user data
+          obj = this._processUserData(reader, numBytes, ptr, strIdx);
+          break;
+        case 8:
+          // thread
+          reader.skip(numBytes - 10);
+          break;    
+        case 9:
+          // Function prototype
+          console.assert(numBytes == 120);
+          this._processFuncPrototype(reader, ptr, strIdx);
+          break;
+
+        case 10:
+          // up value
+          obj = this._processUpValue(reader, ptr, strIdx);
+          break;
+
+        default:
+          console.log('unknown type: ' + typ + ' at ' + reader.getOffset());
+          reader.skip(numBytes - 10);
+          break;
+      };
+    } else {
+      // Table data, I think?
+      //console.log('unknown obj (' + numBytes + ' bytes) at ' + reader.getOffset());
+      //reader.skip(numBytes);
+      this.unknownObjs[ptr] = new UnknownHeapObject(ptr, strIdx, reader.readBytes(numBytes));
+    }
+
+    if (obj) {
+      this.heapObjs[ptr] = obj;
+    }
+  }
+
+  _processAllocs(reader) {
+    let numAllocs = reader.nextU32();
+
+    for (var i = 0; i < numAllocs; i++) {
+      this._processObject(reader);
+    }
+
+    this._attachArrays();
+  }
+
+  _attachArrays() {
+    for (var k in this.tableObjs) {
+      var ptr = this.tableObjs[k].getArrayPtr().low;
+      if (ptr) {
+        var arrObj = this.unknownObjs[ptr];
+        if (arrObj) {
+          this.heapObjs[ptr] = this._processArray(ptr, arrObj.allocIdx, arrObj.bytes);
+        }
+      }
+
+      ptr = this.tableObjs[k].getNodePtr().low;
+      if (ptr) {
+        var arrObj = this.unknownObjs[ptr];
+        if (arrObj) {
+          this.heapObjs[ptr] = this._processMap(ptr, arrObj.allocIdx, arrObj.bytes);
+        }
+      }
+    }
+  }
+
+  _processHeapDump(heapBytes) {
+    var offset = 0;
+    var heapReader = new ArrayReader(heapBytes);
+
+    this._processAllocLocationStrings(heapReader);
+    this._processAllocs(heapReader);
+    console.log('done processing!');
+  }
+
+  componentDidMount() {
+    let handleFileSelect = (evt) => {
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        this._processHeapDump(e.target.result);
+      };
+      reader.readAsArrayBuffer(evt.target.files[0])
+    };
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);    
+  }
+
+  render() {
+    return <p>Working</p>;
+  }
+}
+
+
+React.render(
+  <HeapExpApplication  />,
+  document.getElementById('container')
+);
+
+    </script>
+  </body>
+</html>

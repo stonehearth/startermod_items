@@ -7,7 +7,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(default_object.qb)"
+               "file(small_crate.qb)"
             ]
          }
       },

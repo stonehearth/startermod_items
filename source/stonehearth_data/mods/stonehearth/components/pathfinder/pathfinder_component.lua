@@ -87,7 +87,7 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
    -- entity sources and different locations and *all* share the same filter cache!!!
    local entry = FILTER_RESULT_CACHES[filter_fn]
    if not entry then
-      local cache = FilterResultCache()
+      local cache = FilterResultCache(FilterResultCache.INVALIDATE_ON_MOVE)
       cache:set_filter_fn(filter_fn)
 
       -- whenever someone else advises the result of a filter function may have changed, invalidate

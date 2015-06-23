@@ -93,7 +93,11 @@ function TaskScheduler:_update()
 end
 
 function TaskScheduler:_start_update_timer()
-   radiant.set_realtime_timer("(not saved) Task Scheduler Update Timer", self._poll_interval, function()
+   -- make sure we use calendar time instead of realtime.  this ensures that we don't pump the
+   -- scheduler while the game is paused.
+
+   local realtime = stonehearth.calendar:realtime_to_calendar_time(self._poll_interval / 1000)
+   stonehearth.calendar:set_timer('(not saved) Task Scheduler Update Timer', self._poll_interval, function()
          self:_update()
       end)
 end

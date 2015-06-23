@@ -78,6 +78,9 @@ end
 
 function BulletinBoardService:get_bulletin(bulletin_id)
    local player_id = self._sv.bulletin_to_player_map[bulletin_id]
+   if not player_id then
+      return nil
+   end
    local datastore = self:get_datastore(player_id)
    local bulletins = datastore:get_data().bulletins
 
@@ -102,6 +105,9 @@ end
 
 function BulletinBoardService:mark_shown(bulletin_id)
    local bulletin = self:get_bulletin(bulletin_id)
+   if not bulletin then
+      return
+   end
    bulletin:set_shown(true)
 end
 

@@ -1,6 +1,7 @@
 
 local SleepOnGroundAction = class()
-SleepOnGroundAction.name = 'sleep on the cold, hard, unforgiving ground'
+SleepOnGroundAction.name = 'sleep on ground'
+SleepOnGroundAction.status_text = 'sleeping on the ground'
 SleepOnGroundAction.does = 'stonehearth:sleep_exhausted'
 SleepOnGroundAction.args = {}
 SleepOnGroundAction.version = 2

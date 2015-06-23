@@ -4,8 +4,11 @@ App.StonehearthStockpileView = App.View.extend({
 
    components: {
       "unit_info": {},
-      "stonehearth:stockpile" : {},
-      "stonehearth:storage_filter" : {}
+      "stonehearth:stockpile" : {
+      },
+      "stonehearth:storage" : {
+         "item_tracker" : {}
+      },
    },
 
    didInsertElement: function() {
@@ -58,7 +61,44 @@ App.StonehearthStockpileView = App.View.extend({
       this.items.find('img').tooltipster();
 
       self._refreshGrids();
+      //inventory tab
+      this._inventoryPalette = this.$('#inventoryPalette').stonehearthItemPalette({
+         cssClass: 'inventoryItem',
+      });
+      this.$('#filterTab').show();
    },
+
+   _updateStockedItems : function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         if (!self._inventoryPalette) {
+            // When moving a crate, this function will fire, but no UI will be present.  For now, be lazy
+            // and just ignore this case.
+            return;
+         }
+         var tracker = self.get('context.stonehearth:storage.item_tracker');
+         self._inventoryPalette.stonehearthItemPalette('updateItems', tracker.tracking_data);
+
+         var backpackCapacity = self.get('context.stonehearth:storage.capacity');
+
+         if (backpackCapacity) {
+            self.set('remaining_spaces', backpackCapacity - self.get('context.stonehearth:storage.num_items'));
+            self.set('capacity', backpackCapacity);
+         }
+      });
+   }.observes('context.stonehearth:storage.item_tracker'),
+
+   _updateRemainingCounter : function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         var backpackCapacity = self.get('context.stonehearth:storage.capacity');
+
+         if (backpackCapacity) {
+            self.set('remaining_spaces', backpackCapacity - self.get('context.stonehearth:storage.num_items'));
+            self.set('capacity', backpackCapacity);
+         }
+      });
+   }.observes('context.stonehearth:storage.num_items'),
 
    _selectAll : function() {
       this.items.addClass('on');
@@ -75,8 +115,14 @@ App.StonehearthStockpileView = App.View.extend({
          return;
       }
 
+      if (this.get('context.stonehearth:storage')) {
+         this.$('button.warn').css('visibility', 'hidden');
+      } else {         
+         this.$('button.warn').css('visibility', 'visible');
+      }
+
       var self = this;
-      var stockpileFilter = this.get('context.stonehearth:storage_filter.filter');
+      var stockpileFilter = this.get('context.stonehearth:storage.filter');
 
       $('.category').removeClass('on');
 
@@ -102,7 +148,7 @@ App.StonehearthStockpileView = App.View.extend({
          this.groups.prop('checked', true)
          this.items.addClass('on');
       }
-   }.observes('context.stonehearth:storage_filter.filter'),
+   }.observes('context.stonehearth:storage.filter'),
 
    _onGroupClick : function(element) {
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );

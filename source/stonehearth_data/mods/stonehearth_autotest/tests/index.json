@@ -58,6 +58,7 @@
                "name" : "end to end tests",
 
                "scripts" : [
+                  "file(end_to_end/crate_autotests.lua)",
                   "file(end_to_end/water_autotests.lua)",
                   "file(end_to_end/goblin_campaign_autotests.lua)",
                   "file(end_to_end/level_up_autotests.lua)",
@@ -82,7 +83,7 @@
                   "file(end_to_end/sensor_autotests.lua)",
                   "file(end_to_end/roads_autotests.lua)",
                   "file(end_to_end/gravity_autotests.lua)",
-                  "file(end_to_end/immigration_autotests.lua)" 
+                  "file(end_to_end/immigration_autotests.lua)"
                ]
             },
 
@@ -95,7 +96,8 @@
                   "file(regression/sh_86.lua)",
                   "file(regression/sh_99.lua)", 
                   "file(regression/sh_107.lua)",
-                  "file(regression/sh_108.lua)"
+                  "file(regression/sh_108.lua)",
+                  "file(regression/redmine_320.lua)"
                ]
             },
 

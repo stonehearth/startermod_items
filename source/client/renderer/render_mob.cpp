@@ -38,31 +38,31 @@ RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
    });
 
    if (!entity_.GetParentOverride()) {
-      parent_trace_ = mob->TraceParent("render", dm::RENDER_TRACES)
+      parent_trace_ = mob->TraceParent("RenderMob parent", dm::RENDER_TRACES)
                                     ->OnChanged([this](om::EntityRef parent) {
                                        UpdateParent();
                                     })
                                     ->PushObjectState();
 
-      bone_trace_ = mob->TraceBone("render", dm::RENDER_TRACES)
+      bone_trace_ = mob->TraceBone("RenderMob bone", dm::RENDER_TRACES)
                                     ->OnChanged([this](std::string const&) {
                                        UpdateParent();
                                     })
                                     ->PushObjectState();
    }
 
-   interp_trace_ = mob->TraceInterpolateMovement("render", dm::RENDER_TRACES)
+   interp_trace_ = mob->TraceInterpolateMovement("RenderMob interpolate movement", dm::RENDER_TRACES)
                                  ->OnChanged([this](bool) {
                                     UpdateInterpolate();
                                  });
 
-   _freeMotionTrace = mob->TraceInFreeMotion("render", dm::RENDER_TRACES)
+   _freeMotionTrace = mob->TraceInFreeMotion("RenderMob free motion", dm::RENDER_TRACES)
                                  ->OnChanged([this](bool) {
                                     UpdateInterpolate();
                                  })
                                  ->PushObjectState();
 
-   transform_trace_ = mob->TraceTransform("render", dm::RENDER_TRACES)
+   transform_trace_ = mob->TraceTransform("RenderMob transform", dm::RENDER_TRACES)
                                  ->OnChanged([this](csg::Transform const& transform) {
                                     UpdateTransform(transform);
                                  })

@@ -9,6 +9,7 @@
 #include "simulation/jobs/a_star_path_finder.h"
 #include "simulation/jobs/direct_path_finder.h"
 #include "simulation/jobs/filter_result_cache.h"
+#include "simulation/save_versions.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/data_store.ridl.h"
@@ -29,9 +30,14 @@ std::ostream& operator<<(std::ostream& os, Simulation const&s)
    return (os << "[radiant simulation]");
 }
 
-std::string Sim_GetVersion(lua_State* L)
+std::string Sim_GetProductVersionString(lua_State* L)
 {
    return PRODUCT_FILE_VERSION_STR;
+}
+
+int Sim_GetCurrentSaveVersion(lua_State* L)
+{
+   return CURRENT_SAVE_VERSION;
 }
 
 template <typename T>
@@ -159,6 +165,11 @@ bool Sim_IsValidMove(lua_State *L, om::EntityRef entityRef, bool reversible, csg
    } else {
       return false;
    }
+}
+
+int Sim_GetGameTickInterval(lua_State *L)
+{
+   return Simulation::GetInstance().GetGameTickInterval();
 }
 
 AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
@@ -325,7 +336,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
-            def("get_version",               &Sim_GetVersion),
+            def("get_product_version_string",&Sim_GetProductVersionString),
+            def("get_current_save_version",  &Sim_GetCurrentSaveVersion),
             def("create_entity",             &Sim_CreateEntity),
             def("get_entity",                &Sim_GetEntity),
             def("destroy_entity",            &Sim_DestroyEntity),
@@ -343,6 +355,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_tracer",             &Sim_CreateTracer),
             def("get_base_walk_speed",       &Sim_GetBaseWalkSpeed),
             def("is_valid_move",             &Sim_IsValidMove),
+            def("get_game_tick_interval",    &Sim_GetGameTickInterval),
             lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
                .def("get_distance",       &Path::GetDistance)
@@ -385,9 +398,13 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("destroy",            &Pathfinder_Destroy<BfsPathFinder>)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FilterResultCache>("FilterResultCache")
-               .def(constructor<>())
+               .enum_("constants") [
+                  value("INVALIDATE_ON_MOVE",               FilterResultCache::INVALIDATE_ON_MOVE),
+                  value("INVALIDATE_ON_PLAYER_ID_CHANGED",  FilterResultCache::INVALIDATE_ON_PLAYER_ID_CHANGED)
+               ]
+               .def(constructor<int>())
                .def("clear_cache_entry",  &FilterResultCache::ClearCacheEntry)     
-               .def("set_filter_fn",      &FilterResultCache_SetFilterFn)
+               .def("set_filter_fn",      &FilterResultCache::SetLuaFilterFn)
             ,
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)

@@ -43,21 +43,21 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
    };
 
    if (render_info) {
-      scale_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+      scale_trace_ = render_info->TraceScale("RenderRenderInfo scale", dm::RENDER_TRACES)
                                     ->OnModified(set_scale_dirty_bit);
 
-      visible_trace_ = render_info->TraceScale("render", dm::RENDER_TRACES)
+      visible_trace_ = render_info->TraceVisible("RenderRenderInfo visible", dm::RENDER_TRACES)
                                     ->OnModified(set_visible_dirty_bit);
 
       // if the variant we want to render changes...
-      model_variant_trace_ = render_info->TraceModelVariant("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      model_variant_trace_ = render_info->TraceModelVariant("RenderRenderInfo model variant", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
       // if any entry in the attached items thing changes...
-      attached_trace_ = render_info->TraceAttachedEntities("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      attached_trace_ = render_info->TraceAttachedEntities("RenderRenderInfo attached entities", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
 
       // if the material changes...
-      material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
-      material_map_trace_ = render_info->TraceMaterialMaps("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      material_trace_ = render_info->TraceMaterial("RenderRenderInfo material", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
+      material_map_trace_ = render_info->TraceMaterialMaps("RenderRenderInfo material maps", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
    }
 
    // Manually update immediately on construction.
@@ -88,7 +88,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr lay
    if (layer) {
       om::ModelLayer::Layer level = layer->GetLayer();
 
-      variant_trace_ = layer->TraceModels("render", dm::RENDER_TRACES)
+      variant_trace_ = layer->TraceModels("RenderRenderInfo models", dm::RENDER_TRACES)
                               ->OnModified([this]() {
                                  SetDirtyBits(MODEL_DIRTY);
                               });
@@ -373,15 +373,19 @@ void RenderRenderInfo::RebuildModel(om::RenderInfoPtr render_info, FlatModelMap 
          csg::RegionToMeshMap(all_models, meshes, -meshOrigin, _materialMap, defaultMaterial, skeleton.GetBoneNumber(boneName));
       }
    };
-   bool noInstancing = skeleton.GetNumBones() > 1;
+   // If the thing has bones, we assume it has an animation.  If it has an animation, we
+   // turn off LOD and instancing.
+   bool hasBones = skeleton.GetNumBones() > 1;
+   bool noInstancing = hasBones;
+   int lodCount = hasBones ? 1 : GeometryInfo::MAX_LOD_LEVELS;
 
    Pipeline::MaterialToGeometryMapPtr geometry;
    Pipeline& pipeline = Pipeline::GetInstance();
 
    if (render_info->GetCacheModelGeometry()) {
-      pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing);
+      pipeline.CreateSharedGeometryFromGenerator(geometry, key, _materialMap, generate_matrix, noInstancing, lodCount);
    } else {
-      pipeline.CreateGeometryFromGenerator(geometry, _materialMap, generate_matrix, noInstancing);
+      pipeline.CreateGeometryFromGenerator(geometry, _materialMap, generate_matrix, true, lodCount);
    }
 
    H3DNode parent = entity_.GetNode();

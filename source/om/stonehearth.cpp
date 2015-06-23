@@ -194,6 +194,35 @@ Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
 }
 
 void
+Stonehearth::DestroyEntity(om::EntityPtr entity)
+{
+   entity->Destroy();
+}
+
+void
+Stonehearth::TriggerPreDestroy(om::EntityPtr entity, lua_State* L)
+{
+   lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
+   luabind::object e(L, std::weak_ptr<om::Entity>(entity));
+   luabind::object id(L, entity->GetObjectId());
+   luabind::object evt(L, luabind::newtable(L));
+   evt["entity"] = e;
+   evt["entity_id"] = id;
+   scriptHost->TriggerOn(e, "radiant:entity:pre_destroy", evt);
+   scriptHost->Trigger("radiant:entity:pre_destroy", evt);
+}
+
+void
+Stonehearth::TriggerPostDestroy(dm::ObjectId entityId, lua_State* L)
+{
+   lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
+   luabind::object id(L, entityId);
+   luabind::object evt(L, luabind::newtable(L));
+   evt["entity_id"] = id;
+   scriptHost->Trigger("radiant:entity:post_destroy", evt);
+}
+
+void
 Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
 {
    auto restore = [scriptHost, entity](JSONNode const& data) {

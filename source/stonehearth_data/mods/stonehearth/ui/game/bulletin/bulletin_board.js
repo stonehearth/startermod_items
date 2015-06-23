@@ -101,6 +101,15 @@ var StonehearthBulletinBoard;
 
       showDialogView: function(bulletin) {
          var self = this;
+         if (self._bulletinDialogView && self._bulletinDialogView.get('model').id == bulletin.id) {
+            // Trying to display dialog that's already showing! Ignore the request.
+            return;
+         }
+
+         if (self._bulletinNotificationView && self._bulletinNotificationView.get('model').id == bulletin.id) {
+            self._bulletinNotificationView.destroy();
+         }
+
          var dialogViewName = bulletin.ui_view;
          if (dialogViewName) {
             self._bulletinDialogView = App.gameView.addView(App[dialogViewName], { uri: bulletin.__self });

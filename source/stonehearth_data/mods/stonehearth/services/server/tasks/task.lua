@@ -365,6 +365,11 @@ function Task:estimate_task_distance(worker_location)
    local distance = 0
    local source_location
 
+   -- This can happen!
+   if self._state ~= STARTED then
+      return INFINITE
+   end
+
    if radiant.util.is_a(self._source, Point3) then
       source_location = self._source
    elseif radiant.util.is_a(self._source, Entity) and self._source:is_valid() then

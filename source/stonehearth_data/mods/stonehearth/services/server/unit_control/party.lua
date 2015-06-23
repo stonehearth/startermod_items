@@ -54,6 +54,8 @@ function Party:destroy()
       id = next(self._sv.members)
    end
 
+   self:_destroy_listeners()
+
    if self._party_tg then
       self._party_tg:destroy()
       self._party_tg = nil
@@ -235,7 +237,7 @@ function Party:_update_tasks()
       else
          priority = stonehearth.constants.priorities.combat.PARTY_AGGRESSIVE_FORMATION
       end
-      radiant.log.write('', 0, 'priority is %d', priority)
+      --radiant.log.write('', 0, 'priority is %d', priority)
       self._movement_task = self._party_tg:create_task(activity, args)
                                                    :set_priority(priority)
                                                    :start()
@@ -262,6 +264,13 @@ end
 function Party:_create_listeners()
    if not self._town_listener then
       self._town_listener = radiant.events.listen(self._town, 'stonehearth:town_defense_mode_changed', self, self._check_town_defense_mode)
+   end
+end
+
+function Party:_destroy_listeners()
+   if self._town_listener then
+      self._town_listener:destroy()
+      self._town_listener = nil
    end
 end
 

@@ -2,6 +2,16 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Wicked Animal Prod",
+         "description": "Keeps the fuzzies in line"
+      },
+      "item" : {
+         "category" : "weapons"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood melee_weapon"
+      },
       "model_variants": {
          "default" : {
             "models": [
@@ -14,14 +24,6 @@
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
          "roles" : "combat"
-      },
-
-      "unit_info": {
-         "name": "Wicked Animal Prod",
-         "description": "Keeps the fuzzies in line"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood melee_weapon"
       }
    },
    "entity_data" : {

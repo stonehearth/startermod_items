@@ -61,6 +61,8 @@
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
       "mixins:destructable_object" : "file(mixins/destructable_object)",
+      "mixins:food_decay" : "file(mixins/food/food_decay)",
+      "mixins:prepared_food_decay" : "file(mixins/food/prepared_food_decay)",
       
       "data:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
@@ -221,6 +223,8 @@
       "monsters:undead:zombie" : "file(entities/monsters/undead/zombie/male/zombie_male.json)",
       "monsters:undead:zombie_female" : "file(entities/monsters/undead/zombie/female/zombie_female.json)",
 
+      "rabbit:statue" : "file(entities/rabbit/rabbit_statue)",
+
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
      
@@ -262,7 +266,7 @@
       "resources:wolf_pelt" : "file(entities/resources/pelt/wolf_pelt)",
       
       "containers:small_crate" : "file(entities/containers/small_crate)",
-
+      "containers:large_crate" : "file(entities/containers/large_crate)",
 
       "refined:thread" : "file(entities/refined/thread)",
       "refined:cloth_bolt" : "file(entities/refined/cloth_bolt)",
@@ -284,6 +288,12 @@
       "food:berries:berry_serving" : "file(entities/food/berries/berry_serving)",
       "food:pumpkin:pumpkin_serving" : "file(entities/food/pumpkin/pumpkin_serving)",
       "food:pumpkin:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
+
+      "food:veggie_stew" : "file(entities/food/veggie_stew/veggie_stew)",
+      "food:veggie_stew:veggie_stew_serving" : "file(entities/food/veggie_stew/veggie_stew_serving)",
+
+      "food:meat_stew" : "file(entities/food/meat_stew/meat_stew)",
+      "food:meat_stew:meat_stew_serving" : "file(entities/food/meat_stew/meat_stew_serving)",
 
       "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
       "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 
@@ -402,7 +412,6 @@
       "armor:steel_mail" : "file(entities/armor/steel_mail)",
       "armor:wooden_shield" : "file(entities/armor/wooden_shield)",
       "armor:basic_shield" : "file(entities/armor/basic_shield)",
-
 
       "loot:gold" : "file(entities/loot/gold)",
       
@@ -530,12 +539,17 @@
 
       "actions:pickup_item_into_backpack" : "file(ai/actions/pickup_item_into_backpack_action.lua)",
       "actions:put_carrying_in_backpack" : "file(ai/actions/put_carrying_in_backpack_action.lua)",      
-      "actions:drop_items_in_backpack" : "file(ai/actions/drop_items_in_backpack_action.lua)",
       "actions:restock_items_in_backpack" : "file(ai/actions/restock_items_in_backpack_action.lua)",
       "actions:find_stockpile_for_backpack_item" : "file(ai/actions/find_stockpile_for_backpack_item_action.lua)",
       "actions:pickup_item_from_backpack" : "file(ai/actions/pickup_item_from_backpack_action.lua)",
+      "actions:drop_carrying_in_storage_adjacent" : "file(ai/actions/drop_carrying_in_storage_adjacent_action.lua)",
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
-      "actions:reserve_backpack_space" : "file(ai/actions/reserve_backpack_space_action.lua)",
+      "actions:reserve_storage_space" : "file(ai/actions/reserve_storage_space_action.lua)",
+      "actions:pickup_item_type_from_any_storage" : "file(ai/actions/pickup_item_type_from_any_storage_action.lua)",
+      "actions:pickup_item_type_from_storage" : "file(ai/actions/pickup_item_type_from_storage_action.lua)",
+      "actions:pickup_item_from_storage_adjacent" : "file(ai/actions/pickup_item_from_storage_adjacent_action.lua)",
+      "actions:find_path_to_storage_containing_entity_type" : "file(ai/actions/find_path_to_storage_containing_entity_type_action.lua)",
+      "actions:find_entity_type_in_storage" : "file(ai/actions/find_entity_type_in_storage_action.lua)",
 
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:pickup_ingredient_with_material" : "file(ai/actions/pickup_ingredient_with_material_action.lua)",
@@ -600,9 +614,9 @@
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
       "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
 
-      "actions:wait_for_crate_space" : "file(ai/actions/wait_for_crate_space.lua)",
-      "actions:drop_carrying_in_crate" : "file(ai/actions/drop_carrying_in_crate_action.lua)",
-      "actions:fill_crate" : "file(ai/actions/fill_crate_action.lua)",
+      "actions:wait_for_storage_space" : "file(ai/actions/wait_for_storage_space.lua)",
+      "actions:drop_carrying_in_storage" : "file(ai/actions/drop_carrying_in_storage_action.lua)",
+      "actions:fill_storage" : "file(ai/actions/fill_storage_action.lua)",
 
       "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
       "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
@@ -626,6 +640,7 @@
 
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
       "actions:till_entire_field" : "file(ai/actions/till_entire_field_action.lua)",
+      "actions:harvest_field" : "file(ai/actions/harvest_field_action.lua)",
       "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
 
       "actions:trapping_dispatcher" : "file(ai/actions/trapping/trapping_dispatcher.lua)",
@@ -745,7 +760,7 @@
       "ai_pack:idle:bored:sway" : "file(ai/packs/idle_bored_sway_ai_pack.json)",
       "ai_pack:party" : "file(ai/packs/party_ai_pack.json)",
       "ai_pack:destructable_object" : "file(ai/packs/destructable_object_ai_pack.json)",
-      "ai_pack:fill_crate" : "file(ai/packs/fill_crate_ai_pack.json)",
+      "ai_pack:fill_storage" : "file(ai/packs/fill_storage_ai_pack.json)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -1434,7 +1449,7 @@
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
       "observers:raid_timeout_observer" : "file(ai/observers/raid_timeout_observer.lua)",
       "observers:goblin_campaign:mountain_mammoth_observer" : "file(ai/observers/mountain_mammoth_observer.lua)",
-      "observers:fill_crate" : "file(ai/observers/fill_crate_observer.lua)",
+      "observers:fill_storage" : "file(ai/observers/fill_storage_observer.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
       "unit_control:party" : "file(services/server/unit_control/party.lua)",
@@ -1461,7 +1476,7 @@
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
-      "storage_filter" : "file(components/storage_filter/storage_filter_component.lua)",
+      "storage" : "file(components/storage/storage_component.lua)",
       "mining_zone" : "file(components/mining_zone/mining_zone_component.lua)",
       "trapping_grounds" : "file(components/trapping/trapping_grounds_component.lua)",
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
@@ -1497,7 +1512,6 @@
       "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "construction_project" : "file(components/construction_project/construction_project_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
-      "backpack" : "file(components/backpack/backpack_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "shepherd_pasture" : "file(components/shepherd_pasture/shepherd_pasture_component.lua)", 

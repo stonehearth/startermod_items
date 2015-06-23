@@ -415,7 +415,7 @@ public:
 	uint32 createRenderBuffer(uint32 width, uint32 height, TextureFormats::List format,
 	                          bool depth, uint32 numColBufs, uint32 samples, uint32 numMips = 0, bool cubeMap = false);
 	uint32 createRenderBufferWithAliases(uint32 width, uint32 height, TextureFormats::List format,
-	                          bool depth, uint32 numColBufs, uint32 samples, std::vector<RenderBufferAlias>& aliases, uint32 numMips = 0);
+	                          bool depth, uint32 numColBufs, uint32 samples, std::vector<RenderBufferAlias>& aliases, uint32 numMips = 0, bool cubeMap = false);
 	void destroyRenderBuffer( uint32 rbObj );
 	uint32 getRenderBufferTex( uint32 rbObj, uint32 bufIndex );
 	void setRenderBuffer(uint32 rbObj, int cubeFace=0);

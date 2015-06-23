@@ -281,9 +281,8 @@ function EntityFormsComponent:place_item_on_structure(location, structure_entity
    self:_create_put_down_ladder_task(location, normal)
 
    -- finally create a placement task to move the item from one spot to another
-   local item = self:_get_form_in_world()
    self:_create_task({
-         item = item,
+         item = self._entity,
          structure = structure_entity,
          location = location,
          rotation = rotation,
@@ -302,10 +301,6 @@ function EntityFormsComponent:place_item_on_ground(location, rotation, normal)
       rotation = rotation,
    }
    self.__saved_variables:mark_changed()
-
-   local item = self:_get_form_in_world()
-   assert(item, 'neither entity nor iconic form is in world')
-
    self:_create_pick_up_ladder_task()
    self:_create_put_down_ladder_task(location, normal)
 
@@ -313,26 +308,11 @@ function EntityFormsComponent:place_item_on_ground(location, rotation, normal)
    radiant.entities.turn_to(self._sv.ghost_entity, rotation)
 
    self:_create_task({
-         item = item,
+         item = self._entity,
          structure = radiant._root_entity,
          location = location,
          rotation = rotation,
       })
-end
-
-function EntityFormsComponent:_get_form_in_world()
-   local mob = self._entity:get_component('mob')
-   local parent = self._entity:get_component('mob'):get_parent()
-   if parent then
-      return self._entity
-   end
-   if self._sv.iconic_entity then
-      parent = self._sv.iconic_entity:get_component('mob'):get_parent()
-      if parent then
-         return self._sv.iconic_entity
-      end
-   end
-   return nil
 end
 
 -- creates a ladder for picking up the item

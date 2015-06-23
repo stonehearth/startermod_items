@@ -102,6 +102,18 @@ App.StonehearthTownView = App.View.extend({
    didInsertElement: function() {
       var self = this;
       this._super();
+
+      var rows = self.$('#scores .row').each(function( index ) {
+         var row =  $( this );
+         var scoreName = row.attr('id');
+         var tooltipString = App.tooltipHelper.getScoreTooltip(scoreName, true); // True for town description.
+         if (tooltipString) {
+            row.tooltipster({
+                  content: $(tooltipString)
+               });
+         }
+      });
+
       this._updateUi();
 
       //inventory tab
@@ -160,28 +172,29 @@ App.StonehearthTownView = App.View.extend({
    //Town related stuff
 
    _updateUi: function() {
-      // town label
-      var happiness = this.get('context.score_data.happiness.happiness')
-      var foodHappiness = this.get('context.score_data.happiness.nutrition')
-      var shelterHappiness = this.get('context.score_data.happiness.shelter')
-      var netWorthLevel = this.get('context.score_data.net_worth.level')
+      var self = this;
+      
+      var overallMoral = self.get('context.score_data.aggregate.happiness')
 
+      // Update net worth
+      var netWorthLevel = self.get('context.score_data.net_worth.level')
+
+      // Update town label.
       var settlementSize = i18n.t('stonehearth:' + netWorthLevel);
       if (settlementSize != 'stonehearth:undefined') {
          $('#descriptor').html(i18n.t('stonehearth:town_description', {
-               "descriptor": i18n.t('stonehearth:' + Math.floor(happiness/10) + '_score'), 
+               "descriptor": i18n.t('stonehearth:' + Math.floor(overallMoral/10) + '_score'), 
                "noun": settlementSize
             }));
       }
 
-      // happiness indicatior
-      this.set('overall_happiness', Math.round(happiness) / 10);
-      this.set('food_happiness', Math.round(foodHappiness) / 10);
-      this.set('shelter_happiness', Math.round(shelterHappiness) / 10);
-
-      this._setIconClass('happinessIconClass', happiness);
-      this._setIconClass('foodHappinessIconClass', foodHappiness);
-      this._setIconClass('shelterHappinessIconClass', shelterHappiness);
+      // Update moral scores.
+      var scoresToUpdate = ['happiness', 'food', 'shelter', 'safety'];
+      radiant.each(scoresToUpdate, function(i, score_name) {
+         var score_value = self.get('context.score_data.aggregate.' + score_name);
+         self.set('score_' + score_name, Math.round(score_value) / 10);
+         self._setIconClass(score_name + 'IconClass', score_value);
+      });
    },
 
    _setIconClass: function(className, value) {
@@ -200,16 +213,6 @@ App.StonehearthTownView = App.View.extend({
 
       element.find('.ui-progressbar-value').html(text.toFixed(1));
    },
-
-   /*
-   _set_happiness: function() {
-      this.scores.happiness = this.get('context.score_data.happiness.happiness');
-      this.scores.nutrition = this.get('context.score_data.happiness.nutrition');
-      this.scores.shelter = this.get('context.score_data.happiness.shelter');
-      this._updateScores();
-   }.observes('context.score_data.happiness'),
-   */
-
 
    //Journal related stuff
    

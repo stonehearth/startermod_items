@@ -15,7 +15,7 @@ public:
    flatbuffers::Offset<fbs::LuaFileIndex> Save(flatbuffers::FlatBufferBuilder& fbb, core::StaticString filename) const;
 
    void AddFunction(core::StaticString fn, int min, int max);
-   core::StaticString GetFunction(int line);
+   LuaFunctionInfo GetFunction(int line);
    std::string const& GetHash() const;
    void SetHash(std::string const& hash);
 
@@ -28,7 +28,7 @@ class LuaFileMapper {
 public:
    LuaFileMapper(lua::ScriptHost& sh);
 
-   core::StaticString MapFileLineToFunction(core::StaticString file, int line);
+   LuaFunctionInfo MapFileLineToFunction(core::StaticString file, int line);
    void IndexFile(core::StaticString filename, std::string const& contents);
 
 private:

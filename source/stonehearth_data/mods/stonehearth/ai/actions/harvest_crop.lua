@@ -4,7 +4,6 @@ local HarvestCropAction = class()
 
 HarvestCropAction.name = 'harvest crop'
 HarvestCropAction.does = 'stonehearth:harvest_crop'
-HarvestCropAction.status_text = 'harvesting...'
 HarvestCropAction.args = {
    crop = Entity      -- the crop entity to harvest
 }
@@ -43,6 +42,10 @@ function HarvestCropAction:start_thinking(ai, entity, args)
       return
    end
    ai:set_think_output()   
+end
+
+function HarvestCropAction:start(ai, entity, args)
+   ai:set_status_text('harvesting ' .. radiant.entities.get_name(args.crop))
 end
 
 local ai = stonehearth.ai

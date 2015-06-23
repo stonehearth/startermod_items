@@ -2,8 +2,16 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Iron Pike",
+         "description": "Sharp. Long. Pointy.",
+         "icon" : "file(iron_pike.png)"
+      },
       "item": {
          "category" : "weapons"
+      },
+      "stonehearth:material" : {
+         "tags" : "iron melee_weapon crafted"
       },
       "model_variants": {
          "default" : {
@@ -22,15 +30,6 @@
          "ilevel" : 10,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
-      },
-
-      "unit_info": {
-         "name": "Iron Pike",
-         "description": "Sharp. Long. Pointy.",
-         "icon" : "file(iron_pike.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "iron melee_weapon"
       }
    },
    "entity_data" : {

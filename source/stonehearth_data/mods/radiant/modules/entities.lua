@@ -66,6 +66,7 @@ function entities.destroy_entity(entity)
    if entity and entity:is_valid() then
       log:debug('destroying entity %s', entity)
       radiant.check.is_entity(entity)
+      -- stonehearth_server takes care of destroying the other entity forms and contained entities
       _radiant.sim.destroy_entity(entity)
    end
 end

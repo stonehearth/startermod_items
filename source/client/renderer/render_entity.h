@@ -11,6 +11,7 @@
 #include "skeleton.h"
 #include "core/guard.h"
 #include "resources/animation.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -21,7 +22,8 @@ class RenderEntity;
 typedef std::shared_ptr<RenderEntity> RenderEntityPtr;
 typedef std::weak_ptr<RenderEntity> RenderEntityRef;
 
-class RenderEntity : public std::enable_shared_from_this<RenderEntity>
+class RenderEntity : public std::enable_shared_from_this<RenderEntity>,
+                     public core::ObjectCounter<RenderEntity>
 {
    public:
       class VisibilityHandle
@@ -50,8 +52,6 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       bool IsValid() const;
       void FinishConstruction();
       void Destroy();
-
-      void SetSelected(bool selected);
 
       dm::ObjectId GetObjectId() const;
       om::EntityPtr GetEntity() const { return entity_.lock(); }

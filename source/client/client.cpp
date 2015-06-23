@@ -80,6 +80,7 @@
 #include "Poco/Net/HTTPRequest.h"
 #include "Poco/Net/HTTPResponse.h"
 #include "Poco/URI.h"
+#include "simulation/save_versions.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -106,8 +107,6 @@ json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
 
    return n;
 }
-
-static const std::string SAVE_TEMP_DIR("tmp_save");
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -330,12 +329,12 @@ void Client::OneTimeIninitializtion()
          throw std::string("User hit crash key");
       };
 
-      _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) {
+      _commands[GLFW_KEY_KP_1] = [=](KeyboardInput const& kb) {
          scriptHost_->WriteMemoryProfile("lua_memory_profile_client.txt");
          scriptHost_->DumpHeap("lua.client.heap");
          core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile"));
       };
-      _commands[GLFW_KEY_KP_ADD] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
+      _commands[GLFW_KEY_KP_2] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };
    }
 
    // Reactors...
@@ -646,6 +645,7 @@ void Client::OneTimeIninitializtion()
       json::Node saveid(json::Node(f.args).get_node(0));
       json::Node gameinfo(json::Node(f.args).get_node(1));
       gameinfo.set("version", PRODUCT_FILE_VERSION_STR);
+      gameinfo.set("save_version", (int)simulation::CURRENT_SAVE_VERSION);
       return SaveGame(saveid.as<std::string>(), gameinfo);
    });
 
@@ -675,6 +675,8 @@ void Client::OneTimeIninitializtion()
       }
 
       for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+         static const std::string SAVE_TEMP_DIR("tmp_save");
+
          std::string name = it->path().filename().string();
          if (name == SAVE_TEMP_DIR) {
             CLIENT_LOG(3) << "ignoring temporary save directory: " << SAVE_TEMP_DIR;
@@ -837,6 +839,13 @@ void Client::Shutdown()
 void Client::InitializeDataObjects()
 {
    scriptHost_.reset(new lua::ScriptHost("client"));
+
+   // Turn off the GC right away.  This will prevent odd side effects.  For example, everytime we
+   // create a luabind::object, a tiny bit of lua code runs which has the potential to invoke the
+   // GC.  The GC may remove the last reference to a shared pointer to a cpp object.  Best case,
+   // that will just run a destructor.  Worst case, a sync destory trace on a managed object will fire
+   // with potentially unlimited side-effects (!!!).  So we only allow the GC to run during "update".
+   scriptHost_->EnableGC(false);
 
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
@@ -1060,12 +1069,14 @@ void Client::mainloop()
 
    if (!loading_) {
       perfmon::SwitchToCounter("update lua");
+      GetScriptHost()->EnableGC(true);
       try {
          radiant_["update"]();
       } catch (std::exception const& e) {
          CLIENT_LOG(3) << "error in client update: " << e.what();
          GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
       }
+      GetScriptHost()->EnableGC(false);
    }
 
    perfmon::SwitchToCounter("flush http events");
@@ -1654,9 +1665,19 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
             }
          }
          if (cb) {
+            // We need a copy of the request with a durable lifetime because we're placing it
+            // in the browser job queue for deferred processing. A copy by assignment for use
+            // in the closure doesn't fully work here, because JSONNodes are refcounted
+            // copy on write objects that are not thread safe. A standard value assignment would
+            // copy the shell but share the internal json node, which would not have thread
+            // safe access. Therefore, we perform an explicit copy of the internal node by calling
+            // duplicate().
+            chromium::IBrowser::Request requestCopy = req;
+            requestCopy.query = req.query.duplicate();
+
             std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-            browserJobQueue_.emplace_back([req, response, cb]() mutable {
-               cb(req, response);
+            browserJobQueue_.emplace_back([requestCopy, response, cb]() mutable {
+               cb(requestCopy, response);
             });
             return;            
          }
@@ -1681,8 +1702,8 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
 
 void Client::CallHttpReactor(chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response)
 {
-   JSONNode node;
    int status = 404;
+   // Failure on req.query.decRef. Any chance req is no longer a valid reference?
    rpc::ReactorDeferredPtr d = http_reactor_->Call(req.query, req.postdata);
 
    if (!d) {
@@ -1728,16 +1749,27 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
    auto i = authoredEntities_.find(id);
    if (i != authoredEntities_.end()) {
       om::EntityPtr entity = i->second;
-
       CLIENT_LOG(7) << "destroying authoring entity " << *entity;
-      entity->Destroy();
-      if (entity) {
-         auto render_entity = Renderer::GetInstance().GetRenderEntity(entity);
-         if (render_entity) {
-            render_entity->Destroy();
-         }
-      }
+
+      // remove from the map before triggering so lookups will fail
       authoredEntities_.erase(i);
+
+      // destroy the RenderEntity
+      auto render_entity = Renderer::GetInstance().GetRenderEntity(entity);
+      if (render_entity) {
+         render_entity->Destroy();
+      }
+
+      lua_State* L = scriptHost_->GetInterpreter();
+      om::Stonehearth::TriggerPreDestroy(entity, L);
+      om::Stonehearth::DestroyEntity(entity);
+      om::EntityRef entityRef = entity;
+      entity = nullptr;
+      if (!entityRef.expired()) {
+         entity = entityRef.lock();
+         CLIENT_LOG(5) << "Reference still exists to " << entity << " after destroy_entity was called";
+      }
+      om::Stonehearth::TriggerPostDestroy(id, L);
    }
 }
 
@@ -1806,44 +1838,37 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
 
    ASSERT(!server_save_deferred_);
 
-   fs::path tmpdir  = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR;
-   if (fs::is_directory(tmpdir)) {
-      remove_all(tmpdir);
+   fs::path savedir  = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (fs::is_directory(savedir)) {
+      remove_all(savedir);
    }
-   fs::create_directories(tmpdir);
+   fs::create_directories(savedir);
 
-   SaveClientScreenShot(tmpdir);
-   SaveClientState(tmpdir);
+   SaveClientScreenShot(savedir);
+   SaveClientState(savedir);
 
    json::Node args;
-   args.set("saveid", SAVE_TEMP_DIR);
+   args.set("saveid", saveid);
 
    client_save_deferred_ = d;
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
-   server_save_deferred_->Done([this, saveid, tmpdir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Done([this, saveid, savedir, gameinfo](JSONNode const&n) {
       // Wait until both the client and server state have been saved to write
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
-      SaveClientMetadata(tmpdir, gameinfo);
-
-      // finally. move the save game to the correct direcory
-      fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
-      DeleteSaveGame(saveid);
-      rename(tmpdir, savedir);
-      CLIENT_LOG(1) << "moving " << tmpdir.string() << " to " << savedir;
-
+      SaveClientMetadata(savedir, gameinfo);
       client_save_deferred_->Resolve(n);
    });
-   server_save_deferred_->Fail([this, tmpdir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Fail([this, savedir, gameinfo](JSONNode const&n) {
       client_save_deferred_->Reject(n);
+      remove_all(savedir);
    });
 
-   server_save_deferred_->Always([this, tmpdir] {
+   server_save_deferred_->Always([this, savedir] {
       CLIENT_LOG(1) << "clearing save deferred pointers";
       client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
-      remove_all(tmpdir);
    });
 
    return client_save_deferred_;
@@ -2026,6 +2051,13 @@ void Client::CreateGame()
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->CreateGame(localModList_, _allocDataStoreFn);
    initialUpdate_ = true;
+
+   core::Config const& config = core::Config::GetInstance();
+   std::string loadGame = config.Get<std::string>("game.load_game", "");
+   if (loadGame != "") {
+      _asyncLoadName = loadGame;
+      _asyncLoadPending = true;      
+   }
 }
 
 void Client::InitializeUIScreen()

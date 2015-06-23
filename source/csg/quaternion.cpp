@@ -22,9 +22,26 @@ Quaternion::Quaternion(const Point3f& from, const Point3f& to)
     set(from, to);
 }   // End of Quaternion::Quaternion()
 
-Quaternion::Quaternion(const Point3f& vector)
+Quaternion::Quaternion(const Point3f& eulerAngle)
 {
-    set(0.0f, vector.x, vector.y, vector.z);
+    double pitch = eulerAngle.x; // bank
+    double yaw = eulerAngle.y; // heading11
+    double roll = eulerAngle.z; //attitude
+
+    double c1 = cos(yaw/2);
+    double c2 = cos(roll/2);
+    double c3 = cos(pitch/2);
+
+    double s1 = sin(yaw/2);
+    double s2 = sin(roll/2);
+    double s3 = sin(pitch/2);
+
+    double w = c1 * c2 * c3 - s1 * s2 * s3;
+    double x = s1 * s2 * c3 + c1 * c2 * s3;
+    double y = s1 * c2 * c3 + c1 * s2 * s3;
+    double z = c1 * s2 * c3 - s1 * c2 * s3;
+
+    set(w, x, y, z);
 }   // End of Quaternion::Quaternion()
 
 Quaternion::Quaternion(const Matrix3& rotation)
@@ -354,6 +371,24 @@ Quaternion::get_axis_angle(Point3f& axis, double& angle) const
       double k = 1.0f / length;
       axis = Point3f(x*k, y*k, z*k);
    }
+}
+
+Point3f Quaternion::GetEulerAngle() const
+{
+    double test = x * y + z * w;
+    if (test > 0.499) { // Singularity at north pole
+        return Point3f(2 * atan2(x, w), 0, csg::k_pi/2);
+    }
+    if (test < -0.499) { // Singularity at south pole
+        return Point3f(-2 * atan2(x, w), 0, -csg::k_pi/2);
+    }
+
+    double pitch, roll, yaw;
+    yaw = atan2(2*(w*y + x*z), 1 - 2*(y*y + z*z)); // heading
+    pitch = atan2(2*(w*x - z*y), 1 - 2*(x*x + z*z)); //bank
+    roll = asin(2*(x*y + z*w)); // attitude
+
+    return Point3f(pitch, yaw, roll);
 }
 
 void

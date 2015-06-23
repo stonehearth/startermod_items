@@ -1,0 +1,52 @@
+{
+   "type" : "entity",
+   "components": {
+      "render_info" : {
+         "scale" : 0.5
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(rabbit_statue_01.qb)",
+            ]
+         }
+      }, 
+      "stonehearth:resource_node": {
+         "task_group_name" : "stonehearth:task_group:harvest",
+         "harvest_tool" : "stonehearth:worker_axe",
+         "resource": "stonehearth:resources:stone:hunk_of_stone", 
+         "harvest_overlay_effect" : "/stonehearth/data/effects/mine_overlay_effect",
+         "harvester_effect" : "mine",
+         "description" : "mine_monument",
+         "durability": 20
+      },
+      "unit_info": {
+         "name": "An Ancient Monument",
+         "description": "Mossy, but the stone is still good..."
+      }, 
+      "mob" : {
+         "model_origin" : { "x": -0.5, "y": 0, "z": 0.5 }
+      },
+      "destination" : {
+         "region": [
+            {
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 15, "z" :  4 }
+            }
+         ]
+      },      
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 15, "z" :  4 }
+            }
+         ]
+      }
+   },
+   "entity_data" : {
+      "stonehearth:on_destroy" : {
+         "effect": "/stonehearth/data/effects/terrain/tree_harvest.json"
+      }      
+   }      
+}

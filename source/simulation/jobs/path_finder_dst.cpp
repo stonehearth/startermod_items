@@ -58,22 +58,29 @@ void PathFinderDst::Start()
 
       Simulation& sim = Simulation::GetInstance();
       auto& o = sim.GetOctTree();
-      auto mob = dstEntity->GetComponent<om::Mob>();
-      if (mob) {
-         transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
-                                 ->OnChanged([=](csg::Transform const&) {
-                                    PF_LOG(7) << "mob transform changed";
-                                    destination_may_have_changed("mob transform changed");
-                                 });
+
+      if (!transform_trace_) {
+         auto mob = dstEntity->GetComponent<om::Mob>();
+         if (mob) {
+            transform_trace_ = mob->TraceTransform("pf dst", dm::PATHFINDER_TRACES)
+                                    ->OnChanged([=](csg::Transform const&) {
+                                       PF_LOG(7) << "mob transform changed";
+                                       destination_may_have_changed("mob transform changed");
+                                    });
+         }
       }
-      auto dst = dstEntity->GetComponent<om::Destination>();
-      if (dst) {
-         region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
-                                 ->OnChanged([this, destination_may_have_changed](csg::Region3f const&) {
-                                    PF_LOG(7) << "adjacent region changed";
-                                    destination_may_have_changed("adjacent region changed");
-                                 });
+
+      if (!region_guard_) {
+         auto dst = dstEntity->GetComponent<om::Destination>();
+         if (dst) {
+            region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
+                                    ->OnChanged([this, destination_may_have_changed](csg::Region3f const&) {
+                                       PF_LOG(7) << "adjacent region changed";
+                                       destination_may_have_changed("adjacent region changed");
+                                    });
+         }
       }
+
       ClipAdjacentToTerrain();
    }
 }

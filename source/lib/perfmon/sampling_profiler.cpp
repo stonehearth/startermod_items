@@ -11,8 +11,9 @@ StackFrame::StackFrame(const char* sourceName, unsigned int fnDefLine) :
    _sourceName(sourceName),
    _fnDefLine(fnDefLine),
    _selfTime(0),
-   _totalTime(0),
-   _callCount(1)
+   _callCount(1),
+   _startLine(0),
+   _endLine(0)
 {
 }
 
@@ -20,7 +21,7 @@ StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDef
 {
    // O(n), but much more cache-friendly then a hashtable.
    for (StackFrame& c : _callers) {
-      if (c._fnDefLine == fnDefLine && !strcmp(c._sourceName, sourceName)) {
+      if (c._fnDefLine == fnDefLine && c._sourceName == core::StaticString(sourceName)) {
          c._callCount++;
          return &c;
       }
@@ -29,9 +30,8 @@ StackFrame* StackFrame::AddStackFrame(const char* sourceName, unsigned int fnDef
    return &_callers.back();
 }
 
-void StackFrame::IncrementTimes(CounterValueType selfTime, CounterValueType totalTime, int line) { 
+void StackFrame::IncrementTimes(CounterValueType selfTime, int line) { 
    _selfTime += selfTime;
-   _totalTime += totalTime;
 
    for (auto& lc : _lines) {
       if (lc.line == line) {
@@ -47,7 +47,10 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
 {
    // Figure out the name of the function
    if (strcmp(_sourceName, TOP_FRAME)) {
-      _fnName = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
+      auto fn = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
+      _fnName = fn.functionName;
+      _startLine = fn.startLine;
+      _endLine = fn.endLine;
    } else {
       _fnName = TOP_FRAME;
    }
@@ -56,101 +59,55 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
    }
 }
 
-void StackFrame::Fuse(std::unordered_map<core::StaticString, SmallFrame, core::StaticString::Hash> &lookup) 
+void StackFrame::WriteJson(std::ostream& os) const
 {
-   SmallFrame *self;
-   auto& i = lookup.find(_fnName);
-   if (i == lookup.end()) {
-      SmallFrame sf;
-      sf.totalTime = 0;
-      sf.selfTime = 0;
-      sf.totalSamples = 0;
-      lookup.emplace(_fnName, sf);
-      self = &lookup.find(_fnName)->second;
-   } else {
-      self = &i->second;
-   }
-   self->totalTime += (int)_totalTime;
-   self->selfTime += (int)_selfTime;
-   self->totalSamples += (int)_callCount;
-   for (int j = 0; j < (int)_lines.size(); j++) {
-      bool found = false;
-      for (int k = 0; k < (int)self->lines.size(); k++) {
-         if (_lines[j].line == self->lines[k].line) {
-            found = true;
-            self->lines[k].count += _lines[j].count;
-            break;
-         }
+   os << "{" << std::endl
+      << "   \"file\":        \"" << _sourceName << "\"," << std::endl
+      << "   \"function\":    \"" << _fnName << "\"," << std::endl
+      << "   \"lineStart\":   "   << _startLine << "," << std::endl
+      << "   \"lineEnd\":     "   << _endLine << "," << std::endl
+      << "   \"selfTime\":    "   << _selfTime      << "," << std::endl
+      << "   \"callCount\":   "   << _callCount     << "," << std::endl;
+
+   // lines...
+   os << "   \"lines\": [" << std::endl;
+   for (uint i = 0; i < _lines.size(); i++) {
+      LineCount const& lc = _lines[i];
+
+      os << "{" << std::endl
+         << "   \"line\": "   << lc.line << "," << std::endl
+         << "   \"count\": "  << lc.count << std::endl
+         << "}";
+      if (i < _lines.size() - 1) {
+         os << ",";
       }
+      os << std::endl;
+   }
+   os << "]," << std::endl;
 
-      if (!found) {
-         self->lines.push_back(LineCount(_lines[j].line, _lines[j].count));
+   // callers...
+   os << "   \"callers\": [" << std::endl;
+   for (uint i = 0; i < _callers.size(); i++) {
+      StackFrame const& caller = _callers[i];
+      caller.WriteJson(os);
+      if (i < _callers.size() - 1) {
+         os << ",";
       }
+      os << std::endl;
    }
+   os << "]" << std::endl;
 
-   for (auto &caller : _callers) {
-      caller.Fuse(lookup);
-      auto& k = self->callers.find(caller._fnName);
-      if (k != self->callers.end()) {
-         k->second += caller._callCount;
-      } else {
-         self->callers.emplace(caller._fnName, caller._callCount);
-      }
-   }
-}
-
-void StackFrame::ComputeTotalTime(CounterValueType time)
-{
-   _totalTime += time;
-
-   for (auto &f : _callers) {
-      f.ComputeTotalTime(time);
-   }
-}
-
-void StackFrame::CollectStats(FunctionTimes &stats, FunctionNameStack& stack) const
-{
-   bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
-
-   if (!recursive) {
-      stats[_fnName] += _totalTime;
-   }
-
-   stack.emplace_back(_fnName);
-   for (StackFrame const& c : _callers) {
-      c.CollectStats(stats, stack);
-   }
-   stack.pop_back();
-}
-
-
-void StackFrame::CollectBottomUpStats(FunctionAtLineTimes &stats, FunctionNameStack& stack, int remainingDepth) const
-{
-   bool recursive = std::find(stack.begin(), stack.end(), _fnName) != stack.end();
-
-   if (!recursive) {
-      for (auto& lc : _lines) {
-         stats[BUILD_STRING(_fnName << ":" << lc.line)] += lc.count;
-      }
-   }
-
-   if (remainingDepth > 0) {
-      stack.emplace_back(_fnName);
-      for (StackFrame const& c : _callers) {
-         c.CollectBottomUpStats(stats, stack, remainingDepth - 1);
-      }
-      stack.pop_back();
-   }
+   os << "}" << std::endl;
 }
 
 SamplingProfiler::SamplingProfiler() :
-   _invertedStack("top", 999999999)
+   _stack("top", 999999999)
 {
 }
 
-StackFrame *SamplingProfiler::GetTopInvertedStackFrame()
+StackFrame *SamplingProfiler::GetStackTop()
 {
-   return &_invertedStack;
+   return &_stack;
 }
 
 SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
@@ -161,20 +118,7 @@ SamplingProfiler::StackEntry::StackEntry(StackFrame* f) :
 
 void SamplingProfiler::FinalizeCollection(res::ResourceManager2& resMan)
 {
-   _invertedStack.FinalizeCollection(resMan);
-   ComputeTotalTime();
-}
-
-void SamplingProfiler::ComputeTotalTime()
-{
-   for (auto &f : _invertedStack._callers) {
-      f.ComputeTotalTime(f._selfTime);
-   }
-}
-
-void SamplingProfiler::Fuse(FusedFrames &lookup)
-{
-   _invertedStack.Fuse(lookup);
+   _stack.FinalizeCollection(resMan);
 }
 
 CounterValueType SamplingProfiler::StackEntry::GetElapsed() const
@@ -182,13 +126,8 @@ CounterValueType SamplingProfiler::StackEntry::GetElapsed() const
    return Timer::GetCurrentCounterValueType() - start;
 }
 
-void SamplingProfiler::CollectStats(FunctionTimes& stats) const
+void SamplingProfiler::WriteJson(std::ostream& os) const
 {
-   _invertedStack.CollectStats(stats, StackFrame::FunctionNameStack());
+   _stack.WriteJson(os);
 }
 
-void SamplingProfiler::CollectBottomUpStats(FunctionAtLineTimes& stats, int maxDepth) const
-{
-
-   _invertedStack.CollectBottomUpStats(stats, StackFrame::FunctionNameStack(), maxDepth);
-}

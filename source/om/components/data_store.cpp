@@ -66,6 +66,7 @@ void DataStore::ConstructObject()
 {
    Record::ConstructObject();
    flags_ = 0;
+   destroyed_ = false;
 }
 
 luabind::object DataStore::GetData() const
@@ -121,6 +122,8 @@ void DataStore::RestoreController(DataStorePtr self, int flags)
       return;
    }
    flags_ = (*flags_) | flags;
+
+   DS_LOG(9) << "restoring controller";
 
    lua_State* L = GetData().interpreter();
    lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
@@ -293,6 +296,11 @@ DataStore::GetControllerUri()
    return name;
 }
 
+bool DataStore::IsDestroyed() const
+{
+   return *destroyed_;
+}
+
 luabind::object DataStore::GetController() const
 {
    if (!_weakTable.is_valid()) {
@@ -324,11 +332,13 @@ void DataStore::CallLuaDestructor()
 
 void DataStore::Destroy()
 {
+   destroyed_ = true;
    if (_weakTable) {
       lua_State* L = _weakTable.interpreter();
       ASSERT(L);
       CallLuaDestructor();
    }
+
 }
 
 void DataStore::SetController(luabind::object controller)

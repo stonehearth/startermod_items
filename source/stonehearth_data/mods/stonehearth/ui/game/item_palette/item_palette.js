@@ -92,8 +92,14 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       } else {
 
          // new title element for the category
+         var categoryDisplayName = i18n.t('item_categories_' + item.category);
+         if (!categoryDisplayName) {
+            console.log("No category display name found for item category " + item.category);
+            categoryDisplayName = item.category;
+         }
+
          $('<h2>')
-            .html(item.category)
+            .html(categoryDisplayName)
             .appendTo(this.palette);
 
          // the category container element that items are inserted into

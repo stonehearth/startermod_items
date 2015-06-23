@@ -3,27 +3,32 @@
    "mixins" : "file(small_crate_ghost.json)",
    
    "components": {
-      "stonehearth:backpack" : {
-
+      "mob" : {
+         "interpolate_movement" : false,
+         "mob_collision_type" : "tiny"
+      },
+      "stonehearth:storage" : {
+         "type" : "crate",
+         "capacity" : 16
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(small_crate_iconic.json)",
          "ghost_form" : "file(small_crate_ghost.json)",
          "placeable_on_ground" : true
       },
-      "region_collision_shape" : {
-         "region": [
+      "destination" : {
+         "region" : [
             {
-               "min" : { "x" : 0, "y" : 0, "z" : 0 },
-               "max" : { "x" : 1, "y" : 2, "z" : 1 }
+               "min" : { "x" :-1, "y" : 0, "z" : 0 },
+               "max" : { "x" : 0, "y" : 1, "z" : 1 }
             }
          ]
-      }
+      }      
    },
    "entity_data" : {
       "stonehearth:ai_packs" : {
          "packs" : [
-            "stonehearth:ai_pack:fill_crate"
+            "stonehearth:ai_pack:fill_storage"
          ]
       }
    }

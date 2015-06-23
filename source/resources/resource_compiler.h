@@ -14,7 +14,7 @@ public:
 
    void Initialize();
    luabind::object CompileScript(lua_State* L, std::string const& path, std::string const& contents);
-   core::StaticString MapFileLineToFunction(core::StaticString file, int line);
+   LuaFunctionInfo MapFileLineToFunction(core::StaticString file, int line);
 
 private:
    std::unique_ptr<lua::ScriptHost>    _scriptHost;

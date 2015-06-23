@@ -1,5 +1,7 @@
 <script type="text/x-handlebars" data-template-name="unitFrame">
    <div id="unitFrame">
+
+
       <div id="buffs">
          {{#each buffs}}
             {{#if this.name}}
@@ -14,14 +16,20 @@
       <div id="info">
          <div class="inner">
             {{#if stonehearth:job}}
-               <div id="jobButton" title="Show character sheet">
-                  <img {{bind-attr src="stonehearth:job.class_icon"}} />
+               <div id="portrait">
+                  <img id="unitPortrait" {{bind-attr src=view.portraitSrc}}/>
                </div>
             {{/if}}
             <div id="nameBlock">
-               <div class="name" title="Focus camera on this unit">{{unit_info.name}}</div>
+               <div class="name">{{unit_info.name}}</div>
+               {{#if stonehearth:job}}
+                  <div id="jobButton">
+                     <img {{bind-attr src="stonehearth:job.class_icon"}} />
+                  </div>
+               {{/if}}
                <div class="description">{{unit_info.description}}</div>
             </div>
+
          </div>
 
          <div id="commandButtons">
@@ -34,6 +42,8 @@
             {{/each}}
          </div>
       </div>
+
+
 
    </div>
 </script>

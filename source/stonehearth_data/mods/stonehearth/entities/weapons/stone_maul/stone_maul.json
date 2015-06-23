@@ -2,8 +2,16 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Stone Maul",
+         "description": "The perfect tool for bludgeoning",
+         "icon" : "file(stone_maul.png)"
+      },
       "item": {
          "category" : "weapons"
+      },
+      "stonehearth:material" : {
+         "tags" : "stone melee_weapon"
       },
       "model_variants": {
          "default" : {
@@ -22,15 +30,6 @@
          "ilevel" : 2,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
-      },
-
-      "unit_info": {
-         "name": "Stone Maul",
-         "description": "The perfect tool for bludgeoning",
-         "icon" : "file(stone_maul.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "stone melee_weapon"
       }
    },
    "entity_data" : {

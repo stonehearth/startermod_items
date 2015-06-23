@@ -35,6 +35,8 @@ public:
 
    void GC(platform::timer &timer);
    void FullGC();
+   void EnableGC(bool enabled);
+
    int GetAllocBytesCount() const;
    void WriteMemoryProfile(std::string const& filename);
    void DumpHeap(std::string const& filename) const;
@@ -110,9 +112,9 @@ private:
    JSONNode LuaToJsonImpl(luabind::object obj);
    void ProfileHook(lua_State *L, lua_Debug *ar);
    void ProfileSampleHook(lua_State *L, lua_Debug *ar);
-   void DumpFusedFrames(perfmon::FusedFrames& fusedFrames);
    void ReportProfileData();
    void ResetProfileData();
+   void AddStackToProfile(lua_State *L, lua_Debug *ar, perfmon::CounterValueType selfTime);
 
 private:
    luabind::object GetManifest(std::string const& mod_name);
@@ -136,7 +138,6 @@ private:
    bool                 filter_c_exceptions_;
    bool                 throw_on_lua_exceptions_;
    ReportErrorCb        error_cb_;
-   int                  bytes_allocated_;
 
    char                 current_file[MAX_PATH];
    int                  current_line;
@@ -168,6 +169,7 @@ private:
    std::unordered_map<lua_State*, perfmon::SamplingProfiler>   _profilers;
    std::unordered_set<rpc::LuaPromisePtr> _luaPromises;
    CpuProfilerMethod          _cpuProfileMethod;
+   int                        _suspendGCCount;
 };
 
 END_RADIANT_LUA_NAMESPACE

@@ -1,8 +1,8 @@
 local EffectTrack = require 'modules.effects.effect_track'
-local ActivityOverlayEffect = class(EffectTrack)
+local ActivityOverlayEffect = radiant.class(EffectTrack)
 
-function ActivityOverlayEffect:__init(info)  
-   self[EffectTrack]:__init(info)
+function ActivityOverlayEffect:__init(info)
+   EffectTrack.__init(self, info)
 end
 
 function ActivityOverlayEffect:update(now)

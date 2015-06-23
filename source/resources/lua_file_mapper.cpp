@@ -67,7 +67,7 @@ void LuaFileMapper::Load(fbs::LuaFileMapper const* lfi)
    }
 }
 
-core::StaticString LuaFileMapper::MapFileLineToFunction(core::StaticString file, int line)
+LuaFunctionInfo LuaFileMapper::MapFileLineToFunction(core::StaticString file, int line)
 {
    return Find(file).GetFunction(line);
 }
@@ -81,7 +81,7 @@ void LuaFileMapper::IndexFile(core::StaticString filename, std::string const& co
       return;
    }
 
-   LOG(script_host, 1) << "indexing " << filename;
+   LOG(script_host, 0) << "indexing " << filename;
 
    try {
       luabind::object mapping = _mapSourceFunctionsFn(_flameGraphObj, contents, (const char*)filename);
@@ -161,10 +161,24 @@ void LuaFileIndex::AddFunction(core::StaticString fn, int min, int max)
    }
 }
 
-core::StaticString LuaFileIndex::GetFunction(int line)
+LuaFunctionInfo LuaFileIndex::GetFunction(int line)
 {
    ASSERT(line >= 0 && line < (int)_lines.size());
-   return _lines[line];
+   LuaFunctionInfo result;
+
+   int c = (int)_lines.size();
+
+   result.functionName = _lines[line];
+   result.startLine = 0;
+   result.endLine = c - 1;
+
+   while (result.startLine < c && _lines[result.startLine] != result.functionName) {
+      ++result.startLine;
+   }
+   while (result.endLine > 0 && _lines[result.endLine] != result.functionName) {
+      --result.endLine;
+   }
+   return result;
 }
 
 std::string const& LuaFileIndex::GetHash() const

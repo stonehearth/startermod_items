@@ -1,10 +1,14 @@
 {
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
       "unit_info": {
          "name": "Plate of berries",
-         "description": "TODO: invent whipped cream.",
+         "description": "Todo: Invent whipped cream.",
          "icon": "file(berry_serving.png)"
+      },
+      "item": {
+         "category" : "food"
       },
       "stonehearth:material" : {
          "tags" : "food"

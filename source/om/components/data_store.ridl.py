@@ -9,6 +9,7 @@ class DataStore(dm.Record):
    controller_type = dm.Boxed(std.string())
    controller_name = dm.Boxed(std.string())
    flags = dm.Boxed(c.int())
+   destroyed = dm.Boxed(c.bool())
    data_object = dm.Boxed(lua.DataObject(), get=None, set=None)
 
    _no_lua = True
@@ -37,6 +38,7 @@ class DataStore(dm.Record):
    void PatchLuaDestructor();
    void Destroy();
    void CallLuaDestructor();
+   bool IsDestroyed() const;
    """
 
    _private = \

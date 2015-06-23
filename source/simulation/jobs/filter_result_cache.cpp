@@ -2,7 +2,10 @@
 #include "filter_result_cache.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
+#include "om/components/unit_info.ridl.h"
 #include "dm/boxed_trace.h"
+#include "lib/lua/script_host.h"
+#include "simulation/simulation.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -16,7 +19,8 @@ using namespace ::radiant::simulation;
  * Not so complicated, eh?
  *
  */
-FilterResultCache::FilterResultCache()
+FilterResultCache::FilterResultCache(int flags) :
+   _flags(flags)
 {
 }
 
@@ -30,6 +34,31 @@ FilterResultCachePtr FilterResultCache::SetFilterFn(FilterFn fn)
 {
    _filterFn = fn;
    _results.clear();
+   return shared_from_this();
+}
+
+FilterResultCachePtr FilterResultCache::SetLuaFilterFn(luabind::object unsafe_filter_fn)
+{
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
+   luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
+
+   SetFilterFn([filter_fn, cb_thread](om::EntityPtr e) mutable -> bool {
+      MEASURE_TASK_TIME(Simulation::GetInstance().GetOverviewPerfTimeline(), "lua cb");
+      try {
+         LOG_CATEGORY(simulation.pathfinder.bfs, 5, "calling filter function on " << *e);
+         luabind::object result = filter_fn(om::EntityRef(e));
+         if (luabind::type(result) == LUA_TNIL) {
+            return false;
+         }
+         if (luabind::type(result) == LUA_TBOOLEAN) {
+            return luabind::object_cast<bool>(result);
+         }
+         return true;   // not nil or false is good enough for me!
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(cb_thread, e);
+      }
+      return false;
+   });
    return shared_from_this();
 }
 
@@ -62,30 +91,47 @@ bool FilterResultCache::ConsiderEntity(om::EntityPtr& entity)
    }
    
    om::MobPtr mob = entity->GetComponent<om::Mob>();
-
    if (!mob) {
       return false;
    }
 
    dm::ObjectId id = entity->GetObjectId();
-   csg::Point3f& loc = mob->GetLocation();
    auto i = _results.find(id);
-   if (i != _results.end()) {
-      if (loc == i->second.location) {
-         bool result = i->second.value;
-         BFS_LOG(9) << "filter " << this << " returning cached result (" << result << ") for " << *entity;
-         return result;
-      } else {
-         BFS_LOG(9) << "filter " << this << " updating cached result at location (" << loc << ") for " << *entity;
-         bool result = _filterFn(entity);
-         i->second.location = loc;
-         i->second.value = result;
-         return result;
+
+   bool useCachedResult = i != _results.end();
+   if (!useCachedResult) {
+      BFS_LOG(9) << "filter " << this << " cache miss for " << *entity << "!";
+      i = _results.insert(std::make_pair(id, Entry())).first;
+   }
+   Entry& entry = i->second;
+
+   if (_flags & INVALIDATE_ON_MOVE) {
+      csg::Point3f& location = mob->GetLocation();
+      if (location != entry.location) {
+         useCachedResult = false;
+         entry.location = location;
+         BFS_LOG(9) << "filter " << this << " updating cached result location (" << location << ") for " << *entity;
       }
    }
-   
+
+   if (_flags & INVALIDATE_ON_PLAYER_ID_CHANGED) {
+      core::StaticString playerId;
+      om::UnitInfoPtr uip = entity->GetComponent<om::UnitInfo>();
+      if (uip) {
+         playerId = uip->GetPlayerId();
+      }
+      if (playerId != entry.playerId) {
+         useCachedResult = false;
+         entry.playerId = playerId;
+         BFS_LOG(9) << "filter " << this << " updating cached result player id (" << playerId << ") for " << *entity;
+      }
+   }
+
+   if (useCachedResult) {
+      return entry.value;
+   }
    bool result = _filterFn(entity);
-   _results.insert(std::make_pair(id, Entry(result, loc)));
-   BFS_LOG(9) << "filter " << this << " cache miss!  adding new cache result result (" << result << ") for " << *entity;   
+   entry.value = result;
+   BFS_LOG(9) << "filter " << this << " new cache result result (" << result << ") for " << *entity;
    return result;
 }

@@ -49,6 +49,7 @@
 
 local AttributeModifier = require 'components.attributes.attribute_modifier'
 local rng = _radiant.csg.get_default_rng()
+local log = radiant.log.create_logger('attributes')
 
 local AttributesComponent = class()
 
@@ -330,7 +331,7 @@ function AttributesComponent:_recalculate(name)
             if mods['add'] then
                add_factor = add_factor + mods['add']
                if not modifier:get_private() then
-                  user_visible_add_factor = user_visible_add_factor * mods['add']
+                  user_visible_add_factor = user_visible_add_factor + mods['add']
                end
             end
 
@@ -358,6 +359,12 @@ function AttributesComponent:_recalculate(name)
    -- careful, order is important here!
    -- Note: we assume that if this element is a derived element, it's value is already calculated.
    local attribute_data = self._sv._attribute_data[name]
+
+   if not attribute_data then
+      log:error('Trying to recalculate attribute: %s on entity: %s but there was no attribute data', name, self._entity)
+      return
+   end
+
    attribute_data.effective_value = attribute_data.value * mult_factor
    attribute_data.effective_value = attribute_data.effective_value + add_factor
 

@@ -141,6 +141,46 @@ Shape Physics_WorldToLocal(Shape const& s, om::EntityRef e)
    return s;
 }
 
+std::shared_ptr<core::Guard>
+Physics_AddNotifyDirtyTileFn(lua_State *L, OctTree &octTree, luabind::object unsafe_cb)
+{
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());
+   luabind::object cb = luabind::object(cb_thread, unsafe_cb);
+
+   core::Guard g = octTree.GetNavGrid().NotifyTileDirty([cb, cb_thread](csg::Point3 const& pt) mutable {
+      try {
+         cb(csg::ToFloat(pt));
+      }
+      catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(cb_thread, e);
+      }
+   });
+   return std::make_shared<core::Guard>(std::move(g));
+}
+
+void
+Physics_ForEachEntityInTile(lua_State *L, OctTree &octTree, csg::Point3f const& pt, luabind::object unsafe_cb)
+{
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());
+   luabind::object cb = luabind::object(cb_thread, unsafe_cb);
+
+   NavGrid::ForEachEntityCb callback = [cb, cb_thread](om::EntityPtr entity) mutable -> bool {
+      bool stop = false;
+      try {
+         luabind::object result = cb(om::EntityRef(entity));
+         if (result.is_valid() && luabind::type(result) == LUA_TBOOLEAN && luabind::object_cast<bool>(result) == false) {
+            stop = true;
+         }
+      }
+      catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(cb_thread, e);
+      }
+      return stop;
+   };
+
+   octTree.GetNavGrid().ForEachEntityAtIndex(csg::ToInt(pt), callback);
+}
+
 DEFINE_INVALID_JSON_CONVERSION(OctTree)
 IMPLEMENT_TRIVIAL_TOSTRING(OctTree)
 
@@ -149,6 +189,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
    module(L) [
       namespace_("_radiant") [
          namespace_("physics") [
+
             luabind::class_<OctTree>("Physics")
                .enum_("constants") [
                   value("CLIP_SOLID",       NavGrid::ClippingMode::CLIP_SOLID),
@@ -168,8 +209,10 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("get_standable_point",  &Physics_GetStandable)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
-               .def("get_entities_in_region", &Physics_GetEntitiesInRegion)
-               .def("get_movement_speed_at", &Physics_GetMovementSpeedAt)
+               .def("get_entities_in_region",   &Physics_GetEntitiesInRegion)
+               .def("get_movement_speed_at",    &Physics_GetMovementSpeedAt)
+               .def("add_notify_dirty_tile_fn", &Physics_AddNotifyDirtyTileFn)
+               .def("for_each_entity_in_tile",  &Physics_ForEachEntityInTile)
             ,
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Cube3f>),

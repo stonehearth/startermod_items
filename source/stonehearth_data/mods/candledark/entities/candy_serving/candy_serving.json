@@ -5,6 +5,9 @@
       "unit_info": {
          "name": "Piece of candy"
       },      
+      "item" : {
+         "category" : "food"
+      },
       "stonehearth:material" : {
          "tags" : "food"
       },

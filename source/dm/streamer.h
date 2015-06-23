@@ -53,6 +53,7 @@ private:
    std::map<ObjectId, Object const*>      unsaved_objects_;
    std::unordered_map<ObjectId, UpdateList>  object_updates_;
    std::map<ObjectId, bool>               destroyed_objects_;
+   bool                    _flushing;
 };
 
 END_RADIANT_DM_NAMESPACE

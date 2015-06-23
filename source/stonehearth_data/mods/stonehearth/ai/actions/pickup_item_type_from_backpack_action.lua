@@ -14,12 +14,12 @@ PickupItemTypeFromBackpack.priority = 2 -- at elevated priority so we unload our
 
 function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
    local filter_fn = args.filter_fn
-   self._backpack_component = entity:get_component('stonehearth:backpack')
-   if not self._backpack_component then
+   self._storage_component = entity:get_component('stonehearth:storage')
+   if not self._storage_component then
       return
    end
 
-   local items = self._backpack_component:get_items()
+   local items = self._storage_component:get_items()
    for id, item in pairs(items) do
       if filter_fn(item, entity) then
          self._item = item
@@ -30,8 +30,12 @@ function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
 end
 
 function PickupItemTypeFromBackpack:run(ai, entity, args)
-   self._backpack_component:remove_item(self._item)
-   radiant.entities.pickup_item(entity, self._item)
+   local id = self._item:get_id()
+   local item = self._storage_component:remove_item(id)
+   if not item then
+      ai:abort('failed to pull item out of backpack')
+   end
+   radiant.entities.pickup_item(entity, item)
 end
 
 return PickupItemTypeFromBackpack

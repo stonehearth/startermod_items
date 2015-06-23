@@ -29,7 +29,6 @@ void main(void)
 #version 120
 #include "shaders/utilityLib/camera_transforms.glsl"
 #include "shaders/utilityLib/fragLighting.glsl" 
-#include "shaders/shadows.shader"
 
 uniform sampler2D lighting;
 uniform sampler2D albedo;
@@ -43,5 +42,5 @@ void main(void)
 {
   vec4 light = texture2D(lighting, texCoords);
   vec3 albedo = texture2D(albedo, texCoords).rgb;
-  gl_FragColor = vec4((albedo * light.rgb) + light.aaa, 1.0);
+  gl_FragColor = vec4((albedo * light.rgb) + light.aaa, dot(light, light) > 0 ? 1.0 : 0.0);
 }

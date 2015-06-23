@@ -6,6 +6,9 @@
          "name": "Pumpkin Mush",
          "description": "Delicious. Really..."
       },      
+      "item" : {
+         "category" : "food"
+      },
       "stonehearth:material" : {
          "tags" : "food"
       },

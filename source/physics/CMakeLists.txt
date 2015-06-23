@@ -2,7 +2,6 @@
 add_library(physics STATIC
             octtree.cpp
             physics_util.cpp
-            free_motion.cpp
             nav_grid.cpp
             nav_grid_tile.cpp
             nav_grid_tile_data.cpp

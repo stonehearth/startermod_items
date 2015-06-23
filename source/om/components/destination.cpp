@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "destination.ridl.h"
 #include "om/region.h"
+#include "region_common.h"
 #include "csg/util.h"
 
 using namespace ::radiant;
@@ -32,9 +33,8 @@ void Destination::ConstructObject()
 
 void Destination::LoadFromJson(json::Node const& obj)
 {
-   if (obj.has("region")) {
-      region_ = GetStore().AllocObject<Region3fBoxed>();
-      (*region_)->Set(obj.get("region", csg::Region3f()));
+   if (obj.has("region") || obj.has("region_from_model")) {
+      region_ = radiant::om::LoadRegion(obj, GetStore());
    }
    if (obj.has("adjacent")) {
       adjacent_ = GetStore().AllocObject<Region3fBoxed>();

@@ -6,11 +6,27 @@
    right: 0px;
    color: #fff;
    padding: 0px;
+   z-index: 999999;
    
    .output {
-      height: 200px;
+      height: 80px;
       padding: 4px;
       overflow: auto;
+      resize: vertical;
+
+
+      #title {
+         padding: 6px;
+         background: #3d3f36;
+      }
+      #closeConsoleButton {
+         float: right;
+         width: 16px;
+         height: 16px;
+         padding: 1px;
+         background: #fff url(icons/x-2x.png) no-repeat center;
+      }
+
 
       .command {
          position: relative;

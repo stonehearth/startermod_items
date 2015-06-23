@@ -27,7 +27,9 @@ function SleepinessObserver:activate()
 
    --Should we be sleeping? If so, let's do that
    if self._sv.should_be_sleeping then
-      self:_start_sleep_task()
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_start_sleep_task()
+         end)
    end
 end
 

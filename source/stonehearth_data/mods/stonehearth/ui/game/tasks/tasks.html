@@ -38,7 +38,7 @@
                                  {{i18n stonehearth:remove_stockpile}}
                               </button>
                            </a>
-                           <a href="#" {{action pauseStockpile this.source.stonehearth:stockpile.__self this.source.stonehearth:stockpile.active target="view"}} class='uisounds'>
+                           <a href="#" {{action 'pauseStockpile' this.source.stonehearth:stockpile.__self this.source.stonehearth:stockpile.active target="view"}} class='uisounds'>
                               <button>
                                  {{#if this.source.stonehearth:stockpile.active }}
                                     {{i18n stonehearth:pause_stockpile}}

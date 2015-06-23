@@ -49,12 +49,11 @@ App.SettingsController = Ember.Controller.extend({
             self.set('config_options', o)
          });
 
-      radiant.call('radiant:get_config', 'enable_64_bit')
+      radiant.call('radiant:get_config', 'force_32_bit')
          .done(function(o) {
-            // o.enable_64_bit can be true, false, or undefined here.  if it's undefined or
-            // true, we want to turn 64-bit mode on!
-            var enabled = o.enable_64_bit != false;
-            self.set('enable_64_bit', enabled)
+            // if o.force_32_bit is undefined, set it to false
+            var enabled = o.force_32_bit == true;
+            self.set('force_32_bit', enabled)
          });
 
       radiant.call('radiant:get_config', 'collect_analytics')
@@ -190,14 +189,13 @@ App.SettingsView = Ember.View.extend({
             self._updateGfxTabPage(o);
          });
 
-      radiant.call('radiant:get_config', 'enable_64_bit')
+      radiant.call('radiant:get_config', 'force_32_bit')
          .done(function(o) {
-            // o.enable_64_bit can be true, false, or undefined here.  if it's undefined or
-            // true, we want to turn 64-bit mode on!
-            var enabled = o.enable_64_bit != false;
-            self.set('context.enable_64bit', enabled);
+            // if o.force_32_bit is undefined, set it to false
+            var enabled = o.force_32_bit == true;
+            self.set('context.force_32_bit', enabled);
          });
-
+/*
       radiant.call('radiant:get_config', 'enable_lua_jit')
          .done(function(o) {
             // o.enable_lua_jit can be true, false, or undefined here.  if it's undefined or
@@ -205,7 +203,7 @@ App.SettingsView = Ember.View.extend({
             var enabled = o.enable_lua_jit  != false;
             self.set('context.enable_lua_jit', enabled);
          });
-
+*/
       radiant.call('radiant:get_config', 'collect_analytics')
          .done(function(o) {
             var enabled = o.collect_analytics != false;
@@ -321,8 +319,8 @@ App.SettingsView = Ember.View.extend({
       var audioConfig = this.getAudioConfig();
       radiant.call('radiant:set_audio_config', audioConfig);
 
-      radiant.call('radiant:set_config', 'enable_64_bit', $('#opt_enable64bit').is(':checked'));
-      radiant.call('radiant:set_config', 'enable_lua_jit', $('#opt_enableLuaJit').is(':checked'));
+      radiant.call('radiant:set_config', 'force_32_bit', $('#opt_force32bit').is(':checked'));
+      //radiant.call('radiant:set_config', 'enable_lua_jit', $('#opt_enableLuaJit').is(':checked'));
       radiant.call('radiant:set_config', 'collect_analytics', $('#opt_enableCollectAnalytics').is(':checked'));
    },
 

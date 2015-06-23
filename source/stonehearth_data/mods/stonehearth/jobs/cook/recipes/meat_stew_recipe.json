@@ -1,0 +1,29 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 1,
+   "recipe_name" : "Savory Meat Stew",
+   "description" : "Hearty, satisfying, and perfect to ease the passing of a cold night.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/food/meat_stew/meat_stew/meat_stew.png",
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:carrot_basket",
+         "count" : 1
+      },
+      {
+         "uri" : "stonehearth:turnip_basket",
+         "count" : 1
+      },      
+      {
+         "material" : "food meat raw",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item" : "stonehearth:food:meat_stew"
+      }
+  ]
+}

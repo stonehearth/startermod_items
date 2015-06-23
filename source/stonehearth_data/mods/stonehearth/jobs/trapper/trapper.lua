@@ -1,5 +1,6 @@
 local TrapperClass = class() 
 local job_helper = require 'jobs.job_helper'
+local constants = require 'constants'
 
 function TrapperClass:initialize(entity)
    job_helper.initialize(self._sv, entity)
@@ -136,8 +137,8 @@ end
 
 --Increase the size of the backpack
 function TrapperClass:increase_backpack_size(args)
-   local backpack_component = self._sv._entity:add_component('stonehearth:backpack')
-   backpack_component:change_max_capacity(args.backpack_size_increase)
+   local sc = self._sv._entity:get_component('stonehearth:storage')
+   sc:change_max_capacity(args.backpack_size_increase)
 end
 
 -- Functions for demote
@@ -157,8 +158,8 @@ end
 
 --Make the backpack size smaller
 function TrapperClass:decrease_backpack_size(args)
-   local backpack_component = self._sv._entity:add_component('stonehearth:backpack')
-   backpack_component:change_max_capacity(args.backpack_size_increase * -1)
+   local sc = self._sv._entity:get_component('stonehearth:storage')
+   sc:change_max_capacity(args.backpack_size_increase * -1)
 end
 
 --Call when it's time to demote

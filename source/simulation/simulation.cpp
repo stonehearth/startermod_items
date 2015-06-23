@@ -8,7 +8,7 @@
 #include "simulation.h"
 #include "jobs/bfs_path_finder.h"
 #include "jobs/a_star_path_finder.h"
-#include "jobs/apply_free_movement.h"
+#include "jobs/task.h"
 #include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"
 #include "dm/store.h"
@@ -92,7 +92,6 @@ void Simulation::OneTimeIninitializtion()
    game_tick_interval_ = config.Get<int>("simulation.game_tick_interval", 50);
    net_send_interval_ = config.Get<int>("simulation.net_send_interval", 50);
    base_walk_speed_ = config.Get<float>("simulation.base_walk_speed", 7.5f);
-   game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    game_speed_ = config.Get<float>("simulation.game_speed", 1.0f);
    base_walk_speed_ = base_walk_speed_ * game_tick_interval_ / 1000.0f;
 
@@ -310,8 +309,6 @@ void Simulation::InitializeDataObjectTraces()
       dm::ObjectType type = obj->GetObjectType();
       if (type == om::EntityObjectType) {
          entityMap_[id] = std::static_pointer_cast<om::Entity>(obj);
-      } else if (type == om::MobObjectType) {
-         CreateFreeMotionTrace(std::static_pointer_cast<om::Mob>(obj));
       }
    })->PushStoreState();   
 }
@@ -340,12 +337,18 @@ void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
-   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
    if (core::Config::GetInstance().Get<bool>("mods.stonehearth.enable_water", true)) {
       waterTightRegionBuilder_ = std::unique_ptr<phys::WaterTightRegionBuilder>(new phys::WaterTightRegionBuilder(octtree_->GetNavGrid()));
    }
 
    scriptHost_.reset(new lua::ScriptHost("server"));
+
+   // Turn off the GC right away.  This will prevent odd side effects.  For example, everytime we
+   // create a luabind::object, a tiny bit of lua code runs which has the potential to invoke the
+   // GC.  The GC may remove the last reference to a shared pointer to a cpp object.  Best case,
+   // that will just run a destructor.  Worst case, a sync destory trace on a managed object will fire
+   // with potentially unlimited side-effects (!!!).  So we only allow the GC to run during "update".
+   scriptHost_->EnableGC(false);
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
@@ -388,7 +391,6 @@ void Simulation::ShutdownGameObjects()
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
-   freeMotionTasks_.clear();
 
    SIM_LOG(1) << "All entities and datastores have been destroyed.";
 
@@ -412,7 +414,6 @@ void Simulation::ShutdownGameObjects()
    scriptHost_.reset();
 
    waterTightRegionBuilder_.reset();
-   freeMotion_.reset();
    octtree_.reset();
 }
 
@@ -543,12 +544,16 @@ void Simulation::UpdateGameState()
 
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
+
+   // Turn the GC back on.  Run update, then turn it off again.
+   GetScript().EnableGC(true);
    try {
       radiant_["update"]();
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
       GetScript().ReportCStackThreadException(GetScript().GetCallbackThread(), e);
    }
+   GetScript().EnableGC(false);
 }
 
 void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
@@ -617,30 +622,24 @@ void Simulation::DestroyEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    if (i != entityMap_.end()) {
-      // remove from the map before triggering so lookups will fail
       om::EntityPtr entity = i->second;
+      dm::ObjectId id = entity->GetObjectId();
+
+      // remove from the map before triggering so lookups will fail
       entityMap_.erase(i);
 
       lua_State* L = scriptHost_->GetInterpreter();
-      luabind::object e(L, std::weak_ptr<om::Entity>(entity));
-      luabind::object id(L, entity->GetObjectId());
-      luabind::object evt(L, luabind::newtable(L));
-      evt["entity"] = e;
-      evt["entity_id"] = id;
-
-      scriptHost_->TriggerOn(e, "radiant:entity:pre_destroy", evt);
-      scriptHost_->Trigger("radiant:entity:pre_destroy", evt);
-
-      evt = luabind::object(L, luabind::newtable(L));
-      evt["entity_id"] = id;
-
-      entity->Destroy();
+      om::Stonehearth::TriggerPreDestroy(entity, L);
+      om::Stonehearth::DestroyEntity(entity);
+      om::EntityRef entityRef = entity;
       entity = nullptr;
-
-      scriptHost_->Trigger("radiant:entity:post_destroy", evt);
+      if (!entityRef.expired()) {
+         entity = entityRef.lock();
+         SIM_LOG(5) << "Reference still exists to " << entity << " after destroy_entity was called";
+      }
+      om::Stonehearth::TriggerPostDestroy(id, L);
    }
 }
-
 
 dm::Store& Simulation::GetStore()
 {
@@ -715,8 +714,6 @@ void Simulation::ProcessTaskList()
 {
    MEASURE_TASK_TIME(perf_timeline_, "native tasks")
    SIM_LOG_GAMELOOP(7) << "processing task list";
-
-   freeMotion_->ProcessDirtyTiles(game_loop_timer_);
 
    auto i = tasks_.begin();
    while (i != tasks_.end()) {
@@ -951,14 +948,30 @@ void Simulation::LuaGC()
    scriptHost_->GC(game_loop_timer_);
 }
 
+typedef std::pair<std::string, int> NameCount;
+typedef std::unordered_map<std::string, int> CountMap;
+static std::vector<NameCount> MapToOrderedVector(CountMap const& map)
+{
+   std::vector<NameCount> result;
+   for (auto const& entry : map) {
+      result.push_back(entry);
+   }
+   std::sort(result.begin(), result.end(), [](NameCount const& lhs, NameCount const& rhs) {
+         return lhs.second > rhs.second;
+      });
+   return result;
+}
+
 void Simulation::Idle()
 {
 #if defined(ENABLE_OBJECT_COUNTER)
    static int nextAuditTime = 0;
-
    int now = platform::get_current_time_in_ms();
+
    if (nextAuditTime == 0 || nextAuditTime < now) {
-      std::unordered_map<std::string, int> counts;
+      CountMap objectCounts;
+      CountMap traceCounts;
+
       for (auto const& entry : core::ObjectCounterBase::GetObjects()) {
          std::type_index const& objType = entry.first;
          core::ObjectCounterBase::AllocationMap const& am = entry.second;
@@ -967,36 +980,38 @@ void Simulation::Idle()
             for (auto const& alloc : am.allocs) {
                om::DataStore const* ds = static_cast<om::DataStore const*>(alloc.first);
                std::string const& controllerName = ds->GetControllerName();
+               std::string objectName;
                if (!controllerName.empty()) {
-                  counts[controllerName + std::string(" controller")] += 1;
+                  objectName = controllerName + std::string(" controller");
                } else {
-                  counts[std::string(objType.name())] += 1;
+                  objectName = objType.name();
                }
+               objectCounts[objectName] += 1;
             }
          } else {
-            counts[std::string(objType.name())] += am.allocs.size();
+            std::string objectName = objType.name();
+            if (objType == typeid(dm::Trace)) {
+               for (auto const& allocEntry : am.allocs) {
+                  dm::Trace* trace = (dm::Trace*)allocEntry.first;
+                  std::string reason = trace->GetReason();
+                  traceCounts[reason] += 1;
+               }
+            }
+            objectCounts[objectName] += am.allocs.size();
          }
       };
-      typedef std::pair<std::string, int> NameCount;
-      std::vector<NameCount> sortedCounts;
-      for (auto const& entry : counts) {
-         sortedCounts.push_back(entry);
-      }
-      std::sort(sortedCounts.begin(), sortedCounts.end(), [](NameCount const& lhs, NameCount const& rhs) {
-         return lhs.second > rhs.second;
-      });
+      std::vector<NameCount> orderedCounts = MapToOrderedVector(objectCounts);
       SIM_LOG(0) << "== Object Count Audit at " << now << " ============================";
-      for (auto const& entry : sortedCounts) {
+      for (auto const& entry : orderedCounts) {
          SIM_LOG(0) << "     " << std::setw(10) << entry.second << " " << entry.first;
       }
 
       SIM_LOG(0) << "-- Traces -----------------------------------";
       int total = 0;
-      for (auto const& entry : store_->GetTraceReasons()) {
-         const char* reason = entry.first;
-         int count = entry.second;
-         SIM_LOG(0) << "     " << std::setw(10) << count << " : "  << reason;
-         total += count;
+      orderedCounts = MapToOrderedVector(traceCounts);
+      for (auto const& entry : orderedCounts) {
+         SIM_LOG(0) << "     " << std::setw(10) << entry.second << " " << entry.first;
+         total += entry.second;
       }
       SIM_LOG(0) << "     " << std::setw(10) << total << " : "  << "TOTAL";
 
@@ -1292,37 +1307,6 @@ void Simulation::Reset()
 int Simulation::GetGameTickInterval() const
 {
    return game_tick_interval_;
-}
-
-void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
-{
-   dm::ObjectId id = mob->GetObjectId();
-   om::MobRef m = mob;
-
-   // If the mob ever goes into free-motion, create a task to move it around.
-   // When it leaves free-motion, destroy the task.
-   freeMotionTasks_[id].trace = mob->TraceInFreeMotion("free motion task", dm::OBJECT_MODEL_TRACES)
-      ->OnChanged([this, id, m](bool inFreeMotion) {
-         FreeMotionTaskMapEntry& entry = freeMotionTasks_[id];
-         if (inFreeMotion) {
-            if (!entry.task) {
-               om::MobPtr mob = m.lock();
-               if (mob) {
-                  LOG(simulation.free_motion, 7) << "creating free motion task for entity " << id << " (no tasks exists yet)";
-                  entry.task = std::make_shared<ApplyFreeMotionTask>(mob);
-                  tasks_.push_back(entry.task);
-               }
-            }
-         } else {
-            LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (left free motion state)";
-            entry.task.reset();
-         }
-      })
-      ->OnDestroyed([this, id]() {
-         LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (mob destroyed)";
-         freeMotionTasks_.erase(id);
-      })
-      ->PushObjectState();
 }
 
 perfmon::Timeline& Simulation::GetOverviewPerfTimeline()

@@ -2,7 +2,7 @@
    <div id="craftWindow" {{bind-attr class=skinClass}}>
 
       <div id="shingle">
-         <a id="closeButton" {{action hide target=view}}></a>
+         <a id="closeButton" {{action 'hide' target=view}}></a>
          <div id="title">{{data.unit_info.name}}</div>
          <div id="subtitle">
             {{i18n stonehearth:show_workshop_description}}
@@ -11,7 +11,7 @@
       </div>
 
       {{#if data.stonehearth:workshop.order_list.orders}}
-         <a {{action togglePause target="view"}} >
+         <a {{action 'togglePause' target="view"}} >
             <div id="statusSign" {{bind-attr class=data.workshopIsPaused:closed:open}}>
                <div id="message">
                   {{#if data.workshopIsPaused}}

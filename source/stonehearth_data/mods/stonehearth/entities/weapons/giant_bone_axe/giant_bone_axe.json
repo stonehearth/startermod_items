@@ -2,10 +2,18 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "unit_info": {
+         "name": "Giant Bone Axe",
+         "description": "Carved from the clavical of some great beast.",
+         "icon" : "file(giant_bone_axe.png)"
+      },
       "item" : {
          "category" : "weapons"
       },    
-       "model_variants": {
+      "stonehearth:material" : {
+         "tags" : "giant_bone melee_weapon crafted"
+      },
+      "model_variants": {
          "default" : {
             "models": [
                "file(giant_bone_axe_equipped.qb)"
@@ -22,15 +30,6 @@
          "ilevel" : 13,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
-      },
-
-      "unit_info": {
-         "name": "Giant Bone Axe",
-         "description": "Carved from the clavical of some great beast.",
-         "icon" : "file(giant_bone_axe.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "giant_bone melee_weapon"
       }
    },
    "entity_data" : {

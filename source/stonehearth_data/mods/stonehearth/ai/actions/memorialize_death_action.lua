@@ -26,17 +26,8 @@ function MemorializeDeathAction:run(ai, entity, args)
    self._location = radiant.terrain.find_closest_standable_point_to(self._location, 5, tombstone)
    radiant.terrain.place_entity(tombstone, self._location, { force_iconic = false })
 
-   -- TODO: why don't we just run the effect on the tombstone? -tony (see commented code, below)
-   local proxy_entity = radiant.entities.create_entity(nil, { debug_text = 'tombstone music' })
-   radiant.terrain.place_entity(proxy_entity, self._location)
-   --radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death/death_jingle.json')
-   local effect = radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/tombstone_effect')
-   effect:set_finished_cb(
-      function()
-         radiant.entities.destroy_entity(proxy_entity)
-      end
-   )
-   
+
+   radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/tombstone_effect')   
    stonehearth.events:add_entry(event_text, 'warning')
 
       --Send the notice to the bulletin service.

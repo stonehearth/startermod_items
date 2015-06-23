@@ -17,8 +17,8 @@ FindTrapInTrappingGrounds.version = 2
 FindTrapInTrappingGrounds.priority = 1
 
 function FindTrapInTrappingGrounds:start_thinking(ai, entity, args)
-   local backpack_component = entity:add_component('stonehearth:backpack')
-   if not backpack_component and backpack_component:is_full() then
+   local sc = entity:get_component('stonehearth:storage')
+   if not sc or sc:is_full() then
       return
    end
 

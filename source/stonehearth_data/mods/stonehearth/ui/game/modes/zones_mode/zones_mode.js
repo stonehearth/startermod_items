@@ -60,7 +60,8 @@ App.StonehearthZonesModeView = App.View.extend({
          this._propertyView.destroy();
       }
 
-      if (entity['stonehearth:stockpile']) {
+      if (entity['stonehearth:storage'] && !entity['stonehearth:ai']) {
+         // TODO: sigh, the above is probably wrong, but highly convenient.
          this._showStockpileUi(entity);
       } else if (entity['stonehearth:farmer_field']) {
          this._showFarmUi(entity);

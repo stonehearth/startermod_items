@@ -205,9 +205,11 @@ function crushinator_tests_maul()
          autotest_framework.env.create_person(i, j, { job = 'worker' })
       end
    end
-   -- 2 farmers
+   -- 4 farmers
    autotest_framework.env.create_person(6, -2, { job = 'farmer' })
    autotest_framework.env.create_person(6, 0, { job = 'farmer' })
+   autotest_framework.env.create_person(6, 2, { job = 'farmer' })
+   autotest_framework.env.create_person(6, 4, { job = 'farmer' })
 
    new_farm(-65, -10, 40, 15, 'stonehearth:crops:tester_crop_2')
    new_farm(80, -10, 40, 15, 'stonehearth:crops:tester_silkweed_crop')

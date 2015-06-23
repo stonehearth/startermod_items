@@ -55,6 +55,12 @@ function GameMasterService:debug_campaign(name, debug_hook_fn)
    self:_start_campaign(name)   
 end
 
+-- This function clears the campaign with the specified name
+-- This allows the campaign to be started again.
+function GameMasterService:debug_clear_campaign(name)
+   self._sv.running_campaigns[name] = nil  
+end
+
 -- Used by the various components of the GMService (campaign, arc, etc) to 
 -- figure out what node to call next. If there IS a debug fn that specifies
 -- something, it will produce the correct result

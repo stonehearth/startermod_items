@@ -16,9 +16,11 @@ class MovementGuardShape(Component):
    _private = \
    """
    luabind::object      _guardCb;
+   simulation::FilterResultCachePtr    _frc;
    """
 
    _includes = [
       "om/region.h",
       "dm/dm_save_impl.h",
+      "simulation/jobs/filter_result_cache.h",
    ]

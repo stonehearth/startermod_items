@@ -120,6 +120,9 @@ function NutritionScoreObserver:_on_eat(e)
       self._score_component:change_score('nutrition', stonehearth.constants.score.nutrition.EAT_NUTRITIOUS_FOOD, journal_data)
    end
 
+   --When you eat, also look at all the count of the types of foods available
+   self:_update_food_type_score()
+
    --Originally, had a point here about eating at mealtime, but maybe move that to "belonging score"
 
    --Mark it true that we've eaten today
@@ -155,6 +158,28 @@ function NutritionScoreObserver:_foods_are_homogenous(new_food_name)
 
    --If we got here, all the foods were the same as the new food put in. so bored of food now; return true. 
    return true
+end
+
+function NutritionScoreObserver:_update_food_type_score()
+   local raw_count = stonehearth.food_decay:get_raw_food_count()
+   local prepared_count = stonehearth.food_decay:get_prepared_food_count()
+   local luxury_count = stonehearth.food_decay:get_luxury_food_count()
+
+   local raw_food_score = stonehearth.constants.score.food.RAW_FOOD_COUNT_MULTIPLIER * raw_count
+   local prepared_food_score = stonehearth.constants.score.food.PREPARED_FOOD_COUNT_MULTIPLIER * prepared_count
+   local luxury_food_score = stonehearth.constants.score.food.LUXURY_FOOD_COUNT_MULTIPLIER * luxury_count
+
+   if prepared_count <= 0 then
+      prepared_food_score = stonehearth.constants.score.food.NO_PREPARED_FOOD_PENALTY
+   end
+   
+   if luxury_count <= 0 then
+      luxury_food_score = stonehearth.constants.score.food.NO_LUXURY_FOOD_PENALTY
+   end
+
+   self._score_component:change_score('raw_food', raw_food_score)
+   self._score_component:change_score('prepared_food', prepared_food_score)
+   self._score_component:change_score('luxury_food', luxury_food_score)
 end
 
 return NutritionScoreObserver

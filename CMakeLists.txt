@@ -7,8 +7,8 @@ PROJECT(Stonehearth)
 ## Fix precompiled headers...
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
 ##
-SET(CMAKE_C_FLAGS   " /Zm255${CMAKE_C_FLAGS}")
-SET(CMAKE_CXX_FLAGS " /Zm255${CMAKE_CXX_FLAGS}")
+SET(CMAKE_C_FLAGS   " /Zm300${CMAKE_C_FLAGS}")
+SET(CMAKE_CXX_FLAGS " /Zm300${CMAKE_CXX_FLAGS}")
 
 # Ignore warnings for VS 2015
 

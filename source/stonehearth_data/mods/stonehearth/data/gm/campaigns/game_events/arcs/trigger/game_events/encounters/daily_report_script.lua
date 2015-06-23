@@ -39,34 +39,31 @@ function Immigration:start(ctx, data)
    --TODO: remove when we have better perf!
    --For Steam EA, don't spawn if we have more than 40 people
    local num_citizens = stonehearth.population:get_population_size(self._sv.player_id)
-   if num_citizens > self._sv.immigration_data.max_citizens then
+   if num_citizens >= self._sv.immigration_data.max_citizens then
       return
    end
 
    --Show a bulletin with food/morale/net worth stats
    local message, success = self:_compose_town_report()
+   local data = {
+      title = self._sv.immigration_data.update_title,
+      message = message
+   }
+
    if success then
-      self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-         :set_ui_view('StonehearthImmigrationReportDialog')
-         :set_callback_instance(self)
-         :set_data({
-            title = self._sv.immigration_data.update_title,
-            message = message,
-            conclusion = self._sv.immigration_data.conclusion_positive,
-            accepted_callback = "_on_accepted",
-            declined_callback = "_on_declined",
-         })
+      data.conclusion = self._sv.immigration_data.conclusion_positive
+      data.accepted_callback = "_on_accepted"
+      data.declined_callback = "_on_declined"
    else
-      self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-         :set_ui_view('StonehearthImmigrationReportDialog')
-         :set_callback_instance(self)
-         :set_data({
-            title = self._sv.immigration_data.update_title,
-            message = message,
-            conclusion = self._sv.immigration_data.conclusion_negative,
-            ok_callback = "_on_declined",
-         })
+      data.conclusion = self._sv.immigration_data.conclusion_negative
+      data.ok_callback = "_on_declined"
    end
+
+   self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+      :set_ui_view('StonehearthImmigrationReportDialog')
+      :set_callback_instance(self)
+      :set_sticky(true)
+      :set_data(data)
 
    --Make sure it times out if we don't get to it
    local wait_duration = self._sv.immigration_data.expiration_timeout
@@ -111,8 +108,8 @@ function Immigration:_eval_requirement(num_citizens)
 
    --Get data for morale
    local morale_score = 0
-   if score_data.happiness and score_data.happiness.happiness then
-      morale_score = score_data.happiness.happiness/10
+   if score_data.aggregate and score_data.aggregate.happiness then
+      morale_score = score_data.aggregate.happiness/10
    end
    local morale_success, morale_data = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
    morale_data.available =  radiant.math.round(morale_data.available*10)*0.1

@@ -32,6 +32,26 @@ csg_lib.XYZ_DIRECTIONS = {
 
 local DIMENSIONS = { 'x', 'y', 'z' }
 
+function csg_lib.are_equivalent_regions(region_a, region_b)
+   assert(region_a:is_homogeneous())
+   assert(region_b:is_homogeneous())
+
+   local area_a = region_a:get_area()
+   local area_b = region_b:get_area()
+
+   if area_a ~= area_b then
+      return false
+   end
+
+   local intersection = region_a:intersect_region(region_b)
+
+   if not intersection:empty() then
+      assert(region_a:get_rect(0).tag == region_b:get_rect(0).tag)
+   end
+
+   return intersection:get_area() == area_a
+end
+
 -- create a cube that spans p0 and p1 inclusive
 function csg_lib.create_cube(p0, p1, tag)
    assert(p0 and p1)

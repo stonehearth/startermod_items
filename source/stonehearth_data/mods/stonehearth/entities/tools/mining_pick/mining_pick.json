@@ -15,7 +15,7 @@
       },
       "unit_info": {
          "name": "Mining Pick", 
-         "description": "...",
+         "description": "For mining and picking",
          "icon" : "file(mining_pick.png)"
       }
    },

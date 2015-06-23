@@ -187,19 +187,6 @@ function FileMapper:_assign_function_to_table(tbl, idx, expr)
    self:_msf_block(expr[2])
 end
 
-function FileMapper:_inspect_call_param(expr)
-   if expr.tag == 'Function' then
-      local lineno = expr.lineinfo.first.line
-      local function_name = self._lines[lineno]
-      if function_name and self._symbols[lineno] then
-         self:_add_lines_to_map(function_name .. ' @ ' .. tostring(lineno), expr)
-      else
-         self:_add_lines_to_map(nil, expr)
-      end
-      self:_msf_block(expr[2])
-   end
-end
-
 function FileMapper:_inspect_table(lhs, tbl)  
    -- `Table{ ( `Pair{ expr expr } | expr )* }
    for i, item in ipairs(tbl) do
@@ -231,7 +218,40 @@ function FileMapper:_inspect_set(lhs, expr)
       elseif expr.tag == 'Paren' then
          -- `Paren{ expr }
          self:_inspect_set(lhs, expr[1])
+      else
+         self:_msf_expr(expr)
       end
+   end
+end
+
+function FileMapper:_msf_expr(expr)
+   -- expr:
+   --   `Nil  |  `Dots  |  `True  |  `False
+   -- | `Number{ <number> }
+   -- | `String{ <string> }
+   -- | `Function{ { `Id{ <string> }* `Dots? } block }
+   -- | `Table{ ( `Pair{ expr expr } | expr )* }
+   -- | `Op{ opid expr expr? }
+   -- | `Stat{ block, expr } -- Only when Metalua extensions are loaded
+   -- | `Paren{ expr }       -- significant to cut multiple values returns
+   -- | apply
+   -- | lhs   
+   --
+   if expr.tag == 'Function' then
+      local lineno = expr.lineinfo.first.line
+      local function_name = self._lines[lineno]
+      if function_name and self._symbols[lineno] then
+         self:_add_lines_to_map(function_name .. ' @ ' .. tostring(lineno), expr)
+      else
+         self:_add_lines_to_map(nil, expr)
+      end
+      self:_msf_block(expr[2])
+   elseif expr.tag == 'Invoke' then
+      -- `Invoke{ expr `String{ <string> } expr* }
+      self:_msf_InvokeTag(expr)
+   elseif expr.tag == 'Paren' then
+      -- `Paren{ expr }
+      self:_msf_expr(expr[1])
    end
 end
 
@@ -251,6 +271,7 @@ function FileMapper:_msf_DoTag(stat)
 end
 
 function FileMapper:_msf_SetTag(stat)
+   -- `Set{ {lhs+} {expr+} }
    local lhs_s, expr_s = unpack(stat)
    for i, lhs in ipairs(lhs_s) do
       local expr = expr_s[i]
@@ -323,15 +344,16 @@ end
 
 function FileMapper:_msf_CallTag(stat)
    -- Call{ expr expr* }
-   for i=2,#stat do
-      self:_inspect_call_param(stat[i])
+   for i=1,#stat do
+      self:_msf_expr(stat[i])
    end
 end
 
 function FileMapper:_msf_InvokeTag(stat)
    -- `Invoke{ expr `String{ <string> } expr* }
+   self:_msf_expr(stat[1])
    for i=3,#stat do
-      self:_inspect_call_param(stat[i])
+      self:_msf_expr(stat[i])
    end
 end
 

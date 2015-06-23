@@ -16,7 +16,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
       this._super();
       var self = this;
 
-      self._newGame(function(e) {
+      self._newGame(self._generate_seed(), function(e) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
          self.$('#map').stonehearthMap({
             mapGrid: e.map,
@@ -41,16 +41,37 @@ App.StonehearthSelectSettlementView = App.View.extend({
       });
 
       self.$("#regenerateButton").click(function() {
+         if (self.$("#regenerateButton").hasClass('disabled')) {
+            return;
+         }
+
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
          self._clearSelection();
          self.$('#map').stonehearthMap('suspend');
 
-         self._newGame(function(e) {
+         self._newGame(self._generate_seed(), function(e) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
             self.$('#map').stonehearthMap('setMap', e.map);
             self.$('#map').stonehearthMap('resume');
          });
       });
+
+      // World Seed
+      $('#worldSeedInput')
+         .keypress(function (e) {
+            if (e.which == 13) {
+               var seed = parseInt($(this).val());
+               if (seed != NaN) {
+                  self._newGame(seed ,function(e) {
+                     radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
+                     self.$('#map').stonehearthMap('setMap', e.map);
+                     self.$('#map').stonehearthMap('resume');
+                  });
+                  $(this).blur();
+               }
+            }
+         })
+         .tooltipster({content: i18n.t('input_text_tooltip')});
 
       $(document).on('keydown', this._clearSelectionKeyHandler);
    },
@@ -90,17 +111,22 @@ App.StonehearthSelectSettlementView = App.View.extend({
       self.$('#selectSettlementPin').tooltipster('show');
    },
 
-   _newGame: function(fn) {
+   _newGame: function(seed, fn) {
       var self = this;
-      var seed = self._generate_seed();
+      self.set('world_seed', seed);
+
+      self.$("#regenerateButton").addClass('disabled');
 
       radiant.call_obj('stonehearth.game_creation', 'new_game_command', 12, 8, seed, self.options)
          .done(function(e) {
-            self._map_info = e.map_info
+            self._map_info = e.map_info;
             fn(e);
          })
          .fail(function(e) {
-            console.error('new_game failed:', e)
+            console.error('new_game failed:', e);
+         })
+         .always(function() {
+            self.$("#regenerateButton").removeClass('disabled');
          });
    },
 
@@ -127,7 +153,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
          mineralDescription = cell.mineral_density;
 
          if (cell.terrain_code != this._prevTerrainCode) {
-            var portrait = 'url(/stonehearth/ui/shell/select_settlement/images/' + cell.terrain_code + '.png)'
+            var portrait = 'url(/stonehearth/ui/shell/select_settlement/images/' + cell.terrain_code + '.png)';
 
             self.$('#terrainType').html(terrainType);
             //self.$('#terrainPortrait').css('content', portrait);   

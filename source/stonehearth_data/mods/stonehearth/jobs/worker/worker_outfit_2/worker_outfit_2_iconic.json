@@ -7,6 +7,12 @@
          "description" : "Sturdy construction increases workers' productivity",
          "icon" : "file(worker_outfit_2.png)"
       },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor cloth"
+      },
       "model_variants": {
          "default": {
             "models": [
@@ -16,9 +22,6 @@
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
-      },
-      "stonehearth:material" : {
-         "tags" : "cloth armor"
       }
    }
 }

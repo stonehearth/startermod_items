@@ -35,7 +35,7 @@ App.StonehearthBulletinNotification = App.View.extend({
          var bulletin = self.get('model');
          App.bulletinBoard.zoomToLocation(bulletin);
          App.bulletinBoard.showDialogView(bulletin);
-         self.destroy();
+         // Note: don't need to call self.destroy() because showDialogView will try to do that for us.
       });
 
       if (this.get('model.type') == 'alert') {

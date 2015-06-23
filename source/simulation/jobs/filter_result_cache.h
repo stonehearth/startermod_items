@@ -7,6 +7,7 @@
 #include <memory>
 #include <unordered_set>
 #include "csg\point.h"
+#include "core/static_string.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -29,24 +30,32 @@ class FilterResultCache : public std::enable_shared_from_this<FilterResultCache>
 public:
    typedef std::function<bool(om::EntityPtr)> FilterFn;
 
+   enum InvalidateFlags {
+      INVALIDATE_ON_MOVE               = (1 << 0),
+      INVALIDATE_ON_PLAYER_ID_CHANGED  = (1 << 1),
+   };
 public:
-   FilterResultCache();
+   FilterResultCache(int flags);
 
    FilterResultCachePtr SetFilterFn(FilterFn fn);
+   FilterResultCachePtr SetLuaFilterFn(luabind::object fn);
    FilterResultCachePtr ClearCacheEntry(dm::ObjectId id);
    bool ConsiderEntity(om::EntityPtr& entity);
 
 private:
    struct Entry {
+      Entry() { }
       Entry(bool v, csg::Point3f& point) : value(v), location(point) { }
 
       bool value;
-      csg::Point3f location;
+      csg::Point3f         location;
+      core::StaticString   playerId;
    };
-private:
+
    typedef std::unordered_map<dm::ObjectId, Entry> FilterResults;
 
 private:
+   int            _flags;
    FilterFn       _filterFn;
    FilterResults  _results;
 };

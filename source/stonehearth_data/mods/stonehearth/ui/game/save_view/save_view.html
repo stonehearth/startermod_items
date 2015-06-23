@@ -16,10 +16,10 @@
          </a>
          
          {{#unless controller.hideSave}}
-            <a href="#" {{action overwriteSaveGame target="view"}}>
+            <a href="#" {{action 'overwriteSaveGame' target="view"}}>
                <button id="overwriteSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_overwrite}}</button>
             </a>
-            <a href="#" {{action saveGame target="view"}}>
+            <a href="#" {{action 'saveGame' target="view"}}>
                <button id="createSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:save_new}}</button>
             </a>
          {{/unless}}

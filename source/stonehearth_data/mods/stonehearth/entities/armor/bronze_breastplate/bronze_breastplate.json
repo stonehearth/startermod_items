@@ -1,14 +1,17 @@
 {
-   "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
+   "type": "entity",
    "components" : {
-      "item" : {
-         "category" : "armor"
-      },
        "unit_info" : {
          "name": "Bronze Breastplate",
          "description": "Armor",
          "icon" : "file(bronze_breastplate.png)"         
+      },
+      "item" : {
+         "category" : "armor"
+      },
+      "stonehearth:material" : {
+         "tags" : "bronze armor heavy_armor"
       },
       "model_variants": {
          "default": {
@@ -23,9 +26,6 @@
                "file(bronze_breastplate_female.qb)"
             ]
          }
-      },
-      "stonehearth:material" : {
-         "tags" : "bronze armor heavy_armor"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(bronze_breastplate_iconic.json)"

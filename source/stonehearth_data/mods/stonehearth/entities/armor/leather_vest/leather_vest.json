@@ -1,14 +1,17 @@
 {
-   "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
+   "type": "entity",
    "components" : {
-      "item" : {
-         "category" : "armor"   
-      },
       "unit_info" : {
          "name": "Thick Leather Vest",
          "description": "Hardened leather provides sturdy protection.",
          "icon" : "file(leather_vest.png)"         
+      },
+      "item" : {
+         "category" : "armor"
+      },
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor"
       },
       "model_variants": {
          "default": {
@@ -23,9 +26,6 @@
                "file(leather_vest_female.qb)"
             ]
          }
-      },
-      "stonehearth:material" : {
-         "tags" :  "armor light_armor"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(leather_vest_iconic.json)"

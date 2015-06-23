@@ -10,6 +10,9 @@
       "item" : {
          "category" : "tools"
       },     
+      "stonehearth:material" : {
+         "tags" : "tool"
+      },      
       "model_variants": {
          "default": {
             "models": [
@@ -17,13 +20,8 @@
             ]
          }
       },
-       "stonehearth:material" : {
-         "tags" : "tool"
-      },      
       "render_info" : {
          "scale": 0.14
       }
-   },
-   "entity_data" : {
    }
 }

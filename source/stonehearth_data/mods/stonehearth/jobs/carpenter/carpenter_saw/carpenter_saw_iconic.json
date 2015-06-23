@@ -3,13 +3,14 @@
    "mixins": "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name" :  "Carpenter's Saw",
-         "description" : "Basic level carpenter's saw."
+         "name" : "Carpenter's Saw",
+         "description" : "Basic level carpenter's saw.",
+         "icon" : "file(carpenter_saw.png)"
       },
       "item" : {
          "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -19,7 +20,5 @@
             ]
          }
       }
-   },
-   "entity_data" : {
    }
 }

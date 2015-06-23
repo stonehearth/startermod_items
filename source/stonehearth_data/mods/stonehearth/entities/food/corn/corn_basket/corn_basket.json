@@ -1,5 +1,5 @@
 {
-   "mixins": "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:food_decay",
    "type": "entity",
    "components": {
       "item": {
@@ -12,6 +12,16 @@
             "models": [
                "file(corn_basket.qb)"
             ]
+         },
+         "decay_1": {
+            "models": [
+               "file(corn_basket.qb)"
+            ]
+         },
+         "decay_2": {
+            "models": [
+               "file(corn_basket.qb)"
+            ]
          }
       },
       "unit_info": {
@@ -20,7 +30,7 @@
          "icon" : "file(corn_basket.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "resource vegetable food_container corn"
+         "tags" :  "resource vegetable food_container corn raw_food"
       },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
@@ -41,6 +51,6 @@
             "shopkeeper_level" : 1,
             "shopkeeper_type" : "caravan"
          }
-      }            
+      }
    }
 }

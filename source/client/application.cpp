@@ -131,7 +131,12 @@ bool Application::ShouldRelaunch64Bit() const
    if (core::System::IsProcess64Bit()) {
       return false;
    }
-   return core::Config::GetInstance().Get<bool>("enable_64_bit", true);
+   // This option used to be called "enable_64_bit".  When the 64-bit build
+   // was somewhat buggy, people used it to go back to 32-bit until we could
+   // fix the issue.  At this point, though, the 64-bit build is better than
+   // the 32-bit one in every way (we think), so rename the flag to force
+   // upgrade all those people back to the 64-bit build.
+   return !core::Config::GetInstance().Get<bool>("force_32_bit", false);
  }
 
 int Application::Run(int argc, const char** argv)

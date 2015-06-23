@@ -145,6 +145,12 @@ void lua::Initialize()
       LOG(lua.code, 0) << "lua jit disabled in 64-bit builds.  set force_lua_jit to override";
       enableJit = false;
    }
+   
+   // So, it turns out we cannot let the GC run at certain times (e.g. when steaming), since
+   // we cannot limit the side-effects of the GC.  So, until we can port the HIBERNATE flag
+   // into luajit (or find some other way to say "by no means are you allowed to GC in this
+   // interval), we cannot use it.  AGHAHGH! -- tony
+   enableJit = false;
 
    CachingAllocator &la = CachingAllocator::GetInstance();
 

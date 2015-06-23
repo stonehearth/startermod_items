@@ -1,3 +1,4 @@
+local StonehearthCommon = require 'stonehearth.stonehearth_common'
 
 stonehearth = {
    constants = require 'constants'
@@ -38,6 +39,11 @@ local function create_service(name)
    stonehearth[name] = service
 end
 
+local function cleanup_entity(entity)
+   StonehearthCommon.destroy_child_entities(entity)
+   StonehearthCommon.destroy_entity_forms(entity)
+end
+
 radiant.events.listen(stonehearth, 'radiant:init', function()
       -- global config
       radiant.terrain.set_config_file('stonehearth:terrain_block_config', false)
@@ -46,6 +52,14 @@ radiant.events.listen(stonehearth, 'radiant:init', function()
       for _, name in ipairs(service_creation_order) do
          create_service(name)
       end
+
+      radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
+            xpcall(function()
+                  cleanup_entity(e.entity)
+               end,
+               radiant.report_traceback
+            )
+         end)
    end)
 
 return stonehearth

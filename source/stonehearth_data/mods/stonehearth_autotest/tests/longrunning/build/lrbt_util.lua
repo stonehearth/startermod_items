@@ -185,8 +185,10 @@ function lrbt_util.succeed_when_buildings_finished(autotest, buildings)
 
    local create_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
+         local entity_uri = entity:get_uri()
          local id = entity:get_id()
-         if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+
+         if entity_uri == 'stonehearth:build:prototypes:scaffolding' then
             local trace = entity:get_component('region_collision_shape')
                      :trace_region('checking success')
                         :on_changed(function(rgn)
@@ -200,16 +202,19 @@ function lrbt_util.succeed_when_buildings_finished(autotest, buildings)
                            end)
             traces[id] = trace
             trace:push_object_state()
-         end
-      end)
-   local destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
-         local entity = e.entity
-         unfinished[entity:get_id()] = nil
-         local entity = e.entity
-         if entity:get_uri() == 'stonehearth:build:prototypes:scaffolding' then
+         elseif entity_uri == 'stonehearth:build:prototypes:ladder' then
             unfinished[entity:get_id()] = entity
          end
       end)
+
+   local destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
+         local entity = e.entity
+
+         if entity:get_uri() ~= 'stonehearth:build:prototypes:scaffolding' then
+            unfinished[entity:get_id()] = nil
+         end
+      end)
+   
    table.insert(listeners, create_listener)
    table.insert(listeners, destroy_listener)
 

@@ -47,6 +47,10 @@ function DirtPlotComponent:set_field(parent_field, location)
    self.__saved_variables:mark_changed()
 end
 
+function DirtPlotComponent:get_field()
+   return self._sv.parent_field
+end
+
 --- Returns the x,y coordinates in the field that this plot is at
 --  @returns location.x and location.y
 function DirtPlotComponent:get_location()

@@ -12,14 +12,11 @@ function ShepherdedAnimalComponent:initialize(entity, json)
 end
 
 function ShepherdedAnimalComponent:destroy()
-   self._kill_listener:destroy()
-   self._kill_listener = nil
-end
-
---When we've been killed, remove ourselves from our pasture, if we have one
---Remove ourselves from the trailing shepherd, if that's appropriate
-function ShepherdedAnimalComponent:_on_kill_event()
-   self:free_animal()
+   --If the shepherded animal component is removed, free this animal.
+   --Note, this will work both for animal being freed and also for animal dying.
+   if self._sv.animal then
+      self:free_animal()
+   end
 end
 
 function ShepherdedAnimalComponent:free_animal()
@@ -27,12 +24,13 @@ function ShepherdedAnimalComponent:free_animal()
    if self._sv.pasture then
       local pasture_component = self._sv.pasture:get_component('stonehearth:shepherd_pasture')
       pasture_component:remove_animal(self._sv.animal:get_id())
-      
    end
 
    --Free self from shepherd
    if self._sv.should_follow then
-      if self._sv.last_shepherd_entity then
+      -- It's possible we're being freed by a destroyed shepherd, in which case we don't need to tell the
+      -- shepherd to remove us.
+      if self._sv.last_shepherd_entity and self._sv.last_shepherd_entity:is_valid() then
          local shepherd_class = self._sv.last_shepherd_entity:get_component('stonehearth:job'):get_curr_job_controller()
          if shepherd_class and shepherd_class.remove_trailing_animal then
             shepherd_class:remove_trailing_animal(self._sv.animal:get_id())
@@ -50,6 +48,7 @@ function ShepherdedAnimalComponent:free_animal()
 
    self._sv.pasture = nil
    self._sv.last_shepherd_entity = nil
+   self._sv.animal = nil
 end
 
 --Remember the animal that this component is following
@@ -57,7 +56,6 @@ end
 function ShepherdedAnimalComponent:set_animal(animal_entity)
    self._sv.animal = animal_entity
    self._sv.original_player_id = radiant.entities.get_player_id(animal_entity)
-   self._kill_listener = radiant.events.listen(self._sv.animal, 'stonehearth:kill_event', self, self._on_kill_event)
 end
 
 function ShepherdedAnimalComponent:set_pasture(pasture_entity)

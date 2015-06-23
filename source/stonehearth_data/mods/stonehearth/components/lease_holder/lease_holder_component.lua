@@ -12,11 +12,12 @@ function LeaseHolderComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.leases then
       self._sv.leases = {}
+      self.__saved_variables:mark_changed()
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_remove_nonpersistent_leases()
+         end)
    end
-
-   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         self:_remove_nonpersistent_leases()
-      end)
 end
 
 function LeaseHolderComponent:_add_lease(lease_name, entity)

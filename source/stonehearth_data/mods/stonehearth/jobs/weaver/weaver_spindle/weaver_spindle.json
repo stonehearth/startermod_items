@@ -7,6 +7,12 @@
          "description" : "For spinning fiber into thread",
          "icon" : "file(weaver_spindle.png)"
       },
+      "item" : {
+         "category" : "tools"
+      },
+      "stonehearth:material" : {
+         "tags" : "tool"
+      },      
       "model_variants": {
          "default": {
             "models": [

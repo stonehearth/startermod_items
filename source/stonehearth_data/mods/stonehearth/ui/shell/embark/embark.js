@@ -67,14 +67,8 @@ App.StonehearthEmbarkView = App.View.extend({
 
       this._shopPalette = this.$('#shopItems').stonehearthEmbarkShopPalette(
          {
-            canSelect: function(item) {
-               var cost = parseInt(item.attr('cost'));
-               var gold = self.get('gold');
-               return cost <= gold;
-            },
-
             click: function(item) {
-               self._doBuy(item);
+               return self._onTrySelectItem(item);
             }
          }
       );
@@ -149,18 +143,32 @@ App.StonehearthEmbarkView = App.View.extend({
       self._citizensRoster.stonehearthRoster('updateRoster', self._citizensArray);
    },
 
-   _doBuy: function(item) {
+   _onTrySelectItem: function(item) {
       var self = this;
       var gold = self.get('gold');
       var cost = parseInt(item.attr('cost'));
+      var isSelected = item.hasClass('selected');
+      var playerGold = self.$('#playerGold');
+      if (!isSelected) {
+         // We're trying to buy this item
 
-      if (item.hasClass('selected')) {
-         gold -= cost;
+         if (cost > gold) {
+            // Note enough gold.
+            // TODO(yshan): Play a sound for cannot buy
+            playerGold.pulse(true);
+            return false;
+         } else {
+            // Buy the item.
+            gold -= cost;
+         }
       } else {
+         // Unbuy the item.
          gold += cost;
       }
-
+      
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
       self.set('gold', gold);
+      return !isSelected;
    },
 
    _doReset: function(quantity) {

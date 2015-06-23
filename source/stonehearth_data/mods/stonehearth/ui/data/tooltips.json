@@ -60,5 +60,43 @@
          "display_name" : "Compassion",
          "description" : "How likely this hearthling will help out a fellow villager or befriend others."
       }
+   ],
+   "score_tooltips": [
+      {
+         "score" : "net_worth",
+         "display_name" : "Net Worth",
+         "town_description" : "The gold value of everything in the town's inventory.",
+         "description" : "The gold value of everything in the town's inventory."
+      },
+      {
+         "score" : "edibles",
+         "display_name" : "Edibles",
+         "town_description" : "The gold value of all the food in the town's inventory",
+         "description" : "The gold value of all the food in the town's inventory."
+      },
+      {
+         "score" : "happiness",
+         "display_name" : "Overall Moral",
+         "town_description" : "How happy your citizens are overall. Aim for a value of 10 for ultimate happiness!",
+         "description" : "This hearthling's overall happiness based on food, shelter, and safety."
+      },
+      {
+         "score" : "food",
+         "display_name" : "Food",
+         "town_description" : "How your citizens feel about the town's food situation. Is there enough to eat? Try to obtain a variety of foods!",
+         "description" : "Make sure foods of different variety and quality are available. Cooked foods are more liked than raw foods."
+      },
+      {
+         "score" : "shelter",
+         "display_name" : "Shelter",
+         "town_description" : "How your citizens feel about their lodging situation. Are there beds to sleep in?",
+         "description" : "Make sure your hearthlings have a comfortable bed to sleep in."
+      },
+      {
+         "score" : "safety",
+         "display_name" : "Safety",
+         "town_description" : "How your citizens feel about the town's security. Is the town well protected or getting pillaged by goblins?",
+         "description" : "Protect your town from raiders and make your citizens feel safe by assigning guards."
+      }
    ]
 }

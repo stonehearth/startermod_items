@@ -34,11 +34,6 @@ end
 
 function FindEquipmentUpgrade:_check_equipment_piece(item)
    if not self._ready then
-      --- if we can't acquire a lease to the item, just bail right away.
-      if not stonehearth.ai:can_acquire_ai_lease(item, self._entity) then
-         return
-      end
-
       -- if the item is not an equipment piece, bail.  equipment pieces are always
       -- placed on the ground via a proxy and have an equipment_piece component
       local pip = item:get_component('stonehearth:iconic_form')
@@ -49,6 +44,10 @@ function FindEquipmentUpgrade:_check_equipment_piece(item)
       local equipment = pip:get_root_entity()
                               :get_component('stonehearth:equipment_piece')
       if not equipment then
+         return
+      end
+
+      if not stonehearth.ai:can_acquire_ai_lease(item, self._entity) then
          return
       end
 

@@ -14,17 +14,15 @@ $(document).ready(function(){
             }
 
             modal.destroy();
-         } else if (App.startMenu && App.startMenu.getMenu()) {
+         } else if (App.gameMenu && App.gameMenu.getMenu()) {
             // if there's an open menu, close it
-            App.startMenu.hideMenu();
+            App.gameMenu.hideMenu();
          } else if (App.getGameMode() != 'normal') {
             // switch to normal mode
             App.stonehearthClient.deactivateAllTools();
             App.setGameMode('normal');
          } else {
-            if (App.startMenu) { // TODO (yshan): remove this for better handling of camp selection in the future.
-               App.gameView.addView(App.StonehearthEscMenuView);
-            }
+            App.gameView.addView(App.StonehearthEscMenuView);
          }
       }
    });

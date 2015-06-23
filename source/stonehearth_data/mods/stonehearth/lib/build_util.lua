@@ -99,12 +99,14 @@ local function load_structure_from_template(entity, template, options, entity_ma
       if options.mode == 'preview' then
          entity:add_component('region_collision_shape')
                   :set_region(shape)
-         entity:add_component('render_info')
-                  :set_material('materials/place_template_preview.json')
       else
          entity:add_component('destination')
                   :set_region(shape)
       end
+   end
+   if options.mode == 'preview' then
+      entity:add_component('render_info')
+               :set_material('materials/place_template_preview.json')
    end
 
    for name, data in pairs(template) do

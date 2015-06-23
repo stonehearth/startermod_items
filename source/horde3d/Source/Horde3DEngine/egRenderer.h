@@ -162,6 +162,13 @@ struct SelectedNode
    Vec3f color;
 };
 
+struct CachedRenderResult
+{
+   Frustum frust;
+   QueryTypes::List queryTypes;
+   RenderingOrder::List order;
+   SceneNode* singleNode;
+};
 
 class Renderer
 {
@@ -187,6 +194,7 @@ public:
 	void commitGeneralUniforms();
    void commitGlobalUniforms();
 	bool setMaterial( MaterialResource *materialRes, std::string const& shaderContext );
+	bool canSetMaterial(MaterialResource *materialRes, std::string const& shaderContext);
 
    void addSelectedNode(NodeHandle n, float r, float g, float b);
    void removeSelectedNode(NodeHandle n);
@@ -209,7 +217,7 @@ public:
 	static void drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
 	static void drawVoxelMeshes_Instances(SceneId sceneId, std::string const& shaderContext, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel, bool cached );
 	static void drawParticles(SceneId sceneId, std::string const& shaderContext, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
    static void drawHudElements(SceneId sceneId, std::string const& shaderContext, bool debugView,
@@ -236,6 +244,12 @@ public:
 
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
+   InstanceRenderableQueue const& getInstanceQueue(int type);
+   RenderableQueue const& getSingularQueue(int type);
+
+   InstanceRenderableQueues           _instanceQueues[RenderCacheSize];
+   RenderableQueues                   _singularQueues[RenderCacheSize];
+
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* sr) const;
    bool isShaderContextSwitch(std::string const& curContext, MaterialResource *materialRes) const;
@@ -249,7 +263,6 @@ protected:
 	
    void commitLightUniforms(LightNode const* light);
    void setupShadowMap(LightNode const* light, bool noShadows);
-   Matrix4f calcCropMatrix(SceneId sceneId, const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(LightNode const* light, BoundingBox const& worldBounds, Frustum const& frustSlice, Matrix4f const& lightViewMat) const;
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV) const;
    void computeTightCameraBounds(SceneId sceneId, float* minDist, float* maxDist);
@@ -265,26 +278,29 @@ protected:
 	void drawMatSphere(Resource *matRes, std::string const& shaderContext, const Vec3f &pos, float radius);
 	void drawQuad();
    void drawLodGeometry(SceneId sceneId, std::string const& shaderContext,
-                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
+                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0, bool cached=true);
    void drawGeometry(SceneId sceneId, std::string const& shaderContext,
-	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0, bool cached=true);
    void drawSelected(SceneId sceneId, std::string const& shaderContext,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags );
-   void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights);
+   void prioritizeLights(SceneId sceneId, std::vector<LightNode*> *lights, std::vector<QueryResult> const& allLights);
 	void doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel=-1 );
 	void doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource* deferredMaterial);
 	
 	void drawRenderables(SceneId sceneId, std::string const& shaderContext, bool debugView,
-		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
+		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel, bool cached );
    static uint32 acquireInstanceAttributeBuffer();
-   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
+   static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel, bool cached);
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
 	void renderDebugView();
 	void finishRendering();
+   void clearRenderCache();
    void logPerformanceData();
    void setGpuCompatibility();
+
+   void composeRenderables(std::vector<QueryResult> const& queryResults, Frustum const& frust, RenderingOrder::List order, QueryTypes::List queryTypes, SceneNode* singleNode, bool cacheResults);
 
 protected:
 	unsigned char                      *_scratchBuf;
@@ -343,6 +359,16 @@ protected:
 
    float                              _lod_polygon_offset_x;
    float                              _lod_polygon_offset_y;
+
+   int                                _renderCacheCount;
+   int                                _activeRenderCache;
+   CachedRenderResult                 _renderCache[RenderCacheSize];
+
+   static std::string const           DRAW_SKINNED_FLAG;
+   static std::string const           DRAW_WITH_INSTANCING_FLAG;
+   static std::string const           INSTANCE_SUPPORT_FLAG;
+
+
 
 public:
    // needed to draw debug shapes in extensions!

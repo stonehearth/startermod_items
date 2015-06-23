@@ -1,30 +1,42 @@
 Welcome to Stonehearth! Here are the patch notes for this build.
 
-<h2>Better Error Window</h2>
-<p>
-The error window is much improved and can now be closed permanently.
-</p>
+<h2>Performance</h2>
+Pathfinding through gates and doors has been optimized.
 
-<h2>Start Up Diagnostics</h2>
-<p>
-We've added a lot more diagnostics to help determine the cause of crashes on start up. Although this build may still crash on start up, the data it provides will help us fix the issue.
-</p>
-
-<h2>Bug Fixes</h2>
+<h2>Bugs Fixed</h2>
 <ul>
-<li>Lua no longer consumes 100% CPU after multiple errors.</li>
-<li>Removing a building after starting construction no longer generates a scaffolding error.</li>
-<li>Deleting a building after placing template no longer throws errors.</li>
-<li>Workers will now restock items acquired from the trader.</li>
-<li>You can now promote even when the talisman is located at high altitude.</li>
-<li>Items in stockpiles at high altitude are now included in inventory/score.</li>
-<li>Hitting escape while planting banner no longer throws a UI error.</li>
-<li>Fixed errors when shepherd is chasing down sheep.</li>
-<li>Fixed waterfall error when water bodies are merging.</li>
+<li>Fix some crashes on Intel video drivers, and add more diagonostics to track down video driver issues.</li>
+<li>Fix errors saving game when temp directory is not writeable.</li>
+<li>Fix errors when loading game.</li>
+
+<li>Fix error when promoting Shepherd to another profession.</li>
+<li>Fix moving objects when hearthlings drop the item during the move.</li>
+<li>Fix error in the aggro_observer (again!).</li>
+<li>Fix error in the attribute_component.</li>
+<li>Fix error in the scaffolding_manager.</li>
+<li>Fix error when attempting to tear down buildings.</li>
+<li>Fix bug counting items for collection quests.</li>
+<li>Harvesting plants no longer causes workers to drop their current task.</li>
+<li>Plates of food will now be eaten if dropped.</li>
+<li>Fix categories for weapons, armor, banners, and job promotion items.</li>
+
+<li>Fix error when opening trading window.</li>
+<li>Fix error when overbuying items from trader.</li>
+<li>Fix error when reordering items in workshop.</li>
+<li>Health bar on character sheet now updates on damage.</li>
+<li>Add missing status text that indicates what hearthlings are up to.</li>
+<li>Fix issues when clicking 'Roll New Map' too quickly.</li>
+<li>Fix UI error when hitting ESC before placing the banner.</li>
+<li>Fix error on expired bulletin.</li>
 </ul>
 
 <h2>Other Changes</h2>
 <ul>
-<li>Party menu now has hotkey 'g'.</li>
-<li>Various tooltips fixed</li>
+<li>Camera zoom can now be controlled by keyboard + and -.</li>
+<li>Camera pan can now be controlled by pressing the middle mouse button and moving the mouse.</li>
+<li>Camera tutorial is now hidden after completing it once.</li>
+<li>Make the Daily Update notification sticky.</li>
+<li>Add missing close button to the error dialog.</li>
+<li>LuaJIT is causing problems and has been disabled. As a result, world generation will take a little longer.</li>
+<li>The enable_64_bit flag has been removed and replaced by the force_32_bit flag. You should run the 64-bit client if at all possible. The 64-bit client is faster and supports larger towns. We will optimize the memory footprint for both clients in the future.</li>
 </ul>

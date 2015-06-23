@@ -3,20 +3,24 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(default_object.qb)"
+               "file(small_crate.qb)"
             ]
          }
       },
+      "render_info" : {
+         "scale" : 0.10
+      },
       "unit_info": {
          "name": "Small Crate",
-         "description": "Like a Bag of Holding, but less baggy.",
-         "icon" : "file(default_object.png)"
+         "description": "Storage container",
+         "icon" : "file(small_crate.png)"
       },
       "stonehearth:material" : {
          "tags" : "wood furniture crafted chair"
       },
       "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+         "model_origin" : { "x": -0.0, "y": 0, "z": 0.0 },
+         "region_origin" : { "x": -0.5, "y": 0, "z": 0.5 }
       }
    }
 }

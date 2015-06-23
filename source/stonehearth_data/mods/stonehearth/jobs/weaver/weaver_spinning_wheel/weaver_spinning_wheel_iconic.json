@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
       "item" : {
-         "category" : "tool"
+         "category" : "tools"
       },
       "model_variants": {
          "default": {

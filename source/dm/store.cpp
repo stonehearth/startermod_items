@@ -138,6 +138,8 @@ ObjectPtr Store::AllocObject(ObjectType t, ObjectId id)
    RegisterObject(*obj);
    OnAllocObject(obj);
 
+   STORE_LOG(7) << "allocated dynamic object " << obj->GetObjectId();
+
    return obj;
 }
 
@@ -357,6 +359,19 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
       ASSERT(obj);
       ASSERT(msg.object_type() == obj->GetObjectType());
 
+      if (LOG_IS_ENABLED(dm.store, 9)) {
+         STORE_LOG(9) << "loading object " << obj->GetObjectId() << " of type " << obj->GetObjectClassNameLower();
+         {
+            LOG_SCOPED_INDENT();
+
+            std::string txt = protocol::describe(msg);
+            std::vector<std::wstring> parts;
+            boost::split(parts, txt, boost::is_any_of("\n"));
+            for (std::wstring const& part : parts) {
+               STORE_LOG(3) << part;
+            }
+         }
+      }
       obj->SetObjectMetadata(id, *this);
       obj->LoadObject(PERSISTANCE, msg);
    }

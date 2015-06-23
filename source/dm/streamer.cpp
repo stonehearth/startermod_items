@@ -19,7 +19,8 @@ namespace proto = ::radiant::tesseract::protocol;
 Streamer::Streamer(Store& store, int category, protocol::SendQueue* queue) :
    store_(store),
    queue_(queue),
-   category_(category)
+   category_(category),
+   _flushing(false)
 {
    // Add a buffered tracer to the store to accumulate changes to the container
    // classes.  See OnAlloced() and TraceObject() for more info.
@@ -43,17 +44,22 @@ void Streamer::Flush()
    STREAMER_LOG(5) << "flushing streamer";
 
    tracer_->Flush();
+
+   _flushing = true;
    QueueAllocated();
    QueueUpdateInfo();
    QueueUnsavedObjects();
    QueueModifiedObjects();
    QueueDestroyedObjects();
+   _flushing = false;
 
    STREAMER_LOG(5) << "finished flushing streamer";
 }
 
 void Streamer::QueueAllocated()
 {
+   ASSERT(_flushing);
+
    if (!allocated_objects_.empty()) {
       tesseract::protocol::Update update;
       update.set_type(proto::Update::AllocObjects);
@@ -76,6 +82,8 @@ void Streamer::QueueAllocated()
 
 void Streamer::QueueUnsavedObjects()
 {
+   ASSERT(_flushing);
+
    if (!unsaved_objects_.empty()) {
       proto::Update update;
       for (const auto& entry : unsaved_objects_) {
@@ -92,6 +100,8 @@ void Streamer::QueueUnsavedObjects()
 
 void Streamer::QueueModifiedObjects()
 {
+   ASSERT(_flushing);
+
    for (const auto &entry: object_updates_) {
       for (const auto &update : entry.second) {
          QueueUpdate(update);
@@ -102,6 +112,8 @@ void Streamer::QueueModifiedObjects()
 
 void Streamer::QueueDestroyedObjects()
 {
+   ASSERT(_flushing);
+
    if (!destroyed_objects_.empty()) {
       proto::Update update;
       update.set_type(proto::Update::RemoveObjects);
@@ -119,6 +131,8 @@ void Streamer::QueueDestroyedObjects()
 
 void Streamer::OnAlloced(ObjectPtr const& obj)
 {
+   ASSERT(!_flushing);
+
    ObjectId id = obj->GetObjectId();
    STREAMER_LOG(5) << "adding object " << id << " to alloced set.";
 
@@ -176,6 +190,8 @@ void Streamer::OnModified(Object const* obj)
 //
 void Streamer::AddUnsavedObject(Object const* obj)
 {
+   ASSERT(!_flushing);
+
    ObjectId id = obj->GetObjectId();
    STREAMER_LOG(5) << "adding object " << id << " to unsaved object set.";
    unsaved_objects_.insert(std::make_pair(id, obj));
@@ -183,6 +199,8 @@ void Streamer::AddUnsavedObject(Object const* obj)
 
 void Streamer::OnDestroyed(ObjectId id, bool dynamic)
 {
+   ASSERT(!_flushing);
+
    auto i = unsaved_objects_.find(id);
    if (i != unsaved_objects_.end()) {
       if (dynamic) {
@@ -212,6 +230,8 @@ void Streamer::OnDestroyed(ObjectId id, bool dynamic)
 
 void Streamer::SaveDeltaState(TraceBufferedRef t, Object const* obj)
 {
+   ASSERT(!_flushing);
+
    TraceBufferedPtr trace = t.lock();
    if (trace) {
       ObjectId id = obj->GetObjectId();
@@ -237,12 +257,16 @@ void Streamer::SaveDeltaState(TraceBufferedRef t, Object const* obj)
 
 void Streamer::QueueUpdate(proto::Update const& update)
 {
+   ASSERT(_flushing);
+
    queue_->Push(update);
 }
 
 
 void Streamer::QueueUpdateInfo()
 {
+   ASSERT(_flushing);
+
    tesseract::protocol::Update update;
    update.set_type(proto::Update::UpdateObjectsInfo);
    auto info_msg = update.MutableExtension(proto::UpdateObjectsInfo::extension);
