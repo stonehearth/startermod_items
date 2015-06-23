@@ -21,6 +21,13 @@ public:
    typedef std::function<void(const HCURSOR cursor)> CursorChangeCb; // xxx: merge this into the command system!
 
    struct Request {
+      Request() {}
+      Request(Request const& rhs)
+         : path(rhs.path),
+           postdata(rhs.postdata)
+      {
+         query = rhs.query.duplicate();
+      }
       std::string          path;
       JSONNode             query;
       std::string          postdata;

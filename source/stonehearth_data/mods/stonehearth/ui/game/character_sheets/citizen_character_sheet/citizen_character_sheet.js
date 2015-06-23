@@ -14,7 +14,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       'stonehearth:equipment' : {
          'equipped_items' : {
             '*' : {
-               'unit_info' : {}
+               'uri': {},
+               'unit_info' : {},
             }
          }
       },
@@ -198,38 +199,46 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
     }.observes('model.stonehearth:buffs'),
 
    _setEquipmentData: function() {
-      Ember.run.scheduleOnce('afterRender', this, '_updateEquipmentNow');
-    }.observes('model.stonehearth:equipment.equipped_items'),
-
-   _updateEquipmentNow: function() {
       var self = this;
       var slots = ['torso', 'mainhand', 'offhand'];
       var equipment = self.get('model.stonehearth:equipment.equipped_items');
+      var allEquipment = [];
       radiant.each(slots, function(i, slot) {
          var equipmentPiece = equipment[slot];
-         
-         var slotDiv = self.$('#' + slot + 'Slot');
-
-         if (slotDiv.length == 0) {
-            return;
-         }
-
-         var image = slotDiv.find(".equipmentImg");
-         image.remove();
 
          if (equipmentPiece) {
-            var img = $('<img>')
-            .addClass('equipmentImg')
-            .attr('src', equipmentPiece.unit_info.icon);
+            var equipmentInfo = {
+               equipment: equipmentPiece,
+               slotId: slot + "Slot",
+            }
+            allEquipment.push(equipmentInfo);
+         }
+         
+      });
+      self.set('all_equipment', allEquipment);
+    }.observes('model.stonehearth:equipment.equipped_items'),
+
+    _equipmentUpdatedListener: function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         self._updateEquipmentTooltips();
+       });
+    }.observes('all_equipment'),
+
+   _updateEquipmentTooltips: function() {
+      var self = this;
+      var all_equipment = self.get('all_equipment');
+      radiant.each(all_equipment, function(i, equipmentInfo) {
+         var equipmentRow = self.$('#' + equipmentInfo.slotId);
+         var equipmentPiece = equipmentInfo.equipment;
+         if (equipmentRow && equipmentRow.length != 0) {
             var tooltipString = '<div class="detailedTooltip"> <h2>' + equipmentPiece.unit_info.name
                                  + '</h2>'+ equipmentPiece.unit_info.description + '</div>';
-            img.tooltipster({content: $(tooltipString)});
-            slotDiv.append(img);
+            equipmentRow.tooltipster({content: $(tooltipString)});
          }
-
-         //self.set('equipment.' + slot, equipmentPiece);
       });
    },
+
     //When the attribute data changes, update the bars
    _setAttributeData: function() {
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');

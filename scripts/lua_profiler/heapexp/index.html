@@ -8,38 +8,22 @@
     <input type="file" id="files" name="stuff" multiple=false style="width:500px;"/>    
     <div id="container">
     </div>
+    <style>
+    .fieldClass {
+      display: inline-block;
+      max-width: 1500px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      vertical-align: text-bottom;
+    }
+
+    </style>
     <script src="build/react.js"></script>
     <script src="build/JSXTransformer.js"></script>
 
     <script type="text/jsx;harmony=true">
 
-
-
-/*go from heap bits to :
-
-KEEP map(alloc_string -> list_of_ptrs)
-
-KEEP map(ptr -> heap_object), heap_object(name, ptr, fields)
-
-
-
-const class HeapObjectField {
-  constructor(fieldType, fieldValue) {
-
-  }
-}
-
-class Heap {
-  constructor(heapBits) {
-
-  }
-}
-
-class HeapObject {
-  constructor(allocLoc, ptr, bytes){
-    private 
-  }
-}*/
 
 class HeapPtr {
   constructor(low, hi) {
@@ -66,42 +50,50 @@ class HeapPtr {
 }
 
 class HeapObject {
-  constructor(selfPtr, allocIdx) {
+  constructor(selfPtr, allocStr) {
     this.selfPtr = selfPtr;
-    this.allocIdx = allocIdx;
+    this.allocStr = allocStr;
   }
 
   toString() {
     return '';
   }
+
+  getArrayMapVals() {
+    return [];
+  }
+
+  getFieldForPtr() {
+    return null;
+  }
 }
 
 
 class StringHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, str) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, str) {
+    super(selfPtr, allocStr);
     this.str = str;
   }
 
   toString() {
-    return 'STR[' + this.selfPtr + '] ' + this.str; 
+    return '"' + this.str + '"'; 
   }
 }
 
 class ClosureHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, upVals) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, upVals) {
+    super(selfPtr, allocStr);
     this.upVals = upVals;
   }
 
   toString() {
-    return 'CLS[' + this.selfPtr + '] (' + this.upVals.length + ')';
+    return 'Closure@' + this.selfPtr;
   }
 }
 
 class TableHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, metaTable, arrayPtr, nodePtr) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, metaTable, arrayPtr, nodePtr) {
+    super(selfPtr, allocStr);
     this.metaTable = metaTable;
     this.arrayPtr = arrayPtr;
     this.nodePtr = nodePtr;
@@ -111,46 +103,55 @@ class TableHeapObject extends HeapObject {
   getNodePtr() { return this.nodePtr; }
 
   toString() {
-    return 'TBL[' + this.selfPtr + '] ' + this.arrayPtr;
+    return 'Table@' + this.selfPtr;
   }
 }
 
 class ArrayHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, entries) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, entries, stringFieldNames) {
+    super(selfPtr, allocStr);
     this.entries = entries;
+    this.stringFieldNames = stringFieldNames;
+  }
+
+  getArrayMapVals() {
+    return this.stringFieldNames;
+  }
+
+  getFieldForPtr(ptr) {
+
   }
 
   toString() {
-    return 'ARR[' + this.selfPtr + '] ' + this.entries.length;
+    return 'ArrayMap@' + this.selfPtr;
   }
 }
 
 class UpValueHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, valPtr) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, valPtr) {
+    super(selfPtr, allocStr);
     this.valPtr = valPtr;
   }
 
   toString() {
-    return 'UPV[' + this.selfPtr + '] ' + this.valPtr;
+    return 'UpValue@' + this.selfPtr;
   }
 }
 
 class UserDataHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, metaTable) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, metaTable) {
+    super(selfPtr, allocStr);
     this.metaTable = metaTable;
   }
 
   toString() {
-    return 'UDA[' + this.selfPtr + ']';
+    return 'UserData@' + this.selfPtr;
   }
 }
 
 class UnknownHeapObject extends HeapObject {
-  constructor(selfPtr, allocIdx, bytes) {
-    super(selfPtr, allocIdx);
+  constructor(selfPtr, allocStr, bytes) {
+    super(selfPtr, allocStr);
     this.bytes = bytes;
   }
 }
@@ -215,24 +216,228 @@ class ArrayReader {
   }
 }
 
-class HeapExpApplication extends React.Component {
+class HeapRow extends React.Component {
+  constructor(props) {
+    super(props);
 
-  constructor() {
+    this.state = {
+      expanded: false
+    };
+
+    this.allocStr = this.props.k;
+    //this.ptr = this.props.
+  }
+
+  _onClickStr(e) {
+    this.setState({
+      expanded: !this.state.expanded
+    });
+  }
+
+  _renderSub() {
+  }
+
+  _renderRoot() {
+    var onClickStr = (e) => {this._onClickStr(e);};
+    if (this.state.expanded) {
+      var subRows = [];
+      var allocs = this.props.idxToObjs[this.allocStr];
+
+      for (var idx in allocs) {
+        let alloc = allocs[idx];
+        subRows.push(<HeapRow key={alloc.selfPtr} ptr={alloc.selfPtr} depth={this.props.depth + 1} root="false" k={alloc.allocStr} idxToObjs={this.props.idxToObjs} objs={this.props.objs} strsToIdx={this.props.strsToIdx} backMap={this.props.backMap} />);
+      }
+
+      return (
+        <div>
+          <div onClick={onClickStr}>{this.props.k}</div>
+          {subRows}
+        </div>
+      );     
+    }
+
+    return (
+      <div>
+        <div onClick={onClickStr}>{this.props.k}</div>
+      </div>
+    ); 
+
+  }
+
+  _renderAlloc() {
+    var onClickStr = (e) => {this._onClickStr(e);};
+    var obj = this.props.objs[this.props.ptr];
+    var arrMapVals = obj.getArrayMapVals();
+    var arrMapStr = ''
+    for (var v in arrMapVals) {
+      arrMapStr += arrMapVals[v] + ', ';
+    }
+
+    if (this.state.expanded) {
+      var subRows = [];
+      var referers = this.props.backMap[this.props.ptr];
+
+      for (var idx in referers) {
+        let alloc = referers[idx];
+        subRows.push(<HeapRow key={alloc.selfPtr} ptr={alloc.selfPtr} depth={this.props.depth + 1} root="false" k={alloc.allocStr} idxToObjs={this.props.idxToObjs} objs={this.props.objs} strsToIdx={this.props.strsToIdx} backMap={this.props.backMap} />);
+      }
+      return (
+        <div>
+          <div style={{display:'inline-block', paddingLeft: (16 * this.props.depth) +'px'}} onClick={onClickStr}>{this.props.k}</div><div style={{display:'inline-block'}}>{obj.toString()}</div><div className="fieldClass">{arrMapStr}</div>
+          {subRows}
+        </div>
+      ); 
+    }
+    return (
+      <div>
+        <div style={{display:'inline-block', paddingLeft: (16 * this.props.depth) +'px'}} onClick={onClickStr}>{this.props.k}</div><div style={{display:'inline-block'}}>{obj.toString()}</div><div className="fieldClass">{arrMapStr}</div>
+      </div>
+    ); 
+  }
+
+  render() {
+    if (this.props.root == 'true') {
+      return this._renderRoot();
+    } else {
+      return this._renderAlloc();
+    }
+  }
+}
+
+class HeapRows extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    let rows = [];
+    for (var key in this.props.diffStrsToIdx) {
+      rows.push(<HeapRow root="true" depth={0} key={key} k={key} strs={this.props.strs} idxToObjs={this.props.idxToObjs} objs={this.props.objs} strsToIdx={this.props.strsToIdx} backMap={this.props.backMap} />);
+    }
+
+    return (
+      <div>{rows}</div>
+    );
+  } 
+}
+
+class DiffHeap {
+  constructor(a, b) {
+    this.strsToIdx = {};
+
+    this.heapObjs = {};
+
+    this.allocIdxToObjs = {};
+    this.backMap = {};
+
+    this.strsToIdx = this._unionMap(a.strsToIdx, b.strsToIdx);
+    this.heapObjs = this._unionMap(a.heapObjs, b.heapObjs);
+    this.backMap = this._unionMap(a.backMap, b.backMap);
+
+    this.diffObjs = this._subMap(this.heapObjs, b.heapObjs);
+    this.diffStrsToIdx = {};
+    for (var k in this.diffObjs) {
+      let obj = this.diffObjs[k];
+      this.diffStrsToIdx[obj.allocStr] = 1;
+
+
+      let objList = this.allocIdxToObjs[obj.allocStr];
+      if (!objList) {
+        objList = [];
+        this.allocIdxToObjs[obj.allocStr] = objList;
+      }
+      objList.push(obj);
+    }
+  }
+
+  _subMap(m1, m2) {
+    let result = {};
+
+    for (var k1 in m1) {
+      if (!m2[k1]) {
+        result[k1] = m1[k1];
+      }
+    }
+
+    return result;
+  }
+
+  _unionMap(m1, m2) {
+    let result = {};
+
+    for (var k in m1) {
+      result[k] = m1[k];
+    }
+    for (var k in m1) {
+      result[k] = m1[k];
+    }
+    return result;
+  }
+
+  _unionArr(arr1, arr2) {
+    let result = [];
+    let smallest = arr1.length > arr2.length ? arr2 : arr1;
+    let largest = arr1.length <= arr2.length ? arr2 : arr1;
+  
+    let i = 0;
+    for (i = 0; i < smallest.length; i++) {
+      result.push(smallest[i]);
+      console.assert(smallest[i] == largest[i]);
+    }
+
+    for (i; i < largest.length; i++) {
+      result.push(largest[i]);
+    }
+    return result;
+  }
+}
+
+class Heap {
+  constructor(heapBytes) {
     this.strs = [];
+    this.strsToIdx = {};
 
     this.heapObjs = {};
     this.unknownObjs = {};
     this.tableObjs = {};
+
+    this.allocIdxToObjs = {};
+    this.backMap = {};
+
+    if (heapBytes) {
+      var heapReader = new ArrayReader(heapBytes);
+
+      this._processAllocLocationStrings(heapReader);
+      this._processAllocs(heapReader);
+
+      console.log('done processing!');
+    }
+  }
+
+  diff(otherHeap) {
+    return new DiffHeap(this, otherHeap);
+  }
+
+  _addToBackmap(ptr, obj) {
+    var objList = this.backMap[ptr];
+
+    if (!objList) {
+      objList = [];
+      this.backMap[ptr] = objList;
+    }
+    objList.push(obj);
   }
 
   _processAllocLocationStrings(reader) {
     let numStrs = reader.nextU32();
     for (var i = 0; i < numStrs; i++) {
-      this.strs.push(reader.nextStr());
+      var s = reader.nextStr();
+      this.strs.push(s);
+      this.strsToIdx[s] = i;
     }
   }
 
-  _processClosure(reader, ptr, allocIdx) {
+  _processClosure(reader, ptr, allocStr) {
     let isCFunc = reader.nextU8();
     let numUpVals = reader.nextU8();
 
@@ -240,14 +445,14 @@ class HeapExpApplication extends React.Component {
       // Don't bother with C funcs, since I don't think they can
       // keep anything alive.  (They close on values, not pointers).
       reader.skip(4 + 8 + 8 + 8 + (numUpVals * 16));
-      return null;
+      return new ClosureHeapObject(ptr, allocStr, []);
     }
 
 
     if (numUpVals == 0) {
       // No upvals means we aren't keeping anything leakable alive (I think!)
       reader.skip(4 + 8 + 8 + 8);
-      return null;
+      return new ClosureHeapObject(ptr, allocStr, []);
     }
   
     // Padding.
@@ -258,11 +463,15 @@ class HeapExpApplication extends React.Component {
 
     let proto = reader.nextPtr();
     let ptrs = [];
+    let result = new ClosureHeapObject(ptr, allocStr, ptrs);
     for (var i = 0; i < numUpVals; i++) {
-      ptrs.push(reader.nextPtr());
+      var p = reader.nextPtr();
+      ptrs.push(p);
+
+      this._addToBackmap(p.low, result);
     }
 
-    return new ClosureHeapObject(ptr, allocIdx, ptrs);
+    return result;
   }
 
   _processFuncPrototype(reader) {
@@ -304,7 +513,7 @@ class HeapExpApplication extends React.Component {
     return null;
   }
 
-  _processTable(reader, ptr, allocIdx) {
+  _processTable(reader, ptr, allocStr) {
     let flags = reader.nextU8();
     let lsizenode = reader.nextU8();
     let metaTablePtr = reader.nextPtr();
@@ -320,41 +529,44 @@ class HeapExpApplication extends React.Component {
     // PADDING
     reader.nextU32();
 
-    return new TableHeapObject(ptr, allocIdx, metaTablePtr, arrayPtr, node);
+    let result = new TableHeapObject(ptr, allocStr, metaTablePtr, arrayPtr, node);
+
+    this._addToBackmap(arrayPtr.low, result);
+    this._addToBackmap(node.low, result);
+    return result;
   }
 
-  _processArray(ptr, allocIdx, bytes) {
+  _processArray(ptr, allocStr, bytes) {
     let numBytes = bytes.byteLength;
     let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
 
-    console.assert((numBytes % 32) == 0);
+    console.assert((numBytes % 16) == 0);
 
     var entries = [];
-    for (var i = 0; i < numBytes / 32; i++) {
-      let key = reader.nextPtr();
-      let keyType = reader.nextU32();
-      reader.nextU32();
-      if (keyType >= 5 && keyType <= 7) {
-        entries.push(key);
-      }
+    var stringFieldNames = [];
+    let result = new ArrayHeapObject(ptr, allocStr, entries, stringFieldNames);
+    for (var i = 0; i < numBytes / 16; i++) {
       let val = reader.nextPtr();
       let valType = reader.nextU32();
       reader.nextU32();
 
       if (valType >= 5 && valType <= 7) {
         entries.push(val);
+        this._addToBackmap(val.low, result);
       }
     }
-    return new ArrayHeapObject(ptr, allocIdx, entries);
+    return result;
   }
 
-  _processMap(ptr, allocIdx, bytes) {
+  _processMap(ptr, allocStr, bytes) {
     let numBytes = bytes.byteLength;
     let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
 
     console.assert((numBytes % 40) == 0);
 
     var entries = [];
+    var stringFieldNames = [];
+    let result = new ArrayHeapObject(ptr, allocStr, entries, stringFieldNames);
     for (var i = 0; i < numBytes / 40; i++) {
       let val = reader.nextPtr();
       let valType = reader.nextU32();
@@ -362,6 +574,7 @@ class HeapExpApplication extends React.Component {
 
       if (valType >= 5 && valType <= 7) {
         entries.push(val);
+        this._addToBackmap(val.low, result);
       }
 
       let key = reader.nextPtr();
@@ -369,15 +582,20 @@ class HeapExpApplication extends React.Component {
       reader.nextU32();
       if (keyType >= 5 && keyType <= 7) {
         entries.push(key);
+        this._addToBackmap(key.low, result);
+      } else if (keyType == '4') {
+        var str = this.heapObjs[key.low];
+        if (str) {
+          stringFieldNames.push(str.toString());
+        }
       }
       // Ignore 'next' ptr.
       reader.nextPtr();
     }
-    return new ArrayHeapObject(ptr, allocIdx, entries);
-
+    return result;
   }
 
-  _processUserData(reader, numBytes, ptr, allocIdx) {
+  _processUserData(reader, numBytes, ptr, allocStr) {
     reader.skip(6);
     let metatable = reader.nextPtr();
     let env = reader.nextPtr();
@@ -390,26 +608,29 @@ class HeapExpApplication extends React.Component {
     // Any padding ((8 + 1 + 1) + 26).  This might be unnecessary.
     reader.skip(numBytes - (40 + len));
 
-    return new UserDataHeapObject(ptr, allocIdx, metatable);
+    return new UserDataHeapObject(ptr, allocStr, metatable);
   }
 
-  _processUpValue(reader, ptr, allocIdx) {
+  _processUpValue(reader, ptr, allocStr) {
     // PADDING.
     reader.nextU32();
     reader.nextU8();
     reader.nextU8();
 
     let valPtr = reader.nextPtr();
+    let result = new UpValueHeapObject(ptr, allocStr, valPtr);
     
+    this._addToBackmap(valPtr.low, result);
+
     // Fixme: NASTY UNIONS
     let val = reader.nextPtr();
     let next = reader.nextPtr();
 
     // No idea if this is sufficient....
-    return new UpValueHeapObject(ptr, allocIdx, valPtr);
+    return result;
   }
 
-  _processString(reader, ptr, allocIdx) {
+  _processString(reader, ptr, allocStr) {
     let reserved = reader.nextU8();
     let hash = reader.nextU32();
 
@@ -418,18 +639,21 @@ class HeapExpApplication extends React.Component {
     let size = reader.nextU32(); reader.nextU32(); // size_t
     let str = reader.nextStr();
 
-    return new StringHeapObject(ptr, allocIdx, str);
+    return new StringHeapObject(ptr, allocStr, str);
   }
 
   _processObject(reader) {
     let strIdx = reader.nextU32();
+    let str = this.strs[strIdx];
 
-    let ptr = reader.nextU32();
+    let ptr = reader.nextPtr();
 
     let numBytes = reader.nextU32();
+    reader.nextU32();
 
     var typ = reader.peekByte(8);
-    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid()) {
+    var marked = reader.peekByte(9);
+    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid() && marked > 0) {
 
       let gcNext = reader.nextPtr(); 
 
@@ -438,14 +662,6 @@ class HeapExpApplication extends React.Component {
       let marked = reader.nextU8();
 
       //console.log('type: ' + typ + '.  size: ' + numBytes + '. loc: ' + (reader.getOffset() - 10));
-
-      if (marked == 0) {
-        // A good question might be to ask: if we call FullGC before dumping the heap, then what the
-        // heck is this stuff doing here?
-        //console.log('marked = 0');
-        reader.skip(numBytes - 10);
-        return;
-      }
 
       var obj = null;
       switch(typ) {
@@ -467,21 +683,21 @@ class HeapExpApplication extends React.Component {
           break;
         case 4:
           // string
-          obj = this._processString(reader, ptr, strIdx);
+          obj = this._processString(reader, ptr.low, str);
           break;
         case 5:
           // table
           console.assert(numBytes == 64);
-          obj = this._processTable(reader, ptr, strIdx);
-          this.tableObjs[ptr] = obj;
+          obj = this._processTable(reader, ptr.low, str);
+          this.tableObjs[ptr.low] = obj;
           break;
         case 6:
           // A closure of some kind
-          obj = this._processClosure(reader, ptr, strIdx);
+          obj = this._processClosure(reader, ptr.low, str);
           break;
         case 7:
           // user data
-          obj = this._processUserData(reader, numBytes, ptr, strIdx);
+          obj = this._processUserData(reader, numBytes, ptr.low, str);
           break;
         case 8:
           // thread
@@ -490,12 +706,12 @@ class HeapExpApplication extends React.Component {
         case 9:
           // Function prototype
           console.assert(numBytes == 120);
-          this._processFuncPrototype(reader, ptr, strIdx);
+          this._processFuncPrototype(reader, ptr.low, str);
           break;
 
         case 10:
           // up value
-          obj = this._processUpValue(reader, ptr, strIdx);
+          obj = this._processUpValue(reader, ptr.low, str);
           break;
 
         default:
@@ -504,14 +720,11 @@ class HeapExpApplication extends React.Component {
           break;
       };
     } else {
-      // Table data, I think?
-      //console.log('unknown obj (' + numBytes + ' bytes) at ' + reader.getOffset());
-      //reader.skip(numBytes);
-      this.unknownObjs[ptr] = new UnknownHeapObject(ptr, strIdx, reader.readBytes(numBytes));
+      this.unknownObjs[ptr.low] = new UnknownHeapObject(ptr.low, str, reader.readBytes(numBytes));
     }
 
     if (obj) {
-      this.heapObjs[ptr] = obj;
+      this.heapObjs[ptr.low] = obj;
     }
   }
 
@@ -523,6 +736,18 @@ class HeapExpApplication extends React.Component {
     }
 
     this._attachArrays();
+
+    for (var k in this.heapObjs) {
+      var obj = this.heapObjs[k];
+      var objs = this.allocIdxToObjs[obj.allocStr];
+
+      if (!objs) {
+        objs = [];
+        this.allocIdxToObjs[obj.allocStr] = objs;
+      }
+
+      objs.push(obj);
+    }
   }
 
   _attachArrays() {
@@ -531,7 +756,7 @@ class HeapExpApplication extends React.Component {
       if (ptr) {
         var arrObj = this.unknownObjs[ptr];
         if (arrObj) {
-          this.heapObjs[ptr] = this._processArray(ptr, arrObj.allocIdx, arrObj.bytes);
+          this.heapObjs[ptr] = this._processArray(ptr, arrObj.allocStr, arrObj.bytes);
         }
       }
 
@@ -539,34 +764,60 @@ class HeapExpApplication extends React.Component {
       if (ptr) {
         var arrObj = this.unknownObjs[ptr];
         if (arrObj) {
-          this.heapObjs[ptr] = this._processMap(ptr, arrObj.allocIdx, arrObj.bytes);
+          this.heapObjs[ptr] = this._processMap(ptr, arrObj.allocStr, arrObj.bytes);
         }
       }
     }
   }
+}
 
-  _processHeapDump(heapBytes) {
-    var offset = 0;
-    var heapReader = new ArrayReader(heapBytes);
+class HeapExpApplication extends React.Component {
 
-    this._processAllocLocationStrings(heapReader);
-    this._processAllocs(heapReader);
-    console.log('done processing!');
+  constructor(props) {
+    super(props);
+
+    this.heaps = [];
+
+    this.state = {
+      allocIdxToObjs: {}, 
+      objs:{}, 
+      strsToIdx:{},
+      backMap:{},
+      diffStrsToIdx:{}
+    };
+  }
+
+  _processHeapDump(diffHeap) {
+    this.setState({
+      idxToObjs : diffHeap.allocIdxToObjs,
+      objs : diffHeap.heapObjs,
+      strsToIdx : diffHeap.strsToIdx,
+      backMap : diffHeap.backMap,
+      diffObjs : diffHeap.diffObjs,
+      diffStrsToIdx : diffHeap.diffStrsToIdx
+    });
   }
 
   componentDidMount() {
     let handleFileSelect = (evt) => {
-      let reader = new FileReader();
-      reader.onload = (e) => {
-        this._processHeapDump(e.target.result);
-      };
-      reader.readAsArrayBuffer(evt.target.files[0])
+      for (var i = 0; i < 2; i++) {
+        let reader = new FileReader();
+        reader.onload = (e) => {
+          this.heaps.push(new Heap(e.target.result));
+          if (this.heaps.length == 2) {
+            this._processHeapDump(this.heaps[0].diff(this.heaps[1]));
+          }
+        };
+        reader.readAsArrayBuffer(evt.target.files[i])
+      }
     };
     document.getElementById('files').addEventListener('change', handleFileSelect, false);    
   }
 
   render() {
-    return <p>Working</p>;
+    return (
+      <HeapRows strs={this.state.strs} idxToObjs={this.state.idxToObjs} objs={this.state.objs} strsToIdx={this.state.strsToIdx} backMap={this.state.backMap} diffStrsToIdx={this.state.diffStrsToIdx} />
+    );
   }
 }
 

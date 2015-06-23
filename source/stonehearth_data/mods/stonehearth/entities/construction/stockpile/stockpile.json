@@ -4,6 +4,10 @@
       "unit_info" : {
          "name" : "Stockpile",
          "description" : "For storing things"
+      },
+      "stonehearth:storage" : {
+         "type" : "stockpile",
+         "auto_fill_from" : [ "crate", "vault" ]
       }
    },
    "entity_data" : {

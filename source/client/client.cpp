@@ -1665,19 +1665,9 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
             }
          }
          if (cb) {
-            // We need a copy of the request with a durable lifetime because we're placing it
-            // in the browser job queue for deferred processing. A copy by assignment for use
-            // in the closure doesn't fully work here, because JSONNodes are refcounted
-            // copy on write objects that are not thread safe. A standard value assignment would
-            // copy the shell but share the internal json node, which would not have thread
-            // safe access. Therefore, we perform an explicit copy of the internal node by calling
-            // duplicate().
-            chromium::IBrowser::Request requestCopy = req;
-            requestCopy.query = req.query.duplicate();
-
             std::lock_guard<std::mutex> guard(browserJobQueueLock_);
-            browserJobQueue_.emplace_back([requestCopy, response, cb]() mutable {
-               cb(requestCopy, response);
+            browserJobQueue_.emplace_back([req, response, cb]() mutable {
+               cb(req, response);
             });
             return;            
          }

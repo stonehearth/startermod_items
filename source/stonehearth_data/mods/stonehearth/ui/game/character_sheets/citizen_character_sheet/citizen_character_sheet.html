@@ -1,3 +1,4 @@
+
 <script type="text/x-handlebars" data-template-name="citizenCharacterSheet">
    <div class="gui">
       <div class="window" id="citizenCharacterSheet">
@@ -72,34 +73,58 @@
          </div>
 
          <div id="details" class="downSection">
-            <div id="equipmentTab" class="tabPage"> 
-               <h2>{{i18n stonehearth:equipment}}</h2>
+            <div id="equipmentTab" class="tabPage">
+               <table id="equipmentTable" valign="middle">
+                  <tr>
+                     <td></td>
+                     <td><h2>{{i18n stonehearth:equipment}}</h2></td>
+                     <td><h2>{{i18n stonehearth:character_sheet_equipment_attack}}</h2></td>
+                     <td><h2>{{i18n stonehearth:character_sheet_equipment_defense}}</h2></td>
+                  </tr>
 
-               <div id="slots">
-                  <div class="downSection slot" id="mainhandSlot">
-                  </div>
-                  <div class="downSection slot" id="torsoSlot">
-                  </div>
-                  <div class="downSection slot" id="offhandSlot">
-                  </div>
-               </div>
+                  {{#each equipment_info in view.all_equipment}}
+                     <tr class="slotDetail" {{bind-attr id=equipment_info.slotId}}>
+                        <td><div class="slotImg"><img class=".equipmentImg" {{bind-attr src=equipment_info.equipment.unit_info.icon}}/></div></td>
+                        <td class="slotItemName">{{equipment_info.equipment.unit_info.name}}
+                        <td>
+                           {{#if equipment_info.equipment.uri.entity_data.stonehearth:combat:weapon_data}}
+                              <div class="equipmentDataValue">
+                                 +{{equipment_info.equipment.uri.entity_data.stonehearth:combat:weapon_data.base_damage}}
+                              </div>
+                           {{else}}
+                              -
+                           {{/if}}
+                        </td>
+                        <td>
+                           {{#if equipment_info.equipment.uri.entity_data.stonehearth:combat:armor_data}}
+                              <div class="equipmentDataValue">
+                                 +{{equipment_info.equipment.uri.entity_data.stonehearth:combat:armor_data.base_damage_reduction}}
+                              </div>
+                           {{else}}
+                              -
+                           {{/if}}
+                        </td>
+                     </tr>
+                  {{/each}}
+
+               </table>
             </div>
 
             <div id="attributesTab" class="tabPage">
                <h2>{{i18n stonehearth:attributes}}</h2>
-               <table>
+               <table class="statsTable">
                   <tr id="diligence" class="value"><td>{{i18n stonehearth:diligence_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.diligence.user_visible_value}}</div>
                   <tr id="curiosity" class="value"><td>{{i18n stonehearth:curiosity_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.curiosity.user_visible_value}}</div>
                   <tr id="inventiveness" class="value"><td>{{i18n stonehearth:inventiveness_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.inventiveness.user_visible_value}}</div>
                </table>
                <br>
-               <table>
+               <table class="statsTable">
                   <tr id="muscle" class="value"><td>{{i18n stonehearth:muscle_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.muscle.user_visible_value}}</div>
                   <tr id="speed" class="value"><td>{{i18n stonehearth:speed_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.speed.user_visible_value}}</div>
                   <tr id="stamina" class="value"><td>{{i18n stonehearth:stamina_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.stamina.user_visible_value}}</div>
                </table>
                <br>
-               <table>
+               <table class="statsTable">
                   <tr id="courage" class="value"><td >{{i18n stonehearth:courage_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.courage.user_visible_value}}</div>
                   <tr id="willpower" class="value"><td>{{i18n stonehearth:willpower_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.willpower.user_visible_value}}</div>
                   <tr id="compassion" class="value"><td>{{i18n stonehearth:compassion_attribute}}<td><div>{{view.model.stonehearth:attributes.attributes.compassion.user_visible_value}}</div>
@@ -126,7 +151,7 @@
             <div id="moraleTab" class="tabPage">
                <div id="persona" class="column">
                   <h2>{{i18n stonehearth:happiness}}</h2>
-                  <table>
+                  <table class="statsTable">
                      <tr id="happiness" class="value"><td>{{i18n stonehearth:overall_happiness}}<td><div>{{view.score_happiness}}</div>
                      <tr id="food" class="value"><td>{{i18n stonehearth:happiness_food}}<td><div>{{view.score_food}}</div>
                      <tr id="shelter" class="value"><td>{{i18n stonehearth:happiness_shelter}}<td><div>{{view.score_shelter}}</div>
@@ -158,7 +183,7 @@
          <div>
 
          <div id="infoTable">
-            <table>
+            <table class="statsTable">
                <tr><td>Personality<td id="personality">
                <tr><td>Traits<td id="traits"> TBD. Stay tuned!
                <tr><td>Birthday<td>TBD. Stay tuned!

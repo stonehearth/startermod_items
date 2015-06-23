@@ -45,8 +45,8 @@ function FindPathToStorageContainingEntityType:start_thinking(ai, entity, args)
             return false
          end
 
-         -- We NEVER go to someone else's backpack to pick things up (steal!)
-         if storage:get_type() == constants.container_types.BACKPACK then
+         -- Don't take items out of non-public storage (e.g.hearthling backpacks)
+         if not storage:is_public() then
             return false
          end
 
