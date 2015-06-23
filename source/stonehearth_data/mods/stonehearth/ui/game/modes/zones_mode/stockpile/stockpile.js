@@ -115,10 +115,10 @@ App.StonehearthStockpileView = App.View.extend({
          return;
       }
 
-      if (this.get('context.stonehearth:storage')) {
-         this.$('button.warn').css('visibility', 'hidden');
-      } else {         
+      if (this.get('context.stonehearth:stockpile')) {
          this.$('button.warn').css('visibility', 'visible');
+      } else {         
+         this.$('button.warn').css('visibility', 'hidden');
       }
 
       var self = this;
