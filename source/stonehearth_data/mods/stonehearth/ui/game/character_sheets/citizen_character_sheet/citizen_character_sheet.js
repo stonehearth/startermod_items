@@ -207,8 +207,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          var equipmentPiece = equipment[slot];
 
          if (equipmentPiece) {
-            equipmentPiece.slotId = slot + "Slot";
-            allEquipment.push(equipmentPiece);
+            var equipmentInfo = {
+               equipment: equipmentPiece,
+               slotId: slot + "Slot",
+            }
+            allEquipment.push(equipmentInfo);
          }
          
       });
@@ -225,8 +228,9 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    _updateEquipmentTooltips: function() {
       var self = this;
       var all_equipment = self.get('all_equipment');
-      radiant.each(all_equipment, function(i, equipmentPiece) {
-         var equipmentRow = self.$('#' + equipmentPiece.slotId)
+      radiant.each(all_equipment, function(i, equipmentInfo) {
+         var equipmentRow = self.$('#' + equipmentInfo.slotId);
+         var equipmentPiece = equipmentInfo.equipment;
          if (equipmentRow && equipmentRow.length != 0) {
             var tooltipString = '<div class="detailedTooltip"> <h2>' + equipmentPiece.unit_info.name
                                  + '</h2>'+ equipmentPiece.unit_info.description + '</div>';
