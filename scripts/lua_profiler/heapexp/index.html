@@ -323,10 +323,6 @@ class HeapRows extends React.Component {
 
 class DiffHeap {
   constructor(a, b) {
-    this.heapA = a;
-    this.heapB = b;
-
-    this.strs = [];
     this.strsToIdx = {};
 
     this.heapObjs = {};
@@ -334,7 +330,6 @@ class DiffHeap {
     this.allocIdxToObjs = {};
     this.backMap = {};
 
-    //this.strs = this._unionArr(a.strs, b.strs);
     this.strsToIdx = this._unionMap(a.strsToIdx, b.strsToIdx);
     this.heapObjs = this._unionMap(a.heapObjs, b.heapObjs);
     this.backMap = this._unionMap(a.backMap, b.backMap);
@@ -657,7 +652,8 @@ class Heap {
     reader.nextU32();
 
     var typ = reader.peekByte(8);
-    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid()) {
+    var marked = reader.peekByte(9);
+    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid() && marked > 0) {
 
       let gcNext = reader.nextPtr(); 
 
@@ -666,14 +662,6 @@ class Heap {
       let marked = reader.nextU8();
 
       //console.log('type: ' + typ + '.  size: ' + numBytes + '. loc: ' + (reader.getOffset() - 10));
-
-      if (marked == 0) {
-        // A good question might be to ask: if we call FullGC before dumping the heap, then what the
-        // heck is this stuff doing here?
-        //console.log('marked = 0');
-        reader.skip(numBytes - 10);
-        return;
-      }
 
       var obj = null;
       switch(typ) {
