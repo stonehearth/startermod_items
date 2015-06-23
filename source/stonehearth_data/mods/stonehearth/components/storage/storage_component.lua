@@ -278,7 +278,7 @@ function StorageComponent:add_item(item)
    end
    
    if item:is_valid() then
-      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
@@ -311,7 +311,7 @@ function StorageComponent:remove_item(id)
       inventory:update_item_container(id, nil)
    end
    if item:is_valid() then
-      radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end
 
    self:_on_contents_changed()
@@ -419,12 +419,12 @@ function StorageComponent:set_filter(filter)
       if old_passed[id] and self._sv.filtered_items[id] then
          newly_filtered[id] = item
          if item:is_valid() then
-            radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+            radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
          end
       elseif old_filtered[id] and self._sv.passed_items[id] then
          newly_passed[id] = item
          if item:is_valid() then
-            radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+            radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
          end
       end
    end
@@ -433,8 +433,7 @@ function StorageComponent:set_filter(filter)
    
    -- Let the AI know that _we_ (the backpack) have changed, so reconsider us, too!
    radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.entity)
-
-   radiant.events.trigger(self._sv.entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
 end
 
 function StorageComponent:_update_filter_key()
