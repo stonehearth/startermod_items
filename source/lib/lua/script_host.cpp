@@ -967,8 +967,9 @@ void ScriptHost::AsyncTriggerOn(luabind::object obj, std::string const& eventNam
    }
 }
 
-void ScriptHost::DumpHeap(std::string const& filename) const
+void ScriptHost::DumpHeap(std::string const& filename)
 {
+   FullGC();
    std::unordered_map<std::string, int> keyMap;
    FILE* outf = fopen(filename.c_str(), "wb");
    
