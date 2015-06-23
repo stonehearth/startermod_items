@@ -4,12 +4,13 @@
    "components" : {
       "unit_info" : {
          "name" :  "Cook's Spoon",
-         "description" : "Required to promote a hearthling into a Cook."
+         "description" : "Required to promote a hearthling into a Cook.",
+         "icon": "file(cook_spoon.png)"
       },
       "item" : {
          "category" : "tools"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "tool"
       },
       "model_variants": {
@@ -19,8 +20,5 @@
             ]
          }
       }
-   },
-   "entity_data" : {
    }
 }
-
