@@ -278,6 +278,7 @@ class Renderer
       FW::FileWatcher   fileWatcher_;
 
       std::string       worldPipeline_;
+      std::string       portraitPipeline_;
 
       H3DNode     fowExploredNode_, fowVisibleNode_;
       core::Guard           traces_;
