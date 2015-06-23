@@ -124,7 +124,8 @@ local function get_filter_fn(filter_key, filter, auto_fill_from, player_id, play
          -- to turn off the stealing logic!  again, in the BFS pathfinder case where we have
          -- no specific use case in mind, the anti-stealing logic will prevent us from grabbing
          -- items from one time of storage when the 'auto_fill_from' mask forbids it. - tony
-         if options and not options.always_allow_stealing then
+         local always_allow_stealing = options and options.always_allow_stealing 
+         if not always_allow_stealing then
             -- If this item is already in a container for the player, then ignore it
             -- if its type is not in our autofill map
             local container = player_inventory:container_for(item)
