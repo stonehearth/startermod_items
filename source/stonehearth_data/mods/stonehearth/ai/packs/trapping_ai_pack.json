@@ -10,7 +10,6 @@
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:core",
-      "stonehearth:ai_pack:movement",
-      "stonehearth:ai_pack:backpack"
+      "stonehearth:ai_pack:movement"
    ]
 }

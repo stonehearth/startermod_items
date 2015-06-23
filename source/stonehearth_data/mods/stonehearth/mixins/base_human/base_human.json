@@ -279,7 +279,8 @@
             "stonehearth:ai_pack:idle:bored:look_around",
             "stonehearth:ai_pack:idle:bored:wander",
             "stonehearth:ai_pack:idle:bored:sway",
-            "stonehearth:ai_pack:score"
+            "stonehearth:ai_pack:score",
+            "stonehearth:ai_pack:backpack"
          ]
       },
 

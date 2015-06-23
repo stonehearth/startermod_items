@@ -91,4 +91,28 @@ function crate_tests.build_from_crate(autotest)
 end
 
 
+function crate_tests.restock_items_in_backpack(autotest)
+   local session = autotest.env:get_player_session()
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
+
+   local sc = worker:get_component('stonehearth:storage')
+   for i=1,3 do
+      local log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
+      sc:add_item(log)
+   end
+
+   autotest.env:create_stockpile(-4, -4)
+   
+   local listener
+   listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
+         if sc:is_empty() then
+            listener:destroy()
+            autotest:success()
+         end
+      end)
+
+   autotest:sleep(1000000)
+   autotest:fail()
+end
+
 return crate_tests

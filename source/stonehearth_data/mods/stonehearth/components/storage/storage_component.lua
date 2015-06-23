@@ -107,7 +107,7 @@ local function get_filter_fn(filter_key, filter, auto_fill_from, player_id, play
       -- *ALL* containers with the same filter key, which is why this is
       -- implemented in terms of global functions, parameters to the filter
       -- function, and captured local variables.
-      filter_fn = function(item)
+      filter_fn = function(item, options)
          log:detail('calling filter function on %s (key:%s)', item, filter_key)
 
          local item_player_id = radiant.entities.get_player_id(item)
@@ -115,16 +115,26 @@ local function get_filter_fn(filter_key, filter, auto_fill_from, player_id, play
             log:detail('item player id "%s" ~= container id "%s".  returning from filter function', item_player_id, player_id)
             return false
          end
-
-         -- If this item is already in a container for the player, then ignore it
-         -- if its type is not in our autofill map
-         local container = player_inventory:container_for(item)
-         if container then
-            if not _can_steal_from_other_storage(captured_auto_fill_from, item, container) then
-               return false
+   
+         -- the filter function is used both by the BFS pathfinder to consider items
+         -- and by callers specifically to test an item (e.g. the 'pickup item type from
+         -- backpack' function will be provided a filter from a stockpile when restocking).
+         -- in the latter case, we allow the user to pass in some extra options to control
+         -- the result.  if we're grabbing an item out of a backpack specifically, we need
+         -- to turn off the stealing logic!  again, in the BFS pathfinder case where we have
+         -- no specific use case in mind, the anti-stealing logic will prevent us from grabbing
+         -- items from one time of storage when the 'auto_fill_from' mask forbids it. - tony
+         if options and not options.always_allow_stealing then
+            -- If this item is already in a container for the player, then ignore it
+            -- if its type is not in our autofill map
+            local container = player_inventory:container_for(item)
+            if container then
+               if not _can_steal_from_other_storage(captured_auto_fill_from, item, container) then
+                  return false
+               end
             end
          end
-
+         
          return _filter_passes(item, captured_filter)
       end
 
