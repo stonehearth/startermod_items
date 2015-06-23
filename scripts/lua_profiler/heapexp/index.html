@@ -51,20 +51,114 @@ class HeapPtr {
     return otherPtr.low == this.low && otherPtr.hi == this.hi;
   }
 
+  hsh() {
+    return this.low + ':' + this.hi;
+  }
+
   looksValid() {
     // Lua table data is completely (I think???) un-annotated, so best guess is to look
     // for something that couldn't possibly be a pointer to something.
-    if (this.low < 0x01000000 || this.hi > 0x00000010) {
+    if ((this.low > 0 && this.low < 0x01000000) || this.low < 0 || this.hi > 0x00000010 || this.hi < 0) {
       return false;
     }
     return true;
   }
 }
 
+class HeapObject {
+  constructor(selfPtr, allocIdx) {
+    this.selfPtr = selfPtr;
+    this.allocIdx = allocIdx;
+  }
+
+  toString() {
+    return '';
+  }
+}
+
+
+class StringHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, str) {
+    super(selfPtr, allocIdx);
+    this.str = str;
+  }
+
+  toString() {
+    return 'STR[' + this.selfPtr + '] ' + this.str; 
+  }
+}
+
+class ClosureHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, upVals) {
+    super(selfPtr, allocIdx);
+    this.upVals = upVals;
+  }
+
+  toString() {
+    return 'CLS[' + this.selfPtr + '] (' + this.upVals.length + ')';
+  }
+}
+
+class TableHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, metaTable, arrayPtr, nodePtr) {
+    super(selfPtr, allocIdx);
+    this.metaTable = metaTable;
+    this.arrayPtr = arrayPtr;
+    this.nodePtr = nodePtr;
+  }
+
+  getArrayPtr() { return this.arrayPtr; }
+  getNodePtr() { return this.nodePtr; }
+
+  toString() {
+    return 'TBL[' + this.selfPtr + '] ' + this.arrayPtr;
+  }
+}
+
+class ArrayHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, entries) {
+    super(selfPtr, allocIdx);
+    this.entries = entries;
+  }
+
+  toString() {
+    return 'ARR[' + this.selfPtr + '] ' + this.entries.length;
+  }
+}
+
+class UpValueHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, valPtr) {
+    super(selfPtr, allocIdx);
+    this.valPtr = valPtr;
+  }
+
+  toString() {
+    return 'UPV[' + this.selfPtr + '] ' + this.valPtr;
+  }
+}
+
+class UserDataHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, metaTable) {
+    super(selfPtr, allocIdx);
+    this.metaTable = metaTable;
+  }
+
+  toString() {
+    return 'UDA[' + this.selfPtr + ']';
+  }
+}
+
+class UnknownHeapObject extends HeapObject {
+  constructor(selfPtr, allocIdx, bytes) {
+    super(selfPtr, allocIdx);
+    this.bytes = bytes;
+  }
+}
+
 class ArrayReader {
-  constructor(array) {
+  constructor(array, opt_offset) {
     this.array = array;
-    this.offset = 0;
+    this.offset = opt_offset || 0;
     this.view = new DataView(this.array);
   }
 
@@ -90,8 +184,18 @@ class ArrayReader {
     return new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));    
   }
 
+  peekByte(offset) {
+    return this.view.getUint8(this.offset + offset);
+  }
+
   skip(numBytes) {
     this.offset += numBytes;
+  }
+
+  readBytes(numBytes) {
+    var v = new DataView(this.array, this.offset, numBytes);
+    this.skip(numBytes);
+    return v;
   }
 
   getOffset() {
@@ -115,6 +219,10 @@ class HeapExpApplication extends React.Component {
 
   constructor() {
     this.strs = [];
+
+    this.heapObjs = {};
+    this.unknownObjs = {};
+    this.tableObjs = {};
   }
 
   _processAllocLocationStrings(reader) {
@@ -124,9 +232,23 @@ class HeapExpApplication extends React.Component {
     }
   }
 
-  _processClosure(reader) {
+  _processClosure(reader, ptr, allocIdx) {
     let isCFunc = reader.nextU8();
     let numUpVals = reader.nextU8();
+
+    if (isCFunc) {
+      // Don't bother with C funcs, since I don't think they can
+      // keep anything alive.  (They close on values, not pointers).
+      reader.skip(4 + 8 + 8 + 8 + (numUpVals * 16));
+      return null;
+    }
+
+
+    if (numUpVals == 0) {
+      // No upvals means we aren't keeping anything leakable alive (I think!)
+      reader.skip(4 + 8 + 8 + 8);
+      return null;
+    }
   
     // Padding.
     reader.nextU32();
@@ -134,23 +256,17 @@ class HeapExpApplication extends React.Component {
     let gclist = reader.nextPtr();
     let env = reader.nextPtr();
 
-    if (isCFunc == 0) {
-      let proto = reader.nextPtr();
-      for (var i = 0; i < numUpVals; i++) {
-        reader.nextPtr();
-      }
-    } else {
-      let cfunc = reader.nextPtr();
-
-      for (var i = 0; i < numUpVals; i++) {
-        let val = reader.nextPtr();
-        let tt = reader.nextU32();
-        reader.nextU32();
-      }
+    let proto = reader.nextPtr();
+    let ptrs = [];
+    for (var i = 0; i < numUpVals; i++) {
+      ptrs.push(reader.nextPtr());
     }
+
+    return new ClosureHeapObject(ptr, allocIdx, ptrs);
   }
 
   _processFuncPrototype(reader) {
+    // Don't think prototypes can keep leakable stuff alive....
     // PADDING
     reader.nextU8();reader.nextU8();
 
@@ -185,9 +301,10 @@ class HeapExpApplication extends React.Component {
 
     // PADDING
     reader.nextU32();
+    return null;
   }
 
-  _processTable(reader) {
+  _processTable(reader, ptr, allocIdx) {
     let flags = reader.nextU8();
     let lsizenode = reader.nextU8();
     let metaTablePtr = reader.nextPtr();
@@ -202,22 +319,81 @@ class HeapExpApplication extends React.Component {
 
     // PADDING
     reader.nextU32();
+
+    return new TableHeapObject(ptr, allocIdx, metaTablePtr, arrayPtr, node);
   }
 
-  _processUserData(reader, numBytes) {
+  _processArray(ptr, allocIdx, bytes) {
+    let numBytes = bytes.byteLength;
+    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
+
+    console.assert((numBytes % 32) == 0);
+
+    var entries = [];
+    for (var i = 0; i < numBytes / 32; i++) {
+      let key = reader.nextPtr();
+      let keyType = reader.nextU32();
+      reader.nextU32();
+      if (keyType >= 5 && keyType <= 7) {
+        entries.push(key);
+      }
+      let val = reader.nextPtr();
+      let valType = reader.nextU32();
+      reader.nextU32();
+
+      if (valType >= 5 && valType <= 7) {
+        entries.push(val);
+      }
+    }
+    return new ArrayHeapObject(ptr, allocIdx, entries);
+  }
+
+  _processMap(ptr, allocIdx, bytes) {
+    let numBytes = bytes.byteLength;
+    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
+
+    console.assert((numBytes % 40) == 0);
+
+    var entries = [];
+    for (var i = 0; i < numBytes / 40; i++) {
+      let val = reader.nextPtr();
+      let valType = reader.nextU32();
+      reader.nextU32();
+
+      if (valType >= 5 && valType <= 7) {
+        entries.push(val);
+      }
+
+      let key = reader.nextPtr();
+      let keyType = reader.nextU32();
+      reader.nextU32();
+      if (keyType >= 5 && keyType <= 7) {
+        entries.push(key);
+      }
+      // Ignore 'next' ptr.
+      reader.nextPtr();
+    }
+    return new ArrayHeapObject(ptr, allocIdx, entries);
+
+  }
+
+  _processUserData(reader, numBytes, ptr, allocIdx) {
     reader.skip(6);
     let metatable = reader.nextPtr();
     let env = reader.nextPtr();
     let len = reader.nextU32();
+    reader.nextU32();  // len is a size_t!
     
     // The user bytes.
     reader.skip(len);
 
-    // Any padding ((8 + 1 + 1) + 26).  This might be unnecessary: maybe only 4?
-    reader.skip(numBytes - (36 + len));
+    // Any padding ((8 + 1 + 1) + 26).  This might be unnecessary.
+    reader.skip(numBytes - (40 + len));
+
+    return new UserDataHeapObject(ptr, allocIdx, metatable);
   }
 
-  _processUpValue(reader) {
+  _processUpValue(reader, ptr, allocIdx) {
     // PADDING.
     reader.nextU32();
     reader.nextU8();
@@ -228,14 +404,36 @@ class HeapExpApplication extends React.Component {
     // Fixme: NASTY UNIONS
     let val = reader.nextPtr();
     let next = reader.nextPtr();
+
+    // No idea if this is sufficient....
+    return new UpValueHeapObject(ptr, allocIdx, valPtr);
   }
 
-  _processBytes(reader, numBytes) {
-    if (reader.peekPtr().looksValid()) {
+  _processString(reader, ptr, allocIdx) {
+    let reserved = reader.nextU8();
+    let hash = reader.nextU32();
+
+    // PADDING
+    reader.nextU8();
+    let size = reader.nextU32(); reader.nextU32(); // size_t
+    let str = reader.nextStr();
+
+    return new StringHeapObject(ptr, allocIdx, str);
+  }
+
+  _processObject(reader) {
+    let strIdx = reader.nextU32();
+
+    let ptr = reader.nextU32();
+
+    let numBytes = reader.nextU32();
+
+    var typ = reader.peekByte(8);
+    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid()) {
 
       let gcNext = reader.nextPtr(); 
 
-      let typ = reader.nextU8();
+      typ = reader.nextU8();
 
       let marked = reader.nextU8();
 
@@ -249,6 +447,7 @@ class HeapExpApplication extends React.Component {
         return;
       }
 
+      var obj = null;
       switch(typ) {
         case 0:
           //NIL
@@ -268,20 +467,21 @@ class HeapExpApplication extends React.Component {
           break;
         case 4:
           // string
-          reader.skip(numBytes - 10);
+          obj = this._processString(reader, ptr, strIdx);
           break;
         case 5:
           // table
           console.assert(numBytes == 64);
-          this._processTable(reader);
+          obj = this._processTable(reader, ptr, strIdx);
+          this.tableObjs[ptr] = obj;
           break;
         case 6:
           // A closure of some kind
-          this._processClosure(reader);
+          obj = this._processClosure(reader, ptr, strIdx);
           break;
         case 7:
           // user data
-          this._processUserData(reader, numBytes);
+          obj = this._processUserData(reader, numBytes, ptr, strIdx);
           break;
         case 8:
           // thread
@@ -290,12 +490,12 @@ class HeapExpApplication extends React.Component {
         case 9:
           // Function prototype
           console.assert(numBytes == 120);
-          this._processFuncPrototype(reader);
+          this._processFuncPrototype(reader, ptr, strIdx);
           break;
 
         case 10:
           // up value
-          this._processUpValue(reader);
+          obj = this._processUpValue(reader, ptr, strIdx);
           break;
 
         default:
@@ -305,26 +505,43 @@ class HeapExpApplication extends React.Component {
       };
     } else {
       // Table data, I think?
-      console.log('skipping probable table (' + numBytes + ' bytes) at ' + reader.getOffset());
-      reader.skip(numBytes);
+      //console.log('unknown obj (' + numBytes + ' bytes) at ' + reader.getOffset());
+      //reader.skip(numBytes);
+      this.unknownObjs[ptr] = new UnknownHeapObject(ptr, strIdx, reader.readBytes(numBytes));
     }
-  }
 
-  _processAlloc(reader) {    
-    let strIdx = reader.nextU32();
-
-    let ptr = reader.nextU32();
-
-    let bytesLen = reader.nextU32();
-
-    this._processBytes(reader, bytesLen);
+    if (obj) {
+      this.heapObjs[ptr] = obj;
+    }
   }
 
   _processAllocs(reader) {
     let numAllocs = reader.nextU32();
 
     for (var i = 0; i < numAllocs; i++) {
-      this._processAlloc(reader);
+      this._processObject(reader);
+    }
+
+    this._attachArrays();
+  }
+
+  _attachArrays() {
+    for (var k in this.tableObjs) {
+      var ptr = this.tableObjs[k].getArrayPtr().low;
+      if (ptr) {
+        var arrObj = this.unknownObjs[ptr];
+        if (arrObj) {
+          this.heapObjs[ptr] = this._processArray(ptr, arrObj.allocIdx, arrObj.bytes);
+        }
+      }
+
+      ptr = this.tableObjs[k].getNodePtr().low;
+      if (ptr) {
+        var arrObj = this.unknownObjs[ptr];
+        if (arrObj) {
+          this.heapObjs[ptr] = this._processMap(ptr, arrObj.allocIdx, arrObj.bytes);
+        }
+      }
     }
   }
 
@@ -334,6 +551,7 @@ class HeapExpApplication extends React.Component {
 
     this._processAllocLocationStrings(heapReader);
     this._processAllocs(heapReader);
+    console.log('done processing!');
   }
 
   componentDidMount() {

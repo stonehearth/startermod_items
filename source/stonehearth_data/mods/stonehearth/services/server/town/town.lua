@@ -7,7 +7,7 @@ local CreateWorkshop = require 'services.server.town.orchestrators.create_worksh
 
 local Town = class()
 
-function Town:initialize(player_id)
+function Town:__init()
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
@@ -19,7 +19,9 @@ function Town:initialize(player_id)
    self._rally_tasks = {}
    self._mining_zone_destroy_listeners = {}
    self._temporary_effects = {}
+end
 
+function Town:initialize(player_id)
    self._sv.player_id = player_id
    self._sv._saved_calls = {}
    self._sv._next_saved_call_id = 1

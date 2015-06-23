@@ -998,10 +998,10 @@ void ScriptHost::DumpHeap(std::string const& filename) const
          fwrite(&idx, sizeof(idx), 1, outf);
 
          // ptr
-         fwrite(&alloc.first, sizeof(idx), 1, outf);
+         fwrite(&alloc.first, sizeof(alloc.first), 1, outf);
 
          // size
-         fwrite(&alloc.second, sizeof(idx), 1, outf);
+         fwrite(&alloc.second, sizeof(alloc.second), 1, outf);
 
          // write the bytes!
          fwrite(alloc.first, 1, alloc.second, outf);
