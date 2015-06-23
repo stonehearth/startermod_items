@@ -37,6 +37,8 @@
       },
       "stonehearth:storage" : {
          "type" : "backpack",
+         "auto_fill_from" : [],
+         "public" : false,
          "capacity" : 8
       },
       "stonehearth:attributes" : {
@@ -277,7 +279,8 @@
             "stonehearth:ai_pack:idle:bored:look_around",
             "stonehearth:ai_pack:idle:bored:wander",
             "stonehearth:ai_pack:idle:bored:sway",
-            "stonehearth:ai_pack:score"
+            "stonehearth:ai_pack:score",
+            "stonehearth:ai_pack:backpack"
          ]
       },
 

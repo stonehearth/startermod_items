@@ -2,9 +2,10 @@ local Entity = _radiant.om.Entity
 local PickupItemTypeFromBackpack = class()
 
 PickupItemTypeFromBackpack.name = 'pickup item type from backpack'
-PickupItemTypeFromBackpack.does = 'stonehearth:pickup_item_type_from_backpack'
+PickupItemTypeFromBackpack.does = 'stonehearth:pickup_item_type'
 PickupItemTypeFromBackpack.args = {
-   filter_fn = 'function'
+   filter_fn = 'function',
+   description = 'string',   
 }
 PickupItemTypeFromBackpack.think_output = {
    item = Entity
@@ -21,7 +22,7 @@ function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
 
    local items = self._storage_component:get_items()
    for id, item in pairs(items) do
-      if filter_fn(item, entity) then
+      if filter_fn(item, { always_allow_stealing = true }) then
          self._item = item
          ai.CURRENT.carrying = item
          ai:set_think_output({ item = item })

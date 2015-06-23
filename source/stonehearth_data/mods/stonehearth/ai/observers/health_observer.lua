@@ -20,17 +20,24 @@ function HealthObserver:activate()
    self._entity = self._sv.entity
    self._attributes_component = self._entity:add_component('stonehearth:attributes')
    self._health_changed_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:health', self, self._on_health_changed)
+   self._max_health_changed_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:max_health', self, self._calculate_thresholds)
 end
 
 function HealthObserver:destroy()
    self._health_changed_listener:destroy()
    self._health_changed_listener = nil
+
+   if self._max_health_changed_listener then
+      self._max_health_changed_listener:destroy()
+      self._max_health_changed_listener = nil
+   end
 end
 
 -- We care about full health, three quarters, half, and quarter health
 -- Given full health, calculate the others
 function HealthObserver:_calculate_thresholds()
-   self._sv._max_health = self._sv.last_health
+   local attributes_component = self._sv.entity:add_component('stonehearth:attributes')
+   self._sv._max_health = attributes_component:get_attribute('max_health')
    self._sv._quarter_health = math.floor(self._sv._max_health / 4)
    self._sv._threequarts_health = self._sv._quarter_health * 3
    self._sv._half_health = self._sv._quarter_health * 2
