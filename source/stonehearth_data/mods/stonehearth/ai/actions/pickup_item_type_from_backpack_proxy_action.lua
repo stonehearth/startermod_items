@@ -5,7 +5,7 @@ PickupItemTypeFromBackpackProxy.name = 'pickup item type from backpack (proxy)'
 PickupItemTypeFromBackpackProxy.does = 'stonehearth:pickup_item_type'
 PickupItemTypeFromBackpackProxy.args = {
    filter_fn = 'function',
-   description = 'string',   
+   description = 'string',
 }
 PickupItemTypeFromBackpackProxy.think_output = {
    item = Entity
@@ -19,3 +19,6 @@ return ai:create_compound_action(PickupItemTypeFromBackpackProxy)
                   filter_fn = ai.ARGS.filter_fn,
                   description = ai.ARGS.description,
                })
+            :set_think_output({
+               item = ai.PREV.item
+            })
