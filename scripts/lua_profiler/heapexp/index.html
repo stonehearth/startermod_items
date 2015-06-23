@@ -337,7 +337,6 @@ class DiffHeap {
     //this.strs = this._unionArr(a.strs, b.strs);
     this.strsToIdx = this._unionMap(a.strsToIdx, b.strsToIdx);
     this.heapObjs = this._unionMap(a.heapObjs, b.heapObjs);
-    this.allocIdxToObjs = this._unionMap(a.allocIdxToObjs, b.allocIdxToObjs);
     this.backMap = this._unionMap(a.backMap, b.backMap);
 
     this.diffObjs = this._subMap(this.heapObjs, b.heapObjs);
@@ -345,6 +344,14 @@ class DiffHeap {
     for (var k in this.diffObjs) {
       let obj = this.diffObjs[k];
       this.diffStrsToIdx[obj.allocStr] = 1;
+
+
+      let objList = this.allocIdxToObjs[obj.allocStr];
+      if (!objList) {
+        objList = [];
+        this.allocIdxToObjs[obj.allocStr] = objList;
+      }
+      objList.push(obj);
     }
   }
 
