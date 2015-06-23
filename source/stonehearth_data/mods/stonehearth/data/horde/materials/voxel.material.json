@@ -70,6 +70,11 @@
 			]
 		},
 
+		"DIRECTIONAL_LIGHTING_PORTRAIT" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/dir_lighting_portrait.shader"
+		},
+
 		"DEPTH_LINEAR" : {
 			"state" : "states/voxel/replace.state",
 			"shader" : "shaders/voxel/depth_linear.shader"

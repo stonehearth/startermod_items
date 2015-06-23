@@ -39,7 +39,7 @@ public:
 
    int GetAllocBytesCount() const;
    void WriteMemoryProfile(std::string const& filename);
-   void DumpHeap(std::string const& filename) const;
+   void DumpHeap(std::string const& filename);
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
 
