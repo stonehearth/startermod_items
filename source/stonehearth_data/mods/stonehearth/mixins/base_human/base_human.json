@@ -37,6 +37,8 @@
       },
       "stonehearth:storage" : {
          "type" : "backpack",
+         "auto_fill_from" : [],
+         "public" : false,
          "capacity" : 8
       },
       "stonehearth:attributes" : {

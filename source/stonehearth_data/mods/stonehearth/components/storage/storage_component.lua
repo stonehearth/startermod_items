@@ -7,6 +7,35 @@ local log = radiant.log.create_logger('storage')
 local INFINITE = 1000000
 local ALL_FILTER_FNS = {}
 
+
+function _can_steal_from_other_storage(auto_fill_from, item, container)
+   local other_storage = container:get_component('stonehearth:storage')
+   local other_container_type = other_storage:get_type()
+
+   assert(other_storage:contains_item(item:get_id()))
+   
+   -- cannot steal from non-public storage
+   if not other_storage:is_public() then
+      return false
+   end
+
+   -- ok to steal from containers matching our auto_fill_from setting
+   if auto_fill_from[other_container_type] then
+      return true
+   end
+
+   -- ok to steal from containers if the item in question doesn't match
+   -- their filter (e.g. the user changed the filter after the item was
+   -- put into storage)
+   -- take from the same container type if the filters don't match
+   if not other_storage:passes(item) then
+      return true
+   end
+
+   -- nope!  cannot steal that item from that storage
+   return false
+end
+
 local function _filter_passes(entity, filter)
    if not entity or not entity:is_valid() then
       log:spam('%s is not a valid entity.  cannot be stored.', tostring(entity))
@@ -49,7 +78,7 @@ local function _filter_passes(entity, filter)
 end
 
 
-local function get_filter_fn(filter_key, filter, player_id, player_inventory, container_type)
+local function get_filter_fn(filter_key, filter, auto_fill_from, player_id, player_inventory)
    -- all containers with the same filter must use the same filter function
    -- to determine whether or not an item can be stored.  this function is
    -- uniquely identified by the filter key.  this allows us to use a
@@ -69,12 +98,17 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
             table.insert(captured_filter, material)
          end
       end
+      local captured_auto_fill_from = {}
+      for k, v in pairs(auto_fill_from) do
+         captured_auto_fill_from[k] = v
+      end
+
       -- now create the filter function.  again, this function must work for
       -- *ALL* containers with the same filter key, which is why this is
       -- implemented in terms of global functions, parameters to the filter
       -- function, and captured local variables.
       filter_fn = function(item)
-         log:detail('calling filter function on %s', item)
+         log:detail('calling filter function on %s (key:%s)', item, filter_key)
 
          local item_player_id = radiant.entities.get_player_id(item)
          if item_player_id ~= player_id then
@@ -82,26 +116,11 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
             return false
          end
 
-         -- If this item is already in a container for the player, then ignore it.
+         -- If this item is already in a container for the player, then ignore it
+         -- if its type is not in our autofill map
          local container = player_inventory:container_for(item)
          if container then
-            local other_storage = container:get_component('stonehearth:storage')
-            local other_container_type = other_storage:get_type()
-            if container_type == constants.container_types.CRATE then
-               -- Crates do not restock from crates...
-               if other_container_type == constants.container_types.CRATE then
-                  -- ... unless those crates no longer store items of that type.
-                  if other_storage:passes(item) then
-                     return false
-                  end
-               end
-            elseif container_type == constants.container_types.VAULT then
-               -- Vaults do not restock from vaults or crates.
-               if other_container_type ~= constants.container_types.BACKPACK then
-                  return false
-               end
-            else
-               -- Backpacks don't restock from _any_ containers.
+            if not _can_steal_from_other_storage(captured_auto_fill_from, item, container) then
                return false
             end
          end
@@ -115,17 +134,9 @@ local function get_filter_fn(filter_key, filter, player_id, player_inventory, co
    return filter_fn   
 end
 
-
 function StorageComponent:initialize(entity, json)
 
    self._sv = self.__saved_variables:get_data()
-
-   self._unit_info_trace = entity:add_component('unit_info'):trace_player_id('filter observer')
-      :on_changed(function()
-            self._sv.player_id = entity:add_component('unit_info'):get_player_id()
-            self:_update_filter_key()
-         end)
-
 
    -- We don't hold reservations across saves.
    self.num_reserved = 0
@@ -140,8 +151,19 @@ function StorageComponent:initialize(entity, json)
       self._sv.passed_items = {}
       self._sv.filtered_items = {}
       self._sv.item_tracker = radiant.create_controller('stonehearth:inventory_tracker', basic_tracker)
-      self._sv.player_id = entity:add_component('unit_info'):get_player_id()
-      self._sv.type = json.type or constants.container_types.CRATE
+      self._sv.type = json.type or "crate"
+
+      self._sv.auto_fill_from = {}
+      for _, v in pairs(json.auto_fill_from or {}) do
+         self._sv.auto_fill_from[v] = true
+      end
+      
+      if json.public ~= nil then
+         self._sv.is_public = json.public
+      else
+         self._sv.is_public = true
+      end
+      
       self.__saved_variables:mark_changed()
    end
 
@@ -149,6 +171,14 @@ function StorageComponent:initialize(entity, json)
 
    self:_on_contents_changed()
    self:_update_filter_key()
+   
+   self._unit_info_trace = entity:add_component('unit_info')
+                                    :trace_player_id('filter observer')
+                                       :on_changed(function()
+                                             -- xxx: we also need to add/remove all the items in the
+                                             -- box to the new/old inventory
+                                             self:_update_filter_key()
+                                          end)
 end
 
 --If we're killed, dump the things in our backpack
@@ -228,7 +258,9 @@ function StorageComponent:add_item(item)
    self:_filter_item(item)
    self._sv.item_tracker:add_item(item)
 
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+   local player_id = self._sv.entity:get_component('unit_info')
+                                       :get_player_id()
+   local inventory = stonehearth.inventory:get_inventory(player_id)
    if inventory then
       inventory:add_item(item)
       inventory:update_item_container(id, self._sv.entity)
@@ -240,7 +272,10 @@ function StorageComponent:add_item(item)
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
 
-   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_added')
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_added', {      
+         item = item,
+         item_id = item:get_id(),
+      })
 end
 
 function StorageComponent:remove_item(id)
@@ -257,8 +292,13 @@ function StorageComponent:remove_item(id)
    self._sv.filtered_items[id] = nil
    self._sv.item_tracker:remove_item(id)
 
-   stonehearth.inventory:get_inventory(self._sv.player_id):remove_item(id)
-   stonehearth.inventory:get_inventory(self._sv.player_id):update_item_container(id, nil)
+   local player_id = self._sv.entity:get_component('unit_info')
+                                       :get_player_id()
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   if inventory then
+      inventory:remove_item(id)
+      inventory:update_item_container(id, nil)
+   end
    if item:is_valid() then
       radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end
@@ -266,7 +306,9 @@ function StorageComponent:remove_item(id)
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
 
-   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed')
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed', {      
+         item_id = id,
+      })
    return item
 end
 
@@ -284,6 +326,10 @@ end
 
 function StorageComponent:get_capacity()
    return self._sv.capacity or INFINITE
+end
+
+function StorageComponent:is_public()
+   return self._sv.is_public
 end
 
 function StorageComponent:set_capacity(value)
@@ -310,8 +356,8 @@ end
 
 function StorageComponent:_on_contents_changed()
    -- Crates cannot undeploy when they are carrying stuff.
-   if self._sv.type == constants.container_types.CRATE then
-      local commands_component = self._sv.entity:add_component('stonehearth:commands')
+   local commands_component = self._sv.entity:get_component('stonehearth:commands')
+   if commands_component then
       commands_component:enable_command('undeploy_item', self:is_empty())
    end
 end
@@ -330,12 +376,15 @@ function StorageComponent:get_filter_function()
    -- this intentionally delegates to a helper function to avoid the use of `self`
    -- in the filter (which must work for ALL containers sharing that filter, and
    -- therefore should not capture self or any members of self!)
+   local player_id = self._sv.entity:get_component('unit_info')
+                                       :get_player_id()
+
    return get_filter_fn(
-      self._sv._filter_key, 
+      self._sv._filter_key,
       self._sv.filter, 
-      self._sv.player_id, 
-      stonehearth.inventory:get_inventory(self._sv.player_id),
-      self._sv.type)
+      self._sv.auto_fill_from,
+      player_id, 
+      stonehearth.inventory:get_inventory(player_id))
 end
 
 function StorageComponent:get_filter()
@@ -387,7 +436,13 @@ function StorageComponent:_update_filter_key()
    else
       self._sv._filter_key = 'nofilter'
    end
-   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id .. '+' .. self._sv.type
+   local player_id = self._sv.entity:add_component('unit_info')
+                                       :get_player_id()
+
+   self._sv._filter_key = self._sv._filter_key .. '+' .. player_id .. '+' .. self._sv.type .. '+autofill='
+   for k, _ in pairs(self._sv.auto_fill_from) do
+      self._sv._filter_key = self._sv._filter_key .. '+' .. k 
+   end
    self.__saved_variables:mark_changed()   
 end
 
