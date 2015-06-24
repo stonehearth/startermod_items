@@ -1,6 +1,8 @@
 local MicroWorld = require 'lib.micro_world'
 local FoodTest = class(MicroWorld)
 
+local facing = 0
+
 function FoodTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
@@ -12,9 +14,9 @@ function FoodTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', -4, 4)
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
 
-   self:place_item('stonehearth:worker:outfit:2', 10, 10)
-   self:place_item_cluster('stonehearth:resources:fiber:wool_bundle', 8, 8, 4, 4)
-   self:place_item('stonehearth:furniture:arch_backed_chair', 6, 6, session.player_id, { force_iconic = false })
+   -- self:place_item('stonehearth:worker:outfit:2', 10, 10)
+   -- self:place_item_cluster('stonehearth:resources:fiber:wool_bundle', 8, 8, 4, 4)
+   local chair = self:place_item('stonehearth:furniture:arch_backed_chair', 6, 6, session.player_id, { force_iconic = false })
 
    local tree = self:place_tree(-12, -12)
 

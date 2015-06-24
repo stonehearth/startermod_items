@@ -1,4 +1,5 @@
 local Entity = _radiant.om.Entity
+local Point3 = _radiant.csg.Point3
 
 local SitOnChairAdjacent = class()
 SitOnChairAdjacent.name = 'sit on chair adjacent'
@@ -13,25 +14,29 @@ function SitOnChairAdjacent:run(ai, entity, args)
    local mob = entity:get_component('mob')
    local chair = args.chair
 
-   local chair_location = radiant.entities.get_world_grid_location(chair)
-   local chair_rotation = chair:get_component('mob')
-                                 :get_rotation()
+   self._saved_location = mob:get_world_grid_location()
+   self._saved_facing = mob:get_facing()
+   self._saved_collision_type = mob:get_mob_collision_type()
 
-   self._current_location = radiant.entities.get_world_grid_location(entity)
-
-   mob:set_rotation(chair_rotation)
-      :move_to(chair_location)
-
+   -- change to collision type so we can place it inside the collision region
+   mob:set_mob_collision_type(_radiant.om.Mob.NONE)
+   radiant.entities.add_child(chair, entity, Point3.zero, true)
    radiant.entities.set_posture(entity, 'stonehearth:sitting_on_chair')
 end
 
 function SitOnChairAdjacent:stop(ai, entity, args)
-   if self._current_location then
-      entity:get_component('mob')
-               :move_to(self._current_location)
-      self._current_location = nil
-   end
+   local root_entity = radiant.entities.get_root_entity()
+   local mob = entity:get_component('mob')
+   local egress_facing = self._saved_facing + 180
+
+   radiant.entities.add_child(root_entity, entity, self._saved_location)
+   mob:turn_to(egress_facing)
+   mob:set_mob_collision_type(self._saved_collision_type)
    radiant.entities.unset_posture(entity, 'stonehearth:sitting_on_chair')
+
+   self._saved_location = nil
+   self._saved_facing = nil
+   self._saved_collision_type = nil
 end
 
 return SitOnChairAdjacent

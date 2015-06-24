@@ -105,7 +105,10 @@ function entities.get_parent(entity)
    return mob and mob:get_parent()
 end
 
-function entities.add_child(parent, child, location)
+function entities.add_child(parent, child, location, use_parent_facing)
+   if use_parent_facing == nil then
+      use_parent_facing = false
+   end
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)
 
@@ -117,6 +120,13 @@ function entities.add_child(parent, child, location)
    if location then
       entities.move_to(child, location)
    end
+
+   if use_parent_facing then
+      -- BUG: Why doesn't setting the local orientaton to 0 work?
+      local parent_facing = entities.get_facing(parent)
+      entities.turn_to(child, parent_facing)
+   end
+
    component:add_child(child)
 end
 
