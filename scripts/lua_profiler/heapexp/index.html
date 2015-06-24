@@ -173,10 +173,15 @@ class UnknownHeapObject extends HeapObject {
 }
 
 class ArrayReader {
-  constructor(array, opt_offset) {
+  constructor(array, opt_offset, is32bit) {
     this.array = array;
     this.offset = opt_offset || 0;
     this.view = new DataView(this.array);
+    this.is32bit = !!is32bit;
+  }
+
+  getPtrSize() {
+    return this.is32bit ? 4 : 8;
   }
 
   nextU8() {
@@ -191,14 +196,23 @@ class ArrayReader {
     return v;
   }
 
+  nextSizeT() {
+    var low = this.nextU32();
+    var high = this.is32bit ? 0 : this.nextU32();
+    return low;
+  }
+
   nextPtr() {
-    var v = new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));
-    this.offset += 8;
+    var v = this.peekPtr();
+    this.offset += this.getPtrSize();
     return v;
   }
 
   peekPtr() {
-    return new HeapPtr(this.view.getInt32(this.offset, true), this.view.getInt32(this.offset + 4, true));    
+    var low = this.view.getUint32(this.offset, true);
+    var high = this.is32bit ? 0 : this.view.getInt32(this.offset + 4, true);
+
+    return new HeapPtr(low, high);
   }
 
   peekByte(offset) {
@@ -466,7 +480,11 @@ class Heap {
     this.backMap = {};
 
     if (heapBytes) {
-      var heapReader = new ArrayReader(heapBytes);
+      let is32Bit = new DataView(heapBytes).getUint32(0, true) == 0;
+      var heapReader = new ArrayReader(heapBytes, 0, is32Bit);
+      
+      // Don't forget to read the bit we just read :P
+      heapReader.nextU32();
 
       this._processAllocLocationStrings(heapReader);
       this._processAllocs(heapReader);
@@ -501,23 +519,26 @@ class Heap {
   _processClosure(reader, numBytes, ptr, allocStr) {
     let isCFunc = reader.nextU8();
     let numUpVals = reader.nextU8();
+    let headerSize = reader.getPtrSize() + 4;
 
     if (isCFunc) {
       // Don't bother with C funcs, since I don't think they can
       // keep anything alive.  (They close on values, not pointers).
-      reader.skip(4 + 8 + 8 + 8 + (numUpVals * 16));
+      reader.skip(numBytes - headerSize);
       return new ClosureHeapObject(ptr, numBytes, allocStr, []);
     }
 
 
     if (numUpVals == 0) {
       // No upvals means we aren't keeping anything leakable alive (I think!)
-      reader.skip(4 + 8 + 8 + 8);
+      reader.skip(numBytes - headerSize);
       return new ClosureHeapObject(ptr, numBytes, allocStr, []);
     }
   
     // Padding.
-    reader.nextU32();
+    if (!reader.is32bit) {
+      reader.nextU32();
+    }
 
     let gclist = reader.nextPtr();
     let env = reader.nextPtr();
@@ -535,15 +556,18 @@ class Heap {
     return result;
   }
 
-  _processFuncPrototype(reader) {
+  _processFuncPrototype(reader, numBytes) {
+    console.assert(numBytes == (reader.is32bit ? 76 : 120));
     // Don't think prototypes can keep leakable stuff alive....
     // PADDING
     reader.nextU8();reader.nextU8();
 
     let constants = reader.nextPtr();
 
-    // PADDING
-    reader.nextU32();
+    if (!reader.is32bit) {
+      // PADDING
+      reader.nextU32();
+    }
     let code = reader.nextPtr();
     let proto = reader.nextPtr();
     let lineInfo = reader.nextPtr();
@@ -556,11 +580,9 @@ class Heap {
     let codeSize = reader.nextU32();
     let lineInfSize = reader.nextU32();
     let protoSize = reader.nextU32();
+    let locaVarSize = reader.nextU32();
     let lineDef = reader.nextU32();
     let lastLineDef = reader.nextU32();
-
-    // PADDING
-    reader.nextU32();
 
     let gclist = reader.nextPtr();
 
@@ -569,26 +591,35 @@ class Heap {
     let isVarArgMask = reader.nextU8();
     let maxStackSize = reader.nextU8();
 
-    // PADDING
-    reader.nextU32();
+    if (!reader.is32bit) {
+      // PADDING
+      reader.nextU32();
+    }
     return null;
   }
 
   _processTable(reader, numBytes, ptr, allocStr) {
+    let expectedSize = reader.is32bit ? 32 : 64;
+    console.assert(numBytes == expectedSize);
+
     let flags = reader.nextU8();
     let lsizenode = reader.nextU8();
     let metaTablePtr = reader.nextPtr();
 
-    // PADDING
-    reader.nextU32();
+    if (!reader.is32bit) {
+      // PADDING
+      reader.nextU32();
+    }
     let arrayPtr = reader.nextPtr();
     let node = reader.nextPtr();
     let lastFree = reader.nextPtr();
     let gclist = reader.nextPtr();
     let sizeArray = reader.nextU32();
 
-    // PADDING
-    reader.nextU32();
+    if (!reader.is32bit) {
+      // PADDING
+      reader.nextU32();
+    }
 
     let result = new TableHeapObject(ptr, numBytes, allocStr, metaTablePtr, arrayPtr, node);
 
@@ -597,15 +628,15 @@ class Heap {
     return result;
   }
 
-  _processArray(ptr, numBytes, allocStr, bytes) {
-    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
-
-    console.assert((numBytes % 16) == 0);
+  _processArray(ptr, numBytes, allocStr, bytes, is32bit) {
+    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset);
+    let elementSize = reader.getPtrSize() * 2
+    console.assert((numBytes % elementSize) == 0);
 
     var entries = [];
     var stringFieldNames = [];
-    let result = new ArrayHeapObject(ptr, numBytes, allocStr, entries, stringFieldNames);
-    for (var i = 0; i < numBytes / 16; i++) {
+    let result = new ArrayHeapObject(ptr, numBytes, allocStr, entries, stringFieldNames, is32bit);
+    for (var i = 0; i < numBytes / elementSize; i++) {
       let val = reader.nextPtr();
       let valType = reader.nextU32();
       reader.nextU32();
@@ -618,16 +649,20 @@ class Heap {
     return result;
   }
 
-  _processMap(ptr, numBytes, allocStr, bytes) {
-    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset); 
+  _processMap(ptr, numBytes, allocStr, bytes, is32bit) {
+    let reader = new ArrayReader(bytes.buffer, bytes.byteOffset, is32bit);
+    let elementSize = reader.is32bit ? 32 : 40;
 
-    console.assert((numBytes % 40) == 0);
+    console.assert((numBytes % elementSize) == 0);
 
     var entries = [];
     var stringFieldNames = [];
     let result = new ArrayHeapObject(ptr, numBytes, allocStr, entries, stringFieldNames);
-    for (var i = 0; i < numBytes / 40; i++) {
+    for (var i = 0; i < numBytes / elementSize; i++) {
       let val = reader.nextPtr();
+      if (reader.is32bit) {
+        reader.nextPtr(); // ignore the next bits; needed to represent a double!
+      }
       let valType = reader.nextU32();
       reader.nextU32();
 
@@ -637,8 +672,14 @@ class Heap {
       }
 
       let key = reader.nextPtr();
+      if (reader.is32bit) {
+        reader.nextPtr(); // ignore the next bits; needed to represent a double!
+      }
       let keyType = reader.nextU32();
+      
+      // Padding in 64-bit; 'next' in 32.
       reader.nextU32();
+      
       if (keyType >= 5 && keyType <= 7) {
         entries.push(key);
         this._addToBackmap(key.low, result);
@@ -648,29 +689,72 @@ class Heap {
           stringFieldNames.push(str.toString());
         }
       }
-      // Ignore 'next' ptr.
-      reader.nextPtr();
+
+      if (!reader.is32bit) {
+        // Ignore 'next' ptr.
+        reader.nextPtr();
+      }
     }
     return result;
   }
 
   _processUserData(reader, numBytes, ptr, allocStr) {
-    reader.skip(6);
+    let readBytes = reader.getPtrSize() * 3 + (reader.is32bit ? (2 + 6) : (6 + 10));
+    if (reader.is32bit) {
+      reader.skip(2);
+    } else {
+      reader.skip(6);
+    }
     let metatable = reader.nextPtr();
     let env = reader.nextPtr();
-    let len = reader.nextU32();
-    reader.nextU32();  // len is a size_t!
+    let len = reader.nextSizeT();
     
-    // The user bytes.
-    reader.skip(len);
-
-    // Any padding ((8 + 1 + 1) + 26).  This might be unnecessary.
-    reader.skip(numBytes - (40 + len));
+    // Just skip to the end.
+    reader.skip(numBytes - readBytes);
 
     return new UserDataHeapObject(ptr, numBytes, allocStr, metatable);
   }
 
+  // This is all a bit suspicious (and difficult to reason about given all the unions/padding).
+  // If there's an error in lifetime accounting, this would be a good place to start looking.
+  // The struct looks something like:
+  // struct {
+  //   Value*;
+  //   union {
+  //     struct {
+  //       union {
+  //         int, 
+  //         void*,  <-- 4 or 8 bytes
+  //         double  <-- 8 bytes no matter what!
+  //       }
+  //       int
+  //     }
+  //     struct {
+  //       void*, 
+  //       void*
+  //     }
+  //   }
+  // }
   _processUpValue(reader, numBytes, ptr, allocStr) {
+    if (reader.is32bit) {
+      // PADDING.
+      reader.nextU8();
+      reader.nextU8();
+
+      let valPtr = reader.nextPtr();
+      let result = new UpValueHeapObject(ptr, numBytes, allocStr, valPtr);
+      
+      this._addToBackmap(valPtr.low, result);
+
+      // Fixme: Seriously, what the hell.
+      let val = reader.nextPtr();
+      let next = reader.nextPtr();
+      reader.nextPtr();reader.nextPtr();reader.nextPtr();
+
+      return result;
+    }
+
+
     // PADDING.
     reader.nextU32();
     reader.nextU8();
@@ -695,7 +779,7 @@ class Heap {
 
     // PADDING
     reader.nextU8();
-    let size = reader.nextU32(); reader.nextU32(); // size_t
+    let size = reader.nextSizeT();
     let str = reader.nextStr();
 
     return new StringHeapObject(ptr, numBytes, allocStr, str);
@@ -707,12 +791,11 @@ class Heap {
 
     let ptr = reader.nextPtr();
 
-    let numBytes = reader.nextU32();
-    reader.nextU32();
+    let numBytes = reader.nextSizeT();
 
-    var typ = reader.peekByte(8);
-    var marked = reader.peekByte(9);
-    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid() && marked > 0) {
+    var typ = reader.peekByte(reader.getPtrSize());
+    var marked = reader.peekByte(reader.getPtrSize() + 1);
+    if (typ >= 0 && typ <= 10 && reader.peekPtr().looksValid() && marked > 0 && marked <= 2) {
 
       let gcNext = reader.nextPtr(); 
 
@@ -720,17 +803,19 @@ class Heap {
 
       let marked = reader.nextU8();
 
+      let numRead = 2 + reader.getPtrSize();
+
       //console.log('type: ' + typ + '.  size: ' + numBytes + '. loc: ' + (reader.getOffset() - 10));
 
       var obj = null;
       switch(typ) {
         case 0:
           //NIL
-          reader.skip(numBytes - 10);
+          reader.skip(numBytes - numRead);
           break;
         case 1:
           //BOOL
-          reader.skip(numBytes - 10);
+          reader.skip(numBytes - numRead);
           break;
         case 2:
           // 'light' user data.  huh?
@@ -738,7 +823,7 @@ class Heap {
           break;
         case 3:
           // number
-          reader.skip(numBytes - 10);
+          reader.skip(numBytes - numRead);
           break;
         case 4:
           // string
@@ -746,7 +831,6 @@ class Heap {
           break;
         case 5:
           // table
-          console.assert(numBytes == 64);
           obj = this._processTable(reader, numBytes, ptr.low, str);
           this.tableObjs[ptr.low] = obj;
           break;
@@ -760,11 +844,10 @@ class Heap {
           break;
         case 8:
           // thread
-          reader.skip(numBytes - 10);
+          reader.skip(numBytes - numRead);
           break;    
         case 9:
           // Function prototype
-          console.assert(numBytes == 120);
           this._processFuncPrototype(reader, numBytes, ptr.low, str);
           break;
 
@@ -775,10 +858,11 @@ class Heap {
 
         default:
           console.log('unknown type: ' + typ + ' at ' + reader.getOffset());
-          reader.skip(numBytes - 10);
+          reader.skip(numBytes - numRead);
           break;
       };
     } else {
+      //console.log('unknown obj: ' + numBytes + ' bytes at ' + reader.getOffset());
       this.unknownObjs[ptr.low] = new UnknownHeapObject(ptr.low, numBytes, str, reader.readBytes(numBytes));
     }
 
@@ -794,7 +878,7 @@ class Heap {
       this._processObject(reader);
     }
 
-    this._attachArrays();
+    this._attachArrays(reader.is32bit);
 
     for (var k in this.heapObjs) {
       var obj = this.heapObjs[k];
@@ -809,13 +893,13 @@ class Heap {
     }
   }
 
-  _attachArrays() {
+  _attachArrays(is32bit) {
     for (var k in this.tableObjs) {
       var ptr = this.tableObjs[k].getArrayPtr().low;
       if (ptr) {
         var arrObj = this.unknownObjs[ptr];
         if (arrObj) {
-          this.heapObjs[ptr] = this._processArray(ptr, arrObj.sizeInBytes(), arrObj.allocStr, arrObj.bytes);
+          this.heapObjs[ptr] = this._processArray(ptr, arrObj.sizeInBytes(), arrObj.allocStr, arrObj.bytes, is32bit);
         }
       }
 
@@ -823,7 +907,7 @@ class Heap {
       if (ptr) {
         var arrObj = this.unknownObjs[ptr];
         if (arrObj) {
-          this.heapObjs[ptr] = this._processMap(ptr, arrObj.sizeInBytes(), arrObj.allocStr, arrObj.bytes);
+          this.heapObjs[ptr] = this._processMap(ptr, arrObj.sizeInBytes(), arrObj.allocStr, arrObj.bytes, is32bit);
         }
       }
     }

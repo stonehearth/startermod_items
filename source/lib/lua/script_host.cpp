@@ -980,6 +980,10 @@ void ScriptHost::DumpHeap(std::string const& filename)
 
    std::unordered_map<std::string, int> keyMap;
    FILE* outf = fopen(filenameDate.c_str(), "wb");
+
+   int is64 = core::System::IsProcess64Bit() ? 1 : 0;
+   // For automatic architecture detection.
+   fwrite(&is64, sizeof(is64), 1, outf);
    
    // Dump keys first.  Create an index for the keys, too.
    int numkeys = (int)alloc_map.size();
