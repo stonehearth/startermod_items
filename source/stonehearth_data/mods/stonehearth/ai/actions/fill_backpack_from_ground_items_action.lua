@@ -11,9 +11,13 @@ local log = radiant.log.create_logger('storage')
 
 -- xxx share this logic with storage component (move shared bits into storage_lib or something)
 --
-local function pickup_item_off_ground_filter(item)
+local function pickup_item_off_ground_filter(item, player_id)
    if not item or not item:is_valid() then
       log:spam('%s is not a valid item.  cannot be stored.', tostring(item))
+      return false
+   end
+
+   if player_id ~= radiant.entities.get_player_id(item) then
       return false
    end
 
@@ -58,13 +62,25 @@ local function pickup_item_off_ground_filter(item)
 end
 
 function FillBackpackFromGroundItems:start_thinking(ai, entity, args)
-   ai:set_think_output()
-end
+   local player_id = tostring(radiant.entities.get_player_id(entity))
+   local key = 'player_id+' .. player_id
+   local filter_fn = ALL_FILTER_FNS[key]
+   if not filter_fn then
+      filter_fn = function(item)
+         return pickup_item_off_ground_filter(item, player_id)
+      end
+      ALL_FILTER_FNS[key] = filter_fn
+   end
+   ai:set_think_output({
+         filter_fn = filter_fn,
+         description = args.description,
+      })
+end   
 
 local ai = stonehearth.ai
 return ai:create_compound_action(FillBackpackFromGroundItems)
    :execute('stonehearth:pickup_item_type', {
-            filter_fn = pickup_item_off_ground_filter,
+            filter_fn = ai.PREV.filter_fn,
             description = 'fill backpack from ground item',
    })
    :execute('stonehearth:put_carrying_in_backpack', {})
