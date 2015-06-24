@@ -4,8 +4,7 @@
    
    "components": {
       "mob" : {
-         "interpolate_movement" : false,
-         "mob_collision_type" : "tiny"
+         "interpolate_movement" : false
       },
       "stonehearth:storage" : {
          "type" : "crate",
@@ -24,7 +23,15 @@
                "max" : { "x" : 0, "y" : 1, "z" : 1 }
             }
          ]
-      }      
+      },
+      "region_collision_shape" : {
+         "region" : [
+            {
+               "min" : { "x" :-1, "y" : 0, "z" : 0 },
+               "max" : { "x" : 0, "y" : 1, "z" : 1 }
+            }
+         ]
+      }          
    },
    "entity_data" : {
       "stonehearth:ai_packs" : {
