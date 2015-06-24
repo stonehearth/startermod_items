@@ -63,7 +63,6 @@
                   "file(end_to_end/goblin_campaign_autotests.lua)",
                   "file(end_to_end/level_up_autotests.lua)",
                   "file(end_to_end/alarm_autotests.lua)",
-                  "file(end_to_end/shepherd_autotests.lua)",
                   "file(end_to_end/firepit_autotests.lua)",
                   "file(end_to_end/mining_autotests.lua)",
                   "file(blackbox/dm_map_autotests.lua)",
@@ -71,7 +70,6 @@
                   "file(end_to_end/stockpile_autotests.lua)",
                   "file(end_to_end/rotation_autotests.lua)",
                   "file(end_to_end/combat_autotests.lua)",
-                  "file(end_to_end/trapper_autotests.lua)",
                   "file(end_to_end/luabind_autotests.lua)",
                   "file(end_to_end/farming_autotests.lua)",
                   "file(end_to_end/carpenter_autotests.lua)",
@@ -83,6 +81,8 @@
                   "file(end_to_end/sensor_autotests.lua)",
                   "file(end_to_end/roads_autotests.lua)",
                   "file(end_to_end/gravity_autotests.lua)",
+                  "file(end_to_end/trapper_autotests.lua)",
+                  "file(end_to_end/shepherd_autotests.lua)",
                   "file(end_to_end/immigration_autotests.lua)"
                ]
             },
