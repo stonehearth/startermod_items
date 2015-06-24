@@ -21,7 +21,9 @@ App.StonehearthUnitFrameView = App.View.extend({
             "*" : {}
          }
       },
-      "unit_info": {}
+      "unit_info": {},
+      "item": {},
+      "stonehearth:material": {}
    },
 
    init: function() {
@@ -112,6 +114,18 @@ App.StonehearthUnitFrameView = App.View.extend({
 
       Ember.run.scheduleOnce('afterRender', this, '_updatePortrait');
    }.observes('context.stonehearth:job'),
+
+   _updateMoneyDescription: function() {
+     // Specifically, if the item selected is money, update its description to account for its value.
+     var material = this.get('context.stonehearth:material');
+     if (material && material.tags_string.indexOf('money') >= 0) {
+        var itemComponent = this.get('context.item');
+        if (itemComponent) {
+          var stacks = itemComponent.stacks;
+          this.set("context.unit_info.description", i18n.t('unit_info_gold_description', {stacks: stacks}));
+        }
+     }
+   }.observes('context.item'),
 
    _updatePortrait: function() {
       if (this.$()) {

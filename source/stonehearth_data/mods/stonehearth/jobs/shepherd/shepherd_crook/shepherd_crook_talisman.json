@@ -8,6 +8,10 @@
          "icon" : "file(shepherd_crook.png)"     
       },
       "item" : {
+<<<<<<< HEAD
+         "stacks" : 1, 
+=======
+>>>>>>> 64a23d5e05cbf9290f13811f0e83c2712f85f90b
          "category" : "tools"
       },
       "stonehearth:material" : {

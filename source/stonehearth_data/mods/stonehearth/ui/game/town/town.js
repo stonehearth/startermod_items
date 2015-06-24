@@ -123,7 +123,19 @@ App.StonehearthTownView = App.View.extend({
 
       radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:basic_inventory_tracker')
          .done(function(response) {
-            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, {})
+            var itemTraces = {
+               "tracking_data" : {
+                  "stonehearth:loot:gold" : {
+                     "items" : {
+                        "*" : {
+                           "item": {}
+                        }
+                     }
+                  }
+               }
+            };
+
+            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, itemTraces)
                .progress(function(response) {
                   self._inventoryPalette.stonehearthItemPalette('updateItems', response.tracking_data);
                });
