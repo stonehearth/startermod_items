@@ -9,13 +9,16 @@
     <div id="container">
     </div>
     <style>
-    .fieldClass {
+    .arrMapStr {
       display: inline-block;
       max-width: 1500px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
       vertical-align: text-bottom;
+    }
+    .objString {
+      display: inline-block;
     }
 
     </style>
@@ -216,16 +219,13 @@ class ArrayReader {
   }
 }
 
-class HeapRow extends React.Component {
+class AllocHeapRow extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
       expanded: false
     };
-
-    this.allocStr = this.props.k;
-    //this.ptr = this.props.
   }
 
   _onClickStr(e) {
@@ -234,73 +234,73 @@ class HeapRow extends React.Component {
     });
   }
 
-  _renderSub() {
-  }
-
-  _renderRoot() {
+  render() {
     var onClickStr = (e) => {this._onClickStr(e);};
-    if (this.state.expanded) {
-      var subRows = [];
-      var allocs = this.props.idxToObjs[this.allocStr];
 
-      for (var idx in allocs) {
-        let alloc = allocs[idx];
-        subRows.push(<HeapRow key={alloc.selfPtr} ptr={alloc.selfPtr} depth={this.props.depth + 1} root="false" k={alloc.allocStr} idxToObjs={this.props.idxToObjs} objs={this.props.objs} strsToIdx={this.props.strsToIdx} backMap={this.props.backMap} />);
-      }
+    var obj = this.props.diff.getObj(this.props.selfPtr);
 
-      return (
-        <div>
-          <div onClick={onClickStr}>{this.props.k}</div>
-          {subRows}
-        </div>
-      );     
-    }
-
-    return (
-      <div>
-        <div onClick={onClickStr}>{this.props.k}</div>
-      </div>
-    ); 
-
-  }
-
-  _renderAlloc() {
-    var onClickStr = (e) => {this._onClickStr(e);};
-    var obj = this.props.objs[this.props.ptr];
+    // If the object is a map/array, pull out its fields and print them.  This gives a very good hint as
+    // to the kind of object being examined.
     var arrMapVals = obj.getArrayMapVals();
-    var arrMapStr = ''
+    var arrMapStr = '';
     for (var v in arrMapVals) {
       arrMapStr += arrMapVals[v] + ', ';
     }
 
     if (this.state.expanded) {
       var subRows = [];
-      var referers = this.props.backMap[this.props.ptr];
+      var owners = this.props.diff.getOwningObjects(this.props.selfPtr);
 
-      for (var idx in referers) {
-        let alloc = referers[idx];
-        subRows.push(<HeapRow key={alloc.selfPtr} ptr={alloc.selfPtr} depth={this.props.depth + 1} root="false" k={alloc.allocStr} idxToObjs={this.props.idxToObjs} objs={this.props.objs} strsToIdx={this.props.strsToIdx} backMap={this.props.backMap} />);
+      for (var idx in owners) {
+        let owner = owners[idx];
+
+        subRows.push(<AllocHeapRow key={owner.selfPtr} selfPtr={owner.selfPtr} sourceLoc={owner.allocStr} depth={this.props.depth + 1} diff={this.props.diff} />);
       }
-      return (
-        <div>
-          <div style={{display:'inline-block', paddingLeft: (16 * this.props.depth) +'px'}} onClick={onClickStr}>{this.props.k}</div><div style={{display:'inline-block'}}>{obj.toString()}</div><div className="fieldClass">{arrMapStr}</div>
-          {subRows}
-        </div>
-      ); 
     }
+
     return (
-      <div>
-        <div style={{display:'inline-block', paddingLeft: (16 * this.props.depth) +'px'}} onClick={onClickStr}>{this.props.k}</div><div style={{display:'inline-block'}}>{obj.toString()}</div><div className="fieldClass">{arrMapStr}</div>
+      <div className="row">
+        <div  style={{display:'inline-block', paddingLeft: (16 * this.props.depth) +'px'}} onClick={onClickStr}>{this.props.sourceLoc}</div>
+        <div className="objString">{obj.toString()}</div>
+        <div className="arrMapStr">{arrMapStr}</div>
+        {subRows}
       </div>
     ); 
   }
+}
+
+class RootHeapRow extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      expanded : false
+    }
+  }
+
+  _onClickStr(e) {
+    this.setState({
+      expanded: !this.state.expanded
+    });
+  }
 
   render() {
-    if (this.props.root == 'true') {
-      return this._renderRoot();
-    } else {
-      return this._renderAlloc();
+    var onClickStr = (e) => {this._onClickStr(e);};
+    var subRows = [];
+    if (this.state.expanded) {
+      var objs = this.props.diff.getObjsAtSourceLoc(this.props.sourceLoc);
+
+      for (var idx in objs) {
+        let obj = objs[idx];
+        subRows.push(<AllocHeapRow key={obj.selfPtr} selfPtr={obj.selfPtr} sourceLoc={obj.allocStr} depth={1} diff={this.props.diff} />);
+      }
     }
+
+    return (
+      <div className="row">
+        <div className="sourceLoc" onClick={onClickStr}>{this.props.sourceLoc}</div>
+        {subRows}
+      </div>
+    ); 
   }
 }
 
@@ -311,12 +311,12 @@ class HeapRows extends React.Component {
 
   render() {
     let rows = [];
-    for (var key in this.props.diffStrsToIdx) {
-      rows.push(<HeapRow root="true" depth={0} key={key} k={key} strs={this.props.strs} idxToObjs={this.props.idxToObjs} objs={this.props.objs} strsToIdx={this.props.strsToIdx} backMap={this.props.backMap} />);
+    for (var sourceLoc in this.props.diff.getDeltaSourceLocs()) {
+      rows.push(<RootHeapRow key={sourceLoc} sourceLoc={sourceLoc} diff={this.props.diff} />);
     }
 
     return (
-      <div>{rows}</div>
+      <div className="rowsContainer">{rows}</div>
     );
   } 
 }
@@ -324,11 +324,13 @@ class HeapRows extends React.Component {
 class DiffHeap {
   constructor(a, b) {
     this.strsToIdx = {};
-
     this.heapObjs = {};
-
     this.allocIdxToObjs = {};
     this.backMap = {};
+
+    if (!a || !b) {
+      return;
+    }
 
     this.strsToIdx = this._unionMap(a.strsToIdx, b.strsToIdx);
     this.heapObjs = this._unionMap(a.heapObjs, b.heapObjs);
@@ -349,6 +351,27 @@ class DiffHeap {
       objList.push(obj);
     }
   }
+
+  getObjsAtSourceLoc(sourceLoc) {
+    return this.allocIdxToObjs[sourceLoc] || [];
+  }
+
+  getObj(ptr) {
+    return this.heapObjs[ptr];
+  }
+
+  getDeltaObj(ptr) {
+    return this.diffObjs[ptr];
+  }
+
+  getDeltaSourceLocs() {
+    return this.diffStrsToIdx;
+  }
+
+  getOwningObjects(ptr) {
+    return this.backMap[ptr];
+  }
+
 
   _subMap(m1, m2) {
     let result = {};
@@ -779,22 +802,13 @@ class HeapExpApplication extends React.Component {
     this.heaps = [];
 
     this.state = {
-      allocIdxToObjs: {}, 
-      objs:{}, 
-      strsToIdx:{},
-      backMap:{},
-      diffStrsToIdx:{}
+      diff : new DiffHeap()
     };
   }
 
   _processHeapDump(diffHeap) {
     this.setState({
-      idxToObjs : diffHeap.allocIdxToObjs,
-      objs : diffHeap.heapObjs,
-      strsToIdx : diffHeap.strsToIdx,
-      backMap : diffHeap.backMap,
-      diffObjs : diffHeap.diffObjs,
-      diffStrsToIdx : diffHeap.diffStrsToIdx
+      diff : diffHeap
     });
   }
 
@@ -811,12 +825,12 @@ class HeapExpApplication extends React.Component {
         reader.readAsArrayBuffer(evt.target.files[i])
       }
     };
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);    
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
   }
 
   render() {
     return (
-      <HeapRows strs={this.state.strs} idxToObjs={this.state.idxToObjs} objs={this.state.objs} strsToIdx={this.state.strsToIdx} backMap={this.state.backMap} diffStrsToIdx={this.state.diffStrsToIdx} />
+      <HeapRows diff={this.state.diff} />
     );
   }
 }
