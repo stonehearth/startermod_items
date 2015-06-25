@@ -12,6 +12,7 @@ public:
    Response(CefRefPtr<CefRequest> request);
    virtual ~Response();
 
+   void AddHeader(const char* key, const char* value);
    void SetResponse(int status_code, std::string const& response, std::string const& mimeType);
 
 public:
@@ -67,6 +68,7 @@ private:
    mutable std::atomic_int       _refCount;
    CefRefPtr<CefRequest>         _request;
    CefRefPtr<CefCallback>        _callback;
+   CefRequest::HeaderMap         _headers;
    std::string                   _response;
    unsigned int                  _readOffset;
    int                           _status;

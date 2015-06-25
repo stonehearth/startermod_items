@@ -192,6 +192,7 @@ function Shop:stock_shop()
          self._sv.shop_inventory[uri] = {
             uri = uri,
             display_name = unit_info:get_display_name(),
+            description = unit_info:get_description(),
             icon = unit_info:get_icon(),
             item = shop_item,
             cost = item_cost,

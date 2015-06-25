@@ -28,7 +28,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    self._entity = entity
    self._location = ai.CURRENT.location
    self._destination = args.destination
-   self._is_future = ai.CURRENT.future
+   self._is_future = ai.CURRENT.location_changed
 
    self._ai:set_debug_progress('starting thinking')
 
@@ -116,7 +116,7 @@ function FindPathToEntity:stop_thinking(ai, entity, args)
       self._timer = nil
    end
    self._is_future = true
-   self._ai:set_debug_progress('stopped thinking')   
+   self._ai:set_debug_progress('stopped thinking')
 end
 
 return FindPathToEntity

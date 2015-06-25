@@ -37,13 +37,14 @@ function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data
    if not tracking_data then
       -- We're the first object of this type.  Create a new tracking data structure.
 
-      local unit_info = entity:add_component('unit_info')      
+      local unit_info = entity:add_component('unit_info')
       tracking_data = {
          uri = entity:get_uri(),
          count = 0, 
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
+         description = unit_info:get_description(),
          category = radiant.entities.get_category(entity),
       }
    end
@@ -52,7 +53,7 @@ function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data
    local id = entity:get_id()
    if not tracking_data.items[id] then
       tracking_data.count = tracking_data.count + 1
-      tracking_data.items[id] = entity 
+      tracking_data.items[id] = entity
    end
    return tracking_data
 end
@@ -75,7 +76,7 @@ function BasicInventoryTracker:remove_entity_from_tracking_data(entity_id, track
       tracking_data.count = tracking_data.count - 1
       if tracking_data.count <= 0 then
          return nil
-      end 
+      end
    end
    return tracking_data
 end

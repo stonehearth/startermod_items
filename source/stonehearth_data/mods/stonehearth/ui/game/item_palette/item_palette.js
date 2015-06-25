@@ -169,5 +169,29 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          itemEl.find('.num').html(num);
          itemEl.removeClass('disabled');
       }
+
+      var tooltipString = '<div class="detailedTooltip"> <h2>' + item.display_name + '</h2>';
+      if (item.description) {
+         tooltipString = tooltipString + '<p>' + item.description + '</p>'
+      }
+
+      // Only display the stack cound if we were supplied the items
+      // This allows us to show the value of gold in a gold chest.
+      var stackCount = 0;
+      if (item.items) { // If we were supplied the items in the palette,
+         radiant.each(item.items, function(id, individualItem) {
+            //only push public buffs (buffs who have an is_private unset or false)
+            if (individualItem.item && individualItem.item.stacks) {
+              stackCount += individualItem.item.stacks;
+            }
+         });
+      }
+
+      if (stackCount > 0) {
+          tooltipString = tooltipString + '<p class="goldValue">' + stackCount + '</p>'
+      }
+
+      tooltipString = tooltipString + '</div>';
+      itemEl.tooltipster({content: $(tooltipString)});
    },
 });

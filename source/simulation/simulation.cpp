@@ -216,7 +216,7 @@ void Simulation::OneTimeIninitializtion()
    });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
       scriptHost_->WriteMemoryProfile("lua_memory_profile_server.txt");      
-      scriptHost_->DumpHeap("lua.server.heap");
+      scriptHost_->DumpHeap("lua.server");
    });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {

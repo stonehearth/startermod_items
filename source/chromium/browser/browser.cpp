@@ -653,6 +653,9 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
       response->Release();
    });
    deferred->Done([=](rpc::HttpResponse const& r) {
+      for (auto const& entry : r.headers) {
+         response->AddHeader(entry.first.c_str(), entry.second.c_str());
+      }
       response->SetResponse(r.code, r.content, r.mime_type);
    });
    deferred->Fail([=](rpc::HttpError const& r) {

@@ -41,6 +41,11 @@ bool Response::HasOneRef() const
    return _refCount > 0;
 }
 
+void Response::AddHeader(const char* name, const char* value)
+{
+   _headers.insert(std::make_pair(name, value));
+}
+
 // Begin processing the request. To handle the request return true and call
 // HeadersAvailable() once the response header information is available
 // (HeadersAvailable() can also be called from inside this method if header
@@ -62,6 +67,9 @@ void Response::GetResponseHeaders(CefRefPtr<CefResponse> response,
 {
    if (!_mimeType.empty()) {
       response->SetMimeType(_mimeType);
+   }
+   if (!_headers.empty()) {
+      response->SetHeaderMap(_headers);
    }
    response->SetStatus(_status);
    response_length = _response.size();

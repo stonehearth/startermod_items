@@ -555,11 +555,13 @@ static void Client_SetRouteHandler(const char* route, luabind::object unsafe_cb)
    // by value all the time elsewhere.  Revist when we upgrade compilers.  If someone ever fixes,
    // this, please resolve https://redmine/issues/299 . -- tony
    //
-   luabind::object *cb = new luabind::object(cb_thread, unsafe_cb);
+   std::shared_ptr<luabind::object> cb(new luabind::object(cb_thread, unsafe_cb));
 
+   CLIENT_LOG(0) << "installing new route handler! " << cb;
    Client::GetInstance().SetLuaRouteHandler(route, [cb_thread, cb] (chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) mutable {
       try {
          luabind::object form = lua::ScriptHost::JsonToLua(cb_thread, req.query);
+         CLIENT_LOG(0) << "calling route handler! " << cb;
          (*cb)(req.path, form, response);
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
@@ -592,14 +594,19 @@ static std::string Client_SnapScreenShot(const char* tag)
    return pathstr;
 }
 
-static void Client_GetPortrait(lua_State* L, luabind::object unsafe_cb)
+static void Client_GetPortrait(luabind::object unsafe_cb)
 {
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());  
-   luabind::object cb = luabind::object(cb_thread, unsafe_cb);
+   // XXX: Capturing the callback by value in the lambda passed to RequestPortrait causes crashing bugs.
+   // I suspect this is a compiler errors in Visual Studio 2012, since we capture luabind::objects
+   // by value all the time elsewhere.  Revist when we upgrade compilers.  If someone ever fixes,
+   // this, please resolve https://redmine/issues/299 . -- tony
+   //
+   std::shared_ptr<luabind::object> cb(new luabind::object(cb_thread, unsafe_cb));
 
-   Renderer::GetInstance().RequestPortrait([cb_thread, cb](std::string const& bytes) mutable {
+   Renderer::GetInstance().RequestPortrait([cb_thread, cb](std::string const& op, std::string const& bytes) mutable {
       try {
-         cb(bytes);
+         (*cb)(op, bytes);
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
       }
@@ -669,6 +676,7 @@ void lua::client::open(lua_State* L)
                .def("destroy",           &SetCursorPromise::Destroy)
             ,
             lua::RegisterTypePtr_NoTypeInfo<rpc::HttpDeferred>("HttpDeferred")
+               .def("add_header",            &rpc::HttpDeferred::AddHeader)
                .def("resolve_with_file",     &rpc::HttpDeferred::ResolveWithFile)
                .def("resolve_with_content",  &rpc::HttpDeferred::ResolveWithContent)
                .def("reject_with_error",     &rpc::HttpDeferred::RejectWithError)

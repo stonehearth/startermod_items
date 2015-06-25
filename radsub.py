@@ -189,7 +189,7 @@ else:
 if args.timeout != None:
    timeout = int(args.timeout)
 else:
-   timeout = 10 * 60
+   timeout = 30 * 60
 
 if not args.interactive:
   sh_args += ' --renderer.minimized=true'

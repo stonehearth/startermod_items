@@ -47,6 +47,31 @@ function crate_tests.dont_move_items_from_crate_to_crate(autotest)
    autotest:success()
 end
 
+function crate_tests.move_items_from_crate_to_crate(autotest)
+   local session = autotest.env:get_player_session()
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
+   local crate = autotest.env:create_entity(0, 0, 'stonehearth:containers:small_crate', { force_iconic = false })
+   local log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
+
+   radiant.entities.set_player_id(log, worker)
+   local sc = crate:get_component('stonehearth:storage')
+
+   sc:add_item(log)
+   sc:set_filter({ }) -- nothing
+
+   local other_crate = autotest.env:create_entity(4, 4, 'stonehearth:containers:small_crate', { force_iconic = false })
+   radiant.events.listen_once(other_crate, 'stonehearth:storage:item_added', function()
+         autotest:success()
+      end)
+
+   autotest:sleep(5000)
+   autotest:fail()
+end
+
+--[[
+
+we're not sure if we actually want to do this.  disable autotest for now.
+
 function crate_tests.move_items_from_crate_to_stockpile(autotest)
    local session = autotest.env:get_player_session()
    local worker = autotest.env:create_person(2, 2, { job = 'worker' })
@@ -67,13 +92,13 @@ function crate_tests.move_items_from_crate_to_stockpile(autotest)
    autotest:sleep(1000000)
    autotest:fail()
 end
+]]
 
 function crate_tests.build_from_crate(autotest)
    local session = autotest.env:get_player_session()
    local worker = autotest.env:create_person(2, 2, { job = 'worker' })
    local crate = autotest.env:create_entity(0, 0, 'stonehearth:containers:small_crate', { force_iconic = false })
    local log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
-   --autotest.env:create_entity(-4, -4, 'stonehearth:resources:wood:oak_log')
    
    radiant.entities.set_player_id(log, worker)
    crate:get_component('stonehearth:storage')
@@ -102,7 +127,7 @@ function crate_tests.restock_items_in_backpack(autotest)
    end
 
    autotest.env:create_stockpile(-4, -4)
-   
+
    local listener
    listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
          if sc:is_empty() then

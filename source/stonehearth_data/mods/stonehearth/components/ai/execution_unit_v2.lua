@@ -63,6 +63,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
    chain_function('get_log')
    chain_function('set_status_text')
    chain_function('set_cost')
+   chain_function('monitor_carrying')
    chain_function('protect_argument')
    chain_function('unprotect_argument')
    chain_function('set_debug_progress')
@@ -668,6 +669,12 @@ function ExecutionUnitV2:_do_stop_thinking()
    self._ai_interface.CURRENT = nil
    self._thinking = false
 
+   if self._carry_listener then
+      self._log:detail('destroying carry listener')
+      self._carry_listener:destroy()
+      self._carry_listener = nil
+   end
+
    self:_call_stop_thinking()
 end
 
@@ -717,6 +724,44 @@ function ExecutionUnitV2:_enable_argument_protection(object_monitor, obj, protec
          self._log:detail('unprotecting %s', protected_obj)
          object_monitor:unprotect_object(protected_obj)
       end
+   end
+end
+
+function ExecutionUnitV2:__monitor_carrying()
+   if self._current_entity_state.carrying_changed then
+      self._log:debug('ignoring call to :monitor_carrying(), carrying value modified by upstream action')
+      return
+   end
+
+   if not self._carry_listener then
+      self._log:detail('creating carry listener')
+      self._carry_listener = radiant.events.listen(self._entity, 'stonehearth:carry_block:carrying_changed:sync', self, self._on_carrying_changed)
+   end
+end
+
+function ExecutionUnitV2:_on_carrying_changed()
+   if not self._current_entity_state then
+      -- this is probably a logical error, but let's not blow up because of it!
+      self._log:error('no current state in _on_carrying_changed callback. =(  ignoring')
+      return
+   end
+
+   local carrying = radiant.entities.get_carrying(self._entity)
+
+   self._log:detail('noticed carrying changed to (%s) in state %s (CURRENT.carrying = %s).', tostring(carrying), self._state, tostring(self._current_entity_state.carrying))
+   if self._current_entity_state.carrying ~= carrying then
+      if self._state == 'thinking' then
+         self._log:detail('woot!  killing this branch')
+         self._thread:interrupt(function()
+               self._log:detail('woot!  killing this branch (interrupt)')
+               self:_stop_thinking()
+            end)
+      elseif self._state == 'ready' then
+         self._frame:_unit_not_ready(self)
+         -- do we need to do more here?  like stop or try to restart thinking?
+      end
+   else
+      self._log:detail('current carrying matches (%s).  no harm, no foul.', tostring(carrying))
    end
 end
 

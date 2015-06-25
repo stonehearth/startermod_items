@@ -120,10 +120,33 @@ $(document).ready(function(){
 
    radiant.console.register('set_time', {
       call: function(cmdobj, fn, args) {
-         var time = JSON.parse(args[0]);
-         return App.stonehearthClient.setTime(time);
+         var timeStr = args[0];
+         if (!timeStr) {
+            cmdobj.setContent("Time not formatted correctly. Usage: set_time 1:25PM");
+            return;
+         }
+         var time = timeStr.match(/(\d+)(?::(\d\d))?\s*(p?)/i);
+         if (!time) {
+            cmdobj.setContent("Time not formatted correctly. Usage: set_time 1:25PM");
+            return;
+         }
+         var hours = parseInt(time[1], 10);
+         if (hours == 12 && !time[3]) {
+           hours = 0;
+         }
+         else {
+           hours += (hours < 12 && time[3]) ? 12 : 0;
+         }
+         var minutes = parseInt(time[2], 10) || 0;
+
+         var timeJSON = {
+            "hour" : hours,
+            "minute" : minutes
+         };
+
+         return App.stonehearthClient.setTime(timeJSON);
       },
-      description : "Sets the time with options passed in through Arg 0 (Note you can't have any spaces and you have to include the quotes so is valid JSON). Usage: set_time {\"hour\":12,\"minute\":0}"
+      description : "Sets the game time to the time passed in. Usage: set_time 1:25PM"
    });
 
    radiant.console.register('world_seed', {

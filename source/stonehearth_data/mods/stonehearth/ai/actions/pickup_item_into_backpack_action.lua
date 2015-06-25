@@ -19,4 +19,4 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemIntoBackpack)
    :execute('stonehearth:pickup_item', { item = ai.ARGS.item })
-   :execute('stonehearth:put_carrying_in_backpack', { entity = ai.ENTITY })
+   :execute('stonehearth:put_carrying_in_backpack', {})

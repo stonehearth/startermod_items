@@ -226,6 +226,9 @@
    "happiness_shelter" : "Shelter",
    "happiness_safety" : "Safety",
 
+   "character_sheet_equipment_attack" : "Atk",
+   "character_sheet_equipment_defense" : "Def",
+
    "storage_remaining_spaces" : "Available space:",
    
    "stockpile_all" : "All",
@@ -555,8 +558,12 @@
    "item_categories_plants" : "Plants",
    "item_categories_weapons" : "Weapons",
    "item_categories_tools" : "Tools",
+   "item_categories_wealth" : "Wealth",
+   "item_categories_refined" : "Refined",
    "item_categories_uncategorized" : "Uncategorized",
 
    "unit_info_show_character_sheet": "Show character sheet",
-   "unit_info_focus_camera": "Focus camera on this unit"
+   "unit_info_focus_camera": "Focus camera on this unit",
+
+   "unit_info_gold_description": "It's worth __stacks__ money!"
 }

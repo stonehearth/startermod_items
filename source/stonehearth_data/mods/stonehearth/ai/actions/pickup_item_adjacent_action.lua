@@ -12,6 +12,7 @@ PickupItemAdjacent.priority = 1
 local log = radiant.log.create_logger('actions.pickup_item')
 
 function PickupItemAdjacent:start_thinking(ai, entity, args)
+   ai:monitor_carrying()
    if not ai.CURRENT.carrying then
       ai.CURRENT.carrying = args.item
       ai:set_think_output()

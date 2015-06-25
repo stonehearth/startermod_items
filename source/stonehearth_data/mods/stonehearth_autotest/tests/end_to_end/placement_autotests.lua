@@ -16,6 +16,7 @@ function placement_autotests.two_place_multiple_times(autotest)
    autotest.env:create_person(-8, 8, { job = 'worker' })
    autotest.env:create_person(20, -20, { job = 'worker' })
 
+   autotest.env:create_stockpile(0, 0)
    local big_bed = autotest.env:create_entity(0, 0, 'stonehearth:furniture:comfy_bed')
    local bed_proxy = big_bed:get_component('stonehearth:entity_forms')
                                  :get_iconic_entity()

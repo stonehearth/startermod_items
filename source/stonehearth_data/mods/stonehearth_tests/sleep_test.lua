@@ -15,7 +15,7 @@ function SleepTest:__init()
 
    local w1 = self:place_citizen(-8, 8)
    local w2 = self:place_citizen(8, 8)
-   self:place_item('stonehearth:furniture:comfy_bed', 0, 8, session.player_id, { force_iconic = false })
+   local bed = self:place_item('stonehearth:furniture:comfy_bed', 0, 8, session.player_id, { force_iconic = false })
    local tree = self:place_tree(-12, -12)
 
    --Make sure pets sleep too 
@@ -28,7 +28,7 @@ function SleepTest:__init()
 
    --A few seconds in, set the time of day to right before sleepy time
    self:at(3000, function()
-      radiant.entities.set_attribute(w1, 'sleepiness', stonehearth.constants.sleep.BEDTIME_THRESHOLD)
+      radiant.entities.set_attribute(w1, 'sleepiness', stonehearth.constants.sleep.TIRED)
       stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 1, minute = 58 })
    end)
    --Then, make someone super, super sleeply

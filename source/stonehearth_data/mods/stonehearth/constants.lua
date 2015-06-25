@@ -59,7 +59,6 @@ local constants = {
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,
-         RESTOCK_FROM_BACKPACK = 7,
          PLACE_ITEM         = 8,
          LOOT_ITEM          = 8,
          LIGHT_FIRE         = 10,
@@ -315,6 +314,8 @@ local constants = {
       CURIOSITY_NEW_CRAFTABLE_MULTIPLER = 0.05, -- Multiply entity's curiosity attribute by this to get multiplier for xp earned. Min multiplier is 1,
       STAMINA_SLEEP_ON_GROUND_OKAY_THRESHOLD = 55, -- If your stamina is >= this threshold, then you are not groggy from sleeping on the ground.
       COMPASSION_TRAPPER_TWO_PETS_THRESHOLD = 40, -- If a trapper's compassion is >= this threshold, he/she can have 2 pets
+      COMPASSION_SHEPHERD_SHEEP_MULTIPLIER = 0.5, -- Multiply a shepherd's compassion by this number to get the bonus chance to get sheep.
+      COMPASSION_SHEPHERD_BUFF_CHANCE_MULTIPLIER = 1, -- Multiply shepherd's compassion by this number chance to give sheep the happy buff.
    },
 
    placement = {

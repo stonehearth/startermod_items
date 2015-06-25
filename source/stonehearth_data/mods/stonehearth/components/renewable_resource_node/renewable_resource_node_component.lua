@@ -23,9 +23,8 @@ function RenewableResourceNodeComponent:initialize(entity, json)
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
-
+      self._sv._original_description = self._entity:get_component('unit_info'):get_description()
       --TODO: expand this so we can start with an unharvestable item with a timer to first harvestable
-      
       self._sv.harvestable = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
@@ -39,8 +38,9 @@ function RenewableResourceNodeComponent:initialize(entity, json)
          end
          return radiant.events.UNLISTEN
       end)
-
-      
+      if self._sv._original_description then
+         self._original_description = self._sv._original_description
+      end
    end
 end
 
@@ -87,7 +87,18 @@ function RenewableResourceNodeComponent:spawn_resource(owner, location)
       --start the countdown to respawn.
       local render_info = self._entity:add_component('render_info')
       render_info:set_model_variant('depleted')
-      self:_start_renew_timer(self._renewal_time)
+
+      local renewal_time = self._renewal_time
+      --Calculate renewal time based on stats
+      local attributes = self._entity:get_component('stonehearth:attributes')
+      if attributes then
+         local modifier = attributes:get_attribute('renewable_resource_rate_modifier') or 0
+         local modifier = modifier..'h'
+         local modifier_in_seconds = stonehearth.calendar:parse_duration(modifier)
+         renewal_time = math.max(renewal_time - modifier_in_seconds, 0)
+      end
+
+      self:_start_renew_timer(renewal_time)
 
       --Change the description
       if self._unripe_description then
