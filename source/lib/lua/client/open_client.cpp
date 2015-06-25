@@ -557,11 +557,9 @@ static void Client_SetRouteHandler(const char* route, luabind::object unsafe_cb)
    //
    std::shared_ptr<luabind::object> cb(new luabind::object(cb_thread, unsafe_cb));
 
-   CLIENT_LOG(0) << "installing new route handler! " << cb;
    Client::GetInstance().SetLuaRouteHandler(route, [cb_thread, cb] (chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) mutable {
       try {
          luabind::object form = lua::ScriptHost::JsonToLua(cb_thread, req.query);
-         CLIENT_LOG(0) << "calling route handler! " << cb;
          (*cb)(req.path, form, response);
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
