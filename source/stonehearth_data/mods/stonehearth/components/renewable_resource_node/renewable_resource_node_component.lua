@@ -1,5 +1,7 @@
 local RenewableResourceNodeComponent = class()
 
+local MIN_RENEWAL_TIME_SECONDS = 1800 --30 minutes
+
 function RenewableResourceNodeComponent:initialize(entity, json)
    self._entity = entity
 
@@ -41,6 +43,10 @@ function RenewableResourceNodeComponent:initialize(entity, json)
       if self._sv._original_description then
          self._original_description = self._sv._original_description
       end
+   end
+
+   if self._entity:get_component('stonehearth:attributes') then
+      self._resource_rate_changed_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:renewable_resource_rate_modifier', self, self._update_renew_timer)
    end
 end
 
@@ -88,17 +94,7 @@ function RenewableResourceNodeComponent:spawn_resource(owner, location)
       local render_info = self._entity:add_component('render_info')
       render_info:set_model_variant('depleted')
 
-      local renewal_time = self._renewal_time
-      --Calculate renewal time based on stats
-      local attributes = self._entity:get_component('stonehearth:attributes')
-      if attributes then
-         local modifier = attributes:get_attribute('renewable_resource_rate_modifier') or 0
-         local modifier = modifier..'h'
-         local modifier_in_seconds = stonehearth.calendar:parse_duration(modifier)
-         renewal_time = math.max(renewal_time - modifier_in_seconds, 0)
-      end
-
-      self:_start_renew_timer(renewal_time)
+      self:_update_renew_timer()
 
       --Change the description
       if self._unripe_description then
@@ -172,6 +168,22 @@ function RenewableResourceNodeComponent:_start_renew_timer(duration)
    )
 
    self.__saved_variables:mark_changed()
+end
+
+function RenewableResourceNodeComponent:_update_renew_timer()
+   local renewal_time = self._renewal_time
+   if self._sv.renew_timer then
+      renewal_time = stonehearth.calendar:get_remaining_time(self._sv.renew_timer)
+   end
+
+   --Calculate renewal time based on stats
+   local attributes = self._entity:get_component('stonehearth:attributes')
+   if attributes then
+      local modifier = attributes:get_attribute('renewable_resource_rate_modifier') or 0
+      local modifier_in_seconds = modifier * stonehearth.calendar:get_time_durations().hour
+      renewal_time = math.max(renewal_time - modifier_in_seconds, MIN_RENEWAL_TIME_SECONDS)
+   end
+   self:_start_renew_timer(renewal_time)
 end
 
 function RenewableResourceNodeComponent:_stop_renew_timer()
