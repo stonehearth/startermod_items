@@ -27,6 +27,7 @@
 #include <unordered_set>
 #include "raycast_result.h"
 #include "horde3d\Source\Horde3DEngine\egHudElement.h"
+#include "platform/utils.h"
 
 #define NUM_STORES 5
 
@@ -113,7 +114,7 @@ class Renderer
       lua::ScriptHost* GetScriptHost() const;
       void DecodeDebugShapes(const ::radiant::protocol::shapelist& msg);
       void RenderOneFrame(int now, float alpha, bool screenshot=false);
-      void ConstructAllRenderEntities();
+      void ConstructAllRenderEntities(platform::timer* timer = nullptr);
       void LoadResources();
       void SetServerTick(int tick);
 
@@ -158,7 +159,7 @@ class Renderer
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
-      typedef std::function<void(std::string const&)> PortraitRequestCb;
+      typedef std::function<void(std::string const&, std::string const&)> PortraitRequestCb;
       void RequestPortrait(PortraitRequestCb const& fn);
 
       core::Guard OnScreenResize(std::function<void(csg::Rect2)> const& fn);

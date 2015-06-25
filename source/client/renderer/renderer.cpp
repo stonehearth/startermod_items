@@ -24,7 +24,6 @@
 #include <string>
 #include "client/client.h"
 #include "raycast_result.h"
-#include "platform/utils.h"
 #include "horde3d\Source\Shared\utMath.h"
 #include "gfxcard_db.h"
 
@@ -1187,6 +1186,7 @@ void Renderer::Shutdown()
 {
    RenderNode::Shutdown();
 
+   portrait_cb_ = PortraitRequestCb();
    show_debug_shapes_changed_slot_.Clear();
    server_tick_slot_.Clear();
    render_frame_start_slot_.Clear();
@@ -1276,16 +1276,19 @@ bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
    return false;
 }
 
-void Renderer::ConstructAllRenderEntities()
+void Renderer::ConstructAllRenderEntities(platform::timer* timer)
 {
+   perfmon::TimelineCounterGuard tcg("create render entities");
+
    while (!_newRenderEntities.empty()) {
-      std::vector<std::weak_ptr<RenderEntity>> renderEntities = _newRenderEntities;
-      _newRenderEntities.clear();
-      for (std::weak_ptr<RenderEntity> re : renderEntities) {
-         std::shared_ptr<RenderEntity> r = re.lock();
-         if (r) {
-            r->FinishConstruction();
-         }
+      if (timer && timer->expired()) {
+         break;
+      }
+
+      std::shared_ptr<RenderEntity> re = _newRenderEntities.back().lock();
+      _newRenderEntities.pop_back();
+      if (re) {
+         re->FinishConstruction();
       }
    }
 }
@@ -1319,6 +1322,8 @@ void Renderer::RenderPortraitRT()
 
       // Turn off the UI to render the portrait.
       h3dSetOption(H3DOptions::EnableRenderCaching, false);
+      portrait_cb_("setup", "");
+      ConstructAllRenderEntities(nullptr);
       h3dRender(portraitCamera_->GetNode(), GetPipeline(portraitPipeline_));
       h3dSetOption(H3DOptions::EnableRenderCaching, true);
    } else if (portrait_generated_) {
@@ -1328,9 +1333,9 @@ void Renderer::RenderPortraitRT()
 
       {
          perfmon::TimelineCounterGuard tcg("render portrait callback");
-         portrait_cb_(portraitBytes_);
+         portrait_cb_("finished", portraitBytes_);
       }
-
+      portrait_cb_ = PortraitRequestCb();
       portraitBytes_.clear();
    }
 }
@@ -1343,18 +1348,7 @@ void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
 
    // Initialize all the new render entities we created this frame.
    platform::timer t(_maxRenderEntityLoadTime);
-
-   {
-      perfmon::TimelineCounterGuard tcg("create render entities");
-      
-      while (!_newRenderEntities.empty() && !t.expired()) {
-         std::shared_ptr<RenderEntity> re = _newRenderEntities.back().lock();
-         _newRenderEntities.pop_back();
-         if (re) {
-            re->FinishConstruction();
-         }
-      }
-   }
+   ConstructAllRenderEntities(&t);
 
    if (iconified_) {
       return;

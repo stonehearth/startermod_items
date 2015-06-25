@@ -36,19 +36,23 @@ function PortraitRendererService:_pump_request_queue()
    if not self._pending_request then
       return
    end
-   local request, response = self._pending_request.request, self._pending_request.response
-   assert(request)
-   assert(response)
 
-   self:_stage_scene(request)
-   _radiant.client.get_portrait(function(bytes)
-         self:_clear_scene()
-         self._pending_request = nil
-         response:add_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-         response:add_header('Pragma', 'no-cache')
-         response:add_header('Expires', '0')
-         response:resolve_with_content(bytes, 'image/png');
-         self:_pump_request_queue()
+   _radiant.client.get_portrait(function(op, bytes)
+         local request, response = self._pending_request.request, self._pending_request.response
+         assert(request)
+         assert(response)
+
+         if op == 'setup' then
+            self:_stage_scene(request)
+         elseif op == 'finished' then
+            self:_clear_scene()
+            self._pending_request = nil
+            response:add_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            response:add_header('Pragma', 'no-cache')
+            response:add_header('Expires', '0')
+            response:resolve_with_content(bytes, 'image/png');
+            self:_pump_request_queue()
+         end
       end)
 end
 

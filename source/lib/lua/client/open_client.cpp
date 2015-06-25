@@ -555,11 +555,13 @@ static void Client_SetRouteHandler(const char* route, luabind::object unsafe_cb)
    // by value all the time elsewhere.  Revist when we upgrade compilers.  If someone ever fixes,
    // this, please resolve https://redmine/issues/299 . -- tony
    //
-   luabind::object *cb = new luabind::object(cb_thread, unsafe_cb);
+   std::shared_ptr<luabind::object> cb(new luabind::object(cb_thread, unsafe_cb));
 
+   CLIENT_LOG(0) << "installing new route handler! " << cb;
    Client::GetInstance().SetLuaRouteHandler(route, [cb_thread, cb] (chromium::IBrowser::Request const& req, rpc::HttpDeferredPtr response) mutable {
       try {
          luabind::object form = lua::ScriptHost::JsonToLua(cb_thread, req.query);
+         CLIENT_LOG(0) << "calling route handler! " << cb;
          (*cb)(req.path, form, response);
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
@@ -600,12 +602,11 @@ static void Client_GetPortrait(luabind::object unsafe_cb)
    // by value all the time elsewhere.  Revist when we upgrade compilers.  If someone ever fixes,
    // this, please resolve https://redmine/issues/299 . -- tony
    //
-   luabind::object *cb = new luabind::object(cb_thread, unsafe_cb);
+   std::shared_ptr<luabind::object> cb(new luabind::object(cb_thread, unsafe_cb));
 
-   Renderer::GetInstance().RequestPortrait([cb_thread, cb](std::string const& bytes) mutable {
+   Renderer::GetInstance().RequestPortrait([cb_thread, cb](std::string const& op, std::string const& bytes) mutable {
       try {
-         (*cb)(bytes);
-         delete cb;
+         (*cb)(op, bytes);
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
       }

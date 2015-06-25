@@ -1675,8 +1675,8 @@ void Client::BrowserRequestHandler(chromium::IBrowser::Request const& req, rpc::
 
       //  send it to the reactor.
       int code;
-      std::string content, mimetype;
 
+      std::string content, mimetype;
       bool success = http_reactor_->HttpGetResource(req.path, code, content, mimetype);
       if (success) {
          response->Resolve(rpc::HttpResponse(code, content, mimetype));
