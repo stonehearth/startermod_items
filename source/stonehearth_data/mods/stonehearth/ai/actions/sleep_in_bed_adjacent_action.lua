@@ -1,4 +1,5 @@
 local Entity = _radiant.om.Entity
+local Point3 = _radiant.csg.Point3
 
 local SleepInBedAdjacent = class()
 SleepInBedAdjacent.name = 'sleep in bed adjacent'
@@ -35,14 +36,11 @@ function SleepInBedAdjacent:run(ai, entity, args)
    
    ai:execute('stonehearth:run_effect', { effect = 'yawn' })
 
-   -- move directly on top of the bed
-   self._restore_location = radiant.entities.get_world_grid_location(entity)
-   local bed_location = radiant.entities.get_world_grid_location(bed)
-   bed_location.y = bed_location.y + 1
-   radiant.entities.move_to(entity, bed_location)
-
-   local q = bed:get_component('mob'):get_rotation()
-   entity:get_component('mob'):set_rotation(q)
+   local mob = entity:get_component('mob')
+   self._saved_location = mob:get_world_grid_location()
+   self._saved_facing = mob:get_facing()
+   -- add unit_y to sleep on top of the bed
+   radiant.entities.add_child(bed, entity, Point3(0, 1, 0), true)
 
    -- goto sleep  
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
@@ -71,11 +69,19 @@ function SleepInBedAdjacent:run(ai, entity, args)
 end
 
 function SleepInBedAdjacent:stop(ai, entity, args)
-   if self._restore_location then
-      radiant.entities.move_to(entity, self._restore_location)
-      self._restore_location = nil
+   if self._saved_location then
+      assert(self._saved_facing)
+      local root_entity = radiant.entities.get_root_entity()
+      local mob = entity:get_component('mob')
+      local egress_facing = self._saved_facing + 180
+
+      radiant.entities.add_child(root_entity, entity, self._saved_location)
+      mob:turn_to(egress_facing)
+      self._saved_location = nil
+      self._saved_facing = nil
    end
-   radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');   
+
+   radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');
 end
 
 return SleepInBedAdjacent

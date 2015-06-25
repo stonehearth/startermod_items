@@ -970,8 +970,20 @@ void ScriptHost::AsyncTriggerOn(luabind::object obj, std::string const& eventNam
 void ScriptHost::DumpHeap(std::string const& filename)
 {
    FullGC();
+
+   char date[256];
+   std::time_t t = std::time(NULL);
+   if (!std::strftime(date, sizeof(date), "%Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+      *date = 0;
+   }
+   std::string filenameDate = BUILD_STRING(filename << "_" << date << ".heap");
+
    std::unordered_map<std::string, int> keyMap;
-   FILE* outf = fopen(filename.c_str(), "wb");
+   FILE* outf = fopen(filenameDate.c_str(), "wb");
+
+   int is64 = core::System::IsProcess64Bit() ? 1 : 0;
+   // For automatic architecture detection.
+   fwrite(&is64, sizeof(is64), 1, outf);
    
    // Dump keys first.  Create an index for the keys, too.
    int numkeys = (int)alloc_map.size();

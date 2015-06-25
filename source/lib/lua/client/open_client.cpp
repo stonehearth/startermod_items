@@ -592,14 +592,20 @@ static std::string Client_SnapScreenShot(const char* tag)
    return pathstr;
 }
 
-static void Client_GetPortrait(lua_State* L, luabind::object unsafe_cb)
+static void Client_GetPortrait(luabind::object unsafe_cb)
 {
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_cb.interpreter());  
-   luabind::object cb = luabind::object(cb_thread, unsafe_cb);
+   // XXX: Capturing the callback by value in the lambda passed to RequestPortrait causes crashing bugs.
+   // I suspect this is a compiler errors in Visual Studio 2012, since we capture luabind::objects
+   // by value all the time elsewhere.  Revist when we upgrade compilers.  If someone ever fixes,
+   // this, please resolve https://redmine/issues/299 . -- tony
+   //
+   luabind::object *cb = new luabind::object(cb_thread, unsafe_cb);
 
    Renderer::GetInstance().RequestPortrait([cb_thread, cb](std::string const& bytes) mutable {
       try {
-         cb(bytes);
+         (*cb)(bytes);
+         delete cb;
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(cb_thread, e);
       }

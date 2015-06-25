@@ -293,14 +293,38 @@ function ShepherdPastureComponent:_calculate_reproduction_timer()
    end
 
    local interval = self._sv.pasture_data[self._sv.pasture_type].base_reproduction_period
+   interval = stonehearth.calendar:parse_duration(interval)
+
    --add in whatever shepherd-related, animal-related scores here
    --the timer is variable, so we don't just use the interval timer in the growth service
    --this way the shepherd's level, etc can affect reproduction time
    --avoiding the issue we had trying to get the farmer to change the repro time on crops
-   self._sv.reproduction_time_interval = interval
+   local average_comfort = 0
+   for id, critter_data in pairs(self._sv.tracked_critters) do
+      local critter = critter_data.entity
+
+      if critter and critter:is_valid() then
+         local attributes = critter:get_component('stonehearth:attributes')
+         if attributes then
+            average_comfort = average_comfort + attributes:get_attribute('reproduction_rate_modifier')
+         end
+      end
+   end
+
+   average_comfort = radiant.math.round(average_comfort / self._sv.num_critters)
+   
+   local hours_subtracted_string = average_comfort..'h'
+   local interval_in_seconds = interval - stonehearth.calendar:parse_duration(hours_subtracted_string)
+
+   local min_interval = self._sv.pasture_data[self._sv.pasture_type].min_reproduction_period or '1s'
+   min_interval = stonehearth.calendar:parse_duration(min_interval)
+
+   interval_in_seconds = math.max(interval_in_seconds, min_interval)
+
+   self._sv.reproduction_time_interval = interval_in_seconds
 
    --If we already have a reproduction timer, then don't start a new one
-   --if we don't have an interval, don't start the timer
+   --if we don't have an interval, don't start the timerd
    if not self._sv.reproduction_timer and self._sv.reproduction_time_interval then 
       self._sv.reproduction_timer = stonehearth.calendar:set_timer("ShepherdPastureComponent reproduce animal", self._sv.reproduction_time_interval, function()
          self:_reproduce_animal()

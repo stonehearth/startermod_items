@@ -331,7 +331,7 @@ void Client::OneTimeIninitializtion()
 
       _commands[GLFW_KEY_KP_1] = [=](KeyboardInput const& kb) {
          scriptHost_->WriteMemoryProfile("lua_memory_profile_client.txt");
-         scriptHost_->DumpHeap("lua.client.heap");
+         scriptHost_->DumpHeap("lua.client");
          core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile"));
       };
       _commands[GLFW_KEY_KP_2] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_cpu_profile")); };

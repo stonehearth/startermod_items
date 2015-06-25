@@ -82,23 +82,23 @@
                      <td><h2>{{i18n stonehearth:character_sheet_equipment_defense}}</h2></td>
                   </tr>
 
-                  {{#each equipment in view.all_equipment}}
-                     <tr class="slotDetail" {{bind-attr id=equipment.slotId}}>
-                        <td><div class="slotImg"><img class=".equipmentImg" {{bind-attr src=equipment.unit_info.icon}}/></div></td>
-                        <td class="slotItemName">{{equipment.unit_info.name}}
+                  {{#each equipment_info in view.all_equipment}}
+                     <tr class="slotDetail" {{bind-attr id=equipment_info.slotId}}>
+                        <td><div class="slotImg"><img class=".equipmentImg" {{bind-attr src=equipment_info.equipment.unit_info.icon}}/></div></td>
+                        <td class="slotItemName">{{equipment_info.equipment.unit_info.name}}
                         <td>
-                           {{#if equipment.uri.entity_data.stonehearth:combat:weapon_data}}
+                           {{#if equipment_info.equipment.uri.entity_data.stonehearth:combat:weapon_data}}
                               <div class="equipmentDataValue">
-                                 +{{equipment.uri.entity_data.stonehearth:combat:weapon_data.base_damage}}
+                                 +{{equipment_info.equipment.uri.entity_data.stonehearth:combat:weapon_data.base_damage}}
                               </div>
                            {{else}}
                               -
                            {{/if}}
                         </td>
                         <td>
-                           {{#if equipment.uri.entity_data.stonehearth:combat:armor_data}}
+                           {{#if equipment_info.equipment.uri.entity_data.stonehearth:combat:armor_data}}
                               <div class="equipmentDataValue">
-                                 +{{equipment.uri.entity_data.stonehearth:combat:armor_data.base_damage_reduction}}
+                                 +{{equipment_info.equipment.uri.entity_data.stonehearth:combat:armor_data.base_damage_reduction}}
                               </div>
                            {{else}}
                               -
