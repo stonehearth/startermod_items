@@ -95,8 +95,10 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
       -- bfs pathfinder instances.  this listener must be kept on the cache even if there are no
       -- bfs pathfinders currently to avoid missing triggers which affect future pathfinding (liek SH-86).
       local listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', function(e)
-            self._log:detail('clearing cache entry for %s', e)
-            cache:clear_cache_entry(e:get_id())
+            if e:is_valid() then
+               self._log:detail('clearing cache entry for %s', e)
+               cache:clear_cache_entry(e:get_id())
+            end
          end)
 
       entry = {

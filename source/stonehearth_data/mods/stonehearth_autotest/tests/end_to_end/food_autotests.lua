@@ -43,6 +43,8 @@ end
 function food_tests.group_eat_food(autotest)
    local num_people = 5
 
+   autotest.env:create_stockpile(-2, -2, { size = { x = 4, y = 4 } })
+
    --Create n hungry people
    create_cluster(num_people, function(x, y)
          local p = autotest.env:create_person(x + 2, y + 2, {

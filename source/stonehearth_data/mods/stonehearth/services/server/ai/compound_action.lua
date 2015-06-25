@@ -44,6 +44,9 @@ function CompoundAction:__init(entity, action_ctor, activities, think_output_pla
          set_debug_progress = function(_, ...)
             self._ai:set_debug_progress(...)
          end,
+         monitor_carrying = function(_, ...)
+            self._ai:monitor_carrying(...)
+         end,
          set_think_output = function(_, think_output)
             self:_spam_current_state('compound action became ready!')
             think_output = think_output or self._args
@@ -95,6 +98,9 @@ end
 function CompoundAction:_restart_thinking()
    assert(self._thinking)  -- we start in the thinking state...
 
+   -- any changes during the previous think need to be blown away
+   self:_restore_entity_state()
+
    -- stop thinking on all the frames which may have given us results
    self._previous_think_output = {}
    for i=#self._execution_frames, 1, -1 do
@@ -111,6 +117,29 @@ function CompoundAction:_restart_thinking()
    assert(self._thinking)  -- we remain in the thinking state...
 end
 
+-- used to restore the entity state we were originally given from the
+-- parent ai to its unmodified state.  necessary when we start thinking
+-- for a while, then decide to rewind and start thinking all over again
+-- (e.g. after halt)
+function CompoundAction:_restore_entity_state()
+   self:_spam_current_state('pre-restore entity state')
+   self._ai.CURRENT.carrying = self._saved_entity_state.carrying
+   self._ai.CURRENT.location = self._saved_entity_state.location
+   self._ai.CURRENT.location_changed = self._saved_entity_state.location_changed
+   self._ai.CURRENT.carrying_changed = self._saved_entity_state.carrying_changed
+   self:_spam_current_state('post-restore entity state')
+end
+
+function CompoundAction:_save_entity_state()
+   self._saved_entity_state = {
+      location = self._ai.CURRENT.location,
+      carrying = self._ai.CURRENT.carrying,
+      location_changed = self._ai.CURRENT.location_changed,
+      carrying_changed = self._ai.CURRENT.carrying_changed,
+   }
+   self:_spam_current_state('saving entity state')
+end
+
 function CompoundAction:start_thinking(ai, entity, args)
    assert(not self._thinking)
    assert(#self._previous_think_output == 0)
@@ -125,6 +154,7 @@ function CompoundAction:start_thinking(ai, entity, args)
    end
 
    -- copy ai.CURRENT into self._action_ai.CURRENT for actions that implement start_thinking()
+   self:_save_entity_state()
    if self._action_ai then
       self._action_ai.CURRENT = ai.CURRENT
    end
@@ -171,9 +201,19 @@ function CompoundAction:_start_thinking_on_frame(i)
             table.insert(self._previous_think_output, think_output)
             self:_start_thinking_on_frame(i + 1)
          elseif status == 'unready' then
-            local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
-            self._log:debug(msg)
-            self._ai:abort(msg)
+            self._log:debug('previous frame f:%d became unready. (thinking:%s)', frame:get_id(), tostring(self._thinking))
+            if self._thinking then
+               -- while we were thinking, some frame which has previously been thinking became unready.
+               -- if neither the location nor the carrying has changed, we can just start over.  otherwise,
+               -- we can't reasonably proceed until someone up-stream from us sends us down new derived state.
+               -- unfortunately, this completely doesn't work (!!!).  until we can figure that out (and until
+               -- we prove not doing so is harmful), just bail and wait for top to spin back around.               
+               self._log:debug('not sure how to proceed.  terminating think')
+               self:stop_thinking()
+            else
+               self._log:debug('aborting!')
+               self._ai:abort()
+            end
          elseif status == 'halted' then
             self:_restart_after_halt()
          end
@@ -226,6 +266,7 @@ function CompoundAction:_restart_after_halt()
          self:_spam_current_state('unwinding thinking in all previous frames in _restart_after_halt')
          assert(self._thinking)
          self:stop_thinking()
+         self:_restore_entity_state()
          self:start_thinking(self._ai, self._entity, self._args)
       end)
 end
@@ -355,9 +396,11 @@ function CompoundAction:_spam_current_state(format, ...)
       self._log:spam(string.format(format, ...))
       if self._ai.CURRENT then
          self._log:spam('  CURRENT is %s', tostring(self._ai.CURRENT))
-         for key, value in pairs(self._ai.CURRENT) do      
+         for key, value in pairs(self._ai.CURRENT.__values) do      
             self._log:spam('  CURRENT.%s = %s', key, tostring(value))
-         end   
+         end
+         self._log:spam('  ACTUAL.carrying = %s', tostring(radiant.entities.get_carrying(self._entity)))
+         self._log:spam('  ACTUAL.location = %s', tostring(radiant.entities.get_world_grid_location(self._entity)))
       else
          self._log:spam('  no CURRENT state!')
       end

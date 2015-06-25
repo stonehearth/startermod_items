@@ -543,6 +543,8 @@
       "actions:pickup_item_from_backpack" : "file(ai/actions/pickup_item_from_backpack_action.lua)",
       "actions:drop_carrying_in_storage_adjacent" : "file(ai/actions/drop_carrying_in_storage_adjacent_action.lua)",
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
+      "actions:pickup_item_type_from_backpack_proxy" : "file(ai/actions/pickup_item_type_from_backpack_proxy_action.lua)",
+      "actions:fill_backpack_from_ground_items" : "file(ai/actions/fill_backpack_from_ground_items_action.lua)",
       "actions:reserve_storage_space" : "file(ai/actions/reserve_storage_space_action.lua)",
       "actions:pickup_item_type_from_any_storage" : "file(ai/actions/pickup_item_type_from_any_storage_action.lua)",
       "actions:pickup_item_type_from_storage" : "file(ai/actions/pickup_item_type_from_storage_action.lua)",

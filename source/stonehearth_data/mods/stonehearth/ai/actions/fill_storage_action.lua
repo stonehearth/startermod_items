@@ -16,8 +16,8 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(FillStorage)
          :execute('stonehearth:wait_for_storage_space', { storage = ai.ARGS.storage })
-         :execute('stonehearth:pickup_item_type', {
-            filter_fn = ai.PREV.item_filter,
-            description = 'items to fill storage',
-         })
+         :execute('stonehearth:pickup_item_type_from_backpack', {
+               filter_fn = ai.PREV.item_filter,
+               description = 'items to fill storage',
+            })
          :execute('stonehearth:drop_carrying_in_storage', { storage = ai.ARGS.storage })

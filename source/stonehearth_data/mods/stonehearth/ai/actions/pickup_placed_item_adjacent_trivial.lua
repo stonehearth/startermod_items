@@ -10,8 +10,9 @@ PickupPlacedItemAdjacentTrivial.version = 2
 PickupPlacedItemAdjacentTrivial.priority = 2
 
 function PickupPlacedItemAdjacentTrivial:start_thinking(ai, entity, args)
+   ai:monitor_carrying()
+   
    local item = ai.CURRENT.carrying
-
    if item then
       local iconic_form = item:get_component('stonehearth:iconic_form')
       if iconic_form and iconic_form:get_root_entity() == args.item then

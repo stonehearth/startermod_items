@@ -2,7 +2,9 @@
    "actions" : [
       "stonehearth:actions:put_carrying_in_backpack",
       "stonehearth:actions:pickup_item_into_backpack",
-      "stonehearth:actions:pickup_item_type_from_backpack"
+      "stonehearth:actions:pickup_item_type_from_backpack",
+      "stonehearth:actions:pickup_item_type_from_backpack_proxy",
+      "stonehearth:actions:fill_backpack_from_ground_items"
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:restocking"
