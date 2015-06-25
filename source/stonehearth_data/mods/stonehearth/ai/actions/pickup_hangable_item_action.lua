@@ -10,6 +10,7 @@ PickupHangableItem.version = 2
 PickupHangableItem.priority = 2
 
 function PickupHangableItem:start_thinking(ai, entity, args)
+   ai:monitor_carrying()
    if ai.CURRENT.carrying then
       return
    end

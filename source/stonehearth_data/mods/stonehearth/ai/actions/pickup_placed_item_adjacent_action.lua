@@ -15,9 +15,11 @@ local log = radiant.log.create_logger('actions.pickup_item')
 function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
    local item = args.item
 
+   ai:monitor_carrying()
    if ai.CURRENT.carrying ~= nil then
       return
    end
+
    local entity_forms = item:get_component('stonehearth:entity_forms')
    if entity_forms == nil then
       return

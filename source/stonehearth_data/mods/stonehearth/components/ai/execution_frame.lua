@@ -80,7 +80,8 @@ radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED an
 local ENTITY_STATE_FIELDS = {
    location = true,
    carrying = true,
-   future = true,
+   location_changed = true,
+   carrying_changed = true,
 }
 
 local ENTITY_STATE_META_TABLE = {
@@ -91,9 +92,15 @@ local ENTITY_STATE_META_TABLE = {
 
       if k == 'location' then
          -- if this is not the first time we're writing a new value to location, we
-         -- must be in some future state.
+         -- must be in some k state.
          if state.__values.location and state.__values.location ~= v then
-            state.__values.future = true
+            state.__values.location_changed = true
+         end
+      elseif k == 'carrying' then
+         -- if this is not the first time we're writing a new value to location, we
+         -- must be in some k state.
+         if state.__values.carrying and state.__values.carrying ~= v then
+            state.__values.carrying_changed = true
          end
       end
       state.__values[k] = v
@@ -109,7 +116,8 @@ local function create_entity_state(copy_from)
    -- write.
    local state = {
       __values = {
-         future = false
+         location_changed = false,
+         carrying_changed = false,
       }
    }
    if copy_from then
@@ -164,7 +172,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
 
    if activity_name == 'stonehearth:top' then
       self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
-      self._position_trace = radiant.entities.trace_location(self._entity, 'find path to entity')
+      self._position_trace = radiant.entities.trace_location(self._entity, 'top frame position trace')
                                                 :on_changed(function()
                                                    self:_on_position_changed()
                                                 end)
@@ -1520,7 +1528,8 @@ function ExecutionFrame:_clone_entity_state(name)
 
    cloned.location = s.location and Point3(s.location.x, s.location.y, s.location.z)
    cloned.carrying = s.carrying
-   cloned.future = s.future
+   cloned.location_changed = s.location_changed
+   cloned.carrying_changed = s.carrying_changed
 
    self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', self._current_entity_state, name, cloned)
 
@@ -1531,7 +1540,8 @@ function ExecutionFrame:_create_entity_state()
    local state = create_entity_state()
    state.carrying = radiant.entities.get_carrying(self._entity)
    state.location = radiant.entities.get_world_grid_location(self._entity)
-   state.future = false
+   state.location_changed = false
+   state.carrying_changed = false
 
    self:_spam_entity_state(state, 'capturing current entity state')
    return state
@@ -1789,10 +1799,12 @@ end
 function ExecutionFrame:_spam_entity_state(state, format, ...)
    if self._log:is_enabled(radiant.log.SPAM) then
       self._log:spam(format, ...)
-      for key, value in pairs(state) do      
+      for key, value in pairs(state.__values) do      
          self._log:spam('  CURRENT.%s = %s', key, value)
       end   
    end
+   self._log:spam('  ACTUAL.carrying = %s', tostring(radiant.entities.get_carrying(self._entity)))
+   self._log:spam('  ACTUAL.location = %s', tostring(radiant.entities.get_world_grid_location(self._entity)))
 end
 
 function ExecutionFrame:get_cost()

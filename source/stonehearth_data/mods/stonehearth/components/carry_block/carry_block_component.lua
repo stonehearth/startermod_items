@@ -65,6 +65,7 @@ function CarryBlock:set_carrying(new_item)
 
    self:_create_carried_item_trace()
 
+   radiant.events.trigger(self._entity, 'stonehearth:carry_block:carrying_changed:sync')
    radiant.events.trigger_async(self._entity, 'stonehearth:carry_block:carrying_changed')
 end
 

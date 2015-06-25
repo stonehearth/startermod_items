@@ -13,6 +13,7 @@ PickupItem.priority = 1
 function PickupItem:start_thinking(ai, entity, args)
    local item = args.item
 
+   ai:monitor_carrying()
    if ai.CURRENT.carrying then
       -- cannot pick something up if we're already carrying!
       return

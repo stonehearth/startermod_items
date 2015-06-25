@@ -324,6 +324,7 @@ function StorageComponent:remove_item(id)
 end
 
 function StorageComponent:contains_item(id)
+   checks('self', 'number')
    return self._sv.items[id] ~= nil
 end
 

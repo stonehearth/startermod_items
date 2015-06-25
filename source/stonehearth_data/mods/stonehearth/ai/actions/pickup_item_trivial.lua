@@ -10,6 +10,7 @@ PickupItemTrivial.version = 2
 PickupItemTrivial.priority = 1
 
 function PickupItemTrivial:start_thinking(ai, entity, args)
+   ai:monitor_carrying()
    if ai.CURRENT.carrying == args.item then
       ai:set_think_output()
    end
