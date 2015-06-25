@@ -6,6 +6,11 @@
 using namespace ::radiant;
 using namespace ::radiant::rpc;
 
+void HttpDeferred::AddHeader(const char* name, const char* value)
+{
+   _headers.insert(std::make_pair(name, value));
+}
+
 void HttpDeferred::RejectWithError(int code, const char* reason)
 {
    Reject(HttpError(code, reason));
@@ -13,7 +18,7 @@ void HttpDeferred::RejectWithError(int code, const char* reason)
 
 void HttpDeferred::ResolveWithContent(std::string const& content, std::string const& mimetype)
 {
-   Resolve(HttpResponse(200, content, mimetype));
+   Resolve(HttpResponse(200, content, mimetype, _headers));
 }
 
 void HttpDeferred::ResolveWithFile(std::string const& filename)

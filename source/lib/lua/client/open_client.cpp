@@ -675,6 +675,7 @@ void lua::client::open(lua_State* L)
                .def("destroy",           &SetCursorPromise::Destroy)
             ,
             lua::RegisterTypePtr_NoTypeInfo<rpc::HttpDeferred>("HttpDeferred")
+               .def("add_header",            &rpc::HttpDeferred::AddHeader)
                .def("resolve_with_file",     &rpc::HttpDeferred::ResolveWithFile)
                .def("resolve_with_content",  &rpc::HttpDeferred::ResolveWithContent)
                .def("reject_with_error",     &rpc::HttpDeferred::RejectWithError)
