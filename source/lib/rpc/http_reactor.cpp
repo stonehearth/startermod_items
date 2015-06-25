@@ -11,6 +11,7 @@
 #include "reactor_deferred.h"
 #include "function.h"
 #include "trace.h"
+#include "client/client.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -63,13 +64,25 @@ ReactorDeferredPtr HttpReactor::InstallTrace(Trace const& t)
 {
    int code;
    std::string content, mimetype;
+   std::string route = t.route;
 
-   if (boost::ends_with(t.route, ".json") && HttpGetResource(t.route, code, content, mimetype)) {
+   if (!client::Client::GetInstance().GetStore().IsValidStoreAddress(t.route)) {
+      try {
+         // Expand aliases to get the proper trace route.  This lets us trace things like 'stonehearth:foo'
+         route = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(t.route, ".json");
+      } catch (std::exception const&) {
+         // Not an alias.  And that's OK!
+      }
+   }
+
+   if (boost::ends_with(route, ".json") && HttpGetResource(route, code, content, mimetype)) {
       // if we wanted to, we could put a file system watcher on this path now
       // and call Notify again later. =)
       ReactorDeferredPtr d = std::make_shared<ReactorDeferred>(BUILD_STRING("http response to " << t));
       try {
-         d->Notify(libjson::parse(content));
+         JSONNode json = libjson::parse(content);
+         json.push_back(JSONNode("__self", t.route));
+         d->Notify(json);
       } catch (std::exception& e) {
          RPC_LOG(3) << "error trying to trace filesystem .json file: " << e.what();
          return nullptr;

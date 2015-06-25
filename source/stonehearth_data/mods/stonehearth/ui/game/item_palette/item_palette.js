@@ -111,7 +111,8 @@ $.widget( "stonehearth.stonehearthItemPalette", {
    },
 
    _findElementForItem: function(item) {
-      var selector = "[uri='" + item.uri + "']";      
+      var uri = item.uri.__self ? item.uri.__self : item.uri;
+      var selector = "[uri='" + uri + "']";      
       //selector = selector.split(':').join('\\\\:'); //escape the colons
       
       var match = this.palette.find(selector)[0];
@@ -134,11 +135,13 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       var selectBox = $('<div>')
          .addClass('selectBox');
 
+      var uri = item.uri.__self ? item.uri.__self : item.uri;
+
       var itemEl = $('<div>')
          .addClass('item')
          .addClass(this.options.cssClass)
          .attr('title', item.display_name)
-         .attr('uri', item.uri)
+         .attr('uri', uri)
          .append(img)
          .append(num)
          .append(selectBox);
@@ -170,6 +173,11 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          itemEl.removeClass('disabled');
       }
 
+      this._updateItemTooltip(itemEl, item);
+   },
+
+   _updateItemTooltip: function(itemEl, item) {
+
       var tooltipString = '<div class="detailedTooltip"> <h2>' + item.display_name + '</h2>';
       if (item.description) {
          tooltipString = tooltipString + '<p>' + item.description + '</p>'
@@ -191,7 +199,19 @@ $.widget( "stonehearth.stonehearthItemPalette", {
           tooltipString = tooltipString + '<p class="goldValue">' + stackCount + '</p>'
       }
 
+      if (item.uri.entity_data) {
+         var weapon_data = item.uri.entity_data['stonehearth:combat:weapon_data'];
+         if (weapon_data) {
+            tooltipString = tooltipString + '<p class="atkValue">' + weapon_data.base_damage + '</p>'
+         }
+
+         var armor_data = item.uri.entity_data['stonehearth:combat:armor_data'];
+         if (armor_data) {
+            tooltipString = tooltipString + '<p class="atkValue">' + armor_data.base_damage_reduction + '</p>'
+         }
+      }
+
       tooltipString = tooltipString + '</div>';
       itemEl.tooltipster({content: $(tooltipString)});
-   },
+   }
 });
