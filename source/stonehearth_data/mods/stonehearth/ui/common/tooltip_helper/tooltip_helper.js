@@ -49,5 +49,10 @@ var StonehearthTooltipHelper;
       getScoreData: function(scoreName) {
          return this._scoreTooltips[scoreName];
       },
+
+      getItemTooltip: function(item) {
+
+      },
+
    });
 })();
