@@ -26,7 +26,7 @@ function env.set_world_generator_script(world_generator_script)
          _all_entities[id] = entity
 
          if _is_clearing_world then
-            radiant.log.write('radiant', 0, 'Entity %s was created while clearing world', entity)
+            radiant.log.write('autotest', 0, 'Entity %s was created while clearing world', entity)
          end
       end)
 
