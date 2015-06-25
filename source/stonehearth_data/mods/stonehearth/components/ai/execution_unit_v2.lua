@@ -251,8 +251,11 @@ function ExecutionUnitV2:_clear_think_output()
       return
    end
 
-   if self:in_state('thinking', 'ready') then
+   if self._state == 'thinking' then
       return self:_clear_think_output_from_thinking()
+   end
+   if self._state == 'ready' then
+      return self:_clear_think_output_from_ready()
    end
    if self._state == 'finished' then
       return -- who cares?
@@ -421,10 +424,11 @@ function ExecutionUnitV2:_set_think_output_from_ready(think_output)
 end
 
 function ExecutionUnitV2:_clear_think_output_from_thinking()
-   if self._state == DEAD then
-      self:_log_dead(radiant.log.DETAIL, 'ignoring clear_think_output in dead state')
-      return
-   end
+   -- remain in the thinking state
+   self._frame:_unit_not_ready(self)
+end
+
+function ExecutionUnitV2:_clear_think_output_from_ready()
    self:_set_state(THINKING)
    self._frame:_unit_not_ready(self)
 end
