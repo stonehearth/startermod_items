@@ -103,6 +103,17 @@ function ShepherdClass:add_trailing_animal(animal, pasture)
       radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:speed_1');
    end
 
+   --Chance to add Cared For buff to animal
+   local attributes = self._sv._entity:get_component('stonehearth:attributes')
+   if attributes then
+      local compassion = attributes:get_attribute('compassion') or 0
+      local buff_chance = compassion * stonehearth.constants.attribute_effects.COMPASSION_SHEPHERD_BUFF_CHANCE_MULTIPLIER
+      local roll = rng:get_int(1, 100)  
+      if roll <= buff_chance then
+         radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:compassionate_shepherd');
+      end
+   end
+
    --Fire an event saying that we've collected an animal
    radiant.events.trigger(self._sv._entity, 'stonehearth:add_trailing_animal', {animal = animal, pasture = pasture})
 end
@@ -156,6 +167,14 @@ function ShepherdClass:can_find_animal_in_world()
       if self:has_perk('shepherd_improved_find_rate') then
          percent_chance = percent_chance * 2
       end
+      
+      local attributes = self._sv._entity:get_component('stonehearth:attributes')
+      if attributes then
+         local compassion = attributes:get_attribute('compassion') or 0
+         local bonus_chance = compassion * stonehearth.constants.attribute_effects.COMPASSION_SHEPHERD_SHEEP_MULTIPLIER
+         percent_chance = percent_chance + bonus_chance
+      end
+
       local roll = rng:get_int(1, 100)  
       if roll < percent_chance then
          self._sv.last_found_critter_time = curr_elapsed_time

@@ -6,7 +6,7 @@ function ShepherdedAnimalComponent:initialize(entity, json)
       self._sv.initialized = true
       self._sv.pasture = nil
       self._sv.should_follow = false
-      self._sv.last_shepherd_entity = false
+      self._sv.last_shepherd_entity = nil
    else
    end
 end
