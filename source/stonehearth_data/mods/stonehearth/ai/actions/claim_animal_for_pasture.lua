@@ -30,22 +30,27 @@ function ClaimAnimalForPasture:run(ai, entity, args)
       shepherded_animal_component:set_animal(args.animal)
       shepherded_animal_component:set_pasture(args.pasture)
 
+      self:_set_to_animal_follow(shepherded_animal_component, entity, args)
+      
       local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
       pasture_component:add_animal(args.animal)
-
+      
       radiant.events.trigger_async(entity, 'stonehearth:tame_animal', {animal = args.animal})
+   else
+      self:_set_to_animal_follow(shepherded_animal_component, entity, args)
    end
 
-   shepherded_animal_component:set_following(true, entity)
+   ai:unprotect_argument(args.animal)
+end
 
+function ClaimAnimalForPasture:_set_to_animal_follow(shepherded_animal_component, entity, args)
+   shepherded_animal_component:set_following(true, entity)
    --The shepherd is now trailing a sheep and will do so till he drops it off at the pasture
    --or until something kills it/steals it from him
    local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
    if shepherd_class and shepherd_class.add_trailing_animal then
       shepherd_class:add_trailing_animal(args.animal, args.pasture)
    end
-
-   ai:unprotect_argument(args.animal)
 end
 
 return ClaimAnimalForPasture

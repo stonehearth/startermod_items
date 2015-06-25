@@ -56,10 +56,18 @@
             "type" : "basic", 
             "value" : 30
          },
-        "speed" : {
+         "speed" : {
             "type" : "basic", 
             "value": 30
-        }
+         },
+         "reproduction_rate_modifier" : {
+            "type" : "basic",
+            "value": 0
+         },
+         "renewable_resource_rate_modifier" : {
+            "type" : "basic",
+            "value": 0
+         }
       },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/sheep)",
