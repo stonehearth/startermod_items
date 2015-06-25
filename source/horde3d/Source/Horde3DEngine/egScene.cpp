@@ -32,6 +32,10 @@ static const int MaxActiveRenderQueues = 1000;
 #define RENDER_NODES 0
 #define LIGHT_NODES 1
 
+#define NO_DRAW 0
+#define NO_CULL 1
+#define SPILLOVER 2
+
 namespace Horde3D {
 
 using namespace std;
@@ -248,11 +252,11 @@ void SceneNode::updateAccumulatedFlags()
    _accumulatedFlags = _flags | parentFlags;
    if (_accumulatedFlags & SceneNodeFlags::NoDraw) {
       if ((oldFlags & SceneNodeFlags::NoDraw) == 0) {
-         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, true, (SceneNodeFlags::List)oldFlags);
+         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, true);
       }
    } else {
       if (oldFlags & SceneNodeFlags::NoDraw) {
-         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, false, (SceneNodeFlags::List)oldFlags);
+         Modules::sceneMan().sceneForNode(_handle).setNodeHidden(*this, false);
       }
    }
 }
@@ -542,26 +546,17 @@ GridSpatialGraph::GridSpatialGraph(SceneId sceneId)
 
 GridItem* GridSpatialGraph::gridItemForNode(SceneNode const& node)
 {
-   if (node._gridPos == -1) {
+   std::vector<GridItem> *grid = findGridFor(node);
+
+   if (grid == nullptr) {
       return nullptr;
    }
-   GridItem *gi;
-    
-   if (node._gridId == -1) {
-      if (node._accumulatedFlags & SceneNodeFlags::NoCull) {
-         gi = &_noCullNodes[node._gridPos];
-      } else {
-         gi = &_spilloverNodes[node._renderable ? RENDER_NODES : LIGHT_NODES].at(node._gridPos);
-      }
-   } else {
-      gi = &_gridElements.at(node._gridId).nodes[node._renderable ? RENDER_NODES : LIGHT_NODES].at(node._gridPos);
-   }
 
-   return gi;
+   return &grid->at(node._gridPos);
 }
 
 
-void GridSpatialGraph::addNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags)
+void GridSpatialGraph::addNode(SceneNode& sceneNode)
 {	
    radiant::perfmon::TimelineCounterGuard un("gsg:addNode");
    const NodeHandle nh = sceneNode.getHandle();
@@ -572,7 +567,7 @@ void GridSpatialGraph::addNode(SceneNode& sceneNode, SceneNodeFlags::List oldFla
    if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights[nh] = &sceneNode;
    } else {
-      updateNode(sceneNode, oldFlags);
+      updateNode(sceneNode);
    }
 }
 
@@ -626,21 +621,21 @@ void GridSpatialGraph::swapAndRemove(std::vector<GridItem>& vec, int index) {
    vec.pop_back();
 }
 
-void GridSpatialGraph::removeNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags)
+void GridSpatialGraph::removeNode(SceneNode& sceneNode)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:removeNode");
    NodeHandle h = sceneNode.getHandle();
    if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights.erase(h);
    } else {
-      std::vector<GridItem>* oldGrid = findGridFor(sceneNode, oldFlags);
-      
+      std::vector<GridItem>* oldGrid = findGridFor(sceneNode);
+
       if (oldGrid != nullptr) {
          swapAndRemove(*oldGrid, sceneNode._gridPos);
       } else {
-         ASSERT(sceneNode._gridId == -1 && sceneNode._gridPos == -1);
+         ASSERT(sceneNode._gridId == NO_DRAW || sceneNode._gridPos == -1);
       }
-      sceneNode._gridId = -1;
+      sceneNode._gridId = NO_DRAW;
       sceneNode._gridPos = -1;
    }
 }
@@ -664,7 +659,7 @@ int GridSpatialGraph::boundingBoxToGrid(BoundingBox const& aabb) const
    ASSERT(maxZ >= minZ);
 
    if (minX != maxX || minZ != maxZ) {
-      return -1;
+      return SPILLOVER;
    }
 
    return hashGridPoint(minX, minZ);
@@ -673,31 +668,33 @@ int GridSpatialGraph::boundingBoxToGrid(BoundingBox const& aabb) const
 
 inline int GridSpatialGraph::hashGridPoint(int x, int y) const
 {
-   uint32 lx = x + 0x8000;
-   uint32 ly = y + 0x8000;
-   return lx | (ly << 16);
+   uint32 lx = (x + 0x4000) & 0x7FFF;
+   uint32 ly = (y + 0x4000) & 0x7FFF;
+   // Bottom two bits reserved (0: NoDraw, 1: NoCull, 2: Spillover)
+   return (lx << 2) | (ly << 17);
 }
 
 
 inline void GridSpatialGraph::unhashGridHash(int hash, int* x, int* y) const
 {
-   *x = (hash & 0xFFFF) - 0x8000;
-   *y = (hash >> 16) - 0x8000;
+   *x = ((hash >> 2) & 0x7FFF) - 0x4000;
+   *y = ((hash >> 17) & 0x7FFF) - 0x4000;
 }
 
-std::vector<GridItem>* GridSpatialGraph::findGridFor(SceneNode const& node, SceneNodeFlags::List oldFlags) {
-   if (node._gridPos == -1) {
+// Get the list of grid items the supplied node belongs to.
+std::vector<GridItem>* GridSpatialGraph::findGridFor(SceneNode const& node) {
+   if (node._gridId == NO_DRAW || node._gridPos == -1) {
       return nullptr;
    }
 
-   if (oldFlags & SceneNodeFlags::NoCull) {
-      ASSERT(node._gridId == -1 && node._gridPos >= 0);
+   if (node._gridId == NO_CULL) {
       return &_noCullNodes;
    }
 
-   if (node._gridId == -1) {
+   if (node._gridId == SPILLOVER) {
       return &_spilloverNodes[node._renderable ? RENDER_NODES : LIGHT_NODES];
    }
+
    return &_gridElements.at(node._gridId).nodes[node._renderable ? RENDER_NODES : LIGHT_NODES];
 }
 
@@ -706,8 +703,15 @@ void GridSpatialGraph::_addNode(SceneNode& sceneNode, int gridId) {
    std::vector<GridItem>* newVec;
    const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
 
-   if (gridId == -1) {
+   if (gridId == NO_DRAW) {
+      // We can get here if our bounding box is invalid.
+      return;
+   }
+
+   if (gridId == SPILLOVER) {
       newVec = &_spilloverNodes[nodeType];
+   } else if (gridId == NO_CULL) {
+      newVec = &_noCullNodes;
    } else {
       auto& e = _gridElements.find(gridId);
       if (e == _gridElements.end()) {
@@ -730,7 +734,7 @@ void GridSpatialGraph::_addNode(SceneNode& sceneNode, int gridId) {
    sceneNode._gridPos = (int)(newVec->size() - 1);
 }
 
-void GridSpatialGraph::updateNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags)
+void GridSpatialGraph::updateNode(SceneNode& sceneNode)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:updateNode");
 
@@ -738,9 +742,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode, SceneNodeFlags::List old
       return;
    }
 
-   BoundingBox const& sceneBox = sceneNode.getBBox();
-   const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
-   std::vector<GridItem>* oldGrid = findGridFor(sceneNode, oldFlags);
+   std::vector<GridItem>* oldGrid = findGridFor(sceneNode);
 
    if (sceneNode._accumulatedFlags & SceneNodeFlags::NoDraw) {
       // We don't ever remove on update; only sethidden makes the direct call to remove.
@@ -748,59 +750,48 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode, SceneNodeFlags::List old
       return;
    }
 
-   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoCull) {
-      // If the node was on a grid that wasn't the no cull, remove.
-      if (oldGrid && oldGrid != &_noCullNodes) {
+   const int newGridId = getGridIdFor(sceneNode);
+   BoundingBox const& sceneBox = sceneNode.getBBox();
+   const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
+
+   if (sceneNode._gridId != newGridId) {
+      if (oldGrid) {
          ASSERT(sceneNode._gridPos >= 0);
          swapAndRemove(*oldGrid, sceneNode._gridPos);
       }
+      _addNode(sceneNode, newGridId);
 
-      // If the node was not on the no cull grid, add it.
-      if (oldGrid != &_noCullNodes) {
-         _noCullNodes.emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
-         sceneNode._gridId = -1;
-         sceneNode._gridPos = (int)(_noCullNodes.size() - 1);
-         updateNodeInstanceKey(sceneNode);
-      }
-      // Update the bounds of the node at that pos in the no-cull grid.
-      _noCullNodes.at(sceneNode._gridPos).bounds = sceneBox;
-      _noCullNodes.at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
-      return;
-   }
-
-   // Questionable line....
-   if (!sceneBox.isValid()) {
-      return;
-   }
-
-   int gridId = boundingBoxToGrid(sceneBox);
-
-   if (oldGrid && gridId == sceneNode._gridId) {
-      // We haven't moved; update the bounds (if this is not the spillover).
-      if (gridId != -1) {
-         const Vec3f& boundsMin = sceneBox.min();
-         const Vec3f& boundsMax = sceneBox.max();
-
-         _gridElements.at(gridId).bounds.addPoint(boundsMin);
-         _gridElements.at(gridId).bounds.addPoint(boundsMax);
-      }
-
-      // Update the bounds and pos of that node.
+      // We moved to a new grid element, so initialize those render queues appropriately.
+      updateNodeInstanceKey(sceneNode);
+   } else if (oldGrid) {
       oldGrid->at(sceneNode._gridPos).bounds = sceneBox;
       oldGrid->at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
-      return;
+
+      if (sceneNode._gridId != NO_CULL && sceneNode._gridId != SPILLOVER) {
+         ASSERT(sceneNode._gridId != NO_DRAW);
+         const Vec3f& boundsMin = sceneBox.min();
+         const Vec3f& boundsMax = sceneBox.max();
+         _gridElements.at(sceneNode._gridId).bounds.addPoint(boundsMin);
+         _gridElements.at(sceneNode._gridId).bounds.addPoint(boundsMax);
+      }
    }
-   
-   // We've moved onto a new grid, possibly from an old one.
-   if (oldGrid) {
-      ASSERT(sceneNode._gridPos >= 0);
-      swapAndRemove(*oldGrid, sceneNode._gridPos);
+}
+
+
+// Get the grid id for the current state (bounds and flags) of the node.
+int GridSpatialGraph::getGridIdFor(SceneNode const& sceneNode) const {
+   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoDraw) {
+      return NO_DRAW;
+   }
+   if (sceneNode._accumulatedFlags & SceneNodeFlags::NoCull) {
+      return NO_CULL;
    }
 
-   _addNode(sceneNode, gridId);
+   if (!sceneNode.getBBox().isValid()) {
+      return NO_DRAW;
+   }
 
-   // We moved to a new grid element, so initialize those render queues appropriately.
-   updateNodeInstanceKey(sceneNode);
+   return boundingBoxToGrid(sceneNode.getBBox());
 }
 
 
@@ -1117,13 +1108,11 @@ NodeRegEntry *Scene::findType( std::string const& typeString )
 }
 
 
-void Scene::setNodeHidden(SceneNode& node, bool hidden, SceneNodeFlags::List oldFlags) {
+void Scene::setNodeHidden(SceneNode& node, bool hidden) {
    if (hidden) {
-      if (node._gridPos >= 0) {
-         _spatialGraph->removeNode(node, oldFlags);
-      }
+      _spatialGraph->removeNode(node);
    } else {
-      _spatialGraph->addNode(node, oldFlags);
+      _spatialGraph->addNode(node);
    }
 }
 
@@ -1137,7 +1126,7 @@ void Scene::updateNodes()
 
 void Scene::updateSpatialNode(SceneNode& node) 
 {
-   _spatialGraph->updateNode(node, (SceneNodeFlags::List)node._accumulatedFlags);
+   _spatialGraph->updateNode(node);
    updateNodeTrackers(&node);
 }
 
@@ -1311,7 +1300,7 @@ NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
 
 	// Register node in spatial graph
    if ((node->_accumulatedFlags & SceneNodeFlags::NoDraw) == 0) {
-      _spatialGraph->addNode(*node, (SceneNodeFlags::List)node->_accumulatedFlags);
+      _spatialGraph->addNode(*node);
    }
    return node->_handle;
 }
@@ -1348,7 +1337,7 @@ void Scene::removeNodeRec( SceneNode &node )
    // Delete node
    if( handle != _rootNodeId )
 	{
-      _spatialGraph->removeNode(node, (SceneNodeFlags::List)node._accumulatedFlags);
+      _spatialGraph->removeNode(node);
       auto i = _nodes.find(node._handle), end = _nodes.end();
       ASSERT(i != _nodes.end());
       if (i != _nodes.end()) {

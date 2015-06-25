@@ -366,9 +366,9 @@ class GridSpatialGraph
 public:
    GridSpatialGraph(SceneId sceneId);
 
-   void addNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags);
-	void removeNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags);
-	void updateNode(SceneNode& sceneNode, SceneNodeFlags::List oldFlags);
+   void addNode(SceneNode& sceneNode);
+	void removeNode(SceneNode& sceneNode);
+	void updateNode(SceneNode& sceneNode);
 
    GridItem* gridItemForNode(SceneNode const& node);
    void query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
@@ -376,8 +376,9 @@ public:
    void updateNodeInstanceKey(SceneNode& sceneNode);
 
 protected:
+   int getGridIdFor(SceneNode const& sceneNode) const;
    void _addNode(SceneNode& sceneNode, int gridId);
-   std::vector<GridItem>* GridSpatialGraph::findGridFor(SceneNode const& node, SceneNodeFlags::List oldFlags);
+   std::vector<GridItem>* GridSpatialGraph::findGridFor(SceneNode const& node);
    void swapAndRemove(std::vector<GridItem>& vec, int index);
    int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline int hashGridPoint(int x, int y) const;
@@ -483,7 +484,7 @@ public:
 	void updateNodes();
 	void updateSpatialNode(SceneNode& node);
 
-   void setNodeHidden(SceneNode& node, bool hide, SceneNodeFlags::List oldFlags);
+   void setNodeHidden(SceneNode& node, bool hide);
 
    std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached = true);
    std::vector<QueryResult> const& subQuery(std::vector<QueryResult> const& queryResults, SceneNodeFlags::List ignoreFlags);
