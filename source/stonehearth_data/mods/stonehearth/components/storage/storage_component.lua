@@ -173,23 +173,20 @@ function StorageComponent:initialize(entity, json)
          self._sv.is_public = json.public
       else
          self._sv.is_public = true
-      end
-      
+      end      
       self.__saved_variables:mark_changed()
    end
 
    self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
 
    self:_on_contents_changed()
-   self:_update_filter_key()
    
    self._unit_info_trace = entity:add_component('unit_info')
                                     :trace_player_id('filter observer')
                                        :on_changed(function()
-                                             -- xxx: we also need to add/remove all the items in the
-                                             -- box to the new/old inventory
-                                             self:_update_filter_key()
+                                             self:_update_player_id()
                                           end)
+   self._unit_info_trace:push_object_state()
 end
 
 --If we're killed, dump the things in our backpack
@@ -271,6 +268,7 @@ function StorageComponent:add_item(item)
 
    local player_id = self._sv.entity:get_component('unit_info')
                                        :get_player_id()
+
    local inventory = stonehearth.inventory:get_inventory(player_id)
    if inventory then
       inventory:add_item(item)
@@ -437,7 +435,24 @@ function StorageComponent:set_filter(filter)
    radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:filter_changed', self, newly_filtered, newly_passed)
 end
 
-function StorageComponent:_update_filter_key()
+function StorageComponent:_update_player_id()
+   local player_id = self._sv.entity:add_component('unit_info')
+                                       :get_player_id()
+
+   -- xxx: we also need to add/remove all the items in the
+   -- box to the new/old inventory
+   self:_update_inventory(player_id)
+   self:_update_filter_key(player_id)
+end
+
+function StorageComponent:_update_inventory(player_id)
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   if inventory then
+      inventory:add_storage(self._sv.entity)
+   end
+end
+
+function StorageComponent:_update_filter_key(player_id)
    if self._sv.filter then
       self._sv._filter_key = 'filter:'
       table.sort(self._sv.filter)
@@ -447,8 +462,6 @@ function StorageComponent:_update_filter_key()
    else
       self._sv._filter_key = 'nofilter'
    end
-   local player_id = self._sv.entity:add_component('unit_info')
-                                       :get_player_id()
 
    self._sv._filter_key = self._sv._filter_key .. '+' .. player_id .. '+' .. self._sv.type .. '+autofill='
    for k, _ in pairs(self._sv.auto_fill_from) do
