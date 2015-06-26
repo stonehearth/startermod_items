@@ -114,7 +114,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       self._restoreUiState();
       self._updateControls();
 
-      self.$("[title]").i18ntooltipster();
+      self.$("[title]").tooltipster();
    },
 
    getBlueprint: function() {
