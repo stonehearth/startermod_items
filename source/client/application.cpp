@@ -67,36 +67,39 @@ boost::asio::ip::tcp::acceptor* Application::FindServerPort()
 {            
    boost::asio::ip::tcp::resolver resolver(_io_service);
    csg::RandomNumberGenerator rng;
+   std::string exceptionText;
 
-   for (int i = 0; i < 10; i++)
-   {
+   for (int i = 0; i < 10; i++) {
       // Pick any address after port 10000.
       unsigned short port = rng.GetInt(10000, 65535);
-      boost::asio::ip::tcp::resolver::query query("127.0.0.1", std::to_string(port));
-      boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
       boost::asio::ip::tcp::acceptor* tcp_acceptor;
 
-      tcp_acceptor = new boost::asio::ip::tcp::acceptor(_io_service);
-
-      tcp_acceptor->open(endpoint.protocol());
-      tcp_acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(false));
-      
       try {
+         boost::asio::ip::tcp::resolver::query query("127.0.0.1", std::to_string(port));
+         boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
+
+         tcp_acceptor = new boost::asio::ip::tcp::acceptor(_io_service);
+         tcp_acceptor->open(endpoint.protocol());
+         tcp_acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(false));
          tcp_acceptor->bind(endpoint);
-      } catch(...) {
+      } catch (std::exception const& e) {
+         exceptionText = std::string(e.what());
+         delete tcp_acceptor;
+         tcp_acceptor = nullptr;
+      } catch (...) {
          delete tcp_acceptor;
          tcp_acceptor = nullptr;
       }
 
-      if (tcp_acceptor != nullptr)
-      {
+      if (tcp_acceptor != nullptr) {
          APP_LOG(1) << "Running Stonehearth server on port " << port;
          server_port_ = port;
          return tcp_acceptor;
       }
    }
 
-   LOG_CRITICAL() << "Could not find an open port to host Stonehearth!";
+   std::string errorMessage = BUILD_STRING("Could not find an open port to host Stonehearth!: " << exceptionText);
+   LOG_CRITICAL() << errorMessage;
    throw std::exception("Could not find an open port to host Stonehearth!");
 }
 
