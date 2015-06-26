@@ -32,14 +32,12 @@ return ai:create_compound_action(PickupHangableItem)
          :execute('stonehearth:create_entity', {
                location = ai.PREV.grid_location,
                options = {
+                  allow_vertical_adjacent = true,
                   debug_text = 'pick up hangable item',
                }
             })
-         :execute('stonehearth:set_hangable_adjacent', {
-               item = ai.BACK(1).entity,
-            })
          :execute('stonehearth:goto_entity', {
-               entity = ai.BACK(2).entity
+               entity = ai.PREV.entity
             })
          :execute('stonehearth:pickup_item_adjacent', {
                item = ai.ARGS.item
