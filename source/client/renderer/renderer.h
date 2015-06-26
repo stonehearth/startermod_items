@@ -146,8 +146,7 @@ class Renderer
       HWND GetWindowHandle() const;
 
       std::shared_ptr<RenderEntity> GetRenderEntity(om::EntityPtr obj);
-      std::shared_ptr<RenderEntity> CreateRenderEntity(H3DNode parent, om::EntityPtr obj);
-      std::shared_ptr<RenderEntity> CreateUnmanagedRenderEntity(H3DNode parent, om::EntityPtr obj);
+      std::shared_ptr<RenderEntity> CreateRenderEntity(H3DNode parent, om::EntityPtr obj, int flags = 0);
       
       typedef std::function<void(om::Selection& sel, const csg::Ray3& ray, const csg::Point3f& intersection, const csg::Point3f& normal)> UpdateSelectionFn;
       core::Guard SetSelectionForNode(H3DNode node, om::EntityRef e);

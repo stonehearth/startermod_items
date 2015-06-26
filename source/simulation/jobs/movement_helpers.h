@@ -13,12 +13,14 @@ public:
    MovementHelper(int _logLevel = 0);
 
    bool GetClosestPointAdjacentToEntity(csg::Point3f const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3f& closestPoint) const;
+   bool IsAdjacentTo(om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const;
    csg::Region3f GetRegionAdjacentToEntity(om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const;
    bool GetPointOfInterest(om::EntityPtr const& entity, csg::Point3f const& from, csg::Point3f& poi) const;
    bool GetPathPoints(om::EntityPtr const& entity, bool reversible, csg::Point3f const& start, csg::Point3f const& end, std::vector<csg::Point3f> &result) const;
    std::vector<csg::Point3f> PruneCollinearPathPoints(std::vector<csg::Point3f> const& points) const;
    bool TestAdjacentMove(om::EntityPtr entity, bool const reversible,
                          csg::Point3 const& fromLocation, int dx, int dz, csg::Point3& resolvedLocation) const;
+   void GetEntityReach(om::EntityPtr const& entity, int& maxReachUp, int& maxReachDown) const;
 
 private:
    enum Axis {
@@ -28,6 +30,7 @@ private:
       Z = 3
    };
 
+   csg::Region3f GetRegionAdjacentToEntityInternal(om::EntityPtr const& dstEntity) const;
    std::vector<csg::Point3f> PruneCollinearPathPointsPlanar(std::vector<csg::Point3f> const& points) const;
    Axis MovementHelper::GetMajorAxis(csg::Point3 const& delta) const;
    bool CoordinateAdvancedAlongAxis(csg::Point3f const& segmentStart, csg::Point3f const& previous, csg::Point3f const& current, Axis axis) const;

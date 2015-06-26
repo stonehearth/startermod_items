@@ -72,6 +72,7 @@ public:
    void Translate(Point const& pt);
    Region Translated(Point const& pt) const;
    Region Inflated(Point const& pt) const;
+   Region Extruded(int dim, int dMin, int dMax) const;
 
    // xxx: make regions fluent!
    void Clear();

@@ -179,7 +179,7 @@ void SceneNode::setTransform( Vec3f trans, Vec3f rot, Vec3f scale )
 		((MeshNode *)this)->_ignoreAnim = true;
 	}
 	
-   SCENE_LOG(9) << "setting relative transform for node " << _name << " to " << "(" << trans.x << ", " << trans.y << ", " << trans.z << ")";
+   SCENE_LOG(9) << "setting relative transform for node (" << _handle << ") " << _name << " to " << "(" << trans.x << ", " << trans.y << ", " << trans.z << ")";
 
 	Matrix4f newRelTrans = Matrix4f::ScaleMat( scale.x, scale.y, scale.z );
 	newRelTrans.rotate( degToRad( rot.x ), degToRad( rot.y ), degToRad( rot.z ) );
@@ -1274,6 +1274,8 @@ NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
 {
 	if( node == 0x0 ) return 0;
 	
+   ASSERT(Modules::sceneMan().sceneIdFor(parent._handle) == _sceneId);
+
 	// Check if node can be attached to parent
 	if( !node->canAttach( parent ) )
 	{
@@ -1381,8 +1383,18 @@ void Scene::removeNode( SceneNode &node )
 bool Scene::relocateNode( SceneNode &node, SceneNode &parent )
 {
    if( node._handle == _rootNodeId ) return false;
-	
-	if( !node.canAttach( parent ) )
+
+   int nodeSceneId = Modules::sceneMan().sceneIdFor(node._handle);
+   int parentSceneId = Modules::sceneMan().sceneIdFor(parent._handle);
+
+   if (nodeSceneId != parentSceneId) {
+      SCENE_LOG(0) << "node (id:" << node._handle << "  scene:" << nodeSceneId << ") " << node.getName()
+                   << " is not in the same scene as "
+                   << "parent node (id:" << parent._handle << "  scene:" << parentSceneId << ")!" << parent.getName();
+   }
+   ASSERT(nodeSceneId == parentSceneId);
+
+   if( !node.canAttach( parent ) )
 	{	
 		Modules::log().writeDebugInfo( "Can't attach node to parent in h3dSetNodeParent" );
 		return false;

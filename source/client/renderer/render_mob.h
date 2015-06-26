@@ -14,7 +14,7 @@ class Renderer;
 
 class RenderMob : public RenderComponent {
 public:
-   RenderMob(RenderEntity& entity, om::MobPtr mob);
+   RenderMob(RenderEntity& entity, om::MobPtr mob, int flags);
    void UpdateParent();
 
 private:

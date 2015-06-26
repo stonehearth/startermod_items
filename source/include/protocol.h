@@ -15,7 +15,7 @@
 #include <queue>
 
 #define NETWORK_LOG(level)    LOG(network, level)
-#define SEND_BUFFER_SIZE      (8 * 1024 * 1024)
+#define SEND_BUFFER_SIZE      (16 * 1024 * 1024)
 
 namespace radiant {
    namespace protocol {
@@ -130,6 +130,9 @@ namespace radiant {
                   }
 
                   NETWORK_LOG(7) << endpoint_ << " next message size: " << c;
+                  if (c <= 0 || c >= ReadBufferSize) {
+                     NETWORK_LOG(3) << "received msg of size " << c << " bytes.  that's way too big!";
+                  }
 
                   ASSERT(c > 0 && c < ReadBufferSize);
                   if (c > remaining - sizeof(int32)) {

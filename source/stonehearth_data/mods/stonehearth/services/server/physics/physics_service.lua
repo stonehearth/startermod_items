@@ -126,10 +126,15 @@ function PhysicsService:_move_entity(entity)
    nxt.position = current.position + velocity.position
    nxt.orientation = current.orientation
 
+   -- when testing to see if we're blocked, make sure we look at the right point.
+   -- `is_blocked` will round to the closest int, so if we're at (1, -0.3, 1), it
+   -- will actually test the point (1, 0, 1) when we wanted (1, -1, 1) !!
+   local test_position = nxt.position - Point3(0, 0.5, 0)
+   
    -- If our next position is blocked, fall to the bottom of the current
    -- brick and clear the free motion flag.
-   if _physics:is_blocked(entity, nxt.position) then
-      log:debug('next position %s is blocked.  leaving free motion', nxt.position)
+   if _physics:is_blocked(entity, test_position) then
+      log:debug('next position %s is blocked.  leaving free motion', test_position)
 
       velocity.position = Point3.zero
       nxt.position.y = math.floor(current.position.y)

@@ -277,7 +277,7 @@ std::shared_ptr<RenderEntity> Client_CreateUnmanagedRenderEntity(H3DNode parent,
    std::shared_ptr<RenderEntity> result;
 
    if (entity) {
-      std::shared_ptr<RenderEntity> re = Renderer::GetInstance().CreateUnmanagedRenderEntity(parent, entity);
+      std::shared_ptr<RenderEntity> re = Renderer::GetInstance().CreateRenderEntity(parent, entity, RenderFlags::OFFSCREEN_OBJECT);
       re->SetParentOverride(true);
       result = re;
    }

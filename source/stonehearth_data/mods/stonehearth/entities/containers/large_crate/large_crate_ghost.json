@@ -21,7 +21,8 @@
       "mob" : {
          "model_origin" : { "x": -0.0, "y": 0, "z": 0.0 },
          "region_origin" : { "x": -1.0, "y": 0, "z": 1.0 },
-         "align_to_grid" : [ "x", "z" ]
+         "align_to_grid" : [ "x", "z" ],
+         "allow_vertical_adjacent" : true
       }
    }
 }

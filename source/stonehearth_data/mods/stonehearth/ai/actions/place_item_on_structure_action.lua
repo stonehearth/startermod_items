@@ -29,14 +29,12 @@ return ai:create_compound_action(PlaceItemOnStructure)
          :execute('stonehearth:create_entity', {
                location = ai.ARGS.location,
                options = {
-                  debug_text = 'place item on structure'
+                  allow_vertical_adjacent = true,
+                  debug_text = 'place item on structure',
                }
             })
-         :execute('stonehearth:set_hangable_adjacent', {
-               item = ai.BACK(1).entity,
-            })
          :execute('stonehearth:goto_entity', {
-               entity = ai.BACK(2).entity,
+               entity = ai.PREV.entity,
             })
          :execute('stonehearth:place_carrying_on_structure_adjacent', {
                location = ai.ARGS.location,

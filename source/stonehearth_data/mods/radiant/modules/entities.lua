@@ -29,6 +29,9 @@ function entities.create_entity(ref, options)
       if options.debug_text then
          entity:set_debug_text(options.debug_text)
       end
+      if options.allow_vertical_adjacent then
+         entity:add_component('mob'):set_allow_vertical_adjacent(true)
+      end
       if options.add_item_destination then
          -- cache the origin region since we use this a lot
          if entities.origin_region == nil then
@@ -750,59 +753,23 @@ function entities.release_lease(leased_object, lease_name, lease_holder)
    return result
 end
 
---[[
-   Checks if an entity is next to a location, updated
-   to use get_world_grid location.
-   TODO: Still relevant with Tony's pathfinder?
-   entity: the entity to check
-   location: the target location
-   returns: true if the entity is adjacent to the specified ocation
-]]
-function entities.is_adjacent_to(subject, target)
-   if radiant.util.is_a(subject, Entity) then
-      subject = entities.get_world_grid_location(subject)
-      if not subject then
-         -- target is not actually in the world at the moment
-         return false
-      end
+function entities.is_adjacent_to(source, target)
+   if not source or not target then
+      return false
    end
-   if radiant.util.is_a(target, Entity) then
-      local destination = target:get_component('destination')
-      if destination then
-         return entities.point_in_destination_adjacent(target, subject)
-      end
-      local rcs = target:get_component('region_collision_shape')
-      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-         local region = rcs:get_region()
-         if region then
-            local world_space_region = entities.local_to_world(region:get(), target)
-            local adjacent = world_space_region:get_adjacent(false)
-            return adjacent:contains(subject)
-         end
-      end
-      target = entities.get_world_grid_location(target)
-      if not target then
-         -- target is not actually in the world at the moment
-         return false
-      end
+
+   if radiant.util.is_a(source, Entity) and radiant.util.is_a(target, Entity) then
+      local result = _radiant.sim.is_adjacent_to(source, target)
+      return result
    end
-   radiant.check.is_a(subject, Point3)
-   radiant.check.is_a(target, Point3)
-   return subject:is_adjacent_to(target)
-end
 
+   if radiant.util.is_a(source, Point3) and radiant.util.is_a(target, Point3) then
+      local result = source:is_adjacent_to(target)
+      return result
+   end
 
-function entities.is_adjacent_to_xz(entity, location)
-   --local point_a = util:is_a(arg1, Entity) and singleton.get_world_grid_location(arg1) or arg1
-   --local point_b = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
-   local point_a = entities.get_world_grid_location(entity)
-   local point_b = location
-   radiant.check.is_a(point_a, Point3)
-   radiant.check.is_a(point_b, Point3)
-
-   point_a = Point2(a.x, a.z)
-   point_b = Point2(b.x, b.z)
-   return point_a:is_adjacent_to(point_b)
+   log:error('invalid parameters %s, %s', tostring(source), tostring(target))
+   assert(false)
 end
 
 function entities.get_target_table(entity, table_name)

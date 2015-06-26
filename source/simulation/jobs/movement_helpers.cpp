@@ -5,6 +5,7 @@
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
+#include "om/stonehearth.h"
 #include "simulation/simulation.h"
 #include "physics/physics_util.h"
 
@@ -35,12 +36,73 @@ bool MovementHelper::GetClosestPointAdjacentToEntity(csg::Point3f const& from, o
    return true;
 }
 
+void MovementHelper::GetEntityReach(om::EntityPtr const& entity, int& maxReachUp, int& maxReachDown) const
+{
+   om::MobPtr mob = entity->GetComponent<om::Mob>();
+   if (!mob) {
+      maxReachUp = maxReachDown = 0;
+      return;
+   }
+
+   om::Mob::MobCollisionTypes collisionType = mob->GetMobCollisionType();
+
+   switch (collisionType) {
+      case om::Mob::MobCollisionTypes::HUMANOID:
+         maxReachUp = 2;
+         maxReachDown = 0;
+         break;
+      default:
+         maxReachUp = 2;
+         maxReachDown = 0;
+   }
+}
+
+bool MovementHelper::IsAdjacentTo(om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
+{
+   om::MobPtr srcMob = srcEntity->GetComponent<om::Mob>();
+   if (!srcMob) {
+      return false;
+   }
+
+   om::EntityRef entityRoot;
+   csg::Point3f srcLocation = srcMob->GetWorldLocation(entityRoot);
+   if (!om::IsRootEntity(entityRoot)) {
+      // srcEntity is not in the world
+      return false;
+   }
+
+   csg::Region3f region = MovementHelper::GetRegionAdjacentToEntity(srcEntity, dstEntity);
+   bool result = region.Contains(srcLocation);
+   return result;
+}
+
 csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
+{
+   csg::Region3f region = GetRegionAdjacentToEntityInternal(dstEntity);
+
+   om::MobPtr dstMob = dstEntity->GetComponent<om::Mob>();
+   if (!dstMob) {
+      return region;
+   }
+
+   int maxReachUp, maxReachDown;
+   GetEntityReach(dstEntity, maxReachUp, maxReachDown);
+
+   if (maxReachDown == 0 && maxReachUp == 0) {
+      return region;
+   }
+
+   csg::Region3f extrudedRegion = region.Extruded(1, maxReachUp, maxReachDown);
+   extrudedRegion.OptimizeByMerge("GetRegionAdjacentToEntity"); // this will no-op most of the time
+   return extrudedRegion;
+}
+
+csg::Region3f MovementHelper::GetRegionAdjacentToEntityInternal(om::EntityPtr const& dstEntity) const
 {
    Simulation& sim = Simulation::GetInstance();
    phys::OctTree& octTree = sim.GetOctTree();
 
-   if (!dstEntity || !srcEntity) {
+   if (!dstEntity) {
       MH_LOG(5) << "invalid entity ptr.  returning empty region";
       return csg::Region3f();
    }
@@ -106,6 +168,7 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& src
       csg::Point3f location = origin + point;
       region.AddUnique(csg::Cube3f(location));
    }
+
    return region;
 }
 

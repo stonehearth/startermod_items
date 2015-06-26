@@ -261,3 +261,18 @@ Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
       restore(JSONNode());
    }
 }
+
+json::Node
+Stonehearth::GetEntityJson(om::EntityPtr const& entity)
+{
+   json::Node node;
+
+   try {
+      res::ResourceManager2::GetInstance().LookupJson(entity->GetUri(), [&node](JSONNode const& internalNode) {
+         node = json::Node(internalNode);
+      });
+   }
+   catch (std::exception const&) {}
+
+   return node;
+}
