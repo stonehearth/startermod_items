@@ -402,8 +402,11 @@ function StorageComponent:get_filter()
 end
 
 function StorageComponent:set_filter(filter)
+   local player_id = self._sv.entity:add_component('unit_info')
+                                       :get_player_id()
+
    self._sv.filter = filter
-   self:_update_filter_key()
+   self:_update_filter_key(player_id)
 
    local old_passed = self._sv.passed_items
    local old_filtered = self._sv.filtered_items

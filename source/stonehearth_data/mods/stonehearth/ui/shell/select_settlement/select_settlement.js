@@ -71,7 +71,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
                }
             }
          })
-         .tooltipster({content: i18n.t('input_text_tooltip')});
+         .tooltipster();
 
       $(document).on('keydown', this._clearSelectionKeyHandler);
    },

@@ -45,7 +45,7 @@ $.widget( "stonehearth.stonehearthItemPalette", {
 
       // mark all items as not updated
       this.palette.find('.item').attr('updated', 0);   
-      this.palette.find('.category').attr('update', 0);
+      this.palette.find('.category').attr('updated', 0);
 
       // grab the items in this category and sort them
       var arr = radiant.map_to_array(itemMap);
@@ -70,7 +70,7 @@ $.widget( "stonehearth.stonehearthItemPalette", {
             
             if (!itemElement) {
                itemElement = self._addItemElement(item);
-               categoryElement.append(itemElement);
+               categoryElement.find('.downSection').append(itemElement);
             }
             self._updateItemElement(itemElement, item);
 
@@ -89,25 +89,31 @@ $.widget( "stonehearth.stonehearthItemPalette", {
 
       if (match) {
          return $(match);
-      } else {
-
-         // new title element for the category
-         var categoryDisplayName = i18n.t('item_categories_' + item.category);
-         if (!categoryDisplayName) {
-            console.log("No category display name found for item category " + item.category);
-            categoryDisplayName = item.category;
-         }
-
-         $('<h2>')
-            .html(categoryDisplayName)
-            .appendTo(this.palette);
-
-         // the category container element that items are inserted into
-         return $('<div>')
-            .addClass('downSection')
-            .attr('category', item.category)
-            .appendTo(this.palette)
       }
+
+      var category = $('<div>')
+         .addClass('category')
+         .attr('category', item.category);
+
+      // new title element for the category
+      var categoryDisplayName = i18n.t('item_categories_' + item.category);
+      if (!categoryDisplayName) {
+         console.log("No category display name found for item category " + item.category);
+         categoryDisplayName = item.category;
+      }
+
+      $('<h2>')
+         .html(categoryDisplayName)
+         .appendTo(category);
+
+      // the category container element that items are inserted into
+      $('<div>')
+         .addClass('downSection')
+         .appendTo(category);
+
+      category.appendTo(this.palette);
+
+      return category;
    },
 
    _findElementForItem: function(item) {

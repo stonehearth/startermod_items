@@ -24,7 +24,9 @@
       "Tigri",
       "Aibah",
       "Sayyar",
-      "Kenaii"
+      "Kenaii",
+      "Dakis",
+      "Sharak"
    ],
    "given_names" : {
       "male" : [
@@ -53,9 +55,18 @@
          "Kir'art",
          "S'maj",
          "Vehil",
-         "Bogdan"
+         "Bogdan",
+         "Kao",
+         "Inak",
+         "Aren",
+         "Dazzan",
+         "Roren"
       ],
       "female" : [
+         "Isla",
+         "Uuen",
+         "Bezil",
+         "Roran",
          "Kestra",
          "Bumba",
          "Tai",
@@ -95,7 +106,8 @@
          "Nhar",
          "Wol",
          "Ebba",
-         "Set"
+         "Set",
+         "Se"
       ], 
       "town_name" : [
          "Marat",
@@ -104,13 +116,16 @@
          "Nerra",
          "Ven",
          "Diradi",
-         "Twell"
+         "Twell",
+         "Romark",
+         "Feran"
       ], 
       "suffix" : [
          "en",
          "or",
          "er",
-         "vo"
+         "vo",
+         "dell"
       ]
    }
 }

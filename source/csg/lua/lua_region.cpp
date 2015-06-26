@@ -60,6 +60,14 @@ Region2f ProjectOntoXZPlane(Region3f const& region)
    return r2;
 }
 
+template <typename T>
+T Region_Extruded(T const &region, std::string const& dimString, int dMin, int dMax)
+{
+   ASSERT(dimString.length() == 1);
+   int dim = dimString[0] - 'x';
+   return region.Extruded(dim, dMin, dMax);
+}
+
 Region3f LiftToRegion3f(Region2f const& region, float minHeight, float maxHeight)
 {
    Region3f r3;
@@ -137,6 +145,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("translate",          &T::Translate)
          .def("translated",         &T::Translated)
          .def("inflated",           &T::Inflated)
+         .def("extruded",           &Region_Extruded<T>)
          .def("contains",           &T::Contains)
          .def("set_tag",            &T::SetTag)
       ;

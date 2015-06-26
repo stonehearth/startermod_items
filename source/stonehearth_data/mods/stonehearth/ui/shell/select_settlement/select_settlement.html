@@ -9,7 +9,7 @@
 
       <div id="worldSeed">
             {{i18n stonehearth:select_settlement_seed}}
-            <input id="worldSeedInput" onClick="this.select();" type="text" {{bind-attr value=view.world_seed}} />
+            <input id="worldSeedInput" onClick="this.select();" title="{{i18n input_text_tooltip}}" type="text" {{bind-attr value=view.world_seed}} />
       </div>
 
       <div id="scroll">
@@ -62,6 +62,6 @@
          </table>
       </div>
 
-      <div id="selectSettlementPin" title="settle here"></div>
+      <div id="selectSettlementPin" title="{{i18n select_settlement_at_this_location}}"></div>
    </div>
 </script>

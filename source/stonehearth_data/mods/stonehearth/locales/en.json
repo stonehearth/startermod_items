@@ -228,8 +228,9 @@
 
    "character_sheet_equipment_attack" : "Atk",
    "character_sheet_equipment_defense" : "Def",
+   "character_sheet_backpack_tab" : "Backpack",
 
-   "storage_remaining_spaces" : "Available space:",
+   "storage_used_space" : "Used space:",
    
    "stockpile_all" : "All",
    "stockpile_none" : "None",
@@ -341,6 +342,30 @@
    "mine_out_tip_description" : "Right click to exit", 
    "wall_segment_tip_title" : "Click to place freestanding wall segments", 
    "wall_segment_tip_description" : "Hold down SHIFT while clicking to draw connected walls", 
+
+   "build_title_building_designer" : "Building Designer",
+   "build_tooltip_building_tools" : "Building Tools",
+   "build_tooltip_voxel_tools" : "Voxel Tools",
+   "build_tooltip_voxel_add" : "Add Voxel",
+   "build_tooltip_voxel_paint" : "Paint Voxel",
+   "build_tooltip_voxel_remove" : "Remove Voxel",
+
+   "build_tooltip_selection" : "Selection",
+   "build_tooltip_delete" : "Delete",
+   "build_tooltip_undo" : "Undo",
+
+   "build_tooltip_draw_slab_tool" : "Slabs",
+   "build_tooltip_draw_floor_tool" : "Foundations",
+   "build_tooltip_grow_floor_tool" : "Floors",
+   "build_tooltip_grow_roof_tool" : "Roofs",
+   "build_tooltip_draw_door_tool" : "Doors",
+   "build_tooltip_draw_window_tool" : "Windows",
+   "build_tooltip_grow_wall_tool" : "Walls",
+   "build_tooltip_draw_wall_tool" : "Free Standing Walls",
+   "build_tooltip_draw_road_tool" : "Roads",
+
+   "build_tooltip_place_furniture_tool" : "Furniture",
+   "build_tooltip_place_decoration_tool" : "Decorations",
 
    "build_floor_tip_title" : "Click and drag to build floor", 
    "build_floor_tip_description" : "Right click to exit", 

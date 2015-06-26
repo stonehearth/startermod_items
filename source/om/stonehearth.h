@@ -30,6 +30,7 @@ public:
    static void RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity);
    static void SetEntityForComponent(lua_State* L, luabind::object component, om::EntityPtr entity, luabind::object json);
    static luabind::object ConstructController(lua::ScriptHost* scriptHost, const char* uri, om::DataStorePtr datastore);
+   static json::Node GetEntityJson(om::EntityPtr const& entity);
 
 private:
    static void InitEntityByUri(om::EntityPtr entity, const char* uri, lua_State* L);

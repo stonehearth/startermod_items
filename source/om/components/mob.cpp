@@ -43,6 +43,7 @@ void Mob::ConstructObject()
    ignore_gravity_ = false;
    in_free_motion_ = false;
    mob_collision_type_ = NONE;
+   allow_vertical_adjacent_ = false;
 }
 
 void Mob::MoveTo(const csg::Point3f& location)
