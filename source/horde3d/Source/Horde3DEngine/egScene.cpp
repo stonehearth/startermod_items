@@ -1274,6 +1274,8 @@ NodeHandle Scene::addNode( SceneNode *node, SceneNode &parent )
 {
 	if( node == 0x0 ) return 0;
 	
+   ASSERT(Modules::sceneMan().sceneIdFor(parent._handle) == _sceneId);
+
 	// Check if node can be attached to parent
 	if( !node->canAttach( parent ) )
 	{
@@ -1382,7 +1384,9 @@ bool Scene::relocateNode( SceneNode &node, SceneNode &parent )
 {
    if( node._handle == _rootNodeId ) return false;
 	
-	if( !node.canAttach( parent ) )
+   ASSERT(Modules::sceneMan().sceneIdFor(node._handle) == Modules::sceneMan().sceneIdFor(parent._handle));
+
+   if( !node.canAttach( parent ) )
 	{	
 		Modules::log().writeDebugInfo( "Can't attach node to parent in h3dSetNodeParent" );
 		return false;
