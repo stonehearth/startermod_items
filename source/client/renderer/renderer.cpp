@@ -1335,7 +1335,6 @@ void Renderer::RenderPortraitRT()
          perfmon::TimelineCounterGuard tcg("render portrait callback");
          portrait_cb_("finished", portraitBytes_);
       }
-      portrait_cb_ = PortraitRequestCb();
       portraitBytes_.clear();
    }
 }
