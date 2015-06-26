@@ -253,8 +253,12 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          return;
       }
 
-      self.$('.value').each(function(index){
-         self._showBuffEffects(this, buffsByAttribute);
+      self.$('.attr').each(function(index){
+         self._showBuffEffects(this, buffsByAttribute, true);
+      });
+
+      self.$('.score').each(function(index){
+         self._showBuffEffects(this, buffsByAttribute, false);
       });
 
       self.$('#glass > div').each(function() {
@@ -277,7 +281,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute
-   _showBuffEffects: function(obj, buffsByAttribute) {
+   _showBuffEffects: function(obj, buffsByAttribute, isAttribute) {
       var attrib_name = $(obj).attr('id');
       var attrib_value = this.get('model.stonehearth:attributes.attributes.' + attrib_name + '.value');
       var attrib_e_value = this.get('model.stonehearth:attributes.attributes.' + attrib_name + '.user_visible_value');
@@ -293,14 +297,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $(obj).removeClass('debuffedValue buffedValue').addClass('normalValue');
       }
 
-      var attributeData = App.tooltipHelper.getAttributeData(attrib_name);
-      if (!attributeData) {
-         attributeData = App.tooltipHelper.getScoreData(attrib_name);
-      }
-      if (attributeData) {
-         var tooltipString = '<div class="detailedTooltip"> <h2>' + attributeData.display_name
-                                 + '</h2><p>'+ attributeData.description + '</p>';
-
+      var hasTooltip = isAttribute ? App.tooltipHelper.hasAttributeTooltip(attrib_name) :  App.tooltipHelper.hasScoreTooltip(attrib_name);
+      if (hasTooltip) {
          //For each buff and debuff that's associated with this attribute, 
          //put it in the tooltip
          if (buffsByAttribute[attrib_name] != null) {
@@ -318,11 +316,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
                                                    + '</span></br>';
             }
             buffString = buffString + '</div>';
-            tooltipString = tooltipString + buffString;
          }
 
-         tooltipString = tooltipString + '</div>';
-
+         var tooltipString = isAttribute ? 
+                  App.tooltipHelper.getAttributeTooltip(attrib_name, buffString) : App.tooltipHelper.getScoreTooltip(attrib_name, false, buffString)
+         
          $(obj).tooltipster({
                position: 'right'
             });
