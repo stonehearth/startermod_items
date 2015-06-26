@@ -56,17 +56,6 @@ function PortraitRendererService:_pump_request_queue()
       end)
 end
 
-function PortraitRendererService:_create_entity(entity_uri, position, rotation)
-   local ent = radiant.entities.create_entity(entity_uri)
-   ent:add_component('render_info')
-   local render_ent = _radiant.client.create_render_entity(_radiant.renderer.get_root_node(2), ent)
-
-   table.insert(self._created_entities, {
-      entity = ent,
-      render_entity = render_ent,
-   })
-end
-
 function PortraitRendererService:_add_existing_entity(ent)
    ent:add_component('render_info')
    local render_ent = _radiant.client.create_unmanaged_render_entity(_radiant.renderer.get_root_node(2), ent)
@@ -141,29 +130,18 @@ function PortraitRendererService:_stage_scene(request)
          camera_pos_y = camera_pos_y * 1.8
       end
 
-      local mob = entity:get_component('mob')
-      local rotation = mob and mob:get_facing()
-    
-      -- Rotate the lighting so it will always shine in the direction of the hearthling.
-      local desired_light_direction = _radiant.csg.Quaternion(Point3(math.rad(-15), math.rad(160), math.rad(0)))
-      local mob_rotation = mob and mob:get_rotation()
-      local rotated_direction = mob_rotation * desired_light_direction
-      local euler = rotated_direction:get_euler_angle()
-      local euler_degrees = Point3(math.deg(euler.x), math.deg(euler.y), math.deg(euler.z))
-
       self:_add_light({
             color =         Point3(0.81, 0.72, 0.81),
             ambient_color = Point3(0.3,  0.3, 0.3),
             -- Direction is in degrees with yaw and pitch as the first 2 params. Ignore 3rd param
             -- -180 yaw will have light going from -z to positive z
-            direction =     euler_degrees,
+            direction =      Point3(-160, 15, 0),
          })
          
-      local camera_original_pos = Point3(1.7, camera_pos_y, -2.7)
-      local camera_pos = radiant.math.rotate_about_y_axis(camera_original_pos, rotation)
+      local camera_pos = Point3(1.7, camera_pos_y, -2.7)
 
-      self:_set_camera_position(camera_pos + entity_location)
-      self:_set_camera_look_at(Point3(0, camera_pos_y - 0.3, 0) + entity_location)
+      self:_set_camera_position(camera_pos)
+      self:_set_camera_look_at(Point3(0, camera_pos_y - 0.3, 0))
    end
 end
 

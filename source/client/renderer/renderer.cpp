@@ -1732,39 +1732,37 @@ void Renderer::RenderLoadingMeter()
    h3dShowOverlays( ovTitleVerts, 4,  1.0f, 1.0f, 1.0f, 1.0f, _loadingProgressMaterial, 0 );
 }
 
-std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::EntityPtr entity)
+std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::EntityPtr entity, int flags)
 {
-   std::shared_ptr<RenderEntity> result = GetRenderEntity(entity);
-   if (result) {
-      if (parent != RenderNode::GetUnparentedNode()) {
-         result->SetParent(parent);
+   bool offscreen = (flags & RenderFlags::OFFSCREEN_OBJECT) != 0;
+
+   if (!offscreen) {
+      std::shared_ptr<RenderEntity> result = GetRenderEntity(entity);
+      if (result) {
+         if (parent != RenderNode::GetUnparentedNode()) {
+            result->SetParent(parent);
+         }
+         return result;
       }
-      return result;
    }
+
    dm::ObjectId id = entity->GetObjectId();
    int sid = entity->GetStoreId();
 
-   RenderMapEntry entry;
-   entry.render_entity = CreateUnmanagedRenderEntity(parent, entity);
-   entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
-                                    ->OnDestroyed([this, sid, id]() { 
-                                          R_LOG(5) << "destroying render object in trace callback " << sid << ", " << id;
-                                          entities_[sid].erase(id);
-                                       });
-   entities_[sid][id] = entry;
-   return entry.render_entity;
-}
-
-
-std::shared_ptr<RenderEntity> Renderer::CreateUnmanagedRenderEntity(H3DNode parent, om::EntityPtr entity)
-{
-   dm::ObjectId id = entity->GetObjectId();
-   int sid = entity->GetStoreId();
-
-   R_LOG(5) << "creating render object " << sid << ", " << id;
-   std::shared_ptr<RenderEntity> re = std::make_shared<RenderEntity>(parent, entity);
+   R_LOG(5) << "creating managed render object (sid:" << sid << " id:" << id << " flags:" << flags << ")";
+   std::shared_ptr<RenderEntity> re = std::make_shared<RenderEntity>(parent, entity, flags);
    _newRenderEntities.emplace_back(re);
 
+   if (!offscreen) {
+      RenderMapEntry entry;
+      entry.render_entity = re;
+      entry.lifetime_trace = entity->TraceChanges("render dtor", dm::RENDER_TRACES)
+         ->OnDestroyed([this, sid, id]() {
+         R_LOG(5) << "destroying render object in trace callback " << sid << ", " << id;
+         entities_[sid].erase(id);
+      });
+      entities_[sid][id] = entry;
+   }
    return re;
 }
 

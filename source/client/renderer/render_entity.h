@@ -22,6 +22,10 @@ class RenderEntity;
 typedef std::shared_ptr<RenderEntity> RenderEntityPtr;
 typedef std::weak_ptr<RenderEntity> RenderEntityRef;
 
+enum RenderFlags {
+   OFFSCREEN_OBJECT = (1 << 0),
+};
+
 class RenderEntity : public std::enable_shared_from_this<RenderEntity>,
                      public core::ObjectCounter<RenderEntity>
 {
@@ -42,11 +46,11 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>,
       typedef std::shared_ptr<VisibilityHandle> VisibilityHandlePtr;
 
       enum QueryFlags {
-         UNSELECTABLE = (1 << 0)
+         UNSELECTABLE = (1 << 0),
       };
 
    public:
-      RenderEntity(H3DNode parent, om::EntityPtr obj);
+      RenderEntity(H3DNode parent, om::EntityPtr obj, int flags = 0);
       ~RenderEntity();
 
       bool IsValid() const;
@@ -114,6 +118,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>,
 protected:
       typedef std::unordered_map<core::StaticString, std::shared_ptr<RenderComponent>, core::StaticString::Hash> ComponentMap;
       typedef std::unordered_map<core::StaticString, luabind::object, core::StaticString::Hash> LuaComponentMap;
+      int               _flags;
       std::string       node_name_;
       H3DNode           node_;
       H3DNode           offsetNode_;
