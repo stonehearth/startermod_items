@@ -79,8 +79,9 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(FillBackpackFromGroundItems)
+   :execute('stonehearth:wait_for_inventory_storage_space')
    :execute('stonehearth:pickup_item_type', {
-            filter_fn = ai.PREV.filter_fn,
+            filter_fn = ai.BACK(2).filter_fn,
             description = 'fill backpack from ground item',
    })
    :execute('stonehearth:put_carrying_in_backpack', {})

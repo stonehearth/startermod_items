@@ -545,6 +545,7 @@
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
       "actions:pickup_item_type_from_backpack_proxy" : "file(ai/actions/pickup_item_type_from_backpack_proxy_action.lua)",
       "actions:fill_backpack_from_ground_items" : "file(ai/actions/fill_backpack_from_ground_items_action.lua)",
+      "actions:wait_for_inventory_storage_space" : "file(ai/actions/wait_for_inventory_storage_space_action.lua)",
       "actions:reserve_storage_space" : "file(ai/actions/reserve_storage_space_action.lua)",
       "actions:pickup_item_type_from_any_storage" : "file(ai/actions/pickup_item_type_from_any_storage_action.lua)",
       "actions:pickup_item_type_from_storage" : "file(ai/actions/pickup_item_type_from_storage_action.lua)",
