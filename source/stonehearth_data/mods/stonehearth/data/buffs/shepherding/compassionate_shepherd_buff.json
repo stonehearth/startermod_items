@@ -3,7 +3,7 @@
    "name" : "Loved",
    "description" : "Cared for by a compassionate shepherd.",
    "icon" : "file(compassionate_shepherd_buff.png)",
-   "duration" : "12h",
+   "duration" : "4h",
 
    "modifiers" : {
       "reproduction_rate_modifier" : {
@@ -14,6 +14,6 @@
       }
    },
    "tags" : [
-      "comfort"
+      "shepherded_animal_buff"
    ]
 } 

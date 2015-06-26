@@ -111,7 +111,8 @@ $.widget( "stonehearth.stonehearthItemPalette", {
    },
 
    _findElementForItem: function(item) {
-      var selector = "[uri='" + item.uri + "']";      
+      var uri = item.uri.__self ? item.uri.__self : item.uri;
+      var selector = "[uri='" + uri + "']";      
       //selector = selector.split(':').join('\\\\:'); //escape the colons
       
       var match = this.palette.find(selector)[0];
@@ -134,11 +135,13 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       var selectBox = $('<div>')
          .addClass('selectBox');
 
+      var uri = item.uri.__self ? item.uri.__self : item.uri;
+
       var itemEl = $('<div>')
          .addClass('item')
          .addClass(this.options.cssClass)
          .attr('title', item.display_name)
-         .attr('uri', item.uri)
+         .attr('uri', uri)
          .append(img)
          .append(num)
          .append(selectBox);
@@ -170,17 +173,22 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          itemEl.removeClass('disabled');
       }
 
+      this._updateItemTooltip(itemEl, item);
+   },
+
+   _updateItemTooltip: function(itemEl, item) {
+
       var tooltipString = '<div class="detailedTooltip"> <h2>' + item.display_name + '</h2>';
       if (item.description) {
          tooltipString = tooltipString + '<p>' + item.description + '</p>'
       }
 
-      // Only display the stack cound if we were supplied the items
-      // This allows us to show the value of gold in a gold chest.
+      var uri = item.uri.__self ? item.uri.__self : item.uri;
+
+      // Only display the stack count for gold in a gold chest.
       var stackCount = 0;
-      if (item.items) { // If we were supplied the items in the palette,
+      if (item.items && uri=="stonehearth:loot:gold") {
          radiant.each(item.items, function(id, individualItem) {
-            //only push public buffs (buffs who have an is_private unset or false)
             if (individualItem.item && individualItem.item.stacks) {
               stackCount += individualItem.item.stacks;
             }
@@ -191,7 +199,46 @@ $.widget( "stonehearth.stonehearthItemPalette", {
           tooltipString = tooltipString + '<p class="goldValue">' + stackCount + '</p>'
       }
 
+      var entity_data = this._getEntityData(item);
+
+      if (entity_data) {
+         var combat_info = "";
+
+         var weapon_data = entity_data['stonehearth:combat:weapon_data'];
+         if (weapon_data) {
+            combat_info = combat_info + 
+                        '<span id="atkHeader" class="combatHeader">' + i18n.t('item_tooltip_combat_base_damage') + '</span>' +
+                        '<span id="atkValue" class="combatValue">+' + weapon_data.base_damage + '</span>';
+         }
+
+         var armor_data = entity_data['stonehearth:combat:armor_data'];
+         if (armor_data) {
+            combat_info = combat_info + 
+                     '<span id="defHeader" class="combatHeader">' + i18n.t('item_tooltip_combat_base_damage_reduction') + '</span>' +
+                     '<span id="defValue" class="combatValue">+' + armor_data.base_damage_reduction + '</span>'
+         }
+
+         if (combat_info != "") {
+            tooltipString = tooltipString + '<div class="itemCombatData">' + combat_info + "</div>";
+         }
+      }
+
       tooltipString = tooltipString + '</div>';
       itemEl.tooltipster({content: $(tooltipString)});
    },
+
+   _getEntityData: function(item) {
+      if (item.first_item) {
+         var iconic_form = item.first_item['stonehearth:iconic_form'];
+         if (iconic_form && iconic_form.root_entity && iconic_form.root_entity.uri && iconic_form.root_entity.uri.entity_data) {
+            return iconic_form.root_entity.uri.entity_data;
+         }
+      }
+
+      if (item.uri.entity_data) {
+         return item.uri.entity_data;
+      }
+
+      return null;
+   }
 });

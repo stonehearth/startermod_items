@@ -385,15 +385,6 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:install_trace", [this](rpc::Function const& f) {
       json::Node args(f.args);
       std::string uri = args.get<std::string>(0, "");
-
-      if (!GetStore().IsValidStoreAddress(uri)) {
-         try {
-            // Expand aliases to get the proper trace route.  This lets us trace things like 'stonehearth:foo'
-            uri = res::ResourceManager2::GetInstance().ConvertToCanonicalPath(uri, ".json");
-         } catch (std::exception const&) {
-            // Not an alias.  And that's OK!
-         }
-      }
       return http_reactor_->InstallTrace(rpc::Trace(f.caller, f.call_id, uri));
    });
    core_reactor_->AddRoute("radiant:remove_trace", [this](rpc::Function const& f) {

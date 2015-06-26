@@ -13,9 +13,8 @@ function BasicInventoryTracker:restore()
 end
 
 -- Part of the inventory tracker interface.  Given an `entity`, return the key
--- used to store tracker data for entities of that type.  Most of the
--- time this is just the entity uri, but if the item is actually the 'iconic'
--- version of a larger entity, it's full entity's uri, not the iconic's uri.
+-- used to store tracker data for entities of that type. This has to always be
+-- the entity uri, even if it is iconic. Otherwise, crafter maintain will break.
 --
 --    @param entity - the entity currently being tracked
 -- 
@@ -40,12 +39,13 @@ function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data
       local unit_info = entity:add_component('unit_info')
       tracking_data = {
          uri = entity:get_uri(),
-         count = 0, 
+         count = 0,
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
          description = unit_info:get_description(),
          category = radiant.entities.get_category(entity),
+         first_item = entity,
       }
    end
 
@@ -74,9 +74,14 @@ function BasicInventoryTracker:remove_entity_from_tracking_data(entity_id, track
    if tracking_data.items[entity_id] then
       tracking_data.items[entity_id] = nil
       tracking_data.count = tracking_data.count - 1
+
       if tracking_data.count <= 0 then
+         tracking_data.first_item = nil
          return nil
       end
+
+      local id, next_item = next(tracking_data.items)
+      tracking_data.first_item = next_item
    end
    return tracking_data
 end

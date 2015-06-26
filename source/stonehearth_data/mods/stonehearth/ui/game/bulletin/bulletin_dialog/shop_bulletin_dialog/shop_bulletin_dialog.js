@@ -3,7 +3,18 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    components : {
       data : {
          shop : {
-            sellable_items : {}
+            sellable_items : {
+               "tracking_data" : {
+                  "*" : {
+                     "uri" : {}
+                  }
+               }
+            },
+            shop_inventory : {
+               "*" : {
+                  "uri" : {}
+               }
+            }
          }
       }
    },

@@ -360,5 +360,9 @@ function CalendarService:_update_seconds_today()
    self.__saved_variables:mark_changed()
 end
 
+function CalendarService:get_time_durations()
+   return TIME_DURATIONS
+end
+
 return CalendarService
 

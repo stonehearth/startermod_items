@@ -299,22 +299,22 @@ function ShepherdPastureComponent:_calculate_reproduction_timer()
    --the timer is variable, so we don't just use the interval timer in the growth service
    --this way the shepherd's level, etc can affect reproduction time
    --avoiding the issue we had trying to get the farmer to change the repro time on crops
-   local average_comfort = 0
+   local reproduction_subtraction = 0
    for id, critter_data in pairs(self._sv.tracked_critters) do
       local critter = critter_data.entity
 
       if critter and critter:is_valid() then
          local attributes = critter:get_component('stonehearth:attributes')
          if attributes then
-            average_comfort = average_comfort + attributes:get_attribute('reproduction_rate_modifier')
+            reproduction_subtraction = reproduction_subtraction + attributes:get_attribute('reproduction_rate_modifier')
          end
       end
    end
 
-   average_comfort = radiant.math.round(average_comfort / self._sv.num_critters)
+   reproduction_subtraction = radiant.math.round(reproduction_subtraction / self._sv.num_critters)
    
-   local hours_subtracted_string = average_comfort..'h'
-   local interval_in_seconds = interval - stonehearth.calendar:parse_duration(hours_subtracted_string)
+   local seconds_subtracted = reproduction_subtraction * stonehearth.calendar:get_time_durations().hour
+   local interval_in_seconds = interval - seconds_subtracted
 
    local min_interval = self._sv.pasture_data[self._sv.pasture_type].min_reproduction_period or '1s'
    min_interval = stonehearth.calendar:parse_duration(min_interval)

@@ -16,7 +16,7 @@ function ShepherdClass:restore()
 
    --If we load and we're the current class, do these things
    if self._sv.is_current_class then
-      --self:_create_xp_listeners()
+      self:_create_xp_listeners()
    end
 
    self.__saved_variables:mark_changed()
@@ -103,16 +103,7 @@ function ShepherdClass:add_trailing_animal(animal, pasture)
       radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:speed_1');
    end
 
-   --Chance to add Cared For buff to animal
-   local attributes = self._sv._entity:get_component('stonehearth:attributes')
-   if attributes then
-      local compassion = attributes:get_attribute('compassion') or 0
-      local buff_chance = compassion * stonehearth.constants.attribute_effects.COMPASSION_SHEPHERD_BUFF_CHANCE_MULTIPLIER
-      local roll = rng:get_int(1, 100)  
-      if roll <= buff_chance then
-         radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:compassionate_shepherd');
-      end
-   end
+   self:_on_interacted_with_animal(animal)
 
    --Fire an event saying that we've collected an animal
    radiant.events.trigger(self._sv._entity, 'stonehearth:add_trailing_animal', {animal = animal, pasture = pasture})
@@ -214,6 +205,7 @@ function ShepherdClass:_on_renewable_resource_gathered(args)
       local equipment_component = args.harvested_target:get_component('stonehearth:equipment')
       if equipment_component and equipment_component:has_item_type('stonehearth:pasture_tag') then
          self._job_component:add_exp(self._sv.xp_rewards['harvest_animal_resources'])
+         self:_on_interacted_with_animal(args.harvested_target)
       end
    end
    if args.spawned_item and self:has_perk('shepherd_extra_bonuses') then
@@ -260,5 +252,17 @@ function ShepherdClass:remove_buff(args)
    radiant.entities.remove_buff(self._sv._entity, args.buff_name)
 end
 
+function ShepherdClass:_on_interacted_with_animal(animal)
+   --Chance to add Cared For buff to animal
+   local attributes = self._sv._entity:get_component('stonehearth:attributes')
+   if attributes then
+      local compassion = attributes:get_attribute('compassion') or 0
+      local buff_chance = compassion * stonehearth.constants.attribute_effects.COMPASSION_SHEPHERD_BUFF_CHANCE_MULTIPLIER
+      local roll = rng:get_int(1, 100)  
+      if roll <= buff_chance then
+         radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:compassionate_shepherd');
+      end
+   end
+end
 
 return ShepherdClass

@@ -125,6 +125,16 @@ App.StonehearthTownView = App.View.extend({
          .done(function(response) {
             var itemTraces = {
                "tracking_data" : {
+                  "*" : {
+                     "first_item" : {
+                        "uri" : {},
+                        "stonehearth:iconic_form" : {
+                           "root_entity" : {
+                              "uri" : {}
+                           }
+                        }
+                     }
+                  },
                   "stonehearth:loot:gold" : {
                      "items" : {
                         "*" : {
