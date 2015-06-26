@@ -183,12 +183,12 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          tooltipString = tooltipString + '<p>' + item.description + '</p>'
       }
 
-      // Only display the stack cound if we were supplied the items
-      // This allows us to show the value of gold in a gold chest.
+      var uri = item.uri.__self ? item.uri.__self : item.uri;
+
+      // Only display the stack count for gold in a gold chest.
       var stackCount = 0;
-      if (item.items) { // If we were supplied the items in the palette,
+      if (item.items && uri=="stonehearth:loot:gold") {
          radiant.each(item.items, function(id, individualItem) {
-            //only push public buffs (buffs who have an is_private unset or false)
             if (individualItem.item && individualItem.item.stacks) {
               stackCount += individualItem.item.stacks;
             }
@@ -199,19 +199,46 @@ $.widget( "stonehearth.stonehearthItemPalette", {
           tooltipString = tooltipString + '<p class="goldValue">' + stackCount + '</p>'
       }
 
-      if (item.uri.entity_data) {
-         var weapon_data = item.uri.entity_data['stonehearth:combat:weapon_data'];
+      var entity_data = this._getEntityData(item);
+
+      if (entity_data) {
+         var combat_info = "";
+
+         var weapon_data = entity_data['stonehearth:combat:weapon_data'];
          if (weapon_data) {
-            tooltipString = tooltipString + '<p class="atkValue">' + weapon_data.base_damage + '</p>'
+            combat_info = combat_info + 
+                        '<span id="atkHeader" class="combatHeader">' + i18n.t('item_tooltip_combat_base_damage') + '</span>' +
+                        '<span id="atkValue" class="combatValue">+' + weapon_data.base_damage + '</span>';
          }
 
-         var armor_data = item.uri.entity_data['stonehearth:combat:armor_data'];
+         var armor_data = entity_data['stonehearth:combat:armor_data'];
          if (armor_data) {
-            tooltipString = tooltipString + '<p class="atkValue">' + armor_data.base_damage_reduction + '</p>'
+            combat_info = combat_info + 
+                     '<span id="defHeader" class="combatHeader">' + i18n.t('item_tooltip_combat_base_damage_reduction') + '</span>' +
+                     '<span id="defValue" class="combatValue">+' + armor_data.base_damage_reduction + '</span>'
+         }
+
+         if (combat_info != "") {
+            tooltipString = tooltipString + '<div class="itemCombatData">' + combat_info + "</div>";
          }
       }
 
       tooltipString = tooltipString + '</div>';
       itemEl.tooltipster({content: $(tooltipString)});
+   },
+
+   _getEntityData: function(item) {
+      if (item.first_item) {
+         var iconic_form = item.first_item['stonehearth:iconic_form'];
+         if (iconic_form && iconic_form.root_entity && iconic_form.root_entity.uri && iconic_form.root_entity.uri.entity_data) {
+            return iconic_form.root_entity.uri.entity_data;
+         }
+      }
+
+      if (item.uri.entity_data) {
+         return item.uri.entity_data;
+      }
+
+      return null;
    }
 });

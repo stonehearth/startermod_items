@@ -562,6 +562,9 @@
    "item_categories_refined" : "Refined",
    "item_categories_uncategorized" : "Uncategorized",
 
+   "item_tooltip_combat_base_damage" : "Atk:",
+   "item_tooltip_combat_base_damage_reduction" : "Def:",
+
    "unit_info_show_character_sheet": "Show character sheet",
    "unit_info_focus_camera": "Focus camera on this unit",
 

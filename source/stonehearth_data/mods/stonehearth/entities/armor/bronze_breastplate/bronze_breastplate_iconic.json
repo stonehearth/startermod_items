@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
      "unit_info" : {
-         "name": "bronze Breastplate",
+         "name": "Bronze Breastplate",
          "description": "Armor",
          "icon" : "file(bronze_breastplate.png)"
       },
