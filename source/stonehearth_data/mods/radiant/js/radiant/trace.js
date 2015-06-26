@@ -212,9 +212,14 @@ var RadiantTrace;
          };
 
          $.each(obj, function(k, v) {
+            // Ember doesn't like periods. Transform them before using them as a key.
+            // If anyone tries to use the transform value to send it back to someone, then
+            // they need to do the inverse transform.
+            var emberValidKey = k.replace(/\./g, "&#46;");
+
             var sub_properties = properties[k] || properties['*']
             if (sub_properties == undefined) {
-               eobj.set(k, v);
+               eobj.set(emberValidKey, v);
             } else {
                self._log(level, 'fetching child object: ' + k);
                pending[k] = true;
@@ -227,21 +232,22 @@ var RadiantTrace;
                         self._log(level, 'child object ' + k + ' resolved to:', child_eobj);
 
                         // If an object already exists at this uri, make sure we destory the object.
-                        var current = eobj.get(k);
+                        var current = eobj.get(emberValidKey);
                         if (current && uri) {
                            self._release_trace_reference(uri, level);
                         }
 
                         // Update the object property and check to see if it's time to notify
                         // the parent
-                        eobj.set(k, child_eobj);
+
+                        eobj.set(emberValidKey, child_eobj);
                         delete pending[k];
 
                         //self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
                         notify_update();
                      });
                } else {
-                  eobj.set(k, null);
+                  eobj.set(emberValidKey, null);
                }
             }
          });

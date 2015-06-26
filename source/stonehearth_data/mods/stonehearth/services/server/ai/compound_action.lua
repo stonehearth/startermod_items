@@ -210,6 +210,7 @@ function CompoundAction:_start_thinking_on_frame(i)
                -- we prove not doing so is harmful), just bail and wait for top to spin back around.               
                self._log:debug('not sure how to proceed.  terminating think')
                self:stop_thinking()
+               self._ai:clear_think_output('compound action frame became unready')
             else
                self._log:debug('aborting!')
                self._ai:abort()
