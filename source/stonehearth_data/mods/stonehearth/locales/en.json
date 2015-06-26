@@ -593,5 +593,5 @@
    "unit_info_show_character_sheet": "Show character sheet",
    "unit_info_focus_camera": "Focus camera on this unit",
 
-   "unit_info_gold_description": "It's worth __stacks__ money!"
+   "unit_info_gold_description": "It's __stacks__ gold!"
 }
