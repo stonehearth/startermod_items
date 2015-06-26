@@ -18,22 +18,34 @@
       {
          "attribute" : "diligence",
          "display_name" : "Diligence",
-         "description" : "This hearthling's concentration. Diligent workers complete long tasks without getting distracted."
+         "description" : "This hearthling's concentration. Diligent workers complete long tasks without getting distracted.",
+         "bullet_points" : [
+            "Increases crafting speed"
+         ]
       },
       {
          "attribute" : "curiosity",
          "display_name" : "Curiosity",
-         "description" : "How much this hearthling enjoys new experiences."
+         "description" : "How much this hearthling enjoys new experiences.",
+         "bullet_points" : [
+            "Improves exp gain when crafting new items"
+         ]
       },
       {
          "attribute" : "inventiveness",
          "display_name" : "Inventiveness",
-         "description" : "How good this hearthling is at creating things. Good inventors are more likely to create fine craftables."
+         "description" : "How good this hearthling is at creating things. Good inventors are more likely to create fine craftables.",
+         "bullet_points" : [
+            "Improves chance to craft fine items"
+         ]
       },
       {
          "attribute" : "muscle",
          "display_name" : "Muscle",
-         "description" : "This hearthling's brawn. Contributes to damage in combat."
+         "description" : "This hearthling's brawn.",
+         "bullet_points" : [
+            "Affects weapon damage in combat"
+         ]
       },
       {
          "attribute" : "speed",
@@ -43,12 +55,18 @@
       {
          "attribute" : "stamina",
          "display_name" : "Stamina",
-         "description" : "How long this hearthling can work before needing rest."
+         "description" : "How long this hearthling can work before needing rest.",
+         "bullet_points" : [
+            "Determines sleep duration"
+         ]
       },
       {
          "attribute" : "courage",
          "display_name" : "Courage",
-         "description" : "How brave this hearthling is in the face of combat. Less courageous hearthlings are liable to flee from enemies."
+         "description" : "How brave this hearthling is in the face of combat.",
+         "bullet_points" : [
+            "Determines chance to flee in combat"
+         ]
       },
       {
          "attribute" : "willpower",
@@ -58,7 +76,11 @@
       {
          "attribute" : "compassion",
          "display_name" : "Compassion",
-         "description" : "How likely this hearthling will help out a fellow villager or befriend others."
+         "description" : "How likely this hearthling will help out a fellow villager or befriend others.",
+         "bullet_points" : [
+            "Determines maxiumum trapper pet count",
+            "Increases shepherd sheep happiness"
+         ]
       }
    ],
    "score_tooltips": [
