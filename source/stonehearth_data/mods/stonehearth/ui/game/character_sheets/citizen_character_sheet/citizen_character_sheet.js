@@ -30,8 +30,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          'job_controllers' : {
             '*' : {}
          }
+      },
+
+      'stonehearth:storage' : {
+         'item_tracker' : {}
       }
-      
    },
 
    init: function() {
@@ -383,6 +386,19 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       });
    }.observes('model.stonehearth:score'),
 
+   _updateBackpackItems : function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         if (!self._backpackItemsPalette) {
+            // When moving a crate, this function will fire, but no UI will be present.  For now, be lazy
+            // and just ignore this case.
+            return;
+         }
+         var tracker = self.get('model.stonehearth:storage.item_tracker');
+         self._backpackItemsPalette.stonehearthItemPalette('updateItems', tracker.tracking_data);
+      });
+   }.observes('model.stonehearth:storage.item_tracker'),
+
    didInsertElement: function() {
       var self = this;
 
@@ -417,6 +433,10 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       if (b) {
          self._updateAttributes();
       }
+
+      this._backpackItemsPalette = this.$('#backpackItemsPalette').stonehearthItemPalette({
+         cssClass: 'inventoryItem',
+      });
    },
 
    _onEntitySelected: function(e) {

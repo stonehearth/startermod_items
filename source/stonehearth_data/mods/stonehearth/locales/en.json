@@ -228,6 +228,7 @@
 
    "character_sheet_equipment_attack" : "Atk",
    "character_sheet_equipment_defense" : "Def",
+   "character_sheet_backpack_tab" : "Backpack",
 
    "storage_used_space" : "Used space:",
    
