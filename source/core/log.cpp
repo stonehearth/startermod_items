@@ -43,7 +43,7 @@ const char* Indent::GetIndent()
 radiant::log::LogCategories log_levels_;
 uint32 default_log_level_;
 std::unordered_map<std::string, radiant::log::LogLevel> log_level_names_;
-std::unordered_map<platform::ThreadId, std::string> log_thread_names_;
+std::unordered_map<platform::ThreadId, core::StaticString> log_thread_names_;
 
 static uint32 console_log_severity_;
 static const uint32 DEFAULT_LOG_LEVEL = 2;
@@ -194,19 +194,27 @@ void radiant::log::Exit()
    LOG(core.log, 0) << "logger shutting down";
 }
 
+static tbb::spin_mutex __lock;
+
 const char* radiant::log::GetCurrentThreadName()
 {
+   tbb::spin_mutex::scoped_lock lock(__lock);
+
    platform::ThreadId id = platform::GetCurrentThreadId();
    auto i = log_thread_names_.find(id);
    if (i != log_thread_names_.end()) {
-      return i->second.c_str();
+      return i->second;
    }
-   SetCurrentThreadName(BUILD_STRING("thread" << id));
-   return GetCurrentThreadName();
+   
+   core::StaticString name = BUILD_STRING("thread" << id);
+   log_thread_names_[id] = name;
+   return name;
 }
 
-void radiant::log::SetCurrentThreadName(std::string const& name)
+void radiant::log::SetCurrentThreadName(const char* name)
 {
+   tbb::spin_mutex::scoped_lock lock(__lock);
+
    platform::ThreadId id = platform::GetCurrentThreadId();
    log_thread_names_[id] = name;
 }
