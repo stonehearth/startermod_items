@@ -409,7 +409,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
                $(this).blur();
            }
          })
-         .tooltipster({content: i18n.t('input_text_tooltip')});
+         .tooltipster();
       
       if (p) {
          $('#personality').html($.t(p.personality));   
