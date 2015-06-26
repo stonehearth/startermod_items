@@ -82,7 +82,7 @@ App.StonehearthStockpileView = App.View.extend({
          var backpackCapacity = self.get('context.stonehearth:storage.capacity');
 
          if (backpackCapacity) {
-            self.set('remaining_spaces', backpackCapacity - self.get('context.stonehearth:storage.num_items'));
+            self.set('used_spaces', self.get('context.stonehearth:storage.num_items'));
             self.set('capacity', backpackCapacity);
          }
       });

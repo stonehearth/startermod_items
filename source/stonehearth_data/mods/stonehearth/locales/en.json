@@ -229,7 +229,7 @@
    "character_sheet_equipment_attack" : "Atk",
    "character_sheet_equipment_defense" : "Def",
 
-   "storage_remaining_spaces" : "Available space:",
+   "storage_used_space" : "Used space:",
    
    "stockpile_all" : "All",
    "stockpile_none" : "None",
