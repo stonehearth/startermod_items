@@ -69,7 +69,7 @@ namespace radiant {
       void Exit();
       int GetDefaultLogLevel();
       const char* GetCurrentThreadName();
-      void SetCurrentThreadName(std::string const& name);
+      void SetCurrentThreadName(const char* name);
       int GetLogLevel(std::string const& key, int deflt);
 
       struct LogCategories {
