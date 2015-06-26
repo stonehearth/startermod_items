@@ -132,10 +132,10 @@ function PortraitRendererService:_stage_scene(request)
 
       self:_add_light({
             color =         Point3(0.81, 0.72, 0.81),
-            ambient_color = Point3(0.3,  0.3, 0.3),
+            ambient_color = Point3(0.4,  0.4, 0.4),
             -- Direction is in degrees with yaw and pitch as the first 2 params. Ignore 3rd param
             -- -180 yaw will have light going from -z to positive z
-            direction =      Point3(-160, 15, 0),
+            direction =      Point3(15, 160, 0),
          })
          
       local camera_pos = Point3(1.7, camera_pos_y, -2.7)
