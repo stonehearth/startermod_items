@@ -52,7 +52,7 @@ void MovementHelper::GetEntityReach(om::EntityPtr const& entity, int& maxReachUp
          maxReachDown = 0;
          break;
       default:
-         maxReachUp = 2;
+         maxReachUp = 0;
          maxReachDown = 0;
    }
 }
