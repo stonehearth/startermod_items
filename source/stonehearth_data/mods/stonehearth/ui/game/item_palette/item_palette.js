@@ -75,6 +75,7 @@ $.widget( "stonehearth.stonehearthItemPalette", {
             self._updateItemElement(itemElement, item);
 
             itemElement.attr('updated', 1)
+            categoryElement.attr('updated', 1);
          }
       })
 
