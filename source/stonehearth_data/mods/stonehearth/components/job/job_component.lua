@@ -325,6 +325,11 @@ function JobComponent:add_exp(value)
       return
    end
 
+   if stonehearth.player:is_npc(self._entity) then
+      -- no exp for npc players
+      return
+   end
+
    local max_level = self:_call_job('is_max_level')
    if max_level == true or max_level == nil then
       return
