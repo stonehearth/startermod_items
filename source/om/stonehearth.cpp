@@ -193,10 +193,26 @@ Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
    TriggerPostCreate(scriptHost, entity);
 }
 
+// Note: Passing entity by a non-const reference because we will reset the shared_ptr!
 void
-Stonehearth::DestroyEntity(om::EntityPtr entity)
+Stonehearth::DestroyEntity(om::EntityPtr& entity, lua_State* L)
 {
+   dm::ObjectId id = entity->GetObjectId();
+
+   TriggerPreDestroy(entity, L);
    entity->Destroy();
+
+   om::EntityRef entityRef = entity;
+   // we hope to release the last reference here
+   entity.reset();
+
+   // check if entity is actually destroyed
+   if (!entityRef.expired()) {
+      om::EntityPtr e = entityRef.lock();
+      E_LOG(3) << "Reference still exists to " << e << " after destroy_entity was called";
+   }
+
+   TriggerPostDestroy(id, L);
 }
 
 void

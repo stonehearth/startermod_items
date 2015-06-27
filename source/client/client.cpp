@@ -1742,15 +1742,8 @@ void Client::DestroyAuthoringEntity(dm::ObjectId id)
       }
 
       lua_State* L = scriptHost_->GetInterpreter();
-      om::Stonehearth::TriggerPreDestroy(entity, L);
-      om::Stonehearth::DestroyEntity(entity);
-      om::EntityRef entityRef = entity;
-      entity = nullptr;
-      if (!entityRef.expired()) {
-         entity = entityRef.lock();
-         CLIENT_LOG(5) << "Reference still exists to " << entity << " after destroy_entity was called";
-      }
-      om::Stonehearth::TriggerPostDestroy(id, L);
+      om::Stonehearth::DestroyEntity(entity, L);
+      ASSERT(!entity);
    }
 }
 
