@@ -383,7 +383,7 @@ protected:
    int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline int hashGridPoint(int x, int y) const;
    inline void unhashGridHash(int hash, int* x, int* y) const;
-   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
+   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, bool cullItems=false);
    void _queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
 

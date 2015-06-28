@@ -810,13 +810,16 @@ void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection
 }
 
 
-void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results)
+void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, bool cullItems)
 {
    for (GridItem const& g: nodes) {
       BoundingBox const& bounds = g.bounds;
 
-      if (frust.cullBox(bounds)) {
-         continue;
+      // This is a tight loop, and the flag is either always true, or always false, so the inner-if can stay.
+      if (cullItems) {
+         if (frust.cullBox(bounds)) {
+            continue;
+         }
       }
 
       results.emplace_back(QueryResult(bounds, g.node, g.absTrans, g.renderQueues));
@@ -859,7 +862,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
 
 
    if (queryTypes & QueryTypes::CullableRenderables) {
-      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results);
+      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results, true);
    }
 
    if (queryTypes & QueryTypes::UncullableRenderables) {
