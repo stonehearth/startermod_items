@@ -1591,7 +1591,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Find AABB of lit geometry
       Vec3f lightAbsPos;
 
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables, false);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables, QueryResultFields::BoundsOnly, false);
 
       for (const auto& result : results) {
          litAabb.makeUnion(result.bounds);
@@ -1643,7 +1643,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Build optimized light projection matrix
 		frustum.buildViewFrustum(lightViewMat, lightProjMat);
       
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables, false);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables,  QueryResultFields::NoBounds, false);
       std::vector<QueryResult> const& subResults = Modules::sceneMan().sceneForId(sceneId).subQuery(results, SceneNodeFlags::NoCastShadow);
       composeRenderables(subResults, frustum, RenderingOrder::None, QueryTypes::CullableRenderables, nullptr, false);
 
@@ -2084,7 +2084,7 @@ void Renderer::drawLodGeometry(SceneId sceneId, std::string const& shaderContext
 
    R_LOG(7) << "updating geometry queue";
 
-   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::AllRenderables);
+   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::AllRenderables, QueryResultFields::NoBounds);
    composeRenderables(result, f, order, QueryTypes::AllRenderables, nullptr, cached);
 
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2215,7 +2215,7 @@ void Renderer::computeTightCameraBounds(SceneId sceneId, float* minDist, float* 
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
-   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, false);
+   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, QueryResultFields::BoundsOnly, false);
 
    for (const auto& r : results) {
 	   visibleAabb.makeUnion(r.bounds);
@@ -2384,7 +2384,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel)
 {
-   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, false);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, QueryResultFields::NoBounds, false);
 
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(sceneId, &prioritizedLights, lights);
@@ -2490,7 +2490,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
 
 void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource *deferredMaterial)
 {
-   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, false);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, QueryResultFields::NoBounds, false);
    
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(sceneId, &prioritizedLights, lights);
@@ -3113,6 +3113,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       radiant::perfmon::TimelineCounterGuard cmi("copy mesh instances");
       vbInstanceData = gRDI->acquireBuffer((int)(sizeof(float) * 16 * renderableQueue.size()));
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
+      
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
          memcpy(transformBuffer, &node.absTrans.x[0], sizeof(float) * 16);
@@ -3704,7 +3705,7 @@ void Renderer::renderDebugView()
    int frustNum = 0;
 
    Scene& defaultScene = Modules::sceneMan().sceneForId(0);
-   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables);
+   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, QueryResultFields::NoBounds);
    composeRenderables(result, _curCamera->getFrustum(), RenderingOrder::None, QueryTypes::CullableRenderables, nullptr, false);
     
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
@@ -3788,7 +3789,7 @@ void Renderer::renderDebugView()
 	glCullFace( GL_FRONT );
 	color[0] = 1; color[1] = 1; color[2] = 0; color[3] = 0.25f;
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-   std::vector<QueryResult> const& lights = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
+   std::vector<QueryResult> const& lights = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Lights, QueryResultFields::NoBounds);
 	for (auto &r : lights) {
 		LightNode *lightNode = (LightNode *)r.node;
 		

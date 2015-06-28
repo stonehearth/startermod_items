@@ -810,7 +810,7 @@ void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection
 }
 
 
-void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, bool cullItems)
+void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, QueryResultFields::List resultFields, bool cullItems)
 {
    for (GridItem const& g: nodes) {
       BoundingBox const& bounds = g.bounds;
@@ -822,7 +822,17 @@ void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum co
          }
       }
 
-      results.emplace_back(QueryResult(bounds, g.node, g.absTrans, g.renderQueues));
+      switch(resultFields) {
+      case QueryResultFields::BoundsOnly:
+         results.emplace_back(bounds);
+         break;
+      case QueryResultFields::NoBounds:
+         results.emplace_back(g.node, g.absTrans, g.renderQueues);
+         break;
+      default:
+         results.emplace_back(bounds, g.node, g.absTrans, g.renderQueues);
+         break;
+      }
    }
 }
 
@@ -840,7 +850,7 @@ void GridSpatialGraph::_queryGridLight(std::vector<GridItem> const& nodes, Frust
    }
 }
 
-void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes)
+void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes, QueryResultFields::List resultFields)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:query");
    Modules::sceneMan().sceneForId(_sceneId).updateNodes();
@@ -852,7 +862,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
       }
 
       if (queryTypes & QueryTypes::CullableRenderables) {
-         _queryGrid(ge.second.nodes[RENDER_NODES], frust, results);
+         _queryGrid(ge.second.nodes[RENDER_NODES], frust, results, resultFields);
       }
 
       if (queryTypes & QueryTypes::Lights) {
@@ -862,7 +872,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
 
 
    if (queryTypes & QueryTypes::CullableRenderables) {
-      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results, true);
+      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results, resultFields, true);
    }
 
    if (queryTypes & QueryTypes::UncullableRenderables) {
@@ -1180,7 +1190,7 @@ std::vector<QueryResult> const& Scene::queryNode(SceneNode& node)
 }
 
 
-std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached) 
+std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes, QueryResultFields::List resultFields, bool cached) 
 {
    cached = cached && Modules::config().enableRenderCaching;
    radiant::perfmon::TimelineCounterGuard uq("queryScene");
@@ -1212,7 +1222,7 @@ std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTyp
    r.frust = frust;
    r.queryTypes = queryTypes;
    r.singleNode = nullptr;
-   _spatialGraph->query(frust, r.result, queryTypes);
+   _spatialGraph->query(frust, r.result, queryTypes, resultFields);
    return r.result;
 }
 

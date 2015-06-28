@@ -333,6 +333,15 @@ struct GridElement
 };
 
 
+struct QueryResultFields {
+   enum List {
+      All = 1,
+      BoundsOnly = 2,
+      NoBounds = 3
+   };
+};
+
+
 struct QueryTypes
 {
    enum List
@@ -346,7 +355,14 @@ struct QueryTypes
 struct QueryResult
 {
    QueryResult() {}
+   QueryResult(BoundingBox const& b) : bounds(b) {
+   }
    QueryResult(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m) {
+   }
+   QueryResult(SceneNode* n, Matrix4f const& m, RenderableQueue* const queues[]) : node(n), absTrans(m) {
+      for (int i = 0; i < RenderCacheSize; i++) {
+         renderQueues[i] =  queues[i];
+      }
    }
    QueryResult(BoundingBox const& b, SceneNode* n, Matrix4f const& m, RenderableQueue* const queues[]) : bounds(b), node(n), absTrans(m) {
       for (int i = 0; i < RenderCacheSize; i++) {
@@ -371,7 +387,7 @@ public:
 	void updateNode(SceneNode& sceneNode);
 
    GridItem* gridItemForNode(SceneNode const& node);
-   void query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
+   void query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes, QueryResultFields::List resultFields);
    void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb);
    void updateNodeInstanceKey(SceneNode& sceneNode);
 
@@ -383,7 +399,7 @@ protected:
    int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline int hashGridPoint(int x, int y) const;
    inline void unhashGridHash(int hash, int* x, int* y) const;
-   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, bool cullItems=false);
+   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, QueryResultFields::List resultFields, bool cullItems=false);
    void _queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
 
@@ -486,7 +502,7 @@ public:
 
    void setNodeHidden(SceneNode& node, bool hide);
 
-   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached = true);
+   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes, QueryResultFields::List resultFields, bool cached = true);
    std::vector<QueryResult> const& subQuery(std::vector<QueryResult> const& queryResults, SceneNodeFlags::List ignoreFlags);
    std::vector<QueryResult> const& queryNode(SceneNode& node);
 	
