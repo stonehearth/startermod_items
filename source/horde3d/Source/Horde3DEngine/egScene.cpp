@@ -535,7 +535,7 @@ struct RendQueueItemCompFunc
 // Class GridSpatialGraph
 // =================================================================================================
 
-#define GRIDSIZE 150
+#define GRIDSIZE 64
 #define I_GRIDSIZE (1.0f / GRIDSIZE)
 
 GridSpatialGraph::GridSpatialGraph(SceneId sceneId)
