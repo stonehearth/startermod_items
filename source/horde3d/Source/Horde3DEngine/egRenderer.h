@@ -248,7 +248,7 @@ public:
    RenderableQueue const& getSingularQueue(int type);
 
    InstanceRenderableQueues           _instanceQueues[RenderCacheSize];
-   RenderableQueues                   _singularQueues[RenderCacheSize];
+   RenderableQueues           _singularQueues[RenderCacheSize];
 
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* sr) const;
@@ -308,7 +308,6 @@ protected:
 
 	Matrix4f                           _viewMat, _viewMatInv, _projMat, _viewProjMat, _viewProjMatInv, _projectorMat;
 	float                              _currentTime;
-   MaterialResource*                  _materialOverride;
 
 	std::vector< PipeSamplerBinding >  _pipeSamplerBindings;
 	std::vector< char >                _occSets;  // Actually bool

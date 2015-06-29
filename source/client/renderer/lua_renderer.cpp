@@ -353,7 +353,6 @@ void LuaRenderer::RegisterType(lua_State* L)
       class_<H3DLight>("H3DLight")
          .enum_("constants")
       [
-         value("MatResI",                    H3DLight::MatResI),
          value("Radius1F",                   H3DLight::Radius1F),
          value("Radius2F",                   H3DLight::Radius2F),
          value("FovF",                       H3DLight::FovF),
@@ -377,11 +376,6 @@ void LuaRenderer::RegisterType(lua_State* L)
       [
          value("Inactive",                   H3DNodeFlags::Inactive),
          value("NoCastShadow",               H3DNodeFlags::NoCastShadow)
-      ],
-      class_<H3DProjectorNodeParams>("H3DProjectorNodeParams")
-         .enum_("constants")
-      [
-         value("MatResI",                    H3DProjectorNodeParams::MatResI)
       ],
       class_<H3DNodeUnique>("H3DNodeUnique")
          .def("destroy",                     H3DNodeUnique_Destroy),

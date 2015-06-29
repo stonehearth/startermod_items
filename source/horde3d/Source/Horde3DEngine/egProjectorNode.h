@@ -21,25 +21,14 @@
 
 namespace Horde3D {
 
-struct ProjectorNodeParams
-{
-	enum List
-	{
-		MatResI = 300
-	};
-};
-
-
 // =================================================================================================
 
 struct ProjectorNodeTpl : public SceneNodeTpl
 {
    ProjectorNodeTpl( std::string const& name, MaterialResource* matRes ) :
-      SceneNodeTpl( SceneNodeTypes::ProjectorNode, name ), _matRes(matRes)
+      SceneNodeTpl(SceneNodeTypes::ProjectorNode, name, matRes)
 	{
 	}
-
-   PMaterialResource _matRes;
 };
 
 // =================================================================================================
@@ -57,14 +46,10 @@ public:
 	float getParamF( int param, int compIdx );
 	void setParamF( int param, int compIdx, float value );
 
-   MaterialResource* getMaterialRes();
-
 protected:
 	ProjectorNode( const ProjectorNodeTpl &projectorTpl );
 
 private:
-
-   PMaterialResource _matRes;
 	
    friend class Scene;
 	friend class Renderer;

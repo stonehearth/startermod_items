@@ -79,7 +79,7 @@ void DebugShapesNode::renderFunc(SceneId sceneId, std::string const& shaderConte
 
 void DebugShapesNode::setParamI( int param, int value )
 {
-   if (param == H3DMesh::MatResI) {
+   if (param == H3DNodeParams::Material) {
 		Resource* res = Modules::resMan().resolveResHandle( value );
 		if (res && res->getType() == ResourceTypes::Material ) {
          SetMaterial((MaterialResource *)res);

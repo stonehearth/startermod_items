@@ -103,8 +103,7 @@ struct EmitterNodeParams
 {
 	enum List
 	{
-		MatResI = 700,
-		PartEffResI,
+		PartEffResI = 700,
 		MaxCountI,
 		RespawnCountI,
 		DelayF,
@@ -118,7 +117,6 @@ struct EmitterNodeParams
 
 struct EmitterNodeTpl : public SceneNodeTpl
 {
-	PMaterialResource        matRes;
 	PParticleEffectResource  effectRes;
 	uint32                   maxParticleCount;
 	int                      respawnCount;
@@ -127,8 +125,8 @@ struct EmitterNodeTpl : public SceneNodeTpl
 
 	EmitterNodeTpl( std::string const& name, MaterialResource *materialRes,
 		ParticleEffectResource *effectRes, uint32 maxParticleCount, int respawnCount) :
-		SceneNodeTpl( SceneNodeTypes::Emitter, name ),
-		matRes( materialRes ), effectRes( effectRes ), maxParticleCount( maxParticleCount ),
+		SceneNodeTpl(SceneNodeTypes::Emitter, name, materialRes),
+		effectRes( effectRes ), maxParticleCount( maxParticleCount ),
 		respawnCount( respawnCount ), delay( 0 ), emissionRate( 0 ), spreadAngle( 0 ),
 		fx( 0 ), fy( 0 ), fz( 0 )
 	{
@@ -180,7 +178,6 @@ protected:
 	Matrix4f                 _prevAbsTrans;
 	
 	// Emitter params
-	PMaterialResource        _materialRes;
 	PParticleEffectResource  _effectRes;
 	uint32                   _particleCount;
 	int                      _respawnCount;

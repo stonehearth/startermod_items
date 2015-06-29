@@ -20,11 +20,10 @@ typedef SmartResPtr< CubemitterResource > PCubemitterResource;
 struct CubemitterNodeTpl : public SceneNodeTpl
 {
    PCubemitterResource _cubemitterRes;
-   PMaterialResource _matRes;
 
    CubemitterNodeTpl(std::string const& name, const PCubemitterResource &cubeRes, const PMaterialResource &matRes) :
-      SceneNodeTpl(SNT_CubemitterNode, name),
-      _cubemitterRes(cubeRes), _matRes(matRes)
+      SceneNodeTpl(SNT_CubemitterNode, name, matRes),
+      _cubemitterRes(cubeRes)
    {
    }
 };
@@ -313,7 +312,6 @@ protected:
 
    uint32                   _attributeBuf;
    PCubemitterResource      _cubemitterRes;
-	PMaterialResource        _materialRes;
    uint32                   _maxCubes;
    float                    _nextSpawnTime;
    float                    _curEmitterTime, _emitterDuration;  // Bounded between 0 and the duration of the emitter.

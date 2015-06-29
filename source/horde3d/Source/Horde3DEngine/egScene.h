@@ -109,7 +109,8 @@ struct SceneNodeParams
 	{
 		NameStr = 1,
 		AttachmentStr,
-      UserFlags
+      UserFlags,
+      Material
 	};
 };
 
@@ -144,9 +145,10 @@ struct SceneNodeTpl
 	Vec3f                          trans, rot, scale;
 	std::string                    attachmentString;
 	std::vector< SceneNodeTpl * >  children;
+   PMaterialResource              material;
 
-	SceneNodeTpl( int type, std::string const& name ) :
-		type( type ), name( name ), scale( Vec3f ( 1, 1, 1 ) )
+	SceneNodeTpl( int type, std::string const& name, PMaterialResource mat ) :
+		type( type ), name( name ), scale( Vec3f ( 1, 1, 1 ) ), material(mat)
 	{
 	}
 	
@@ -183,6 +185,7 @@ public:
 	virtual void setParamStr( int param, const char* value );
    virtual void* mapParamV( int param );
    virtual void unmapParamV( int param, int mappedLength );
+   MaterialResource* getMaterialRes() const;
 
 	virtual void setLodLevel( int lodLevel );
 
@@ -240,6 +243,7 @@ protected:
 	NodeHandle                  _handle;
    int                         _gridId;
    int                         _gridPos;
+	PMaterialResource           _materialRes;
 
 
 	uint32                      _flags;
@@ -275,7 +279,7 @@ private:
 struct GroupNodeTpl : public SceneNodeTpl
 {
 	GroupNodeTpl( std::string const& name ) :
-		SceneNodeTpl( SceneNodeTypes::Group, name )
+		SceneNodeTpl(SceneNodeTypes::Group, name, nullptr)
 	{
 	}
 };
@@ -314,7 +318,6 @@ typedef std::vector<RendQueueItem> RenderableQueue;
 typedef boost::container::flat_map<int, std::shared_ptr<RenderableQueue> > RenderableQueues;
 typedef std::unordered_map<InstanceKey, std::shared_ptr<RenderableQueue>, hash_InstanceKey > InstanceRenderableQueue;
 typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
-
 
 struct GridItem {
    GridItem(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m)

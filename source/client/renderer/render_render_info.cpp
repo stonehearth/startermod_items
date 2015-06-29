@@ -173,7 +173,7 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
    // Use the color map version.
    for (VoxelNode n: _voxelMeshNodes) {
       H3DRes mat = h3dAddResource(H3DResTypes::Material, n.material, 0);
-      h3dSetNodeParamI(n.node, H3DVoxelMeshNodeParams::MatResI, mat);
+      h3dSetNodeParamI(n.node, H3DNodeParams::Material, mat);
    }
 }
 
@@ -181,7 +181,7 @@ void RenderRenderInfo::ApplyMaterialToVoxelNodes(core::StaticString material)
 {
    H3DRes mat = h3dAddResource(H3DResTypes::Material, material, 0);
    for (VoxelNode n: _voxelMeshNodes) {
-      h3dSetNodeParamI(n.node, H3DVoxelMeshNodeParams::MatResI, mat);
+      h3dSetNodeParamI(n.node, H3DNodeParams::Material, mat);
    }
 }
 

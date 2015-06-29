@@ -244,7 +244,6 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
 	SceneNode( emitterTpl )
 {
 	_renderable = true;
-   _materialRes = emitterTpl._matRes;
    _cubemitterRes = emitterTpl._cubemitterRes;
    _maxCubes = 100;
 	_cubes = new CubeData[_maxCubes];
@@ -453,11 +452,11 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
       }
 				
       // Set material
-      if (curMatRes != emitter->_materialRes) {
-         if (!Modules::renderer().setMaterial( emitter->_materialRes, shaderContext)) {
+      if (curMatRes != emitter->getMaterialRes()) {
+         if (!Modules::renderer().setMaterial( emitter->getMaterialRes(), shaderContext)) {
             continue;
          }
-         curMatRes = emitter->_materialRes;
+         curMatRes = emitter->getMaterialRes();
       }
 
       if (gRDI->getCaps().hasInstancing) {

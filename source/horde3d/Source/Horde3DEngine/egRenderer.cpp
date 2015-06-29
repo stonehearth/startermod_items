@@ -99,7 +99,6 @@ Renderer::Renderer()
 	_curRenderTarget = 0x0;
 	_curShaderUpdateStamp = 1;
 	_maxAnisoMask = 0;
-   _materialOverride = 0x0;
    _curPipeline = 0x0;
    _shadowCascadeBuffer = 0;
    _activeRenderCache = -1;
@@ -2145,7 +2144,7 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
          for (QueryResult const& q : results) {
             // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
             // amongst other necessities, a material, and then everything will Just Work.
-            int matResHandle = q.node->getParamI(VoxelMeshNodeParams::MatResI);
+            int matResHandle = q.node->getParamI(SceneNodeParams::Material);
             if (matResHandle > 0) {
 	            Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
 
@@ -2175,6 +2174,8 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
 
 void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags )
 {
+   // TODO: this is absolutely the wrong way to do projective stuff.  Use the Stencil buffer!
+   ASSERT(false);
    Scene& scene = Modules::sceneMan().sceneForId(sceneId);
    int numProjectorNodes = scene.findNodes(scene.getRootNode(), "", SceneNodeTypes::ProjectorNode);
 
@@ -2186,7 +2187,6 @@ void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext
    {
       ProjectorNode* n = (ProjectorNode*)scene.getFindResult(i);
       
-      _materialOverride = n->getMaterialRes();
       Frustum f;
       const BoundingBox& b = n->getBBox();
       ASSERT(false);
@@ -2199,8 +2199,6 @@ void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext
       // Don't need higher poly counts for projection geometry, so render at lod level 1.
       drawRenderables(sceneId, shaderContext, false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 1, false);
    }
-
-   _materialOverride = 0x0;
 }
 
 
@@ -3199,13 +3197,13 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
          gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
          gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
-         if( curMatRes != in->_matRes )
+         if( curMatRes != in->getMaterialRes())
 		   {
-            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) {
+            if( !Modules::renderer().setMaterial( in->getMaterialRes(), shaderContext ) ) {
                RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
                continue;
             }
-			   curMatRes = in->_matRes;
+            curMatRes = in->getMaterialRes();
 		   }
 
          RENDER_LOG() << "rendering...";
@@ -3222,13 +3220,13 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
-         if( curMatRes != in->_matRes )
+         if( curMatRes != in->getMaterialRes() )
 		   {
-            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) {
+            if( !Modules::renderer().setMaterial( in->getMaterialRes(), shaderContext ) ) {
                RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
                continue;
             }
-			   curMatRes = in->_matRes;
+			   curMatRes = in->getMaterialRes();
 		   }
          ShaderCombination* curShader = Modules::renderer().getCurShader();
 

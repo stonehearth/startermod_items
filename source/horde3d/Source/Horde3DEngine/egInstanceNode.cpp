@@ -28,13 +28,12 @@ using namespace std;
 // *************************************************************************************************
 
 InstanceNode::InstanceNode( const InstanceNodeTpl &nodeTpl ) :
-	SceneNode( nodeTpl )
+	SceneNode(nodeTpl)
 {
 	_renderable = true;
    _geoRes = nodeTpl._geoRes;
    _maxInstances = nodeTpl._maxInstances;
    _usedInstances = 0;
-   _matRes = nodeTpl._matRes;
 
    _instanceBuf = new float[16 * _maxInstances];
    _instanceBufObj = gRDI->createVertexBuffer(_maxInstances * sizeof(float) * 16, RDIBufferUsage::STREAM, 0x0);
@@ -117,7 +116,7 @@ void InstanceNode::unmapParamV(int param, int mappedLength)
 }
 
 void InstanceNode::onPostUpdate()
-{	
+{
 
 }
 
