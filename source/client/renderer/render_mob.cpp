@@ -12,14 +12,22 @@ using namespace ::radiant::client;
 
 #define M_LOG(level)      LOG(renderer.mob, level)
 
-RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob) :
+RenderMob::RenderMob(RenderEntity& entity, om::MobPtr mob, int flags) :
    entity_(entity),
    mob_(mob)
 {
+   entity_id_ = entity.GetObjectId();
    ASSERT(mob);
+
+   // Don't move offscreen nodes around.  Let the end-user do that with the
+   // render entity handle they got back from creating the offscreen entity.
+   if (flags & OFFSCREEN_OBJECT) {
+      Move();
+      return;
+   }
+
    _final = mob->GetTransform();
    _current = _final;
-   entity_id_ = entity.GetObjectId();
 
    show_debug_shape_guard_ += Renderer::GetInstance().OnShowDebugShapesChanged([this](dm::ObjectId id) {
       bool enabled;

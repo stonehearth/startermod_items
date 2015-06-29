@@ -9,6 +9,7 @@
 #include "simulation/jobs/a_star_path_finder.h"
 #include "simulation/jobs/direct_path_finder.h"
 #include "simulation/jobs/filter_result_cache.h"
+#include "simulation/jobs/movement_helpers.h"
 #include "simulation/save_versions.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
@@ -18,6 +19,7 @@
 #include "dm/tracer_buffered.h"
 #include "dm/lua_types.h"
 #include "lib/json/core_json.h"
+#include <luabind/out_value_policy.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -320,6 +322,27 @@ PathPtr Path_CreatePathSubset(PathPtr path, int startIndex, int finishIndex)
    return Path::CreatePathSubset(path, startIndex-1, finishIndex-1);
 }
 
+bool MovementHelper_IsAdjacentTo(om::EntityRef srcEntityRef, om::EntityRef dstEntityRef)
+{
+   om::EntityPtr srcEntity = srcEntityRef.lock();
+   if (!srcEntity) {
+      return false;
+   }
+
+   om::EntityPtr dstEntity = dstEntityRef.lock();
+   if (!dstEntity) {
+      return false;
+   }
+
+   bool result = MovementHelper(3).IsAdjacentTo(srcEntity, dstEntity);
+   return result;
+}
+
+void MovementHelper_GetEntityReach(om::Mob::MobCollisionTypes collisionType, int& maxReachUp, int& maxReachDown)
+{
+   MovementHelper(3).GetEntityReach(collisionType, maxReachUp, maxReachDown);
+}
+
 DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
 DEFINE_INVALID_JSON_CONVERSION(BfsPathFinder);
@@ -423,7 +446,9 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
             ,
             def("combine_paths", &Path_CombinePaths),
-            def("create_path_subset", &Path_CreatePathSubset)
+            def("create_path_subset", &Path_CreatePathSubset),
+            def("is_adjacent_to", &MovementHelper_IsAdjacentTo),
+            def("get_entity_reach", &MovementHelper_GetEntityReach, pure_out_value(_2) + pure_out_value(_3))
          ]
       ]
    ];

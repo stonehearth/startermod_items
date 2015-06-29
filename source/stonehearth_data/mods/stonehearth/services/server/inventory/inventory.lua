@@ -1,3 +1,4 @@
+local entity_forms_lib = require 'lib.entity_forms.entity_forms_lib'
 local FilteredTrace = require 'radiant.modules.filtered_trace'
 
 local Cube3 = _radiant.csg.Cube3
@@ -11,6 +12,9 @@ local Inventory = class()
 function Inventory:__init()
 end
 
+local SHARED_STORAGE  = 'shared'
+local PRIVATE_STORAGE = 'private'
+
 function Inventory:initialize(player_id)   
    self._sv.next_stockpile_no = 1
    self._sv.player_id = player_id
@@ -18,6 +22,11 @@ function Inventory:initialize(player_id)
    self._sv.items = {}
    self._sv.trackers = {}
    self._sv.container_for = {}
+   self._sv.storage = {
+      [SHARED_STORAGE] = {},
+      [PRIVATE_STORAGE] = {},
+   }
+   self._sv.public_storage_is_full = true
    self.__saved_variables:mark_changed()
 
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
@@ -26,7 +35,7 @@ function Inventory:initialize(player_id)
 end
 
 function Inventory:activate()
-   self:_listen_for_destroy()
+   self:_install_listeners()
 end
 
 function Inventory:destroy()
@@ -36,7 +45,7 @@ function Inventory:destroy()
    end
 end
 
-function Inventory:_listen_for_destroy()
+function Inventory:_install_listeners()
    self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', self, self._on_destroy)
 end
 
@@ -44,6 +53,58 @@ function Inventory:_on_destroy(e)
    local id = e.entity_id
    if self._sv.items[id] then
       self:remove_item(id)
+   end
+
+   for t, storage in pairs(self._sv.storage) do
+      if storage[id] then
+         storage[id] = nil
+         self.__saved_variables:mark_changed()
+         if t == SHARED_STORAGE then
+            self:_check_public_storage_space()
+         end
+      end
+   end
+end
+
+function Inventory:add_storage(entity)
+   local id = entity:get_id()
+   local is_public = entity:get_component('stonehearth:storage')
+                                 :is_public()
+
+   local typ = is_public and SHARED_STORAGE or PRIVATE_STORAGE
+   local storage = self._sv.storage[typ]
+   if not storage[id] then
+      storage[id] = entity
+      if is_public then
+         self:_check_public_storage_space()
+      end
+      self.__saved_variables:mark_changed()
+   end
+end
+
+function Inventory:public_storage_is_full()
+   return self._sv.public_storage_is_full
+end
+
+function Inventory:_check_public_storage_space()
+   local is_full = function()
+      for id, storage in pairs(self._sv.storage[SHARED_STORAGE]) do
+         local sc = storage:get_component('stonehearth:storage')
+         if not sc:is_full() then
+            return false
+         end
+      end
+      return true
+   end
+   local full = is_full()
+   self:_set_public_storage_is_full(full)
+end
+
+function Inventory:_set_public_storage_is_full(value)
+   if self._sv.public_storage_is_full ~= value then
+      self._sv.public_storage_is_full = value
+      self.__saved_variables:mark_changed()
+      radiant.events.trigger_async(self, 'stonehearth:inventory:public_storage_full_changed')
    end
 end
 
@@ -113,6 +174,7 @@ function Inventory:add_item(item)
       end
       radiant.events.trigger(self, 'stonehearth:inventory:item_added', { item = item })
       self.__saved_variables:mark_changed()
+      self:_check_public_storage_space()
    end
 end
 
@@ -128,6 +190,10 @@ function Inventory:remove_item(item_id)
       end
       radiant.events.trigger(self, 'stonehearth:inventory:item_removed', { item_id = item_id })
       self.__saved_variables:mark_changed()
+
+      if self._sv.public_storage_is_full then
+         self:_set_public_storage_is_full(false)
+      end
    end
 end
 

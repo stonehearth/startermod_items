@@ -60,6 +60,14 @@ csg::Point<double, T::Dimension> Cube_GetCentroid(T const &c)
 }
 
 template <typename T>
+T Cube_Extruded(T const &cube, std::string const& dimString, int dMin, int dMax)
+{
+   ASSERT(dimString.length() == 1);
+   int dim = dimString[0] - 'x';
+   return cube.Extruded(dim, dMin, dMax);
+}
+
+template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
@@ -88,6 +96,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("translate",    &T::Translate)
          .def("translated",   &T::Translated)
          .def("inflated",     &T::Inflated)
+         .def("extruded",     &Cube_Extruded<T>)
          .def("intersects",   &T::Intersects)
          .def("intersected",  &T::Intersected)
          .def("get_border",   &T::GetBorder)

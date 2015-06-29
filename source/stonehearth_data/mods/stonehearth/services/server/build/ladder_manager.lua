@@ -32,7 +32,15 @@ function LadderManager:request_ladder_to(owner, to, normal, options)
    end
    
    log:detail('computing ladder base')
-   local base = self:get_base_of_ladder_to(to)   
+   local base = self:get_base_of_ladder_to(to)
+
+   local min_ladder_height = self._options.min_ladder_height or 0
+   local ladder_height = to.y - base.y + 1
+   if ladder_height < min_ladder_height then
+      log:detail('ignoring request: ladder is less than minimum requested height')
+      return radiant.create_controller('stonehearth:build:ladder_builder:destructor')
+   end
+
    local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if not ladder_builder then
       local id = self:_get_next_id()

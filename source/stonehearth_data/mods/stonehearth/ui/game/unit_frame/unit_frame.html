@@ -16,12 +16,12 @@
       <div id="info">
          <div class="inner">
             {{#if stonehearth:job}}
-               <div id="portrait">
+               <div id="portrait" title="{{i18n unit_info_show_character_sheet}}">
                   <img id="unitPortrait" {{bind-attr src=view.portraitSrc}}/>
                </div>
             {{/if}}
             <div id="nameBlock">
-               <div class="name">{{unit_info.name}}</div>
+               <div class="name" title="{{i18n unit_info_focus_camera}}">{{unit_info.name}}</div>
                {{#if stonehearth:job}}
                   <div id="jobButton">
                      <img {{bind-attr src="stonehearth:job.class_icon"}} />

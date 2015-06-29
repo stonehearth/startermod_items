@@ -1135,8 +1135,8 @@ function BuildService:remove_ladder_command(session, response, ladder_entity)
    return true
 end
 
-function BuildService:request_ladder_to(owner, climb_to, normal)
-   return self._sv.ladder_manager:request_ladder_to(owner, climb_to, normal)
+function BuildService:request_ladder_to(owner, climb_to, normal, options)
+   return self._sv.ladder_manager:request_ladder_to(owner, climb_to, normal, options)
 end
 
 function BuildService:request_scaffolding_for(owner, blueprint_rgn, project_rgn, normal, stand_at_base)

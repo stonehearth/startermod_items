@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "long Sword",
+         "name": "Long Sword",
          "description": "Pointy. Shiny.",
          "icon" : "file(long_sword.png)"
       },

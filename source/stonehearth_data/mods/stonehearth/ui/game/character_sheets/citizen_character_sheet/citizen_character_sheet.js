@@ -30,8 +30,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          'job_controllers' : {
             '*' : {}
          }
+      },
+
+      'stonehearth:storage' : {
+         'item_tracker' : {}
       }
-      
    },
 
    init: function() {
@@ -253,8 +256,12 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          return;
       }
 
-      self.$('.value').each(function(index){
-         self._showBuffEffects(this, buffsByAttribute);
+      self.$('.attr').each(function(index){
+         self._showBuffEffects(this, buffsByAttribute, true);
+      });
+
+      self.$('.score').each(function(index){
+         self._showBuffEffects(this, buffsByAttribute, false);
       });
 
       self.$('#glass > div').each(function() {
@@ -277,7 +284,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute
-   _showBuffEffects: function(obj, buffsByAttribute) {
+   _showBuffEffects: function(obj, buffsByAttribute, isAttribute) {
       var attrib_name = $(obj).attr('id');
       var attrib_value = this.get('model.stonehearth:attributes.attributes.' + attrib_name + '.value');
       var attrib_e_value = this.get('model.stonehearth:attributes.attributes.' + attrib_name + '.user_visible_value');
@@ -293,14 +300,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $(obj).removeClass('debuffedValue buffedValue').addClass('normalValue');
       }
 
-      var attributeData = App.tooltipHelper.getAttributeData(attrib_name);
-      if (!attributeData) {
-         attributeData = App.tooltipHelper.getScoreData(attrib_name);
-      }
-      if (attributeData) {
-         var tooltipString = '<div class="detailedTooltip"> <h2>' + attributeData.display_name
-                                 + '</h2><p>'+ attributeData.description + '</p>';
-
+      var hasTooltip = isAttribute ? App.tooltipHelper.hasAttributeTooltip(attrib_name) :  App.tooltipHelper.hasScoreTooltip(attrib_name);
+      if (hasTooltip) {
          //For each buff and debuff that's associated with this attribute, 
          //put it in the tooltip
          if (buffsByAttribute[attrib_name] != null) {
@@ -318,11 +319,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
                                                    + '</span></br>';
             }
             buffString = buffString + '</div>';
-            tooltipString = tooltipString + buffString;
          }
 
-         tooltipString = tooltipString + '</div>';
-
+         var tooltipString = isAttribute ? 
+                  App.tooltipHelper.getAttributeTooltip(attrib_name, buffString) : App.tooltipHelper.getScoreTooltip(attrib_name, false, buffString)
+         
          $(obj).tooltipster({
                position: 'right'
             });
@@ -385,6 +386,19 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       });
    }.observes('model.stonehearth:score'),
 
+   _updateBackpackItems : function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         if (!self._backpackItemsPalette) {
+            // When moving a crate, this function will fire, but no UI will be present.  For now, be lazy
+            // and just ignore this case.
+            return;
+         }
+         var tracker = self.get('model.stonehearth:storage.item_tracker');
+         self._backpackItemsPalette.stonehearthItemPalette('updateItems', tracker.tracking_data);
+      });
+   }.observes('model.stonehearth:storage.item_tracker'),
+
    didInsertElement: function() {
       var self = this;
 
@@ -411,7 +425,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
                $(this).blur();
            }
          })
-         .tooltipster({content: i18n.t('input_text_tooltip')});
+         .tooltipster();
       
       if (p) {
          $('#personality').html($.t(p.personality));   
@@ -419,6 +433,10 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       if (b) {
          self._updateAttributes();
       }
+
+      this._backpackItemsPalette = this.$('#backpackItemsPalette').stonehearthItemPalette({
+         cssClass: 'inventoryItem',
+      });
    },
 
    _onEntitySelected: function(e) {

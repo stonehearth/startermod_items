@@ -64,9 +64,8 @@ App.StonehearthUnitFrameView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      self.$("#nameBlock .name").tooltipster({content: i18n.t('unit_info_focus_camera')});
-      self.$("#jobButton").tooltipster({content: i18n.t('unit_info_show_character_sheet')});
-      self.$("#portrait").tooltipster({content: i18n.t('unit_info_show_character_sheet')});
+      self.$("#nameBlock .name").tooltipster();
+      self.$("#portrait").tooltipster();
 
       this.$('#unitFrame #buffs').find('.item').each(function() {
         $(this).tooltipster({
@@ -85,11 +84,6 @@ App.StonehearthUnitFrameView = App.View.extend({
       this.$('.name').click(function() {
           radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
         });
-
-
-      this.$('#jobButton').click(function (){
-         App.stonehearthClient.showCharacterSheet(self.get('uri')); 
-      });
 
       this.$('#portrait').click(function (){
          App.stonehearthClient.showCharacterSheet(self.get('uri')); 

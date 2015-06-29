@@ -18,7 +18,7 @@ class Stonehearth
 public:
    // xxx this file has no reason to exist anymore now that lua handles most of this
    static void InitEntity(om::EntityPtr entity, const char* uri, lua_State* L);
-   static void DestroyEntity(om::EntityPtr entity);
+   static void DestroyEntity(om::EntityPtr& entity, lua_State* L);
    static void TriggerPreDestroy(om::EntityPtr entity, lua_State* L);
    static void TriggerPostDestroy(dm::ObjectId entityId, lua_State* L);
    static luabind::object AddComponent(lua_State* L, om::EntityRef e, const char* name);
@@ -30,6 +30,7 @@ public:
    static void RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity);
    static void SetEntityForComponent(lua_State* L, luabind::object component, om::EntityPtr entity, luabind::object json);
    static luabind::object ConstructController(lua::ScriptHost* scriptHost, const char* uri, om::DataStorePtr datastore);
+   static json::Node GetEntityJson(om::EntityPtr const& entity);
 
 private:
    static void InitEntityByUri(om::EntityPtr entity, const char* uri, lua_State* L);

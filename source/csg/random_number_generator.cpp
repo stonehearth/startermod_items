@@ -7,6 +7,8 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
+#define RNG_LOG(level) LOG(core.random_number_generator, level)
+
 std::map<boost::thread::id, std::unique_ptr<RandomNumberGenerator>> RandomNumberGenerator::instances_;
 std::recursive_mutex RandomNumberGenerator::mutex_;
 
@@ -56,7 +58,7 @@ T RandomNumberGenerator::GetInt(T min, T max)
 {
    static_assert(std::is_integral<T>::value, "<T> must be an integral type");
    if (min > max) {
-      LOG_CRITICAL() << "min:" << min << " > max:" << max << " in random number generator.  swapping.";
+      RNG_LOG(7) << "min:" << min << " > max:" << max << " in random number generator.  swapping.";
       std::swap(min, max);
    }
 
@@ -70,7 +72,7 @@ T RandomNumberGenerator::GetReal(T min, T max)
 {
    static_assert(std::is_floating_point<T>::value, "<T> must be a floating point type");
    if (min > max) {
-      LOG_CRITICAL() << "min:" << min << " > max:" << max << " in random number generator.  swapping.";
+      RNG_LOG(7) << "min:" << min << " > max:" << max << " in random number generator.  swapping.";
       std::swap(min, max);
    }
 

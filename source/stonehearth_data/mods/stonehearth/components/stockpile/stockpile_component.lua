@@ -190,6 +190,8 @@ function StockpileComponent:set_size(x, y)
    self._sv.size = Point2(x, y)
    self._sv.local_bounds = Cube3(Point3(0, 0, 0), Point3(x, 1, y))
    self._sv.world_bounds = self._sv.local_bounds:translated(origin)
+   
+   self._storage:set_capacity(x * y)
 
    self:_rebuild_item_sv()
    self:_create_worker_tasks()

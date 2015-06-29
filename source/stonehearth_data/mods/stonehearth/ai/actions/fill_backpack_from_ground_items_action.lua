@@ -77,10 +77,33 @@ function FillBackpackFromGroundItems:start_thinking(ai, entity, args)
       })
 end   
 
+function FillBackpackFromGroundItems:start(ai, entity, args)
+   self._inventory = stonehearth.inventory:get_inventory(entity)
+   if self._inventory then
+      self._ai = ai
+      self._listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:public_storage_full_changed', self, self._on_space_changed)
+   end
+end
+
+function FillBackpackFromGroundItems:_on_space_changed()
+   local full = self._inventory:public_storage_is_full()
+   if full then
+      self._ai:abort('out of storage space')
+   end
+end
+
+function FillBackpackFromGroundItems:stop(ai, entity, args)
+   if self._listener then
+      self._listener:destroy()
+      self._listener = nil
+   end
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(FillBackpackFromGroundItems)
+   :execute('stonehearth:wait_for_inventory_storage_space')
    :execute('stonehearth:pickup_item_type', {
-            filter_fn = ai.PREV.filter_fn,
+            filter_fn = ai.BACK(2).filter_fn,
             description = 'fill backpack from ground item',
    })
    :execute('stonehearth:put_carrying_in_backpack', {})

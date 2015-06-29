@@ -224,6 +224,7 @@
       "monsters:undead:zombie_female" : "file(entities/monsters/undead/zombie/female/zombie_female.json)",
 
       "rabbit:statue" : "file(entities/rabbit/rabbit_statue)",
+      "rabbit:lantern_relic" : "file(entities/rabbit/lantern_relic)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -476,7 +477,6 @@
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_entity" : "file(ai/actions/create_entity_action.lua)",
-      "actions:set_hangable_adjacent" : "file(ai/actions/set_hangable_adjacent_action.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
@@ -545,6 +545,7 @@
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
       "actions:pickup_item_type_from_backpack_proxy" : "file(ai/actions/pickup_item_type_from_backpack_proxy_action.lua)",
       "actions:fill_backpack_from_ground_items" : "file(ai/actions/fill_backpack_from_ground_items_action.lua)",
+      "actions:wait_for_inventory_storage_space" : "file(ai/actions/wait_for_inventory_storage_space_action.lua)",
       "actions:reserve_storage_space" : "file(ai/actions/reserve_storage_space_action.lua)",
       "actions:pickup_item_type_from_any_storage" : "file(ai/actions/pickup_item_type_from_any_storage_action.lua)",
       "actions:pickup_item_type_from_storage" : "file(ai/actions/pickup_item_type_from_storage_action.lua)",

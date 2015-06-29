@@ -54,9 +54,10 @@ static void MoveSceneNode(H3DNode node, const csg::Transform& t)
 // we don't need any locking of synchronization on the map.
 static std::unordered_map<H3DNode, std::weak_ptr<RenderEntity>> nodeToRenderEntity;
 
-RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
+RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity, int flags) :
    entity_(entity),
    entity_id_(entity->GetObjectId()),
+   _flags(flags),
    initialized_(false),
    destroyed_(false),
    skeleton_(*this),
@@ -306,6 +307,7 @@ std::shared_ptr<RenderComponent> RenderEntity::GetComponentRenderer(core::Static
 void RenderEntity::AddComponent(core::StaticString name, std::shared_ptr<dm::Object> value)
 {
    ASSERT(value);
+   bool offscreen = (_flags & OFFSCREEN_OBJECT) != 0;
 
    auto entity = entity_.lock();
    if (entity) {
@@ -317,7 +319,7 @@ void RenderEntity::AddComponent(core::StaticString name, std::shared_ptr<dm::Obj
          }
          case om::MobObjectType: {
             om::MobPtr mob = std::static_pointer_cast<om::Mob>(value);
-            components_[name] = std::make_shared<RenderMob>(*this, mob);
+            components_[name] = std::make_shared<RenderMob>(*this, mob, _flags);
             break;
          }
          case om::RenderInfoObjectType: {
@@ -336,8 +338,10 @@ void RenderEntity::AddComponent(core::StaticString name, std::shared_ptr<dm::Obj
             break;
          }
          case om::EffectListObjectType: {
-            om::EffectListPtr el = std::static_pointer_cast<om::EffectList>(value);
-            components_[name] = std::make_shared<RenderEffectList>(*this, el);
+            if (!offscreen) {
+               om::EffectListPtr el = std::static_pointer_cast<om::EffectList>(value);
+               components_[name] = std::make_shared<RenderEffectList>(*this, el);
+            }
             break;
          }
          case om::VerticalPathingRegionObjectType: {

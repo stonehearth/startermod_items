@@ -7,7 +7,7 @@ App.StonehearthErrorBrowserView = App.View.extend({
    init: function() {
       this._super();
       this._traces = {};
-      this._results = {};     
+      this._results = {};
    },
 
 
@@ -33,6 +33,10 @@ App.StonehearthErrorBrowserView = App.View.extend({
       if (data.total > 0 && !self._keepHidden) {
          this.$().show();
       }
+
+      var versionView = App.gameView.getView(App.StonehearthVersionView);
+      var version = versionView.$('#versionTag')[0];
+      self.set('context.game_version', version.innerText);
    },
 
    _installTrace: function(name, object) {
@@ -102,6 +106,16 @@ App.StonehearthErrorBrowserView = App.View.extend({
          }
          self.set('context.current_index', current_index)
          self.set('context.current', data.entries[current_index-1])
+      });
+
+      this.$('#copyButton').click(function() {
+         var currentData = self.get('context.current');
+
+         var range = document.createRange();
+            range.selectNodeContents($('#errorDialog')[0]);
+            window.getSelection().addRange(range);
+         document.execCommand('copy');
+         window.getSelection().removeAllRanges();
       });
    }
 
