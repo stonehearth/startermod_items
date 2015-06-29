@@ -2824,6 +2824,24 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
 
    R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
 
+   float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
+   float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
+
+   // Shadow offsets will always win against the custom model offsets (which we don't care about
+   // during a shadow pass.)
+   float shadowOffset_x, shadowOffset_y;
+   bool usingShadowOffset = gRDI->getShadowOffsets(&shadowOffset_x, &shadowOffset_y);
+   bool usingLodOffset = lodOffsetX != 0 || lodOffsetY != 0;
+   if (usingShadowOffset) {
+      glEnable(GL_POLYGON_OFFSET_FILL);
+      glPolygonOffset(lodOffsetX + shadowOffset_x, lodOffsetY + shadowOffset_y);
+   } else if (usingLodOffset) {
+      glEnable(GL_POLYGON_OFFSET_FILL);
+      glPolygonOffset(lodOffsetX, lodOffsetY);
+   } else {
+      glDisable(GL_POLYGON_OFFSET_FILL);
+   }
+
    // Loop over mesh queue
    for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::VoxelMesh)) {
       VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
@@ -2832,7 +2850,6 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
 #define RENDER_LOG() R_LOG(9) << "  mesh " << meshNode->_handle << " " << modelNode->getParent()->getName() << ": " 
 
       RENDER_LOG() << "starting";
-
       // Check that mesh is valid
       if( meshNode->getVoxelGeometryResource() == 0x0 ) {
          RENDER_LOG() << "geometry not loaded.  ignoring.";
@@ -2892,76 +2909,45 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
       ShaderCombination *curShader = Modules::renderer().getCurShader();
 
       // World transformation
-      if( curShader->uni_worldMat >= 0 )
-      {
-         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
+      gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &entry.absTrans.x[0] );
+      gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
 
-         gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &entry.absTrans.x[0] );
-      }
-      if( curShader->uni_worldNormalMat >= 0 )
-      {
-         // TODO: Optimize this
-         Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
-         float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
-            normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
-            normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
-         gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
-      }
-      if( curShader->uni_nodeId >= 0 )
-      {
-         float id = (float)meshNode->getHandle();
-         gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-      }
-
-      float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
-      float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
-      // Shadow offsets will always win against the custom model offsets (which we don't care about
-      // during a shadow pass.)
-      float offset_x, offset_y;
-      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
-      {
+      float modelOffsetX, modelOffsetY;
+      bool usingModelOffset = modelNode->getPolygonOffset(modelOffsetX, modelOffsetY);
+      if (!usingShadowOffset && usingModelOffset) {
          glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(
-            lodOffsetX + offset_x, 
-            lodOffsetY + offset_y);
-      } else if (lodOffsetX != 0 || lodOffsetY != 0) {
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(lodOffsetX, lodOffsetY);
-      } else {
-         glDisable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(lodOffsetX + modelOffsetX, lodOffsetY + modelOffsetY);
       }
 
       Matrix4f* boneMats;
-      if (curShader->uni_bones >= 0) {
-         int numBones = (int)modelNode->_boneLookup.size();
+      int numBones = (int)modelNode->_boneLookup.size();
 
-         if (numBones == 0) {
-            numBones = 1;
-            boneMats = &_defaultBoneMat;
-         } else {
-            boneMats = modelNode->_boneRelTransLookup.data();
-         }
-         gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats, numBones);
+      if (numBones == 0) {
+         numBones = 1;
+         boneMats = &_defaultBoneMat;
+      } else {
+         boneMats = modelNode->_boneRelTransLookup.data();
       }
-      if (curShader->uni_modelScale >= 0) {
-         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
-      }
+      gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats, numBones);
 
       // Render
       RENDER_LOG() << "rendering...";
       gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
          meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
-      Modules::stats().incStat( EngineStats::BatchCount, 1 );
-      Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f );
+      Modules::stats().incStat(EngineStats::BatchCount, 1);
+      Modules::stats().incStat(EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f);
 
+      if (usingModelOffset) {
+         if (usingLodOffset) {
+            glPolygonOffset(lodOffsetX, lodOffsetY);
+         } else {
+            glDisable(GL_POLYGON_OFFSET_FILL);
+         }
+      }
 #undef RENDER_LOG
    }
 
-   // Draw occlusion proxies
-   if( occSet >= 0 )
-      Modules::renderer().drawOccProxies( 0 );
-
-   gRDI->setVertexLayout( 0 );
+   gRDI->setVertexLayout(0);
    glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
