@@ -86,7 +86,7 @@ function ScaffoldingManager:_add_region(rid, debug_text, entity, origin, bluepri
    if rblock then
       log:error('scaffolding region for rid:%d already exists', rid)
       debug.traceback()
-      assert(csg_lib.are_equivalent_regions(rblock.region, region))
+      assert(csg_lib.are_equivalent_regions(rblock.region:get(), region:get()))
    end
 
    rblock = {
