@@ -19,6 +19,7 @@
 #include "dm/tracer_buffered.h"
 #include "dm/lua_types.h"
 #include "lib/json/core_json.h"
+#include <luabind/out_value_policy.hpp>
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -337,6 +338,10 @@ bool MovementHelper_IsAdjacentTo(om::EntityRef srcEntityRef, om::EntityRef dstEn
    return result;
 }
 
+void MovementHelper_GetEntityReach(om::Mob::MobCollisionTypes collisionType, int& maxReachUp, int& maxReachDown)
+{
+   MovementHelper(3).GetEntityReach(collisionType, maxReachUp, maxReachDown);
+}
 
 DEFINE_INVALID_JSON_CONVERSION(Path);
 DEFINE_INVALID_JSON_CONVERSION(PathFinder);
@@ -442,7 +447,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             def("combine_paths", &Path_CombinePaths),
             def("create_path_subset", &Path_CreatePathSubset),
-            def("is_adjacent_to", &MovementHelper_IsAdjacentTo)
+            def("is_adjacent_to", &MovementHelper_IsAdjacentTo),
+            def("get_entity_reach", &MovementHelper_GetEntityReach, pure_out_value(_2) + pure_out_value(_3))
          ]
       ]
    ];

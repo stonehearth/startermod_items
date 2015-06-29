@@ -36,16 +36,8 @@ bool MovementHelper::GetClosestPointAdjacentToEntity(csg::Point3f const& from, o
    return true;
 }
 
-void MovementHelper::GetEntityReach(om::EntityPtr const& entity, int& maxReachUp, int& maxReachDown) const
+void MovementHelper::GetEntityReach(om::Mob::MobCollisionTypes collisionType, int& maxReachUp, int& maxReachDown) const
 {
-   om::MobPtr mob = entity->GetComponent<om::Mob>();
-   if (!mob) {
-      maxReachUp = maxReachDown = 0;
-      return;
-   }
-
-   om::Mob::MobCollisionTypes collisionType = mob->GetMobCollisionType();
-
    switch (collisionType) {
       case om::Mob::MobCollisionTypes::HUMANOID:
          maxReachUp = 2;
@@ -80,13 +72,16 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& src
 {
    csg::Region3f region = GetRegionAdjacentToEntityInternal(dstEntity);
 
-   om::MobPtr dstMob = dstEntity->GetComponent<om::Mob>();
-   if (!dstMob) {
-      return region;
+   om::MobPtr mob = srcEntity->GetComponent<om::Mob>();
+   om::Mob::MobCollisionTypes collisionType;
+   if (mob) {
+      collisionType = mob->GetMobCollisionType();
+   } else {
+      collisionType = om::Mob::MobCollisionTypes::NONE;
    }
-
+   
    int maxReachUp, maxReachDown;
-   GetEntityReach(dstEntity, maxReachUp, maxReachDown);
+   GetEntityReach(collisionType, maxReachUp, maxReachDown);
 
    if (maxReachDown == 0 && maxReachUp == 0) {
       return region;

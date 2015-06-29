@@ -3,6 +3,7 @@
 
 #include "task.h"
 #include "om/om.h"
+#include "om/components/mob.ridl.h"
 #include "csg/point.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
@@ -20,7 +21,7 @@ public:
    std::vector<csg::Point3f> PruneCollinearPathPoints(std::vector<csg::Point3f> const& points) const;
    bool TestAdjacentMove(om::EntityPtr entity, bool const reversible,
                          csg::Point3 const& fromLocation, int dx, int dz, csg::Point3& resolvedLocation) const;
-   void GetEntityReach(om::EntityPtr const& entity, int& maxReachUp, int& maxReachDown) const;
+   void GetEntityReach(om::Mob::MobCollisionTypes collisionType, int& maxReachUp, int& maxReachDown) const;
 
 private:
    enum Axis {

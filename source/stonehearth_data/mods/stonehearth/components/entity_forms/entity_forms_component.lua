@@ -333,7 +333,8 @@ function EntityFormsComponent:_create_pick_up_ladder_task()
       local pickup_normal = build_util.rotation_to_normal(rotation)
       local pickup_location = radiant.entities.get_world_grid_location(self._entity)
       pickup_location = pickup_location - Point3.unit_y + pickup_normal
-      self._climb_to_item = stonehearth.build:request_ladder_to(self._entity, pickup_location, pickup_normal)
+      local options = { min_ladder_height = self:_get_min_ladder_height() }
+      self._climb_to_item = stonehearth.build:request_ladder_to(self._entity, pickup_location, pickup_normal, options)
    end
 end
 
@@ -350,7 +351,14 @@ function EntityFormsComponent:_create_put_down_ladder_task(location, normal)
    end
 
    local climb_to = location - Point3.unit_y + normal
-   self._climb_to_destination = stonehearth.build:request_ladder_to(self._entity, climb_to, normal)
+   local options = { min_ladder_height = self:_get_min_ladder_height() }
+   self._climb_to_destination = stonehearth.build:request_ladder_to(self._entity, climb_to, normal, options)
+end
+
+-- TODO: this should depend on the reach of the class of workers in the task group.
+function EntityFormsComponent:_get_min_ladder_height()
+   local max_reach_up, max_reach_down = _radiant.sim.get_entity_reach(_radiant.om.Mob.HUMANOID)
+   return max_reach_up + 1
 end
 
 function EntityFormsComponent:_create_task(args)
