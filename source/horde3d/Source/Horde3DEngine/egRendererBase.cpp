@@ -1509,18 +1509,14 @@ bool RenderDevice::commitStates( uint32 filter )
 			}
 		}
 		
-		// Bind vertex buffers
-		if( mask & PM_VERTLAYOUT )
-		{
-			//if( _newVertLayout != _curVertLayout || _curShader != _prevShader )
-			{
-				if( !applyVertexLayout() )
-					return false;
-				_curVertLayout = _newVertLayout;
-				_prevShaderId = _curShaderId;
-				_pendingMask &= ~PM_VERTLAYOUT;
-			}
-		}
+      // Bind vertex buffers
+      if (mask & PM_VERTLAYOUT) {
+         if (!applyVertexLayout()) {
+            return false;
+         }
+         _curVertLayout = _newVertLayout;
+         _pendingMask &= ~PM_VERTLAYOUT;
+      }
 
 		// Bind textures and set sampler state
 		if( mask & PM_TEXTURES )

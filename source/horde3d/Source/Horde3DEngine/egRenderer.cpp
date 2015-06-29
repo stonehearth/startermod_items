@@ -2942,7 +2942,7 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
             meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1);
          Modules::stats().incStat(EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f);
 
-         if (usingModelOffset) {
+         if (usingModelOffset && !usingShadowOffset) {
             if (usingLodOffset) {
                glPolygonOffset(lodOffsetX, lodOffsetY);
             } else {
