@@ -43,15 +43,10 @@ function Inventory:destroy()
       self._destroy_listener:destroy()
       self._destroy_listener = nil
    end
-   if self._player_id_listener then
-      self._player_id_listener:destroy()
-      self._player_id_listener = nil
-   end
 end
 
 function Inventory:_install_listeners()
    self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', self, self._on_destroy)
-   self._player_id_listener = radiant.events.listen(radiant, 'radiant:unit_info:player_id_changed', self, self._on_player_id_changed)
 end
 
 function Inventory:_on_destroy(e)
@@ -68,21 +63,6 @@ function Inventory:_on_destroy(e)
             self:_check_public_storage_space()
          end
       end
-   end
-end
-
-function Inventory:_on_player_id_changed(e)
-   local entity = e.entity
-   if not entity or not entity:is_valid() then
-      return
-   end
-   local player_id = entity:get_component('unit_info')
-                              :get_player_id()
-
-   if player_id == self._sv.player_id then
-      self:add_item(entity)
-   else
-      self:remove_item(entity:get_id())
    end
 end
 
