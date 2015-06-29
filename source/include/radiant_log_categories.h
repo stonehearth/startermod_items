@@ -46,6 +46,7 @@
       ADD_CATEGORY(config) \
       ADD_CATEGORY(guard) \
       ADD_CATEGORY(perf) \
+      ADD_CATEGORY(random_number_generator) \
    END_GROUP(core) \
    \
    BEGIN_GROUP(simulation) \
