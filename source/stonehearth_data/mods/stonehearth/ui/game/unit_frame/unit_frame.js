@@ -1,5 +1,8 @@
  $(document).ready(function(){      
       $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
+        if (!App.gameView) {
+          return;
+        }
         var unitFrame = App.gameView.getView(App.StonehearthUnitFrameView);
         if (unitFrame) {
           unitFrame.set('uri', data.selected_entity);  
