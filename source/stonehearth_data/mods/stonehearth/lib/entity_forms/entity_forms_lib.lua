@@ -23,7 +23,7 @@ function entity_forms_lib.get_uris(uri_or_entity)
          else
             local ghost = entity:get_component('stonehearth:ghost_form')
             if ghost then
-               entity = iconic:get_root_entity()
+               entity = ghost:get_root_entity()
                ef = entity:get_component('stonehearth:entity_forms')
             else
                return entity:get_uri(), nil, nil  -- just a plain old entity with no forms
