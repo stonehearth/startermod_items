@@ -81,19 +81,21 @@ void DecalNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderCo
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
-   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_DecalNode)) {
-      DecalNode *decal = (DecalNode *)entry.node;
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SNT_DecalNode)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         DecalNode *decal = (DecalNode *)entry.node;
 
-      MaterialResource* material = decal->GetMaterial();
-		if (!Modules::renderer().setMaterial(material, shaderContext)) {
-         continue;
+         MaterialResource* material = decal->GetMaterial();
+		   if (!Modules::renderer().setMaterial(material, shaderContext)) {
+            continue;
+         }
+         if (!offsetSet) {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(-1.0, -1.0);
+            offsetSet = true;
+         }
+         decal->render();
       }
-      if (!offsetSet) {
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(-1.0, -1.0);
-         offsetSet = true;
-      }
-      decal->render();
    }
    if (offsetSet) {
       glDisable(GL_POLYGON_OFFSET_FILL);

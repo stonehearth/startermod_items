@@ -444,30 +444,31 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
    MaterialResource *curMatRes = 0x0;
 
    // Loop through and find all Cubemitters.
-   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_CubemitterNode)) {
-      CubemitterNode *emitter = (CubemitterNode *)entry.node;
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SNT_CubemitterNode)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
-      if (emitter->_maxCubes == 0) {
-         continue;
-      }
-				
-      // Set material
-      if (curMatRes != emitter->getMaterialRes()) {
-         if (!Modules::renderer().setMaterial( emitter->getMaterialRes(), shaderContext)) {
+         if (emitter->_maxCubes == 0) {
             continue;
          }
-         curMatRes = emitter->getMaterialRes();
-      }
+				
+         // Set material
+         if (curMatRes != emitter->getMaterialRes()) {
+            if (!Modules::renderer().setMaterial( emitter->getMaterialRes(), shaderContext)) {
+               continue;
+            }
+            curMatRes = emitter->getMaterialRes();
+         }
 
-      if (gRDI->getCaps().hasInstancing) {
-         emitter->renderWithInstancing();
-      } else {
-         emitter->renderWithBatches();
-      }
+         if (gRDI->getCaps().hasInstancing) {
+            emitter->renderWithInstancing();
+         } else {
+            emitter->renderWithBatches();
+         }
       
-      emitter->_wasVisible = true;
-   }
-	
+         emitter->_wasVisible = true;
+      }
+   }	
    gRDI->setVertexLayout( 0 );
 }
 

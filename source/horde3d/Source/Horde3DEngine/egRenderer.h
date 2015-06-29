@@ -245,7 +245,7 @@ public:
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
    InstanceRenderableQueue const& getInstanceQueue(int type);
-   RenderableQueue const& getSingularQueue(int type);
+   SingularRenderableQueue const& getSingularQueue(int type);
 
    InstanceRenderableQueues           _instanceQueues[RenderCacheSize];
    RenderableQueues           _singularQueues[RenderCacheSize];

@@ -86,6 +86,10 @@ MaterialResource* InstanceKey::getMaterial() const {
    return matResource;
 }
 
+float InstanceKey::getScale() const {
+   return scale;
+}
+
 void InstanceKey::updateMat(MaterialResource* r) {
    InstanceKey ik(node, geoResource, matResource, scale);
    matResource = r;
@@ -622,11 +626,19 @@ void GridSpatialGraph::updateNodeInstanceKey(SceneNode& sceneNode)
          RenderableQueues &rqs = Modules::renderer()._singularQueues[i];
          auto rqIt = rqs.find(sceneNode._type);
          if (rqIt == rqs.end()) {
+            SingularRenderableQueue newQ;
+            rqIt = rqs.emplace_hint(rqIt, sceneNode._type, newQ);
+         }
+         SingularRenderableQueue& sq = rqIt->second;
+
+         auto sqIt = sq.find(sceneNode.getMaterialRes());
+         if (sqIt == sq.end()) {
             RenderableQueue newQ;
             newQ.reserve(1000);
-            rqIt = rqs.emplace_hint(rqIt, sceneNode._type, std::make_shared<RenderableQueue>(newQ));
+            sqIt = sq.emplace_hint(sqIt, sceneNode.getMaterialRes(), std::make_shared<RenderableQueue>(newQ));         
          }
-         gi->renderQueues[i] = rqIt->second.get();
+
+         gi->renderQueues[i] = sqIt->second.get();
       }
    }
 }

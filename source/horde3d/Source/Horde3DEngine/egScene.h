@@ -48,6 +48,7 @@ public:
 
    MaterialResource* getMaterial() const;
    Resource* getGeometry() const;
+   float getScale() const;
 
 private:
    inline size_t computeHash(Resource* g, MaterialResource* r, float s) const;
@@ -315,9 +316,12 @@ struct RendQueueItem
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
-typedef boost::container::flat_map<int, std::shared_ptr<RenderableQueue> > RenderableQueues;
+
+typedef std::unordered_map<MaterialResource*, std::shared_ptr<RenderableQueue> > SingularRenderableQueue;
+typedef boost::container::flat_map<int, SingularRenderableQueue> RenderableQueues;
+
 typedef std::unordered_map<InstanceKey, std::shared_ptr<RenderableQueue>, hash_InstanceKey > InstanceRenderableQueue;
-typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
+typedef boost::container::flat_map<int, InstanceRenderableQueue> InstanceRenderableQueues;
 
 struct GridItem {
    GridItem(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m)
