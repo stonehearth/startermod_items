@@ -20,17 +20,20 @@ function CalorieObserver:initialize(entity)
    end
 end
 
+function CalorieObserver:restore()
+   if self._sv.should_be_eating then
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_start_eat_task()
+         end)
+   end
+end
+
 --Always called. If restore, called after restore.
 function CalorieObserver:activate()
    self._entity = self._sv.entity
    self._attributes_component = self._entity:add_component('stonehearth:attributes')
    if self._enable_hunger then
       self._calorie_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
-      
-      --Also, should we be eating right now? If so, let's do that
-      if self._sv.should_be_eating then
-         self:_start_eat_task()
-      end
    end
 end
 
