@@ -31,6 +31,10 @@ void UnitInfo::SerializeToJson(json::Node& node) const
 
 UnitInfo& UnitInfo::SetPlayerId(std::string value)
 { 
+   if (*player_id_ == value) {
+      return *this;
+   }
+
    player_id_ = value;
    lua_State* L = GetStore().GetInterpreter();
    if (L) {
