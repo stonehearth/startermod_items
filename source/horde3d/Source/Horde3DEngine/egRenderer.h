@@ -180,6 +180,7 @@ public:
 	
 	bool init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging);
 	void initStates();
+   void reset();
 
    void collectOneDebugFrame();
 	void drawAABB( const Vec3f &bbMin, const Vec3f &bbMax );

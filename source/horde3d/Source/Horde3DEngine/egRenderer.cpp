@@ -137,6 +137,22 @@ Renderer::~Renderer()
 	delete[] _overlayVerts;
 }
 
+void Renderer::reset()
+{
+   _instanceDataCache.clear();
+   gRDI->clearBufferCache();
+   Modules::sceneMan().clearQueryCaches();
+   for (int i = 0; i < RenderCacheSize; i++) {
+      _renderCache[i].singleNode = nullptr;
+      for (auto& iq : _instanceQueues[i]) {
+         iq.second.clear();
+      }
+      for (auto& sq : _singularQueues[i]) {
+         sq.second.clear();
+      }
+   }
+}
+
 
 // =================================================================================================
 // Basic Initialization and Setup
