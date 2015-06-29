@@ -19,18 +19,19 @@ function SleepinessObserver:initialize(entity)
    -- "equation" : "70 * 0.1 - stamina * 0.05"
 end
 
---Always called. If restore, called after restore.
-function SleepinessObserver:activate()
-   self._entity = self._sv.entity
-   self._attributes_component = self._entity:add_component('stonehearth:attributes')
-   self._sleepiness_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
-
-   --Should we be sleeping? If so, let's do that
+function SleepinessObserver:restore()
    if self._sv.should_be_sleeping then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             self:_start_sleep_task()
          end)
    end
+end
+
+--Always called. If restore, called after restore.
+function SleepinessObserver:activate()
+   self._entity = self._sv.entity
+   self._attributes_component = self._entity:add_component('stonehearth:attributes')
+   self._sleepiness_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
 end
 
 function SleepinessObserver:destroy()
