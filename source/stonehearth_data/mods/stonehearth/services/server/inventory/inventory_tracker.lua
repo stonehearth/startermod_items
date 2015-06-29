@@ -24,9 +24,9 @@ end
 
 --- Call when it's time to add an item
 --
-function InventoryTracker:add_item(entity)
+function InventoryTracker:add_item(entity, storage)
    local controller = self._sv.controller
-   local key = controller:create_key_for_entity(entity)
+   local key = controller:create_key_for_entity(entity, storage)
 
    -- A 'nil' key means ignore the entity.
    if key ~= nil then
@@ -58,6 +58,13 @@ function InventoryTracker:remove_item(entity_id)
       self.__saved_variables:mark_changed()
       
       radiant.events.trigger_async(self, 'stonehearth:inventory_tracker:item_removed', { key = key })
+   end
+end
+
+function InventoryTracker:update_item_container(item, storage)
+   local controller = self._sv.controller
+   if controller.update_item_container then
+      controller:update_item_container(item, storage)
    end
 end
 
