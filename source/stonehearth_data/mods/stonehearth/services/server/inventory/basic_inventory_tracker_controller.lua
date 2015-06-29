@@ -41,10 +41,15 @@ function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data
          uri = entity:get_uri(),
          count = 0,
          items = {},
+         
+         -- xxx: people who need icon, display_name, description, and category should         
+         -- get them from first_item rather than replicating that information here.
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
          description = unit_info:get_description(),
          category = radiant.entities.get_category(entity),
+         -- end xxx: -- tony
+
          first_item = entity,
       }
    end
