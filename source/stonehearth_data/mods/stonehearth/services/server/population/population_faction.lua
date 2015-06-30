@@ -48,6 +48,17 @@ function PopulationFaction:get_player_id()
    return self._sv.player_id
 end
 
+function PopulationFaction:get_citizen_count()
+   return radiant.size(self._sv.citizens)
+end
+
+function PopulationFaction:is_citizen(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+   return self._sv.citizens[entity:get_id()] ~= nil
+end
+
 function PopulationFaction:is_npc()
    return self._sv.is_npc
 end
@@ -129,8 +140,6 @@ function PopulationFaction:create_new_citizen(role)
    self:_set_citizen_initial_state(citizen, gender, role_data)
 
    self._sv.citizens[citizen:get_id()] = citizen
-   stonehearth.score:update_aggregate_score(self._sv.player_id)
-
    self.__saved_variables:mark_changed()
 
    self:_monitor_citizen(citizen)
@@ -253,7 +262,6 @@ end
 
 function PopulationFaction:_on_citizen_destroyed(entity_id)
    self._sv.citizens[entity_id] = nil
-   stonehearth.score:update_aggregate_score(self._sv.player_id)
 
    -- remove associated bulletins
    local bulletins = self._sv.bulletins[entity_id]

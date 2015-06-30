@@ -23,6 +23,26 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
+function ConstructionDataComponent:activate()
+   if not self._sv.fabricator_entity then
+      -- ug!  wouldn't need this listener if activate got called after all components have been initialized
+      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+            self._region_trace = self._entity:get_component('destination')
+                                                :trace_region('fabricator mining trace')
+                                                   :on_changed(function(region)
+                                                         self:_update_score(region)
+                                                      end)
+         end)
+   end
+end
+
+function ConstructionDataComponent:destroy()
+   if self._region_trace then
+      self._region_trace:destroy()
+      self._region_trace = nil
+   end
+end
+
 function ConstructionDataComponent:trace_data(reason, category)
    if category then
       return self.__saved_variables:trace_data(reason, category)
@@ -111,6 +131,12 @@ function ConstructionDataComponent:set_fabricator_entity(entity)
    assert(entity, 'no entity specified in :set_fabricator_entity()')
    self._sv.fabricator_entity = entity
    self.__saved_variables:mark_changed()
+
+   if self._region_trace then
+      self._region_trace:destroy()
+      self._region_trace = nil
+   end
+
    return self
 end
 
@@ -181,6 +207,21 @@ function ConstructionDataComponent:rotate_structure(degrees)
       self._sv.normal = self._sv.normal:rotated(degrees)
    end
    self.__saved_variables:mark_changed()
+end
+
+--- The score for a building is its area * the multiplier for that kind of wall/region, modified by ^0.6, 
+--  so that the first bldg is very important, and building decreases logarithmically as we get more buildings.
+function ConstructionDataComponent:_update_score(region)
+   if self._sv.fabricator_entity then
+      return
+   end
+   local area = region:get_area()
+
+   local networth = radiant.entities.get_entity_data(self._entity, 'stonehearth:net_worth')
+   local item_multiplier = networth and networth.value_in_gold or 1
+   local score = (area * item_multiplier) ^ 0.5
+
+   stonehearth.score:change_score(self._entity, 'net_worth', 'buildings', score)
 end
 
 return ConstructionDataComponent

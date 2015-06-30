@@ -43,11 +43,80 @@ function Inventory:destroy()
       self._destroy_listener:destroy()
       self._destroy_listener = nil
    end
+   if self._stacks_changed_listener then
+      self._stacks_changed_listener:destroy()
+      self._stacks_changed_listener = nil
+   end
+   if self._add_item_to_score_listener then
+      self._add_item_to_score_listener:destroy()
+      self._add_item_to_score_listener = nil
+   end
+   if self._remove_item_from_score_listener then
+      self._remove_item_from_score_listener:destroy()
+      self._remove_item_from_score_listener = nil
+   end
 end
 
 function Inventory:_install_listeners()
    self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:pre_destroy', self, self._on_destroy)
+
+   self._stacks_changed_listener = radiant.events.listen(radiant, 'radiant:item:stacks_changed', function(e)
+         self:_update_score_for_item(e.entity)
+      end)
 end
+
+function Inventory:_update_score_for_item(item)
+   if item and item:is_valid() then
+      -- if this is an icon, find the root entity
+      local ic = item:get_component('stonehearth:iconic_form')
+      if ic then
+         item = ic:get_root_entity()
+      end
+
+      -- compute the score
+      local score = 0
+      local id = item:get_id()
+      if self._sv.items[id] then
+         score = self:_get_score_for_item(item) / 10 -- whyyyyyyyyy? -- tony
+      end
+
+      -- add to 'edibles' and 'net_worth' categories
+      local mc = item:get_component('stonehearth:material')
+      if mc and (mc:is('food') or mc:is('food_container')) then
+         stonehearth.score:change_score(item, 'edibles', 'inventory', score)
+      end
+      stonehearth.score:change_score(item, 'net_worth', 'inventory', score)
+   end
+end
+
+
+--- Given an entity, get the score for it, aka the entity's net worth 
+--  If we don't have a score for that entity, use the default score, which is 1
+function Inventory:_get_score_for_item(item)
+   -- resources that are not food have no score.
+   local mc = item:get_component('stonehearth:material')
+   if mc then
+      if mc:is('resource') and not (mc:is('food') or mc:is('food_container')) then
+         return 0
+      end
+   end
+
+   local networth = radiant.entities.get_entity_data(item, 'stonehearth:net_worth')
+   if networth and networth.value_in_gold then
+      -- The value of wealth is item_score * stacks
+      local ic = item:get_component('item')
+      if ic and ic:get_category() == 'wealth' then
+         local stacks = ic:get_stacks()
+         return networth.value_in_gold * stacks
+      end
+      --if not wealth, then just return value in gold
+      return networth.value_in_gold
+   end
+
+   -- otherwise, return 1
+   return 1
+end
+
 
 function Inventory:_on_destroy(e)
    local id = e.entity_id
@@ -183,6 +252,10 @@ function Inventory:add_item(item, storage)
    for name, tracker in pairs(self._sv.trackers) do
       tracker:add_item(item, storage)
    end
+
+   -- update the score
+   self:_update_score_for_item(item)
+
    radiant.events.trigger(self, 'stonehearth:inventory:item_added', { item = item })
    self.__saved_variables:mark_changed()
    self:_check_public_storage_space()
@@ -192,6 +265,7 @@ end
 --  If the item isn't in the inventory, ignore
 function Inventory:remove_item(item_id)
    if self._sv.items[item_id] then
+      local item = self._sv.items[item_id]
 
       self._sv.items[item_id] = nil
       self._sv.container_for[item_id] = nil
@@ -200,6 +274,12 @@ function Inventory:remove_item(item_id)
       for name, tracker in pairs(self._sv.trackers) do
          tracker:remove_item(item_id)
       end
+
+      -- update the score
+      if item:is_valid() then
+         self:_update_score_for_item(item)
+      end
+
       radiant.events.trigger(self, 'stonehearth:inventory:item_removed', { item_id = item_id })
       self.__saved_variables:mark_changed()
 

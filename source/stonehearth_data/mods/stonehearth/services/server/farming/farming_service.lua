@@ -20,7 +20,6 @@ function FarmingService:initialize()
       -- his towns
       player_crops = {}
    }
-   self:_register_score_functions()
 
    self.__saved_variables = radiant.create_datastore(self._data)
    self.__saved_variables:mark_changed()
@@ -192,15 +191,6 @@ function FarmingService:harvest_crops(session, soil_plots)
       end
    end
    return true
-end
-
-function FarmingService:_register_score_functions()
-   --If the entity is a farm, register the score
-   stonehearth.score:add_aggregate_eval_function('net_worth', 'agriculture', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:farmer_field') then
-         agg_score_bag.agriculture = agg_score_bag.agriculture + self:_get_score_for_farm(entity)
-      end
-   end)
 end
 
 function FarmingService:_get_score_for_farm(entity)

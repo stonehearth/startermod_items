@@ -1465,7 +1465,9 @@
       "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)",
 
       "player_jobs_controller" : "file(services/server/job/player_jobs_controller.lua)",
-      "job_info_controller" : "file(services/server/job/job_info_controller.lua)"
+      "job_info_controller" : "file(services/server/job/job_info_controller.lua)",
+
+      "score:player_score_data" : "file(services/server/score/player_score_data.lua)"
    },
 
    "client_controllers" :  {
