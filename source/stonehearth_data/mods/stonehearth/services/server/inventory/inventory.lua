@@ -71,6 +71,9 @@ function Inventory:_update_score_for_item(item)
       local ic = item:get_component('stonehearth:iconic_form')
       if ic then
          item = ic:get_root_entity()
+         if not item or not item:is_valid() then
+            return
+         end
       end
 
       -- compute the score
