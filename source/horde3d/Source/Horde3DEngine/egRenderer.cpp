@@ -2011,7 +2011,7 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
       }
    } else {
       for (auto const& result : queryResults) {
-         result.renderQueues[_activeRenderCache]->emplace_back(0.0f, result.node, result.absTrans);
+         result.renderQueues[_activeRenderCache]->emplace_back(result.node, result.absTrans);
       }
    }
 

@@ -313,6 +313,7 @@ struct RendQueueItem
 
 	RendQueueItem() {}
 	RendQueueItem(float sortKey, SceneNode const* node, Matrix4f const& m) : node(node), sortKey(sortKey), absTrans(m) {}
+	RendQueueItem(SceneNode const* node, Matrix4f const& m) : node(node), absTrans(m) {}
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
