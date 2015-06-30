@@ -42,7 +42,8 @@ function DropCarryingInStorageAdjacent:run(ai, entity, args)
    end
 
    radiant.entities.turn_to_face(entity, args.storage)
-   ai:execute('stonehearth:run_effect', { effect = 'carry_putdown' })
+   local storage_location = radiant.entities.get_world_grid_location(args.storage)
+   ai:execute('stonehearth:run_putdown_effect', { location = storage_location })
 
    local item = radiant.entities.remove_carrying(entity)
    sc:add_item(item)

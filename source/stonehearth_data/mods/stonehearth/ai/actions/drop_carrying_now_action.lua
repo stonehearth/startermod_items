@@ -56,7 +56,7 @@ function DropCarryingNow:run(ai, entity, args)
    end
 
    radiant.entities.turn_to_face(entity, front)
-   ai:execute('stonehearth:run_effect', { effect = 'carry_putdown' })
+   ai:execute('stonehearth:run_putdown_effect', { location = self._drop_location })
 
    -- place the item now, don't wait for the compound action (if it exists) to terminate
    self:stop(ai, entity, args)

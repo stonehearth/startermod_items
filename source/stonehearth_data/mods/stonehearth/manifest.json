@@ -478,9 +478,13 @@
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_entity" : "file(ai/actions/create_entity_action.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
+
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
       "actions:run_effect_timed_action" : "file(ai/actions/run_effect_timed_action.lua)",
+      "actions:run_pickup_effect" : "file(ai/actions/run_pickup_effect_action.lua)",
+      "actions:run_putdown_effect" : "file(ai/actions/run_putdown_effect_action.lua)",
+
       "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
       "actions:idle_action" : "file(ai/actions/idle_action.lua)",
       "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
