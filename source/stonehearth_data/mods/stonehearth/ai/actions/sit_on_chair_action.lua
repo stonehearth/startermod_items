@@ -1,4 +1,3 @@
-local Entity = _radiant.om.Entity
 local SitOnChair = class()
 
 SitOnChair.name = 'sit on chair'
