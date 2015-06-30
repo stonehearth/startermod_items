@@ -65,7 +65,12 @@ function PlayerScoreData:_update_aggregate(entity, category_name)
    if not pop then
       return
    end
-   self._sv.aggregate[category_name] = self._sv.total_scores[category_name] / pop:get_citizen_count()
+   local count = pop:get_citizen_count()
+   if count > 0 then
+      self._sv.aggregate[category_name] = self._sv.total_scores[category_name] / pop:get_citizen_count()
+   else
+      self._sv.aggregate[category_name] = self._sv.total_scores[category_name]
+   end
 end
 
 function PlayerScoreData:_update_score(entity, category_name, reason, value)
