@@ -17,11 +17,7 @@ var StonehearthInputHelper;
               }
             })
             .blur(function (e) {
-               radiant.call('stonehearth:enable_camera_movement', true)
                inputChangedCallback($(this).val());
-            })
-            .focus(function(e){
-               radiant.call('stonehearth:enable_camera_movement', false)
             })
             .tooltipster({content: i18n.t('input_text_tooltip')});
       },

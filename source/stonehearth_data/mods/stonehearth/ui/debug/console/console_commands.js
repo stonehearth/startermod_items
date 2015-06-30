@@ -74,7 +74,7 @@ $(document).ready(function(){
          var key = args[0]
          return radiant.call('radiant:get_config', key);
       },
-      description : "Usage: get_config foo.bar.baz"
+      description : "Gets the configuration value from user_settings.config. Usage: get_config foo.bar.baz"
    });
 
    // Usage: set_config foo.bar.baz { value = 1 }
@@ -84,7 +84,7 @@ $(document).ready(function(){
          var value = JSON.parse(args[1]);
          return radiant.call('radiant:set_config', key, value);
       },
-      description : "Usage: set_config foo.bar.baz { value = 1 }"
+      description : "Sets the specified configuration value. Usage: set_config foo.bar.baz {value = 1}"
    });
 
    radiant.console.register('ib', {
