@@ -6,7 +6,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       'PAUSED' : 0, 
       'PLAY'   : 1, 
       'FASTFORWARD' : 2,
-      'SPEEDTHREE' : 9
+      'SPEEDTHREE' : 4
    },
       
    //On startup, get the game_speed service, so we can listen in on speed changes
