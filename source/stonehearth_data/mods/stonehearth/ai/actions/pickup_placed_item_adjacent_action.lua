@@ -48,9 +48,9 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    -- best the terrain or a wall, depending on how we were placed
    local parent = item:get_component('mob'):get_parent()
    if parent then
-
       radiant.entities.remove_child(parent, item)
       radiant.entities.move_to(item, Point3.zero)
+      radiant.entities.turn_to(item, 0)
    end
    -- gravity may have been turned off when placed.  turn it back on
    item:get_component('mob')
