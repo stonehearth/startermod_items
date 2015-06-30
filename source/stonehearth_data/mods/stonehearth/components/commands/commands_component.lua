@@ -96,7 +96,7 @@ function CommandsComponent:enable_command(name, status)
       end
       self.__saved_variables:mark_changed()
    else
-      log:error('Cannot modify command "%s". It was not found.', name)
+      log:detail('Cannot modify command "%s". It was not found.', name)
    end
 end
 

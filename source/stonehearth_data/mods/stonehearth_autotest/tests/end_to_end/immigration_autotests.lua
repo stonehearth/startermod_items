@@ -37,46 +37,6 @@ function immigration_tests.get_one_citizen_encounter(autotest)
    local cluster = autotest.env:create_entity_cluster(10, 10, 10, 10, 'stonehearth:food:corn:corn_basket')
    local stockpile = autotest.env:create_stockpile(10, 10, {size = {x=10, y=10}})
 
-   -- Wait for corn spawn
-   while num_corn < required_corn do
-      autotest:sleep(1000)
-   end
-
-   -- Wait for score update
-   local score_updated = false
-   radiant.events.listen_once(radiant, 'stonehearth:score_updated', function (e)
-      score_updated = true
-
-      local daily_report_encounter
-      local function get_to_daily_report(...)
-         local args = {...}
-         local event_name = args[1]
-         if event_name == 'elect_node' then
-            local _, nodelist_name, nodes = unpack(args)
-            if nodelist_name == 'game_events' then
-               return 'game_events', nodes.goblin_war
-            end
-         elseif event_name == 'trigger_arc_edge' then
-            local _, arc, edge_name, parent_node = unpack(args)
-            if edge_name == 'start' then
-               --Jump directly to daily_report_node
-               local encounter_uri = arc._sv.encounters._sv.nodelist.daily_report
-               local info =  radiant.resources.load_json(encounter_uri)
-               daily_report_encounter = radiant.create_controller('stonehearth:game_master:encounter', info)
-               return 'daily_report_encounter', daily_report_encounter
-            end
-         end
-      end
-
-      --Fire the scenario
-      stonehearth.game_master:debug_campaign('game_events', function(...)
-         local result = { get_to_daily_report(...) }
-         if #result > 0 then
-            return unpack(result)
-         end
-      end)
-   end)
-
    -- Wait for bulletin
    radiant.events.listen(stonehearth.bulletin_board, 'stonehearth:trigger_bulletin_for_test', function(e)
       --Click the daily update button, click the scenario
@@ -84,9 +44,36 @@ function immigration_tests.get_one_citizen_encounter(autotest)
       return radiant.events.UNLISTEN
    end)
 
-   while not score_updated do
-      autotest:sleep(1*1000)
+   -- Wait for score update
+   autotest:sleep(1)
+   local daily_report_encounter
+   local function get_to_daily_report(...)
+      local args = {...}
+      local event_name = args[1]
+      if event_name == 'elect_node' then
+         local _, nodelist_name, nodes = unpack(args)
+         if nodelist_name == 'game_events' then
+            return 'game_events', nodes.goblin_war
+         end
+      elseif event_name == 'trigger_arc_edge' then
+         local _, arc, edge_name, parent_node = unpack(args)
+         if edge_name == 'start' then
+            --Jump directly to daily_report_node
+            local encounter_uri = arc._sv.encounters._sv.nodelist.daily_report
+            local info =  radiant.resources.load_json(encounter_uri)
+            daily_report_encounter = radiant.create_controller('stonehearth:game_master:encounter', info)
+            return 'daily_report_encounter', daily_report_encounter
+         end
+      end
    end
+
+   --Fire the scenario
+   stonehearth.game_master:debug_campaign('game_events', function(...)
+      local result = { get_to_daily_report(...) }
+      if #result > 0 then
+         return unpack(result)
+      end
+   end)
 
    autotest:sleep(5*1000)
    autotest.ui:click_dom_element('#acceptButton')  
@@ -99,7 +86,7 @@ function immigration_tests.get_one_citizen_encounter(autotest)
       end
    end)
 
-   autotest:sleep(10*1000)
+   autotest:sleep(10*100000)
    autotest:fail('failed to get person')
 end
 

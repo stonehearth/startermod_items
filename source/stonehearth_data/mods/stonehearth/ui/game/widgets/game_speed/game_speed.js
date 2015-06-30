@@ -1,16 +1,23 @@
 App.StonehearthGameSpeedWidget = App.View.extend({
    templateName: 'stonehearthGameSpeed',
+   uriProperty: 'model',
 
    speeds: {
       'PAUSED' : 0, 
       'PLAY'   : 1, 
-      'FASTFORWARD' : 2      
+      'FASTFORWARD' : 2,
+      'SPEEDTHREE' : 4
    },
       
    //On startup, get the game_speed service, so we can listen in on speed changes
    init: function() {
       var self = this;
       this._super();
+
+      radiant.call('radiant:get_config', 'mods.stonehearth.enable_speed_three')
+         .done(function(response) {
+            self.set('context.enableSpeedThree', response['mods.stonehearth.enable_speed_three']);
+         })
 
       radiant.call('stonehearth:get_game_speed_service')
          .done(function(response){
@@ -21,7 +28,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
 
   //When the current speed changes, toggle the buttons to match
    _set_button_by_speed: function() {
-      var newSpeed = this.get('context.curr_speed');
+      var newSpeed = this.get('model.curr_speed');
       
       //find currently active button, and unselect it
       this._toggle_button_by_speed(this.currSpeed, false);
@@ -32,7 +39,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       //Make the current speed the new speed. 
       this.currSpeed = newSpeed;
       
-   }.observes('context.curr_speed'), 
+   }.observes('model.curr_speed'), 
 
    //Given a speed, and a selected state, make the 
    //correct button match that state
@@ -47,6 +54,9 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          case this.speeds.FASTFORWARD:
             this.set('context.isFF', selected);
             break;
+         case this.speeds.SPEEDTHREE:
+            this.set('context.isSpeedThree', selected);
+            break;
          default:
             break;
       }
@@ -57,10 +67,11 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       var self = this;
 
       //Until we're told otherwise, we assume that we're running at PLAY speeds
-      this.currSpeed = this.speeds.PLAY;
-      this.set('context.isPaused', false);
-      this.set('context.isPlay', true);
-      this.set('context.isFF', false);
+      self.currSpeed = self.speeds.PLAY;
+      self.set('context.isPaused', false);
+      self.set('context.isPlay', true);
+      self.set('context.isFF', false);
+      self.set('context.isSpeedThree', false);
 
       radiant.call('stonehearth:get_default_speed')
          .done(function(e){
@@ -78,6 +89,24 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          this.$('#pausedIndicator').hide();
       }
    }.observes('context.isPaused'),
+
+   _updateSpeedThreeButton: function() {
+      var self = this;
+
+      if (!self.get('context.enableSpeedThree')) {
+         self.$('#speedThreeButton').hide();
+         return;
+      }
+
+      if (self.initialized) {
+         self.$('#speedThreeButton').click(function() {
+            radiant.call('stonehearth:set_player_game_speed', self.speeds.SPEEDTHREE);
+         });
+         self.$('#speedThreeButton').show();
+         self._createButtonTooltip('speedThree');
+         self._addHotkeys();
+      }
+   }.observes('context.enableSpeedThree'),
 
    didInsertElement: function() {
       var self = this;
@@ -104,20 +133,24 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          self.$('#playButton').click();
       });
 
-      self._addHotkeys();
-
       // tooltip
-      var buttons = ['pause', 'play', 'ff'];
+      var buttons = ['pause', 'play', 'ff', 'speedThree'];
       radiant.each(buttons, function(i, buttonName) {
-         var button = this.$('#'+ buttonName + 'Button');
-         var description_key = 'stonehearth:' + buttons[i] + '_description';
-         button.tooltipster({
-         position: 'bottom',
-         content: $('<div class=title>' + i18n.t('stonehearth:' + buttonName + '_title') + '</div>' + 
-                    '<div class=description>' + i18n.t(description_key) + '</div>' + 
-                    '<div class=hotkey>' + i18n.t('hotkey') + ' <span class=key>' + button.attr('hotkeyName')  + '</span></div>')
-         });
+         self._createButtonTooltip(buttonName);
+      });
 
+      self._updateSpeedThreeButton();
+      self._addHotkeys();
+   },
+   _createButtonTooltip: function(buttonName) {
+      var button = this.$('#'+ buttonName + 'Button');
+      var description_key = 'stonehearth:' + buttonName + '_description';
+      button.tooltipster({
+      position: 'bottom',
+      content: $('<div class=title>' + i18n.t('stonehearth:' + buttonName + '_title') + '</div>' + 
+                 '<div class=description>' + i18n.t(description_key) + '</div>' + 
+                 '<div class=hotkey>' + i18n.t('hotkey') + ' <span class=key>' + button.attr('hotkeyName')  + '</span></div>')
       });
    }
+
 });
