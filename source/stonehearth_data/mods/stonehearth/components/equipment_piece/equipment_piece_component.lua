@@ -206,7 +206,9 @@ function EquipmentPieceComponent:_attach_to_bone()
    local bone_name = self:_get_bone_for_slot(self:get_slot())
    log:debug('%s attaching %s to bone %s', self._sv.owner, self._entity, bone_name)
    local mob = self._entity:get_component('mob')
-   mob:set_transform(_radiant.csg.Transform())
+   if mob then
+      mob:set_transform(_radiant.csg.Transform())
+   end
    entity_container:add_child_to_bone(self._entity, bone_name)
 end
 
