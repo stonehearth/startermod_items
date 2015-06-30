@@ -29,7 +29,7 @@ function WorkerSchedulerPriorityTest:__init()
    wall:add_component('stonehearth:construction_data'):set_normal(Point3(1, 0, 0))
    radiant.entities.set_player_id(wall, player_id)
    
-   radiant.entities.move_to(wall, Point3(0, 1, 0))
+   radiant.entities.move_to_grid_aligned(wall, Point3(0, 1, 0))
    local root = radiant.entities.get_root_entity()
    local city_plan = root:add_component('stonehearth:city_plan')
    city_plan:add_blueprint(wall)

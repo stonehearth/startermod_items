@@ -98,7 +98,7 @@ end
 function Terrain.remove_entity(entity)
    if entity and entity:is_valid() then
       radiant.entities.remove_child(radiant._root_entity, entity)
-      radiant.entities.move_to(entity, Point3.zero)
+      radiant.entities.move_to_grid_aligned(entity, Point3.zero)
    end
 end
 

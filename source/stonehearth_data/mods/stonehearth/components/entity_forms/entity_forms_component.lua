@@ -380,7 +380,7 @@ function EntityFormsComponent:_create_task(args)
                               local parent = radiant.entities.get_parent(ghost)
                               if parent then
                                  radiant.entities.remove_child(parent, ghost)
-                                 radiant.entities.move_to(ghost, Point3.zero)
+                                 radiant.entities.move_to_grid_aligned(ghost, Point3.zero)
                               end
 
                               self._placement_task = nil

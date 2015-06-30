@@ -218,7 +218,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    self._pt = pt
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
-      radiant.entities.move_to(self._cursor_entity, pt or OFFSCREEN)      
+      radiant.entities.move_to_grid_aligned(self._cursor_entity, pt or OFFSCREEN)      
    end
 
    -- if the user installed a progress handler, go ahead and call it now

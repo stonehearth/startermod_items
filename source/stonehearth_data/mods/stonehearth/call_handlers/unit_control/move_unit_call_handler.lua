@@ -36,7 +36,7 @@ function MoveUnitCallHandler:_on_mouse_event(e, response)
    -- we want the workbench to be on top of that block, so add 1 to y, then
    -- move the cursor workshop to that location
    pt.y = pt.y + 1
-   self._cursor_entity:add_component('mob'):set_location_grid_aligned(pt)
+   self._cursor_entity:add_component('mob'):move_to_grid_aligned(pt)
 
 
    -- if the mouse button just transitioned to up and we're actually pointing

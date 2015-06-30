@@ -107,13 +107,13 @@ function client_entities.is_owned_by_player(entity, player_id)
    return client_entities.get_player_id(entity) == player_id
 end
 
-function client_entities.move_to(entity, location)
+function client_entities.move_to_grid_aligned(entity, location)
    radiant.check.is_entity(entity)
 
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
-   entity:add_component('mob'):set_location_grid_aligned(location)
+   entity:add_component('mob'):move_to_grid_aligned(location)
 end
 
 function client_entities.turn_to(entity, degrees)
@@ -130,7 +130,7 @@ function client_entities.add_child(parent, child, location)
 
    component:add_child(child)
    if location then
-      client_entities.move_to(child, location)
+      client_entities.move_to_grid_aligned(child, location)
    else
    end
 end

@@ -153,7 +153,7 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
             item = iconic_entity
          end
       end
-      item:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
+      item:add_component('mob'):move_to_grid_aligned(Point3(0, 1, 0))
       radiant.entities.set_player_id(item, self._crafter)
 
       self._workshop:add_component('entity_container'):add_child(item)

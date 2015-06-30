@@ -49,7 +49,7 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    local parent = item:get_component('mob'):get_parent()
    if parent then
       radiant.entities.remove_child(parent, item)
-      radiant.entities.move_to(item, Point3.zero)
+      radiant.entities.move_to_grid_aligned(item, Point3.zero)
       radiant.entities.turn_to(item, 0)
    end
    -- gravity may have been turned off when placed.  turn it back on

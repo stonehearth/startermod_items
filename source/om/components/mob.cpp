@@ -249,11 +249,6 @@ void Mob::SerializeToJson(json::Node& node) const
    }
 }
 
-void Mob::SetLocationGridAligned(csg::Point3f const& location)
-{
-   MoveTo(csg::ToFloat(csg::ToClosestInt(location)));
-}
-
 /*
  * -- Mob::GetMobCollisionRegion
  *
