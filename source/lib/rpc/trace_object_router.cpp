@@ -7,6 +7,7 @@
 #include "dm/object.h"
 #include "dm/store.h"
 #include "dm/trace.h"
+#include "core/config.h"
 #include "lib/json/node.h"
 
 using namespace ::radiant;
@@ -58,6 +59,10 @@ ReactorDeferredPtr TraceObjectRouter::InstallTrace(Trace const& trace)
       ReactorDeferredPtr deferred = std::make_shared<ReactorDeferred>(trace.desc());
       InstallTrace(trace.route, deferred, obj);
       return deferred;
+   }
+
+   if (!core::Config::GetInstance().Get<bool>("enable_remote_traces", false)) {
+      return nullptr; 
    }
 
    // Hmm.  This is the right store, but the object isn't in it.  Maybe it
@@ -113,7 +118,7 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
       } else {
          if (deferred) {
             json::Node emptyData;
-            deferred->Resolve(emptyData);
+            deferred->Reject(emptyData);
          }
          traces_.erase(uri);
       }
@@ -122,7 +127,7 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
       auto deferred = defRef.lock();
       if (deferred) {
          json::Node emptyData;
-         deferred->Resolve(emptyData);
+         deferred->Reject(emptyData);
       }
       traces_.erase(uri);
    });

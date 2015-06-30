@@ -1688,7 +1688,7 @@ void Client::CallHttpReactor(chromium::IBrowser::Request const& req, rpc::HttpDe
    rpc::ReactorDeferredPtr d = http_reactor_->Call(req.query, req.postdata);
 
    if (!d) {
-      response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << req.path)));
+      response->Reject(rpc::HttpError(500, BUILD_STRING("failed to dispatch " << req.path << " : " << req.query.write())));
       return;
    }
    d->Progress([response](JSONNode n) {

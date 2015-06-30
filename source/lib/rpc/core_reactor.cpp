@@ -9,6 +9,7 @@
 #include "irouter.h"
 #include "resources/manifest.h"
 #include "resources/res_manager.h"
+#include "core/config.h"
 
 using namespace ::radiant;
 using namespace ::radiant::rpc;
@@ -54,7 +55,9 @@ ReactorDeferredPtr CoreReactor::InstallTrace(Trace const& t)
       }
    }
    if (!d && remoteRouter_) {
-      d = remoteRouter_->InstallTrace(t);
+      if (core::Config::GetInstance().Get<bool>("enable_remote_traces", false)) {
+         d = remoteRouter_->InstallTrace(t);
+      }
    }
    if (!d) {
       throw core::InvalidArgumentException(BUILD_STRING("could not trace" << t));
@@ -74,7 +77,9 @@ ReactorDeferredPtr CoreReactor::RemoveTrace(UnTrace const& u)
       }
    }
    if (!d && remoteRouter_) {
-      d = remoteRouter_->RemoveTrace(u);
+      if (core::Config::GetInstance().Get<bool>("enable_remote_traces", false)) {
+         d = remoteRouter_->RemoveTrace(u);
+      }
    }
    if (!d) {
       throw core::InvalidArgumentException(BUILD_STRING("could not remove trace" << u));
