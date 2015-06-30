@@ -1357,8 +1357,8 @@ void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
    bool debug = false;
    bool showStats = false;
    if (config_.enable_debug_keys.value) {
-      debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
-      showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+      debug = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_RIGHT_ALT) == GLFW_PRESS;
+      showStats = glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
    }
   
    bool showUI = true;

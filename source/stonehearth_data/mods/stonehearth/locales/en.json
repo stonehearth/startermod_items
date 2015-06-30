@@ -441,6 +441,9 @@
    "play_description" : "Run the game at normal speed",
    "ff_title" : "Fast Forward",
    "ff_description" : "Run the game at 2x speed",
+   "speedThree_title" : "Super Speed",
+   "speedThree_description" : "Run the game at high speed",
+   "pause_overlay" : "Paused",
 
    "town_description" : "The __descriptor__ __noun__ of", 
    "camp" : "Camp", 

@@ -24,6 +24,9 @@ function RunPickupEffect:run(ai, entity, args)
 
    local dy = (args.location - entity_location).y
    local effect_name = effect_names[dy]
+   if not effect_name then
+      ai:abort('%s at %s cannot reach %s', entity, entity_location, args.location)
+   end
 
    ai:execute('stonehearth:run_effect', { effect = effect_name })
 end
