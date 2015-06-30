@@ -247,7 +247,11 @@ var RadiantTrace;
 
                      // Update the object property and check to see if it's time to notify
                      // the parent
-                     eobj.set(emberValidKey, value);
+                     if (value != undefined) {
+                        eobj.set(emberValidKey, value);
+                     } else {
+                        delete eobj[emberValidKey];
+                     }
                      delete pending[k];
 
                      //self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
