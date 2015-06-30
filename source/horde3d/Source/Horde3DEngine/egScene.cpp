@@ -760,7 +760,7 @@ void GridSpatialGraph::_addNode(SceneNode& sceneNode, int gridId) {
       newVec = &e->second.nodes[nodeType];
    }
 
-   newVec->emplace_back(GridItem(sceneBox, &sceneNode, sceneNode._absTrans));
+   newVec->emplace_back(GridItem(sceneNode._accumulatedFlags, sceneBox, &sceneNode, sceneNode._absTrans));
    sceneNode._gridId = gridId;
    sceneNode._gridPos = (int)(newVec->size() - 1);
 }
@@ -796,6 +796,7 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
    } else if (oldGrid) {
       oldGrid->at(sceneNode._gridPos).bounds = sceneBox;
       oldGrid->at(sceneNode._gridPos).absTrans = sceneNode._absTrans;
+      oldGrid->at(sceneNode._gridPos).flags = sceneNode._accumulatedFlags;
 
       if (sceneNode._gridId != NO_CULL && sceneNode._gridId != SPILLOVER) {
          ASSERT(sceneNode._gridId != NO_DRAW);
@@ -858,6 +859,9 @@ void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum co
          break;
       case QueryResultFields::NoBounds:
          results.emplace_back(g.node, g.absTrans, g.renderQueues);
+         break;
+      case QueryResultFields::Flags:
+         results.emplace_back(g.flags, g.node, g.absTrans, g.renderQueues);
          break;
       default:
          results.emplace_back(bounds, g.node, g.absTrans, g.renderQueues);
@@ -1267,7 +1271,7 @@ std::vector<QueryResult> const& Scene::subQuery(std::vector<QueryResult> const& 
    r.result.clear();
 
    for (auto& qr : queryResults) {
-      if (!(qr.node->_accumulatedFlags & ignoreFlags)) {
+      if (!(qr.flags & ignoreFlags)) {
          r.result.emplace_back(qr);
       }
    }
