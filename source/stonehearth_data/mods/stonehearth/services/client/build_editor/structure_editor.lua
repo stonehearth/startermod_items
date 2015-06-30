@@ -58,7 +58,7 @@ function StructureEditor:begin_editing(fabricator, blueprint, project, structure
    --TODO: why is this sometimes nil?   
    if building then 
       local location = radiant.entities.get_world_grid_location(building)
-      radiant.entities.move_to(self._building_container, location)
+      radiant.entities.move_to_grid_aligned(self._building_container, location)
    end
    
    self:_initialize_proxies(blueprint:get_uri(), structure_type)
@@ -73,8 +73,8 @@ function StructureEditor:create_blueprint(blueprint_uri, structure_type)
 end
 
 function StructureEditor:move_to(location)
-   radiant.entities.move_to(self._proxy_blueprint, location)
-   radiant.entities.move_to(self._proxy_fabricator, location)
+   radiant.entities.move_to_grid_aligned(self._proxy_blueprint, location)
+   radiant.entities.move_to_grid_aligned(self._proxy_fabricator, location)
 end
 
 

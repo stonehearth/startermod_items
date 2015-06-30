@@ -321,7 +321,16 @@ function entities.move_to(entity, location)
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
-   entity:add_component('mob'):set_location_grid_aligned(location)
+   entity:add_component('mob'):move_to(location)
+end
+
+function entities.move_to_grid_aligned(entity, location)
+   radiant.check.is_entity(entity)
+
+   if type(location) == "table" then
+      location = Point3(location.x, location.y, location.z)
+   end
+   entity:add_component('mob'):move_to_grid_aligned(location)
 end
 
 function entities.turn_to(entity, degrees)

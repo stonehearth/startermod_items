@@ -1,3 +1,4 @@
+local SleepLib = require 'ai.lib.sleep_lib'
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 
@@ -39,33 +40,15 @@ function SleepInBedAdjacent:run(ai, entity, args)
    local mob = entity:get_component('mob')
    self._saved_location = mob:get_world_grid_location()
    self._saved_facing = mob:get_facing()
-   -- add unit_y to sleep on top of the bed
-   radiant.entities.add_child(bed, entity, Point3(0, 1, 0), true)
-
-   -- goto sleep  
-   radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
+   local offset = self:_get_sleep_offset(bed)
+   radiant.entities.add_child(bed, entity, offset, true)
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
    radiant.events.trigger_async(entity, 'stonehearth:sleep_in_bed', { bed_uri = bed:get_uri() })
 
-   -- calculate sleep duration in minutes
-   local sleep_duration = 60
-   local attributes_component = entity:get_component('stonehearth:attributes')
-   
-   if attributes_component then
-      local sleepiness = attributes_component:get_attribute('sleepiness')
-      local stamina = attributes_component:get_attribute('stamina')
-
-      local sleep_duration_attribute = attributes_component:get_attribute('sleep_duration')
-      if sleep_duration_attribute then
-         sleep_duration = radiant.math.round(sleep_duration_attribute)
-      end
-   end
-
-   local sleep_duration_string = sleep_duration .. 'm'
-
-   ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = sleep_duration_string})
-   radiant.entities.set_attribute(entity, 'sleepiness', 0)
+   local sleep_duration, rested_sleepiness = SleepLib.get_sleep_parameters(entity, bed)
+   ai:execute('stonehearth:run_sleep_effect', { duration_string = sleep_duration })
+   radiant.entities.set_attribute(entity, 'sleepiness', rested_sleepiness)
 end
 
 function SleepInBedAdjacent:stop(ai, entity, args)
@@ -80,8 +63,13 @@ function SleepInBedAdjacent:stop(ai, entity, args)
       self._saved_location = nil
       self._saved_facing = nil
    end
+end
 
-   radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');
+function SleepInBedAdjacent:_get_sleep_offset(bed)
+   local bed_facing = radiant.entities.get_facing(bed)
+   local offset = Point3(0, 1, -0.5)
+   offset = radiant.math.rotate_about_y_axis(offset, bed_facing)
+   return offset
 end
 
 return SleepInBedAdjacent

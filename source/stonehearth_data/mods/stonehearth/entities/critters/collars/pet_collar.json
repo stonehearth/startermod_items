@@ -11,6 +11,7 @@
                "stonehearth:actions:sit_on_ground",
                "stonehearth:actions:sleep_when_exhausted",
                "stonehearth:actions:pet:pet_sleep_on_ground",
+               "stonehearth:actions:run_sleep_effect",
 
                "stonehearth:actions:wait_for_attribute_above",
                "stonehearth:actions:eat_item",

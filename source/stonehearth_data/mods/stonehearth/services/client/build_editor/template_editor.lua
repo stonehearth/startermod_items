@@ -25,7 +25,7 @@ function TemplateEditor:_restore_template(template_name)
       build_util.restore_template(self._building, template_name, { mode = 'preview'})
 
       self._center_offset = build_util.get_building_centroid(self._building)
-      radiant.entities.move_to(self._building, -self._center_offset)
+      radiant.entities.move_to_grid_aligned(self._building, -self._center_offset)
 
       radiant._authoring_root_entity:add_component('entity_container'):add_child(self._building)
       self._render_entity = _radiant.client.create_group_node(H3DRootNode)

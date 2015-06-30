@@ -21,7 +21,7 @@ function SleepRevocationTest:__init()
          local bed_location = bed:get_component('mob'):get_grid_location()
          bed_location.x = bed_location.x + move_distance
          move_distance = move_distance * -1
-         bed:get_component('mob'):set_location_grid_aligned(bed_location)
+         bed:get_component('mob'):move_to_grid_aligned(bed_location)
       end
    end)
    ---[[

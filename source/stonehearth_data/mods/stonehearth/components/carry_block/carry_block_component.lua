@@ -52,7 +52,7 @@ function CarryBlock:set_carrying(new_item)
    
    self._entity:add_component('entity_container')
                      :add_child_to_bone(new_item, 'carry')
-   radiant.entities.move_to(new_item, Point3.zero)
+   radiant.entities.move_to_grid_aligned(new_item, Point3.zero)
 
    --We've touched it! It's now ours
    radiant.entities.set_player_id(new_item, self._entity)
