@@ -35,14 +35,13 @@ struct InstanceNodeParams
 
 struct InstanceNodeTpl : public SceneNodeTpl
 {
-   InstanceNodeTpl( std::string const& name, MaterialResource* matRes, VoxelGeometryResource* geoRes, int maxInstances ) :
-      SceneNodeTpl( SceneNodeTypes::InstanceNode, name ), _geoRes(geoRes), _matRes(matRes), _maxInstances(maxInstances)
+   InstanceNodeTpl(std::string const& name, MaterialResource* matRes, VoxelGeometryResource* geoRes, int maxInstances) :
+      SceneNodeTpl(SceneNodeTypes::InstanceNode, name, matRes), _geoRes(geoRes), _maxInstances(maxInstances)
 	{
 	}
 
    int _maxInstances;
    PVoxelGeometryResource _geoRes;
-   PMaterialResource _matRes;
 };
 
 // =================================================================================================
@@ -72,7 +71,6 @@ protected:
    int _maxInstances;
    int _usedInstances;
    PVoxelGeometryResource _geoRes;
-   PMaterialResource _matRes;
 	
    float* _instanceBuf;
    uint32 _instanceBufObj;

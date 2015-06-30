@@ -173,7 +173,15 @@ function StorageComponent:initialize(entity, json)
          self._sv.is_public = json.public
       else
          self._sv.is_public = true
-      end      
+      end
+      
+      if self._sv.is_public then
+          local default_filter_none = radiant.util.get_config('default_storage_filter_none', false)
+          if default_filter_none then
+            self:set_filter({})
+          end
+      end
+      
       self.__saved_variables:mark_changed()
    end
 

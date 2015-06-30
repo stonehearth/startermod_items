@@ -299,7 +299,6 @@ EmitterNode::EmitterNode( const EmitterNodeTpl &emitterTpl ) :
 	SceneNode( emitterTpl )
 {
 	_renderable = true;
-	_materialRes = emitterTpl.matRes;
 	_effectRes = emitterTpl.effectRes;
 	_particleCount = emitterTpl.maxParticleCount;
 	_respawnCount = emitterTpl.respawnCount;
@@ -348,7 +347,7 @@ SceneNodeTpl *EmitterNode::parsingFunc( map< string, std::string > &attribs )
 	{
 		uint32 res = Modules::resMan().addResource( ResourceTypes::Material, itr->second, 0, false );
 		if( res != 0 )
-			emitterTpl->matRes = (MaterialResource *)Modules::resMan().resolveResHandle( res );
+			emitterTpl->material = (MaterialResource *)Modules::resMan().resolveResHandle( res );
 	}
 	else result = false;
 	itr = attribs.find( "particleEffect" );
@@ -431,9 +430,6 @@ int EmitterNode::getParamI( int param ) const
 {
 	switch( param )
 	{
-	case EmitterNodeParams::MatResI:
-		if( _materialRes != 0x0 ) return _materialRes->getHandle();
-		else return 0;
 	case EmitterNodeParams::PartEffResI:
 		if( _effectRes != 0x0 ) return _effectRes->getHandle();
 		else return 0;
@@ -453,13 +449,6 @@ void EmitterNode::setParamI( int param, int value )
 	
 	switch( param )
 	{
-	case EmitterNodeParams::MatResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res != 0x0 && res->getType() == ResourceTypes::Material )
-			_materialRes = (MaterialResource *)res;
-		else
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DEmitter::MatResI" );
-		return;
 	case EmitterNodeParams::PartEffResI:
 		res = Modules::resMan().resolveResHandle( value );
 		if( res != 0x0 && res->getType() == ResourceTypes::ParticleEffect )

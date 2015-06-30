@@ -115,7 +115,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
          position: 'bottom',
          content: $('<div class=title>' + i18n.t('stonehearth:' + buttonName + '_title') + '</div>' + 
                     '<div class=description>' + i18n.t(description_key) + '</div>' + 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + button.attr('hotkey')  + '</span></div>')
+                    '<div class=hotkey>' + i18n.t('hotkey') + ' <span class=key>' + button.attr('hotkeyName')  + '</span></div>')
          });
 
       });

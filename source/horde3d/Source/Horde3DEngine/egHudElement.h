@@ -133,7 +133,7 @@ struct HudElementNodeTpl : public SceneNodeTpl
 {
 
 	HudElementNodeTpl( std::string const& name ) :
-		SceneNodeTpl( SceneNodeTypes::HudElement, name )
+		SceneNodeTpl( SceneNodeTypes::HudElement, name, nullptr)
 	{
 	}
 };

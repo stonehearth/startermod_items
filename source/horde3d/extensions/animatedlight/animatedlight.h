@@ -22,7 +22,7 @@ struct AnimatedLightNodeTpl : public SceneNodeTpl
    PAnimatedLightResource _animatedLightRes;
 
    AnimatedLightNodeTpl(std::string const& name, const PAnimatedLightResource &lightRes) :
-      SceneNodeTpl(SNT_AnimatedLightNode, name), _animatedLightRes(lightRes)
+      SceneNodeTpl(SNT_AnimatedLightNode, name, nullptr), _animatedLightRes(lightRes)
    {
    }
 };

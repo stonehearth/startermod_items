@@ -48,6 +48,7 @@ public:
 
    MaterialResource* getMaterial() const;
    Resource* getGeometry() const;
+   float getScale() const;
 
 private:
    inline size_t computeHash(Resource* g, MaterialResource* r, float s) const;
@@ -109,7 +110,8 @@ struct SceneNodeParams
 	{
 		NameStr = 1,
 		AttachmentStr,
-      UserFlags
+      UserFlags,
+      Material
 	};
 };
 
@@ -144,9 +146,10 @@ struct SceneNodeTpl
 	Vec3f                          trans, rot, scale;
 	std::string                    attachmentString;
 	std::vector< SceneNodeTpl * >  children;
+   PMaterialResource              material;
 
-	SceneNodeTpl( int type, std::string const& name ) :
-		type( type ), name( name ), scale( Vec3f ( 1, 1, 1 ) )
+	SceneNodeTpl( int type, std::string const& name, PMaterialResource mat ) :
+		type( type ), name( name ), scale( Vec3f ( 1, 1, 1 ) ), material(mat)
 	{
 	}
 	
@@ -183,6 +186,7 @@ public:
 	virtual void setParamStr( int param, const char* value );
    virtual void* mapParamV( int param );
    virtual void unmapParamV( int param, int mappedLength );
+   MaterialResource* getMaterialRes() const;
 
 	virtual void setLodLevel( int lodLevel );
 
@@ -240,6 +244,7 @@ protected:
 	NodeHandle                  _handle;
    int                         _gridId;
    int                         _gridPos;
+	PMaterialResource           _materialRes;
 
 
 	uint32                      _flags;
@@ -275,7 +280,7 @@ private:
 struct GroupNodeTpl : public SceneNodeTpl
 {
 	GroupNodeTpl( std::string const& name ) :
-		SceneNodeTpl( SceneNodeTypes::Group, name )
+		SceneNodeTpl(SceneNodeTypes::Group, name, nullptr)
 	{
 	}
 };
@@ -311,10 +316,12 @@ struct RendQueueItem
 };
 
 typedef std::vector<RendQueueItem> RenderableQueue;
-typedef boost::container::flat_map<int, std::shared_ptr<RenderableQueue> > RenderableQueues;
-typedef std::unordered_map<InstanceKey, std::shared_ptr<RenderableQueue>, hash_InstanceKey > InstanceRenderableQueue;
-typedef boost::container::flat_map<int, InstanceRenderableQueue > InstanceRenderableQueues;
 
+typedef std::unordered_map<MaterialResource*, std::shared_ptr<RenderableQueue> > SingularRenderableQueue;
+typedef boost::container::flat_map<int, SingularRenderableQueue> RenderableQueues;
+
+typedef std::unordered_map<InstanceKey, std::shared_ptr<RenderableQueue>, hash_InstanceKey > InstanceRenderableQueue;
+typedef boost::container::flat_map<int, InstanceRenderableQueue> InstanceRenderableQueues;
 
 struct GridItem {
    GridItem(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m)
@@ -333,6 +340,15 @@ struct GridElement
 };
 
 
+struct QueryResultFields {
+   enum List {
+      All = 1,
+      BoundsOnly = 2,
+      NoBounds = 3
+   };
+};
+
+
 struct QueryTypes
 {
    enum List
@@ -346,7 +362,14 @@ struct QueryTypes
 struct QueryResult
 {
    QueryResult() {}
+   QueryResult(BoundingBox const& b) : bounds(b) {
+   }
    QueryResult(BoundingBox const& b, SceneNode* n, Matrix4f const& m) : bounds(b), node(n), absTrans(m) {
+   }
+   QueryResult(SceneNode* n, Matrix4f const& m, RenderableQueue* const queues[]) : node(n), absTrans(m) {
+      for (int i = 0; i < RenderCacheSize; i++) {
+         renderQueues[i] =  queues[i];
+      }
    }
    QueryResult(BoundingBox const& b, SceneNode* n, Matrix4f const& m, RenderableQueue* const queues[]) : bounds(b), node(n), absTrans(m) {
       for (int i = 0; i < RenderCacheSize; i++) {
@@ -371,7 +394,7 @@ public:
 	void updateNode(SceneNode& sceneNode);
 
    GridItem* gridItemForNode(SceneNode const& node);
-   void query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes);
+   void query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes, QueryResultFields::List resultFields);
    void castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection, std::function<void(std::vector<GridItem> const& nodes)> cb);
    void updateNodeInstanceKey(SceneNode& sceneNode);
 
@@ -383,7 +406,7 @@ protected:
    int boundingBoxToGrid(BoundingBox const& aabb) const;
    inline int hashGridPoint(int x, int y) const;
    inline void unhashGridHash(int hash, int* x, int* y) const;
-   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
+   void _queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, QueryResultFields::List resultFields, bool cullItems=false);
    void _queryGridLight(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results);
    std::unordered_map<NodeHandle, SceneNode *> _directionalLights;
 
@@ -486,7 +509,7 @@ public:
 
    void setNodeHidden(SceneNode& node, bool hide);
 
-   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached = true);
+   std::vector<QueryResult> const& queryScene(Frustum const& frust, QueryTypes::List queryTypes, QueryResultFields::List resultFields, bool cached = true);
    std::vector<QueryResult> const& subQuery(std::vector<QueryResult> const& queryResults, SceneNodeFlags::List ignoreFlags);
    std::vector<QueryResult> const& queryNode(SceneNode& node);
 	

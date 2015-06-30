@@ -249,6 +249,6 @@ void RenderNode::ApplyMaterial()
       if (_overrideMaterial.get()) {
          mat = _overrideMaterial.get();
       }
-      h3dSetNodeParamI(_meshNode, H3DVoxelMeshNodeParams::MatResI, mat);
+      h3dSetNodeParamI(_meshNode, H3DNodeParams::Material, mat);
    }
 }

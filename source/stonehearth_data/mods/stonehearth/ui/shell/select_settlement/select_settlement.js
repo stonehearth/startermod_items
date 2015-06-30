@@ -57,21 +57,16 @@ App.StonehearthSelectSettlementView = App.View.extend({
       });
 
       // World Seed
-      $('#worldSeedInput')
-         .keypress(function (e) {
-            if (e.which == 13) {
-               var seed = parseInt($(this).val());
-               if (seed != NaN) {
-                  self._newGame(seed ,function(e) {
-                     radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
-                     self.$('#map').stonehearthMap('setMap', e.map);
-                     self.$('#map').stonehearthMap('resume');
-                  });
-                  $(this).blur();
-               }
+      new StonehearthInputHelper(this.$('#worldSeedInput'), function (value) {
+            var seed = parseInt(value);
+            if (seed != NaN) {
+               self._newGame(seed ,function(e) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
+                  self.$('#map').stonehearthMap('setMap', e.map);
+                  self.$('#map').stonehearthMap('resume');
+               });
             }
-         })
-         .tooltipster();
+         });
 
       $(document).on('keydown', this._clearSelectionKeyHandler);
    },

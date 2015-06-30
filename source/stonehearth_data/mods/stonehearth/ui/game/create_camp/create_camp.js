@@ -18,7 +18,9 @@ App.StonehearthCreateCampView = App.View.extend({
 
       this.$('#bannerClick').click(function() {
          self._placeBanner();
-      })
+      });
+
+      radiant.call('stonehearth:dm_pause_game');
    },
 
    _placeBanner: function () {
@@ -26,7 +28,7 @@ App.StonehearthCreateCampView = App.View.extend({
       App.stonehearthClient.showTip('Now click somewhere in the world');
       var self = this;
       this._hideBanner();
-      radiant.call('stonehearth:dm_pause_game');
+
       radiant.call('stonehearth:choose_camp_location')
          .done(function(o) {
             App.stonehearthClient.hideTip();

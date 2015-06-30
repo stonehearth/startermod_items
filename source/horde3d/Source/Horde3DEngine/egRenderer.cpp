@@ -99,7 +99,6 @@ Renderer::Renderer()
 	_curRenderTarget = 0x0;
 	_curShaderUpdateStamp = 1;
 	_maxAnisoMask = 0;
-   _materialOverride = 0x0;
    _curPipeline = 0x0;
    _shadowCascadeBuffer = 0;
    _activeRenderCache = -1;
@@ -136,6 +135,22 @@ Renderer::~Renderer()
 #endif
 	delete[] _scratchBuf;
 	delete[] _overlayVerts;
+}
+
+void Renderer::reset()
+{
+   _instanceDataCache.clear();
+   gRDI->clearBufferCache();
+   Modules::sceneMan().clearQueryCaches();
+   for (int i = 0; i < RenderCacheSize; i++) {
+      _renderCache[i].singleNode = nullptr;
+      for (auto& iq : _instanceQueues[i]) {
+         iq.second.clear();
+      }
+      for (auto& sq : _singularQueues[i]) {
+         sq.second.clear();
+      }
+   }
 }
 
 
@@ -1591,7 +1606,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Find AABB of lit geometry
       Vec3f lightAbsPos;
 
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables, false);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(*lightFrus, QueryTypes::CullableRenderables, QueryResultFields::BoundsOnly, false);
 
       for (const auto& result : results) {
          litAabb.makeUnion(result.bounds);
@@ -1643,7 +1658,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	   // Build optimized light projection matrix
 		frustum.buildViewFrustum(lightViewMat, lightProjMat);
       
-      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables, false);
+      std::vector<QueryResult> const& results = Modules::sceneMan().sceneForId(sceneId).queryScene(frustum, QueryTypes::CullableRenderables,  QueryResultFields::NoBounds, false);
       std::vector<QueryResult> const& subResults = Modules::sceneMan().sceneForId(sceneId).subQuery(results, SceneNodeFlags::NoCastShadow);
       composeRenderables(subResults, frustum, RenderingOrder::None, QueryTypes::CullableRenderables, nullptr, false);
 
@@ -1966,8 +1981,10 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
             rq.second->clear();
          }
       }
-      for (auto& rq : _singularQueues[_activeRenderCache]) {
-         rq.second->clear();
+      for (auto& sq : _singularQueues[_activeRenderCache]) {
+         for (auto& rq : sq.second) {
+            rq.second->clear();
+         }
       }
    }
    CachedRenderResult& r = _renderCache[_activeRenderCache];
@@ -2005,8 +2022,10 @@ void Renderer::composeRenderables(std::vector<QueryResult> const& queryResults, 
             std::sort(rq.second->begin(), rq.second->end(), f);
          }
       }
-      for (auto& rq : _singularQueues[_activeRenderCache]) {
-         std::sort(rq.second->begin(), rq.second->end(), f);
+      for (auto& sq : _singularQueues[_activeRenderCache]) {
+         for (auto& rq : sq.second) {
+            std::sort(rq.second->begin(), rq.second->end(), f);
+         }
       }
    }
 }
@@ -2084,7 +2103,7 @@ void Renderer::drawLodGeometry(SceneId sceneId, std::string const& shaderContext
 
    R_LOG(7) << "updating geometry queue";
 
-   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::AllRenderables);
+   std::vector<QueryResult> const& result = Modules::sceneMan().sceneForId(sceneId).queryScene(f, QueryTypes::AllRenderables, QueryResultFields::NoBounds);
    composeRenderables(result, f, order, QueryTypes::AllRenderables, nullptr, cached);
 
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -2145,7 +2164,7 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
          for (QueryResult const& q : results) {
             // Sigh.  The proper fix is: fix Horde.  Once culling is fixed, the result will be a list of queue items that expose,
             // amongst other necessities, a material, and then everything will Just Work.
-            int matResHandle = q.node->getParamI(VoxelMeshNodeParams::MatResI);
+            int matResHandle = q.node->getParamI(SceneNodeParams::Material);
             if (matResHandle > 0) {
 	            Resource *resObj = Modules::resMan().resolveResHandle(matResHandle);
 
@@ -2175,6 +2194,8 @@ void Renderer::drawSelected(SceneId sceneId, std::string const& shaderContext,
 
 void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext, uint32 userFlags )
 {
+   // TODO: this is absolutely the wrong way to do projective stuff.  Use the Stencil buffer!
+   ASSERT(false);
    Scene& scene = Modules::sceneMan().sceneForId(sceneId);
    int numProjectorNodes = scene.findNodes(scene.getRootNode(), "", SceneNodeTypes::ProjectorNode);
 
@@ -2186,7 +2207,6 @@ void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext
    {
       ProjectorNode* n = (ProjectorNode*)scene.getFindResult(i);
       
-      _materialOverride = n->getMaterialRes();
       Frustum f;
       const BoundingBox& b = n->getBBox();
       ASSERT(false);
@@ -2199,8 +2219,6 @@ void Renderer::drawProjections(SceneId sceneId, std::string const& shaderContext
       // Don't need higher poly counts for projection geometry, so render at lod level 1.
       drawRenderables(sceneId, shaderContext, false, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 1, false);
    }
-
-   _materialOverride = 0x0;
 }
 
 
@@ -2215,7 +2233,7 @@ void Renderer::computeTightCameraBounds(SceneId sceneId, float* minDist, float* 
 
    // First, get all the visible objects in the full camera's frustum.
    BoundingBox visibleAabb;
-   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, false);
+   std::vector<QueryResult> const& results = scene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, QueryResultFields::BoundsOnly, false);
 
    for (const auto& r : results) {
 	   visibleAabb.makeUnion(r.bounds);
@@ -2384,7 +2402,7 @@ void Renderer::prioritizeLights(SceneId sceneId, std::vector<LightNode*>* lights
 void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuffix,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly, int lodLevel)
 {
-   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, false);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, QueryResultFields::NoBounds, false);
 
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(sceneId, &prioritizedLights, lights);
@@ -2490,7 +2508,7 @@ void Renderer::doForwardLightPass(SceneId sceneId, std::string const& contextSuf
 
 void Renderer::doDeferredLightPass(SceneId sceneId, bool noShadows, MaterialResource *deferredMaterial)
 {
-   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, false);
+   std::vector<QueryResult> const& lights = Modules::sceneMan().sceneForId(sceneId).queryScene(_curCamera->getFrustum(), QueryTypes::Lights, QueryResultFields::NoBounds, false);
    
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(sceneId, &prioritizedLights, lights);
@@ -2653,136 +2671,136 @@ void Renderer::drawMeshes(SceneId sceneId, std::string const& shaderContext, boo
    Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, false);
    Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, false);
 	// Loop over mesh queue
-	for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::Mesh))
-	{
-		MeshNode *meshNode = (MeshNode *)entry.node;
-		ModelNode *modelNode = meshNode->getParentModel();
+	for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SceneNodeTypes::Mesh)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+		   MeshNode *meshNode = (MeshNode *)entry.node;
+		   ModelNode *modelNode = meshNode->getParentModel();
 
-      #define RENDER_LOG() R_LOG(9) << " mesh " << meshNode->_handle << ": " 
+         #define RENDER_LOG() R_LOG(9) << " mesh " << meshNode->_handle << ": " 
 		
-		// Check that mesh is valid
-		if( modelNode->getGeometryResource() == 0x0 ) {
-                        RENDER_LOG() << "geometry not loaded.  ignoring.";
-			continue;
-      }
-		if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getGeometryResource()->_indexCount ) {
-         RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
-			continue;
-      }
+		   // Check that mesh is valid
+		   if( modelNode->getGeometryResource() == 0x0 ) {
+                           RENDER_LOG() << "geometry not loaded.  ignoring.";
+			   continue;
+         }
+		   if( meshNode->getBatchStart() + meshNode->getBatchCount() > modelNode->getGeometryResource()->_indexCount ) {
+            RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
+			   continue;
+         }
 		
-      bool modelChanged = true;
-		uint32 queryObj = 0;
+         bool modelChanged = true;
+		   uint32 queryObj = 0;
 		
-		// Bind geometry
-      RENDER_LOG() << "binding geometry...";
-		if( curGeoRes != modelNode->getGeometryResource() )
-		{
-			curGeoRes = modelNode->getGeometryResource();
-			ASSERT( curGeoRes != 0x0 );
+		   // Bind geometry
+         RENDER_LOG() << "binding geometry...";
+		   if( curGeoRes != modelNode->getGeometryResource() )
+		   {
+			   curGeoRes = modelNode->getGeometryResource();
+			   ASSERT( curGeoRes != 0x0 );
 		
-			// Indices
-         gRDI->setIndexBuffer(curGeoRes->getIndexBuf(), curGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
+			   // Indices
+            gRDI->setIndexBuffer(curGeoRes->getIndexBuf(), curGeoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
 
-			// Vertices
-			uint32 posVBuf = curGeoRes->getPosVBuf();
-			uint32 tanVBuf = curGeoRes->getTanVBuf();
-			uint32 staticVBuf = curGeoRes->getStaticVBuf();
+			   // Vertices
+			   uint32 posVBuf = curGeoRes->getPosVBuf();
+			   uint32 tanVBuf = curGeoRes->getTanVBuf();
+			   uint32 staticVBuf = curGeoRes->getStaticVBuf();
 			
-			gRDI->setVertexBuffer( 0, posVBuf, 0, sizeof( Vec3f ) );
-			gRDI->setVertexBuffer( 1, tanVBuf, 0, sizeof( VertexDataTan ) );
-			gRDI->setVertexBuffer( 2, tanVBuf, sizeof( Vec3f ), sizeof( VertexDataTan ) );
-			gRDI->setVertexBuffer( 3, staticVBuf, 0, sizeof( VertexDataStatic ) );
-		}
+			   gRDI->setVertexBuffer( 0, posVBuf, 0, sizeof( Vec3f ) );
+			   gRDI->setVertexBuffer( 1, tanVBuf, 0, sizeof( VertexDataTan ) );
+			   gRDI->setVertexBuffer( 2, tanVBuf, sizeof( Vec3f ), sizeof( VertexDataTan ) );
+			   gRDI->setVertexBuffer( 3, staticVBuf, 0, sizeof( VertexDataStatic ) );
+		   }
 
-		gRDI->setVertexLayout( Modules::renderer()._vlModel );
+		   gRDI->setVertexLayout( Modules::renderer()._vlModel );
 		
-		ShaderCombination *prevShader = Modules::renderer().getCurShader();
+		   ShaderCombination *prevShader = Modules::renderer().getCurShader();
 		
-		if(!debugView)
-		{
-			// Set material
-			if (curMatRes != meshNode->getMaterialRes())
-			{
-            if (!Modules::renderer().canSetMaterial( meshNode->getMaterialRes(), shaderContext )) {
-               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-					continue;
-            }
-				Modules::renderer().setMaterial(meshNode->getMaterialRes(), shaderContext);
-				curMatRes = meshNode->getMaterialRes();
-			}
-		}
-		else
-		{
-			Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
-			Modules::renderer().commitGeneralUniforms();
+		   if(!debugView)
+		   {
+			   // Set material
+			   if (curMatRes != meshNode->getMaterialRes())
+			   {
+               if (!Modules::renderer().canSetMaterial( meshNode->getMaterialRes(), shaderContext )) {
+                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+					   continue;
+               }
+				   Modules::renderer().setMaterial(meshNode->getMaterialRes(), shaderContext);
+				   curMatRes = meshNode->getMaterialRes();
+			   }
+		   }
+		   else
+		   {
+			   Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
+			   Modules::renderer().commitGeneralUniforms();
 			
-			uint32 curLod = meshNode->getLodLevel();
-			Vec4f color;
-			if( curLod == 0 ) color = Vec4f( 0.5f, 0.75f, 1, 1 );
-			else if( curLod == 1 ) color = Vec4f( 0.25f, 0.75, 0.75f, 1 );
-			else if( curLod == 2 ) color = Vec4f( 0.25f, 0.75, 0.5f, 1 );
-			else if( curLod == 3 ) color = Vec4f( 0.5f, 0.5f, 0.25f, 1 );
-			else color = Vec4f( 0.75f, 0.5, 0.25f, 1 );
+			   uint32 curLod = meshNode->getLodLevel();
+			   Vec4f color;
+			   if( curLod == 0 ) color = Vec4f( 0.5f, 0.75f, 1, 1 );
+			   else if( curLod == 1 ) color = Vec4f( 0.25f, 0.75, 0.75f, 1 );
+			   else if( curLod == 2 ) color = Vec4f( 0.25f, 0.75, 0.5f, 1 );
+			   else if( curLod == 3 ) color = Vec4f( 0.5f, 0.5f, 0.25f, 1 );
+			   else color = Vec4f( 0.75f, 0.5, 0.25f, 1 );
 
-			// Darken models with skeleton so that bones are more noticable
-			if( !modelNode->_jointList.empty() ) color = color * 0.3f;
+			   // Darken models with skeleton so that bones are more noticable
+			   if( !modelNode->_jointList.empty() ) color = color * 0.3f;
 
-			gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
-		}
+			   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
+		   }
 
-		ShaderCombination *curShader = Modules::renderer().getCurShader();
+		   ShaderCombination *curShader = Modules::renderer().getCurShader();
 
-		if( modelChanged || curShader != prevShader )
-		{
-			// Skeleton
-			if( curShader->uni_skinMatRows >= 0 && !modelNode->_skinMatRows.empty() )
-			{
-				// Note:	OpenGL 2.1 supports mat4x3 but it is internally realized as mat4 on most
-				//			hardware so it would require 4 instead of 3 uniform slots per joint
+		   if( modelChanged || curShader != prevShader )
+		   {
+			   // Skeleton
+			   if( curShader->uni_skinMatRows >= 0 && !modelNode->_skinMatRows.empty() )
+			   {
+				   // Note:	OpenGL 2.1 supports mat4x3 but it is internally realized as mat4 on most
+				   //			hardware so it would require 4 instead of 3 uniform slots per joint
 				
-				gRDI->setShaderConst( curShader->uni_skinMatRows, CONST_FLOAT4,
-				                      &modelNode->_skinMatRows[0], (int)modelNode->_skinMatRows.size() );
-			}
+				   gRDI->setShaderConst( curShader->uni_skinMatRows, CONST_FLOAT4,
+				                         &modelNode->_skinMatRows[0], (int)modelNode->_skinMatRows.size() );
+			   }
 
-			modelChanged = false;
-		}
+			   modelChanged = false;
+		   }
 		
-		// World transformation
-		if( curShader->uni_worldMat >= 0 )
-		{
-			gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
-		}
-		if( curShader->uni_worldNormalMat >= 0 )
-		{
-			// TODO: Optimize this
-			Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
-			float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
-			                       normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
-			                       normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
-			gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
-		}
-		if( curShader->uni_nodeId >= 0 )
-		{
-			float id = (float)meshNode->getHandle();
-			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-		}
+		   // World transformation
+		   if( curShader->uni_worldMat >= 0 )
+		   {
+			   gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
+		   }
+		   if( curShader->uni_worldNormalMat >= 0 )
+		   {
+			   // TODO: Optimize this
+			   Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
+			   float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
+			                          normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
+			                          normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
+			   gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
+		   }
+		   if( curShader->uni_nodeId >= 0 )
+		   {
+			   float id = (float)meshNode->getHandle();
+			   gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
+		   }
 
-		if( queryObj )
-			gRDI->beginQuery( queryObj );
+		   if( queryObj )
+			   gRDI->beginQuery( queryObj );
 		
-		// Render
-      RENDER_LOG() << "rendering...";
-		gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
-		                   meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
-		Modules::stats().incStat( EngineStats::BatchCount, 1 );
-		Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount() / 3.0f );
+		   // Render
+         RENDER_LOG() << "rendering...";
+		   gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(), meshNode->getBatchCount(),
+		                      meshNode->getVertRStart(), meshNode->getVertREnd() - meshNode->getVertRStart() + 1 );
+		   Modules::stats().incStat( EngineStats::BatchCount, 1 );
+		   Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount() / 3.0f );
 
-		if( queryObj )
-			gRDI->endQuery( queryObj );
+		   if( queryObj )
+			   gRDI->endQuery( queryObj );
 
-#undef RENDER_LOG
-	}
-
+   #undef RENDER_LOG
+	   }
+   }
 	gRDI->setVertexLayout( 0 );
 }
 
@@ -2796,11 +2814,13 @@ void Renderer::drawHudElements(SceneId sceneId, std::string const& shaderContext
       return;
    }
 	
-   for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::HudElement)) {
-      HudElementNode* hudNode = (HudElementNode*) entry.node;
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SceneNodeTypes::HudElement)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         HudElementNode* hudNode = (HudElementNode*) entry.node;
       
-      for (const auto& hudElement : hudNode->getSubElements()) {
-         hudElement->draw(shaderContext, hudNode->_absTrans);
+         for (const auto& hudElement : hudNode->getSubElements()) {
+            hudElement->draw(shaderContext, hudNode->_absTrans);
+         }
       }
    }
    gRDI->setVertexLayout(0);
@@ -2817,64 +2837,39 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
    }
 
    VoxelGeometryResource *curVoxelGeoRes = 0x0;
-   MaterialResource *curMatRes = 0x0;
 
    Modules::config().setGlobalShaderFlag(DRAW_WITH_INSTANCING_FLAG, false);
    Modules::config().setGlobalShaderFlag(DRAW_SKINNED_FLAG, true);
 
    R_LOG(9) << "drawing voxel meshes (shader:" << shaderContext << " lod:" << lodLevel << ")";
 
-   // Loop over mesh queue
-   for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::VoxelMesh)) {
-      VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
-      VoxelModelNode *modelNode = meshNode->getParentModel();
+   float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
+   float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
 
-#define RENDER_LOG() R_LOG(9) << "  mesh " << meshNode->_handle << " " << modelNode->getParent()->getName() << ": " 
-
-      RENDER_LOG() << "starting";
-
-      // Check that mesh is valid
-      if( meshNode->getVoxelGeometryResource() == 0x0 ) {
-         RENDER_LOG() << "geometry not loaded.  ignoring.";
-         continue;
-      }
-
-      if( meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > meshNode->getVoxelGeometryResource()->_indexCount ) {
-         RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
-         continue;
-      }
-
-      // Bind geometry
-      RENDER_LOG() << "binding geometry...";
-      if( curVoxelGeoRes != meshNode->getVoxelGeometryResource() )
-      {
-         curVoxelGeoRes = meshNode->getVoxelGeometryResource();
-         ASSERT( curVoxelGeoRes != 0x0 );
-
-         // Indices
-         gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(), IDXFMT_32);
-
-         // Vertices
-         gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-      }
-
-      gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
-
-      if( !debugView )
-      {
+   // Shadow offsets will always win against the custom model offsets (which we don't care about
+   // during a shadow pass.)
+   float shadowOffset_x, shadowOffset_y;
+   bool usingShadowOffset = gRDI->getShadowOffsets(&shadowOffset_x, &shadowOffset_y);
+   bool usingLodOffset = lodOffsetX != 0 || lodOffsetY != 0;
+   if (usingShadowOffset) {
+      glEnable(GL_POLYGON_OFFSET_FILL);
+      glPolygonOffset(lodOffsetX + shadowOffset_x, lodOffsetY + shadowOffset_y);
+   } else if (usingLodOffset) {
+      glEnable(GL_POLYGON_OFFSET_FILL);
+      glPolygonOffset(lodOffsetX, lodOffsetY);
+   } else {
+      glDisable(GL_POLYGON_OFFSET_FILL);
+   }
+   
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SceneNodeTypes::VoxelMesh)) {
+      if(!debugView) {
          // Set material
-         if (curMatRes != meshNode->getMaterialRes())
-         {
-            if (!Modules::renderer().canSetMaterial(meshNode->getMaterialRes(), shaderContext)) {
-               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-               continue;
-            }
-            Modules::renderer().setMaterial(meshNode->getMaterialRes(), shaderContext);
-            curMatRes = meshNode->getMaterialRes();
+         if (!Modules::renderer().canSetMaterial(materialAndMeshes.first, shaderContext)) {
+            R_LOG(9) << "no material for context " << shaderContext << ".  ignoring.";
+            continue;
          }
-      }
-      else
-      {
+         Modules::renderer().setMaterial(materialAndMeshes.first, shaderContext);
+      } else {
          Modules::renderer().setShaderComb( &Modules::renderer()._defColorShader );
          Modules::renderer().commitGeneralUniforms();
 
@@ -2889,50 +2884,48 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
          gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color.x );
       }
 
-      ShaderCombination *curShader = Modules::renderer().getCurShader();
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
+         VoxelModelNode *modelNode = meshNode->getParentModel();
 
-      // World transformation
-      if( curShader->uni_worldMat >= 0 )
-      {
-         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
+         #define RENDER_LOG() R_LOG(9) << "  mesh " << meshNode->_handle << " " << modelNode->getParent()->getName() << ": " 
+         RENDER_LOG() << "starting";
+         // Check that mesh is valid
+         if( meshNode->getVoxelGeometryResource() == 0x0 ) {
+            RENDER_LOG() << "geometry not loaded.  ignoring.";
+            continue;
+         }
 
+         if (meshNode->getBatchStart(lodLevel) + meshNode->getBatchCount(lodLevel) > meshNode->getVoxelGeometryResource()->_indexCount) {
+            RENDER_LOG() << "geometry not loaded for lod level " << lodLevel << ".  ignoring.";
+            continue;
+         }
+
+         // Bind geometry
+         RENDER_LOG() << "binding geometry...";
+         if (curVoxelGeoRes != meshNode->getVoxelGeometryResource()) {
+            curVoxelGeoRes = meshNode->getVoxelGeometryResource();
+
+            gRDI->setIndexBuffer(curVoxelGeoRes->getIndexBuf(), IDXFMT_32);
+            gRDI->setVertexBuffer(0, curVoxelGeoRes->getVertexBuf(), 0, sizeof(VoxelVertexData));
+         }
+
+         gRDI->setVertexLayout(Modules::renderer()._vlVoxelModel);
+
+         ShaderCombination *curShader = Modules::renderer().getCurShader();
+
+         // World transformation
          gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &entry.absTrans.x[0] );
-      }
-      if( curShader->uni_worldNormalMat >= 0 )
-      {
-         // TODO: Optimize this
-         Matrix4f normalMat4 = meshNode->_absTrans.inverted().transposed();
-         float normalMat[9] = { normalMat4.x[0], normalMat4.x[1], normalMat4.x[2],
-            normalMat4.x[4], normalMat4.x[5], normalMat4.x[6],
-            normalMat4.x[8], normalMat4.x[9], normalMat4.x[10] };
-         gRDI->setShaderConst( curShader->uni_worldNormalMat, CONST_FLOAT33, normalMat );
-      }
-      if( curShader->uni_nodeId >= 0 )
-      {
-         float id = (float)meshNode->getHandle();
-         gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-      }
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
 
-      float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
-      float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
-      // Shadow offsets will always win against the custom model offsets (which we don't care about
-      // during a shadow pass.)
-      float offset_x, offset_y;
-      if (gRDI->getShadowOffsets(&offset_x, &offset_y) || modelNode->getPolygonOffset(offset_x, offset_y))
-      {
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(
-            lodOffsetX + offset_x, 
-            lodOffsetY + offset_y);
-      } else if (lodOffsetX != 0 || lodOffsetY != 0) {
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         glPolygonOffset(lodOffsetX, lodOffsetY);
-      } else {
-         glDisable(GL_POLYGON_OFFSET_FILL);
-      }
+         float modelOffsetX, modelOffsetY;
+         bool usingModelOffset = modelNode->getPolygonOffset(modelOffsetX, modelOffsetY);
+         if (!usingShadowOffset && usingModelOffset) {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(lodOffsetX + modelOffsetX, lodOffsetY + modelOffsetY);
+         }
 
-      Matrix4f* boneMats;
-      if (curShader->uni_bones >= 0) {
+         Matrix4f* boneMats;
          int numBones = (int)modelNode->_boneLookup.size();
 
          if (numBones == 0) {
@@ -2942,26 +2935,26 @@ void Renderer::drawVoxelMeshes(SceneId sceneId, std::string const& shaderContext
             boneMats = modelNode->_boneRelTransLookup.data();
          }
          gRDI->setShaderConst(curShader->uni_bones, CONST_FLOAT44, boneMats, numBones);
-      }
-      if (curShader->uni_modelScale >= 0) {
-         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &modelNode->_modelScale, 1);
-      }
 
-      // Render
-      RENDER_LOG() << "rendering...";
-      gRDI->drawIndexed( PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
-         meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
-      Modules::stats().incStat( EngineStats::BatchCount, 1 );
-      Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f );
+         // Render
+         RENDER_LOG() << "rendering...";
+         gRDI->drawIndexed(PRIM_TRILIST, meshNode->getBatchStart(lodLevel), meshNode->getBatchCount(lodLevel),
+            meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1);
+         Modules::stats().incStat(EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f);
 
-#undef RENDER_LOG
+         if (usingModelOffset && !usingShadowOffset) {
+            if (usingLodOffset) {
+               glPolygonOffset(lodOffsetX, lodOffsetY);
+            } else {
+               glDisable(GL_POLYGON_OFFSET_FILL);
+            }
+         }
+         #undef RENDER_LOG
+      }
+      Modules::stats().incStat(EngineStats::BatchCount, (float)materialAndMeshes.second->size());
    }
 
-   // Draw occlusion proxies
-   if( occSet >= 0 )
-      Modules::renderer().drawOccProxies( 0 );
-
-   gRDI->setVertexLayout( 0 );
+   gRDI->setVertexLayout(0);
    glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
@@ -3006,10 +2999,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
          continue;
       }
 
-
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
       vmn = (VoxelMeshNode*)instanceKind.second->front().node;
-      const VoxelModelNode* voxelModel = vmn->getParentModel();
 
 		// Bind geometry
 		// Indices
@@ -3018,7 +3009,6 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
 		// Vertices
       gRDI->setVertexBuffer( 0, curVoxelGeoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
 
-				
 		if( !debugView )
 		{
 			// Set material
@@ -3072,7 +3062,8 @@ void Renderer::drawVoxelMeshes_Instances(SceneId sceneId, std::string const& sha
       }
 
       if (curShader->uni_modelScale >= 0) {
-         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &voxelModel->_modelScale, 1);
+         float scale = instanceKey.getScale();
+         gRDI->setShaderConst(curShader->uni_modelScale, CONST_FLOAT, &scale, 1);
       }
 
 
@@ -3113,6 +3104,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
       radiant::perfmon::TimelineCounterGuard cmi("copy mesh instances");
       vbInstanceData = gRDI->acquireBuffer((int)(sizeof(float) * 16 * renderableQueue.size()));
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
+      
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
          memcpy(transformBuffer, &node.absTrans.x[0], sizeof(float) * 16);
@@ -3205,54 +3197,58 @@ void Renderer::drawInstanceNode(SceneId sceneId, std::string const& shaderContex
 
       gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
 	   MaterialResource *curMatRes = 0x0;
-      for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::InstanceNode)) {
-		   InstanceNode* in = (InstanceNode *)entry.node;
+      for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SceneNodeTypes::InstanceNode)) {
+         for (auto const& entry : *materialAndMeshes.second.get()) {
+		      InstanceNode* in = (InstanceNode *)entry.node;
 
-         gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-         gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
-         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
+            gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+            gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
+            gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
-         if( curMatRes != in->_matRes )
-		   {
-            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) {
-               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-               continue;
-            }
-			   curMatRes = in->_matRes;
-		   }
+            if( curMatRes != in->getMaterialRes())
+		      {
+               if( !Modules::renderer().setMaterial( in->getMaterialRes(), shaderContext ) ) {
+                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+                  continue;
+               }
+               curMatRes = in->getMaterialRes();
+		      }
 
-         RENDER_LOG() << "rendering...";
-         gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
-            in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
-            0, in->_usedInstances);
-	   }
+            RENDER_LOG() << "rendering...";
+            gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, 
+               in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+               0, in->_usedInstances);
+	      }
+      }
    } else {
       gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
 	   MaterialResource *curMatRes = 0x0;
-      for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::InstanceNode)) {
-		   InstanceNode* in = (InstanceNode *)entry.node;
+      for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SceneNodeTypes::InstanceNode)) {
+         for (auto const& entry : *materialAndMeshes.second.get()) {
+		      InstanceNode* in = (InstanceNode *)entry.node;
 
-         gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
-         gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
+            gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
+            gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), IDXFMT_32 );
 
-         if( curMatRes != in->_matRes )
-		   {
-            if( !Modules::renderer().setMaterial( in->_matRes, shaderContext ) ) {
-               RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
-               continue;
+            if( curMatRes != in->getMaterialRes() )
+		      {
+               if( !Modules::renderer().setMaterial( in->getMaterialRes(), shaderContext ) ) {
+                  RENDER_LOG() << "no material for context " << shaderContext << ".  ignoring.";
+                  continue;
+               }
+			      curMatRes = in->getMaterialRes();
+		      }
+            ShaderCombination* curShader = Modules::renderer().getCurShader();
+
+            RENDER_LOG() << "rendering " << in->_usedInstances << " instances...";
+            for (int i = 0; i < in->_usedInstances; i++) {
+               gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &in->_instanceBuf[i * 16]);
+               gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, 0, 
+                  in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
+                  0, in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoVertexCountI) - 1);
             }
-			   curMatRes = in->_matRes;
-		   }
-         ShaderCombination* curShader = Modules::renderer().getCurShader();
-
-         RENDER_LOG() << "rendering " << in->_usedInstances << " instances...";
-         for (int i = 0; i < in->_usedInstances; i++) {
-            gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &in->_instanceBuf[i * 16]);
-            gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, 0, 
-               in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoIndexCountI), 
-               0, in->_geoRes->getElemParamI(VoxelGeometryResData::VoxelGeometryElem, 0, VoxelGeometryResData::VoxelGeoVertexCountI) - 1);
-         }
-	   }
+	      }
+      }
    }
 #undef RENDER_LOG
 
@@ -3275,137 +3271,139 @@ void Renderer::drawParticles(SceneId sceneId, std::string const& shaderContext, 
 	ASSERT( QuadIndexBufCount >= ParticlesPerBatch * 6 );
 
 	// Loop through emitter queue
-	for (auto const& entry : Modules::renderer().getSingularQueue(SceneNodeTypes::Emitter)) {
-		EmitterNode *emitter = (EmitterNode *)entry.node;
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SceneNodeTypes::Emitter)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+		   EmitterNode *emitter = (EmitterNode *)entry.node;
 		
-		if( emitter->_particleCount == 0 ) continue;
+		   if( emitter->_particleCount == 0 ) continue;
 		
-		// Occlusion culling
-		uint32 queryObj = 0;
-		if( occSet >= 0 )
-		{
-			if( occSet > (int)emitter->_occQueries.size() - 1 )
-			{
-				emitter->_occQueries.resize( occSet + 1, 0 );
-				emitter->_lastVisited.resize( occSet + 1, 0 );
-			}
-			if( emitter->_occQueries[occSet] == 0 )
-			{
-				queryObj = gRDI->createOcclusionQuery();
-				emitter->_occQueries[occSet] = queryObj;
-				emitter->_lastVisited[occSet] = 0;
-			}
-			else
-			{
-				if( emitter->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-				{
-					emitter->_lastVisited[occSet] = Modules::renderer().getFrameID();
+		   // Occlusion culling
+		   uint32 queryObj = 0;
+		   if( occSet >= 0 )
+		   {
+			   if( occSet > (int)emitter->_occQueries.size() - 1 )
+			   {
+				   emitter->_occQueries.resize( occSet + 1, 0 );
+				   emitter->_lastVisited.resize( occSet + 1, 0 );
+			   }
+			   if( emitter->_occQueries[occSet] == 0 )
+			   {
+				   queryObj = gRDI->createOcclusionQuery();
+				   emitter->_occQueries[occSet] = queryObj;
+				   emitter->_lastVisited[occSet] = 0;
+			   }
+			   else
+			   {
+				   if( emitter->_lastVisited[occSet] != Modules::renderer().getFrameID() )
+				   {
+					   emitter->_lastVisited[occSet] = Modules::renderer().getFrameID();
 				
-					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min(),
-					                       emitter->getBBox().max() ) > 0 &&
-						gRDI->getQueryResult( emitter->_occQueries[occSet] ) < 1 )
-					{
-						Modules::renderer().pushOccProxy( 0, emitter->getBBox().min(),
-							emitter->getBBox().max(), emitter->_occQueries[occSet] );
-						continue;
-					}
-					else
-						queryObj = emitter->_occQueries[occSet];
-				}
-			}
-		}
+					   // Check query result (viewer must be outside of bounding box)
+					   if( nearestDistToAABB( frust1->getOrigin(), emitter->getBBox().min(),
+					                          emitter->getBBox().max() ) > 0 &&
+						   gRDI->getQueryResult( emitter->_occQueries[occSet] ) < 1 )
+					   {
+						   Modules::renderer().pushOccProxy( 0, emitter->getBBox().min(),
+							   emitter->getBBox().max(), emitter->_occQueries[occSet] );
+						   continue;
+					   }
+					   else
+						   queryObj = emitter->_occQueries[occSet];
+				   }
+			   }
+		   }
 		
-		// Set material
-		if( curMatRes != emitter->_materialRes )
-		{
-			if( !Modules::renderer().setMaterial( emitter->_materialRes, shaderContext ) ) continue;
-			curMatRes = emitter->_materialRes;
-		}
+		   // Set material
+		   if( curMatRes != emitter->_materialRes )
+		   {
+			   if( !Modules::renderer().setMaterial( emitter->_materialRes, shaderContext ) ) continue;
+			   curMatRes = emitter->_materialRes;
+		   }
 
-		// Set vertex layout
-		gRDI->setVertexLayout( Modules::renderer()._vlParticle );
+		   // Set vertex layout
+		   gRDI->setVertexLayout( Modules::renderer()._vlParticle );
 		
-		if( queryObj )
-			gRDI->beginQuery( queryObj );
+		   if( queryObj )
+			   gRDI->beginQuery( queryObj );
 		
-		// Shader uniforms
-		ShaderCombination *curShader = Modules::renderer().getCurShader();
-		if( curShader->uni_nodeId >= 0 )
-		{
-			float id = (float)emitter->getHandle();
-			gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
-		}
+		   // Shader uniforms
+		   ShaderCombination *curShader = Modules::renderer().getCurShader();
+		   if( curShader->uni_nodeId >= 0 )
+		   {
+			   float id = (float)emitter->getHandle();
+			   gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
+		   }
 
-		// Divide particles in batches and render them
-		for( uint32 j = 0; j < emitter->_particleCount / ParticlesPerBatch; ++j )
-		{
-			// Check if batch needs to be rendered
-			bool allDead = true;
-			for( uint32 k = 0; k < ParticlesPerBatch; ++k )
-			{
-				if( emitter->_particles[j*ParticlesPerBatch + k].life > 0 )
-				{
-					allDead = false;
-					break;
-				}
-			}
-			if( allDead ) continue;
+		   // Divide particles in batches and render them
+		   for( uint32 j = 0; j < emitter->_particleCount / ParticlesPerBatch; ++j )
+		   {
+			   // Check if batch needs to be rendered
+			   bool allDead = true;
+			   for( uint32 k = 0; k < ParticlesPerBatch; ++k )
+			   {
+				   if( emitter->_particles[j*ParticlesPerBatch + k].life > 0 )
+				   {
+					   allDead = false;
+					   break;
+				   }
+			   }
+			   if( allDead ) continue;
 
-			// Render batch
-			if( curShader->uni_parPosArray >= 0 )
-				gRDI->setShaderConst( curShader->uni_parPosArray, CONST_FLOAT3,
-				                      (float *)emitter->_parPositions + j*ParticlesPerBatch*3, ParticlesPerBatch );
-			if( curShader->uni_parSizeAndRotArray >= 0 )
-				gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
-				                      (float *)emitter->_parSizesANDRotations + j*ParticlesPerBatch*2, ParticlesPerBatch );
-			if( curShader->uni_parColorArray >= 0 )
-				gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
-				                      (float *)emitter->_parColors + j*ParticlesPerBatch*4, ParticlesPerBatch );
+			   // Render batch
+			   if( curShader->uni_parPosArray >= 0 )
+				   gRDI->setShaderConst( curShader->uni_parPosArray, CONST_FLOAT3,
+				                         (float *)emitter->_parPositions + j*ParticlesPerBatch*3, ParticlesPerBatch );
+			   if( curShader->uni_parSizeAndRotArray >= 0 )
+				   gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
+				                         (float *)emitter->_parSizesANDRotations + j*ParticlesPerBatch*2, ParticlesPerBatch );
+			   if( curShader->uni_parColorArray >= 0 )
+				   gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
+				                         (float *)emitter->_parColors + j*ParticlesPerBatch*4, ParticlesPerBatch );
 
-			gRDI->drawIndexed( PRIM_TRILIST, 0, ParticlesPerBatch * 6, 0, ParticlesPerBatch * 4 );
-			Modules::stats().incStat( EngineStats::BatchCount, 1 );
-			Modules::stats().incStat( EngineStats::TriCount, ParticlesPerBatch * 2.0f );
-		}
+			   gRDI->drawIndexed( PRIM_TRILIST, 0, ParticlesPerBatch * 6, 0, ParticlesPerBatch * 4 );
+			   Modules::stats().incStat( EngineStats::BatchCount, 1 );
+			   Modules::stats().incStat( EngineStats::TriCount, ParticlesPerBatch * 2.0f );
+		   }
 
-		uint32 count = emitter->_particleCount % ParticlesPerBatch;
-		if( count > 0 )
-		{
-			uint32 offset = (emitter->_particleCount / ParticlesPerBatch) * ParticlesPerBatch;
+		   uint32 count = emitter->_particleCount % ParticlesPerBatch;
+		   if( count > 0 )
+		   {
+			   uint32 offset = (emitter->_particleCount / ParticlesPerBatch) * ParticlesPerBatch;
 			
-			// Check if batch needs to be rendered
-			bool allDead = true;
-			for( uint32 k = 0; k < count; ++k )
-			{
-				if( emitter->_particles[offset + k].life > 0 )
-				{
-					allDead = false;
-					break;
-				}
-			}
+			   // Check if batch needs to be rendered
+			   bool allDead = true;
+			   for( uint32 k = 0; k < count; ++k )
+			   {
+				   if( emitter->_particles[offset + k].life > 0 )
+				   {
+					   allDead = false;
+					   break;
+				   }
+			   }
 			
-			if( !allDead )
-			{
-				// Render batch
-				if( curShader->uni_parPosArray >= 0 )
-					gRDI->setShaderConst( curShader->uni_parPosArray, CONST_FLOAT3,
-					                      (float *)emitter->_parPositions + offset*3, count );
-				if( curShader->uni_parSizeAndRotArray >= 0 )
-					gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
-					                      (float *)emitter->_parSizesANDRotations + offset*2, count );
-				if( curShader->uni_parColorArray >= 0 )
-					gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
-					                      (float *)emitter->_parColors + offset*4, count );
+			   if( !allDead )
+			   {
+				   // Render batch
+				   if( curShader->uni_parPosArray >= 0 )
+					   gRDI->setShaderConst( curShader->uni_parPosArray, CONST_FLOAT3,
+					                         (float *)emitter->_parPositions + offset*3, count );
+				   if( curShader->uni_parSizeAndRotArray >= 0 )
+					   gRDI->setShaderConst( curShader->uni_parSizeAndRotArray, CONST_FLOAT2,
+					                         (float *)emitter->_parSizesANDRotations + offset*2, count );
+				   if( curShader->uni_parColorArray >= 0 )
+					   gRDI->setShaderConst( curShader->uni_parColorArray, CONST_FLOAT4,
+					                         (float *)emitter->_parColors + offset*4, count );
 				
-				gRDI->drawIndexed( PRIM_TRILIST, 0, count * 6, 0, count * 4 );
-				Modules::stats().incStat( EngineStats::BatchCount, 1 );
-				Modules::stats().incStat( EngineStats::TriCount, count * 2.0f );
-			}
-		}
+				   gRDI->drawIndexed( PRIM_TRILIST, 0, count * 6, 0, count * 4 );
+				   Modules::stats().incStat( EngineStats::BatchCount, 1 );
+				   Modules::stats().incStat( EngineStats::TriCount, count * 2.0f );
+			   }
+		   }
 
-		if( queryObj )
-			gRDI->endQuery( queryObj );
-	}
+		   if( queryObj )
+			   gRDI->endQuery( queryObj );
+	   }
+   }
 
 	// Draw occlusion proxies
 	if( occSet >= 0 )
@@ -3600,13 +3598,13 @@ InstanceRenderableQueue const& Renderer::getInstanceQueue(int type)
 }
 
 
-RenderableQueue const& Renderer::getSingularQueue(int type)
+SingularRenderableQueue const& Renderer::getSingularQueue(int type)
 {
    RenderableQueues& qs = _singularQueues[_activeRenderCache];
    if (qs.find(type) == qs.end()) {
-      qs.emplace(type, std::make_shared<RenderableQueue>(RenderableQueue()));
+      qs.emplace(type, SingularRenderableQueue());
    }
-   return *qs.at(type).get();
+   return qs.at(type);
 }
 
 
@@ -3619,8 +3617,10 @@ void Renderer::clearRenderCache()
             rq.second->clear();
          }
       }
-      for (auto& rq : _singularQueues[i]) {
-         rq.second->clear();
+      for (auto& sq : _singularQueues[i]) {
+         for (auto& rq : sq.second) {
+            rq.second->clear();
+         }
       }
    }
 
@@ -3630,10 +3630,11 @@ void Renderer::clearRenderCache()
          rq.second->clear();
       }
    }
-   for (auto& rq : _singularQueues[RenderCacheSize - 1]) {
-      rq.second->clear();
+   for (auto& sq : _singularQueues[RenderCacheSize - 1]) {
+      for (auto& rq : sq.second) {
+         rq.second->clear();
+      }
    }
-
 
    _activeRenderCache = -1;
    _renderCacheCount = 0;
@@ -3704,7 +3705,7 @@ void Renderer::renderDebugView()
    int frustNum = 0;
 
    Scene& defaultScene = Modules::sceneMan().sceneForId(0);
-   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables);
+   std::vector<QueryResult> const& result = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::CullableRenderables, QueryResultFields::NoBounds);
    composeRenderables(result, _curCamera->getFrustum(), RenderingOrder::None, QueryTypes::CullableRenderables, nullptr, false);
     
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
@@ -3788,7 +3789,7 @@ void Renderer::renderDebugView()
 	glCullFace( GL_FRONT );
 	color[0] = 1; color[1] = 1; color[2] = 0; color[3] = 0.25f;
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, color );
-   std::vector<QueryResult> const& lights = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Lights);
+   std::vector<QueryResult> const& lights = defaultScene.queryScene(_curCamera->getFrustum(), QueryTypes::Lights, QueryResultFields::NoBounds);
 	for (auto &r : lights) {
 		LightNode *lightNode = (LightNode *)r.node;
 		

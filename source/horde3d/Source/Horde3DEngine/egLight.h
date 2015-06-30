@@ -28,8 +28,7 @@ struct LightNodeParams
 {
 	enum List
 	{
-		MatResI = 500,
-		Radius1F,
+		Radius1F = 500,
 		Radius2F,
 		FovF,
 		ColorF3,
@@ -88,7 +87,7 @@ struct LightNodeTpl : public SceneNodeTpl
 
 	LightNodeTpl( std::string const& name,
 	              std::string const& lightingContext, std::string const& shadowContext ) :
-		SceneNodeTpl( SceneNodeTypes::Light, name ), 
+		SceneNodeTpl( SceneNodeTypes::Light, name, nullptr), 
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
 		radius1(0), radius2(100), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
       ambCol_R( 0 ), ambCol_G( 0 ), ambCol_B( 0 ), shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), 

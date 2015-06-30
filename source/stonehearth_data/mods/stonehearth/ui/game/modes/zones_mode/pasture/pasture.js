@@ -12,12 +12,9 @@ App.StonehearthPastureView = App.View.extend({
       this._super();
       var self = this;
 
-      this.$('#name').keypress(function(e) {
-         if (e.which == 13) {
-            radiant.call('stonehearth:set_display_name', self.uri, $(this).val());
-            $(this).blur();
-         }
-      });
+      new StonehearthInputHelper(this.$('#name'), function (value) {
+            radiant.call('stonehearth:set_display_name', self.uri, value)
+         });
 
       this.$('button.ok').click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );

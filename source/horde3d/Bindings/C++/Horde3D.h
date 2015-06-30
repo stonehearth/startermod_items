@@ -494,7 +494,8 @@ struct H3DNodeParams
 	{
 		NameStr = 1,
 		AttachmentStr,
-      UserFlags
+      UserFlags,
+      Material
 	};
 };
 
@@ -507,21 +508,12 @@ struct H3DInstanceNodeParams
    };
 };
 
-struct H3DProjectorNodeParams
-{
-	enum List
-	{
-		MatResI = 300
-	};
-};
-
 
 struct H3DVoxelMeshNodeParams
 {
 	enum List
 	{
-		MatResI = 300,
-		BatchStartI,
+		BatchStartI = 300,
 		BatchCountI,
 		VertRStartI,
 		VertREndI,
@@ -567,7 +559,6 @@ struct H3DMesh
 	/*	Enum: H3DMesh
 			The available Mesh node parameters.
 		
-		MatResI      - Material resource used for the mesh
 		BatchStartI  - First triangle index of mesh in Geometry resource of parent Model node [read-only]
 		BatchCountI  - Number of triangle indices used for drawing mesh [read-only]
 		VertRStartI  - First vertex in Geometry resource of parent Model node [read-only]
@@ -577,8 +568,7 @@ struct H3DMesh
 	*/
 	enum List
 	{
-		MatResI = 300,
-		BatchStartI,
+		BatchStartI = 300,
 		BatchCountI,
 		VertRStartI,
 		VertREndI,
@@ -604,7 +594,6 @@ struct H3DLight
 	/*	Enum: H3DLight
 			The available Light node parameters.
 		
-		MatResI             - Material resource used for the light
 		RadiusF             - Radius of influence (default: 100.0)
 		FovF                - Field of view (FOV) angle (default: 90.0)
 		ColorF3             - Diffuse color RGB (default: 1.0, 1.0, 1.0)
@@ -621,8 +610,7 @@ struct H3DLight
 	*/
 	enum List
 	{
-		MatResI = 500,
-		Radius1F,
+		Radius1F = 500,
       Radius2F,
 		FovF,
 		ColorF3,
@@ -697,7 +685,6 @@ struct H3DEmitter
 	/*	Enum: H3DEmitter
 			The available Emitter node parameters.
 		
-		MatResI        - Material resource used for rendering
 		PartEffResI    - ParticleEffect resource which configures particle properties
 		MaxCountI      - Maximal number of particles living at the same time
 		RespawnCountI  - Number of times a single particle is recreated after dying (-1 for infinite)
@@ -708,8 +695,7 @@ struct H3DEmitter
 	*/
 	enum List
 	{
-		MatResI = 700,
-		PartEffResI,
+		PartEffResI = 700,
 		MaxCountI,
 		RespawnCountI,
 		DelayF,

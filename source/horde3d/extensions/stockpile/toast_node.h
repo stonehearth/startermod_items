@@ -12,7 +12,7 @@ BEGIN_RADIANT_HORDE3D_NAMESPACE
 struct ToastTpl : public Horde3D::SceneNodeTpl
 {
    ToastTpl(std::string const& name) :
-      Horde3D::SceneNodeTpl(SNT_ToastNode, name)
+      Horde3D::SceneNodeTpl(SNT_ToastNode, name, nullptr)
    {
    }
 };

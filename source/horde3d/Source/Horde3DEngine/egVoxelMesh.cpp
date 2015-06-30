@@ -31,25 +31,19 @@ using namespace std;
 // Class VoxelMeshNode
 // *************************************************************************************************
 
-VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
-	SceneNode( meshTpl ),
-   _materialRes( meshTpl.matRes ),
+VoxelMeshNode::VoxelMeshNode(VoxelMeshNodeTpl const& meshTpl) :
+	SceneNode(meshTpl),
    _geometryRes( meshTpl.geoRes ),
 	_parentModel( 0x0 )
 {
 	_renderable = true;
    _noInstancing = false;
-   _instanceKey.updateMat(_materialRes);
    _instanceKey.updateGeo(_geometryRes);
-	if( _materialRes != 0x0 && _geometryRes != 0x0) {
-		_sortKey = (float)_materialRes->getHandle();
-   }
 }
 
 
 VoxelMeshNode::~VoxelMeshNode()
 {
-	_materialRes = 0x0;
    _geometryRes = 0x0;
 }
 
@@ -80,9 +74,6 @@ int VoxelMeshNode::getParamI( int param ) const
 {
 	switch( param )
 	{
-	case VoxelMeshNodeParams::MatResI:
-		if( _materialRes != 0x0 ) return _materialRes->getHandle();
-		else return 0;
    case VoxelMeshNodeParams::NoInstancingI:
       return _noInstancing;
 	}
@@ -92,24 +83,9 @@ int VoxelMeshNode::getParamI( int param ) const
 
 
 void VoxelMeshNode::setParamI( int param, int value )
-{
-	Resource *res;
-	
+{	
 	switch( param )
 	{
-	case VoxelMeshNodeParams::MatResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res != 0x0 && res->getType() == ResourceTypes::Material )
-		{
-			_materialRes = (MaterialResource *)res;
-			_sortKey = (float)_materialRes->getHandle();
-		}
-		else
-		{
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DVoxelMesh::MatResI" );
-		}
-      _instanceKey.updateMat(_materialRes);
-		return;
    case VoxelMeshNodeParams::NoInstancingI:
       _noInstancing = (value != 0);
       return;

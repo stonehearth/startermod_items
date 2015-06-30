@@ -4,7 +4,13 @@ $(document).ready(function(){
 
    $(document).keyup(function(e) {
       if(e.keyCode == 27) {
-         if (App.stonehearth.modalStack.length > 0) {
+
+         var consoleView = App.debugView.getView(App.StonehearthConsoleView);
+         consoleView = consoleView ? consoleView.$() : null;
+
+         if (consoleView && consoleView.is(':visible')) {
+            consoleView.toggle();
+         } else if (App.stonehearth.modalStack.length > 0) {
             // there's a modal. close it
             var modal = App.stonehearth.modalStack.pop();
 

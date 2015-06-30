@@ -155,16 +155,18 @@ void ToastNode::renderFunc(Horde3D::SceneId sceneId, std::string const& shaderCo
                            const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel)
 {
    bool offsetSet = false;
-   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_ToastNode)) {
-      ToastNode *toast = (ToastNode *)entry.node;
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SNT_ToastNode)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         ToastNode *toast = (ToastNode *)entry.node;
 
-      if (!fontMaterial_) {
-         continue;
+         if (!fontMaterial_) {
+            continue;
+         }
+		   if (!Modules::renderer().setMaterial(fontMaterial_, shaderContext)) {
+            continue;
+         }
+         toast->render();
       }
-		if (!Modules::renderer().setMaterial(fontMaterial_, shaderContext)) {
-         continue;
-      }
-      toast->render();
    }
 }
 
