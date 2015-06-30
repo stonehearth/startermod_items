@@ -67,7 +67,7 @@ end
 
 function SleepInBedAdjacent:_get_sleep_offset(bed)
    local bed_facing = radiant.entities.get_facing(bed)
-   local offset = Point3(0, 1, -1)
+   local offset = Point3(0, 1, -0.5)
    offset = radiant.math.rotate_about_y_axis(offset, bed_facing)
    return offset
 end
