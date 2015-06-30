@@ -18,12 +18,9 @@ App.StonehearthFarmView = App.View.extend({
       //ar curr_crop_name = this.get('context.stonehearth:farmer_field.crop_queue')[0].name;
       //this.set('context.curr_crop_name', curr_crop_name)
 
-      this.$('#name').keypress(function (e) {
-         if (e.which == 13) {
-            radiant.call('stonehearth:set_display_name', self.uri, $(this).val());
-            $(this).blur();
-        }
-      });
+      new StonehearthInputHelper(this.$('#name'), function (value) {
+            radiant.call('stonehearth:set_display_name', self.uri, value)
+         });
 
       this.$('button.warn').click(function() {
          radiant.call('stonehearth:destroy_entity', self.uri)
