@@ -304,6 +304,7 @@ function FabricatorComponent:_create_new_project()
 
    -- copy the color region into the project to ease rendering.
    project_cd:set_color_region(self._sv.color_region)
+             :set_contributes_to_score(true)
 end
 
 function FabricatorComponent:_create_material_proxy_trace(proxy)
