@@ -1,6 +1,6 @@
 $(document).ready(function(){
       $(top).bind('keyup', function(e){
-         if (e.keyCode == 192)  { // tilde
+         if (e.keyCode == 67 && e.ctrlKey && e.shiftKey)  { // ctrl + shift + c
             var view = App.debugView.getView(App.StonehearthConsoleView);
 
             if (view && view.$()) {

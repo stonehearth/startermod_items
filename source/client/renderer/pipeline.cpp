@@ -76,7 +76,7 @@ void h3dRemoveNodeChecked(H3DNode node)
 static void EnablePolygonOffset(H3DNode node)
 {
    h3dSetNodeParamI(node, H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -0.005f);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -0.05f);
    h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 1, -4.0f);
 }
 

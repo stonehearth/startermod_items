@@ -57,14 +57,9 @@ $.widget( "stonehearth.stonehearthRoster", {
          .attr('type', 'text')
          .attr('value', entry.unit_info.name);
 
-      name
-         .keypress(function (e) {
-            if (e.which == 13) {
-               radiant.call('stonehearth:set_display_name', entry.__self, $(this).val())
-               $(this).blur();
-           }
-         })
-         .tooltipster({content: i18n.t('input_text_tooltip')});;
+      new StonehearthInputHelper(name, function (value) {
+            radiant.call('stonehearth:set_display_name', entry.__self, value);
+         });
 
       // TODO(yshan): add traits.
       var traits = $('<div>')

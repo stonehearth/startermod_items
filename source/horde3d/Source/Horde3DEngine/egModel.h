@@ -50,7 +50,7 @@ struct ModelNodeTpl : public SceneNodeTpl
 	bool               softwareSkinning;
 
 	ModelNodeTpl( std::string const& name, GeometryResource *geoRes ) :
-		SceneNodeTpl( SceneNodeTypes::Model, name ), geoRes( geoRes ),
+		SceneNodeTpl( SceneNodeTypes::Model, name, nullptr), geoRes( geoRes ),
 			lodDist1( Math::MaxFloat ), lodDist2( Math::MaxFloat ),
 			lodDist3( Math::MaxFloat ), lodDist4( Math::MaxFloat ),
 			softwareSkinning( false )

@@ -50,7 +50,7 @@ struct VoxelModelNodeTpl : public SceneNodeTpl
 	float              lodDist1, lodDist2, lodDist3, lodDist4;
 
 	VoxelModelNodeTpl( std::string const& name) :
-		SceneNodeTpl( SceneNodeTypes::VoxelModel, name ), 
+		SceneNodeTpl( SceneNodeTypes::VoxelModel, name, nullptr), 
 			lodDist1(400), lodDist2( Math::MaxFloat ),
 			lodDist3( 700 ), lodDist4( Math::MaxFloat )
 	{

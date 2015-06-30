@@ -16,7 +16,7 @@ BEGIN_RADIANT_HORDE3D_NAMESPACE
 struct DebugShapesTpl : public SceneNodeTpl
 {
    DebugShapesTpl(std::string const& name) :
-      SceneNodeTpl(SNT_DebugShapesNode, name)
+      SceneNodeTpl(SNT_DebugShapesNode, name, nullptr)
    {
    }
 };

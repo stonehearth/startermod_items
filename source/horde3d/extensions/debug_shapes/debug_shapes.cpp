@@ -49,26 +49,28 @@ void DebugShapesNode::renderFunc(SceneId sceneId, std::string const& shaderConte
 
    Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
    // Loop through debug shape queue
-   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_DebugShapesNode)) {
-      DebugShapesNode *debugShapes = (DebugShapesNode *)entry.node;
-      if (debugShapes->empty()) {
-         continue;
-      }
-
-      //Modules::renderer().setShaderComb(&debugViewShader);
-      //Modules::renderer().commitGeneralUniforms();
-      if (first) {
-         MaterialResource* material = debugShapes->GetMaterial();
-		   if (!Modules::renderer().setMaterial(material, shaderContext)) {
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SNT_DebugShapesNode)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         DebugShapesNode *debugShapes = (DebugShapesNode *)entry.node;
+         if (debugShapes->empty()) {
             continue;
          }
-         first = false;
-         glGetFloatv(GL_LINE_WIDTH, &old_line_width);
+
+         //Modules::renderer().setShaderComb(&debugViewShader);
+         //Modules::renderer().commitGeneralUniforms();
+         if (first) {
+            MaterialResource* material = debugShapes->GetMaterial();
+		      if (!Modules::renderer().setMaterial(material, shaderContext)) {
+               continue;
+            }
+            first = false;
+            glGetFloatv(GL_LINE_WIDTH, &old_line_width);
+         }
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glPolygonOffset(-1, -1);
+         glLineWidth(2.0f);
+         debugShapes->render();
       }
-      glEnable(GL_POLYGON_OFFSET_FILL);
-      glPolygonOffset(-1, -1);
-      glLineWidth(2.0f);
-      debugShapes->render();
    }
    if (!first) {
       glDisable(GL_POLYGON_OFFSET_FILL);
@@ -79,7 +81,7 @@ void DebugShapesNode::renderFunc(SceneId sceneId, std::string const& shaderConte
 
 void DebugShapesNode::setParamI( int param, int value )
 {
-   if (param == H3DMesh::MatResI) {
+   if (param == H3DNodeParams::Material) {
 		Resource* res = Modules::resMan().resolveResHandle( value );
 		if (res && res->getType() == ResourceTypes::Material ) {
          SetMaterial((MaterialResource *)res);

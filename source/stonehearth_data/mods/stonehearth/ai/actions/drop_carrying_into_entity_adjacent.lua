@@ -29,7 +29,8 @@ function DropCarryingIntoEntityAdjacent:run(ai, entity, args)
    end
    
    radiant.entities.turn_to_face(entity, container)
-   ai:execute('stonehearth:run_effect', { effect = 'carry_putdown' })
+   local container_location = radiant.entities.get_world_grid_location(container)
+   ai:execute('stonehearth:run_putdown_effect', { location = container_location })
    radiant.entities.put_carrying_into_entity(entity, container)
 end
 

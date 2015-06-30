@@ -33,8 +33,7 @@ struct MeshNodeParams
 {
 	enum List
 	{
-		MatResI = 300,
-		BatchStartI,
+		BatchStartI = 300,
 		BatchCountI,
 		VertRStartI,
 		VertREndI,
@@ -46,15 +45,14 @@ struct MeshNodeParams
 
 struct MeshNodeTpl : public SceneNodeTpl
 {
-	PMaterialResource  matRes;
 	uint32             batchStart, batchCount;
 	uint32             vertRStart, vertREnd;
 	uint32             lodLevel;
 
-	MeshNodeTpl( std::string const& name, MaterialResource *materialRes, uint32 batchStart,
-	             uint32 batchCount, uint32 vertRStart, uint32 vertREnd ) :
-		SceneNodeTpl( SceneNodeTypes::Mesh, name ), matRes( materialRes ), batchStart( batchStart ),
-		batchCount( batchCount ), vertRStart( vertRStart ), vertREnd( vertREnd ), lodLevel( 0 )
+	MeshNodeTpl(std::string const& name, MaterialResource *materialRes, uint32 batchStart,
+	             uint32 batchCount, uint32 vertRStart, uint32 vertREnd) :
+		SceneNodeTpl(SceneNodeTypes::Mesh, name, materialRes), batchStart(batchStart),
+		batchCount(batchCount), vertRStart(vertRStart), vertREnd(vertREnd), lodLevel(0)
 	{
 	}
 };
@@ -82,7 +80,6 @@ public:
 	void onDetach( SceneNode &parentNode );
 	void onPostUpdate();
 
-	MaterialResource *getMaterialRes() { return _materialRes; }
 	uint32 getBatchStart() { return _batchStart; }
 	uint32 getBatchCount() { return _batchCount; }
 	uint32 getVertRStart() { return _vertRStart; }
@@ -95,7 +92,6 @@ protected:
 	~MeshNode();
 
 protected:
-	PMaterialResource   _materialRes;
 	uint32              _batchStart, _batchCount;
 	uint32              _vertRStart, _vertREnd;
 	uint32              _lodLevel;
@@ -132,8 +128,8 @@ struct JointNodeTpl : public SceneNodeTpl
 {
 	uint32  jointIndex;
 
-	JointNodeTpl( std::string const& name, uint32 jointIndex ) :
-		SceneNodeTpl( SceneNodeTypes::Joint, name ), jointIndex( jointIndex )
+	JointNodeTpl(std::string const& name, uint32 jointIndex) :
+		SceneNodeTpl(SceneNodeTypes::Joint, name, nullptr), jointIndex( jointIndex )
 	{
 	}
 };
@@ -179,7 +175,7 @@ struct VoxelJointNodeTpl : public SceneNodeTpl
 	uint32  jointIndex;
 
 	VoxelJointNodeTpl( std::string const& name, uint32 jointIndex ) :
-		SceneNodeTpl( SceneNodeTypes::VoxelJointNode, name ), jointIndex( jointIndex )
+		SceneNodeTpl( SceneNodeTypes::VoxelJointNode, name, nullptr), jointIndex( jointIndex )
 	{
 	}
 };

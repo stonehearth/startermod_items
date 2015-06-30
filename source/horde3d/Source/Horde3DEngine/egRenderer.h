@@ -180,6 +180,7 @@ public:
 	
 	bool init(int glMajor, int glMinor, bool msaaWindowSupported, bool enable_gl_logging);
 	void initStates();
+   void reset();
 
    void collectOneDebugFrame();
 	void drawAABB( const Vec3f &bbMin, const Vec3f &bbMax );
@@ -245,10 +246,10 @@ public:
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
    InstanceRenderableQueue const& getInstanceQueue(int type);
-   RenderableQueue const& getSingularQueue(int type);
+   SingularRenderableQueue const& getSingularQueue(int type);
 
    InstanceRenderableQueues           _instanceQueues[RenderCacheSize];
-   RenderableQueues                   _singularQueues[RenderCacheSize];
+   RenderableQueues           _singularQueues[RenderCacheSize];
 
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* sr) const;
@@ -308,7 +309,6 @@ protected:
 
 	Matrix4f                           _viewMat, _viewMatInv, _projMat, _viewProjMat, _viewProjMatInv, _projectorMat;
 	float                              _currentTime;
-   MaterialResource*                  _materialOverride;
 
 	std::vector< PipeSamplerBinding >  _pipeSamplerBindings;
 	std::vector< char >                _occSets;  // Actually bool

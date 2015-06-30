@@ -244,7 +244,6 @@ CubemitterNode::CubemitterNode( const CubemitterNodeTpl &emitterTpl ) :
 	SceneNode( emitterTpl )
 {
 	_renderable = true;
-   _materialRes = emitterTpl._matRes;
    _cubemitterRes = emitterTpl._cubemitterRes;
    _maxCubes = 100;
 	_cubes = new CubeData[_maxCubes];
@@ -445,30 +444,31 @@ void CubemitterNode::renderFunc(Horde3D::SceneId sceneId, std::string const& sha
    MaterialResource *curMatRes = 0x0;
 
    // Loop through and find all Cubemitters.
-   for (auto const& entry : Modules::renderer().getSingularQueue(SNT_CubemitterNode)) {
-      CubemitterNode *emitter = (CubemitterNode *)entry.node;
+   for (auto const& materialAndMeshes : Modules::renderer().getSingularQueue(SNT_CubemitterNode)) {
+      for (auto const& entry : *materialAndMeshes.second.get()) {
+         CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
-      if (emitter->_maxCubes == 0) {
-         continue;
-      }
-				
-      // Set material
-      if (curMatRes != emitter->_materialRes) {
-         if (!Modules::renderer().setMaterial( emitter->_materialRes, shaderContext)) {
+         if (emitter->_maxCubes == 0) {
             continue;
          }
-         curMatRes = emitter->_materialRes;
-      }
+				
+         // Set material
+         if (curMatRes != emitter->getMaterialRes()) {
+            if (!Modules::renderer().setMaterial( emitter->getMaterialRes(), shaderContext)) {
+               continue;
+            }
+            curMatRes = emitter->getMaterialRes();
+         }
 
-      if (gRDI->getCaps().hasInstancing) {
-         emitter->renderWithInstancing();
-      } else {
-         emitter->renderWithBatches();
-      }
+         if (gRDI->getCaps().hasInstancing) {
+            emitter->renderWithInstancing();
+         } else {
+            emitter->renderWithBatches();
+         }
       
-      emitter->_wasVisible = true;
-   }
-	
+         emitter->_wasVisible = true;
+      }
+   }	
    gRDI->setVertexLayout( 0 );
 }
 

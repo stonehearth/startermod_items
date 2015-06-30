@@ -2,7 +2,9 @@
    <div id="errorBrowser" class="gui">
    <div class="window">
       <div class="title">Engine Error<div id="errorCount">{{current_index}}/{{errors.total}}</div><div class="close"></div></div>
-      <div id="errorDialog">         
+      <div id="errorDialog">
+         <div class="version">{{ game_version }}</div>
+
          <div class="summary">{{ current.summary }}</div>
          {{#if current.backtrace }}
             <div class="value">{{ current.backtrace }}</div>
@@ -28,6 +30,7 @@
          <button id="closeForever" class="">Close Permanently</button>
          <button id="prev" class="">Prev</button>
          <button id="next" class="">Next</button>
+         <button id="copyButton" class="">Copy to Clipboard</button>
       </div>
    </div>
 </script>

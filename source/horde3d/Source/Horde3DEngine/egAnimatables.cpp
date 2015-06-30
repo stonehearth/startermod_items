@@ -28,15 +28,11 @@ using namespace std;
 // *************************************************************************************************
 
 MeshNode::MeshNode( const MeshNodeTpl &meshTpl ) :
-	SceneNode( meshTpl ),
-	_materialRes( meshTpl.matRes ), _batchStart( meshTpl.batchStart ), _batchCount( meshTpl.batchCount ),
+	SceneNode( meshTpl ), _batchStart( meshTpl.batchStart ), _batchCount( meshTpl.batchCount ),
 	_vertRStart( meshTpl.vertRStart ), _vertREnd( meshTpl.vertREnd ), _lodLevel( meshTpl.lodLevel ),
 	_parentModel( 0x0 ), _ignoreAnim( false )
 {
-	_renderable = true;
-	
-	if( _materialRes != 0x0 )
-		_sortKey = (float)_materialRes->getHandle();
+	_renderable = true;	
 }
 
 
@@ -63,7 +59,7 @@ SceneNodeTpl *MeshNode::parsingFunc( map< string, std::string > &attribs )
 	{
 		uint32 res = Modules::resMan().addResource( ResourceTypes::Material, itr->second, 0, false );
 		if( res != 0 )
-			meshTpl->matRes = (MaterialResource *)Modules::resMan().resolveResHandle( res );
+         meshTpl->material = (MaterialResource *)Modules::resMan().resolveResHandle( res );
 	}
 	else result = false;
 	itr = attribs.find( "batchStart" );
@@ -126,9 +122,6 @@ int MeshNode::getParamI( int param )
 {
 	switch( param )
 	{
-	case MeshNodeParams::MatResI:
-		if( _materialRes != 0x0 ) return _materialRes->getHandle();
-		else return 0;
 	case MeshNodeParams::BatchStartI:
 		return _batchStart;
 	case MeshNodeParams::BatchCountI:
@@ -147,22 +140,8 @@ int MeshNode::getParamI( int param )
 
 void MeshNode::setParamI( int param, int value )
 {
-	Resource *res;
-	
 	switch( param )
 	{
-	case MeshNodeParams::MatResI:
-		res = Modules::resMan().resolveResHandle( value );
-		if( res != 0x0 && res->getType() == ResourceTypes::Material )
-		{
-			_materialRes = (MaterialResource *)res;
-			_sortKey = (float)_materialRes->getHandle();
-		}
-		else
-		{
-			Modules::setError( "Invalid handle in h3dSetNodeParamI for H3DMesh::MatResI" );
-		}
-		return;
 	case MeshNodeParams::LodLevelI:
 		_lodLevel = value;
 		return;

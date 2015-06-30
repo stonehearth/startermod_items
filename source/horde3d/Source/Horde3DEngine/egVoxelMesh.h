@@ -32,8 +32,7 @@ struct VoxelMeshNodeParams
 {
 	enum List
 	{
-		MatResI = 300,
-		BatchStartI,
+		BatchStartI = 300,
 		BatchCountI,
 		VertRStartI,
 		VertREndI,
@@ -47,11 +46,10 @@ struct VoxelMeshNodeParams
 
 struct VoxelMeshNodeTpl : public SceneNodeTpl
 {
-	PMaterialResource  matRes;
 	PVoxelGeometryResource  geoRes;
    
 	VoxelMeshNodeTpl( std::string const& name, MaterialResource *materialRes, VoxelGeometryResource *geometryRes) :
-		SceneNodeTpl( SceneNodeTypes::VoxelMesh, name ), matRes( materialRes ), geoRes( geometryRes )
+		SceneNodeTpl(SceneNodeTypes::VoxelMesh, name, materialRes), geoRes( geometryRes )
 	{
 	}
 };
@@ -73,7 +71,6 @@ public:
 	void onDetach( SceneNode &parentNode );
 	void onPostUpdate();
 
-	MaterialResource *getMaterialRes() const { return _materialRes; }
 	uint32 getBatchStart(int lodLevel) const;
 	uint32 getBatchCount(int lodLevel) const;
 	uint32 getVertRStart(int lodLevel) const;
@@ -89,9 +86,7 @@ protected:
 
    void setVoxelGeometryRes( VoxelGeometryResource &geoRes );
 
-protected:
-	PMaterialResource   _materialRes;
-	
+protected:	
 	VoxelModelNode      *_parentModel;
 	BoundingBox         _localBBox;
 	PVoxelGeometryResource        _geometryRes;

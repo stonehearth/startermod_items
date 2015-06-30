@@ -86,6 +86,10 @@ MaterialResource* InstanceKey::getMaterial() const {
    return matResource;
 }
 
+float InstanceKey::getScale() const {
+   return scale;
+}
+
 void InstanceKey::updateMat(MaterialResource* r) {
    InstanceKey ik(node, geoResource, matResource, scale);
    matResource = r;
@@ -133,11 +137,12 @@ SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
    _dirty( SceneNodeDirtyState::Dirty ), _transformed( true ), _renderable( false ),
    _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0),
-   _gridId(-1), _gridPos(-1), _noInstancing(true), _instanceKey(this)
+   _gridId(-1), _gridPos(-1), _noInstancing(true), _instanceKey(this), _materialRes(tpl.material)
 {
 	_relTrans = Matrix4f::ScaleMat( tpl.scale.x, tpl.scale.y, tpl.scale.z );
 	_relTrans.rotate( degToRad( tpl.rot.x ), degToRad( tpl.rot.y ), degToRad( tpl.rot.z ) );
 	_relTrans.translate( tpl.trans.x, tpl.trans.y, tpl.trans.z );
+   _instanceKey.updateMat(_materialRes);
 }
 
 
@@ -299,11 +304,20 @@ void SceneNode::updateFlagsRecursive(int flags, SetFlagsMode mode, bool recursiv
    }
 }
 
+MaterialResource* SceneNode::getMaterialRes() const {
+   return _materialRes;
+}
+
 int SceneNode::getParamI(int param) const
 {
    switch (param) {
    case SceneNodeParams::UserFlags:
       return _userFlags;
+   case SceneNodeParams::Material:
+      if (_materialRes) {
+         return _materialRes->getHandle();
+      }
+      return 0;
    }
 	Modules::setError( "Invalid param in h3dGetNodeParamI" );
 	return Math::MinInt32;
@@ -316,6 +330,15 @@ void SceneNode::setParamI( int param, int value )
    case SceneNodeParams::UserFlags:
       _userFlags = value;
       return;
+   case SceneNodeParams::Material:
+      Resource* res = Modules::resMan().resolveResHandle(value);
+      if (res != 0x0 && res->getType() == ResourceTypes::Material) {
+         _materialRes = (MaterialResource *)res;
+      } else {
+         Modules::setError( "Invalid handle in h3dSetNodeParamI for SceneNodeParams::MatResI" );
+      }
+      _instanceKey.updateMat(_materialRes);
+      break;
    }
 	Modules::setError( "Invalid param in h3dSetNodeParamI" );
 }
@@ -535,7 +558,7 @@ struct RendQueueItemCompFunc
 // Class GridSpatialGraph
 // =================================================================================================
 
-#define GRIDSIZE 150
+#define GRIDSIZE 64
 #define I_GRIDSIZE (1.0f / GRIDSIZE)
 
 GridSpatialGraph::GridSpatialGraph(SceneId sceneId)
@@ -603,11 +626,19 @@ void GridSpatialGraph::updateNodeInstanceKey(SceneNode& sceneNode)
          RenderableQueues &rqs = Modules::renderer()._singularQueues[i];
          auto rqIt = rqs.find(sceneNode._type);
          if (rqIt == rqs.end()) {
+            SingularRenderableQueue newQ;
+            rqIt = rqs.emplace_hint(rqIt, sceneNode._type, newQ);
+         }
+         SingularRenderableQueue& sq = rqIt->second;
+
+         auto sqIt = sq.find(sceneNode.getMaterialRes());
+         if (sqIt == sq.end()) {
             RenderableQueue newQ;
             newQ.reserve(1000);
-            rqIt = rqs.emplace_hint(rqIt, sceneNode._type, std::make_shared<RenderableQueue>(newQ));
+            sqIt = sq.emplace_hint(sqIt, sceneNode.getMaterialRes(), std::make_shared<RenderableQueue>(newQ));         
          }
-         gi->renderQueues[i] = rqIt->second.get();
+
+         gi->renderQueues[i] = sqIt->second.get();
       }
    }
 }
@@ -752,7 +783,6 @@ void GridSpatialGraph::updateNode(SceneNode& sceneNode)
 
    const int newGridId = getGridIdFor(sceneNode);
    BoundingBox const& sceneBox = sceneNode.getBBox();
-   const int nodeType = sceneNode._renderable ? RENDER_NODES : LIGHT_NODES;
 
    if (sceneNode._gridId != newGridId) {
       if (oldGrid) {
@@ -810,16 +840,29 @@ void GridSpatialGraph::castRay(const Vec3f& rayOrigin, const Vec3f& rayDirection
 }
 
 
-void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results)
+void GridSpatialGraph::_queryGrid(std::vector<GridItem> const& nodes, Frustum const& frust, std::vector<QueryResult>& results, QueryResultFields::List resultFields, bool cullItems)
 {
    for (GridItem const& g: nodes) {
       BoundingBox const& bounds = g.bounds;
 
-      if (frust.cullBox(bounds)) {
-         continue;
+      // This is a tight loop, and the flag is either always true, or always false, so the inner-if can stay.
+      if (cullItems) {
+         if (frust.cullBox(bounds)) {
+            continue;
+         }
       }
 
-      results.emplace_back(QueryResult(bounds, g.node, g.absTrans, g.renderQueues));
+      switch(resultFields) {
+      case QueryResultFields::BoundsOnly:
+         results.emplace_back(bounds);
+         break;
+      case QueryResultFields::NoBounds:
+         results.emplace_back(g.node, g.absTrans, g.renderQueues);
+         break;
+      default:
+         results.emplace_back(bounds, g.node, g.absTrans, g.renderQueues);
+         break;
+      }
    }
 }
 
@@ -837,7 +880,7 @@ void GridSpatialGraph::_queryGridLight(std::vector<GridItem> const& nodes, Frust
    }
 }
 
-void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes)
+void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& results, QueryTypes::List queryTypes, QueryResultFields::List resultFields)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:query");
    Modules::sceneMan().sceneForId(_sceneId).updateNodes();
@@ -849,7 +892,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
       }
 
       if (queryTypes & QueryTypes::CullableRenderables) {
-         _queryGrid(ge.second.nodes[RENDER_NODES], frust, results);
+         _queryGrid(ge.second.nodes[RENDER_NODES], frust, results, resultFields);
       }
 
       if (queryTypes & QueryTypes::Lights) {
@@ -859,7 +902,7 @@ void GridSpatialGraph::query(Frustum const& frust, std::vector<QueryResult>& res
 
 
    if (queryTypes & QueryTypes::CullableRenderables) {
-      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results);
+      _queryGrid(_spilloverNodes[RENDER_NODES], frust, results, resultFields, true);
    }
 
    if (queryTypes & QueryTypes::UncullableRenderables) {
@@ -1177,7 +1220,7 @@ std::vector<QueryResult> const& Scene::queryNode(SceneNode& node)
 }
 
 
-std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes, bool cached) 
+std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTypes::List queryTypes, QueryResultFields::List resultFields, bool cached) 
 {
    cached = cached && Modules::config().enableRenderCaching;
    radiant::perfmon::TimelineCounterGuard uq("queryScene");
@@ -1209,7 +1252,7 @@ std::vector<QueryResult> const& Scene::queryScene(Frustum const& frust, QueryTyp
    r.frust = frust;
    r.queryTypes = queryTypes;
    r.singleNode = nullptr;
-   _spatialGraph->query(frust, r.result, queryTypes);
+   _spatialGraph->query(frust, r.result, queryTypes, resultFields);
    return r.result;
 }
 

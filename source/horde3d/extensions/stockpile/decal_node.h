@@ -11,7 +11,7 @@ BEGIN_RADIANT_HORDE3D_NAMESPACE
 struct DecalTpl : public Horde3D::SceneNodeTpl
 {
    DecalTpl(std::string const& name) :
-      Horde3D::SceneNodeTpl(SNT_DecalNode, name)
+      Horde3D::SceneNodeTpl(SNT_DecalNode, name, nullptr)
    {
    }
 };

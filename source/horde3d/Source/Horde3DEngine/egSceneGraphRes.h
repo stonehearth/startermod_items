@@ -61,8 +61,8 @@ struct ReferenceNodeTpl : public SceneNodeTpl
 {
 	PSceneGraphResource		sgRes;
 
-	ReferenceNodeTpl( std::string const& name, SceneGraphResource *sgRes ) :
-		SceneNodeTpl( 0, name ), sgRes( sgRes )
+	ReferenceNodeTpl( std::string const& name, SceneGraphResource *sgRes) :
+		SceneNodeTpl( 0, name, nullptr), sgRes( sgRes )
 	{
 	}
 };

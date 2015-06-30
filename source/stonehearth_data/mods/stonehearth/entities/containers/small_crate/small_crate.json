@@ -9,7 +9,7 @@
       "stonehearth:storage" : {
          "type" : "crate",
          "auto_fill_from" : [ "vault" ],
-         "capacity" : 16
+         "capacity" : 8
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(small_crate_iconic.json)",

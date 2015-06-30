@@ -772,6 +772,48 @@ function entities.is_adjacent_to(source, target)
    assert(false)
 end
 
+local function is_xz_adjacent(p1, p2)
+   if not p1 or not p2 then
+      return false
+   end
+
+   local q1 = Point2(p1.x, p1.z)
+   local q2 = Point2(p2.x, p2.z)
+   local result = q1:is_adjacent_to(q2)
+   return result
+end
+
+function entities.location_within_reach(entity, target_location)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+
+   if not target_location then
+      return false
+   end
+
+   local mob = entity:get_component('mob')
+   if not mob then
+      return false
+   end
+   
+   local entity_location = mob:get_world_grid_location()
+   if not entity_location then
+      return false
+   end
+
+   if not is_xz_adjacent(target_location, entity_location) then
+      return false
+   end
+
+   local collision_type = mob:get_mob_collision_type()
+   local max_reach_up, max_reach_down = _radiant.sim.get_entity_reach(collision_type)
+
+   local delta = target_location - entity_location
+   local result = radiant.math.in_bounds(delta.y, -max_reach_down, max_reach_up)
+   return result
+end
+
 function entities.get_target_table(entity, table_name)
    if not entity or not entity:is_valid() then
       return nil
