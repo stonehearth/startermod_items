@@ -88,7 +88,7 @@ function NutritionScoreObserver:_on_eat(e)
    self:_add_food_to_record(food_name)
    
    --If the nutrition score is < 5 you can increase it just by eating food once a day
-   if self._score_component:get_score('nutrition') < stonehearth.constants.score.nutrition.SIMPLE_EATING_SCORE_CAP then
+   if self._score_component:get_score('nutrition', 0) < stonehearth.constants.score.nutrition.SIMPLE_EATING_SCORE_CAP then
       if not self._sv.eaten_today then
          local description = 'eat_once_daily'
          if food_name == 'Plate of berries' then
@@ -120,6 +120,7 @@ function NutritionScoreObserver:_on_eat(e)
       self._score_component:change_score('nutrition', stonehearth.constants.score.nutrition.EAT_NUTRITIOUS_FOOD, journal_data)
    end
 
+   -- xxx: this seems weird!  ask yang about it -- tony
    --When you eat, also look at all the count of the types of foods available
    self:_update_food_type_score()
 

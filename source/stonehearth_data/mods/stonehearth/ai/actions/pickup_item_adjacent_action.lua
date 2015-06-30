@@ -33,9 +33,10 @@ function PickupItemAdjacent:run(ai, entity, args)
    end
 
    log:info("%s picking up %s", entity, item)
+   local item_location = radiant.entities.get_world_grid_location(item)
    radiant.entities.turn_to_face(entity, item)
    radiant.entities.pickup_item(entity, item)
-   ai:execute('stonehearth:run_effect', { effect = 'carry_pickup'})
+   ai:execute('stonehearth:run_pickup_effect', { location = item_location })
 end
 
 return PickupItemAdjacent

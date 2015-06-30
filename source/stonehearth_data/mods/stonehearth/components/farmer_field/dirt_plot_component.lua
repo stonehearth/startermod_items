@@ -77,6 +77,7 @@ function DirtPlotComponent:set_fertility_moisture(fertility, moisture)
    self._sv.fertility = fertility
    self._sv.moisture = moisture
    self:_update_visible_soil_state()
+   self:_notify_score_changed()
    self.__saved_variables:mark_changed()
 end
 
@@ -164,6 +165,7 @@ function DirtPlotComponent:plant_crop(crop_type)
    crop_component:set_dirt_plot(self._entity)
 
    self:_listen_to_crop_events()
+   self:_notify_score_changed()
 
    self.__saved_variables:mark_changed()
 end
@@ -220,7 +222,15 @@ function DirtPlotComponent:_on_crop_removed()
       plot_entity = self._entity,
       location = self._sv.field_location,
    })
+
+   self:_notify_score_changed()
 end
 
+function DirtPlotComponent:_notify_score_changed()
+   if self._sv.parent_field then
+      self._sv.parent_field:get_component('stonehearth:farmer_field')
+                              :notify_score_changed()
+   end
+end
 
 return DirtPlotComponent

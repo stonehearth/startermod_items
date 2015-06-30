@@ -53,14 +53,15 @@ function DropCarryingAdjacent:run(ai, entity, args)
       ai:abort('cannot drop item not carrying one!')
       return
    end
-   local position = radiant.entities.get_world_grid_location(entity)
-   if position ~= location and not radiant.entities.is_adjacent_to(position, location) then
-      ai:abort('%s location %s is not adjacent to %s', tostring(entity), tostring(radiant.entities.get_world_grid_location(entity)), tostring(location))
+
+   local entity_location = radiant.entities.get_world_grid_location(entity)
+   if entity_location ~= location and not radiant.entities.location_within_reach(entity, location, entity_location) then
+      ai:abort('%s location %s is not within reach from %s', entity, location)
       return
    end
    
    radiant.entities.turn_to_face(entity, location)
-   ai:execute('stonehearth:run_effect', { effect = 'carry_putdown' })
+   ai:execute('stonehearth:run_putdown_effect', { location = location })
    radiant.entities.drop_carrying_on_ground(entity, location)
 end
 

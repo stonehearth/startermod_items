@@ -478,9 +478,13 @@
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_entity" : "file(ai/actions/create_entity_action.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
+
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
       "actions:run_effect_timed_action" : "file(ai/actions/run_effect_timed_action.lua)",
+      "actions:run_pickup_effect" : "file(ai/actions/run_pickup_effect_action.lua)",
+      "actions:run_putdown_effect" : "file(ai/actions/run_putdown_effect_action.lua)",
+
       "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
       "actions:idle_action" : "file(ai/actions/idle_action.lua)",
       "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
@@ -571,14 +575,15 @@
       "actions:grab_promotion_talisman_type" : "file(ai/actions/grab_talisman_type_action.lua)",
       "actions:admire_fire" : "file(ai/actions/admire_fire_action.lua)",
       "actions:admire_fire_adjacent" : "file(ai/actions/admire_fire_adjacent_action.lua)",
-      "actions:sit_on_ground" : "file(ai/actions/sit_on_ground.lua)",
-      "actions:sit_on_chair" : "file(ai/actions/sit_on_chair.lua)",
-      "actions:sit_on_chair_adjacent" : "file(ai/actions/sit_on_chair_adjacent.lua)",
-      "actions:eat" : "file(ai/actions/eat.lua)",
-      "actions:eat_carrying" : "file(ai/actions/eat_carrying.lua)",
-      "actions:eat_item" : "file(ai/actions/eat_item.lua)",
-      "actions:eat_on_chair" : "file(ai/actions/eat_on_chair.lua)",
-      "actions:eat_on_ground" : "file(ai/actions/eat_on_ground.lua)",
+      "actions:sit_on_ground" : "file(ai/actions/sit_on_ground_action.lua)",
+      "actions:sit_on_chair" : "file(ai/actions/sit_on_chair_action.lua)",
+      "actions:sit_on_chair_adjacent" : "file(ai/actions/sit_on_chair_adjacent_action.lua)",
+      "actions:sit_on_chair_trivial" : "file(ai/actions/sit_on_chair_trivial_action.lua)",
+      "actions:eat" : "file(ai/actions/eat_action.lua)",
+      "actions:eat_carrying" : "file(ai/actions/eat_carrying_action.lua)",
+      "actions:eat_item" : "file(ai/actions/eat_item_action.lua)",
+      "actions:eat_on_chair" : "file(ai/actions/eat_on_chair_action.lua)",
+      "actions:eat_on_ground" : "file(ai/actions/eat_on_ground_action.lua)",
       "actions:get_food_on_ground" : "file(ai/actions/get_food_on_ground_action.lua)",
       "actions:get_food_from_container" : "file(ai/actions/get_food_from_container.lua)",
       "actions:get_food_from_container_adjacent" : "file(ai/actions/get_food_from_container_adjacent.lua)",
@@ -1460,7 +1465,9 @@
       "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)",
 
       "player_jobs_controller" : "file(services/server/job/player_jobs_controller.lua)",
-      "job_info_controller" : "file(services/server/job/job_info_controller.lua)"
+      "job_info_controller" : "file(services/server/job/job_info_controller.lua)",
+
+      "score:player_score_data" : "file(services/server/score/player_score_data.lua)"
    },
 
    "client_controllers" :  {
@@ -1648,6 +1655,7 @@
          "file(ui/common/modal_overlay/modal_overlay.js)",
          "file(ui/common/confirm/confirm.js)",
          "file(ui/common/tooltip_helper/tooltip_helper.js)",
+         "file(ui/common/input_helper/input_helper.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
          "file(ui/shell/new_game_options/new_game_options.js)",

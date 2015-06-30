@@ -2,7 +2,8 @@
    "actions" : [
       "stonehearth:actions:sit_on_ground",
       "stonehearth:actions:sit_on_chair",
-      "stonehearth:actions:sit_on_chair_adjacent"
+      "stonehearth:actions:sit_on_chair_adjacent",
+      "stonehearth:actions:sit_on_chair_trivial"
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:core",

@@ -173,7 +173,15 @@ function StorageComponent:initialize(entity, json)
          self._sv.is_public = json.public
       else
          self._sv.is_public = true
-      end      
+      end
+      
+      if self._sv.is_public then
+          local default_filter_none = radiant.util.get_config('default_storage_filter_none', false)
+          if default_filter_none then
+            self:set_filter({})
+          end
+      end
+      
       self.__saved_variables:mark_changed()
    end
 
@@ -264,15 +272,14 @@ function StorageComponent:add_item(item)
    self._sv.items[id] = item
    self._sv.num_items = self._sv.num_items + 1
    self:_filter_item(item)
-   self._sv.item_tracker:add_item(item)
+   self._sv.item_tracker:add_item(item, self._sv.entity)
 
    local player_id = self._sv.entity:get_component('unit_info')
                                        :get_player_id()
 
    local inventory = stonehearth.inventory:get_inventory(player_id)
    if inventory then
-      inventory:add_item(item)
-      inventory:update_item_container(id, self._sv.entity)
+      inventory:add_item(item, self._sv.entity)
    end
    
    if item:is_valid() then
@@ -305,9 +312,9 @@ function StorageComponent:remove_item(id)
                                        :get_player_id()
    local inventory = stonehearth.inventory:get_inventory(player_id)
    if inventory then
-      inventory:remove_item(id)
-      inventory:update_item_container(id, nil)
+      inventory:update_item_container(id)
    end
+
    if item:is_valid() then
       radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
    end

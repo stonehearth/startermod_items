@@ -1802,9 +1802,9 @@ function ExecutionFrame:_spam_entity_state(state, format, ...)
       for key, value in pairs(state.__values) do      
          self._log:spam('  CURRENT.%s = %s', key, value)
       end   
+      self._log:spam('  ACTUAL.carrying = %s', tostring(radiant.entities.get_carrying(self._entity)))
+      self._log:spam('  ACTUAL.location = %s', tostring(radiant.entities.get_world_grid_location(self._entity)))
    end
-   self._log:spam('  ACTUAL.carrying = %s', tostring(radiant.entities.get_carrying(self._entity)))
-   self._log:spam('  ACTUAL.location = %s', tostring(radiant.entities.get_world_grid_location(self._entity)))
 end
 
 function ExecutionFrame:get_cost()

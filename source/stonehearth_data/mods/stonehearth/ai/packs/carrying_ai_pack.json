@@ -1,5 +1,6 @@
 {
    "actions" : [
+      "stonehearth:actions:run_pickup_effect",
       "stonehearth:actions:pickup_item_on_table_action",
       "stonehearth:actions:pickup_item",
       "stonehearth:actions:pickup_item_trivial",
@@ -18,6 +19,7 @@
       "stonehearth:actions:pickup_item_with_uri",
       "stonehearth:actions:pickup_item_from_backpack",
 
+      "stonehearth:actions:run_putdown_effect",
       "stonehearth:actions:drop_carrying_at",
       "stonehearth:actions:drop_carrying_now",
       "stonehearth:actions:drop_carrying_adjacent",

@@ -1,14 +1,17 @@
 $(document).ready(function(){
 
+  radiant.call('stonehearth:enable_camera_movement', true)
+  radiant.keyboard.enableHotkeys(true);
+
    $('body').on( 'focus', 'input', function() {
       radiant.call('stonehearth:enable_camera_movement', false);
       radiant.keyboard.enableHotkeys(false);
-   });      
+   });
 
    $('body').on( 'blur', 'input', function() {
       radiant.call('stonehearth:enable_camera_movement', true)
       radiant.keyboard.enableHotkeys(true);
-   });      
+   });
 
    /* Use with numeric input and buttons housed inside a span, like this:
      <span>

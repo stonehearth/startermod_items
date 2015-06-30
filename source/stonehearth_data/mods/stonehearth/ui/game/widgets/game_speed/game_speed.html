@@ -1,16 +1,18 @@
 <script type="text/x-handlebars" data-template-name="stonehearthGameSpeed">
    <div id="gameSpeed">
       <div id="controls">
-         <div id="pauseButton" hotkey="1" {{bind-attr class=isPaused:selected:unselected}}></div>
-         <div id="playButton" hotkey="2" {{bind-attr class=isPlay:selected:unselected}}></div>
-         <div id="ffButton" hotkey="3" {{bind-attr class=isFF:selected:unselected}}></div>
+         <div id="pauseButton" hotkeyName="`" hotkey="à" {{bind-attr class=isPaused:selected:unselected}}></div>
+         <div id="playButton" hotkeyName="1" hotkey="1" {{bind-attr class=isPlay:selected:unselected}}></div>
+         <div id="ffButton" hotkeyName="2" hotkey="2" {{bind-attr class=isFF:selected:unselected}}></div>
+         <div id="speedThreeButton" hotkeyName="3" hotkey="3" {{bind-attr class=isSpeedThree:selected:unselected}}></div>
+
       </div>
    </div>
 
    {{#if isPaused}}
       <div id="pausedIndicator">
          <div id="inner">
-            Paused
+            {{i18n pause_overlay}}
          </div>
       </div>
    {{/if}}

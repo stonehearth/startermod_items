@@ -10,19 +10,15 @@ App.StonehearthPartyEditorView = App.StonehearthPartyEditorBase.extend({
    didInsertElement: function() {
       var self = this;
 
-      this.$('#name').keypress(function(e) {
-         if (e.which == 13) {
+      new StonehearthInputHelper(this.$('#name'), function (value) {
             var party = self.get('model');
             if (party) {
-               radiant.call_obj(party, 'set_name_command', $(this).val())
-                        .fail(function(response) {
-                           console.log('set name failed', response)
-                        });
-
+               radiant.call_obj(party, 'set_name_command', value)
+                     .fail(function(response) {
+                        console.log('set name failed', response)
+                     });
             }
-            $(this).blur();
-         }
-      });
+         });
 
       this.$('.bannerButton').each(function() {
          $(this).tooltipster({

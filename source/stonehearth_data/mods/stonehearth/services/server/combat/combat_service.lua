@@ -10,25 +10,6 @@ function CombatService:initialize()
    -- always stun for now
    --self._hit_stun_damage_threshold = radiant.util.get_config('hit_stun_damage_threshold', 0.10)
    self._hit_stun_damage_threshold = 0
-
-   self:_register_score_functions()
-end
-
-function CombatService:_register_score_functions()
-   --If the entity is a farm, register the score
-   stonehearth.score:add_aggregate_eval_function('military_strength', 'military_strength', function(entity, agg_score_bag)
-      local weapon = stonehearth.combat:get_melee_weapon(entity)
-      if not weapon then
-         return
-      end
-
-      local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
-      if not weapon_data then
-         return
-      end
-
-      agg_score_bag.military_strength = agg_score_bag.military_strength + weapon_data.base_damage
-   end)
 end
 
 -- Notify target that it is about to be attacked.

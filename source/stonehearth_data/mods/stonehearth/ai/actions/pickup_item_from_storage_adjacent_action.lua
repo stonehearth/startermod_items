@@ -40,7 +40,8 @@ function PickupItemFromStorageAdjacent:run(ai, entity, args)
    end  
    radiant.entities.pickup_item(entity, args.item)
  
-   ai:execute('stonehearth:run_effect', { effect = 'carry_pickup' })
+   local storage_location = radiant.entities.get_world_grid_location(args.storage)
+   ai:execute('stonehearth:run_pickup_effect', { location = storage_location })
 end
 
 return PickupItemFromStorageAdjacent
