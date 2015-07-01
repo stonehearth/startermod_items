@@ -38,7 +38,7 @@ function PlaceItemOnStructureAdjacent:run(ai, entity, args)
 
    local position = args.location - radiant.entities.get_world_grid_location(args.structure)
    self._root_entity:add_component('mob')
-                        :set_location_grid_aligned(position)
+                        :move_to_grid_aligned(position)
                         :turn_to(args.rotation)
 
    if args.ignore_gravity then

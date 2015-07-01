@@ -8,11 +8,11 @@
 local ScoreComponent = class()
 
 function ScoreComponent:initialize(entity, json)
-   self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
       self._sv._initialized = true
+      self._sv.entity = entity
       self._sv.scores = {}
       self._sv._contributes_to = {}
    end
@@ -22,7 +22,7 @@ function ScoreComponent:initialize(entity, json)
 end
 
 function ScoreComponent:activate()
-   self._player_id_listener = radiant.events.listen(self._entity, 'radiant:unit_info:player_id_changed', self, self._on_player_id_changed)
+   self._player_id_listener = radiant.events.listen(self._sv.entity, 'radiant:unit_info:player_id_changed', self, self._on_player_id_changed)
 end
 
 function ScoreComponent:destroy()
@@ -34,7 +34,7 @@ end
 
 function ScoreComponent:_on_player_id_changed(e)
    for category, score_data in pairs(self._sv.scores) do
-      stonehearth.score:change_score(self._entity, category, 'score component', score_data.score)
+      stonehearth.score:change_score(self._sv.entity, category, 'score component', score_data.score)
    end
 end
 
@@ -125,7 +125,7 @@ function ScoreComponent:change_score(key, modifier, journal_data)
    end
 
    --Mostly for autotests, trigger that the score has changed
-   radiant.events.trigger_async(self._entity, 'stonehearth:score_changed', {
+   radiant.events.trigger_async(self._sv.entity, 'stonehearth:score_changed', {
          key = key,
          new_score = score_data.score,
       })
@@ -143,7 +143,7 @@ function ScoreComponent:_set_score(key, value)
    assert(score_data)
 
    score_data.score = math.min(math.max(value, score_data.min), score_data.max)
-   stonehearth.score:change_score(self._entity, key, 'score component', value)
+   stonehearth.score:change_score(self._sv.entity, key, 'score component', value)
    
    -- Change dependent scores
    local aggregate = score_data.contributes_to

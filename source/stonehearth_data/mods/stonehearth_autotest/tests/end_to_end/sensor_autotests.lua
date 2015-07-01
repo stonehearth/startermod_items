@@ -66,7 +66,7 @@ local function check_sensor(autotest, sensor_entity, expected)
 end
 
 local function move_to(autotest, obj, point)
-   radiant.entities.move_to(obj, Point3(point.x, 10, point.z))
+   radiant.entities.move_to_grid_aligned(obj, Point3(point.x, 10, point.z))
    autotest:sleep(0)
 end
 
@@ -177,7 +177,7 @@ function sensor_tests.moving_sensor(autotest)
    for dz = -radius, radius do 
       local location = Point3(SENSOR_POS.x, 10, SENSOR_POS.z + dz)
       autotest:log('moving sensor to %s', location)
-      radiant.entities.move_to(sensor_entity, location)
+      radiant.entities.move_to_grid_aligned(sensor_entity, location)
       check_moving_sensor(sensor_entity)
    end
    autotest:success()

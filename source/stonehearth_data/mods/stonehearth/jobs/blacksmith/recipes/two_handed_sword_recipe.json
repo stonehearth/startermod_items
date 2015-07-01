@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 8,
+   "recipe_name" : "Two Handed Sword",
+   "description": "Double the hands, double the trouble.",
+   "portrait"    : "/stonehearth/entities/weapons/two_handed_sword/two_handed_sword.png",
+   "level_requirement" : 4,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:steel_ingot",
+         "count" : 6
+      }
+   ],
+  "produces": [
+      {
+         "item":"stonehearth:weapons:two_handed_sword"
+      }
+   ]
+}

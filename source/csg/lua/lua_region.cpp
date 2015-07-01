@@ -61,11 +61,17 @@ Region2f ProjectOntoXZPlane(Region3f const& region)
 }
 
 template <typename T>
-T Region_Extruded(T const &region, std::string const& dimString, int dMin, int dMax)
+T Region_Extruded3(T const &region, std::string const& dimString, int dMin, int dMax)
 {
    ASSERT(dimString.length() == 1);
    int dim = dimString[0] - 'x';
-   return region.Extruded(dim, dMin, dMax);
+   ASSERT(dim <= T::Dimension);
+   switch (dim) {
+      case 0: return region.Extruded<0>(dMin, dMax); break;
+      case 1: return region.Extruded<1>(dMin, dMax); break;
+      case 2: return region.Extruded<2>(dMin, dMax); break;
+   }
+   throw core::Exception("dimension out of bounds");
 }
 
 Region3f LiftToRegion3f(Region2f const& region, float minHeight, float maxHeight)
@@ -145,7 +151,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("translate",          &T::Translate)
          .def("translated",         &T::Translated)
          .def("inflated",           &T::Inflated)
-         .def("extruded",           &Region_Extruded<T>)
          .def("contains",           &T::Contains)
          .def("set_tag",            &T::SetTag)
       ;
@@ -155,6 +160,7 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
       Register<Region3f>(L, "Region3")
+         .def("extruded",                 &Region_Extruded3<Region3f>)
          .def("each_point",               &EachPointRegion3f)
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)

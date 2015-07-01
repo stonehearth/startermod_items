@@ -60,6 +60,13 @@ function PhysicsService:_unstick_entity(entity)
    if not mob or mob:get_in_free_motion() or mob:get_ignore_gravity() then
       return
    end
+
+   local parent = mob:get_parent()
+   if parent and parent:get_id() ~= 1 then
+      -- only unstick entities that are children (not descendants) of the root entity
+      return
+   end
+
    local current = radiant.entities.get_world_location(entity)
    if not current then
       return

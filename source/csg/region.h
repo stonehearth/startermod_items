@@ -61,7 +61,6 @@ public:
 
    Point GetClosestPoint(Point const& src) const;
    Cube GetBounds() const;
-   Point GetCentroid() const;
 
    int GetTag(Point const& pt) const;
    int GetRectCount() const { return (int)cubes_.size(); }
@@ -72,7 +71,15 @@ public:
    void Translate(Point const& pt);
    Region Translated(Point const& pt) const;
    Region Inflated(Point const& pt) const;
-   Region Extruded(int dim, int dMin, int dMax) const;
+
+   template <int D>
+   Region Extruded(int dMin, int dMax) const {
+      Region result;
+      for (auto &c : cubes_) {
+         result.Add(c.Extruded<D>(dMin, dMax));
+      }
+      return std::move(result);
+   }
 
    // xxx: make regions fluent!
    void Clear();
@@ -169,7 +176,6 @@ std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)
    os << "(" << o.GetCubeCount() << " cubes of area " << o.GetArea() << ")";
    return os;
 }
-
 
 #define DECLARE_CUBE_ITERATOR(T) \
 class T ## CubeRange \

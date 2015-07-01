@@ -244,7 +244,7 @@ end
 -- 
 function Wall:layout()
    local building = build_util.get_building_for(self._entity)
-   if not building then
+   if not building and not self._editing_region then
       -- sometimes, depending on the order that things get destroyed, a wall
       -- will be asked to layout after it has been divorces from it's building
       -- (e.g. when the blueprint still exists, but the project (and thus the
@@ -319,7 +319,7 @@ function Wall:connect_to_columns(column_a, column_b, normal)
                :connect_to_wall(self._entity)
                
    self:_compute_wall_measurements()
-   radiant.entities.move_to(self._entity, self._position)
+   radiant.entities.move_to_grid_aligned(self._entity, self._position)
    return self
 end
 
@@ -475,7 +475,7 @@ function Wall:rotate_structure(degrees)
    self._sv.pos_b = self._sv.pos_b:rotated(degrees)
    self.__saved_variables:mark_changed()
    self:_compute_wall_measurements()
-   radiant.entities.move_to(self._entity, self._position)
+   radiant.entities.move_to_grid_aligned(self._entity, self._position)
    --self:layout() required!
 end
 

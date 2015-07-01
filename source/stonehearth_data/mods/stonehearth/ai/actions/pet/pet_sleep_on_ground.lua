@@ -5,22 +5,16 @@ PetSleepOnGround.args = {}
 PetSleepOnGround.version = 2
 PetSleepOnGround.priority = 1
 
--- TODO: refactor this with sleep_on_ground and sleep_in_bed-adjacent
 function PetSleepOnGround:run(ai, entity)
-   --TODO: does the critter have a sit action?
    ai:execute('stonehearth:run_effect', { effect = 'sit_on_ground' })
+   ai:execute('stonehearth:run_sleep_effect', { duration_string = '1h' })
 
-   -- goto sleep
-   radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
-
-   ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = '1h'})
    radiant.entities.set_attribute(entity, 'sleepiness', stonehearth.constants.sleep.MIN_SLEEPINESS)
 end
 
 function PetSleepOnGround:stop(ai, entity)
    -- xxx, localize
    local name = radiant.entities.get_display_name(entity)
-   radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');   
 end
 
 return PetSleepOnGround

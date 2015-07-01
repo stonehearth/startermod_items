@@ -163,20 +163,29 @@ var RadiantTrace;
       _recursive_trace: function(info, properties, level) {
          var self = this;
 
-         info.trace.progress(function(json) {
-            // whenever we get an update, expand the entire object and yield the result            
-            self._log(level, 'in progress callback for ' + info.uri  + '.  expanding...');
-            if (json) {
-               self._expand_object(json, properties, level != undefined ? level + 1 : 0)
-                  .progress(function(eobj) {
-                     self._log(level, 'notifying deferred that uri at ' + info.uri + ' has changed');
-                     info.deferred.notify(eobj);
-                  });
-            } else {
-               // should we notify or fail?
-               info.deferred.notify(null);
-            }
-         });
+         info.trace
+            .progress(function(json) {
+               // whenever we get an update, expand the entire object and yield the result            
+               self._log(level, 'in progress callback for ' + info.uri  + '.  expanding...');
+               if (json) {
+                  self._expand_object(json, properties, level != undefined ? level + 1 : 0)
+                     .progress(function(eobj) {
+                        self._log(level, 'notifying deferred that uri at ' + info.uri + ' has changed');
+                        info.deferred.notify(eobj);
+                     })
+                     .fail(function(o) {
+                        self._log(level, 'expand object trace of ' + info.uri + ' failed', o);
+                        info.deferred.reject(o)
+                     });
+               } else {
+                  // should we notify or fail?
+                  info.deferred.notify(null);
+               }
+            })
+            .fail(function(o) {               
+               self._log(level, 'root recursive trace of ' + info.uri + ' failed', o);
+               info.deferred.reject(o);
+            });
       },
 
       _expand_object_properties: function(obj, properties, level) {
@@ -227,25 +236,37 @@ var RadiantTrace;
                var uri = ((obj instanceof Array) || (obj instanceof Object)) ? null : obj.toString();
 
                if (v) {
+                  var update_property = function(value) {
+                     self._log(level, 'child object ' + k + ' resolved to:', value);
+
+                     // If an object already exists at this uri, make sure we destory the object.
+                     var current = eobj.get(emberValidKey);
+                     if (current && uri) {
+                        self._release_trace_reference(uri, level);
+                     }
+
+                     // Update the object property and check to see if it's time to notify
+                     // the parent
+                     if (value != undefined) {
+                        eobj.set(emberValidKey, value);
+                     } else {
+                        delete eobj[emberValidKey];
+                     }
+                     delete pending[k];
+
+                     //self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
+                     notify_update();
+                  };
                   self._expand_object(v, sub_properties, level + 1)
                      .progress(function(child_eobj) {
                         self._log(level, 'child object ' + k + ' resolved to:', child_eobj);
+                        update_property(child_eobj);
+                     })
+                     .fail(function(o) {
+                        self._log(level, 'trace faild on child object ' + k + '.');
+                        update_property(undefined);
+                     })
 
-                        // If an object already exists at this uri, make sure we destory the object.
-                        var current = eobj.get(emberValidKey);
-                        if (current && uri) {
-                           self._release_trace_reference(uri, level);
-                        }
-
-                        // Update the object property and check to see if it's time to notify
-                        // the parent
-
-                        eobj.set(emberValidKey, child_eobj);
-                        delete pending[k];
-
-                        //self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
-                        notify_update();
-                     });
                } else {
                   eobj.set(emberValidKey, null);
                }
@@ -277,21 +298,25 @@ var RadiantTrace;
          $.each(arr, function(i, v) {
             self._log(level, 'fetching child object: ' + i);
             if (v) {
+               var update_property = function(value) {
+                  var current = earr[i];
+                  if (current) {
+                     current.destroy();
+                  }
+
+                  earr[i] = value;
+                  pending_count--;
+
+                  self._log(level, 'pending is now (' + pending_count + ') ');
+                  notify_update();
+               };
                self._expand_object(v, properties, level + 1)
                   .progress(function(child_eobj) {
-                     //self._log(level, 'child object ' + i + ' resolved to ' + JSON.stringify(child_eobj));
-                     //earr.set(i, child_eobj);
-
-                     var current = earr[i];
-                     if (current) {
-                        current.destroy();
-                     }
-
-                     earr[i] = child_eobj;
-                     pending_count--;
-
-                     self._log(level, 'pending is now (' + pending_count + ') ');
-                     notify_update();
+                     update_property(child_eobj);
+                  })
+                  .fail(function(o) {
+                     self._log(level, 'failed to trace array entry', i)
+                     update_property(undefined);
                   });
             } else {
                earr[i] = null;

@@ -9,11 +9,11 @@ local Color3 = _radiant.csg.Color3
 local log = radiant.log.create_logger('build')
 
 function ConstructionDataComponent:initialize(entity, json)
-   self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
       self._sv = json
+      self._sv.entity = entity
       self._sv.initialized = true           
       self.__saved_variables:set_data(self._sv)
 
@@ -24,15 +24,8 @@ function ConstructionDataComponent:initialize(entity, json)
 end
 
 function ConstructionDataComponent:activate()
-   if not self._sv.fabricator_entity then
-      -- ug!  wouldn't need this listener if activate got called after all components have been initialized
-      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
-            self._region_trace = self._entity:get_component('destination')
-                                                :trace_region('fabricator mining trace')
-                                                   :on_changed(function(region)
-                                                         self:_update_score(region)
-                                                      end)
-         end)
+   if self._sv._contributes_to_score then
+      self:set_contributes_to_score(true)
    end
 end
 
@@ -132,11 +125,6 @@ function ConstructionDataComponent:set_fabricator_entity(entity)
    self._sv.fabricator_entity = entity
    self.__saved_variables:mark_changed()
 
-   if self._region_trace then
-      self._region_trace:destroy()
-      self._region_trace = nil
-   end
-
    return self
 end
 
@@ -175,6 +163,7 @@ end
 function ConstructionDataComponent:set_color_region(region)
    self._sv.color_region = region
    self.__saved_variables:mark_changed()
+   return self
 end
 
 function ConstructionDataComponent:get_color_region()
@@ -212,16 +201,31 @@ end
 --- The score for a building is its area * the multiplier for that kind of wall/region, modified by ^0.6, 
 --  so that the first bldg is very important, and building decreases logarithmically as we get more buildings.
 function ConstructionDataComponent:_update_score(region)
-   if self._sv.fabricator_entity then
-      return
-   end
    local area = region:get_area()
 
-   local networth = radiant.entities.get_entity_data(self._entity, 'stonehearth:net_worth')
+   local networth = radiant.entities.get_entity_data(self._sv.entity, 'stonehearth:net_worth')
    local item_multiplier = networth and networth.value_in_gold or 1
    local score = (area * item_multiplier) ^ 0.5
 
-   stonehearth.score:change_score(self._entity, 'net_worth', 'buildings', score)
+   stonehearth.score:change_score(self._sv.entity, 'net_worth', 'buildings', score)
+end
+
+function ConstructionDataComponent:set_contributes_to_score(value)
+   self._sv._contributes_to_score = value
+   if value then
+      self._region_trace = self._sv.entity:get_component('destination')
+                                          :trace_region('updating building score')
+                                             :on_changed(function(region)
+                                                   self:_update_score(region)
+                                                end)
+                                             :push_object_state()
+   else
+      stonehearth.score:change_score(self._sv.entity, 'net_worth', 'buildings', 0)
+      if self._region_trace then
+         self._region_trace:destroy()
+         self._region_trace = nil
+      end
+   end
 end
 
 return ConstructionDataComponent

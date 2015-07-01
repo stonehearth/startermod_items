@@ -12,10 +12,10 @@
          "uri" : "stonehearth:refined:steel_ingot",
          "count" : 2
       }
-  ],
+   ],
   "produces": [
       {
          "item":"stonehearth:weapons:short_sword"
       }
-  ]
+   ]
 }

@@ -39,7 +39,7 @@
          "type" : "backpack",
          "auto_fill_from" : [],
          "public" : false,
-         "capacity" : 8
+         "capacity" : 4
       },
       "stonehearth:attributes" : {
          "mind": {

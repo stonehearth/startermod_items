@@ -1,0 +1,40 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_camp",
+   "rarity" : "common",
+
+   "in_edge"  : "start",
+   "out_edge" : ["wait_for_boss_death"],
+
+   "script" : "file(create_camp/create_camp.lua)",
+
+   "create_camp_info" : {
+      "player_id" : "undead",
+
+      "radius" : 10,
+      
+      "spawn_range" : {
+         "min" : 160,
+         "max" : 180
+      },
+
+      "boss" : {
+         "position" : { "x": 0, "y": 0 },
+         "combat_leash_range" : 18,
+         "job" : "stonehearth:jobs:footman",
+         "equipment" : {
+            "weapon" : ["stonehearth:weapons:giant_bone_mace", "stonehearth:weapons:giant_bone_axe"]
+         }         
+      },
+      
+      "script" : "file(create_camp/goblin_raiding_camp.lua)",
+
+      "pieces" : {
+         "tower_1" : {
+            "info" : "file(create_camp/tower_brazier.json)",
+            "position" : { "x": -3, "y": 3 },
+            "rotation" : 0
+         }         
+      }
+   }
+}

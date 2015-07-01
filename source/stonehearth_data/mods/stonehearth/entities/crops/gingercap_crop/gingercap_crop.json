@@ -1,0 +1,86 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(turnip_crop_4.qb)"
+            ]
+         },
+         "turnip_1": {
+            "models": [
+               "file(turnip_crop_1.qb)"
+            ]
+         },
+         "turnip_2": {
+            "models": [
+               "file(turnip_crop_2.qb)"
+            ]
+         },
+         "turnip_3": {
+            "models": [
+               "file(turnip_crop_3.qb)"
+            ]
+         },
+         "turnip_4": {
+            "models": [
+               "file(turnip_crop_4.qb)"
+            ]
+         }, 
+         "turnip_12": {
+            "models": [
+               "file(turnip_crop_12.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Turnip", 
+         "description": "Fast-growing staple crop, but not particularly nutritious nor delicious.",
+         "icon" : "file(icon.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "turnip_4": "stonehearth:turnip_basket", 
+            "turnip_12": ""
+         },
+         "harvest_threshhold" : "turnip_4",
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json"
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "6h",
+         "growth_stages" : [
+            {
+               "model_name" : "turnip_1",
+               "name": "Turnip Seedling", 
+               "description": "A unrealized turnip."
+            },
+            {
+               "model_name" : "turnip_2",
+               "name": "Turnip Sprout", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "turnip_3",
+               "name": "Baby Turnip", 
+               "description": "Small. Bitter."
+            },
+            {
+               "model_name" : "turnip_4",
+               "name": "Ripe Turnip", 
+               "description": "Delicious!"
+            }, {}, {}, {}, {}, {}, {}, {},
+            {
+               "model_name" : "turnip_12",
+               "name": "Rotten Turnip", 
+               "description": "Moldy and disgusting."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop turnip"
+      }
+   }
+}

@@ -47,10 +47,12 @@ App.StonehearthSelectSettlementView = App.View.extend({
 
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
          self._clearSelection();
+         self.$('#map').hide();
          self.$('#map').stonehearthMap('suspend');
 
          self._newGame(self._generate_seed(), function(e) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
+            self.$('#map').show();
             self.$('#map').stonehearthMap('setMap', e.map);
             self.$('#map').stonehearthMap('resume');
          });
