@@ -98,10 +98,6 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    if self._blueprint then
       self._proxy_blueprint:add_component('stonehearth:construction_data')
                               :begin_editing(self._blueprint)
-
-      self._structure:clone_from(self._blueprint)
-                     :begin_editing(self._blueprint)
-                     :layout()
    end
 
    local color_region = radiant.alloc_region3()
@@ -111,6 +107,12 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
 
    self._proxy_blueprint:add_component('stonehearth:construction_progress')
                            :begin_editing(self._building_container, self._proxy_fabricator, color_region)
+                           
+   if self._blueprint then
+      self._structure:clone_from(self._blueprint)
+                  :begin_editing(self._blueprint)
+                  :layout()
+   end
    -- hide the fabricator and structure...
    self:_show_editing_objects(false)
 end

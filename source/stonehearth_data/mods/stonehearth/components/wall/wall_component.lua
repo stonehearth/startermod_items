@@ -244,7 +244,7 @@ end
 -- 
 function Wall:layout()
    local building = build_util.get_building_for(self._entity)
-   if not building then
+   if not building and not self._editing_region then
       -- sometimes, depending on the order that things get destroyed, a wall
       -- will be asked to layout after it has been divorces from it's building
       -- (e.g. when the blueprint still exists, but the project (and thus the
