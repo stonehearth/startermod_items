@@ -1,0 +1,12 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Crafter Outbox",
+         "description" : "Stores finished craftables"
+      },
+      "stonehearth:stockpile" : {
+         "size" : { "x" : 4, "y" : 4 }
+      }
+   }
+}

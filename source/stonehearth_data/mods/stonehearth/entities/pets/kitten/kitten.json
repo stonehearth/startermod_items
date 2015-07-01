@@ -1,32 +1,14 @@
 {
    "type" : "entity",
-   "mixins" : "stonehearth:mixins:critter",   
+   "mixins" : "stonehearth:mixins:pet",   
    "components": {
       "unit_info" : {
          "name" : "Kitten",
-         "description" : "He's so cute!",
-         "player_id" : "critters"
+         "description" : "He's so cute!"
       },
       "render_info" : {
          "animation_table" : "file(/data/rigs/pets/kitten)"
-
       },
-
-      "stonehearth:attributes" : {
-         "max_health" : {
-            "type" : "basic", 
-            "value" : 10
-         },
-         "hunger": {
-            "type" : "basic", 
-            "value": 100
-         }, 
-         "speed" : {
-            "type" : "basic", 
-            "value": 20
-         }
-      },
-
       "model_variants" : {
          "default" : {
             "models" : [

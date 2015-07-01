@@ -50,6 +50,7 @@
       "mixins:monster" : "file(mixins/monster)",
       "mixins:undead" : "file(mixins/undead)",
       "mixins:critter" : "file(mixins/critter)",
+      "mixins:pet" : "file(mixins/pet)",
       "mixins:base_human" : "file(mixins/base_human)",
       "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
       "mixins:tree" : "file(mixins/tree)",
@@ -173,6 +174,8 @@
       "squirrel" : "file(entities/critters/squirrel)",
 
       "kitten" : "file(entities/pets/kitten)",
+      "collie" : "file(entities/pets/collie)",
+      "mammoth" : "file(entities/pets/mammoth)",
 
       "squirrel_jerky" : "file(entities/critters/squirrel/squirrel_jerky)",
       "racoon" : "file(entities/critters/racoon)",
