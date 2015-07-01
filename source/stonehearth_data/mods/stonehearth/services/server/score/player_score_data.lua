@@ -17,6 +17,9 @@ end
 function PlayerScoreData:activate()
    radiant.events.listen(radiant, 'radiant:unit_info:player_id_changed', self, self._on_player_id_changed)
    radiant.events.listen(radiant, 'radiant:entity:pre_destroy', self, self._on_destroy)
+   self._score_update_timer = radiant.set_realtime_interval('player score update', 10000, function()
+         self.__saved_variables:mark_changed()
+      end)
 end
 
 function PlayerScoreData:_on_player_id_changed(e)
@@ -57,7 +60,6 @@ end
 function PlayerScoreData:change_score(entity, category_name, reason, value)
    self:_update_score(entity, category_name, reason, value)
    self:_update_aggregate(entity, category_name)
-   self.__saved_variables:mark_changed()
 end
 
 function PlayerScoreData:_update_aggregate(entity, category_name)
