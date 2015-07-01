@@ -65,7 +65,6 @@ radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionFrame._dum
 --
 local MAX_ROAM_DISTANCE = 32
 local INFINITE = 1000000000
-local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
@@ -99,7 +98,7 @@ local ENTITY_STATE_META_TABLE = {
       elseif k == 'carrying' then
          -- if this is not the first time we're writing a new value to location, we
          -- must be in some k state.
-         if state.__values.carrying and state.__values.carrying ~= v then
+         if state.__values.carrying ~= v then
             state.__values.carrying_changed = true
          end
       end
@@ -1244,7 +1243,11 @@ function ExecutionFrame:abort()
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
-   self:_exit_protected_call(ABORT_FRAME)
+   self:_exit_protected_call(stonehearth.constants.ai.ABORT_FRAME)
+end
+
+function ExecutionFrame:is_aborting()
+   return self._aborting
 end
 
 function ExecutionFrame:_get_top_of_stack()
@@ -1711,8 +1714,8 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          return UNWIND_NEXT_FRAME_2
       elseif err:find(UNWIND_NEXT_FRAME) then
          return UNWIND_NEXT_FRAME
-      elseif err:find(ABORT_FRAME) then
-         return ABORT_FRAME
+      elseif err:find(stonehearth.constants.ai.ABORT_FRAME) then
+         return stonehearth.constants.ai.ABORT_FRAME
       end
       
       local traceback = debug.traceback()

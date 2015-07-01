@@ -740,6 +740,9 @@ function ExecutionUnitV2:__monitor_carrying()
    if not self._carry_listener then
       self._log:detail('creating carry listener')
       self._carry_listener = radiant.events.listen(self._entity, 'stonehearth:carry_block:carrying_changed:sync', self, self._on_carrying_changed)
+
+      -- run once, in order to check if our current state is even valid.
+      return self:_on_carrying_changed()
    end
 end
 
@@ -756,13 +759,13 @@ function ExecutionUnitV2:_on_carrying_changed()
    if self._current_entity_state.carrying ~= carrying then
       if self._state == 'thinking' then
          self._log:detail('woot!  killing this branch')
-         self._thread:interrupt(function()
-               self._log:detail('woot!  killing this branch (interrupt)')
-               self:_stop_thinking()
-            end)
+
+         if not self._frame:is_aborting() then
+            self:__abort('carrying changed')
+         end
       elseif self._state == 'ready' then
+         -- Do we abort here, too?  Unclear.
          self._frame:_unit_not_ready(self)
-         -- do we need to do more here?  like stop or try to restart thinking?
       end
    else
       self._log:detail('current carrying matches (%s).  no harm, no foul.', tostring(carrying))

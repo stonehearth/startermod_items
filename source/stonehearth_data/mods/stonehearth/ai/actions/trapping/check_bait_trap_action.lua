@@ -20,7 +20,7 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(CheckBaitTrap)
-   :execute('stonehearth:drop_carrying_now')
+   :execute('stonehearth:clear_carrying_now')
    :execute('stonehearth:trapping:find_trap_in_trapping_grounds', {
       trapping_grounds = ai.ARGS.trapping_grounds
    })

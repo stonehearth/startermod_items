@@ -14,16 +14,9 @@ SetBaitTrap.args = {
 SetBaitTrap.version = 2
 SetBaitTrap.priority = 1
 
-function SetBaitTrap:start_thinking(ai, entity, args)
-   -- can't perform this action if we're carrying anything
-   if not ai.CURRENT.carrying then
-      ai:set_think_output()
-   end
-end
-
 local ai = stonehearth.ai
 return ai:create_compound_action(SetBaitTrap)
-   :execute('stonehearth:drop_carrying_now')
+   :execute('stonehearth:clear_carrying_now')
    :execute('stonehearth:goto_location', {
       reason = 'set bait trap',
       location = ai.ARGS.location,

@@ -11,6 +11,7 @@ PutCarryingInBackpack.version = 2
 PutCarryingInBackpack.priority = 1
 
 function PutCarryingInBackpack:start_thinking(ai, entity, args)
+   ai:monitor_carrying()
    if ai.CURRENT.carrying ~= nil then
       local storage_component = entity:add_component('stonehearth:storage')
       if not storage_component:is_full() then
