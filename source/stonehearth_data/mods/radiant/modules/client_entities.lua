@@ -68,16 +68,46 @@ function client_entities.get_entity_data(arg0, key)
    end
 end
 
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
+function client_entities.get_world_location(entity)
+   radiant.check.is_entity(entity)
+
+   if entity:get_id() == 1 then
+      -- the root entity is centered at 0
+      return Point3(0, 0, 0)
+   end
+   
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_world_location()
+   return location
+end
+
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function client_entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   return entity:add_component('mob'):get_world_grid_location()
+
+   if entity:get_id() == 1 then
+      -- the root entity is centered at 0
+      return Point3(0, 0, 0)
+   end
+   
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_world_grid_location()
+   return location
+end
+
+function client_entities.get_location(entity)
+   radiant.check.is_entity(entity)
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_location()
+   return location
 end
 
 function client_entities.get_location_aligned(entity)
    radiant.check.is_entity(entity)
-   if entity then
-      return entity:add_component('mob'):get_grid_location()
-   end
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_grid_location()
+   return location
 end
 
 function client_entities.trace_grid_location(entity, reason)
@@ -105,6 +135,15 @@ end
 
 function client_entities.is_owned_by_player(entity, player_id)
    return client_entities.get_player_id(entity) == player_id
+end
+
+function client_entities.move_to(entity, location)
+   radiant.check.is_entity(entity)
+
+   if type(location) == "table" then
+      location = Point3(location.x, location.y, location.z)
+   end
+   entity:add_component('mob'):move_to(location)
 end
 
 function client_entities.move_to_grid_aligned(entity, location)
