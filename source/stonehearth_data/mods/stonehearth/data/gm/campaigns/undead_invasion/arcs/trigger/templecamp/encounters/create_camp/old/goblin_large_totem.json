@@ -1,0 +1,14 @@
+{
+   "type" : "camp_piece",
+
+   "entities" : {
+      "tent" : {
+         "uri" : "stonehearth:monsters:goblins:goblin_large_totem",
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      }
+   }
+}
