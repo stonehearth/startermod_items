@@ -31,7 +31,7 @@ function ShelterScoreObserver:destroy()
 end
 
 function ShelterScoreObserver:_on_sleep_in_bed(e)
-   local shelter_score = self._score_component:get_score('shelter')
+   local shelter_score = self._score_component:get_score('shelter', 0)
    if shelter_score < stonehearth.constants.score.shelter.BED_SCORE_CAP then
       local journal_data = {entity = self._entity, description = 'sleep_in_bed', tags = {'shelter', 'ground'}}
       self._score_component:change_score('shelter', stonehearth.constants.score.shelter.SLEEP_IN_BED, journal_data)

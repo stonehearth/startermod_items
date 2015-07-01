@@ -249,6 +249,17 @@ end
 function CombatStateComponent:_on_equipment_changed()
    -- clear the combat actions cache
    self._combat_actions = {}
+
+   -- update our score based on our mainhand damage
+   local damage = 0
+   local weapon = stonehearth.combat:get_melee_weapon(self._entity)
+   if weapon then
+      local weapon_data = radiant.entities.get_entity_data(weapon, 'stonehearth:combat:weapon_data')
+      if weapon_data then
+         damage = weapon_data.base_damage
+      end
+   end
+   stonehearth.score:change_score(self._entity, 'military_strength', 'mainhand_weapon_damage', damage)
 end
 
 function CombatStateComponent:_remove_expired_cooldowns()

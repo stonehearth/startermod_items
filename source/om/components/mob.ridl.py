@@ -50,7 +50,6 @@ class Mob(Component):
    get_world_grid_location = ridl.Method(csg.Point3f(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
    get_world_transform = ridl.Method(csg.Transform(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
    get_location_in_front = ridl.Method(csg.Point3f()).const
-   set_location_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
 
    _generate_construct_object = True
    _includes = [

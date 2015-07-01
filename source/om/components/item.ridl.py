@@ -5,7 +5,7 @@ import ridl.dm_types as dm
 import ridl.std_types as std
 
 class Item(Component):
-   stacks = dm.Boxed(c.int())
+   stacks = dm.Boxed(c.int(), set='declare')
    max_stacks = dm.Boxed(c.int())
    category = dm.Boxed(std.string())
    

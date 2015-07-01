@@ -199,7 +199,9 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
 
    self:_create_till_task()
    self:_create_harvest_task()
-
+   
+   self:notify_score_changed()
+   
    self.__saved_variables:mark_changed()
 end
 
@@ -322,6 +324,43 @@ function FarmerFieldComponent:notify_till_location_finished(location)
       end)
    end
    self.__saved_variables:mark_changed()
+end
+
+function FarmerFieldComponent:notify_score_changed()
+   if not self._score_dirty then
+      self._score_dirty = true
+      radiant.events.listen_once(radiant, 'stonehearth:gameloop', self, self._update_score)
+   end
+end
+
+function FarmerFieldComponent:_update_score()
+   local field_size = self:get_size()
+   local field_contents = self:get_contents()
+   local score = 0
+
+   self._score_dirty = false
+
+   for x=1, field_size.x do
+      for y=1, field_size.y do
+         local field_spacer = field_contents[x][y]
+         if field_spacer then
+            local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
+            if dirt_plot_component then
+               --add a score based on the quality of the dirt
+               local fertility, moisture = dirt_plot_component:get_fertility_moisture()
+               score = score + fertility / 10
+
+               --add a score for the plant if there's a plant in the dirt
+               local crop = dirt_plot_component:get_contents()
+               if crop then
+                  --TODO: change this value based on a score in the crop's json
+                  score = score + 1
+               end
+            end
+         end
+      end
+   end
+   stonehearth.score:change_score(self._entity, 'net_worth', 'field component', score / 10)
 end
 
 return FarmerFieldComponent

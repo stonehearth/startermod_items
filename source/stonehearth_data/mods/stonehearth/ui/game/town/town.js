@@ -48,7 +48,7 @@ App.StonehearthTownView = App.View.extend({
             self.radiantTrace  = new RadiantTrace()
             self.trace = self.radiantTrace.traceUri(uri, {});
             self.trace.progress(function(eobj) {
-                  self.set('context.score_data', eobj.score_data);
+                  self.set('context.score_data', eobj);
                });
          });
 

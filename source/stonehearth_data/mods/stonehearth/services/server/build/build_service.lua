@@ -621,7 +621,7 @@ function BuildService:_merge_building_into(merge_into, building)
          local child_offset = mob:get_grid_location()
 
          container:add_child(child)
-         mob:set_location_grid_aligned(child_offset + building_offset)
+         mob:move_to_grid_aligned(child_offset + building_offset)
 
          self:_bind_building_to_blueprint(merge_into, child)
 

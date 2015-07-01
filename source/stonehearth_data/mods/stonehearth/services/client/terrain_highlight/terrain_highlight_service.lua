@@ -49,7 +49,7 @@ function TerrainHighlightService:initialize()
             local ore_entity = self._kind_to_entity_map[kind]
 
             if ore_entity then
-               radiant.entities.move_to(ore_entity, brick)
+               radiant.entities.move_to_grid_aligned(ore_entity, brick)
 
                -- enable complex shapes when the z-level of the selection outline is fixed
                --local shape = self:_get_selection_shape(brick, kind)
@@ -126,7 +126,7 @@ function TerrainHighlightService:_listen_to_hilighted_changed()
             if stonehearth.hilight:get_hilighted() ~= ore_entity then
                -- too much trouble to reparent the render entity, so move it far away
                -- so it doesn't confuse anyone in debug view
-               radiant.entities.move_to(ore_entity, self._far_away)
+               radiant.entities.move_to_grid_aligned(ore_entity, self._far_away)
                local renderer = self._renderers[kind]
                renderer:set_region(self._empty_region)
             end

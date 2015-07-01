@@ -58,7 +58,7 @@ function StructureEditor:begin_editing(fabricator, blueprint, project, structure
    --TODO: why is this sometimes nil?   
    if building then 
       local location = radiant.entities.get_world_grid_location(building)
-      radiant.entities.move_to(self._building_container, location)
+      radiant.entities.move_to_grid_aligned(self._building_container, location)
    end
    
    self:_initialize_proxies(blueprint:get_uri(), structure_type)
@@ -73,8 +73,8 @@ function StructureEditor:create_blueprint(blueprint_uri, structure_type)
 end
 
 function StructureEditor:move_to(location)
-   radiant.entities.move_to(self._proxy_blueprint, location)
-   radiant.entities.move_to(self._proxy_fabricator, location)
+   radiant.entities.move_to_grid_aligned(self._proxy_blueprint, location)
+   radiant.entities.move_to_grid_aligned(self._proxy_fabricator, location)
 end
 
 
@@ -98,10 +98,6 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    if self._blueprint then
       self._proxy_blueprint:add_component('stonehearth:construction_data')
                               :begin_editing(self._blueprint)
-
-      self._structure:clone_from(self._blueprint)
-                     :begin_editing(self._blueprint)
-                     :layout()
    end
 
    local color_region = radiant.alloc_region3()
@@ -111,6 +107,12 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
 
    self._proxy_blueprint:add_component('stonehearth:construction_progress')
                            :begin_editing(self._building_container, self._proxy_fabricator, color_region)
+                           
+   if self._blueprint then
+      self._structure:clone_from(self._blueprint)
+                  :begin_editing(self._blueprint)
+                  :layout()
+   end
    -- hide the fabricator and structure...
    self:_show_editing_objects(false)
 end

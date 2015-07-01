@@ -491,9 +491,11 @@
       "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
       "actions:idle_action" : "file(ai/actions/idle_action.lua)",
       "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
+      "actions:run_sleep_effect" : "file(ai/actions/run_sleep_effect_action.lua)",
       "actions:sleep_in_new_bed" : "file(ai/actions/sleep_in_new_bed_action.lua)",
       "actions:sleep_in_own_bed" : "file(ai/actions/sleep_in_own_bed_action.lua)",
       "actions:sleep_in_bed_adjacent" : "file(ai/actions/sleep_in_bed_adjacent_action.lua)",
+      "actions:sleep_trivial" : "file(ai/actions/sleep_trivial_action.lua)",
       "actions:sleep_on_ground" : "file(ai/actions/sleep_on_ground_action.lua)",
       "actions:sleep_when_exhausted" : "file(ai/actions/sleep_when_exhausted_action.lua)",
       "actions:critter_sleep_on_ground" : "file(ai/actions/critter_sleep_on_ground.lua)",
@@ -1468,7 +1470,9 @@
       "calendar:alarm" : "file(services/server/calendar/calendar_alarm.lua)",
 
       "player_jobs_controller" : "file(services/server/job/player_jobs_controller.lua)",
-      "job_info_controller" : "file(services/server/job/job_info_controller.lua)"
+      "job_info_controller" : "file(services/server/job/job_info_controller.lua)",
+
+      "score:player_score_data" : "file(services/server/score/player_score_data.lua)"
    },
 
    "client_controllers" :  {

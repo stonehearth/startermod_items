@@ -18,9 +18,9 @@ App.StonehearthHudScoreWidget = App.View.extend({
          .done(function(response){
             self.scoreTrace = new StonehearthDataTrace(response.score, {});
             self.scoreTrace.progress(function(eobj) {
-                  self.set('context.score_data', eobj.score_data);
-                  if (eobj.score_data.happiness) {
-                     self._convertHappiness(eobj.score_data.happiness);
+                  self.set('context.aggregate', eobj.aggregate);
+                  if (eobj.aggregate.happiness) {
+                     self._convertHappiness(eobj.aggregate.happiness);
                   }
                });
          });
@@ -52,9 +52,8 @@ App.StonehearthHudScoreWidget = App.View.extend({
    },
 
    _convertHappiness: function(happiness) {
-      var overallHappiness = happiness.happiness;
-      var iconValue = Math.floor(overallHappiness / 10); // value between 1 and 10
-      var meterValue = Math.floor(overallHappiness % 10); // value beween 1 and 10
+      var iconValue = Math.floor(happiness / 10); // value between 1 and 10
+      var meterValue = Math.floor(happiness % 10); // value beween 1 and 10
 
       this.set('context.happinessIconClass', 'happiness_' + iconValue);
       this.set('context.happinessMeterClass', 'happiness_' + meterValue);

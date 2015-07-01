@@ -20,7 +20,7 @@ function AiHelpers.bump_entity(entity, vector)
       actual_location = resolved_grid_location
    end
 
-   radiant.entities.move_to(entity, actual_location)
+   radiant.entities.move_to_grid_aligned(entity, actual_location)
 end
 
 function AiHelpers.calculate_bump_vector(bumper, bumpee, separation)

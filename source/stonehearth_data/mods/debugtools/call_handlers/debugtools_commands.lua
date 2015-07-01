@@ -85,7 +85,7 @@ function Commands:change_score_command(session, response, entity, scoreName, val
    if not score_component then
       return false
    end
-   if not score_component:has_score(scoreName) then
+   if score_component:get_score(scoreName) == nil then
       return false
    end
    
@@ -134,6 +134,25 @@ function Commands:add_citizen_command(session, response, entity, job)
    radiant.terrain.place_entity(citizen, spawn_point)
 
    return true
+end
+
+function Commands:add_gold_console_command(session, response, gold_amount)
+   local inventory = stonehearth.inventory:get_inventory(session.player_id)
+
+   if inventory == nil then
+      response:reject('there is no inventory for player ' .. session.player_id)
+      return
+   end
+
+   if (gold_amount > 0) then
+      -- give gold to the player
+      inventory:add_gold(gold_amount)
+   else
+      -- deduct gold from the player
+      gold_amount = -gold_amount;
+      inventory:subtract_gold(gold_amount)
+   end
+   response:resolve({'added gold chests next to town banner'})
 end
 
 return Commands

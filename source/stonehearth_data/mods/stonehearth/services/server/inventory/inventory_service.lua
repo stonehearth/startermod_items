@@ -21,9 +21,6 @@ function InventoryService:initialize()
    if not self._sv.inventories then
       self._sv.inventories = {}
    end
-
-   --Register our functions with the score service
-   self:_register_score_functions()
 end
 
 function InventoryService:add_inventory(player_id)
@@ -64,87 +61,6 @@ function InventoryService:get_item_tracker_command(session, response, tracker_na
    end
 
    return { tracker = inventory:get_item_tracker(tracker_name) }
-end
-
---Score functions related to inventory (goods you've built, stocked and crafted)
---
--- TODO: move these registration functions to the site where the item is implemented
--- rather than sticking them all in inventory.  for example, accumuating buildings into
--- net worth should be registered from stonehearth.build -- tony
---
-function InventoryService:_register_score_functions()
-   --eval function for buildings
-   stonehearth.score:add_aggregate_eval_function('net_worth', 'buildings', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:construction_data') then
-         agg_score_bag.buildings = agg_score_bag.buildings + self:_get_score_for_building(entity)
-      end
-   end)
-
-   --eval function for placed items
-   stonehearth.score:add_aggregate_eval_function('net_worth', 'placed_item', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:entity_forms') then
-         local item_value = stonehearth.score:get_score_for_entity(entity)
-         agg_score_bag.placed_item = agg_score_bag.placed_item + item_value
-      end
-   end)
-
-   --eval function for stockpiles
-   stonehearth.score:add_aggregate_eval_function('net_worth', 'stocked_resources', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:stockpile') then
-         agg_score_bag.stocked_resources = agg_score_bag.stocked_resources + self:_get_score_for_stockpile(entity)
-      end
-   end)
-
-   --eval function for food (may replace with using filter for type)
-   --We count food that's owned by the player, not just the stuff in their stockpiles
-   --This helps the score function work the same as the town inventory. 
-   stonehearth.score:add_aggregate_eval_function('resources', 'edibles', function(entity, agg_score_bag)
-      if radiant.entities.is_material(entity, 'food_container') or radiant.entities.is_material(entity, 'food') then
-         local item_value = stonehearth.score:get_score_for_entity(entity)
-         agg_score_bag.edibles = agg_score_bag.edibles + item_value
-      end
-   end)
-end
-
---- The score for a building is its area * the multiplier for that kind of wall/region, modified by ^0.6, 
---  so that the first bldg is very important, and building decreases logarithmically as we get more buildings.
-function InventoryService:_get_score_for_building(entity)
-   local region = entity:get_component('destination'):get_region()
-   local area = region:get():get_area()
-   local item_multiplier = stonehearth.score:get_score_for_entity(entity)
-   return (area * item_multiplier) ^ 0.5
-end
-
---- Returns the score for all the items in the stockpile. 
---  The score for an item is usually the default (1) but is otherwise defined in entity's entity_data
-function InventoryService:_get_score_for_stockpile(entity)
-   local stockpile_component = entity:get_component('stonehearth:stockpile')
-   local items = stockpile_component:get_items()
-   local total_score = 0
-   for id, item in pairs(items) do
-      local item_value = stonehearth.score:get_score_for_entity(item)
-      total_score = total_score + item_value
-   end
-   return total_score / 10
-end
-
-function InventoryService:add_gold_console_command(session, response, gold_amount)
-   local inventory = self:get_inventory(session.player_id)
-
-   if inventory == nil then
-      response:reject('there is no inventory for player ' .. session.player_id)
-      return
-   end
-
-   if (gold_amount > 0) then
-      -- give gold to the player
-      inventory:add_gold(gold_amount)
-   else
-      -- deduct gold from the player
-      gold_amount = -gold_amount;
-      inventory:subtract_gold(gold_amount)
-   end
-   response:resolve({})
 end
 
 return InventoryService

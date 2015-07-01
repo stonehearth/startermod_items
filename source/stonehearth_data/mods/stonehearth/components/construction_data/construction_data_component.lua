@@ -9,17 +9,30 @@ local Color3 = _radiant.csg.Color3
 local log = radiant.log.create_logger('build')
 
 function ConstructionDataComponent:initialize(entity, json)
-   self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
       self._sv = json
+      self._sv.entity = entity
       self._sv.initialized = true           
       self.__saved_variables:set_data(self._sv)
 
       if self._sv.normal then
          self._sv.normal = Point3(self._sv.normal.x, self._sv.normal.y, self._sv.normal.z)
       end
+   end
+end
+
+function ConstructionDataComponent:activate()
+   if self._sv._contributes_to_score then
+      self:set_contributes_to_score(true)
+   end
+end
+
+function ConstructionDataComponent:destroy()
+   if self._region_trace then
+      self._region_trace:destroy()
+      self._region_trace = nil
    end
 end
 
@@ -111,6 +124,7 @@ function ConstructionDataComponent:set_fabricator_entity(entity)
    assert(entity, 'no entity specified in :set_fabricator_entity()')
    self._sv.fabricator_entity = entity
    self.__saved_variables:mark_changed()
+
    return self
 end
 
@@ -149,6 +163,7 @@ end
 function ConstructionDataComponent:set_color_region(region)
    self._sv.color_region = region
    self.__saved_variables:mark_changed()
+   return self
 end
 
 function ConstructionDataComponent:get_color_region()
@@ -181,6 +196,36 @@ function ConstructionDataComponent:rotate_structure(degrees)
       self._sv.normal = self._sv.normal:rotated(degrees)
    end
    self.__saved_variables:mark_changed()
+end
+
+--- The score for a building is its area * the multiplier for that kind of wall/region, modified by ^0.6, 
+--  so that the first bldg is very important, and building decreases logarithmically as we get more buildings.
+function ConstructionDataComponent:_update_score(region)
+   local area = region:get_area()
+
+   local networth = radiant.entities.get_entity_data(self._sv.entity, 'stonehearth:net_worth')
+   local item_multiplier = networth and networth.value_in_gold or 1
+   local score = (area * item_multiplier) ^ 0.5
+
+   stonehearth.score:change_score(self._sv.entity, 'net_worth', 'buildings', score)
+end
+
+function ConstructionDataComponent:set_contributes_to_score(value)
+   self._sv._contributes_to_score = value
+   if value then
+      self._region_trace = self._sv.entity:get_component('destination')
+                                          :trace_region('updating building score')
+                                             :on_changed(function(region)
+                                                   self:_update_score(region)
+                                                end)
+                                             :push_object_state()
+   else
+      stonehearth.score:change_score(self._sv.entity, 'net_worth', 'buildings', 0)
+      if self._region_trace then
+         self._region_trace:destroy()
+         self._region_trace = nil
+      end
+   end
 end
 
 return ConstructionDataComponent

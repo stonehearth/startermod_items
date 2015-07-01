@@ -68,16 +68,46 @@ function client_entities.get_entity_data(arg0, key)
    end
 end
 
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
+function client_entities.get_world_location(entity)
+   radiant.check.is_entity(entity)
+
+   if entity:get_id() == 1 then
+      -- the root entity is centered at 0
+      return Point3(0, 0, 0)
+   end
+   
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_world_location()
+   return location
+end
+
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function client_entities.get_world_grid_location(entity)
    radiant.check.is_entity(entity)
-   return entity:add_component('mob'):get_world_grid_location()
+
+   if entity:get_id() == 1 then
+      -- the root entity is centered at 0
+      return Point3(0, 0, 0)
+   end
+   
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_world_grid_location()
+   return location
+end
+
+function client_entities.get_location(entity)
+   radiant.check.is_entity(entity)
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_location()
+   return location
 end
 
 function client_entities.get_location_aligned(entity)
    radiant.check.is_entity(entity)
-   if entity then
-      return entity:add_component('mob'):get_grid_location()
-   end
+   local mob = entity:get_component('mob')
+   local location = mob and mob:get_grid_location()
+   return location
 end
 
 function client_entities.trace_grid_location(entity, reason)
@@ -113,7 +143,16 @@ function client_entities.move_to(entity, location)
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
-   entity:add_component('mob'):set_location_grid_aligned(location)
+   entity:add_component('mob'):move_to(location)
+end
+
+function client_entities.move_to_grid_aligned(entity, location)
+   radiant.check.is_entity(entity)
+
+   if type(location) == "table" then
+      location = Point3(location.x, location.y, location.z)
+   end
+   entity:add_component('mob'):move_to_grid_aligned(location)
 end
 
 function client_entities.turn_to(entity, degrees)
@@ -130,7 +169,7 @@ function client_entities.add_child(parent, child, location)
 
    component:add_child(child)
    if location then
-      client_entities.move_to(child, location)
+      client_entities.move_to_grid_aligned(child, location)
    else
    end
 end
