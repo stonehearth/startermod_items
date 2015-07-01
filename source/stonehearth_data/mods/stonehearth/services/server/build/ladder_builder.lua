@@ -21,6 +21,7 @@ function LadderBuilder:initialize(manager, id, owner, base, normal, options)
       ladder:add_component('stonehearth:commands')
                   :add_command('/stonehearth/data/commands/remove_ladder')
    end
+   self._sv._user_created = options.user_created;
 
    self._sv.manager = manager
    self._sv.ladder = ladder
@@ -251,7 +252,7 @@ function LadderBuilder:_start_build_tasks()
                                                 ladder = self._sv.ladder,
                                                 builder = self,
                                              })
-
+                                             
       self._build_down_task:set_name('build ladder')
                            :set_source(self._sv.ladder)
                            :set_priority(priorities.BUILD_LADDER)
@@ -269,10 +270,14 @@ function LadderBuilder:_start_teardown_task()
                                                    ladder = self._sv.ladder,
                                                    builder = self,
                                                 })
+         if self._sv._user_created then
+            self._teardown_task:add_entity_effect(self._sv.ladder, '/stonehearth/data/effects/undeploy_overlay_effect')
+         end
 
          self._teardown_task:set_name('teardown ladder')
                             :set_source(self._sv.ladder)
                             :set_priority(priorities.BUILD_LADDER)
+                            
                             :set_max_workers(1)
                             :start()
       end

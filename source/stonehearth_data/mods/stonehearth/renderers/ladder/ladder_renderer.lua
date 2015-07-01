@@ -85,6 +85,8 @@ function LadderRenderer:_update_shape()
       end
    end
 
+   h3dUpdateBoundingBox(self._entity_node, ladder_bounds.min.x, ladder_bounds.min.y, ladder_bounds.min.z, ladder_bounds.max.x, ladder_bounds.max.y, ladder_bounds.max.z)
+
    self:_rebuild_ladder_nodes(ladder_points, ghost_points)
 end
 

@@ -407,7 +407,8 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetNodeFlags",                 &h3dSetNodeFlags),
       def("h3dGetNodeFlags",                 &h3dGetNodeFlags),
       def("h3dSetGlobalUniform",             &h3dSetGlobalUniformFloat),
-      def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag)
+      def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag),
+      def("h3dUpdateBoundingBox",            &h3dUpdateBoundingBox)
    ];
    globals(L)["H3DRootNode"] = h3dGetRootNode(0);
 };
