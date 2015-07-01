@@ -12,6 +12,12 @@
             "require_free_stockpile_space" : true,
             "role" : "raid_stockpiles",
             "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+
+            "sighted_bulletin" : {
+               "title" : "A thief!",
+               "message" : "Shhhh, you're not supposed to be able to see him."
+            },
+
             "members" : {
                "thief" : {
                   "from_population" : {
@@ -21,7 +27,6 @@
                   "attributes" : {
                      "speed" : 40
                   },
-                  
                   "equipment" : {
                      "abilities" : "stonehearth:abilities:thief_abilities",
                      "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:bronze_sword" ],

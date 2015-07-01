@@ -57,9 +57,9 @@
                "portrait" : "file(images/ogo_bannerman.png)",
                "message" : [
                   "Soothsayer say Ogo Skullbonker will be hero above all heroes! You destined to give him gold!",
-                  "Soothsayer little, but have big thoughts! Soothsayer never wrong. Soothsayer say you give Ogo gold, or Ogo will take it from you!"
+                  "Soothsayer little, but have big thoughts! Soothsayer never wrong. Soothsayer say you give Ogo gold, or Ogo will take it from you!",
                   "Goblins long be shunned and forgotten. Soothsayer say that Ogo Skullbonker, my LittleChief, will soon change everything! For that, he need gold and labor!",
-                  "Ogo Skullbonker, Master of Masters, have great destiny, to rule over all! Soothsayer say so; soothsayer never wrong. Soothsayer say, you will help!",
+                  "Ogo Skullbonker, Master of Masters, have great destiny, to rule over all! Soothsayer say so; soothsayer never wrong. Soothsayer say, you will help!"
                ],
                "choices" : {
                   "stonehearth:soothsayer_who" : {

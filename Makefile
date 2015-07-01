@@ -273,3 +273,8 @@ radent-to-gareth:
 .PHONY: gareth-to-radent
 gareth-to-radent:
 	git subtree pull --prefix source/stonehearth_data/mods/debugtools debugtools master
+
+# make a decoda project!
+.PHONY: check-campaigns
+check-campaigns:
+	scripts/check_campaigns.py source/stonehearth_data/mods
