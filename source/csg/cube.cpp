@@ -241,17 +241,6 @@ Cube<S, C> Cube<S, C>::Inflated(Point const& amount) const
 }
 
 template <typename S, int C>
-Cube<S, C> Cube<S, C>::Extruded(int dim, int dMin, int dMax) const
-{
-   ASSERT(dim >= 0);
-   ASSERT(dim <= C);
-   Cube<S, C> result(*this);
-   result.min[dim] -= dMin;
-   result.max[dim] += dMax;
-   return result;
-}
-
-template <typename S, int C>
 Region<S, C> Cube<S, C>::GetBorder() const
 {
    Region result(*this);
@@ -875,7 +864,6 @@ Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
    template Cls Cls::Inflated(Point const& amount) const; \
-   template Cls Cls::Extruded(int d, int dMin, int dMax) const; \
    template Cls Cls::Intersected(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
    template Cls::Region Cls::GetBorder() const; \

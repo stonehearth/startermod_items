@@ -1075,16 +1075,6 @@ Region<S, C> Region<S, C>::Inflated(Point const& pt) const
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::Extruded(int dim, int dMin, int dMax) const
-{
-   Region result;
-   for (auto &c : cubes_) {
-      result.Add(c.Extruded(dim, dMin, dMax));
-   }
-   return std::move(result);
-}
-
-template <class S, int C>
 void Region<S, C>::SetTag(int tag)
 {
    for (auto &c : cubes_) {
@@ -1283,7 +1273,6 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::Translate(const Cls::Point& pt); \
    template Cls Cls::Translated(const Cls::Point& pt) const; \
    template Cls Cls::Inflated(const Cls::Point& pt) const; \
-   template Cls Cls::Extruded(int dim, int dMin, int dMax) const; \
    template void Cls::SetOptimizeStrategy(OptimizeStrategy s); \
    Cls::OptimizeStrategy Cls::__optimizeStrategy = Cls::OptimizeStrategy::WorkForward; \
 
