@@ -67,13 +67,7 @@ public:
    }
 
    template <int D>
-   Cube Extruded(int dMin, int dMax) const {
-      ASSERT(D >= 0 && D <= C);
-      Cube<S, C> result(*this);
-      result.min[D] -= dMin;
-      result.max[D] += dMax;
-      return result;
-   }
+   Cube Extruded(int dMin, int dMax) const;
 
    Cube Inflated(Point const& amount) const;
    Cube Scaled(double factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
