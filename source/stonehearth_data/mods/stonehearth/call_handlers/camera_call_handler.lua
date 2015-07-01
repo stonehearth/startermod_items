@@ -12,14 +12,9 @@ function CameraCallHandler:camera_look_at_entity(session, request, entity)
    -- We want to maintain the orientation of the camera, and (for now) the height
    -- of the camera.
    local cam_height = camera:get_position().y
-   local entity_pos = entity:get_component('mob'):get_location()
-
-   local parent = entity:get_component('mob'):get_parent()
-   if parent then
-      local parent_mob = parent:get_component('mob')
-      if parent_mob then
-        entity_pos = entity_pos + parent_mob:get_location()
-      end
+   local entity_pos = radiant.entities.get_world_location(entity)
+   if not entity_pos then
+      return
    end
 
    local t = (cam_height - entity_pos.y) / -camera:get_forward().y
@@ -43,9 +38,9 @@ function CameraCallHandler:get_camera_tracker(session, request)
 
       radiant.events.listen(camera, 'stonehearth:camera:update', function(e)
             if e then
-                camera_tracker:set_data({
-                   pan = e.pan,
-                   zoom = e.zoom,
+               camera_tracker:set_data({
+                  pan = e.pan,
+                  zoom = e.zoom,
                   orbit = e.orbit
                })
             end
