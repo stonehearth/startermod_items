@@ -2,7 +2,7 @@
    "type":"recipe",
 
    "work_units"  : 8,
-   "recipe_name" : "long Sword",
+   "recipe_name" : "Long Sword",
    "description": "Sharp, with extra reach. A faithful weapon.",
    "portrait"    : "/stonehearth/entities/weapons/long_sword/long_sword.png",
    "level_requirement" : 4,
@@ -12,10 +12,10 @@
          "uri" : "stonehearth:refined:steel_ingot",
          "count" : 4
       }
-  ],
+   ],
   "produces": [
       {
          "item":"stonehearth:weapons:long_sword"
       }
-  ]
+   ]
 }
