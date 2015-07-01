@@ -121,13 +121,14 @@ function PortraitRendererService:_stage_scene(request)
       -- Calculate the height of the camera based on the head bone of the entity.
       local render_info = entity:get_component('render_info')
       local camera_pos_y = 2.4
+      local scale = 0.1
       if render_info then
          local animation_table_location = render_info:get_animation_table()
          local animation_table = radiant.resources.load_json(animation_table_location)
          local headPos = animation_table.skeleton.head
-         local scale = render_info:get_scale()
-         camera_pos_y = headPos[2] * scale
-         camera_pos_y = camera_pos_y * 1.8
+         scale = render_info:get_scale()
+         camera_pos_y = headPos[3] * scale
+         camera_pos_y = camera_pos_y * 1.55
       end
 
       self:_add_light({
@@ -137,8 +138,8 @@ function PortraitRendererService:_stage_scene(request)
             -- -180 yaw will have light going from -z to positive z
             direction =      Point3(15, 160, 0),
          })
-         
-      local camera_pos = Point3(1.7, camera_pos_y, -2.7)
+
+      local camera_pos = Point3(17 * scale, camera_pos_y, -27 * scale)
 
       self:_set_camera_position(camera_pos)
       self:_set_camera_look_at(Point3(0, camera_pos_y - 0.3, 0))
