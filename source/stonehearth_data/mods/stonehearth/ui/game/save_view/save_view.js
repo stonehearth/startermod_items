@@ -191,15 +191,15 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
       if (this.$()) {
          if (enabled) {
-            this.$('#deleteSaveButton').removeAttr('disabled')
-            this.$('#loadSaveButton').removeAttr('disabled')
-            this.$('#overwriteSaveButton').removeAttr('disabled')
-            this.$('#createSaveButton').removeAttr('disabled')
+            this.$('#deleteSaveButton').removeClass('disabled')
+            this.$('#loadSaveButton').removeClass('disabled')
+            this.$('#overwriteSaveButton').removeClass('disabled')
+            this.$('#createSaveButton').removeClass('disabled')
          } else {
-            this.$('#deleteSaveButton').attr('disabled', 'disabled')
-            this.$('#loadSaveButton').attr('disabled', 'disabled')
-            this.$('#overwriteSaveButton').attr('disabled', 'disabled')
-            this.$('#createSaveButton').attr('disabled', 'disabled')
+            this.$('#deleteSaveButton').addClass('disabled', 'disabled')
+            this.$('#loadSaveButton').addClass('disabled', 'disabled')
+            this.$('#overwriteSaveButton').addClass('disabled', 'disabled')
+            this.$('#createSaveButton').addClass('disabled', 'disabled')
          }
       }
    }.observes('controller.opInProgress'),
@@ -227,9 +227,9 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
          var differentVersions = this.get('selectedSave.differentVersions');
          if (differentVersions) {
-            self.$('#loadSaveButton').attr('disabled', 'disabled');
+            self.$('#loadSaveButton').addClass('disabled');
          } else {
-            self.$('#loadSaveButton').removeAttr('disabled');
+            self.$('#loadSaveButton').removeClass('disabled');
          }
       });
       
@@ -243,10 +243,18 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
       },
 
       saveGame: function() {
+         // isn't there a more Ember-y way to do this?
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
          this.get("controller").send('saveGame');
       },
 
       loadGame: function() {
+         // isn't there a more Ember-y way to do this?
+         if (this.$('#loadSaveButton').hasClass('disabled')) {
+            return;
+         }
          var key = this.get('selectedSave.key');
 
          if (key) {
@@ -256,6 +264,11 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
       },
 
       overwriteSaveGame: function() {
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (this.$('#overwriteSaveButton').hasClass('disabled')) {
+            return;
+         }
+
          var self = this;
          var key = this.get('selectedSave.key');
 
@@ -290,6 +303,11 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
       },
 
       deleteSaveGame: function() {
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+         
          var self = this;
          var key = this.get('selectedSave.key');
 

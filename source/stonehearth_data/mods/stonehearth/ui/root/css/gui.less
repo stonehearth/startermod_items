@@ -142,6 +142,7 @@
    }
 
    button {
+      .button;
       .control;
       .outlined(#9da8b0);
       color: #000;
@@ -152,15 +153,6 @@
       border-image: url(images/gui/button.png) 9 9 13 9 repeat;
       padding: 10px;
       margin: 0px;
-   }
-
-   button:enabled {
-      .button;
-   }
-
-   button:disabled {
-      .buttonDisabled;
-      opacity: 0.5;
    }
 
    button.warn {
@@ -354,16 +346,14 @@
 }
 
 .button {
-   .handCursor;
-
+   &:not(.disabled) {
+     .handCursor;
+   }
+   &.disabled {
+      .arrowCursor;
+   }
    &:hover:not(.disabled) {
       -webkit-filter: brightness(1.4);
-   }
-}
-
-.buttonDisabled {
-   .arrowCursor;
-   &:hover {
    }
 }
 
