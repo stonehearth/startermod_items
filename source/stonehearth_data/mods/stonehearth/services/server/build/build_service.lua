@@ -1125,12 +1125,13 @@ function BuildService:create_ladder_command(session, response, ladder_uri, locat
    return true
 end
 
+--Remove the user created portion of a ladder
 function BuildService:remove_ladder_command(session, response, ladder_entity)
    if radiant.util.is_a(ladder_entity, Entity) then
       local ladder = ladder_entity:get_component('stonehearth:ladder')
       if ladder then
          local base = radiant.entities.get_world_grid_location(ladder_entity)
-         self._sv.ladder_manager:remove_ladder(base)
+         self._sv.ladder_manager:remove_user_created_ladder_portion(base)
       end
    end
    return true
