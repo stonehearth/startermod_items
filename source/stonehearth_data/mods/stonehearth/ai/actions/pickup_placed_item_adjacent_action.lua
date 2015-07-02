@@ -53,15 +53,24 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
       radiant.entities.turn_to(item, 0)
    end
    -- gravity may have been turned off when placed.  turn it back on
-   item:get_component('mob')
+   item:add_component('mob')
             :set_ignore_gravity(false)
 
-   radiant.terrain.place_entity(self._iconic_entity, location)
+   local entity_forms_component = item:get_component('stonehearth:entity_forms')
+   if entity_forms_component and entity_forms_component:is_placeable_on_wall() then
+      radiant.entities.pickup_item(entity, self._iconic_entity)
+   else
+      radiant.terrain.place_entity(self._iconic_entity, location)
    
-   --sometimes the location of the parent object is not adjacent to the
-   --entity. In that case, walk over to the placed item.
-   ai:execute('stonehearth:goto_entity', { entity = self._iconic_entity })
-   ai:execute('stonehearth:pickup_item_adjacent', { item = self._iconic_entity })   
+      -- After breaking down a large item, we may not be adjacent to the location where
+      -- the iconic form is placed. This code walks over to the iconic to pick it up, but
+      -- is dangerous since we should not be executing the pathfinder during run.
+      -- (e.g. we will lock the entity if the adjacent straddles an impassable boundary
+      -- and we cannot easily path to the iconic.) If this becomes a problem, just 
+      -- skip placing the iconic and pickup the item directly.
+      ai:execute('stonehearth:goto_entity', { entity = self._iconic_entity })
+      ai:execute('stonehearth:pickup_item_adjacent', { item = self._iconic_entity })   
+   end
 end
 
 return PickupPlacedItemAdjacent
