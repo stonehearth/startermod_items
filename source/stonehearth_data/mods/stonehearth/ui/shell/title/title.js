@@ -51,6 +51,7 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
                }
                if (version != App.currentSaveVersion) {
                   save.gameinfo.differentVersions = true;
+                  $('#continueGameButton').tooltipster();
                }
 
                self.$('#continue').show();
@@ -143,6 +144,11 @@ App.StonehearthTitleScreenView = App.View.extend(Ember.TargetActionSupport, {
       },
 
       continueGame: function() {
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (this.$('#continueGameButton').hasClass('disabled')) {
+            return;
+         }
+
          var key = String(this.get('context.lastSave').key);
 
          // throw up a loading screen. when the game is loaded the browser is refreshed,

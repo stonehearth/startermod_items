@@ -17,15 +17,11 @@ function LadderBuilder:initialize(manager, id, owner, base, normal, options)
                                              self._sv.manager:_destroy_builder(self._sv.base, self)
                                           end)
 
-   if options.removable then
-      ladder:add_component('stonehearth:commands')
-                  :add_command('/stonehearth/data/commands/remove_ladder')
-   end
-   self._sv._user_created = options.user_created;
-
    self._sv.manager = manager
    self._sv.ladder = ladder
    self._sv.base = base
+   self._sv.user_removable_to = nil
+
    self.__saved_variables:mark_changed()
 
    radiant.terrain.place_entity_at_exact_location(ladder, base)
@@ -84,9 +80,15 @@ function LadderBuilder:destroy()
    end
 end
 
-function LadderBuilder:add_point(to)
+function LadderBuilder:add_point(to, options)
    assert(self._sv.ladder:is_valid())
 
+   if options.removable then
+      self._sv.ladder:add_component('stonehearth:commands')
+                  :add_command('/stonehearth/data/commands/remove_ladder')
+      self._sv.user_removable_to = to
+   end
+   
    self._log:debug('adding point %s to ladder', to)
    table.insert(self._sv.climb_to, to)
    self.__saved_variables:mark_changed()   
@@ -110,6 +112,21 @@ function LadderBuilder:remove_point(to)
    end
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
+end
+
+function LadderBuilder:remove_user_removable_point()
+   if not self._sv.user_removable_to then
+      return
+   end
+
+   self:remove_point(self._sv.user_removable_to)
+   local commands_component = self._sv.ladder:get_component('stonehearth:commands')
+   if commands_component then
+      commands_component:remove_command('/stonehearth/data/commands/remove_ladder')
+   end
+   self:_update_ladder_tasks()
+   self._sv.user_removable_to = nil
+   self.__saved_variables:mark_changed()
 end
 
 function LadderBuilder:clear_all_points()
@@ -270,7 +287,7 @@ function LadderBuilder:_start_teardown_task()
                                                    ladder = self._sv.ladder,
                                                    builder = self,
                                                 })
-         if self._sv._user_created then
+         if self._sv.user_removable_to then
             self._teardown_task:add_entity_effect(self._sv.ladder, '/stonehearth/data/effects/undeploy_overlay_effect')
          end
 

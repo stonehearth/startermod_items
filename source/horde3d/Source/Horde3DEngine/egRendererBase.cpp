@@ -1306,6 +1306,31 @@ bool RenderDevice::getRenderBufferData( uint32 rbObj, int bufIndex, int *width, 
 	return true;
 }
 
+bool RenderDevice::getTextureBufferData( uint32 texObj, int *width, int *height,
+                                        int *compCount, void *dataBuffer, int bufferSize)
+{
+   RDITexture const& t = getTexture(texObj);
+
+   if (width) {
+      *width = t.width;
+   }
+   if (height) {
+      *height = t.height;
+   }
+   if (compCount) {
+      *compCount = 4;
+   }
+
+   if (!dataBuffer) {
+      return true;
+   }
+
+	if (bufferSize < t.width * t.height * 4 * (t.glFmt == GL_FLOAT ? 4 : 1)) {
+      return false;
+   }
+
+   return getTextureData(texObj, 0, 0, dataBuffer);
+}
 
 // =================================================================================================
 // Queries

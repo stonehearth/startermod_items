@@ -326,6 +326,8 @@ class Renderer
       float             _loadingAmount;
       H3DRes            _loadingBackgroundMaterial;
       H3DRes            _loadingProgressMaterial;
+
+      bool              _buggyFramebuffer;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

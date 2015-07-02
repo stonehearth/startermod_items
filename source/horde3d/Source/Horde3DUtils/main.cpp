@@ -703,11 +703,11 @@ void h3dutCreatePngImageFromTexture(H3DRes tex, std::string& result)
    int width;
    int height;
 
-   h3dGetRenderTextureData(tex, &width, &height, nullptr, nullptr, 0);
+   h3dGetTextureData(tex, &width, &height, nullptr, nullptr, 0);
 
    float *pixelsF = new float[width * height * 4];
 
-   h3dGetRenderTextureData(tex, nullptr, nullptr, nullptr, pixelsF, width * height * 16);
+   h3dGetTextureData(tex, nullptr, nullptr, nullptr, pixelsF, width * height * 16);
 
    // Convert to BGRA8
    unsigned char *pixels = new unsigned char[width * height * 4];
@@ -972,34 +972,55 @@ DLLEXP bool h3dutScreenshot(const char *fname, H3DRes renderTexRes)
    }
 
    int width, height;
+   int flags = 0;
 
    if (renderTexRes) {
-      h3dGetRenderTextureData(renderTexRes, &width, &height, 0x0, 0x0, 0);
+      flags = h3dGetResFlags(renderTexRes);
+      h3dGetTextureData(renderTexRes, &width, &height, 0x0, 0x0, 0);
    } else {
       h3dGetRenderTargetData( 0, "", 0, &width, &height, 0x0, 0x0, 0 );
    }
 
-   float *pixelsF = new float[width * height * 4];
+   unsigned char *pixels = nullptr;
+   if (flags & H3DResFlags::TexRenderable) {
+      float *pixelsF = new float[width * height * 4];
 
-   if (renderTexRes) {
-      h3dGetRenderTextureData(renderTexRes, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
-   } else {
-      h3dGetRenderTargetData( 0, "", 0, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
-   }
-
-   // Convert to BGR8
-   unsigned char *pixels = new unsigned char[width * height * 3];
-   for( int y = 0; y < height; ++y )
-   {
-      for( int x = 0; x < width; ++x )
-      {
-         pixels[(y * width + x) * 3 + 0] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 3 + 1] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
-         pixels[(y * width + x) * 3 + 2] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
+      if (renderTexRes) {
+         h3dGetTextureData(renderTexRes, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
+      } else {
+         h3dGetRenderTargetData( 0, "", 0, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
       }
-   }
-   delete[] pixelsF;
 
+      // Convert to BGR8
+      pixels = new unsigned char[width * height * 3];
+      for( int y = 0; y < height; ++y )
+      {
+         for( int x = 0; x < width; ++x )
+         {
+            pixels[(y * width + x) * 3 + 0] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 2], 0.f, 1.f ) * 255.f );
+            pixels[(y * width + x) * 3 + 1] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 1], 0.f, 1.f ) * 255.f );
+            pixels[(y * width + x) * 3 + 2] = ftoi_r( clamp( pixelsF[(y * width + x) * 4 + 0], 0.f, 1.f ) * 255.f );
+         }
+      }
+      delete[] pixelsF;
+   } else {
+      unsigned char* pixelsU = new unsigned char[width * height * 4];
+
+      h3dGetTextureData(renderTexRes, 0x0, 0x0, 0x0, pixelsU, width * height * 4);
+
+      // Convert to BGR8
+      pixels = new unsigned char[width * height * 3];
+      for( int y = 0; y < height; ++y )
+      {
+         for( int x = 0; x < width; ++x )
+         {
+            pixels[((height - y - 1) * width + x) * 3 + 0] = pixelsU[(y * width + x) * 4 + 0];
+            pixels[((height - y - 1) * width + x) * 3 + 1] = pixelsU[(y * width + x) * 4 + 1];
+            pixels[((height - y - 1) * width + x) * 3 + 2] = pixelsU[(y * width + x) * 4 + 2];
+         }
+      }
+      delete[] pixelsU;
+   }
 
    std::string filename(fname);
    size_t bytesWritten = 0;

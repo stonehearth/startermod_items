@@ -39,7 +39,7 @@
          </div>
 
          <a href="#" {{action 'continueGame' target="view"}}>
-            <button id="continueGameButton" class="flat last">{{i18n stonehearth:title_screen_continue_game}}</button>
+            <button id="continueGameButton" class="flat last" title="{{i18n stonehearth:game_different_version}}" {{bind-attr class="lastSave.gameinfo.differentVersions:disabled"}}>{{i18n stonehearth:title_screen_continue_game}}</button>
          </a>         
 
          <a href="#" {{action 'newGame' target="view"}}>

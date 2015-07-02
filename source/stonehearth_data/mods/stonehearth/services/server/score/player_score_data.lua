@@ -9,7 +9,7 @@ function PlayerScoreData:initialize(player_id)
 
    -- new hotness down here
    self._sv.player_id = player_id
-   self._sv.contributing_entities = {}
+   self._sv._contributing_entities = {}
    self._sv.total_scores = {}
    self._sv.aggregate = {} 
 end
@@ -36,7 +36,7 @@ function PlayerScoreData:_remove_entity_from_score(entity)
       return
    end
    local id = entity:get_id()
-   local contrib = self._sv.contributing_entities[id]
+   local contrib = self._sv._contributing_entities[id]
    if not contrib then
       return
    end
@@ -46,7 +46,7 @@ function PlayerScoreData:_remove_entity_from_score(entity)
       end
       self:_update_aggregate(category)
    end
-   self._sv.contributing_entities[id] = nil
+   self._sv._contributing_entities[id] = nil
 end
 
 function PlayerScoreData:get_score_data()
@@ -59,7 +59,7 @@ function PlayerScoreData:change_score(entity, category_name, reason, value)
    self:_update_aggregate(entity, category_name)
 
    if not self._score_update_timer then
-      self._score_update_timer = radiant.set_realtime_timer('player score update', 5000, function()
+      self._score_update_timer = radiant.set_realtime_timer('player score update', 500, function()
             self.__saved_variables:mark_changed()
             self._score_update_timer:destroy()
             self._score_update_timer = nil
@@ -82,10 +82,10 @@ end
 
 function PlayerScoreData:_update_score(entity, category_name, reason, value)
    local id = entity:get_id()
-   local contrib = self._sv.contributing_entities[id]
+   local contrib = self._sv._contributing_entities[id]
    if not contrib then
       contrib = {}
-      self._sv.contributing_entities[id] = contrib
+      self._sv._contributing_entities[id] = contrib
    end
 
    local category = contrib[category_name]

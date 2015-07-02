@@ -14,11 +14,13 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 //
 enum SaveVersion {
    // First version!  This is the version we pushed to Steam Early access
-   ALPHA_10_5 = 0, 
+   ALPHA_10_5 = 0,
+
+   ALPHA_11 = 1, // Alpha 11!
 
    // The current save version.  Should always point to the last item in
    // the list.                    
-   CURRENT_SAVE_VERSION = ALPHA_10_5
+   CURRENT_SAVE_VERSION = ALPHA_11
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

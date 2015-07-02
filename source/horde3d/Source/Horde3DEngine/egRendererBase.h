@@ -421,6 +421,7 @@ public:
 	void setRenderBuffer(uint32 rbObj, int cubeFace=0);
 	bool getRenderBufferData( uint32 rbObj, int bufIndex, int *width, int *height,
 	                          int *compCount, void *dataBuffer, int bufferSize );
+   bool getTextureBufferData(uint32 texObj, int *width, int *height, int *compCount, void *dataBuffer, int bufferSize);
 
 	// Queries
 	uint32 createOcclusionQuery();

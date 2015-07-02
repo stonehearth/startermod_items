@@ -28,7 +28,7 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
    // reformat the save map into an array sorted by time, for the view to consume
    _formatSaves: function(saves) {
       var self = this;
-      
+
       var saveKey = App.stonehearthClient.gameState.saveKey;
       var vals = radiant.map_to_array(saves, function(k ,v) {
          v.key = k;
@@ -196,10 +196,10 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
             this.$('#overwriteSaveButton').removeClass('disabled')
             this.$('#createSaveButton').removeClass('disabled')
          } else {
-            this.$('#deleteSaveButton').addClass('disabled')
-            this.$('#loadSaveButton').addClass('disabled')
-            this.$('#overwriteSaveButton').addClass('disabled')
-            this.$('#createSaveButton').addClass('disabled')
+            this.$('#deleteSaveButton').addClass('disabled', 'disabled')
+            this.$('#loadSaveButton').addClass('disabled', 'disabled')
+            this.$('#overwriteSaveButton').addClass('disabled', 'disabled')
+            this.$('#createSaveButton').addClass('disabled', 'disabled')
          }
       }
    }.observes('controller.opInProgress'),
@@ -209,11 +209,22 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
       var saves = this.get('controller.saves');
       if (saves) {
          this.set('selectedSave', saves[0]);   
+      
+         var hasIncompatibleSave = false;
+         for (var i=0; i<saves.length; ++i) {
+            if (saves[i].differentVersions) {
+               hasIncompatibleSave = true;
+               break;
+            }
+         }
+         this.set('hasIncompatibleSave', hasIncompatibleSave);
       }
+                   
    }.observes('controller.saves'),
 
    // when the user selects a new save, manipulate the css classes so it highlights in the view
    _updateSelection: function() {
+      var self = this;
       Ember.run.scheduleOnce('afterRender', this, function() {
          // Update the UI. XXX, is there a way to do this without jquery?
          var key = this.get('selectedSave.key');
@@ -222,6 +233,17 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
          
          if (key) {
             this.$('[key=' + key + ']').addClass('selected');
+         }
+
+         var differentVersions = this.get('selectedSave.differentVersions');
+         if (differentVersions) {
+            self.$('#loadSaveButton').addClass('disabled')
+                                     .tooltipster()
+                                     .tooltipster('enable');
+         } else {
+            self.$('#loadSaveButton').removeClass('disabled')
+                                     .tooltipster()
+                                     .tooltipster('disable');
          }
       });
       
@@ -244,7 +266,7 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
       loadGame: function() {
          // isn't there a more Ember-y way to do this?
-         if (this.$('#deleteSaveButton').hasClass('disabled')) {
+         if (this.$('#loadSaveButton').hasClass('disabled')) {
             return;
          }
          var key = this.get('selectedSave.key');
@@ -331,6 +353,23 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
                }
             }
          });
+      },
+
+      deleteIncompatibleSaves: function() {
+         var self = this;
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (self.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+
+         var saves = this.get('controller.saves');
+         if (saves) {
+            radiant.each(saves, function(i, save){
+               if (save.differentVersions) {
+                  self.get("controller").send('deleteSaveGame', save.key);
+               }
+            })
+         }
       }
    },
 });
