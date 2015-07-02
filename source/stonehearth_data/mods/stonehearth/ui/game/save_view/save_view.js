@@ -227,9 +227,13 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
          var differentVersions = this.get('selectedSave.differentVersions');
          if (differentVersions) {
-            self.$('#loadSaveButton').addClass('disabled');
+            self.$('#loadSaveButton').addClass('disabled')
+                                     .tooltipster()
+                                     .tooltipster('enable');
          } else {
-            self.$('#loadSaveButton').removeClass('disabled');
+            self.$('#loadSaveButton').removeClass('disabled')
+                                     .tooltipster()
+                                     .tooltipster('disable');
          }
       });
       

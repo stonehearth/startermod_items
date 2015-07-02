@@ -12,7 +12,7 @@
          {{/unless}}
 
          <a href="#" {{action 'loadGame' target=view}}>
-            <button id="loadSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:load_game}}</button>
+            <button id="loadSaveButton" title="{{i18n stonehearth:game_different_version}}" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:load_game}}</button>
          </a>
          
          {{#unless controller.hideSave}}
