@@ -50,6 +50,7 @@
    "load_game": "Load Game",
    "loading": "Loading...",
    "game_different_version" : "incompatible save version",
+   "delete_incompatible_saves" : "Delete Incompatible Saves",
 
    "settings_title" : "Settings",
    "settings_graphics" : "Graphics",

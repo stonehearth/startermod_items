@@ -28,7 +28,7 @@ App.SaveController = Ember.Controller.extend(Ember.ViewTargetActionSupport, {
    // reformat the save map into an array sorted by time, for the view to consume
    _formatSaves: function(saves) {
       var self = this;
-      
+
       var saveKey = App.stonehearthClient.gameState.saveKey;
       var vals = radiant.map_to_array(saves, function(k ,v) {
          v.key = k;
@@ -209,7 +209,17 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
       var saves = this.get('controller.saves');
       if (saves) {
          this.set('selectedSave', saves[0]);   
+      
+         var hasIncompatibleSave = false;
+         for (var i=0; i<saves.length; ++i) {
+            if (saves[i].differentVersions) {
+               hasIncompatibleSave = true;
+               break;
+            }
+         }
+         this.set('hasIncompatibleSave', hasIncompatibleSave);
       }
+                   
    }.observes('controller.saves'),
 
    // when the user selects a new save, manipulate the css classes so it highlights in the view
@@ -343,6 +353,23 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
                }
             }
          });
+      },
+
+      deleteIncompatibleSaves: function() {
+         var self = this;
+         //XXX, need to handle validation in an ember-friendly way. No jquery
+         if (self.$('#deleteSaveButton').hasClass('disabled')) {
+            return;
+         }
+
+         var saves = this.get('controller.saves');
+         if (saves) {
+            radiant.each(saves, function(i, save){
+               if (save.differentVersions) {
+                  self.get("controller").send('deleteSaveGame', save.key);
+               }
+            })
+         }
       }
    },
 });
