@@ -500,14 +500,18 @@ DLLEXP void h3dResizePipelineBuffers( ResHandle pipeRes, int width, int height )
 	pipeResObj->resize( width, height );
 }
 
-DLLEXP bool h3dGetRenderTextureData( ResHandle texRes, int *width, int *height, int *compCount, void *dataBuffer, int bufferSize )
+DLLEXP bool h3dGetTextureData( ResHandle texRes, int *width, int *height, int *compCount, void *dataBuffer, int bufferSize )
 {
 	Resource *resObj = Modules::resMan().resolveResHandle( texRes );
-   APIFUNC_VALIDATE_RES_TYPE( resObj, ResourceTypes::Texture, "h3dGetRenderTextureData", false );
+   APIFUNC_VALIDATE_RES_TYPE( resObj, ResourceTypes::Texture, "h3dGetTextureData", false );
 
 	TextureResource *texResObj = (TextureResource *)resObj;
 
-   return gRDI->getRenderBufferData( texResObj->getRBObject(), 0, width, height, compCount, dataBuffer, bufferSize );
+   if (texResObj->getRBObject() == 0) {
+      return gRDI->getTextureBufferData(texResObj->getTexObject(), width, height, compCount, dataBuffer, bufferSize);
+   } else {
+      return gRDI->getRenderBufferData( texResObj->getRBObject(), 0, width, height, compCount, dataBuffer, bufferSize );
+   }
 }
 
 
