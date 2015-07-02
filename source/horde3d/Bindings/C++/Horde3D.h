@@ -66,6 +66,7 @@ struct H3DRendererCaps
 {
    bool HighQualityRendererSupported;
    bool ShadowsSupported;
+   bool BuggyFramebuffer;
 };
 
 

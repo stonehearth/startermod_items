@@ -293,6 +293,7 @@ void Renderer::MakeRendererResources()
    H3DRendererCaps caps;
    h3dGetCapabilities(&caps, nullptr);
 
+   _buggyFramebuffer = caps.BuggyFramebuffer;
    if (caps.HighQualityRendererSupported) {
       H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
 
@@ -1436,6 +1437,9 @@ void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
          RenderLoadingMeter();
       }
 
+      // If we're on a lousy intel driver, then don't ever try to take a screenshot.
+      screenshot = screenshot && !_buggyFramebuffer;
+
       SetStageEnable(GetPipeline(currentPipeline_), "Overlays", !screenshot);
 
       if (screenshot) {
@@ -1650,8 +1654,12 @@ void Renderer::ResizeViewport()
       h3dRemoveResource(screenshotTexRes_);
       h3dReleaseUnusedResources();
    }
-   screenshotTexRes_ = h3dCreateTexture("screenshotTexture", screenSize_.x, screenSize_.y, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
 
+   if (!_buggyFramebuffer) {
+      screenshotTexRes_ = h3dCreateTexture("screenshotTexture", screenSize_.x, screenSize_.y, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
+   } else {
+      screenshotTexRes_ = h3dAddResource(H3DResTypes::Texture, "textures/save_screenshot.jpg", H3DResFlags::NoTexMipmaps);
+   }
    // Resize viewport
    if (camera_) {
       H3DNode camera = camera_->GetNode();
