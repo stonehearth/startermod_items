@@ -291,6 +291,17 @@ function CompoundAction:stop_thinking(ai, entity, ...)
    end
 end
 
+function CompoundAction:change_entity_state(ai, entity, args, entity_state, reason)
+   -- if we're running, forward the change notification to our running frame so it
+   -- can inform it's children.  some of those may be higher priority that then current
+   -- running execution unit and need to restart thinking to make sure they preempt
+   -- only under valid conditions
+   assert(self._running_execution_frame)
+   if self._running_execution_frame then
+      self._running_execution_frame:_change_entity_state(entity_state, reason)
+   end
+end
+
 function CompoundAction:_replace_placeholders(args)
    local replaced  = {}
    for name, value in pairs(args) do
@@ -334,7 +345,9 @@ function CompoundAction:run(ai, entity, ...)
       self._ai:set_status_text(self._action.status_text)
    end   
    for _, frame in ipairs(self._execution_frames) do
+      self._running_execution_frame = frame
       frame:run()  -- must be synchronous!
+      self._running_execution_frame = nil
    end
 end
 
