@@ -79,10 +79,8 @@ function Inventory:_update_score_for_item(item)
       -- compute the score
       local score = 0
       local id = item:get_id()
-      if self._sv.items[id] then
-         score = self:_get_score_for_item(item) / 10 -- whyyyyyyyyy? -- tony
-      end
-
+      score = self:_get_score_for_item(item) / 10 -- whyyyyyyyyy? -- tony
+      
       -- add to 'edibles' and 'net_worth' categories
       local mc = item:get_component('stonehearth:material')
       if mc and (mc:is('food') or mc:is('food_container')) then
