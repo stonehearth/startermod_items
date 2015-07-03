@@ -163,6 +163,10 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
                           :set_prefix(prefix)
                           :set_entity(self._entity)
 
+   if not self._log:is_enabled(11) then
+      ExecutionFrame._spam_entity_state = radiant.nop
+   end
+
    self._log:debug('creating execution frame')
 
    self:_set_state(STOPPED)
@@ -1831,7 +1835,7 @@ function ExecutionFrame:_no_other_thread_is_running()
 end
 
 function ExecutionFrame:_spam_entity_state(state, desc)
-   if self._log:is_enabled(11) then
+   if self._log then
       local log_format = '%15s | %25s | %25s | %25s | %10s'
       self._log:spam(log_format, 'which', 'table', 'key', 'value', 'changed')
 

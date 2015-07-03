@@ -105,6 +105,9 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
    self._log = radiant.log.create_logger('ai.exec_unit')
                           :set_prefix(prefix)
                           :set_entity(self._entity)
+   if not self._log:is_enabled(11) then
+      ExecutionUnitV2._spam_entity_state = radiant.nop
+   end
 
    self._log:debug('creating execution unit')
 
@@ -1100,7 +1103,7 @@ function ExecutionUnitV2:_log_dead(priority, str, ...)
 end
 
 function ExecutionUnitV2:_spam_entity_state(state, desc)
-   if self._log and self._log:is_enabled(11) then
+   if self._log then
       local log_format = '%15s | %25s | %25s | %25s | %10s'
       self._log:spam(log_format, 'which', 'table', 'key', 'value', 'changed')
 
