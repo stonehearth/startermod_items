@@ -90,7 +90,6 @@ function new_farm(autotest, crop_x, crop_y, size_x, size_y, crop_type)
    autotest.ui:click_dom_element('#create_farm')
    autotest.ui:set_next_designation_region(crop_x, crop_y, size_x, size_y)
 
-   autotest.ui:click_dom_element('#farmWindow #addCropLink')
    autotest.ui:click_dom_element('[crop="stonehearth:crops:' .. crop_type .. '"]')
 
    autotest.ui:click_dom_element('#farmWindow .ok')
