@@ -219,7 +219,7 @@
 
          // Don't go back more than maxStackLength.  Some of these stacks are
          // insanely deep and will blow up the browser =(
-         var maxStackLength = 10;
+         var maxStackLength = 6;
 
          // Make sure we invert the stack
          for (var i = traceback.length - 1; i >= 0; i--) {
@@ -263,6 +263,7 @@
             for (var i = 0; i < lineCount + 1; i++) {
                var count = lines[i] || 0;
                functionLines[i] = {
+                  number:        startLine + i,
                   text:          fileLines[startLine + i],
                   percentTime:   (count * 100 / totalCount).toFixed(2),
                }
@@ -297,6 +298,7 @@
          this.set('line',     data.lineStart);
          this.set('lineCount',data.lineEnd - data.lineStart);
          this.set('selfTime', data.selfTime);
+         this.set('callCount', data.callCount);
          this.set('depth',    depth);
          if (data.callers) {
             for (var i = 0; i < data.callers.length; i++) {
@@ -335,6 +337,8 @@
    });
 
    Profiler.ProfViewComponent = Ember.Component.extend({
+      taskQueue: [],
+
       didInsertElement : function() {
          var self = this;
          var handleFileSelect = function(evt) {
@@ -351,11 +355,10 @@
                // Closure to capture the file information.
                reader.onload = function(e) {
                   var data = JSON.parse(e.target.result);
-                  controller.send('addJsonDump', file, data);
+                  var status = '(' + count + '/' + expected +') loading ' + file.name
+                  controller.send('addJsonDump', status, file, data);
                   count = count + 1
-                  console.log('(' + count + '/' + expected +') loading ' + file.name);
                   if (count == expected) {
-                     console.log('creating bottom up nodes...');
                      controller.send('createBottomUpNodes');
                      console.log('done!');
                   }
@@ -367,18 +370,56 @@
          this._showPage('#bottomup');
       },
 
+      _scheduleQueue: function(status, fn) {
+         var self = this;
+         this.set('status', this.taskQueue[0].status)
+         console.log('creating 1st render hook')
+         setTimeout(function() { self._processQueue(); }, 10);
+      },
+
+      _enqueueTask: function(status, fn) {
+         console.log('adding task to queue', this.taskQueue.length)
+
+         this.taskQueue.push({
+            status: status,
+            fn:     fn,
+         });
+
+         if (this.taskQueue.length == 1) {
+            this._scheduleQueue();
+         }
+      },
+
+      _processQueue: function() {
+         var self = this;
+
+         this.taskQueue.shift().fn();
+
+         if (this.taskQueue.length > 0) {
+            this._scheduleQueue();
+         } else {
+            this.set('status', 'done');
+         }
+      },
+
       _showPage: function(page) {
          this.$('.page').hide();
          this.$(page).show();
       },
 
       actions: {
-         addJsonDump: function(filename, data) {
-            this.get('data').addJsonDump(data);
+         addJsonDump: function(status, filename, data) {
+            var self = this;
+            self._enqueueTask(status, function() {
+               self.get('data').addJsonDump(data);
+            });
          },
          createBottomUpNodes: function(data) {
-            this.get('data').createBottomUpNodes();
-            this.set('totalTime', totalTime);
+            var self = this;
+            self._enqueueTask('creating bottom up nodes', function() {
+               self.get('data').createBottomUpNodes();
+               self.set('totalTime', totalTime);
+            });
          },
          selectPage: function(page) {
             this._showPage(page);
@@ -407,6 +448,13 @@
       }
    });
 
+   Profiler.PercentBarComponent = Ember.Component.extend({
+      style: function() {
+         //return ('width: ' + self.percentTime).htmlSafe();
+         return ('width: ' + this.get('node.percentTime')).htmlSafe();
+      }.property('node.percentTime'),
+   });
+
    // Make sure we don't stick a <div> around these, since they're making
    // table rows.
    Profiler.BottomUpTracebackComponent = Ember.Component.extend({
@@ -432,7 +480,7 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/percent-bar'>
-   <div id="progress" class="graph"><div id="bar" style="width:{{ node.percentTime }}%"><p>{{ node.percentTime }}%</p></div></div>
+   <div id="progress" class="graph"><div id="bar" style={{ this.style }}><p>{{ node.percentTime }}%</p></div></div>
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/top-down'>
@@ -494,6 +542,7 @@
       {{#each bnode.file key="@index" as |line|}}
       <tr>
          <td style="min-width:100px">{{ percent-bar node=line }}</td>
+         <td><pre>line {{ line.number }}</pre></td>
          <td><pre>{{ line.text }}</pre></td>
       </tr>
       {{/each}}
@@ -501,6 +550,7 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/prof-view'>
+   <div id='status'>{{status}}</div>
    {{input type="file" id="files" name="stuff" multiple=true style="width:500px;"}}
    <ul>
       <li {{ action "selectPage" "#bottomup" }}>Bottom-up</li>
@@ -517,6 +567,6 @@
    </div>
 </script>
  
- <script type="text/x-handlebars" data-template-name='data'>
+<script type="text/x-handlebars" data-template-name='data'>
    {{prof-view data=content}}
 </script>
