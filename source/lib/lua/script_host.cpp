@@ -283,21 +283,14 @@ void ScriptHost::ProfileSampleHookFn(lua_State *L, lua_Debug *ar)
 
 void ScriptHost::ProfileHook(lua_State *L, lua_Debug *ar)
 {
-   perfmon::CounterValueType now = perfmon::Timer::GetCurrentCounterValueType();
-   if (_lastHookL == L) {
-      int count = 0;
-      res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
-      perfmon::CounterValueType selfTime = now - _lastHookTimestamp;
-      
-      _profilerDuration += perfmon::CounterToMilliseconds(selfTime * 1000);
-      _profilerSampleCounts++;
+   res::ResourceManager2& rm = res::ResourceManager2::GetInstance();
+   
+   ++_profilerDuration;
+   ++_profilerSampleCounts;
 
-      AddStackToProfile(L, ar, selfTime);
-   }
-   _lastHookL = L;
-   _lastHookTimestamp = now;
+   AddStackToProfile(L, ar, 1);
 
-   if (perfmon::Timer::GetCurrentTimeMs () - _cpuProfileStart >= max_profile_length_) {
+   if (perfmon::Timer::GetCurrentTimeMs() - _cpuProfileStart >= max_profile_length_) {
       StopCpuProfiling(true);
    }
 }
@@ -395,7 +388,7 @@ ScriptHost::ScriptHost(std::string const& site) :
    bool enableCpuProfiler = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
    max_profile_length_ = (unsigned int)core::Config::GetInstance().Get<int>("lua.max_profile_length", 999999999);
    if (enableCpuProfiler) {
-      std::string method = core::Config::GetInstance().Get<std::string>("lua.cpu_profiler_method", "");
+      std::string method = core::Config::GetInstance().Get<std::string>("lua.cpu_profiler_method", "time_accumulation");
       if (method == "time_accumulation") {
          LUA_LOG(0) << "using time accmulation lua profiler";
          _cpuProfileMethod = CpuProfilerMethod::TimeAccumulation;
@@ -403,8 +396,7 @@ ScriptHost::ScriptHost(std::string const& site) :
          LUA_LOG(0) << "using sampling lua profiler";
          _cpuProfileMethod = CpuProfilerMethod::Sampling;
       }
-      _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_rate", 15000);
-      _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1000);
+      _cpuProfileInstructionSamplingRate = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_rate", 10000);
    }
    std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
 
@@ -1475,7 +1467,7 @@ void ScriptHost::StartCpuProfiling(CpuProfilerMethod method, int samplingTime)
       }
    }
    if (_cpuProfileInstructionSamplingTime <= 0) {
-      _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1000);
+      _cpuProfileInstructionSamplingTime = core::Config::GetInstance().Get<int>("lua.profiler_instruction_sampling_time", 1);
    }
 
    ResetProfileData();
@@ -1491,8 +1483,7 @@ void ScriptHost::InstallProfileHook(lua_State* L)
    if (_cpuProfileMethod == CpuProfilerMethod::TimeAccumulation) {
       lua_sethook(L, ScriptHost::ProfileHookFn, LUA_MASKCOUNT, _cpuProfileInstructionSamplingRate);
    } else if (_cpuProfileMethod == CpuProfilerMethod::Sampling) {
-      int samples = (int)((_cpuProfileInstructionSamplingTime * radiant::perfmon::Timer::GetHPCFrequency()) / 1000000);
-      lua_sethook(L, ScriptHost::ProfileSampleHookFn, LUA_MASKSAMPLEPROFILE, samples);
+      lua_sethook(L, ScriptHost::ProfileSampleHookFn, LUA_MASKSAMPLEPROFILE, _cpuProfileInstructionSamplingTime);
    }
 }
 
