@@ -1,12 +1,19 @@
+local csg_lib = require 'lib.csg.csg_lib'
+local Point3 = _radiant.csg.Point3
+local Mob = _radiant.om.Mob
+local Transform = _radiant.csg.Transform
+local log = radiant.log.create_logger('physics')
 
 local PhysicsService = class()
-local Mob = _radiant.om.Mob
 
-local Point3 = _radiant.csg.Point3
-local Transform = _radiant.csg.Transform
-local Quaternion = _radiant.csg.Quaternion
-
-local log = radiant.log.create_logger('physics')
+function PhysicsService:__init()
+   self._stuckable_collision_types = {
+      [Mob.TINY] = true,
+      [Mob.HUMANOID] = true,
+      [Mob.TITAN] = true,
+      [Mob.CLUTTER] = true,
+   }
+end
 
 function PhysicsService:initialize()
    self._sv = self.__saved_variables:get_data() 
@@ -17,16 +24,18 @@ function PhysicsService:initialize()
    end
    self._dirty_tiles = {}
 
-   radiant.events.listen(radiant, 'radiant:gameloop:start', self, self._update)   
-   radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
-         local entity = e.entity
-         self._sv.new_entities[entity:get_id()] = entity
-      end)
-   self._guard = _physics:add_notify_dirty_tile_fn(function(pt)
+   self._gameloop_trace = radiant.events.listen(radiant, 'radiant:gameloop:start', self, self._update)   
+
+   local entity_container = self:_get_root_entity_container()
+   self._entity_container_trace = entity_container:trace_children('physics service')
+      :on_added(function(id, entity)
+            self._sv.new_entities[id] = entity
+         end)
+
+   self._dirty_tile_guard = _physics:add_notify_dirty_tile_fn(function(pt)
          self._dirty_tiles[pt:key_value()] = pt
       end)
 end
-
 
 function PhysicsService:_update()
    self:_process_new_entities()
@@ -56,43 +65,123 @@ function PhysicsService:_update_dirty_tiles()
 end
 
 function PhysicsService:_unstick_entity(entity)
+   if not self:_is_stuck(entity) then
+      return
+   end
+
+   log:debug('unsticking %s', entity)
+
+   local mob = entity:get_component('mob')
+   local collision_type = mob:get_mob_collision_type()
+
+   if collision_type == Mob.CLUTTER then
+      log:debug('destroying %s', entity)
+      radiant.entities.destroy_entity(entity)
+      return
+   end
+
+   local current = mob:get_world_grid_location()
+   local valid = _physics:get_standable_point(entity, current)
+
+   if current.y < valid.y then
+      self:_bump_to_standable_location(entity)
+   elseif current.y > valid.y then
+      self:_set_free_motion(entity)
+   end
+end
+
+function PhysicsService:_is_stuck(entity)
    local mob = entity:get_component('mob')
    if not mob or mob:get_in_free_motion() or mob:get_ignore_gravity() then
-      return
+      return false
    end
 
    local parent = mob:get_parent()
    if parent and parent:get_id() ~= 1 then
       -- only unstick entities that are children (not descendants) of the root entity
-      return
+      return false
    end
 
-   local current = radiant.entities.get_world_location(entity)
+   local current = mob:get_world_grid_location()
    if not current then
-      return
+      return false
    end
-   
-   log:debug('unsticking %s', entity)
-   
+
    local collision_type = mob:get_mob_collision_type()
-   if collision_type == Mob.TINY or
-      collision_type == Mob.HUMANOID or
-      collision_type == Mob.TITAN then
+
+   if self._stuckable_collision_types[collision_type] then
       local valid = _physics:get_standable_point(entity, current)
-      if current.y < valid.y then
-         local dy = valid.y - current.y
-         local location = mob:get_location() + Point3(0, dy, 0)
-         log:debug('popping %s up to %s', entity, location)
-         mob:move_to(location)
-      elseif current.y > valid.y then
-         log:debug('putting %s into free motion', entity)
-         mob:set_in_free_motion(true)
-         mob:set_velocity(Transform())
-         self._sv.in_motion_entities[entity:get_id()] = entity
-      end
-   elseif collision_type == Mob.CLUTTER then
-      radiant.entities.destroy_entity(entity)
+      local result = current ~= valid
+      return result
    end
+
+   return false
+end
+
+function PhysicsService:_bump_to_standable_location(entity)
+   local mob = entity:add_component('mob')
+   local current = mob:get_world_location()
+   local current_grid_location = current:to_closest_int()
+   local candidates = {}
+   local radius = 1
+
+   -- prioritize bumps to the same elevation, then up, then down
+   local get_score_penalty = function(current, candidate)
+         local current_y = current.y
+         local candidate_y = candidate.y
+
+         if current_y == candidate_y then
+            return 0.0
+         end
+
+         if current_y > candidate_y then
+            return 0.5
+         end
+
+         -- current_y < candidate_y
+         return 1.0
+      end
+
+   local get_candidate = function(location)
+         local candidate = _physics:get_standable_point(entity, location)
+         -- note that this uses the non-grid-aligned location, so it will favor
+         -- some directions, which is what we want
+         local distance = current:distance_to(candidate)
+         local score_penalty = get_score_penalty(current, candidate)
+         local score = distance + score_penalty
+         local entry = {
+            location = candidate,
+            score = score
+         }
+         return entry
+      end
+
+   -- could be faster with an early exit or multi-radius search, but unstick doesn't run very often
+   for j = -radius, radius do
+      for i = -radius, radius do
+         local direction = Point3(i, 0, j)
+         local entry = get_candidate(current_grid_location + direction)
+         table.insert(candidates, entry)
+      end
+   end
+
+   table.sort(candidates, function(a, b)
+         return a.score < b.score
+      end)
+
+   -- pick the candidate with the lowest score
+   local selected = candidates[1].location
+
+   log:debug('bumping %s to %s', entity, selected)
+   mob:move_to(selected)
+end
+
+function PhysicsService:_set_free_motion(entity)
+   log:debug('putting %s into free motion', entity)
+   local mob = entity:add_component('mob')
+   mob:set_in_free_motion(true)
+   mob:set_velocity(Transform())
+   self._sv.in_motion_entities[entity:get_id()] = entity
 end
 
 function PhysicsService:_update_in_motion_entities()
@@ -154,6 +243,10 @@ function PhysicsService:_move_entity(entity)
    mob:set_transform(nxt);
 
    return mob:get_in_free_motion()
+end
+
+function PhysicsService:_get_root_entity_container()
+   return radiant._root_entity:add_component('entity_container')
 end
 
 return PhysicsService
