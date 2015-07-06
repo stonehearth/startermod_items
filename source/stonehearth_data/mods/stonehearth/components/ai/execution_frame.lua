@@ -174,7 +174,11 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self:_create_execution_units()
 
    if activity_name == 'stonehearth:top' then
-      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+      -- at the time the carry block changes, there may be actions which are JUST about to finish thinking
+      -- which should not be allowed to run now that our carrying has changed.  to make sure they don't
+      -- start with the wrong information, listen to the synchronous carry_changed message to notify them
+      -- of the new entite state RIGHT RIGHT RIGHT now.  - tony
+      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed:sync', self, self._on_carrying_changed)
       self._position_trace = radiant.entities.trace_location(self._entity, 'top frame position trace')
                                                 :on_changed(function()
                                                    self:_on_position_changed()
