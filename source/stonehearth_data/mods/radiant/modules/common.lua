@@ -234,7 +234,9 @@ function radiant.error(...)
 end
 
 function radiant.assert(v, ...)
-   assert(v, string.format(...))
+   if not v then
+      error('assertion failed: ', string.format(...), 2)
+   end
 end
 
 function radiant.create_controller(...)
