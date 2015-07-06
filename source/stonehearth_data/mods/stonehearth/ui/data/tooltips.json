@@ -88,7 +88,7 @@
          "score" : "net_worth",
          "display_name" : "Net Worth",
          "town_description" : "The gold value of everything in the town's inventory.",
-         "description" : "The gold value of everything in the town's inventory."
+         "description" : "A score based on the value of everything in the town's inventory."
       },
       {
          "score" : "edibles",
