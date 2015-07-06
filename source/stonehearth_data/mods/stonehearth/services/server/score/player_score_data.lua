@@ -56,7 +56,10 @@ end
 -- new hotness down here
 function PlayerScoreData:change_score(entity, category_name, reason, value)
    self:_update_score(entity, category_name, reason, value)
-   self:_update_aggregate(entity, category_name)
+
+   if reason == "score component" then
+      self:_update_aggregate(entity, category_name)
+   end
 
    if not self._score_update_timer then
       self._score_update_timer = radiant.set_realtime_timer('player score update', 500, function()
