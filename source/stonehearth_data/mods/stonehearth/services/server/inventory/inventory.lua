@@ -284,9 +284,7 @@ function Inventory:remove_item(item_id)
       radiant.events.trigger(self, 'stonehearth:inventory:item_removed', { item_id = item_id })
       self.__saved_variables:mark_changed()
 
-      if self._sv.public_storage_is_full then
-         self:_set_public_storage_is_full(false)
-      end
+      self:_check_public_storage_space()
    end
 end
 
