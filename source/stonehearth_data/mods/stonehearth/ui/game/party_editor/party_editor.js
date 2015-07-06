@@ -86,7 +86,8 @@ App.StonehearthPartyMemberRowView = App.View.extend({
    didInsertElement: function() {
       var self = this;  
       this._super();
-      self.$().click(function() {
+      self.$(".selectable_party_row").click(function() {
+
          radiant.call('stonehearth:camera_look_at_entity', self.uri);
          radiant.call('stonehearth:select_entity', self.uri);
       });
@@ -164,7 +165,8 @@ App.StonehearthPartyEditorEditRosterRowView = App.View.extend({
          self.$().show();
       }
 
-      self.$().click(function() {
+      self.$(".selectable_party_row").click(function() {
+
          radiant.call('stonehearth:camera_look_at_entity', self.uri)
          radiant.call('stonehearth:select_entity', self.uri);
       });

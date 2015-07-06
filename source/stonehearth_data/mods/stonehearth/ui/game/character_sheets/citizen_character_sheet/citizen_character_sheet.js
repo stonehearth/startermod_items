@@ -265,7 +265,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       });
 
       self.$('#glass > div').each(function() {
-         self._showBuffEffects(this, buffsByAttribute);
+         self._showBuffEffects(this, buffsByAttribute, true);
       }); 
 
       var healthPercent = Math.floor(self.get('model.stonehearth:attributes.attributes.health.user_visible_value') * 100 / self.get('model.stonehearth:attributes.attributes.max_health.user_visible_value'))

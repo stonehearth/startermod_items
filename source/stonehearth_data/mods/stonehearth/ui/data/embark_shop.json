@@ -13,21 +13,21 @@
          "uri" : "stonehearth:farmer:talisman",
          "icon" : "/stonehearth/jobs/farmer/farmer_hoe/farmer_hoe.png",
          "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.",
-         "cost": 100
+         "cost": 50
       },
       {
          "display_name" : "Footman's Sword",
          "uri" : "stonehearth:footman:wooden_sword_talisman",
          "icon" : "/stonehearth/entities/weapons/wooden_sword/wooden_sword.png",
          "description" : "The Footman is a melee fighter. A good choice for the backbone of your town's defense.",
-         "cost": 100
+         "cost": 50
       },
       {
          "display_name" : "Weaver's Spindle",
          "uri" : "stonehearth:weaver:talisman",
          "icon" : "/stonehearth/jobs/weaver/weaver_spindle/weaver_spindle.png",
          "description" : "The Weaver makes thread, fabrics and hangings from fiber and dye.",
-         "cost": 100
+         "cost": 50
       },
       {
          "display_name" : "Pet Kitten",

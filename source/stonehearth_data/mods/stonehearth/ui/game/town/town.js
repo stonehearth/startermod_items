@@ -222,12 +222,12 @@ App.StonehearthTownView = App.View.extend({
       if (!netWorthValue) {
          netWorthValue = 0;
       }
-      self.set('net_worth', Math.round(netWorthValue));
+      self.set('net_worth', netWorthValue);
       var ediblesValue = self.get('context.score_data.total_scores.edibles');
       if (!ediblesValue) {
          ediblesValue = 0;
       }
-      self.set('edibles', Math.round(ediblesValue));
+      self.set('edibles', ediblesValue);
       
    },
 
