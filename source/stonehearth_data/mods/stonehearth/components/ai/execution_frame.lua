@@ -295,9 +295,9 @@ end
 -- variable to describe the new world to the caller
 --
 function ExecutionFrame:_copy_entity_state_from_upstream(upstream_state)
-   self:_spam_entity_state(upstream_state, 'new upstream state!')
    self._upstream_state = self:_clone_entity_state('new upstream state', upstream_state)
    self._speculative_state = upstream_state
+   self:_spam_entity_state(upstream_state, 'new upstream state!')
 end
 
 function ExecutionFrame:_start()
@@ -1573,7 +1573,7 @@ function ExecutionFrame:_clone_entity_state(name, source)
    cloned.carrying_changed = source.carrying_changed
 
    self._log:spam('cloning entity state (%s)', tostring(source))
-   self:_spam_entity_state(cloned, name)
+   --self:_spam_entity_state(cloned, name)
 
    return cloned
 end
@@ -1840,21 +1840,33 @@ end
 
 function ExecutionFrame:_spam_entity_state(state, desc)
    if self._log then
-      local log_format = '%15s | %25s | %25s | %25s | %10s'
-      self._log:spam(log_format, 'which', 'table', 'key', 'value', 'changed')
-
+      local log_format = '%25s | %25s | %25s | %25s | %10s'
+      self._log:spam(log_format, 'which', 'table', 'carrying', 'location', 'changed')
+      self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
       local speculative = self._current_speculation_state
       local function log_state(state, desc)
-         self._log:spam(log_format, desc, tostring(state), 'location', state and tostring(state.location) or '', state and tostring(state.location_changed) or '')
-         self._log:spam(log_format, desc, tostring(state), 'carrying', state and tostring(state.carrying) or '', state and tostring(state.carrying_changed) or '')
+         if state then
+            local changed = ''
+            if state.location_changed then
+               changed = changed .. ' location' 
+            end
+            if state.carrying_changed then
+               changed = changed .. ' carrying' 
+            end
+            self._log:spam(log_format, desc, tostring(state), tostring(state.location), tostring(state.carrying), changed)
+         else
+            self._log:spam(log_format, desc, 'nil', '', '', '')
+         end
       end
       if desc then
          log_state(state, desc)
       end
-      self._log:spam(log_format, 'actual', 'location', '', tostring(radiant.entities.get_world_grid_location(self._entity)), '')
-      self._log:spam(log_format, 'actual', 'carrying', '', tostring(radiant.entities.get_carrying(self._entity)), '')
+      local actual_location = tostring(radiant.entities.get_world_grid_location(self._entity))
+      local actual_carrying = tostring(radiant.entities.get_carrying(self._entity))
       log_state(self._upstream_state,     'upstream')
       log_state(self._speculative_state,  'speculative')
+      self._log:spam(log_format, 'actual', '', actual_location, actual_carrying, '')
+      self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
    end
 end
 
