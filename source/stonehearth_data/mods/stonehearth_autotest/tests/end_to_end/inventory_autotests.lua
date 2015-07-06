@@ -3,8 +3,6 @@ local Point3 = _radiant.csg.Point3
 local inventory_tests = {}
 
 local function check_tracker_contents(autotest, name, contents)
-   autotest:sleep(1)
-
    local tracking_data = stonehearth.inventory:get_inventory('player_1')
                                                    :get_item_tracker(name)
                                                       :get_tracking_data()
@@ -91,5 +89,33 @@ function inventory_tests.placeable_entities(autotest)
       })
    autotest:success()
 end
+
+--[[ busted!
+function inventory_tests.placeable_removed_when_placed(autotest)
+   local worker = autotest.env:create_person(8, 8, { job = 'worker' })
+   local bed = autotest.env:create_entity(10, 10, 'stonehearth:furniture:comfy_bed')
+   local iconic_bed = bed:get_component('stonehearth:entity_forms')
+                                 :get_iconic_entity()
+   local iconic_uri = iconic_bed:get_uri()
+
+   check_tracker_contents(autotest, 'stonehearth:basic_inventory_tracker', {
+         [iconic_uri] = { count = 1 },
+      })
+
+   radiant.events.listen_once(worker, 'stonehearth:carry_block:carrying_changed', function()
+         -- pickup should have taken it out of the placement tracker, since its
+         -- parent became nil
+         check_tracker_contents(autotest, 'stonehearth:placeable_item_inventory_tracker', {
+            })
+         autotest:success()
+      end)
+
+   autotest.ui:push_unitframe_command_button(iconic_bed, 'place_item')
+   autotest.ui:click_terrain(0, 0)
+
+   autotest:sleep(10000)
+   autotest:fail()
+end
+]]
 
 return inventory_tests
