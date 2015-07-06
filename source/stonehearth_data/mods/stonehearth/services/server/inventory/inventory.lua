@@ -231,7 +231,7 @@ end
 
 --- Call whenever a stockpile wants to tell the inventory that we're adding an item
 function Inventory:add_item(item, storage)
-   self:_check_entity_forms_of_new_item(item)
+   -- self:_check_entity_forms_of_new_item(item)
 
    local id = item:get_id()
    local items = self._sv.items
