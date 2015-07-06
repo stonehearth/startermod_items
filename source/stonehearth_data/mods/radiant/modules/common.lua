@@ -233,6 +233,10 @@ function radiant.error(...)
    error(string.format(...), 2)
 end
 
+function radiant.assert(v, ...)
+   assert(v, string.format(...))
+end
+
 function radiant.create_controller(...)
    local args = { ... }
    local name = args[1]
