@@ -98,6 +98,7 @@ end
 ---[[
 --Autotest for move workshop
 function carpenter_tests.move_workshop(autotest)
+   local stockpile = autotest.env:create_stockpile(-10, -10, { size = { x = 5, y = 5 }})
    local carpenter = autotest.env:create_person(2, 2, { job = 'carpenter' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:resources:wood:oak_log')
    autotest:sleep(500)
