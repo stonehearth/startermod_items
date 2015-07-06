@@ -139,7 +139,7 @@ function env.create_entity(x, z, uri, options)
    
    -- add the right form to the environment
    local inventory = stonehearth.inventory:get_inventory(radiant.entities.get_player_id(entity))
-   if inventory then
+   if inventory and not inventory:container_for(entity) then
       local placed_entity = entity
       if place_options.force_iconic == nil or place_options.force_iconic then
          local root, iconic, ghost = entity_forms_lib.get_forms(entity)
