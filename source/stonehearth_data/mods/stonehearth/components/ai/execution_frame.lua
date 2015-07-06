@@ -278,7 +278,11 @@ function ExecutionFrame:_change_entity_state(entity_state, debug_reason)
    self:_copy_entity_state_from_upstream(entity_state)
 
    for _, unit in pairs(self._execution_units) do
-      unit:_change_entity_state(entity_state, debug_reason)
+      -- as with restart thinking, when we change the state of an execution unit
+      -- we need to make sure each one has its own copy of the state back to prevent
+      -- cross-unit state leakage.
+      local state = self:_clone_entity_state('fast think state')
+      unit:_change_entity_state(state, debug_reason)
    end
 end
 
