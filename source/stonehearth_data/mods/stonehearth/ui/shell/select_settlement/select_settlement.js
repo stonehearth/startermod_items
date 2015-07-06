@@ -60,9 +60,22 @@ App.StonehearthSelectSettlementView = App.View.extend({
 
       // World Seed
       new StonehearthInputHelper(this.$('#worldSeedInput'), function (value) {
+            var worldSeed = self.get('world_seed');
+            if (self.$("#regenerateButton").hasClass('disabled')) {
+               self.$('#worldSeedInput').val(worldSeed);
+               return;
+            }
             var seed = parseInt(value);
-            if (seed != NaN) {
+            if (isNaN(seed)) {
+               self.$('#worldSeedInput').val(worldSeed);
+               return;
+            }
+
+            if (seed != worldSeed) {
+               self.$('#map').hide();
+               self.$('#map').stonehearthMap('suspend');
                self._newGame(seed ,function(e) {
+                  self.$('#map').show();
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
                   self.$('#map').stonehearthMap('setMap', e.map);
                   self.$('#map').stonehearthMap('resume');
@@ -113,6 +126,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
       self.set('world_seed', seed);
 
       self.$("#regenerateButton").addClass('disabled');
+      self.$('#worldSeedInput').attr('disabled', 'disabled');
 
       radiant.call_obj('stonehearth.game_creation', 'new_game_command', 12, 8, seed, self.options)
          .done(function(e) {
@@ -124,6 +138,7 @@ App.StonehearthSelectSettlementView = App.View.extend({
          })
          .always(function() {
             self.$("#regenerateButton").removeClass('disabled');
+            self.$('#worldSeedInput').removeAttr('disabled');
          });
    },
 
