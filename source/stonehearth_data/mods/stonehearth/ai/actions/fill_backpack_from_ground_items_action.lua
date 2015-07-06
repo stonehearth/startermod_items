@@ -62,37 +62,48 @@ local function pickup_item_off_ground_filter(item, player_id)
 end
 
 function FillBackpackFromGroundItems:start_thinking(ai, entity, args)
+   self._inventory = stonehearth.inventory:get_inventory(entity)
+   self._ai = ai
+   self._args = args
+   self._entity = entity
+   self._ready = false
+
    local player_id = tostring(radiant.entities.get_player_id(entity))
    local key = 'player_id+' .. player_id
-   local filter_fn = ALL_FILTER_FNS[key]
-   if not filter_fn then
-      filter_fn = function(item)
+   self._filter_fn = ALL_FILTER_FNS[key]
+   if not self._filter_fn then
+      self._filter_fn = function(item)
          return pickup_item_off_ground_filter(item, player_id)
       end
-      ALL_FILTER_FNS[key] = filter_fn
+      ALL_FILTER_FNS[key] = self._filter_fn
    end
-   ai:set_think_output({
-         filter_fn = filter_fn,
-         description = args.description,
-      })
-end   
 
-function FillBackpackFromGroundItems:start(ai, entity, args)
-   self._inventory = stonehearth.inventory:get_inventory(entity)
-   if self._inventory then
-      self._ai = ai
-      self._listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:public_storage_full_changed', self, self._on_space_changed)
-   end
+   self._listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:public_storage_full_changed', self, self._on_space_changed)
+   self:_on_space_changed()
 end
+
 
 function FillBackpackFromGroundItems:_on_space_changed()
-   local full = self._inventory:public_storage_is_full()
-   if full then
-      self._ai:abort('out of storage space')
+   if self._ready or self._inventory:public_storage_is_full() then
+      return
    end
+
+   self._ready = true
+   self._ai:set_think_output({
+         filter_fn = self._filter_fn,
+         description = self._args.description,
+      })
 end
 
-function FillBackpackFromGroundItems:stop(ai, entity, args)
+function FillBackpackFromGroundItems:stop_thinking(ai, entity, args)
+   self:_destroy_listeners()
+end
+
+function FillBackpackFromGroundItems:destroy()
+   self:_destroy_listeners()
+end
+
+function FillBackpackFromGroundItems:_destroy_listeners()
    if self._listener then
       self._listener:destroy()
       self._listener = nil
