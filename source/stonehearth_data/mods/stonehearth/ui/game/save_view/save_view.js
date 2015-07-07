@@ -191,15 +191,15 @@ App.SaveView = App.View.extend(Ember.ViewTargetActionSupport, {
 
       if (this.$()) {
          if (enabled) {
-            this.$('#deleteSaveButton').removeClass('disabled')
-            this.$('#loadSaveButton').removeClass('disabled')
-            this.$('#overwriteSaveButton').removeClass('disabled')
-            this.$('#createSaveButton').removeClass('disabled')
+            this.$('#deleteSaveButton').removeClass('disabled');
+            this.$('#loadSaveButton').removeClass('disabled');
+            this.$('#overwriteSaveButton').removeClass('disabled');
+            this.$('#createSaveButton').removeClass('disabled');
          } else {
-            this.$('#deleteSaveButton').addClass('disabled', 'disabled')
-            this.$('#loadSaveButton').addClass('disabled', 'disabled')
-            this.$('#overwriteSaveButton').addClass('disabled', 'disabled')
-            this.$('#createSaveButton').addClass('disabled', 'disabled')
+            this.$('#deleteSaveButton').addClass('disabled');
+            this.$('#loadSaveButton').addClass('disabled');
+            this.$('#overwriteSaveButton').addClass('disabled');
+            this.$('#createSaveButton').addClass('disabled');
          }
       }
    }.observes('controller.opInProgress'),
