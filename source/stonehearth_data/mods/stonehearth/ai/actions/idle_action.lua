@@ -17,7 +17,13 @@ function Idle:run(ai, entity, args)
    while true do
       local delay = rng:get_int(1, 2)
 
-      if radiant.entities.is_carrying(entity) then
+      local carrying = radiant.entities.is_carrying(entity)
+      if not carrying then
+         local backpack = entity:get_component('stonehearth:storage')
+         local carrying = backpack and not backpack:is_empty()
+      end
+
+      if carrying then
          -- we usually only end up carrying something while idling when some
          -- unexpected circumstance caused an action to exit early (e.g. deleting
          -- a stockpile while someone is carrying an item to it).  there might not
@@ -30,14 +36,6 @@ function Idle:run(ai, entity, args)
 
       for i = 1, delay do
          ai:execute('stonehearth:idle:breathe')
-      end
-
-      if radiant.entities.is_carrying(entity) then
-         -- still carrying?  we must be doomed!  go ahead and drop it.
-         if not args.hold_position then
-            ai:execute('stonehearth:wander_within_leash', { radius = 3 })
-         end
-         ai:execute('stonehearth:drop_carrying_now')
       end
       ai:execute('stonehearth:idle:bored', {
             hold_position = args.hold_position
