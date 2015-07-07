@@ -191,7 +191,7 @@
          }
       },
       "stonehearth:material" : {
-         "tags" : "meat"
+         "tags" : "meat human"
       },
       "stonehearth:carry_block" : {
       },

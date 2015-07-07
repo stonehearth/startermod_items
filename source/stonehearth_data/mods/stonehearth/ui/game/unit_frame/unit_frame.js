@@ -1,17 +1,17 @@
  $(document).ready(function(){      
-      $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
-        if (!App.gameView) {
-          return;
-        }
-        var unitFrame = App.gameView.getView(App.StonehearthUnitFrameView);
-        if (unitFrame) {
-          unitFrame.set('uri', data.selected_entity);  
-        }
-      });
-  });
+   $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
+      if (!App.gameView) {
+         return;
+      }
+      var unitFrame = App.gameView.getView(App.StonehearthUnitFrameView);
+      if (unitFrame) {
+         unitFrame.set('uri', data.selected_entity);  
+      }
+   });
+});
 
 App.StonehearthUnitFrameView = App.View.extend({
-	templateName: 'unitFrame',
+   templateName: 'unitFrame',
 
    components: {
       "stonehearth:commands": {
@@ -38,9 +38,9 @@ App.StonehearthUnitFrameView = App.View.extend({
       var self = this;
       var selectedEntity = this.get('uri');
       if (App.getGameMode() == 'normal' && selectedEntity) {
-        this.set('visible', true);
+         this.set('visible', true);
       } else {
-        this.set('visible', false);
+         this.set('visible', false);
       }
    },
 
@@ -49,20 +49,20 @@ App.StonehearthUnitFrameView = App.View.extend({
    },
 
    buffs: function() {
-        var vals = [];
-        var attributeMap = this.get('context.stonehearth:buffs.buffs');
-        
-        if (attributeMap) {
-           radiant.each(attributeMap, function(k ,v) {
-              //only push public buffs (buffs who have an is_private unset or false)
-              if (v.invisible_to_player == undefined || !v.invisible_to_player) {
-                 vals.push(v);
-              }
-           });
-        }
+      var vals = [];
+      var attributeMap = this.get('context.stonehearth:buffs.buffs');
 
-        this.set('context.buffs', vals);
-    }.observes('context.stonehearth:buffs'),
+      if (attributeMap) {
+         radiant.each(attributeMap, function(k ,v) {
+            //only push public buffs (buffs who have an is_private unset or false)
+            if (v.invisible_to_player == undefined || !v.invisible_to_player) {
+               vals.push(v);
+            }
+         });
+      }
+
+      this.set('context.buffs', vals);
+   }.observes('context.stonehearth:buffs'),
 
    didInsertElement: function() {
       var self = this;
@@ -71,79 +71,76 @@ App.StonehearthUnitFrameView = App.View.extend({
       self.$("#portrait").tooltipster();
 
       this.$('#unitFrame #buffs').find('.item').each(function() {
-        $(this).tooltipster({
+          $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
-                       '<div class=description>' + $(this).attr('description') + '</div>')
+             '<div class=description>' + $(this).attr('description') + '</div>')
          });
       });
 
       this.$('#unitFrame #commandButtons').find('[title]').each(function() {
-        $(this).tooltipster({
-            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
-                       '<div class=description>' + $(this).attr('description') + '</div>')
+         $(this).tooltipster({
+         content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+          '<div class=description>' + $(this).attr('description') + '</div>')
          });
       });
 
       this.$('.name').click(function() {
-          radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
-        });
+        radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
+      });
 
       this.$('#portrait').click(function (){
          App.stonehearthClient.showCharacterSheet(self.get('uri')); 
       });
 
-
       this._updateCommandButtons();
    },
 
    _updateCommandButtons: function() {
-      if (this.$()) {
-        var commands = this.get('context.stonehearth:commands.commands');
-        if (!commands || commands.length == 0 ) {
-          this.$('#commandButtons').hide();
-        } else {
-          this.$('#commandButtons').show();
-        }
+      if (!this.$()) {
+         return;
+      }
+      var commands = this.get('context.stonehearth:commands.commands');
+      if (!commands || commands.length == 0 ) {
+         this.$('#commandButtons').hide();
+      } else {
+         this.$('#commandButtons').show();
       }
    }.observes('context.stonehearth:commands.commands'),
 
-   _jobObserver: function() {
-
-      Ember.run.scheduleOnce('afterRender', this, '_updatePortrait');
-   }.observes('context.stonehearth:job'),
-
    _updateMoneyDescription: function() {
-     // Specifically, if the item selected is money, update its description to account for its value.
-     var material = this.get('context.stonehearth:material');
-     if (material && material.tags_string.indexOf('money') >= 0) {
-        var itemComponent = this.get('context.item');
-        if (itemComponent) {
-          var stacks = itemComponent.stacks;
-          this.set("context.unit_info.description", i18n.t('unit_info_gold_description', {stacks: stacks}));
-        }
-     }
+      // Specifically, if the item selected is money, update its description to account for its value.
+      var material = this.get('context.stonehearth:material');
+      if (material && material.tags_string.indexOf('money') >= 0) {
+         var itemComponent = this.get('context.item');
+         if (itemComponent) {
+            var stacks = itemComponent.stacks;
+            this.set("context.unit_info.description", i18n.t('unit_info_gold_description', {stacks: stacks}));
+         }
+      }
    }.observes('context.item'),
 
    _updatePortrait: function() {
-      if (this.$()) {
-        var uri = this.uri;
-        if (uri && this.get('context.stonehearth:job')) {
-          var portrait_url = '/r/get_portrait/?type=headshot&animation=idle_breathe.json&entity=' + uri;
-          this.set('portraitSrc', portrait_url);
-          this.$('#portrait').show();
-        } else {
-          this.set('portraitSrc', "");
-          this.$('#portrait').hide();
-        }
+      if (!this.$()) {
+       return;
       }
-    }
+      var uri = this.uri;
+      var job = this.get('context.stonehearth:job');
+      if (uri && job) {
+         var portrait_url = '/r/get_portrait/?type=headshot&animation=idle_breathe.json&entity=' + uri;
+         this.set('portraitSrc', portrait_url);
+         this.$('#portrait').show();
+      } else {
+         this.set('portraitSrc', "");
+         this.$('#portrait').hide();
+      }
+   }.observes('context.stonehearth:job'),
 });
 
 App.StonehearthCommandButtonView = App.View.extend({
    classNames: ['inlineBlock'],
 
    hotkey: function() {
-     return "shift+" + (this.contentIndex + 1);
+    return "shift+" + (this.contentIndex + 1);
    }.property(),
 
    oneBasedIndex: function() {
