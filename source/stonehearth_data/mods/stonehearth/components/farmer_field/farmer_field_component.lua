@@ -360,6 +360,7 @@ function FarmerFieldComponent:_update_score()
          end
       end
    end
+   score = radiant.math.round(score)
    stonehearth.score:change_score(self._entity, 'net_worth', 'field component', score / 10)
 end
 

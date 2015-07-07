@@ -38,7 +38,6 @@ function sh_107.test_fallow_crop(autotest)
    autotest.ui:set_next_designation_region(4, 8, 1, 1)
 
    -- when the farm widget pops up, pick the fallow crop
-   autotest.ui:click_dom_element('#farmWindow #addCropLink')
    autotest.ui:click_dom_element('[crop="fallow"]')
 
    -- click ok to close the dialog
@@ -47,7 +46,6 @@ function sh_107.test_fallow_crop(autotest)
    autotest:sleep(9000)
 
    --autotest.ui:click_terrain(4, 8)
-   autotest.ui:click_dom_element('#farmWindow #addCropLink')
    autotest.ui:click_dom_element('[crop="stonehearth:crops:tester_crop"]')
 
    -- click ok to close the dialog

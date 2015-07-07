@@ -50,6 +50,7 @@
    "load_game": "Load Game",
    "loading": "Loading...",
    "game_different_version" : "incompatible save version",
+   "delete_incompatible_saves" : "Delete Incompatible Saves",
 
    "settings_title" : "Settings",
    "settings_graphics" : "Graphics",
@@ -300,6 +301,8 @@
    "build_workshop_requirements" : "Requirements",
    "build_workshop_create_stockpile" : "Crafter's Stockpile",
    "build_workshop_create_stockpile_description" : "The crafter will store crafted goods in this stockpile.<p>You probably want to place it near the workbench, but hey, it's your decision.",
+   "build_workshop_page1_subtitle2": "Click on the ground to place the workshop",
+   "build_workshop_page2_subtitle2": "Click and drag on the ground to place the stockpile",
    "promote_scroll_title": "Promotion to ",
    "promote_scroll_text_1" : "In honor of steadfast efforts and resilience, we hereby advance",
    "promote_scroll_choose": "choose a hearthling...",

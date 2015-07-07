@@ -25,7 +25,6 @@ function level_up_autotests.level_up_farmer(autotest)
    autotest.ui:set_next_designation_region(4, 8, 1, 1)
 
    -- when the farm widget pops up, pick the turnip crop
-   autotest.ui:click_dom_element('#farmWindow #addCropLink')
    autotest.ui:click_dom_element('[crop="stonehearth:crops:tester_crop"]')
 
    -- click ok to close the dialog

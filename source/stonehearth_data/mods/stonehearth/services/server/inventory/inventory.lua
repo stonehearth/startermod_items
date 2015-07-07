@@ -79,15 +79,15 @@ function Inventory:_update_score_for_item(item)
       -- compute the score
       local score = 0
       local id = item:get_id()
-      if self._sv.items[id] then
-         score = self:_get_score_for_item(item) / 10 -- whyyyyyyyyy? -- tony
-      end
-
+      score = self:_get_score_for_item(item)
+      
       -- add to 'edibles' and 'net_worth' categories
       local mc = item:get_component('stonehearth:material')
       if mc and (mc:is('food') or mc:is('food_container')) then
          stonehearth.score:change_score(item, 'edibles', 'inventory', score)
       end
+      
+      score = score / 10 -- whyyyyyyyyy? -- tony
       stonehearth.score:change_score(item, 'net_worth', 'inventory', score)
    end
 end
@@ -231,6 +231,8 @@ end
 
 --- Call whenever a stockpile wants to tell the inventory that we're adding an item
 function Inventory:add_item(item, storage)
+   -- self:_check_entity_forms_of_new_item(item)
+
    local id = item:get_id()
    local items = self._sv.items
 
@@ -286,9 +288,7 @@ function Inventory:remove_item(item_id)
       radiant.events.trigger(self, 'stonehearth:inventory:item_removed', { item_id = item_id })
       self.__saved_variables:mark_changed()
 
-      if self._sv.public_storage_is_full then
-         self:_set_public_storage_is_full(false)
-      end
+      self:_check_public_storage_space()
    end
 end
 
@@ -505,11 +505,38 @@ function Inventory:update_item_container(id, storage)
    if not item then
       return
    end
+   
    --Tell all the trackers for this player about this item
    for name, tracker in pairs(self._sv.trackers) do
       tracker:update_item_container(item, storage)
    end
    self.__saved_variables:mark_changed()
 end
+
+function Inventory:_check_entity_forms_of_new_item(item)
+   local root, iconic, ghost = entity_forms_lib.get_forms(item)
+   if not root then
+      return
+   end
+   if item == root then
+      -- we are the root item!  verify the iconic isn't in the inventory
+      if iconic then
+         radiant.assert(not self._sv.items[iconic:get_id()], 'tried to add root %s when iconic is already in inventory', root)
+      end      
+   end
+   if item == iconic then
+      -- we are the iconic item!  verify the root isn't in the inventory
+      if iconic then
+         radiant.assert(not self._sv.items[root:get_id()], 'tried to add iconic %s when root is already in inventory', iconic)
+      end      
+   end
+
+   -- we can never, ever add the ghost
+   if ghost then
+      radiant.assert(item ~= ghost, 'cannot add ghost form of %s to inventory', root)
+   end
+end
+
+
 
 return Inventory

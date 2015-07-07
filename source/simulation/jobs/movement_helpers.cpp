@@ -87,7 +87,7 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& src
       return region;
    }
 
-   csg::Region3f extrudedRegion = region.Extruded(1, maxReachUp, maxReachDown);
+   csg::Region3f extrudedRegion = region.Extruded<1>(maxReachUp, maxReachDown);
    extrudedRegion.OptimizeByMerge("GetRegionAdjacentToEntity"); // this will no-op most of the time
    return extrudedRegion;
 }

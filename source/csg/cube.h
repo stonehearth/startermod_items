@@ -66,8 +66,10 @@ public:
       return result;
    }
 
+   template <int D>
+   Cube Extruded(int dMin, int dMax) const;
+
    Cube Inflated(Point const& amount) const;
-   Cube Extruded(int dim, int dMin, int dMax) const;
    Cube Scaled(double factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
    Cube Intersected(Cube const& other) const;

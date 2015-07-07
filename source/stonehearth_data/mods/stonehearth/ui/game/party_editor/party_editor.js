@@ -83,7 +83,15 @@ App.StonehearthPartyMemberRowView = App.View.extend({
          "party" : {}         
       },
    },
+   didInsertElement: function() {
+      var self = this;  
+      this._super();
+      self.$(".selectable_party_row").click(function() {
 
+         radiant.call('stonehearth:camera_look_at_entity', self.uri);
+         radiant.call('stonehearth:select_entity', self.uri);
+      });
+   },
    actions: {
       removePartyMember: function(citizen) {
          var party = this.get('party');
@@ -148,12 +156,20 @@ App.StonehearthPartyEditorEditRosterRowView = App.View.extend({
    },
 
    didInsertElement: function() {
-      var inParty = this.get('in_current_party');
+      var self = this;
+
+      var inParty = self.get('in_current_party');
       if (inParty) {
-         this.$().hide();
+         self.$().hide();
       } else {
-         this.$().show();
+         self.$().show();
       }
+
+      self.$(".selectable_party_row").click(function() {
+
+         radiant.call('stonehearth:camera_look_at_entity', self.uri)
+         radiant.call('stonehearth:select_entity', self.uri);
+      });
    },
 
    actions: {

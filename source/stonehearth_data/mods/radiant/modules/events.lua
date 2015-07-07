@@ -197,6 +197,9 @@ end
 
 -- report the current stack to the host so we can log it
 function events._trigger_error_handler(err)
+   if err:find(stonehearth.constants.ai.ABORT_FRAME) then
+      return stonehearth.constants.ai.ABORT_FRAME
+   end
    local traceback = debug.traceback()
    _host:report_error(err, traceback)
    return err   

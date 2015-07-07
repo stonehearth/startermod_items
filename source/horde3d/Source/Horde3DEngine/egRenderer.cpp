@@ -190,18 +190,33 @@ void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpu
       // the stencil buffer we deserve, so be doubly paranoid and check that that is our render target depth format.
       rendererCaps->HighQualityRendererSupported = gRDI->_depthFormat == GL_DEPTH24_STENCIL8 && gRDI->getCaps().glVersion >= 30;
 
+      rendererCaps->BuggyFramebuffer = false;
       // The following vendor/driver combinations break some aspect of the HQ renderer.
+      if (strstr(gRDI->getCaps().vendor, "Parallels") != nullptr) {
+         rendererCaps->BuggyFramebuffer = true;
+      }
 
-      // These combos don't like const vec3 arrays in GLSL (supported in GLSL since 3.0!)
       if (strstr(gRDI->getCaps().vendor, "Intel") != nullptr) {
+         std::cmatch cm;
+         std::regex e("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)");
+         std::regex_search(gRDI->getCaps().version, cm, e);
+
+
+         if (cm.size() == 5) {
+            // Old intel drivers have effed drivers when it comes to texture framebuffers, so if
+            // that's what we're running on, call it a day.
+            int v = atoi(cm[1].str().c_str());
+            if (v < 10) {
+               rendererCaps->BuggyFramebuffer = true;
+            }
+         }
+
+
          if (gRDI->getCaps().glVersion < 41) {
             // If we're seeing an early OGL driver, don't even bother.
             rendererCaps->HighQualityRendererSupported = false;
          } else {
-            std::cmatch cm;
-            std::regex e("(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)");
-            std::regex_search(gRDI->getCaps().version, cm, e);
-
+            // These combos don't like const vec3 arrays in GLSL (supported in GLSL since 3.0!)
             if (cm.size() == 5) {
                const int lastBadDriver[] = {10, 18, 14, 4156};  // 10.18.14.4156
                rendererCaps->HighQualityRendererSupported = false;

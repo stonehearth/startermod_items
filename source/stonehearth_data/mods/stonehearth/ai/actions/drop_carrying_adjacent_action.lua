@@ -56,7 +56,7 @@ function DropCarryingAdjacent:run(ai, entity, args)
 
    local entity_location = radiant.entities.get_world_grid_location(entity)
    if entity_location ~= location and not radiant.entities.location_within_reach(entity, location, entity_location) then
-      ai:abort('%s location %s is not within reach from %s', entity, location)
+      ai:abort('%s drop location %s is not within reach from %s', tostring(entity), tostring(location), tostring(entity_location))
       return
    end
    

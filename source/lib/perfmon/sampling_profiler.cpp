@@ -47,10 +47,16 @@ void StackFrame::FinalizeCollection(res::ResourceManager2& resMan)
 {
    // Figure out the name of the function
    if (strcmp(_sourceName, TOP_FRAME)) {
-      auto fn = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
-      _fnName = fn.functionName;
-      _startLine = fn.startLine;
-      _endLine = fn.endLine;
+      if (_fnDefLine > 0) {
+         auto fn = resMan.MapFileLineToFunction(_sourceName, _fnDefLine);
+         _fnName = fn.functionName;
+         _startLine = fn.startLine;
+         _endLine = fn.endLine;
+      } else {
+         _fnName = _sourceName;
+         _startLine = 0;
+         _endLine = 0;
+      }
    } else {
       _fnName = TOP_FRAME;
    }

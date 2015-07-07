@@ -78,7 +78,8 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
       'start',
       'stop',
       'run',
-      'destroy'
+      'destroy',
+      'change_entity_state'
    }
 
    for _, method in ipairs(actions) do
@@ -86,9 +87,9 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
          local call_fn = self._action[method]
          -- Make a locally-scoped copy of 'method' that will be bound in our closure below.
          local local_method = method .. ''
-         self['_call_' .. method] = function(self)
+         self['_call_' .. method] = function(self, ...)
             self._log:detail('calling action %s', local_method)
-            return call_fn(self._action, self._ai_interface, self._entity, self._args)
+            return call_fn(self._action, self._ai_interface, self._entity, self._args, ...)
          end
       else
          -- Make a locally-scoped copy of 'method' that will be bound in our closure below.
@@ -104,6 +105,9 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
    self._log = radiant.log.create_logger('ai.exec_unit')
                           :set_prefix(prefix)
                           :set_entity(self._entity)
+   if not self._log:is_enabled(11) then
+      ExecutionUnitV2._spam_entity_state = radiant.nop
+   end
 
    self._log:debug('creating execution unit')
 
@@ -189,6 +193,26 @@ function ExecutionUnitV2:_unknown_transition(msg)
    error(err)
 end
 
+function ExecutionUnitV2:_change_entity_state(entity_state, reason)
+   self._log:detail('_change_entity_state (reason:%s, state:%s)', reason, self._state)
+   self:_spam_entity_state(entity_state, 'new state!')
+
+   if self._state == THINKING or self._state == READY then
+      self:_start_thinking_from_thinking(entity_state)
+   elseif self._state == RUNNING then
+      self:_call_change_entity_state(entity_state, reason)
+      if self._current_execution_frame then
+         self._current_execution_frame:_change_entity_state(entity_state, reason)
+      end
+   elseif self._state == STOPPED or self._state == FINISHED or self._state == DEAD then
+      -- nothing to do
+   else
+      self:_unknown_transition('_change_entity_state')
+   end
+   self._log:spam('post change entity state')
+   self:_spam_entity_state()
+end
+
 -- called only for filters...
 function ExecutionUnitV2:_should_start_thinking(args, entity_state)
    assert(self._state == 'stopped')
@@ -207,6 +231,8 @@ end
 function ExecutionUnitV2:_start_thinking(args, entity_state)
    assert(args, '_start_thinking called with no args')
    assert(entity_state, '_start_thinking called with no entity_state')
+
+   self:_spam_entity_state(entity_state, 'start_thinking (new)')
 
    -- verify the arguments are correct
    if not self:_verify_arguments('start_thinking', args, self._action.args) then      
@@ -231,6 +257,9 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
 end
 
 function ExecutionUnitV2:_set_think_output(think_output)
+   self._log:spam('_set_think_output')
+   self:_spam_entity_state()
+
    if self._state == DEAD then
       self:_log_dead(radiant.log.DETAIL, 'ignoring "set_think_output" in state "%s"', self._state)
       return
@@ -264,6 +293,9 @@ function ExecutionUnitV2:_clear_think_output()
 end
 
 function ExecutionUnitV2:_stop_thinking()
+   self._log:spam('_stop_thinking')
+   self:_spam_entity_state()
+   
    if self._state == DEAD then
       self:_log_dead(radiant.log.DETAIL, 'ignoring "stop_thinking" in state "%s"', self._state)
       return
@@ -283,6 +315,9 @@ function ExecutionUnitV2:_stop_thinking()
 end
 
 function ExecutionUnitV2:_start()
+   self._log:spam('_start')
+   self:_spam_entity_state()
+
    if self._state == DEAD then
       self:_log_dead(radiant.log.DETAIL, 'ignoring "start" in state "%s"', self._state)
       return
@@ -295,6 +330,9 @@ function ExecutionUnitV2:_start()
 end
 
 function ExecutionUnitV2:_run()
+   self._log:spam('_run')
+   self:_spam_entity_state()
+
    if self._state == DEAD then
       self:_log_dead(radiant.log.DETAIL, 'ignoring "run" in state "%s"', self._state)
       return
@@ -312,6 +350,9 @@ function ExecutionUnitV2:_run()
 end
 
 function ExecutionUnitV2:_stop()
+   self._log:spam('_stop')
+   self:_spam_entity_state()
+
    self:_destroy_object_monitor()
    
    if self._state == DEAD then
@@ -655,11 +696,15 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    self._log:debug('_do_start_thinking (state:%s)', self._state)
    assert(not self._thinking)
 
+   self:_spam_entity_state(entity_state, 'new state')
+
    self:_update_stats(1, 0)
    self._cost = self._action.cost or 0
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
+
+
    if self:_call_start_thinking() == CALL_NOT_IMPLEMENTED then
       self:_set_think_output(nil)
    end
@@ -732,6 +777,12 @@ function ExecutionUnitV2:_enable_argument_protection(object_monitor, obj, protec
 end
 
 function ExecutionUnitV2:__monitor_carrying()
+   -- disable monitor carrying.  the new state propagation code should obviate the
+   -- need for it, but I'm not 100% sure.  if you come across this comment and everything
+   -- seems to be working fine, feel free to nuke everything about monitor_carrying
+   -- - tony
+   if true then return end
+
    if self._current_entity_state.carrying_changed then
       self._log:debug('ignoring call to :monitor_carrying(), carrying value modified by upstream action')
       return
@@ -740,6 +791,9 @@ function ExecutionUnitV2:__monitor_carrying()
    if not self._carry_listener then
       self._log:detail('creating carry listener')
       self._carry_listener = radiant.events.listen(self._entity, 'stonehearth:carry_block:carrying_changed:sync', self, self._on_carrying_changed)
+
+      -- run once, in order to check if our current state is even valid.
+      return self:_on_carrying_changed()
    end
 end
 
@@ -756,13 +810,13 @@ function ExecutionUnitV2:_on_carrying_changed()
    if self._current_entity_state.carrying ~= carrying then
       if self._state == 'thinking' then
          self._log:detail('woot!  killing this branch')
-         self._thread:interrupt(function()
-               self._log:detail('woot!  killing this branch (interrupt)')
-               self:_stop_thinking()
-            end)
+
+         if not self._frame:is_aborting() then
+            self:__abort('carrying changed')
+         end
       elseif self._state == 'ready' then
+         -- Do we abort here, too?  Unclear.
          self._frame:_unit_not_ready(self)
-         -- do we need to do more here?  like stop or try to restart thinking?
       end
    else
       self._log:detail('current carrying matches (%s).  no harm, no foul.', tostring(carrying))
@@ -1048,5 +1102,35 @@ function ExecutionUnitV2:_log_dead(priority, str, ...)
    radiant.log.write('stonehearth.ai.exec_unit', priority, prefix .. str, ...)
 end
 
+function ExecutionUnitV2:_spam_entity_state(state, desc)
+   if self._log then
+      local log_format = '%25s | %25s | %25s | %25s | %10s'
+      self._log:spam(log_format, 'which', 'table', 'location', 'carrying', 'changed')
+      self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
+      local speculative = self._current_speculation_state
+      local function log_state(state, desc)
+         if state then
+            local changed = ''
+            if state.location_changed then
+               changed = changed .. ' location' 
+            end
+            if state.carrying_changed then
+               changed = changed .. ' carrying' 
+            end
+            self._log:spam(log_format, desc, tostring(state), tostring(state.location), tostring(state.carrying), changed)
+         else
+            self._log:spam(log_format, desc, 'nil', '', '', '')
+         end
+      end
+      if desc then
+         log_state(state, desc)
+      end
+      local actual_location = tostring(radiant.entities.get_world_grid_location(self._entity))
+      local actual_carrying = tostring(radiant.entities.get_carrying(self._entity))
+      log_state(self._current_entity_state, 'current')
+      self._log:spam(log_format, 'actual', '', actual_location, actual_carrying, '')
+      self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
+   end
+end
 
 return ExecutionUnitV2

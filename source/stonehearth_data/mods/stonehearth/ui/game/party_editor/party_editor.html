@@ -41,7 +41,7 @@
 
 
 <script type="text/x-handlebars" data-template-name="partyMemberRow">
-   <td>
+   <td class="selectable_party_row">
       <div class="banner"><img {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/></div>
       <div class="name">   
          {{view.model.unit_info.name}}<br>
@@ -83,14 +83,14 @@
 
 
 <script type="text/x-handlebars" data-template-name="partyEditorEditRosterRow">
-   <td>
+   <td class="selectable_party_row">
       <div class="banner"><img {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/></div>
       <div class="name">   
          {{view.model.unit_info.name}}<br>
          <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
       </div>
    </td>
-   <td>
+   <td class="selectable_party_row">
       <nobr>
       {{#if view.model.stonehearth:party_member.party }}
          {{ view.model.stonehearth:party_member.party.name }}

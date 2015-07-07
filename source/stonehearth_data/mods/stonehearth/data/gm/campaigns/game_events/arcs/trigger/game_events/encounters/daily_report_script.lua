@@ -87,7 +87,6 @@ function Immigration:_compose_town_report()
       food_data = summation.food_data, 
       morale_data = summation.morale_data, 
       net_worth_data = summation.net_worth_data
-
    }
    local success = summation.success
    return message, success

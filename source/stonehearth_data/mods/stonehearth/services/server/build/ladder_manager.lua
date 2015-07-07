@@ -13,7 +13,6 @@ function LadderManager:initialize()
    self.__saved_variables:mark_changed()
 end
 
-
 -- xxx: this is only correct in a world where the terrain doesn't change. 
 -- we should take a pass over all the ladder building code and make sure
 -- it can handle cases where the ground around the latter starts moving.
@@ -51,7 +50,7 @@ function LadderManager:request_ladder_to(owner, to, normal, options)
       self.__saved_variables:mark_changed()
    end
    log:detail('adding %s to ladder builder (lbid:%d)', to, ladder_builder:get_id())
-   ladder_builder:add_point(to)
+   ladder_builder:add_point(to, self._options)
 
    return radiant.create_controller('stonehearth:build:ladder_builder:destructor', ladder_builder, to)
 end
@@ -60,6 +59,13 @@ function LadderManager:remove_ladder(base)
    local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if ladder_builder then
       ladder_builder:clear_all_points()
+   end
+end
+
+function LadderManager:remove_user_created_ladder_portion(base)
+   local ladder_builder = self._sv.ladder_builders[base:key_value()]
+   if ladder_builder then
+      ladder_builder:remove_user_removable_point()
    end
 end
 

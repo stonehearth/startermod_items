@@ -50,11 +50,11 @@ function WaitForNetWorthEncounter:_get_current_net_worth()
    local ctx = self._sv.ctx
    local score_data = stonehearth.score:get_scores_for_player(ctx.player_id)
                               :get_score_data()
-   if not score_data or not score_data.net_worth then
+   if not score_data or not score_data.total_scores.net_worth then
       self._log:info('no net worth score data yet.')
       return 0
    end
-   return score_data.net_worth.total_score
+   return score_data.total_scores.net_worth
 end
 
 -- debug commands sent by the ui

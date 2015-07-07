@@ -65,7 +65,6 @@ radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionFrame._dum
 --
 local MAX_ROAM_DISTANCE = 32
 local INFINITE = 1000000000
-local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
 local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
 
@@ -99,7 +98,7 @@ local ENTITY_STATE_META_TABLE = {
       elseif k == 'carrying' then
          -- if this is not the first time we're writing a new value to location, we
          -- must be in some k state.
-         if state.__values.carrying and state.__values.carrying ~= v then
+         if state.__values.carrying ~= v then
             state.__values.carrying_changed = true
          end
       end
@@ -164,6 +163,10 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
                           :set_prefix(prefix)
                           :set_entity(self._entity)
 
+   if not self._log:is_enabled(11) then
+      ExecutionFrame._spam_entity_state = radiant.nop
+   end
+
    self._log:debug('creating execution frame')
 
    self:_set_state(STOPPED)
@@ -171,7 +174,11 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self:_create_execution_units()
 
    if activity_name == 'stonehearth:top' then
-      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+      -- at the time the carry block changes, there may be actions which are JUST about to finish thinking
+      -- which should not be allowed to run now that our carrying has changed.  to make sure they don't
+      -- start with the wrong information, listen to the synchronous carry_changed message to notify them
+      -- of the new entite state RIGHT RIGHT RIGHT now.  - tony
+      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed:sync', self, self._on_carrying_changed)
       self._position_trace = radiant.entities.trace_location(self._entity, 'top frame position trace')
                                                 :on_changed(function()
                                                    self:_on_position_changed()
@@ -221,10 +228,8 @@ function ExecutionFrame:_on_position_changed()
          -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
          -- resume the new one).  Make sure we're on the AI thread before attempting that.
          self._thread:interrupt(function()
-               self._log:detail('entity moved!  going to restart thinking... (state:%s)', self._state)
-               -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
-               -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
-               self:_restart_thinking(nil, "entity moved")
+               self._log:detail('entity moved!  changing entity state... (state:%s)', self._state)
+               self:_change_entity_state(self:_capture_current_entity_state(), "entity moved")
             end)
       end
    end
@@ -236,10 +241,8 @@ function ExecutionFrame:_on_carrying_changed()
    -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
    -- resume the new one).  Make sure we're on the AI thread before attempting that.
    self._thread:interrupt(function()
-         self._log:detail('carrying changed!  going to restart thinking... (state:%s)', self._state)
-         -- errata note 1 : this is quite bizarre.  if we're running, we ESPECIALLY want to restart
-         -- thinking, right?  unforutnately, this does NOTHING from the RUNNING state.
-         self:_restart_thinking(nil, "carrying changed")
+         self._log:detail('carrying changed!  changing entity state... (state:%s)', self._state)
+         self:_change_entity_state(self:_capture_current_entity_state(), "carrying changed")
       end)
 end
 
@@ -267,6 +270,38 @@ function ExecutionFrame:_stop_thinking()
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
+end
+
+-- notification that the actual state of the entity has changed.  push this downstream to
+-- all our execution units so they can take whatever action might be necessary (e.g. if
+-- the previously made a decision based on ai.CURRENT, that probably has to be revisited)
+--
+function ExecutionFrame:_change_entity_state(entity_state, debug_reason)
+   self._log:spam('_change_entity_state (reason:%s, state:%s)', debug_reason, self._state)
+
+   self:_copy_entity_state_from_upstream(entity_state)
+
+   for _, unit in pairs(self._execution_units) do
+      -- as with restart thinking, when we change the state of an execution unit
+      -- we need to make sure each one has its own copy of the state back to prevent
+      -- cross-unit state leakage.
+      local state = self:_clone_entity_state('fast think state')
+      unit:_change_entity_state(state, debug_reason)
+   end
+end
+
+-- we have 2 state bags at any given time.  the `upstream_state` is a copy of the bag
+-- handed to us from upstream.  it is the source of truth at all times.  at the same
+-- time, we hold onto a reference (not a copy!  the exact same table!!) of the upstream
+-- state in our `speculative_state` variable.  when we start thinking, we hand each
+-- unit a copy of our `upstream_state` to think on so they have their own unique potential
+-- future.  when we finally chose one, we copy the values back into our `speculative_state`
+-- variable to describe the new world to the caller
+--
+function ExecutionFrame:_copy_entity_state_from_upstream(upstream_state)
+   self._upstream_state = self:_clone_entity_state('new upstream state', upstream_state)
+   self._speculative_state = upstream_state
+   self:_spam_entity_state(upstream_state, 'new upstream state!')
 end
 
 function ExecutionFrame:_start()
@@ -425,10 +460,7 @@ if radiant.util.get_config('enable_ef_stats', false) then
          EF_STATS[self._activity_name] = counts
       end
 
-      local unit_count = 0
-      for _, __ in pairs(units) do
-         unit_count = unit_count + 1
-      end
+      local unit_count = radiant.size(units)
 
       if unit_count > 10 then
          local data = {}
@@ -484,14 +516,15 @@ function ExecutionFrame:_do_slow_thinking(local_args, units, units_start, num_un
    local self_is_thinking = self._state == THINKING or self._state == STARTING_THINKING
 
    for i = units_start,units_start + (num_units - 1) do
-      local u = units[i]
+      local unit = units[i]
 
-      local should_think = self_is_thinking or not self._active_unit or self:_is_strictly_better_than_active(u.unit)
+      local should_think = self_is_thinking or not self._active_unit or self:_is_strictly_better_than_active(unit)
       if should_think then
          -- If this frame is running/getting ready to run, only think units with > priority than currently active.
-         self._log:spam('slow start thinking on %s', u.unit:get_name())
-         u.unit:_start_thinking(local_args, u.state)
-         self:_record_slow_think(timeout, u.unit)
+         self._log:spam('slow start thinking on %s', unit:get_name())
+         local entity_state = self:_clone_entity_state('slow start state')
+         unit:_start_thinking(local_args, entity_state)
+         self:_record_slow_think(timeout, unit)
       end
    end
 end
@@ -511,7 +544,7 @@ end
 
 
 -- Returns true iff a child unit is active (and is different from the previously active unit)
-function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
+function ExecutionFrame:_restart_thinking(debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
 
    if self._state == 'running' then
@@ -525,17 +558,12 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       return false
    end
 
-   local state_to_set = entity_state
-   if not state_to_set then
-      self._log:debug('_capture_entity_state')
-      state_to_set = self:_create_entity_state()
-   end
-   self:_set_current_entity_state(state_to_set)
+   self:_reset_speculation_state()
 
 
    -- if any of our filters don't want to run this sub-tree, just bail.
    for _, unit in pairs(self._execution_filters) do
-      if not unit:_should_start_thinking(self._args, entity_state) then
+      if not unit:_should_start_thinking(self._args, self._speculative_state) then
          return false
       end
    end
@@ -549,7 +577,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
    if self._rerun_unit and self._rerun_unit:get_state() ~= DEAD and self:_is_strictly_better_than_active(self._rerun_unit) then
       self._log:spam('adding rerun unit %s to fast_rethink_units', self._rerun_unit:get_name())      
-      fast_rethink_units[self._rerun_unit] = self:_clone_entity_state('new speculation for unit')
+      fast_rethink_units[self._rerun_unit] = true
       num_think_now = 1
    else
       self._log:spam('no rerun unit found')
@@ -575,7 +603,6 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    -- If we have a rerun unit, take all the units that are strictly better than it to rethink.
    -- Anbody not rethinking right now gets added to the slow_rethink_units.
    for _, u in pairs(sorted_units) do
-      local new_state = self:_clone_entity_state('new speculation for unit')
       local think_now = true
 
       -- figure out whether this unit should think now or later.
@@ -599,11 +626,11 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       -- add the unit to the `fast_rethink_units` or `slow_rethink_units` list
       if think_now then
          self._log:spam('fast start unit %s', u.unit:get_name())
-         fast_rethink_units[u.unit] = new_state
+         fast_rethink_units[u.unit] = true
          num_think_now = num_think_now + 1
       else
          self._log:spam('slow start unit %s', u.unit:get_name())
-         table.insert(slow_rethink_units, { unit = u.unit, state = new_state })
+         table.insert(slow_rethink_units, u.unit)
       end
    end
 
@@ -649,7 +676,8 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    local current_state = self._state  
    local current_active_unit = self._active_unit
 
-   for unit, entity_state in pairs(fast_rethink_units) do
+   for unit, _ in pairs(fast_rethink_units) do
+      local entity_state = self:_clone_entity_state('fast think state')
       self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
                         unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
       assert(unit._state == 'stopped' or unit._state == 'thinking' or unit._state == 'ready')
@@ -695,6 +723,8 @@ end
 function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)   
    self._log:debug('_start_thinking_from_stopped')
    
+   self:_copy_entity_state_from_upstream(entity_state)
+
    self._args = args
    if self._debug_info then
       self._debug_info:modify(function (o)
@@ -707,7 +737,7 @@ function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
    -- errata note 1 : this is actually probably correct, but look at it?  wtf?  this code is extremely
    -- opaque.
    self:_set_state(STARTING_THINKING)
-   if not self:_restart_thinking(entity_state, "thinking from stopped") then
+   if not self:_restart_thinking("thinking from stopped") then
       self:_set_state(THINKING)
    end
 end
@@ -731,13 +761,17 @@ function ExecutionFrame:_do_destroy()
 end
 
 function ExecutionFrame:start_thinking(args, entity_state)
+
    if self._aborting then
       self._log:debug('clearing abort status from previous (presumedly failed) execution.')
       self._aborting = false
    end
    
    self._log:spam('start_thinking (state: %s)', self._state)
+   self:_spam_entity_state(entity_state, 'new upstream')
+
    assert(args, "start_thinking called with no arguments")
+   assert(entity_state, "start_thinking called with no entity_state")
    assert(self:get_state() == STOPPED, string.format('start thinking called from non-stopped state "%s"', self:get_state()))
 
    self:_start_thinking(args, entity_state)
@@ -781,6 +815,7 @@ function ExecutionFrame:stop_thinking()
    -- stop thinking can be called from any thread.  make sure we get back to 
    -- the main thread before executing (in case we need to unwind the stack)
    self._log:spam('stop_thinking')
+   self:_spam_entity_state()
    self:_protected_call(function()
          self:_stop_thinking()
       end)
@@ -790,6 +825,7 @@ function ExecutionFrame:start()
    assert(self:_no_other_thread_is_running())
 
    self._log:spam('start')
+   self:_spam_entity_state()
    self:_protected_call(function()
          self:_start()
          self:wait_until(STARTED)
@@ -812,7 +848,7 @@ function ExecutionFrame:run(args)
       
       if self:in_state(STOPPED) then
          assert(args, "run from stopped state must pass in arguments!")
-         self:start_thinking(args)
+         self:start_thinking(args, self:_capture_current_entity_state())
          self:wait_until(READY)
       end
       if self:in_state(READY) then
@@ -897,6 +933,22 @@ function ExecutionFrame:_stop_thinking_from_started()
       elseif not self:_is_strictly_better_than_active(unit) then
          self._log:debug('%s is active unit, so calling stop_thinking on %s.', self._active_unit:get_name(), unit:get_name())
          unit:_stop_thinking() -- this guy has no prayer...  just stop
+      else
+         self._log:debug('letting %s continue thinking while %s is running.', unit:get_name(), self._active_unit:get_name())
+         -- let better ones keep processing.  they may prempt in the future
+      end
+   end
+end
+
+function ExecutionFrame:_stop_non_active_units()
+   assert(self._active_unit)
+   
+   for _, unit in pairs(self._execution_units) do
+      if unit == self._active_unit then
+         -- nothing to do!
+      elseif not self:_is_strictly_better_than_active(unit) then
+         self._log:debug('%s is active unit, so calling stop_thinking on %s.', self._active_unit:get_name(), unit:get_name())
+         unit:_stop() -- this guy has no prayer...  just stop
       else
          self._log:debug('letting %s continue thinking while %s is running.', unit:get_name(), self._active_unit:get_name())
          -- let better ones keep processing.  they may prempt in the future
@@ -1072,18 +1124,19 @@ function ExecutionFrame:_set_active_unit(unit, think_output)
    self._active_unit_cost = unit and unit:get_cost() or 0
    self._active_unit_think_output = think_output
 
-   if self._current_entity_state then
+   if self._speculative_state then
       local new_entity_state
       if self._active_unit then
          new_entity_state = unit:get_current_entity_state()
-         self._log:spam('copying unit state %s to current state %s', tostring(new_entity_state), tostring(self._current_entity_state))
+         self._log:spam('copying unit state %s to speculation state %s', tostring(new_entity_state), tostring(self._speculative_state))
       else
-         new_entity_state = self._saved_entity_state
-         self._log:spam('copying saved state %s to current state %s', tostring(new_entity_state), tostring(self._current_entity_state))
+         new_entity_state = self._upstream_state
+         self._log:spam('copying upstream state %s to speculation state %s', tostring(new_entity_state), tostring(self._speculative_state))
       end
 
       -- clear the table to make sure nil values are copied from the new to the current state
-      copy_entity_state(self._current_entity_state, new_entity_state)
+      self:_spam_entity_state(new_entity_state, 'new spec state!')
+      copy_entity_state(self._speculative_state, new_entity_state)
    end
 end
 
@@ -1105,7 +1158,8 @@ function ExecutionFrame:_start_from_ready()
    -- Ensure all lower priority units are stopped, so they don't waste our time.
    self:_stop_thinking_from_started()
 
-   self._current_entity_state = nil
+   -- we're starting, so the speculative state is no longer necessary
+   self._speculative_state = nil
    self:_set_state(STARTING)
    self._active_unit:_start()
    self:_set_state(STARTED)
@@ -1244,7 +1298,11 @@ function ExecutionFrame:abort()
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
-   self:_exit_protected_call(ABORT_FRAME)
+   self:_exit_protected_call(stonehearth.constants.ai.ABORT_FRAME)
+end
+
+function ExecutionFrame:is_aborting()
+   return self._aborting
 end
 
 function ExecutionFrame:_get_top_of_stack()
@@ -1310,23 +1368,15 @@ function ExecutionFrame:_unwind_call_stack(exit_handler)
    self._active_unit, self._switch_to_unit = self._switch_to_unit, nil
 
    -- stop everything but the active unit
-   for _, unit in pairs(self._execution_units) do
-      if unit ~= self._active_unit then
-         unit:_stop(true)
-      end
-   end
-   -- start the active unit and start the rest of them thinking again.
-   self._active_unit:_start()
+   self:_stop_non_active_units()
 
-   -- errata note 1 : el oh el.  wtf... this isn't going to do anything from the RUNNING
-   -- state, which means none of our peers ACTUALLY get start_thinking called on them.
-   -- GOD.
-   self:_restart_thinking(nil, "unwinding stack")
+   -- start the active unit
+   self._active_unit:_start()
 end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   local current_state = self:_clone_entity_state('new speculation for unit')
+   local current_state = self:_clone_entity_state('new unit')
    unit:_start_thinking(self._args, current_state)
 end
 
@@ -1339,7 +1389,7 @@ function ExecutionFrame:_add_action_from_running(key, entry)
    local unit = self:_add_execution_unit(key, entry)
    if self:_is_strictly_better_than_active(unit) then   
       self._log:detail('new action %s is better than active %s.  calling start_thinking', unit:get_name(), self._active_unit:get_name())
-      unit:_start_thinking(self._args, self:_create_entity_state())
+      unit:_start_thinking(self._args, self:_clone_entity_state('new unit'))
    else
       self._log:detail('new action %s is not better than active %s.', unit:get_name(), self._active_unit:get_name())
    end
@@ -1377,7 +1427,7 @@ function ExecutionFrame:_remove_action_from_ready(unit)
       -- errata note 1 : again, this one is verified correct, but gross and offends
       -- my programmer sensibilities.
       self:_set_state(STARTING_THINKING)
-      if not self:_restart_thinking(self._current_entity_state, "removing action") then
+      if not self:_restart_thinking("removing action") then
          self:_set_state(THINKING)
       end
    else
@@ -1504,46 +1554,42 @@ function ExecutionFrame:_add_execution_unit(key, entry)
    return unit
 end
 
-function ExecutionFrame:_set_current_entity_state(state)
-   self._log:debug('set_current_entity_state')
-   assert(state)
-
-   self:_spam_entity_state(state, 'set_current_entity_state')
-
-   -- remember where we think we are so we can restart thinking if we
-   -- move too far away from it.
-   self._last_captured_location = state.location
+function ExecutionFrame:_reset_speculation_state()
+   assert(self._speculative_state)
+   assert(self._upstream_state)
    
-   -- we explicitly do not clone this state.  compound actions expect us
-   -- to propogate side-effects of executing this frame back in the state
-   -- parameter.
-   self._current_entity_state = state
-   self._saved_entity_state = self:_clone_entity_state('saved')
+   self._log:debug('_reset_speculation_state')
+   self:_spam_entity_state()
+   copy_entity_state(self._speculative_state, self._upstream_state)
+
+   self._last_captured_location = self._speculative_state.location
 end
 
-function ExecutionFrame:_clone_entity_state(name)
-   assert(self._current_entity_state)
-   local s = self._current_entity_state
+function ExecutionFrame:_clone_entity_state(name, source)
+   if not source then
+      source = self._upstream_state
+   end
+
    local cloned = create_entity_state()
+   cloned.location = source.location and Point3(source.location.x, source.location.y, source.location.z)
+   cloned.carrying = source.carrying
+   cloned.location_changed = source.location_changed
+   cloned.carrying_changed = source.carrying_changed
 
-   cloned.location = s.location and Point3(s.location.x, s.location.y, s.location.z)
-   cloned.carrying = s.carrying
-   cloned.location_changed = s.location_changed
-   cloned.carrying_changed = s.carrying_changed
-
-   self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', self._current_entity_state, name, cloned)
+   self._log:spam('cloning entity state (%s)', tostring(source))
+   --self:_spam_entity_state(cloned, name)
 
    return cloned
 end
 
-function ExecutionFrame:_create_entity_state()
+function ExecutionFrame:_capture_current_entity_state()
    local state = create_entity_state()
    state.carrying = radiant.entities.get_carrying(self._entity)
    state.location = radiant.entities.get_world_grid_location(self._entity)
    state.location_changed = false
    state.carrying_changed = false
 
-   self:_spam_entity_state(state, 'capturing current entity state')
+   self:_spam_entity_state(state, 'captured')
    return state
 end
 
@@ -1711,8 +1757,8 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          return UNWIND_NEXT_FRAME_2
       elseif err:find(UNWIND_NEXT_FRAME) then
          return UNWIND_NEXT_FRAME
-      elseif err:find(ABORT_FRAME) then
-         return ABORT_FRAME
+      elseif err:find(stonehearth.constants.ai.ABORT_FRAME) then
+         return stonehearth.constants.ai.ABORT_FRAME
       end
       
       local traceback = debug.traceback()
@@ -1796,14 +1842,35 @@ function ExecutionFrame:_no_other_thread_is_running()
    return false
 end
 
-function ExecutionFrame:_spam_entity_state(state, format, ...)
-   if self._log:is_enabled(radiant.log.SPAM) then
-      self._log:spam(format, ...)
-      for key, value in pairs(state.__values) do      
-         self._log:spam('  CURRENT.%s = %s', key, value)
-      end   
-      self._log:spam('  ACTUAL.carrying = %s', tostring(radiant.entities.get_carrying(self._entity)))
-      self._log:spam('  ACTUAL.location = %s', tostring(radiant.entities.get_world_grid_location(self._entity)))
+function ExecutionFrame:_spam_entity_state(state, desc)
+   if self._log then
+      local log_format = '%25s | %25s | %25s | %25s | %10s'
+      self._log:spam(log_format, 'which', 'table', 'carrying', 'location', 'changed')
+      self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
+      local speculative = self._current_speculation_state
+      local function log_state(state, desc)
+         if state then
+            local changed = ''
+            if state.location_changed then
+               changed = changed .. ' location' 
+            end
+            if state.carrying_changed then
+               changed = changed .. ' carrying' 
+            end
+            self._log:spam(log_format, desc, tostring(state), tostring(state.location), tostring(state.carrying), changed)
+         else
+            self._log:spam(log_format, desc, 'nil', '', '', '')
+         end
+      end
+      if desc then
+         log_state(state, desc)
+      end
+      local actual_location = tostring(radiant.entities.get_world_grid_location(self._entity))
+      local actual_carrying = tostring(radiant.entities.get_carrying(self._entity))
+      log_state(self._upstream_state,     'upstream')
+      log_state(self._speculative_state,  'speculative')
+      self._log:spam(log_format, 'actual', '', actual_location, actual_carrying, '')
+      self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
    end
 end
 

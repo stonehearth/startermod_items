@@ -8,7 +8,6 @@
       "woodcutter" : "file(encounters/woodcutter_shop.json)",
       "stonecutter" : "file(encounters/stonecutter_shop.json)",
       "tannery" : "file(encounters/tannery_shop.json)",
-      "rugs" : "file(encounters/rugs_shop.json)",
-      "food" : "file(encounters/food_shop.json)"
+      "rugs" : "file(encounters/rugs_shop.json)"
    }
 }

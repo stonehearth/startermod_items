@@ -10,7 +10,7 @@
 <script>
    // this is a global.  it accumulates the total time taken by all the nodes.
    // take caution when reading or writing it!!!
-   var totalTime = 0;
+   var TOTAL_TIME = 0;
 
    // Hello, Ember 2.0.  You're supposed to be fast (ala Glimmer.)  Let's find out!
    Profiler = Ember.Application.create();
@@ -65,16 +65,14 @@
          var key = tnode.get('fileline');
          var bnode = this._bottomUpMap[key];
 
-         traceback.push(tnode);
-
          if (!bnode) {
             bnode = Profiler.BottomUpNode.create({ tnode: tnode });
             this._bottomUpMap[key] = bnode;
-         } else {
-            bnode.addTnode(tnode);
          }
+         bnode.addTnode(tnode);
          bnode.addTraceback(tnode.selfTime, traceback);
 
+         traceback.push(tnode);
          var children = tnode.get('children');
          for (var i = 0; i < children.length; i++) {
             this._createBottomUp(children[i], traceback);
@@ -89,6 +87,7 @@
    Profiler.TracebackNode = Ember.Object.extend({
       init : function() {
          this._super();
+         this._dirty = true;
          this.depth = 1;
          this.selfTime = 0;
          this.children = [];
@@ -97,11 +96,6 @@
          // Not sure why this requires a set... Probably because
          // we stick an observer on it.  Oh well!
          this.set('collapsed', true);
-
-         if (this.tnode) {
-            this.fn = this.tnode.fn;
-            this.fileline = this.tnode.get('fileline');
-         }
       },
 
       // Add a topdown node to the traceback.  The caller is responsible
@@ -111,13 +105,14 @@
       addNode: function(time, tnode) {
          this.selfTime = this.selfTime + time;
          var fileline = tnode.get('fileline');
-         var child = this.childrenLookup[fileline]
+         var child = this.childrenLookup[fileline];
 
          this._dirty = true;
 
          if (!child) {
             child = Profiler.TracebackNode.create({
-               tnode: tnode,
+               fn: tnode.fn,
+               fileline: tnode.get('fileline'),
             });
             this.childrenLookup[fileline] = child;
             this.children.push(child);
@@ -140,10 +135,12 @@
          this._dirty = false;
 
          var tbnode = this;
-         head.push(tbnode);
-         while (tbnode && tbnode.children.length == 1) {
+         if (!this.hideFirstHead) {
             head.push(tbnode);
+         }
+         while (tbnode && tbnode.children.length == 1) {
             tbnode = tbnode.children[0];
+            head.push(tbnode);
          }
 
          if (tbnode) {
@@ -179,8 +176,12 @@
          return this.get('tails').length > 0;
       }.property('tails'),
 
+      hasHead : function() {
+         return this.get('head').length > 0;
+      }.property('head'),
+
       percentTime : function() {
-         return (this.get('selfTime') * 100 / totalTime).toFixed(1);
+         return (this.get('selfTime') * 100 / TOTAL_TIME).toFixed(1);
       }.property('selfTime'),
 
    });
@@ -193,13 +194,21 @@
          this._super();         
          this.selfTime = 0;
          this.set('collapsed', true);
-         this.traceback = Profiler.TracebackNode.create({
-               tnode: this.tnode,
-            });
          this.set('lines', {});
       },
 
-      addTnode: function(tnode) {         
+      addTnode: function(tnode) {
+         this.set('tnode', tnode)
+         this.set('selfTime', this.get('selfTime') + tnode.get('selfTime'));
+
+         if (!this.traceback) {
+            this.traceback = Profiler.TracebackNode.create({
+                  hideFirstHead: true,
+                  fn: tnode.fn,
+                  fileline: tnode.get('fileline'),
+               });
+         }
+
          var lines = this.get('lines')
          var tnodeLines = tnode.get('lines');
          $.each(tnodeLines, function(k, v) {
@@ -207,7 +216,6 @@
                lines[k] = (lines[k] || 0) + v;
             }
          });
-         this.set('selfTime', this.get('selfTime') + tnode.get('selfTime'));
          this.set('lines', lines)
       },
 
@@ -219,7 +227,7 @@
 
          // Don't go back more than maxStackLength.  Some of these stacks are
          // insanely deep and will blow up the browser =(
-         var maxStackLength = 10;
+         var maxStackLength = 6;
 
          // Make sure we invert the stack
          for (var i = traceback.length - 1; i >= 0; i--) {
@@ -263,6 +271,7 @@
             for (var i = 0; i < lineCount + 1; i++) {
                var count = lines[i] || 0;
                functionLines[i] = {
+                  number:        startLine + i,
                   text:          fileLines[startLine + i],
                   percentTime:   (count * 100 / totalCount).toFixed(2),
                }
@@ -273,7 +282,7 @@
       }.property('tnode'),
 
       percentTime: function() {
-         return (this.get('selfTime') * 100 / totalTime).toFixed(1);
+         return (this.get('selfTime') * 100 / TOTAL_TIME).toFixed(1);
       }.property('selfTime'),
 
    });
@@ -290,22 +299,31 @@
             children = [];
          }
 
-         totalTime += data.selfTime;
+         TOTAL_TIME += data.selfTime;
 
          this.set('file',     data.file);
          this.set('fn',       data['function']);
          this.set('line',     data.lineStart);
          this.set('lineCount',data.lineEnd - data.lineStart);
          this.set('selfTime', data.selfTime);
+         this.set('callCount', data.callCount);
          this.set('depth',    depth);
+
          if (data.callers) {
+            var totalTime = data.selfTime;
             for (var i = 0; i < data.callers.length; i++) {
                var node = Profiler.TopDownNode.create();
                node.addJsonDump(depth + 1, data.callers[i]);
                children.push(node);
+               totalTime = totalTime + node.get('totalTime');
             };
+            this.set('totalTime', totalTime);
          }
          this.set('children', children);
+         var sorted_children;
+         for (i = 0; i < children.length; i++) {
+         }
+         this.set('children_by_time', sorted_children)
 
          if (data.lines) {
             var startLine = this.get('line');
@@ -317,6 +335,10 @@
             this.set('lines', lines);
          }
       },
+
+      percentTime : function() {
+         return (this.get('totalTime') * 100 / TOTAL_TIME).toFixed(1);
+      }.property('selfTime'),
 
       fileline : function() {
          return this.get('file') + ':' + this.get('line');
@@ -335,6 +357,8 @@
    });
 
    Profiler.ProfViewComponent = Ember.Component.extend({
+      taskQueue: [],
+
       didInsertElement : function() {
          var self = this;
          var handleFileSelect = function(evt) {
@@ -351,11 +375,10 @@
                // Closure to capture the file information.
                reader.onload = function(e) {
                   var data = JSON.parse(e.target.result);
-                  controller.send('addJsonDump', file, data);
+                  var status = '(' + count + '/' + expected +') loading ' + file.name
+                  controller.send('addJsonDump', status, file, data);
                   count = count + 1
-                  console.log('(' + count + '/' + expected +') loading ' + file.name);
                   if (count == expected) {
-                     console.log('creating bottom up nodes...');
                      controller.send('createBottomUpNodes');
                      console.log('done!');
                   }
@@ -367,18 +390,55 @@
          this._showPage('#bottomup');
       },
 
+      _scheduleQueue: function(status, fn) {
+         var self = this;
+         this.set('status', this.taskQueue[0].status)
+         setTimeout(function() { self._processQueue(); }, 10);
+      },
+
+      _enqueueTask: function(status, fn) {
+         console.log('adding task to queue', this.taskQueue.length)
+
+         this.taskQueue.push({
+            status: status,
+            fn:     fn,
+         });
+
+         if (this.taskQueue.length == 1) {
+            this._scheduleQueue();
+         }
+      },
+
+      _processQueue: function() {
+         var self = this;
+
+         this.taskQueue.shift().fn();
+
+         if (this.taskQueue.length > 0) {
+            this._scheduleQueue();
+         } else {
+            this.set('status', 'done');
+         }
+      },
+
       _showPage: function(page) {
          this.$('.page').hide();
          this.$(page).show();
       },
 
       actions: {
-         addJsonDump: function(filename, data) {
-            this.get('data').addJsonDump(data);
+         addJsonDump: function(status, filename, data) {
+            var self = this;
+            self._enqueueTask(status, function() {
+               self.get('data').addJsonDump(data);
+            });
          },
          createBottomUpNodes: function(data) {
-            this.get('data').createBottomUpNodes();
-            this.set('totalTime', totalTime);
+            var self = this;
+            self._enqueueTask('creating bottom up nodes', function() {
+               self.get('data').createBottomUpNodes();
+               self.set('totalTime', TOTAL_TIME);
+            });
          },
          selectPage: function(page) {
             this._showPage(page);
@@ -407,9 +467,19 @@
       }
    });
 
+   Profiler.PercentBarComponent = Ember.Component.extend({
+      style: function() {
+         //return ('width: ' + self.percentTime).htmlSafe();
+         return ('width: ' + this.get('node.percentTime')).htmlSafe();
+      }.property('node.percentTime'),
+   });
+
    // Make sure we don't stick a <div> around these, since they're making
    // table rows.
    Profiler.BottomUpTracebackComponent = Ember.Component.extend({
+      tagName: ''
+   });
+   Profiler.TopDownRowComponent = Ember.Component.extend({
       tagName: ''
    });
 </script>
@@ -422,44 +492,71 @@
    {{/if}}
 </script>
 
-<script type="text/x-handlebars" data-template-name='components/top-down-row'>
-   <div style={{node.dynamicStyle}}>
-   file: {{ node.fn }}
-   </div>
-   {{#each node.children key="@index" as |child|}}
-      {{top-down-row node=child}}
-   {{/each}}
+<script type="text/x-handlebars" data-template-name='components/percent-bar'>
+   <div id="progress" class="graph"><div id="bar" style={{ this.style }}><p>{{ node.percentTime }}%</p></div></div>
 </script>
 
-<script type="text/x-handlebars" data-template-name='components/percent-bar'>
-   <div id="progress" class="graph"><div id="bar" style="width:{{ node.percentTime }}%"><p>{{ node.percentTime }}%</p></div></div>
+<script type="text/x-handlebars" data-template-name='components/top-down-row'>
+   <tr>
+      <td>
+         {{ collapse-div node=node }}
+      </td>
+      <td>
+         <div style={{node.dynamicStyle}}>
+            {{ node.fn }}
+         </div>
+      </td>
+      <td> {{ node.totalTime }} </td>
+      <td> {{ percent-bar node=node }} </td>
+      <td> {{ node.fileline }} </td>
+   </tr>
+   {{#unless node.collapsed}} 
+      {{#each node.children_by_time key="@index" as |child|}}
+         {{top-down-row node=child}}
+      {{/each}}
+   {{/unless}}
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/top-down'>
-   {{top-down-row node=root}}
+   <table id="topdown">
+      <tr>
+         <th width=1%></th>
+         <th width=50%>Function</th>
+         <th width= 5%>Time</th>
+         <th width=15%>Percentage</th>
+         <th width=30%>File</th>
+      </tr>
+      {{top-down-row node=root}}
+   </table>
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/bottom-up-traceback'>
-   <tr>
-      <td>
-         <span style={{tbnode.dynamicStyle}}><nobr>
-         {{#if tbnode.hasTails}}
-            {{ collapse-div node=tbnode }}
-         {{/if}}
-         {{#each tbnode.head key="@index" as |head|}}
-            <i class="fa fa-angle-left"></i> {{ head.fn }}
-         {{/each}}
-         </nobr></span>
-      </td>
-      <td> {{ tbnode.selfTime }} </td>
-      <td> {{ percent-bar node=tbnode }} </td>
-      <td> {{ tbnode.fileline }} </td>
-   </tr>
-   {{#unless tbnode.collapsed}} 
-      {{#each tbnode.tails key="@index" as |tail|}}
-         {{ bottom-up-traceback tbnode=tail }}
-      {{/each}}         
-   {{/unless}}
+   {{#if tbnode.hasHead}}
+      <tr>
+         <td>
+            <span style={{tbnode.dynamicStyle}}><nobr>
+            {{#if tbnode.hasTails}}
+               {{ collapse-div node=tbnode }}
+            {{/if}}
+            {{#each tbnode.head key="@index" as |head|}}
+               <i class="fa fa-angle-left"></i> {{ head.fn }}
+            {{/each}}
+            {{ log 'tails' tbnode.tails }}
+            </nobr></span>
+         </td>
+         <td> {{ tbnode.selfTime }} </td>
+         <td> {{ percent-bar node=tbnode }} </td>
+         <td> {{ tbnode.fileline }} </td>
+      </tr>
+   {{/if}}
+
+   {{#if tbnode.hasTails}}
+      {{#unless tbnode.collapsed}} 
+         {{#each tbnode.tails key="@index" as |tail|}}
+            {{ bottom-up-traceback tbnode=tail }}
+         {{/each}}         
+      {{/unless}}
+   {{/if}}
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/bottom-up'>
@@ -481,9 +578,7 @@
          <td> {{ node.tnode.file }}:{{ node.tnode.line }} </td>
       </tr>
       {{#unless node.collapsed}} 
-         {{#each node.traceback.tails key="@index" as |tail|}}
-            {{ bottom-up-traceback tbnode=tail }}
-         {{/each}}
+         {{ bottom-up-traceback tbnode=node.traceback }}
       {{/unless}}
    {{/each}}
    </table>
@@ -494,6 +589,7 @@
       {{#each bnode.file key="@index" as |line|}}
       <tr>
          <td style="min-width:100px">{{ percent-bar node=line }}</td>
+         <td><pre>line {{ line.number }}</pre></td>
          <td><pre>{{ line.text }}</pre></td>
       </tr>
       {{/each}}
@@ -501,6 +597,7 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name='components/prof-view'>
+   <div id='status'>{{status}}</div>
    {{input type="file" id="files" name="stuff" multiple=true style="width:500px;"}}
    <ul>
       <li {{ action "selectPage" "#bottomup" }}>Bottom-up</li>
@@ -517,6 +614,6 @@
    </div>
 </script>
  
- <script type="text/x-handlebars" data-template-name='data'>
+<script type="text/x-handlebars" data-template-name='data'>
    {{prof-view data=content}}
 </script>

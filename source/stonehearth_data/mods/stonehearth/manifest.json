@@ -562,6 +562,8 @@
       "actions:pickup_item_from_storage_adjacent" : "file(ai/actions/pickup_item_from_storage_adjacent_action.lua)",
       "actions:find_path_to_storage_containing_entity_type" : "file(ai/actions/find_path_to_storage_containing_entity_type_action.lua)",
       "actions:find_entity_type_in_storage" : "file(ai/actions/find_entity_type_in_storage_action.lua)",
+      "actions:clear_carrying_into_backpack" : "file(ai/actions/clear_carrying_into_backpack_action.lua)",  
+      "actions:clear_carrying_drop_now" : "file(ai/actions/clear_carrying_drop_now_action.lua)",  
 
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:pickup_ingredient_with_material" : "file(ai/actions/pickup_ingredient_with_material_action.lua)",

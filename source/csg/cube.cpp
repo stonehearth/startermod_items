@@ -226,7 +226,6 @@ Cube<S, C> Cube<S, C>::Intersected(Cube const& other) const
    return result;
 }
 
-
 template <typename S, int C>
 Cube<S, C> Cube<S, C>::Inflated(Point const& amount) const
 {
@@ -238,17 +237,6 @@ Cube<S, C> Cube<S, C>::Inflated(Point const& amount) const
       }
    }
    return Cube(newMin, newMax);
-}
-
-template <typename S, int C>
-Cube<S, C> Cube<S, C>::Extruded(int dim, int dMin, int dMax) const
-{
-   ASSERT(dim >= 0);
-   ASSERT(dim <= C);
-   Cube<S, C> result(*this);
-   result.min[dim] -= dMin;
-   result.max[dim] += dMax;
-   return result;
 }
 
 template <typename S, int C>
@@ -875,7 +863,6 @@ Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
    template Cls Cls::Inflated(Point const& amount) const; \
-   template Cls Cls::Extruded(int d, int dMin, int dMax) const; \
    template Cls Cls::Intersected(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
    template Cls::Region Cls::GetBorder() const; \
@@ -898,6 +885,63 @@ MAKE_CUBE(Line1f)
 DEFINE_CUBE_CONVERSIONS(1)
 DEFINE_CUBE_CONVERSIONS(2)
 DEFINE_CUBE_CONVERSIONS(3)
+
+// need the wrapper struct because we can't partially specialize template functions
+template <typename T, int D>
+struct ExtrudedWrapper {
+   static T Extruded(T const& cube, int dMin, int dMax);
+};
+
+template <typename T>
+struct ExtrudedWrapper<T, 0> {
+   static T Extruded(T const& cube, int dMin, int dMax) {
+      T result(cube);
+      result.min.x -= dMin;
+      result.max.x += dMax;
+      return result;
+   }
+};
+
+template <typename T>
+struct ExtrudedWrapper<T, 1> {
+   static T Extruded(T const& cube, int dMin, int dMax) {
+      T result(cube);
+      result.min.y -= dMin;
+      result.max.y += dMax;
+      return result;
+   }
+};
+
+template <typename T>
+struct ExtrudedWrapper<T, 2> {
+   static T Extruded(T const& cube, int dMin, int dMax) {
+      T result(cube);
+      result.min.z -= dMin;
+      result.max.z += dMax;
+      return result;
+   }
+};
+
+template <typename S, int C>
+template <int D>
+Cube<S, C> Cube<S, C>::Extruded(int dMin, int dMax) const {
+   Cube<S, C> result = ExtrudedWrapper<Cube<S, C>, D>::Extruded(*this, dMin, dMax);
+   return result;
+}
+
+#define DEFINE_EXTRUDED_METHODS_3(Cls) \
+   template Cls Cls::Extruded<0>(int dMin, int dMax) const; \
+   template Cls Cls::Extruded<1>(int dMin, int dMax) const; \
+   template Cls Cls::Extruded<2>(int dMin, int dMax) const;
+
+#define DEFINE_EXTRUDED_METHODS_2(Cls) \
+   template Cls Cls::Extruded<0>(int dMin, int dMax) const; \
+   template Cls Cls::Extruded<1>(int dMin, int dMax) const;
+
+DEFINE_EXTRUDED_METHODS_3(Cube3f)
+DEFINE_EXTRUDED_METHODS_3(Cube3)
+DEFINE_EXTRUDED_METHODS_2(Rect2f)
+DEFINE_EXTRUDED_METHODS_2(Rect2)
 
 template <> Cube3 csg::ConvertTo(Cube3 const& cube) { return cube; }
 template <> Cube3f csg::ConvertTo(Cube3f const& cube) { return cube; }

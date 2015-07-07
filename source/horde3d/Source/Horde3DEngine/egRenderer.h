@@ -140,6 +140,7 @@ struct EngineRendererCaps
 {
    bool HighQualityRendererSupported;
    bool ShadowsSupported;
+   bool BuggyFramebuffer;
 };
 
 struct UniformType

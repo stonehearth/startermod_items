@@ -60,11 +60,17 @@ csg::Point<double, T::Dimension> Cube_GetCentroid(T const &c)
 }
 
 template <typename T>
-T Cube_Extruded(T const &cube, std::string const& dimString, int dMin, int dMax)
+T Cube_Extruded3(T const &cube, std::string const& dimString, int dMin, int dMax)
 {
    ASSERT(dimString.length() == 1);
    int dim = dimString[0] - 'x';
-   return cube.Extruded(dim, dMin, dMax);
+   ASSERT(dim <= T::Dimension);
+   switch (dim) {
+      case 0: return cube.Extruded<0>(dMin, dMax); break;
+      case 1: return cube.Extruded<1>(dMin, dMax); break;
+      case 2: return cube.Extruded<2>(dMin, dMax); break;
+   }
+   throw core::Exception("dimension out of bounds");
 }
 
 template <typename T>
@@ -96,7 +102,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("translate",    &T::Translate)
          .def("translated",   &T::Translated)
          .def("inflated",     &T::Inflated)
-         .def("extruded",     &Cube_Extruded<T>)
          .def("intersects",   &T::Intersects)
          .def("intersected",  &T::Intersected)
          .def("get_border",   &T::GetBorder)
@@ -111,6 +116,7 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
    return
       def("construct_cube3", &Cube3f::Construct),
       Register<Cube3f>(L, "Cube3")
+         .def("extruded",     &Cube_Extruded3<Cube3f>)
          .def("each_point",   &EachPointCube3f)
          .def("rotated",      (Cube3f(*)(Cube3f const&, int))&csg::Rotated)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),

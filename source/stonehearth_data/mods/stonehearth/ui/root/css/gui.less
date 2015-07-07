@@ -142,8 +142,8 @@
    }
 
    button {
-      .control;
       .button;
+      .control;
       .outlined(#9da8b0);
       color: #000;
       background: #7e8994;
@@ -346,8 +346,12 @@
 }
 
 .button {
-   .handCursor;
-
+   &:not(.disabled) {
+     .handCursor;
+   }
+   &.disabled {
+      .arrowCursor;
+   }
    &:hover:not(.disabled) {
       -webkit-filter: brightness(1.4);
    }

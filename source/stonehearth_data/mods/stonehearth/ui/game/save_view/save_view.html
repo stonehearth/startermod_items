@@ -12,7 +12,7 @@
          {{/unless}}
 
          <a href="#" {{action 'loadGame' target=view}}>
-            <button id="loadSaveButton" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:load_game}}</button>
+            <button id="loadSaveButton" title="{{i18n stonehearth:game_different_version}}" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:load_game}}</button>
          </a>
          
          {{#unless controller.hideSave}}
@@ -24,11 +24,18 @@
             </a>
          {{/unless}}
 
+         {{#if controller.hideSave}}
+            {{#if view.hasIncompatibleSave}}
+               <a href="#" {{action 'deleteIncompatibleSaves' target="view"}}>
+                  <button id="deleteIncompatibleSaves" clicksound="stonehearth:sounds:ui:start_menu:small_click">{{i18n stonehearth:delete_incompatible_saves}}</button>
+               </a>
+            {{/if}}
+         {{/if}}
+
          <div id="autoSaveSetting">
             {{input type="checkbox" id="autoSaveCheckbox" checked=controller.auto_save}}
             <label for="autoSaveCheckbox">{{i18n stonehearth:save_autosave}}</label>
          </div>
-
       </div>
      
    </div>

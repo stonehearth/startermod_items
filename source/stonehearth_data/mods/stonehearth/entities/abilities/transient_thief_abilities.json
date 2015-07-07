@@ -4,7 +4,7 @@
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
             "actions" : [
-               "file(actions/steal_items_in_stockpile_action.lua)",
+               "stonehearth:actions:steal_items_in_stockpile",
                "stonehearth:actions:find_point_beyond_visible",
                "stonehearth:actions:depart_visible_area"
             ],

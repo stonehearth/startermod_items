@@ -207,6 +207,7 @@ function ConstructionDataComponent:_update_score(region)
    local item_multiplier = networth and networth.value_in_gold or 1
    local score = (area * item_multiplier) ^ 0.5
 
+   score = radiant.math.round(score)
    stonehearth.score:change_score(self._sv.entity, 'net_worth', 'buildings', score)
 end
 

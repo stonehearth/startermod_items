@@ -217,6 +217,18 @@ App.StonehearthTownView = App.View.extend({
          self.set('score_' + score_name, Math.round(score_value) / 10);
          self._setIconClass(score_name + 'IconClass', score_value);
       });
+
+      var netWorthValue = self.get('context.score_data.total_scores.net_worth');
+      if (!netWorthValue) {
+         netWorthValue = 0;
+      }
+      self.set('net_worth', netWorthValue);
+      var ediblesValue = self.get('context.score_data.total_scores.edibles');
+      if (!ediblesValue) {
+         ediblesValue = 0;
+      }
+      self.set('edibles', ediblesValue);
+      
    },
 
    _setIconClass: function(className, value) {

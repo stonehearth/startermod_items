@@ -297,7 +297,8 @@ local constants = {
       SLOW_START_ACTIVITIES = {
          ['stonehearth:simple_labor'] = true,
          ['stonehearth:mining'] = true,
-      }
+      },
+      ABORT_FRAME = ':aborted_frame:'
    },
 
    shop = {

@@ -48,10 +48,20 @@ App.StonehearthFarmView = App.View.extend({
       console.log(this.get('crop_rotation'));
    },
 
+   _onFieldChanged: function() {
+      var field = this.get('context.stonehearth:farmer_field');
+      if (field && field.crops && field.crops.length > 0) {
+         return;
+      }
+      this.palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
+            field: this.get('context.stonehearth:farmer_field').__self
+         });
+   }.observes('context.stonehearth:farmer_field'),
+
    actions :  {
       addCropButtonClicked: function() {
          var self = this;
-         palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
+         this.palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
                      field: this.get('context.stonehearth:farmer_field').__self
                   });
       },
