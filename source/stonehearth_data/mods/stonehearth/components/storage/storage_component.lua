@@ -324,6 +324,7 @@ function StorageComponent:remove_item(id)
 
    radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed', {      
          item_id = id,
+         item = item:is_valid() and item or nil,
       })
    return item
 end
