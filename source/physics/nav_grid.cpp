@@ -868,11 +868,9 @@ bool NavGrid::IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region)
 bool NavGrid::ForEachBlockingEntity(om::EntityPtr entity, csg::Point3 const& location, ForEachEntityCb const &cb)
 {
    NG_LOG(7) << "Entering ::ForEachBlockingEntity() for " << entity;
-
-   bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
    csg::CollisionShape region = GetEntityWorldCollisionShape(entity, location);
 
-   bool stopped = ForEachTrackerInShape(region, [this, &entity, &cb, ignoreSmallObjects](CollisionTrackerPtr tracker) -> bool {
+   bool stopped = ForEachTrackerInShape(region, [this, &entity, &cb](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
       if (TrackerBlocksEntity(entity, tracker)) {
          om::EntityPtr blockingEntity = tracker->GetEntity();
