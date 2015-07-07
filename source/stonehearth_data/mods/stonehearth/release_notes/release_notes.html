@@ -12,47 +12,63 @@ All hearthlings are now equipped with a backpack that can hold up to four items.
 <h2>Preview of the Cook</h2>
 The cook profession has been enabled. There are only two recipes at the moment, but we will be adding many more later. Uncooked food now spoils after a few days, so don't overproduce it! Prepared food lasts longer but will also eventually spoil.
 
-<h2>Crash bugs</h2>
-<li>Fixed crash when taking screenshot for saving. If you are running old Intel video drivers or Parallels for the Mac, you will now see a blank screenshot, but should be able to save.</li>
-<li>Fixed crash due to lua coroutine (multi-threading) bugs.</li>
-<li>Fixed crash sending too much data from the server to the client.</li>
-<li>Fixed crash on older Intel video drivers.</li>
+<h2>Attributes</h2>
+Hearthling attributes now have more of an impact on the game. Over time, we'll continue to add more effects. An example of some of the effects currently in the game:
+<ul>
+<li>Diligence increases crafting speed.</li>
+<li>Curiosity increases experience gain when crafting new items.</li>
+<li>Inventiveness increases chance of crafting fine items.</li>
+<li>Muscle increases weapon damage.</li>
+<li>Stamina determines duration of hearthling sleep.</li>
+<li>Courage determines change to flee in combat.</li>
+<li>Compassion affects maximum number of trapper pets and improves sheep wool production and reproduction rates.</li>
+</ul>
 
 <h2>Performance</h2>
 <li>Improved/fixed stuttering when you have a large number of items in the world.</li>
 <li>Improved lua garbage collection behavior. This should help with memory issues on slower systems.</li>
 <li>Increased rendering engine performance while reducing cpu usage.</li>
 
-<h2>Bugs Fixed</h2>
-<ul>
-<li>Manually extended auto-placed ladders can now be removed.</li>
-<li>Renaming structures no longer causes the camera to move.</li>
-<li>Fixed hearthlings floating on top of chairs while eating.</li>
-<li>Fixed issues when saving/loading the game when a hearthling is sleeping.</li>
-<li>Fixed an engine error in the scaffolding manager.</li>
-<li>Fixed bug trying to restore destroyed items on game load.</li>
-<li>Fixed save/load issues with farms.</li>
-<li>Fixed error with shepherd looking for more sheep.</li>
-<li>Crafter workbenches now have the correct collision shape.</li>
-<li>Fix camera zooming away when focusing on carried item.</li>
-<li>Fixed lots of small UI issues.</li>
-<li>Rotating an item while placing it now correctly rotates its collision shape.***</li>
-</ul>
-
 <h2>Other Changes</h2>
 <ul>
 <li>You can now specify the seed used to generate the world so you can replay a map.</li>
-<li>Incompatible saves can no longer be loaded.</li>
-<li>Enemies no longer gain experience and level up.</li>
+<li>Portraits added to the unit info pane in the bottm left corner. Clicking on the portait brings up the character sheet.</li>
+<li>Added many tooltips to the character sheet and building designer.</li>
+<li>Show armor and weapon bonuses on the character sheet.</li>
 <li>Hearthlings can now pick up and place items on multiple levels instead of just at foot level.</li>
 <li>Hearthlings no longer build ladders when they can reach the item from ground level.</li>
 <li>Removing ladders now shows the undeploy icon.</li>
 <li>Clicking units in the party window will now select and zoom to them.</li>
-<li>Portraits added to the unit info pane in the bottm left corner. Clicking on the portait brings up the character sheet.</li>
-<li>Added tooltips to the building designer and character sheet.</li>
-<li>Show armor and weapon bonuses on the character sheet.</li>
 <li>When buying and selling items, the reticle no longer obscures the quantity.</li>
 <li>Hearthlings now sleep in the center of the bed.</li>
-<li>Game speed hotkeys have been moved to ~, 1, 2, 3 and game speed 3 is now enabled.</li>
+<li>Enemies no longer gain experience and level up.</li>
+<li>Incompatible saves can no longer be loaded.</li>
+<li>Game speed hotkeys have been moved to ~, 1, 2.</li>
 <li>The debug console hotkey is now ctrl-shift-c.</li>
 </ul>
+
+<h2>Crash Bugs</h2>
+<li>Fixed crash when taking screenshot for saving. If you are running old Intel video drivers or Parallels for the Mac, you will now see a blank screenshot, but should be able to save.</li>
+<li>Fixed crash due to lua coroutine (multi-threading) bugs.</li>
+<li>Fixed crash sending too much data from the server to the client.</li>
+<li>Fixed crash on older Intel video drivers.</li>
+
+<h2>Other Bugs Fixed</h2>
+<ul>
+<li>Manually extended auto-placed ladders can now be removed.</li>
+<li>Renaming structures no longer causes the camera to move.</li>
+<li>Fixed hearthlings floating on top of chairs while eating.</li>
+<li>Fixed issues when saving/loading the game while a hearthling is sleeping.</li>
+<li>Fixed hearthlings sleeping twice in a night.</li>
+<li>Fixed an engine error in the scaffolding manager.</li>
+<li>Fixed bug trying to restore destroyed items on game load.</li>
+<li>Fixed save/load issues with farms.</li>
+<li>Fixed error with shepherd looking for more sheep.</li>
+<li>You can now save the game before placing the banner.</li>
+<li>Rotating an item while placing it now correctly rotates its collision shape.</li>
+<li>Crafter workbenches now have the correct collision shape.</li>
+<li>Fix camera zooming away when focusing on carried item.</li>
+<li>Fixed lots of small UI issues.</li>
+</ul>
+
+<li></li>
