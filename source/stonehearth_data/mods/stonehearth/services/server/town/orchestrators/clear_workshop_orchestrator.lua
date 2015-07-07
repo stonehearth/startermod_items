@@ -18,7 +18,7 @@ function ClearWorkshop:run(thread, args)
          }
 
          local task = task_group:create_task('stonehearth:clear_workshop', args)
-                         :set_priority(stonehearth.constants.priorities.work.CRAFTING)
+                         :set_priority(stonehearth.constants.priorities.work.CRAFTING_CLEANUP)
                          :once()
                          :start()
 
