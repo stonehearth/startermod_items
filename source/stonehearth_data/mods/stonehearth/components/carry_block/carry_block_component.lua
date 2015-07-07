@@ -86,7 +86,8 @@ function CarryBlock:_remove_carrying()
 
       radiant.entities.unset_posture(self._entity, 'stonehearth:carrying')
       radiant.entities.remove_buff(self._entity, 'stonehearth:buffs:carrying')
-
+      
+      radiant.events.trigger(self._entity, 'stonehearth:carry_block:carrying_changed:sync')
       radiant.events.trigger_async(self._entity, 'stonehearth:carry_block:carrying_changed')
    end
 end
