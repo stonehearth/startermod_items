@@ -47,6 +47,7 @@ class NavGrid {
       // row of the region are capable of supporting weight.
       bool IsSupport(csg::Point3 const& worldPoint);
       bool IsSupported(csg::Point3 const& worldPoint);
+      bool IsSupported(om::EntityPtr entity, csg::Point3 const& pt);
       
       // Standable Queries.  Standable means the region below the bottom of the location
       // is Support and the entire region is not Blocked
@@ -64,6 +65,7 @@ class NavGrid {
          om::EntityPtr const& GetEntity() const { return _entity; }
          bool IsStandable(csg::Point3 const& pt) const;
          bool IsBlocked(csg::Point3 const& pt) const;
+         bool IsSupported(csg::Point3 const& pt) const;
 
       private:
          friend NavGrid;
@@ -99,6 +101,7 @@ class NavGrid {
       bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb);
       bool ForEachEntityInBox(csg::CollisionBox const& worldBox, ForEachEntityCb const& cb);
       bool ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEachEntityCb const& cb);
+      bool ForEachBlockingEntity(om::EntityPtr entity, csg::Point3 const& location, ForEachEntityCb const &cb);
       bool TrackerTracksEntityBounds(CollisionTrackerPtr tracker) const;
 
       // Clipping
@@ -152,6 +155,7 @@ private:
       bool RegionIsSupportedForTitan(csg::Region3 const& r);
       bool UseFastCollisionDetection(om::EntityPtr entity) const;
       bool CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& worldPoint);
+      bool TrackerBlocksEntity(om::EntityPtr const& entity, CollisionTrackerPtr const& tracker);
 
    private: // methods exposed only to the OctTree
       friend OctTree;

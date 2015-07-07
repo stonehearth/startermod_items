@@ -42,7 +42,7 @@ static const int SMALL_ITEM_MAX_WIDTH = 4;
 
 static csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Point3 const& location);
 
-static bool IsSmallObject(om::EntityPtr entity)
+static bool IsSmallObject(om::EntityPtr const& entity)
 {
    if (entity) {
       if (entity->GetObjectId() != 1) {
@@ -54,7 +54,7 @@ static bool IsSmallObject(om::EntityPtr entity)
    return false;
 }
 
-static om::Mob::MobCollisionTypes GetMobCollisionType(om::EntityPtr entity)
+static om::Mob::MobCollisionTypes GetMobCollisionType(om::EntityPtr const& entity)
 {
    if (entity) {
       om::MobPtr mob = entity->GetComponent<om::Mob>();
@@ -629,7 +629,6 @@ bool NavGrid::ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEac
    return stopped;
 }
 
-
 /*
  * -- NavGrid::ForEachTileInBox
  *
@@ -749,7 +748,6 @@ bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb co
    return stopped;
 }
 
-
 /*
  * -- NavGrid::IsEntityInCube
  *
@@ -767,7 +765,6 @@ bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds
    });
    return stopped;   // if we had to stop early, we must have found an overlap!
 }
-
 
 /*
  * -- NavGrid::IsBlocked
@@ -787,46 +784,6 @@ bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
    }
    return IsBlocked(csg::ToInt(region));
 }
-
-
-/*
- * -- NavGrid::IsBlocked
- *
- * Returns whether or not the space occupied by `entity` is blocked if placed at
- * the world coordinate specified by `location`.  `region` must have been derived
- * from a call to GetEntityWorldCollisionReginon, though it may be moved around
- * (eg. translated up and down to find the right spot to unstick an entity)
- *
- */
-
-bool NavGrid::IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region)
-{
-   bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
-
-   NG_LOG(7) << "Entering ::IsBlocked() for " << entity;
-   bool stopped = ForEachTrackerInShape(region, [this, ignoreSmallObjects, &entity](CollisionTrackerPtr tracker) -> bool {
-      bool stop = false;
-      
-      // Ignore the trackers for the entity we're asking about.
-      if (entity != tracker->GetEntity()) {
-         switch (tracker->GetType()) {
-         case TrackerType::COLLISION:
-            NG_LOG(7) << entity <<  " intersected collision box of " << tracker->GetEntity() << ".  ::IsBlocked() returning true.";
-            stop = !ignoreSmallObjects || !IsSmallObject(tracker->GetEntity());
-            break;
-         case TrackerType::TERRAIN:
-            NG_LOG(7) << entity <<  " intersected terrain.  ::IsBlocked() returning true.";
-            stop = true;
-            break;
-         }
-      }
-      return stop;
-   });
-   NG_LOG(7) << "Exiting ::IsBlocked() for " << entity << "(blocked? " << std::boolalpha << stopped << ")";
-
-   return stopped;      // if we had to stop iteration, we must be blocked!
-}
-
 
 /*
  * -- NavGrid::IsBlocked
@@ -887,6 +844,71 @@ bool NavGrid::IsBlocked(csg::Cube3 const& cube)
    return stopped;      // if we stopped, we're blocked!
 }
 
+/*
+ * -- NavGrid::IsBlocked
+ *
+ * Returns whether or not the space occupied by `entity` is blocked if placed at
+ * the world coordinate specified by `location`.  `region` must have been derived
+ * from a call to GetEntityWorldCollisionReginon, though it may be moved around
+ * (eg. translated up and down to find the right spot to unstick an entity)
+ *
+ */
+
+bool NavGrid::IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region)
+{
+   NG_LOG(7) << "Entering ::IsBlocked() for " << entity;
+   bool stopped = ForEachTrackerInShape(region, [this, &entity](CollisionTrackerPtr tracker) -> bool {
+      bool stop = TrackerBlocksEntity(entity, tracker);
+      return stop;
+   });
+   NG_LOG(7) << "Exiting ::IsBlocked() for " << entity << "(blocked? " << std::boolalpha << stopped << ")";
+   return stopped;      // if we had to stop iteration, we must be blocked!
+}
+
+bool NavGrid::ForEachBlockingEntity(om::EntityPtr entity, csg::Point3 const& location, ForEachEntityCb const &cb)
+{
+   NG_LOG(7) << "Entering ::ForEachBlockingEntity() for " << entity;
+
+   bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
+   csg::CollisionShape region = GetEntityWorldCollisionShape(entity, location);
+
+   bool stopped = ForEachTrackerInShape(region, [this, &entity, &cb, ignoreSmallObjects](CollisionTrackerPtr tracker) -> bool {
+      bool stop = false;
+      if (TrackerBlocksEntity(entity, tracker)) {
+         om::EntityPtr blockingEntity = tracker->GetEntity();
+         stop = cb(blockingEntity);
+      }
+      return stop;
+   });
+
+   NG_LOG(7) << "Exiting ::ForEachBlockingEntity() for " << entity;
+   return stopped;
+}
+
+bool NavGrid::TrackerBlocksEntity(om::EntityPtr const& entity, CollisionTrackerPtr const& tracker)
+{
+   om::EntityPtr blockingEntity = tracker->GetEntity();
+   if (entity == blockingEntity) {
+      return false;
+   }
+
+   // ignoreSmallObjects could be refactored out of this function if performance is an issue
+   bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
+   bool blocked = false;
+
+   switch (tracker->GetType()) {
+      case TrackerType::COLLISION:
+         NG_LOG(7) << entity <<  " intersected collision box of " << tracker->GetEntity();
+         blocked = !ignoreSmallObjects || !IsSmallObject(tracker->GetEntity());
+         break;
+      case TrackerType::TERRAIN:
+         NG_LOG(7) << entity <<  " intersected terrain";
+         blocked = true;
+         break;
+   }
+
+   return blocked;
+}
 
 /*
  * -- NavGrid::IsSupport
@@ -921,6 +943,17 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
 bool NavGrid::IsSupported(csg::Point3 const& worldPoint)
 {
    return IsSupport(worldPoint - csg::Point3::unitY);
+}
+
+/*
+ * -- NavGrid::IsSupported
+ *
+ * Returns whether or not an entity placed at pt would be supported.
+ *
+ */
+bool NavGrid::IsSupported(om::EntityPtr entity, csg::Point3 const& location)
+{
+   return Query(this, entity).IsSupported(location);
 }
 
 /*
@@ -1225,6 +1258,34 @@ bool NavGrid::Query::IsBlocked(csg::Point3 const& location) const
    return false;
 }
 
+bool NavGrid::Query::IsSupported(csg::Point3 const& location) const
+{
+   switch (_method) {
+   case Query::INVALID_QUERY:
+      return false;
+   
+   case Query::POINT:
+      return _ng->IsSupported(location);
+   
+   case Query::TINY:
+      return _ng->IsSupported(location);
+
+   case Query::HUMANOID:
+      return _ng->IsSupported(location);
+   
+   case Query::INTERSECT_NAVGRID:
+      MoveWorldCollisionShape(location);
+      return _ng->RegionIsSupported(csg::ToInt(_worldCollisionShape));
+   
+   case Query::INTERSECT_TRACKERS:
+      MoveWorldCollisionShape(location);
+      return _ng->RegionIsSupported(_entity, location, csg::ToInt(_worldCollisionShape));
+   
+   default:
+      ASSERT(false);
+   }
+   return false;
+}
 
 /*
  * -- NavGrid::IsStandable
