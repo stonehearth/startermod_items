@@ -277,7 +277,7 @@ end
 -- the previously made a decision based on ai.CURRENT, that probably has to be revisited)
 --
 function ExecutionFrame:_change_entity_state(entity_state, debug_reason)
-   self._log:spam('_change_entity_state (reason:%s, state:%s)', debug_reason, self._state)
+   self._log:spam('enter _change_entity_state (reason:%s, state:%s)', debug_reason, self._state)
 
    self:_copy_entity_state_from_upstream(entity_state)
 
@@ -288,6 +288,8 @@ function ExecutionFrame:_change_entity_state(entity_state, debug_reason)
       local state = self:_clone_entity_state('fast think state')
       unit:_change_entity_state(state, debug_reason)
    end
+   self._log:detail('exit _capture_current_entity_state')
+   self:_spam_entity_state(entity_state, 'changed state')
 end
 
 -- we have 2 state bags at any given time.  the `upstream_state` is a copy of the bag
