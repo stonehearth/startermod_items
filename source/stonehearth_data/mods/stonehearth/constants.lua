@@ -299,7 +299,6 @@ local constants = {
          ['stonehearth:simple_labor'] = true,
          ['stonehearth:mining'] = true,
       },
-      ABORT_FRAME = ':aborted_frame:'
    },
 
    shop = {

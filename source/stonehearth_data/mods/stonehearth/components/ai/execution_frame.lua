@@ -65,8 +65,9 @@ radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionFrame._dum
 --
 local MAX_ROAM_DISTANCE = 32
 local INFINITE = 1000000000
-local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
-local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
+local ABORT_FRAME          = ':aborted_frame:radiant_policy_rethrow'
+local UNWIND_NEXT_FRAME    = ':unwind_next_frame:radiant_policy_rethrow'
+local UNWIND_NEXT_FRAME_2  = ':unwind_next_frame_2:radiant_policy_rethrow'
 
 local FAST_START_MAX_UNITS = 3
 local SLOWSTART_TIMEOUTS = {500, 1500}
@@ -1300,7 +1301,7 @@ function ExecutionFrame:abort()
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
-   self:_exit_protected_call(stonehearth.constants.ai.ABORT_FRAME)
+   self:_exit_protected_call(ABORT_FRAME)
 end
 
 function ExecutionFrame:is_aborting()
@@ -1759,8 +1760,8 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          return UNWIND_NEXT_FRAME_2
       elseif err:find(UNWIND_NEXT_FRAME) then
          return UNWIND_NEXT_FRAME
-      elseif err:find(stonehearth.constants.ai.ABORT_FRAME) then
-         return stonehearth.constants.ai.ABORT_FRAME
+      elseif err:find(ABORT_FRAME) then
+         return ABORT_FRAME
       end
       
       local traceback = debug.traceback()
