@@ -980,6 +980,26 @@ function entities.unwrap_iconic_item(entity, component_name)
    return root_entity, root_component
 end
 
+function entities.get_root_form(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local root_form = nil
+
+   local iconic_form = entity:get_component('stonehearth:iconic_form')
+   if iconic_form then
+      return iconic_form:get_root_entity()
+   end
+
+   local ghost_form = entity:get_component('stonehearth:ghost_form')
+   if ghost_form then
+      return ghost_form:get_root_entity()
+   end
+
+   return entity
+end
+
 --Return whether the entitiy is frightened of the target
 --Compares the entity's courage score to the target's menace score
 --returns false if either is missing the appropriate component
