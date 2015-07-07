@@ -12,7 +12,6 @@ local NineGridBrush = _radiant.voxel.NineGridBrush
 
 local build_util = {}
 
-local roation_eps = 0.01
 local INFINITE = 1000000
 
 local SAVED_COMPONENTS = {
@@ -27,10 +26,7 @@ local SAVED_COMPONENTS = {
 }
 
 function build_util.rotated_degrees(value, degrees)
-   value = value + degrees
-   if value >= 360 then
-      value = value - 360
-   end
+   value = (value + degrees) % 360
    return value
 end
 
@@ -48,16 +44,10 @@ function build_util.normal_to_rotation(normal)
 end
 
 function build_util.rotation_to_normal(rotation)
-   if math.abs(rotation) < roation_eps then
-      return Point3(0, 0, -1)
-   elseif math.abs(rotation - 90) < roation_eps then
-      return Point3(-1, 0, 0)
-   elseif math.abs(rotation - 180) < roation_eps then
-      return Point3(0, 0, 1)
-   elseif math.abs(rotation - 270) < roation_eps then
-      return Point3(1, 0, 0)
-   end
-   assert(false, string.format('non-aligned rotation %f in rotation_to_normal()', rotation))
+   -- recall the 0 facing is in the -z direction
+   local normal = radiant.math.rotate_about_y_axis(-Point3.unit_z, rotation):to_closest_int()
+   assert(build_util.normal_to_rotation(normal) == radiant.math.quantize(rotation, 90) % 360)
+   return normal
 end
 
 local function for_each_child(entity, fn)
