@@ -1,0 +1,43 @@
+{
+   "type" : "entity",
+   "mixins" : "file(leather_bound_chest_ghost.json)",
+   
+   "components": {
+      "mob" : {
+         "interpolate_movement" : false
+      },
+      "stonehearth:storage" : {
+         "type" : "crate",
+         "auto_fill_from" : [ "vault" ],
+         "capacity" : 16
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(leather_bound_chest_iconic.json)",
+         "ghost_form" : "file(leather_bound_chest_ghost.json)",
+         "placeable_on_ground" : true
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" :-1, "y" : 0, "z" : 1 },
+               "max" : { "x" : 1, "y" : 2, "z" : 3 }
+            }
+         ]
+      },
+      "region_collision_shape" : {
+         "region" : [
+            {
+               "min" : { "x" :-1, "y" : 0, "z" : 1 },
+               "max" : { "x" : 1, "y" : 2, "z" : 3 }
+            }
+         ]
+      }           
+   },
+   "entity_data" : {
+      "stonehearth:ai_packs" : {
+         "packs" : [
+            "stonehearth:ai_pack:fill_storage"
+         ]
+      }
+   }
+}
