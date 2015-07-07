@@ -30,6 +30,9 @@
             },
             "large_crate" : {
                "recipe" : "file(large_crate_recipe.json)"
+            },
+             "leather_bound_chest" : {
+               "recipe" : "file(leather_bound_chest_recipe.json)"
             }                       
          }
       },

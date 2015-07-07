@@ -68,7 +68,7 @@
    },
 
    invokeDestroy: function() {
-      if (this.state == 'preRender') {
+      if (this._state == 'preRender') {
          Ember.run.scheduleOnce('afterRender', this, this.destroy);
       } else {
          this.destroy();

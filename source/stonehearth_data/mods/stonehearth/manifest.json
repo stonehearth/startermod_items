@@ -271,6 +271,7 @@
       
       "containers:small_crate" : "file(entities/containers/small_crate)",
       "containers:large_crate" : "file(entities/containers/large_crate)",
+      "containers:leather_bound_chest" : "file(entities/containers/leather_bound_chest)",
 
       "refined:thread" : "file(entities/refined/thread)",
       "refined:cloth_bolt" : "file(entities/refined/cloth_bolt)",

@@ -11,19 +11,39 @@ HarvestCropAdjacent.version = 2
 HarvestCropAdjacent.priority = 1
 
 
+function HarvestCropAdjacent:start_thinking(ai, entity, args)
+   local carrying = ai.CURRENT.carrying
+   if carrying and not self:_is_same_crop(carrying, args.crop) then
+      return
+   end
+   ai:set_think_output();
+end
+
+function HarvestCropAdjacent:_is_same_crop(entity, crop)
+   local crop_component = crop:get_component('stonehearth:crop')
+   if not crop_component then
+      return false
+   end
+   if entity and entity:get_uri() ~= crop_component:get_product() then
+      local iconic_component = entity:get_component('stonehearth:iconic_form')
+      if not iconic_component or (iconic_component and iconic_component:get_root_entity():get_uri() ~= crop_component:get_product()) then
+         return false
+      end
+   end
+   return true
+end
+
 function HarvestCropAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, args.crop)
    ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
-   -- it never hurts to be a little bit paranoid =)
-   local crop_component = args.crop:get_component('stonehearth:crop')
    local carrying = radiant.entities.get_carrying(entity)
-   if carrying and carrying:get_uri() ~= crop_component:get_product() then
-      local iconic_component = carrying:get_component('stonehearth:iconic_form')
-      if not iconic_component or (iconic_component and iconic_component:get_root_entity():get_uri() ~= crop_component:get_product()) then
-         ai:abort('not carrying the same type of crop')
-      end
+   -- it never hurts to be a little bit paranoid =)
+   if carrying and not self:_is_same_crop(carrying, args.crop) then
+     ai:abort('not carrying the same type of crop')
    end
+   
+   local crop_component = args.crop:get_component('stonehearth:crop')
 
    if not radiant.entities.increment_carrying(entity, self:_get_num_to_increment(entity)) then
       local product_uri = crop_component:get_product()

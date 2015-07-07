@@ -1,0 +1,28 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(leather_bound_chest.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.10
+      },
+      "unit_info": {
+         "name": "Leather Bound Chest",
+         "description": "Storage container",
+         "icon" : "file(leather_bound_chest.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.0, "y": 0, "z": 0.0 },
+         "region_origin" : { "x": -1.0, "y": 0, "z": 1.0 },
+         "align_to_grid" : [ "x", "z" ],
+         "allow_vertical_adjacent" : true
+      }
+   }
+}

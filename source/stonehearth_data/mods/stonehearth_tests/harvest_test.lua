@@ -25,8 +25,8 @@ function HarvestTest:__init()
    self:place_item('stonehearth:small_boulder',    15, 5)
        :add_component('mob'):turn_to(90)
 
-   self:place_item('stonehearth:berry_bush', -25, 15)
-   self:place_item('stonehearth:berry_bush', -15, 15)
+   self:place_item('stonehearth:containers:small_crate', -25, 15)
+   self:place_item('stonehearth:containers:large_crate', -15, 15)
    self:place_item('stonehearth:plants:silkweed',  -5, 15)
 
    self:place_citizen(12, 12)
