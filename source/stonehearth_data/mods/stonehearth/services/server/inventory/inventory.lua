@@ -87,7 +87,6 @@ function Inventory:_update_score_for_item(item)
          stonehearth.score:change_score(item, 'edibles', 'inventory', score)
       end
       
-      score = score / 10 -- whyyyyyyyyy? -- tony
       stonehearth.score:change_score(item, 'net_worth', 'inventory', score)
    end
 end
