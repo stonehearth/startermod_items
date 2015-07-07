@@ -18,8 +18,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
    assert(item_to_place)
 
    local specific_item_to_place = nil
-   local item_uri_to_place, cursor_uri
-   local root_form, ghost_entity, iconic_entity
+   local item_uri_to_place, root_form, ghost_entity, iconic_entity
    local forms_to_ignore = {}
 
    if type(item_to_place) == 'string' then   
@@ -52,13 +51,19 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
       end
    end
 
-   cursor_uri = ghost_entity and ghost_entity:get_uri() or placement_test_entity:get_uri()
-
    -- don't allow rotation if we're placing stuff on the wall
    local rotation_disabled = entity_forms:is_placeable_on_wall()
-
+   local cursor_uri = ghost_entity and ghost_entity:get_uri() or placement_test_entity:get_uri()
    local placement_structure, placement_structure_normal
-   stonehearth.selection:select_location()
+   local location_selector = stonehearth.selection:select_location()
+
+   if specific_item_to_place then
+      -- use the facing of the existing entity
+      local starting_rotation = radiant.entities.get_facing(root_form)
+      location_selector:set_rotation(starting_rotation)
+   end
+
+   location_selector
       :use_ghost_entity_cursor(cursor_uri)
       :set_rotation_disabled(rotation_disabled)
       :set_filter_fn(function (result, selector)
