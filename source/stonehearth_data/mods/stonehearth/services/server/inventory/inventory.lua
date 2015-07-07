@@ -491,6 +491,13 @@ function Inventory:container_for(item)
    return self._sv.container_for[item:get_id()]
 end
 
+function Inventory:contains_item(item)
+   if not item or not item:is_valid() then
+      return false
+   end
+   return self._sv.items[item:get_id()] ~= nil
+end
+
 function Inventory:update_item_container(id, storage)
    checks('self', 'number', '?Entity')
    
