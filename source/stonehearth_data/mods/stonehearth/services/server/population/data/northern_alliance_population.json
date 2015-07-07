@@ -24,7 +24,8 @@
       "Igurd",
       "Moror",
       "Erlinn",
-      "Vemund"
+      "Vemund",
+      "Oldra"
    ],
    "given_names" : {
       "male" : [
@@ -38,7 +39,18 @@
          "Lovil",
          "Sineus",
          "Hakon",
-         "Ragnar"
+         "Ragnar",
+         "Ulf",
+         "Levii",
+         "Elwind",
+         "Snorii",
+         "Usar",
+         "Regnar",
+         "Toralf",
+         "Andar",
+         "Roan",
+         "Vodyr",
+         "Bjoyyrn"
       ],
       "female" : [
          "Geira",
@@ -50,7 +62,17 @@
          "Jodis",
          "Mora",
          "Brynn",
-         "Katla"
+         "Katla",
+         "Karri",
+         "Nori",
+         "Feli",
+         "Lvy",
+         "Eerika",
+         "Yura",
+         "Skari",
+         "Eira",
+         "Ina",
+         "Mara"
       ]
    },
    "town_pieces" : {
