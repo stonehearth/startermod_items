@@ -147,7 +147,9 @@ function env.create_entity(x, z, uri, options)
             placed_entity = iconic   
          end
       end
-      inventory:add_item(placed_entity)
+      if not inventory:container_for(placed_entity) then
+        inventory:add_item(placed_entity)
+      end
    end
 
    return entity
