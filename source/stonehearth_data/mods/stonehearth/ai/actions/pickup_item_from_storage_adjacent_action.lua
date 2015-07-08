@@ -23,14 +23,14 @@ function PickupItemFromStorageAdjacent:run(ai, entity, args)
    local item = args.item   
    radiant.check.is_entity(item)
 
-   if radiant.entities.get_carrying(entity) ~= nil then
-      ai:abort('cannot pick up another item while carrying one!')
-      return
-   end
-
    if not radiant.entities.is_adjacent_to(entity, args.storage) then
       ai:abort('%s is not adjacent to %s', tostring(entity), tostring(args.storage))
    end
+
+   if stonehearth.ai:prepare_for_pickup_action(ai, entity, item) then
+      return
+   end
+   assert(not radiant.entities.get_carrying(entity))
 
    radiant.entities.turn_to_face(entity, args.storage)
 

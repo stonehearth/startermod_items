@@ -185,6 +185,9 @@ elif args.group:
    sh_args += ' --mods.stonehearth_autotest.options.group=' + args.group
 else:
    sh_args += ' --mods.stonehearth_autotest.options.group=all'
+   
+sh_args += ' --mods.stonehearth_autotest.options.run_forever=false'
+sh_args += ' --mods.stonehearth_autotest.options.exit_on_complete=true'
 
 if args.timeout != None:
    timeout = int(args.timeout)

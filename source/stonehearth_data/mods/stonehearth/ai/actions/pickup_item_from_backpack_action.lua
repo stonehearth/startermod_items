@@ -40,10 +40,11 @@ function PickupItemFromBackpack:start_thinking(ai, entity, args)
 end
 
 function PickupItemFromBackpack:run(ai, entity, args)
-   if radiant.entities.get_carrying(entity) ~= nil then
-      ai:abort('cannot pick up another item while carrying one!')
+   if stonehearth.ai:prepare_for_pickup_action(ai, entity, self._item) then
       return
    end
+   assert(not radiant.entities.get_carrying(entity))
+
    local success = entity:get_component('stonehearth:storage')
                            :remove_item(self._item:get_id())
    if not success then

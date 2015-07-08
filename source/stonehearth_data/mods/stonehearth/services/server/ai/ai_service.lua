@@ -137,4 +137,22 @@ function AiService:get_next_object_id()
    return LAST_ID
 end
 
+-- because of subtle races in the correctness of ai.CURRENT.carrying, we may get to a point
+-- in a pickup action where ai.CURRENT.carrying was nil in start_thinking(), but we actually
+-- end up carrying something in the action.  if we abort(), we may loop around and just do
+-- the same thing again (!!!), so instead do our best to clear the carry before running the
+-- pickup.  again, this only happens if we lose the race.  most of the time, it's a nop.
+function AiService:prepare_for_pickup_action(ai, entity, item)
+   local carrying = radiant.entities.get_carrying(entity)
+   if carrying == item then
+      ai:get_log():debug('already carrying %s!  early exit out of run', item)
+      return true
+   end
+   if carrying ~= nil then
+      ai:get_log():debug('unexpectedly found ourselves carrying %s just before pickup.  clearing', carrying)
+      ai:execute('stonehearth:clear_carrying_now')
+   end
+   return false
+end
+
 return AiService

@@ -18,8 +18,10 @@ function AggroObserver:activate()
    self._entity_traces = {}
    self._target_table = radiant.entities.get_target_table(self._sv._entity, 'aggro')
 
-   self:_add_sensor_trace()
-   self:_add_amenity_trace()
+   radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+      self:_add_sensor_trace()
+      self:_add_amenity_trace()         
+   end)
 end
 
 function AggroObserver:destroy()
@@ -58,10 +60,13 @@ function AggroObserver:_add_amenity_trace()
       -- we didn't keep track of?  the simplest thing to do here is to start from scratch, so clear the
       -- target table and re-evaluate everything in the sensor.
       self._amenity_trace = radiant.events.listen(pop, 'stonehearth:amenity_changed', function()
+            --Reset all the entity traces
+            self._entity_traces = {}
             if self._sensor_trace then
                self._target_table:clear()
                self._sensor_trace:push_object_state()
             end
+            
          end)
    end
 end
