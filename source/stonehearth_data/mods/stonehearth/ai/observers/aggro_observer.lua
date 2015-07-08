@@ -18,7 +18,7 @@ function AggroObserver:activate()
    self._entity_traces = {}
    self._target_table = radiant.entities.get_target_table(self._sv._entity, 'aggro')
 
-   self._initialize_listener = radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+   radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
       self:_add_sensor_trace()
       self:_add_amenity_trace()         
    end)
