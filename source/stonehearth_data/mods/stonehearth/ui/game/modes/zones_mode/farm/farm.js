@@ -1,4 +1,4 @@
-App.StonehearthFarmView = App.View.extend({
+App.StonehearthFarmView = App.StonehearthBaseZonesModeView.extend({
    templateName: 'stonehearthFarm',
    closeOnEsc: true,
 
@@ -34,11 +34,6 @@ App.StonehearthFarmView = App.View.extend({
 
    },
 
-   destroy : function() {
-      radiant.call('stonehearth:enable_camera_movement', true);
-      this._super();
-   },
-
    addCropToRotation: function(cropId) {
       var crops = this.get('context.crop_rotation') || [];
 
@@ -53,9 +48,11 @@ App.StonehearthFarmView = App.View.extend({
       if (field && field.crops && field.crops.length > 0) {
          return;
       }
-      this.palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
-            field: this.get('context.stonehearth:farmer_field').__self
-         });
+      if (!this.palette) {
+         this.palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
+               field: this.get('context.stonehearth:farmer_field').__self
+            });
+      }
    }.observes('context.stonehearth:farmer_field'),
 
    actions :  {

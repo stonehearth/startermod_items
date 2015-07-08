@@ -22,4 +22,12 @@ function EntityCallHandler:kill_entity(session, response, entity)
    return true
 end
 
+function EntityCallHandler:reset_entity(session, response, entity)
+   assert(entity)
+   local location = radiant.entities.get_world_grid_location(entity)
+   local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+   radiant.terrain.place_entity(entity, placement_point)
+   return true
+end
+
 return EntityCallHandler

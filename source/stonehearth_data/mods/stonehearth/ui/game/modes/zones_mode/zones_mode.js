@@ -13,7 +13,7 @@ App.StonehearthZonesModeView = App.View.extend({
       $(top).on('mode_changed', function(_, mode) {
          if (mode != 'zones') {
             if (self._propertyView) {
-               self._propertyView.destroy();
+               self._propertyView.destroyWithoutDeselect();
             }
          } 
       });
@@ -57,81 +57,38 @@ App.StonehearthZonesModeView = App.View.extend({
 
    _examineEntity: function(entity) {
       if (!entity && this._propertyView) {
-         this._propertyView.destroy();
+         this._propertyView.destroyWithoutDeselect();
+         return;
       }
 
+      var viewType = null;
       if (entity['stonehearth:storage'] && !entity['stonehearth:ai']) {
          // TODO: sigh, the above is probably wrong, but highly convenient.
-         this._showStockpileUi(entity);
+         viewType = App.StonehearthStockpileView;
       } else if (entity['stonehearth:farmer_field']) {
-         this._showFarmUi(entity);
+         viewType = App.StonehearthFarmView;
       } else if (entity['stonehearth:trapping_grounds']) {
-         this._showTrappingGroundsUi(entity);
+         viewType = App.StonehearthTrappingGroundsView;
       } else if (entity['stonehearth:mining_zone']) {
-         this._showMiningZoneUi(entity);
+         viewType = App.StonehearthMiningZoneView;
       } else if (entity['stonehearth:shepherd_pasture']) {
-         this._showPastureUi(entity);
+         viewType = App.StonehearthPastureView;
+      }
+      if (viewType) {
+         this._showZoneUi(entity, viewType);
       }
    },
 
-   _showStockpileUi: function(entity) {
+   _showZoneUi: function(entity, viewType) {
       var self = this;
 
       if (this._propertyView) {
-         this._propertyView.destroy();
+         this._propertyView.destroyWithoutDeselect();
       };
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
-      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { uri: uri });
+      this._propertyView = App.gameView.addView(viewType, { uri: uri });
    },
-
-   _showFarmUi: function(entity) {
-      var self = this;
-
-      if (this._propertyView) {
-         this._propertyView.destroy();
-      };
-
-      var uri = typeof(entity) == 'string' ? entity : entity.__self;
-
-      this._propertyView = App.gameView.addView(App.StonehearthFarmView, { uri: uri });
-   },
-
-   _showTrappingGroundsUi: function(entity) {
-      var self = this;
-
-      if (this._propertyView) {
-         this._propertyView.destroy();
-      };
-
-      var uri = typeof(entity) == 'string' ? entity : entity.__self;
-
-      this._propertyView = App.gameView.addView(App.StonehearthTrappingGroundsView, { uri: uri });
-   },
-
-   _showMiningZoneUi: function(entity) {
-      var self = this;
-
-      if (this._propertyView) {
-         this._propertyView.destroy();
-      };
-
-      var uri = typeof(entity) == 'string' ? entity : entity.__self;
-      
-      this._propertyView = App.gameView.addView(App.StonehearthMiningZoneView, { uri: uri });
-   },
-
-   _showPastureUi: function(entity) {
-      var self = this;
-
-      if (this._propertyView) {
-         this._propertyView.destroy();
-      };
-
-      var uri = typeof(entity) == 'string' ? entity : entity.__self;
-      
-      this._propertyView = App.gameView.addView(App.StonehearthPastureView, { uri: uri });
-   }
 
 });

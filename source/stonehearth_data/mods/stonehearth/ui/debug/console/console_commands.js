@@ -63,7 +63,7 @@ $(document).ready(function(){
    radiant.console.register('select', {
       call: function(cmdobj, fn, args) {
          var entity = 'object://game/' + args[0]
-         return radiant.call('radiant:client:select_entity', entity);
+         return radiant.call('stonehearth:select_entity', entity);
       },
       description : "Selects the entity with id = Arg 0. Usage: select 12345"
    });
@@ -155,4 +155,22 @@ $(document).ready(function(){
       },
       description : "Returns the world seed of the current world. Usage: world_seed"
    });
+
+   radiant.console.register('reset', {
+      call: function(cmdobj, fn, args) {
+         var entity;
+         if (args.length > 0) {
+            entity = 'object://game/' + args[0];
+         } else {
+            entity = selected;
+         }
+
+         if (entity) {
+            return radiant.call('stonehearth:reset_entity', entity);
+         }
+         return false;
+      },
+      description: "Resets the entity's location to a proper one on the ground. Usage: reset"
+   });
+
 });
