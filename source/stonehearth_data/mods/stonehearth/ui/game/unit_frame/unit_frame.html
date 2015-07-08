@@ -16,7 +16,7 @@
       <div id="info">
          <div class="inner">
             {{#if stonehearth:job}}
-               <div id="portrait" title="{{i18n unit_info_show_character_sheet}}">
+               <div id="portrait" title="{{i18n unit_info_show_character_sheet}}" {{bind-attr class=view.isHuman:clickable:}}>
                   <img id="unitPortrait" {{bind-attr src=view.portraitSrc}}/>
                </div>
             {{/if}}

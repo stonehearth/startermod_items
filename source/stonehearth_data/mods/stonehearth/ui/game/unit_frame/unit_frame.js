@@ -68,7 +68,10 @@ App.StonehearthUnitFrameView = App.View.extend({
       var self = this;
 
       self.$("#nameBlock .name").tooltipster();
-      self.$("#portrait").tooltipster();
+
+      if (self.get('isHuman')) {
+         self.$("#portrait").tooltipster();
+      }
 
       this.$('#unitFrame #buffs').find('.item').each(function() {
           $(this).tooltipster({
@@ -89,7 +92,9 @@ App.StonehearthUnitFrameView = App.View.extend({
       });
 
       this.$('#portrait').click(function (){
-         App.stonehearthClient.showCharacterSheet(self.get('uri')); 
+         if ($(this).hasClass('clickable')) {
+            App.stonehearthClient.showCharacterSheet(self.get('uri')); 
+         }
       });
 
       this._updateCommandButtons();
@@ -107,16 +112,26 @@ App.StonehearthUnitFrameView = App.View.extend({
       }
    }.observes('context.stonehearth:commands.commands'),
 
-   _updateMoneyDescription: function() {
+   _updateMaterial: function() {
+      var self = this;
+      var isHuman = false;
+         
       // Specifically, if the item selected is money, update its description to account for its value.
-      var material = this.get('context.stonehearth:material');
-      if (material && material.tags_string.indexOf('money') >= 0) {
-         var itemComponent = this.get('context.item');
-         if (itemComponent) {
-            var stacks = itemComponent.stacks;
-            this.set("context.unit_info.description", i18n.t('unit_info_gold_description', {stacks: stacks}));
+      var material = self.get('context.stonehearth:material');
+      if (material) {
+         if (material.tags_string.indexOf('money') >= 0) {
+            var itemComponent = self.get('context.item');
+            if (itemComponent) {
+               var stacks = itemComponent.stacks;
+               self.set("context.unit_info.description", i18n.t('unit_info_gold_description', {stacks: stacks}));
+            }
+         }
+         if (material.tags_string.indexOf('human') >= 0) {
+            isHuman = true;
          }
       }
+
+      self.set('isHuman', isHuman)
    }.observes('context.item'),
 
    _updatePortrait: function() {
