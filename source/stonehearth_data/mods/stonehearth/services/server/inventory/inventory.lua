@@ -126,15 +126,7 @@ function Inventory:_on_destroy(e)
       self:remove_item(id)
    end
 
-   for t, storage in pairs(self._sv.storage) do
-      if storage[id] then
-         storage[id] = nil
-         self.__saved_variables:mark_changed()
-         if t == SHARED_STORAGE then
-            self:_check_public_storage_space()
-         end
-      end
-   end
+   self:remove_storage(id)
 end
 
 function Inventory:add_storage(entity)
@@ -150,6 +142,18 @@ function Inventory:add_storage(entity)
          self:_check_public_storage_space()
       end
       self.__saved_variables:mark_changed()
+   end
+end
+
+function Inventory:remove_storage(id)
+   for t, storage in pairs(self._sv.storage) do
+      if storage[id] then
+         storage[id] = nil
+         self.__saved_variables:mark_changed()
+         if t == SHARED_STORAGE then
+            self:_check_public_storage_space()
+         end
+      end
    end
 end
 
@@ -517,6 +521,7 @@ function Inventory:update_item_container(id, storage)
       tracker:update_item_container(item, storage)
    end
    self.__saved_variables:mark_changed()
+   self:_check_public_storage_space()
 end
 
 function Inventory:_check_entity_forms_of_new_item(item)

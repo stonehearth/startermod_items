@@ -181,11 +181,12 @@ function StorageComponent:initialize(entity, json)
             self:set_filter({})
           end
       end
-      
+
       self.__saved_variables:mark_changed()
    end
 
    self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
+   self._parent_changed_listener = radiant.events.listen(entity, 'radiant:mob:parent_changed', self, self._on_parent_changed_event)
 
    self:_on_contents_changed()
    
@@ -217,6 +218,26 @@ function StorageComponent:_on_kill_event()
    end
 end
 
+function StorageComponent:_on_parent_changed_event()
+   local player_id = self._sv.entity:add_component('unit_info')
+                                       :get_player_id()
+
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   if not inventory then
+      return
+   end
+
+   local position = radiant.entities.get_world_grid_location(self._sv.entity)
+   --Whether this storage is actually avilable for placing items into it.
+   --Items like undeployed crates are not available.
+   if position then
+      inventory:add_storage(self._sv.entity)
+   else
+      inventory:remove_storage(self._sv.entity:get_id())
+   end
+
+end
+
 function StorageComponent:destroy()
    self._unit_info_trace:destroy()
    self._unit_info_trace = nil
@@ -228,6 +249,11 @@ function StorageComponent:destroy()
    if self._kill_listener then
       self._kill_listener:destroy()
       self._kill_listener = nil
+   end
+
+   if self._parent_changed_listener then
+      self._parent_changed_listener:destroy()
+      self._parent_changed_listener = nil
    end
 
    self._sv.items = nil
@@ -370,7 +396,6 @@ function StorageComponent:is_full()
    return self._sv.num_items >= self:get_capacity()
 end
 
-
 function StorageComponent:_filter_item(item)
    if self:passes(item) then
       self._sv.passed_items[item:get_id()] = item
@@ -459,16 +484,10 @@ function StorageComponent:_update_player_id()
 
    -- xxx: we also need to add/remove all the items in the
    -- box to the new/old inventory
-   self:_update_inventory(player_id)
+   self:_on_parent_changed_event() --This will cause us to re-evaluate whether to add or remove from new inventory
    self:_update_filter_key(player_id)
 end
 
-function StorageComponent:_update_inventory(player_id)
-   local inventory = stonehearth.inventory:get_inventory(player_id)
-   if inventory then
-      inventory:add_storage(self._sv.entity)
-   end
-end
 
 function StorageComponent:_update_filter_key(player_id)
    if self._sv.filter then
