@@ -37,7 +37,7 @@
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   
-            "sellable" : true,
+            "sellable" : false,
             "shopkeeper_level" : 1,
             "shopkeeper_type" : "caravan"
          }
