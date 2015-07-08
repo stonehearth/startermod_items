@@ -19,10 +19,7 @@ function AIComponent:initialize(entity, json)
    self._all_execution_frames = {}
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
-   self._aitrace = radiant.log.create_logger('ai_trace')
-   self._aitrace:set_prefix('e' .. tostring(entity:get_id()) .. '/')
    local s = radiant.entities.get_name(entity) or 'noname'
-   self._aitrace:spam('@ce@%s@%s', 'e' .. tostring(entity:get_id()), s)
 
    self._log = radiant.log.create_logger('ai.component')
                           :set_entity(self._entity)
@@ -378,7 +375,6 @@ function AIComponent:start()
          end
 
          local start_tick = radiant.gamestate.now()
-         self._aitrace:spam('@loop')
          self._log:debug('starting new execution frame run in ai loop')
          self._execution_frame:run({})
          self._log:debug('reached bottom of execution frame run in ai loop')
@@ -449,6 +445,12 @@ end
 function AIComponent:resume_thread()
    assert(self._thread)
    stonehearth.threads:resume_thread(self._thread)
+end
+
+function AIComponent:entity_state_is_stale()
+   assert(self._execution_frame)
+
+   return self._execution_frame:entity_state_is_stale()
 end
 
 return AIComponent
