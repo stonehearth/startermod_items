@@ -26,7 +26,8 @@
       "Sayyar",
       "Kenaii",
       "Dakis",
-      "Sharak"
+      "Sharak", 
+      "Mistyaan"
    ],
    "given_names" : {
       "male" : [
@@ -118,13 +119,15 @@
          "Diradi",
          "Twell",
          "Romark",
-         "Feran"
+         "Feran", 
+         "Kroge"
       ], 
       "suffix" : [
          "en",
          "or",
          "er",
          "vo",
+         "bry",
          "dell"
       ]
    }

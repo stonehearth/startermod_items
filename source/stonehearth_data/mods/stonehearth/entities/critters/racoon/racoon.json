@@ -22,7 +22,7 @@
    "entity_data" : {
       "stonehearth:harvest_beast_loot_table" : {
          "num_rolls" : {
-            "min" : 2,
+            "min" : 1,
             "max" : 4
          },
          "items" : [
