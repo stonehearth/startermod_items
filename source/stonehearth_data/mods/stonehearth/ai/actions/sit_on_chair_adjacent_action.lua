@@ -25,14 +25,16 @@ function SitOnChairAdjacent:run(ai, entity, args)
 end
 
 function SitOnChairAdjacent:stop(ai, entity, args)
-   local root_entity = radiant.entities.get_root_entity()
-   local mob = entity:get_component('mob')
-   local egress_facing = self._saved_facing + 180
+   if self._saved_facing and self._saved_location and self._saved_collision_type then
+      local root_entity = radiant.entities.get_root_entity()
+      local mob = entity:get_component('mob')
+      local egress_facing = self._saved_facing + 180
 
-   radiant.entities.add_child(root_entity, entity, self._saved_location)
-   mob:turn_to(egress_facing)
-   mob:set_mob_collision_type(self._saved_collision_type)
-   radiant.entities.unset_posture(entity, 'stonehearth:sitting_on_chair')
+      radiant.entities.add_child(root_entity, entity, self._saved_location)
+      mob:turn_to(egress_facing)
+      mob:set_mob_collision_type(self._saved_collision_type)
+      radiant.entities.unset_posture(entity, 'stonehearth:sitting_on_chair')
+   end
 
    self._saved_location = nil
    self._saved_facing = nil
