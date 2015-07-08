@@ -25,7 +25,7 @@ class Mob(Component):
    )
 
    bone = dm.Boxed(std.string())
-   parent = dm.Boxed(std.weak_ptr(Entity()))
+   parent = dm.Boxed(std.weak_ptr(Entity()), set='declare')
    transform = dm.Boxed(csg.Transform())
    velocity = dm.Boxed(csg.Transform())
    model_origin = dm.Boxed(csg.Point3f())

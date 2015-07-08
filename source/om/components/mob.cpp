@@ -3,6 +3,7 @@
 #include "csg/matrix4.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 #include "csg/cube.h"
+#include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -274,3 +275,23 @@ csg::Region3f const& Mob::GetMobCollisionRegion() const
    return NoCollisionShape;
 }
 
+Mob& Mob::SetParent(om::EntityRef value)
+{ 
+   if ((*parent_).lock() == value.lock()) {
+      return *this;
+   }
+
+   parent_ = value;
+   lua_State* L = GetStore().GetInterpreter();
+   if (L) {
+      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
+      if (scriptHost) {
+         luabind::object e(L, GetEntityRef());
+         luabind::object evt(L, luabind::newtable(L));
+         evt["entity"] = e;
+         scriptHost->AsyncTriggerOn(e, "radiant:mob:parent_changed", evt);
+         scriptHost->AsyncTrigger("radiant:mob:parent_changed", evt);
+      }
+   }
+   return *this;
+}
