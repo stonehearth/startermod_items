@@ -353,10 +353,6 @@ function entities.turn_to(entity, degrees)
    entity:add_component('mob'):turn_to(degrees)
 end
 
-function entities.get_facing(entity)
-   return entity:add_component('mob'):get_facing()
-end
-
 function entities.turn_to_face(entity, arg2)
    local location
    if radiant.util.is_a(arg2, Entity) then
@@ -369,6 +365,16 @@ function entities.turn_to_face(entity, arg2)
       radiant.check.is_entity(entity)
       entity:add_component('mob'):turn_to_face_point(location)
    end
+end
+
+function entities.get_facing(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local mob = entity:get_component('mob')
+   local facing = mob and mob:get_facing()
+   return facing
 end
 
 function entities.think(entity, uri, priority)
@@ -978,6 +984,26 @@ function entities.unwrap_iconic_item(entity, component_name)
       end
    end
    return root_entity, root_component
+end
+
+function entities.get_root_form(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local root_form = nil
+
+   local iconic_form = entity:get_component('stonehearth:iconic_form')
+   if iconic_form then
+      return iconic_form:get_root_entity()
+   end
+
+   local ghost_form = entity:get_component('stonehearth:ghost_form')
+   if ghost_form then
+      return ghost_form:get_root_entity()
+   end
+
+   return entity
 end
 
 --Return whether the entitiy is frightened of the target

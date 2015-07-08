@@ -26,7 +26,7 @@ function NewGameCallHandler:embark_client(session, response)
          camera_service:set_position(camera_location)
          camera_service:look_at(target)
 
-         _radiant.call('stonehearth:get_visibility_regions'):done(
+         _radiant.call_obj('stonehearth.terrain', 'get_visibility_regions_command'):done(
             function (o)
                log:info('Visible region uri: %s', o.visible_region_uri)
                log:info('Explored region uri: %s', o.explored_region_uri)

@@ -1030,10 +1030,6 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "client"
       },
-      "get_visibility_regions": {
-         "controller" : "file(call_handlers/terrain_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "release_pet" : {
          "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
          "endpoint" : "server"    

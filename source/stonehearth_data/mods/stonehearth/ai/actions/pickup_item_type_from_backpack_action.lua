@@ -14,6 +14,10 @@ PickupItemTypeFromBackpack.version = 2
 PickupItemTypeFromBackpack.priority = 2 -- at elevated priority so we unload our inventory first
 
 function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
+   if ai.CURRENT.carrying then
+      return
+   end
+   
    local filter_fn = args.filter_fn
    self._storage_component = entity:get_component('stonehearth:storage')
    if not self._storage_component then
@@ -32,11 +36,15 @@ end
 
 function PickupItemTypeFromBackpack:run(ai, entity, args)
    local id = self._item:get_id()
+
+   if not radiant.entities.pickup_item(entity, self._item) then
+      ai:abort('failed to move item to carry block')
+   end
    local item = self._storage_component:remove_item(id)
    if not item then
       ai:abort('failed to pull item out of backpack')
    end
-   radiant.entities.pickup_item(entity, item)
+   
 end
 
 return PickupItemTypeFromBackpack

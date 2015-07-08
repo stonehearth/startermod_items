@@ -195,10 +195,16 @@ function events.trigger_async(object, event, ...)
    table.insert(events._async_triggers, trigger)
 end
 
--- report the current stack to the host so we can log it
+-- report the current stack to the host so we can log it.  in some cases
+-- the caller is trying to implement c++ throw/catch semantics with pcalls.
+-- if a synchronus trigger is between the thrower and the catcher, they
+-- user needs a way to propogate the error through the event error handler.
+-- they do this by including the magic string 'radiant_policy_rethrow' in
+-- the error they throw.  note that this MAY POTENTIALLY SKIP OTHER 
+-- SYNCHRONOUS LISTENERS, but at least they got what they asked for! - tony
 function events._trigger_error_handler(err)
-   if err:find(stonehearth.constants.ai.ABORT_FRAME) then
-      return stonehearth.constants.ai.ABORT_FRAME
+   if err:find('radiant_policy_rethrow') then
+      return err
    end
    local traceback = debug.traceback()
    _host:report_error(err, traceback)
@@ -227,7 +233,7 @@ function events.trigger(object, event, ...)
             if not entry.dead then
                -- do the actual call in an xpcall to make sure our trigger depth stays
                -- in sync.
-               xpcall(function()
+               local success, err = xpcall(function()
                      if entry.fn ~= nil then
                      -- type 1: listen was called with 'self' and a method to call
                         result = entry.fn(entry.self, unpack(args))
@@ -236,10 +242,18 @@ function events.trigger(object, event, ...)
                         result = entry.self(unpack(args))
                      end
                   end, events._trigger_error_handler)
-            end
-
-            if result == radiant.events.UNLISTEN then
-               events._mark_listener_dead(entry, object, key, event)
+                  
+               if not success then
+                  if err:find('radiant_policy_rethrow') then
+                     radiant.log.write('radiant', 1, 'rethrowing error "%s" from synchronous trigger', err)
+                     trigger_depth = trigger_depth - 1
+                     error(err)
+                  end
+               end
+               
+               if result == radiant.events.UNLISTEN then
+                  events._mark_listener_dead(entry, object, key, event)
+               end
             end
          end
 

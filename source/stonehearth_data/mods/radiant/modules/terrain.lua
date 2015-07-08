@@ -126,9 +126,7 @@ function Terrain.in_bounds(pt)
    return bounds:contains(pt:to_closest_int())
 end
 
--- returns whether an entity can stand on the Point3 location
--- @param arg0 - the entity in question
--- @param arg1 - the location
+-- parameters can be point or entity, location
 function Terrain.is_standable(arg0, arg1)
    if arg1 == nil then
       local location = arg0
@@ -141,13 +139,20 @@ function Terrain.is_standable(arg0, arg1)
    return _physics:is_standable(entity, location)
 end
 
--- returns whether an entity can stand on the Point3 location
-function Terrain.is_supported(location)
+-- parameters can be point or entity, location
+function Terrain.is_supported(arg0, arg1)
+   if arg1 == nil then
+      local location = arg0
+      assert(radiant.util.is_a(location, Point3))
+      return _physics:is_supported(location)
+   end
+   local entity, location = arg0, arg1
+   assert(radiant.util.is_a(entity, Entity))
    assert(radiant.util.is_a(location, Point3))
-   return _physics:is_supported(location)
+   return _physics:is_supported(entity, location)
 end
 
--- returns whether an entity can stand occupy location
+-- parameters can be point or entity, location
 function Terrain.is_blocked(arg0, arg1)
    if arg1 == nil then
       local location = arg0
@@ -194,6 +199,12 @@ end
 function Terrain.get_entities_at_point(point, filter_fn)
    local cube = Cube3(point, point + Point3(1, 1, 1))
    return Terrain.get_entities_in_cube(cube, filter_fn)
+end
+
+-- get the entities that would block entity from being placed at location
+function Terrain.get_blocking_entities(entity, location)
+   local entities = _physics:get_blocking_entities(entity, location)
+   return entities
 end
 
 function Terrain.trace_world_entities(reason, added_cb, removed_cb)

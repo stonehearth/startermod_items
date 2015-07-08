@@ -143,7 +143,7 @@ function ScoreComponent:_set_score(key, value)
    assert(score_data)
 
    score_data.score = math.min(math.max(value, score_data.min), score_data.max)
-   stonehearth.score:change_score(self._sv.entity, key, 'score component', value)
+   stonehearth.score:change_score(self._sv.entity, key, 'score component', score_data.score)
    
    -- Change dependent scores
    local aggregate = score_data.contributes_to

@@ -13,76 +13,67 @@ local function ToPoint3(pt)
    return pt and Point3(pt.x, pt.y, pt.z) or nil
 end
 
--- Client side object to place an item in the world. The item exists as an icon first
--- This method is invoked by POSTing to the route for this file in the manifest.
--- TODO: merge/factor out with CreateWorkshop?
+-- item_to_place may be an entity instance or uri
 function PlaceItemCallHandler:choose_place_item_location(session, response, item_to_place)
-   --Save whether the entity is just a type or an actual entity to determine if we're 
-   --going to place an actual object or just an object type
-   assert(item_to_place, "Must pass entity data about the object to place")
+   assert(item_to_place)
 
-   local placement_test_entity, destroy_placement_test_entity, cursor_uri
-   local target_entity_data, test_entity, entity_being_placed, ghost_entity, iconic_entity
-   local specific_item_to_place, item_uri_to_place
+   local specific_item_to_place = nil
+   local item_uri_to_place, root_form, ghost_entity, iconic_entity
+   local forms_to_ignore = {}
+
    if type(item_to_place) == 'string' then   
       item_uri_to_place = item_to_place
-      placement_test_entity = radiant.entities.create_entity(item_to_place)
-      --[[  xxx, place_item_type_in_world is capable of dealing with non-iconic entity forms, so this is unnecessary.
-      item_to_place = placement_test_entity:get_component('stonehearth:entity_forms')
-                                             :get_iconic_entity()
-                                                :get_uri()
-      ]]
-      destroy_placement_test_entity = true
    else
-      specific_item_to_place = item_to_place      
-      -- if this is the iconic version, use the actual ghost for the template
-      local iconic_form = item_to_place:get_component('stonehearth:iconic_form')
-      if iconic_form then
-         placement_test_entity = iconic_form:get_root_entity()
-      end
-      if not placement_test_entity then
-         local ghost_form = item_to_place:get_component('stonehearth:ghost_form')
-         if ghost_form then
-            placement_test_entity = ghost_form:get_root_entity()
-         end
-      end
-      if not placement_test_entity then
-         placement_test_entity = item_to_place
-      end
+      specific_item_to_place = item_to_place
+      root_form = radiant.entities.get_root_form(specific_item_to_place)
+      item_uri_to_place = root_form:get_uri()
    end
+
+   local placement_test_entity = radiant.entities.create_entity(item_uri_to_place)
    assert(placement_test_entity, 'could not determine placement test entity')
-   local entity_forms = placement_test_entity:get_component('stonehearth:entity_forms')
-   if entity_forms then
-      iconic_entity = entity_forms:get_iconic_entity()
-      ghost_entity = entity_forms:get_ghost_entity()
-      if ghost_entity then
-         cursor_uri = ghost_entity:get_uri()
-      end
+
+   if not root_form then
+      -- we should only be able to place entities in their root form
+      assert(placement_test_entity == radiant.entities.get_root_form(placement_test_entity))
+      root_form = placement_test_entity
    end
-   if not cursor_uri then
-      cursor_uri = placement_test_entity:get_uri()
+   local entity_forms = root_form:get_component('stonehearth:entity_forms')
+
+   if specific_item_to_place then
+      forms_to_ignore[root_form:get_id()] = true
+
+      if entity_forms then
+         -- used to avoid collisions with existing item that is being moved
+         iconic_entity = entity_forms:get_iconic_entity()
+         ghost_entity = entity_forms:get_ghost_entity()
+         forms_to_ignore[iconic_entity:get_id()] = true
+         forms_to_ignore[ghost_entity:get_id()] = true
+      end
    end
 
    -- don't allow rotation if we're placing stuff on the wall
    local rotation_disabled = entity_forms:is_placeable_on_wall()
-
+   local cursor_uri = ghost_entity and ghost_entity:get_uri() or placement_test_entity:get_uri()
    local placement_structure, placement_structure_normal
-   stonehearth.selection:select_location()
+   local location_selector = stonehearth.selection:select_location()
+
+   if specific_item_to_place then
+      -- use the facing of the existing entity
+      local starting_rotation = radiant.entities.get_facing(root_form)
+      location_selector:set_rotation(starting_rotation)
+   end
+
+   location_selector
       :use_ghost_entity_cursor(cursor_uri)
       :set_rotation_disabled(rotation_disabled)
       :set_filter_fn(function (result, selector)
             local entity = result.entity
 
-            -- if the entity is any of the forms of the thing we want to place, bail
-            if entity == item_to_place then
+            -- if the entity is any of the forms of the thing we want to place, ignore it
+            if forms_to_ignore[entity:get_id()] then
                return stonehearth.selection.FILTER_IGNORE
             end
-            if entity == iconic_entity then
-               return stonehearth.selection.FILTER_IGNORE
-            end
-            if entity == ghost_entity then
-               return stonehearth.selection.FILTER_IGNORE
-            end
+
             local normal = result.normal:to_int()
             local location = result.brick:to_int()
 
@@ -98,11 +89,17 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             local rotation = selector:get_rotation()
             radiant.entities.turn_to(placement_test_entity, rotation)
 
-            if radiant.terrain.is_blocked(placement_test_entity, location) then
-               -- if the space occupied by the cursor is blocked, we definitely can't
-               -- place the item there
-               return false
+            -- if the space occupied by the cursor is blocked, we can't place the item there
+            local blocking_entities = radiant.terrain.get_blocking_entities(placement_test_entity, location)
+            for _, blocking_entity in pairs(blocking_entities) do
+               local ignore = forms_to_ignore[blocking_entity:get_id()]
+               if not ignore then
+                  return false
+               end
             end
+
+            -- TODO: prohibit placement when placing over other ghost entities'
+            -- root form's solid collision region
 
             local wall_ok = entity_forms:is_placeable_on_wall() and normal.y == 0 
             local ground_ok = entity_forms:is_placeable_on_ground() and normal.y == 1
@@ -138,9 +135,8 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                end
             end
               
-            if ground_ok and radiant.terrain.is_standable(placement_test_entity, location) then
-               -- we're directly placeable on the ground and didn't find and structures
-               -- directly underneath us.  just place right away!
+            if ground_ok and radiant.terrain.is_supported(placement_test_entity, location) then
+               -- we're unblocked and supported so we're good!
                return true
             end
 
@@ -183,9 +179,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             response:reject('no location')
          end)
       :always(function()
-            if destroy_placement_test_entity then
-               radiant.entities.destroy_entity(placement_test_entity)
-            end
+            radiant.entities.destroy_entity(placement_test_entity)
          end)
       :go()
 end

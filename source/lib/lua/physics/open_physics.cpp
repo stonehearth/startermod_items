@@ -10,15 +10,6 @@ using namespace ::radiant;
 using namespace ::radiant::phys;
 using namespace luabind;
 
-bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
-{
-   om::EntityPtr entity = entityRef.lock();
-   if (!entity) {
-      return false;
-   }
-   return octTree.GetNavGrid().IsStandable(entity, csg::ToClosestInt(location));
-}
-
 csg::Region3f Physics_ClipRegion(lua_State *L, OctTree &octTree, csg::Region3f const& r, NavGrid::ClippingMode mode)
 {
    return octTree.GetNavGrid().ClipRegion(r, mode);
@@ -27,6 +18,15 @@ csg::Region3f Physics_ClipRegion(lua_State *L, OctTree &octTree, csg::Region3f c
 csg::Region3f Physics_ProjectRegion(lua_State *L, OctTree &octTree, csg::Region3f const& r, NavGrid::ClippingMode mode)
 {
    return octTree.GetNavGrid().ProjectRegion(r, mode);
+}
+
+bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (!entity) {
+      return false;
+   }
+   return octTree.GetNavGrid().IsStandable(entity, csg::ToClosestInt(location));
 }
 
 bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
@@ -48,8 +48,16 @@ bool Physics_IsBlockedPoint(lua_State *L, OctTree &octTree, csg::Point3f const& 
    return octTree.GetNavGrid().IsBlocked(csg::ToClosestInt(location));
 }
 
+bool Physics_IsSupported(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (!entity) {
+      return false;
+   }
+   return octTree.GetNavGrid().IsSupported(entity, csg::ToClosestInt(location));
+}
 
-bool Physics_IsSupported(lua_State *L, OctTree &octTree, csg::Point3f const& location)
+bool Physics_IsSupportedPoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
    return octTree.GetNavGrid().IsSupported(csg::ToClosestInt(location));
 }
@@ -114,6 +122,24 @@ luabind::object Physics_GetEntitiesInRegion(lua_State *L, OctTree &octTree, csg:
 
    luabind::object result = luabind::newtable(L);
    navGrid.ForEachEntityInShape(csg::ToFloat(region), [L, &result](om::EntityPtr entity) {
+      ASSERT(entity);
+      result[entity->GetObjectId()] = luabind::object(L, om::EntityRef(entity));
+      return false; // keep iterating...
+   });
+   return result;
+}
+
+luabind::object Physics_GetBlockingEntities(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
+{
+   NavGrid& navGrid = octTree.GetNavGrid();
+   luabind::object result = luabind::newtable(L);
+
+   om::EntityPtr entity = entityRef.lock();
+   if (!entity) {
+      return result;
+   }
+
+   navGrid.ForEachBlockingEntity(entity, csg::ToClosestInt(location), [L, &result](om::EntityPtr entity) {
       ASSERT(entity);
       result[entity->GetObjectId()] = luabind::object(L, om::EntityRef(entity));
       return false; // keep iterating...
@@ -203,6 +229,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_blocked",           &Physics_IsBlocked)
                .def("is_blocked",           &Physics_IsBlockedPoint)
                .def("is_supported",         &Physics_IsSupported)
+               .def("is_supported",         &Physics_IsSupportedPoint)
                .def("is_terrain",           &Physics_IsTerrain)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("is_occupied",          &Physics_IsOccupiedPoint)
@@ -210,6 +237,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
                .def("get_entities_in_region",   &Physics_GetEntitiesInRegion)
+               .def("get_blocking_entities",    &Physics_GetBlockingEntities)
                .def("get_movement_speed_at",    &Physics_GetMovementSpeedAt)
                .def("add_notify_dirty_tile_fn", &Physics_AddNotifyDirtyTileFn)
                .def("for_each_entity_in_tile",  &Physics_ForEachEntityInTile)

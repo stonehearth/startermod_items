@@ -90,6 +90,37 @@ function inventory_tests.placeable_entities(autotest)
    autotest:success()
 end
 
+function inventory_tests.empty_backpack_when_idle(autotest)
+   local logs = {}
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
+   
+   for i=1,4 do
+      local log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
+      logs[log:get_id()] = log
+      worker:get_component('stonehearth:storage')
+               :add_item(log)
+   end
+   radiant.entities.pickup_item(worker, radiant.entities.create_entity('stonehearth:resources:wood:oak_log'))
+   
+   local trace
+   trace = radiant._root_entity
+                     :get_component('entity_container')
+                        :trace_children('empty_backpack_when_idle autotest')
+                           :on_added(function(id)
+                                 logs[id] = nil
+                                 if radiant.size(logs) == 0 then
+                                    if trace then
+                                       trace:destroy()
+                                       trace = nil
+                                       autotest:success()
+                                    end
+                                 end
+                              end)
+   autotest:sleep(30 * 1000)
+   autotest:fail()
+end
+
+
 --[[ busted!
 function inventory_tests.placeable_removed_when_placed(autotest)
    local worker = autotest.env:create_person(8, 8, { job = 'worker' })

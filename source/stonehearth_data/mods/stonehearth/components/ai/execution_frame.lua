@@ -65,8 +65,9 @@ radiant.events.listen(radiant, 'radiant:report_cpu_profile', ExecutionFrame._dum
 --
 local MAX_ROAM_DISTANCE = 32
 local INFINITE = 1000000000
-local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
-local UNWIND_NEXT_FRAME_2 = ':unwind_next_frame_2:'
+local ABORT_FRAME          = ':aborted_frame:radiant_policy_rethrow'
+local UNWIND_NEXT_FRAME    = ':unwind_next_frame:radiant_policy_rethrow'
+local UNWIND_NEXT_FRAME_2  = ':unwind_next_frame_2:radiant_policy_rethrow'
 
 local FAST_START_MAX_UNITS = 3
 local SLOWSTART_TIMEOUTS = {500, 1500}
@@ -154,6 +155,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._think_progress_cb = nil
    self._state = STOPPED
    self._rerun_unit = nil
+   self._entity_state_is_stale = false
    self._ai_component = entity:get_component('stonehearth:ai')
    self._slow_start_enabled = SLOW_START_ENABLED and
                               stonehearth.constants.ai.SLOW_START_ACTIVITIES[activity_name] or false
@@ -174,11 +176,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self:_create_execution_units()
 
    if activity_name == 'stonehearth:top' then
-      -- at the time the carry block changes, there may be actions which are JUST about to finish thinking
-      -- which should not be allowed to run now that our carrying has changed.  to make sure they don't
-      -- start with the wrong information, listen to the synchronous carry_changed message to notify them
-      -- of the new entite state RIGHT RIGHT RIGHT now.  - tony
-      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed:sync', self, self._on_carrying_changed)
+      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
       self._position_trace = radiant.entities.trace_location(self._entity, 'top frame position trace')
                                                 :on_changed(function()
                                                    self:_on_position_changed()
@@ -227,23 +225,15 @@ function ExecutionFrame:_on_position_changed()
          -- _restart_thinking does all sorts of nasty things to the stack (e.g. if a unit becomes ready
          -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
          -- resume the new one).  Make sure we're on the AI thread before attempting that.
-         self._thread:interrupt(function()
-               self._log:detail('entity moved!  changing entity state... (state:%s)', self._state)
-               self:_change_entity_state(self:_capture_current_entity_state(), "entity moved")
-            end)
+         self._log:detail('position changed significantly!  (state:%s)', self._state)
+         self._entity_state_is_stale = true
       end
    end
 end
 
 function ExecutionFrame:_on_carrying_changed()
-   -- we're currently on the main thread in a trigger callback...
-   -- _restart_thinking does all sorts of nasty things to the stack (e.g. if a unit becomes ready
-   -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
-   -- resume the new one).  Make sure we're on the AI thread before attempting that.
-   self._thread:interrupt(function()
-         self._log:detail('carrying changed!  changing entity state... (state:%s)', self._state)
-         self:_change_entity_state(self:_capture_current_entity_state(), "carrying changed")
-      end)
+   self._log:detail('carrying changed!  (state:%s)', self._state)
+   self._entity_state_is_stale = true
 end
 
 
@@ -266,7 +256,7 @@ function ExecutionFrame:_stop_thinking()
    if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started() -- intentionally aliased
    end
-   if self._state == 'stopped' or self._state == 'dead' then
+   if self._state == 'stopping' or self._state == 'stopped' or self._state == 'dead' then
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
@@ -277,7 +267,7 @@ end
 -- the previously made a decision based on ai.CURRENT, that probably has to be revisited)
 --
 function ExecutionFrame:_change_entity_state(entity_state, debug_reason)
-   self._log:spam('_change_entity_state (reason:%s, state:%s)', debug_reason, self._state)
+   self._log:spam('enter _change_entity_state (reason:%s, state:%s)', debug_reason, self._state)
 
    self:_copy_entity_state_from_upstream(entity_state)
 
@@ -288,6 +278,8 @@ function ExecutionFrame:_change_entity_state(entity_state, debug_reason)
       local state = self:_clone_entity_state('fast think state')
       unit:_change_entity_state(state, debug_reason)
    end
+   self._log:detail('exit _capture_current_entity_state')
+   self:_spam_entity_state(entity_state, 'changed state')
 end
 
 -- we have 2 state bags at any given time.  the `upstream_state` is a copy of the bag
@@ -847,6 +839,15 @@ function ExecutionFrame:run(args)
       end
       
       if self:in_state(STOPPED) then
+
+         if self._entity_state_is_stale then
+            self._log:detail('entity state has changed since the last time we ran!')
+            self._entity_state_is_stale = false
+
+            local entity_state = self:_capture_current_entity_state()
+            self:_change_entity_state(entity_state, "state changed at run")
+         end 
+
          assert(args, "run from stopped state must pass in arguments!")
          self:start_thinking(args, self:_capture_current_entity_state())
          self:wait_until(READY)
@@ -1298,7 +1299,7 @@ function ExecutionFrame:abort()
    assert(not self._aborting)
    self._aborting = true
    assert(self:_no_other_thread_is_running())
-   self:_exit_protected_call(stonehearth.constants.ai.ABORT_FRAME)
+   self:_exit_protected_call(ABORT_FRAME)
 end
 
 function ExecutionFrame:is_aborting()
@@ -1757,8 +1758,8 @@ function ExecutionFrame:_protected_call(fn, exit_handler)
          return UNWIND_NEXT_FRAME_2
       elseif err:find(UNWIND_NEXT_FRAME) then
          return UNWIND_NEXT_FRAME
-      elseif err:find(stonehearth.constants.ai.ABORT_FRAME) then
-         return stonehearth.constants.ai.ABORT_FRAME
+      elseif err:find(ABORT_FRAME) then
+         return ABORT_FRAME
       end
       
       local traceback = debug.traceback()
@@ -1845,7 +1846,7 @@ end
 function ExecutionFrame:_spam_entity_state(state, desc)
    if self._log then
       local log_format = '%25s | %25s | %25s | %25s | %10s'
-      self._log:spam(log_format, 'which', 'table', 'carrying', 'location', 'changed')
+      self._log:spam(log_format, 'which', 'table', 'location', 'carrying', 'changed')
       self._log:spam('-----------------------------------------------------------------------------------------------------------------------------')
       local speculative = self._current_speculation_state
       local function log_state(state, desc)
@@ -1876,6 +1877,10 @@ end
 
 function ExecutionFrame:get_cost()
    return self._active_unit and self._active_unit_cost or 0
+end
+
+function ExecutionFrame:entity_state_is_stale()
+   return self._entity_state_is_stale
 end
 
 return ExecutionFrame

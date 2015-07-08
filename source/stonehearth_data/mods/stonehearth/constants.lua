@@ -48,6 +48,7 @@ local constants = {
          TRAPPING          = 2,
          MINING            = 2,
          HERDING           = 2,
+         CRAFTING_CLEANUP  = 9,
          CRAFTING          = 10,
          UPGRADE_EQUIPMENT = 20,
       },
@@ -298,7 +299,6 @@ local constants = {
          ['stonehearth:simple_labor'] = true,
          ['stonehearth:mining'] = true,
       },
-      ABORT_FRAME = ':aborted_frame:'
    },
 
    shop = {

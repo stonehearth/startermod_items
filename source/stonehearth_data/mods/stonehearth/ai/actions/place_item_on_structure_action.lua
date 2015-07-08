@@ -28,8 +28,9 @@ return ai:create_compound_action(PlaceItemOnStructure)
             })
          :execute('stonehearth:create_entity', {
                location = ai.ARGS.location,
+               rotation = ai.ARGS.rotation,
                options = {
-                  allow_vertical_adjacent = true,
+                  copy_adjacent_from = ai.ARGS.item,
                   debug_text = 'place item on structure',
                }
             })

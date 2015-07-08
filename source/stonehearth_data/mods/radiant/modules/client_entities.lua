@@ -161,6 +161,16 @@ function client_entities.turn_to(entity, degrees)
    entity:add_component('mob'):turn_to(degrees)
 end
 
+function client_entities.get_facing(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local mob = entity:get_component('mob')
+   local facing = mob and mob:get_facing()
+   return facing
+end
+
 function client_entities.add_child(parent, child, location)
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)
@@ -227,6 +237,26 @@ end
 
 function client_entities.is_temporary_entity(entity)
    return entity:get_store_id() ~= 2
+end
+
+function client_entities.get_root_form(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local root_form = nil
+
+   local iconic_form = entity:get_component('stonehearth:iconic_form')
+   if iconic_form then
+      return iconic_form:get_root_entity()
+   end
+
+   local ghost_form = entity:get_component('stonehearth:ghost_form')
+   if ghost_form then
+      return ghost_form:get_root_entity()
+   end
+
+   return entity
 end
 
 client_entities.__init()

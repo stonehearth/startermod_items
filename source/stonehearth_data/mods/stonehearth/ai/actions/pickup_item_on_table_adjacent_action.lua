@@ -1,7 +1,7 @@
 local Entity = _radiant.om.Entity
 local PickupItemOnTableAdjacent = class()
 
-PickupItemOnTableAdjacent.name = 'pickup item on table'
+PickupItemOnTableAdjacent.name = 'pickup item on table adjacent'
 PickupItemOnTableAdjacent.does = 'stonehearth:pickup_item_on_table_adjacent'
 PickupItemOnTableAdjacent.args = {
    item = Entity
