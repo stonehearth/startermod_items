@@ -51,6 +51,8 @@ function GameCreationService:new_game_command(session, response, num_tiles_x, nu
    local blueprint
    local tile_margin
 
+   stonehearth.terrain:set_fow_enabled(session.player_id, false)
+
    self:_set_game_options(options)
 
    wgs:create_new_game(seed, true)
@@ -173,7 +175,6 @@ function GameCreationService:embark_command(session, response)
 end
 
 function GameCreationService:create_camp_command(session, response, pt)
-   -- start the game master service
    stonehearth.calendar:start()
    stonehearth.game_master:start()
    stonehearth.hydrology:start()
@@ -258,6 +259,8 @@ function GameCreationService:create_camp_command(session, response, pt)
       local inventory = stonehearth.inventory:get_inventory(session.player_id)
       inventory:add_gold(starting_gold)
    end
+
+   stonehearth.terrain:set_fow_enabled(session.player_id, true)
 
    return {random_town_name = random_town_name}
 end

@@ -18,7 +18,9 @@ function TerrainService:initialize()
    if not self._sv._visible_regions then
       self._sv._visible_regions = {}
       self._sv._explored_regions = {}
+      self._sv._fow_enabled = {}
       self._sv._convex_hull = {}
+      self.__saved_variables:mark_changed()
    else
       for player_id, explored_region in pairs(self._sv._explored_regions) do
          explored_region:modify(function(cursor)
@@ -37,6 +39,41 @@ function TerrainService:initialize()
    self._enable_full_vision = radiant.util.get_config('enable_full_vision', false)
 
    self:_register_events()
+end
+
+function TerrainService:get_fow_enabled(player_id)
+   local enabled = self._sv._fow_enabled[player_id]
+   return enabled
+end
+
+function TerrainService:set_fow_enabled(player_id, value)
+   local enabled = self._sv._fow_enabled[player_id]
+
+   if value ~= enabled then
+      enabled = value
+      self._sv._fow_enabled[player_id] = enabled
+
+      if enabled then
+         self:reset_fow(player_id)
+         self:_update_regions()
+      end
+
+      self.__saved_variables:mark_changed()
+   end
+end
+
+function TerrainService:reset_fow(player_id)
+   local visible_region = self:get_visible_region(player_id)
+   visible_region:modify(function(cursor)
+         cursor:clear()
+      end)
+
+   local explored_region = self:get_explored_region(player_id)
+   explored_region:modify(function(cursor)
+         cursor:clear()
+      end)
+
+   self.__saved_variables:mark_changed()
 end
 
 function TerrainService:_register_events()
@@ -62,6 +99,8 @@ function TerrainService:_register_events()
             self:_update_convex_hull()
          end)
    end
+
+   self.__saved_variables:mark_changed()
 end
 
 function TerrainService:_on_tick()
@@ -205,6 +244,8 @@ function TerrainService:_update_regions()
          end
       end
    end
+
+   self.__saved_variables:mark_changed()
 end
 
  -- this will eventually be a non-rectangular region composed of the tiles that have been generated
@@ -221,7 +262,7 @@ end
 
 function TerrainService:_get_visible_region(player_id)
    local terrain_region = self:_get_terrain_region()
-   if self._enable_full_vision then
+   if self._enable_full_vision or not self._sv._fow_enabled[player_id] then
       return terrain_region
    end
 
@@ -313,12 +354,31 @@ function TerrainService:get_player_perimeter(player_id)
    return self._sv._convex_hull
 end
 
+function TerrainService:get_visibility_regions_command(session, request)
+   self:_update_regions()
+
+   local visible_region = stonehearth.terrain:get_visible_region(session.player_id)
+   local explored_region = stonehearth.terrain:get_explored_region(session.player_id)
+
+   return {
+      -- these boxed regions will serialize into a uri handle
+      visible_region_uri = visible_region,
+      explored_region_uri = explored_region
+   }
+end
+
 function TerrainService:_get_region(map, player_id)
    local boxed_region = map[player_id]
 
    if not boxed_region then
       boxed_region = _radiant.sim.alloc_region2()
       map[player_id] = boxed_region
+
+      if self._sv._fow_enabled[player_id] == nil then
+         self._sv._fow_enabled[player_id] = true
+      end
+
+      self.__saved_variables:mark_changed()
    end
 
    return boxed_region
