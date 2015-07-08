@@ -20,14 +20,16 @@ function PetEatFromContainerAdjacent:run(ai, entity, args)
       ai:abort("%s has no stonehearth:food_container entity data", tostring(container))
       return
    end
-
-   -- consume the a single stack after the effect finishes
-   radiant.entities.consume_stack(container, 1)
-  
-   radiant.entities.turn_to_face(entity, container)
    
+   radiant.entities.turn_to_face(entity, container)   
    local food = radiant.entities.create_entity(container_data.food)
    ai:execute('stonehearth:eat_item', { food = food })
+   
+   ai:unprotect_argument(container)
+   -- consume the a single stack after the eat finishes
+   if not radiant.entities.consume_stack(container, 1) then
+      ai:abort('Cannot eat: Food container is empty.')
+   end
 end
 
 return PetEatFromContainerAdjacent
