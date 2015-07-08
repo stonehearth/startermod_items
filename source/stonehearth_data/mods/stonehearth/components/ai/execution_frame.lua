@@ -75,70 +75,69 @@ local SLOWSTART_MAX_UNITS = {3, INFINITE}
 local SLOW_START_ENABLED = radiant.util.get_config('enable_ai_slow_start', true)
 radiant.log.write('stonehearth', 0, 'ai slow start is %s', SLOW_START_ENABLED and "enabled" or "disabled")
 
--- only theee keys are allowed to be set.  all others are forbidden to 
--- prevent actions from using ai.CURRENT as a private communication channel
-local ENTITY_STATE_FIELDS = {
-   location = true,
-   carrying = true,
-   location_changed = true,
-   carrying_changed = true,
-}
-
 local ENTITY_STATE_META_TABLE = {
    __newindex = function(state, k, v)
-      if not ENTITY_STATE_FIELDS[k] then
+      if k == 'location' then
+         state.__values.location = v
+         state.__values.location_changed = true
+      elseif k == 'carrying' then
+         state.__values.carrying = v
+         state.__values.carrying_changed = true
+      elseif k == 'location_changed' then
+         state.__values.location_changed = v
+      elseif k == 'carrying_changed' then
+         state.__values.carrying_changed = v
+      else
          radiant.error('cannot write to invalid field "%s" in entity state', tostring(k))
       end
-
-      if k == 'location' then
-         -- if this is not the first time we're writing a new value to location, we
-         -- must be in some k state.
-         if state.__values.location and state.__values.location ~= v then
-            state.__values.location_changed = true
-         end
-      elseif k == 'carrying' then
-         -- if this is not the first time we're writing a new value to location, we
-         -- must be in some k state.
-         if state.__values.carrying ~= v then
-            state.__values.carrying_changed = true
-         end
-      end
-      state.__values[k] = v
    end,
 
    __index = function(state, k)
+      if k == 'location' and not state.__values.location_changed then
+         return radiant.entities.get_world_grid_location(state.__entity)
+      end
+      if k == 'carrying' and not state.__values.carrying_changed then
+         return radiant.entities.get_carrying(state.__entity)
+      end
       return state.__values[k]
    end
 }
 
-local function create_entity_state(copy_from)
+local function create_entity_state(entity)
+   assert(entity)
+
    -- we hide the actual values in __values so __new_index will catch every
    -- write.
    local state = {
+      __entity = entity,
       __values = {
          location_changed = false,
          carrying_changed = false,
-      }
+      },
    }
-   if copy_from then
-      for k, v in pairs(copy_from.__values) do
-         state.__values[k] = v
-      end
-   end
    setmetatable(state, ENTITY_STATE_META_TABLE)
-
    return state
 end
 
-local function copy_entity_state(state, copy_from)
-   -- we iterate through the keys rather than copying the whole table to make
-   -- sure shared references among units get the changes as well
-   for name in pairs(state.__values) do
-      state.__values[name] = nil
+local function copy_entity_state(copy, source)
+   if source.location_changed then
+      copy.location = source.location and Point3(source.location.x, source.location.y, source.location.z)
+      assert(copy.location_changed)
+   else
+      copy.location = nil
+      copy.location_changed = false
    end
-   for name, value in pairs(copy_from.__values) do
-      state.__values[name] = value
+   if source.carrying_changed then
+      copy.carrying = source.carrying
+      assert(copy.carrying_changed)
+   else   
+      copy.carrying = nil
+      copy.carrying_changed = false
    end
+   assert(copy.location == source.location)
+   assert(copy.carrying == source.carrying)
+   assert(copy.location_changed == source.location_changed)
+   assert(copy.carrying_changed == source.carrying_changed)
 end
 
 function ExecutionFrame:__init(thread, entity, action_index, activity_name, debug_route)
@@ -827,7 +826,7 @@ end
 function ExecutionFrame:run(args)
    assert(self._thread:is_running())
 
-   self._log:spam('run')
+   self._log:spam('run (stale:%s)', self._entity_state_is_stale)
 
    local run_stack = self._thread:get_thread_data('stonehearth:run_stack')
    table.insert(run_stack, self)  
@@ -839,7 +838,6 @@ function ExecutionFrame:run(args)
       end
       
       if self:in_state(STOPPED) then
-
          if self._entity_state_is_stale then
             self._log:detail('entity state has changed since the last time we ran!')
             self._entity_state_is_stale = false
@@ -1571,11 +1569,8 @@ function ExecutionFrame:_clone_entity_state(name, source)
       source = self._upstream_state
    end
 
-   local cloned = create_entity_state()
-   cloned.location = source.location and Point3(source.location.x, source.location.y, source.location.z)
-   cloned.carrying = source.carrying
-   cloned.location_changed = source.location_changed
-   cloned.carrying_changed = source.carrying_changed
+   local cloned = create_entity_state(self._entity)
+   copy_entity_state(cloned, source)
 
    self._log:spam('cloning entity state (%s)', tostring(source))
    --self:_spam_entity_state(cloned, name)
@@ -1584,12 +1579,7 @@ function ExecutionFrame:_clone_entity_state(name, source)
 end
 
 function ExecutionFrame:_capture_current_entity_state()
-   local state = create_entity_state()
-   state.carrying = radiant.entities.get_carrying(self._entity)
-   state.location = radiant.entities.get_world_grid_location(self._entity)
-   state.location_changed = false
-   state.carrying_changed = false
-
+   local state = create_entity_state(self._entity)
    self:_spam_entity_state(state, 'captured')
    return state
 end
