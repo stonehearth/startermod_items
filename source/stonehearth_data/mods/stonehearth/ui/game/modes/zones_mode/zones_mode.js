@@ -13,7 +13,7 @@ App.StonehearthZonesModeView = App.View.extend({
       $(top).on('mode_changed', function(_, mode) {
          if (mode != 'zones') {
             if (self._propertyView) {
-               self._propertyView.destroy();
+               self._propertyView.destroyWithoutDeselect();
             }
          } 
       });
@@ -57,7 +57,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
    _examineEntity: function(entity) {
       if (!entity && this._propertyView) {
-         this._propertyView.destroy();
+         this._propertyView.destroyWithoutDeselect();
          return;
       }
 
