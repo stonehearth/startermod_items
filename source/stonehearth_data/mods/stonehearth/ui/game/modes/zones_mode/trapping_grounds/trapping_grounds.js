@@ -1,4 +1,4 @@
-App.StonehearthTrappingGroundsView = App.View.extend({
+App.StonehearthTrappingGroundsView = App.StonehearthBaseZonesModeView.extend({
    templateName: 'stonehearthTrappingGrounds',
    uriProperty: 'model',
    closeOnEsc: true,

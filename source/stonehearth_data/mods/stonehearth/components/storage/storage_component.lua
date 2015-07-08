@@ -201,11 +201,18 @@ end
 function StorageComponent:_on_kill_event()
    -- npc's don't drop what's in their pack
    if not stonehearth.player:is_npc(self._sv.entity) then
-      while not self:is_empty() do
-         local item = self:remove_first_item()
-         local location = radiant.entities.get_world_grid_location(self._sv.entity)
-         local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
-         radiant.terrain.place_entity(item, placement_point)
+      local items = {}
+      for id, item in pairs(self._sv.items) do
+         table.insert(items, item)      
+      end
+
+      for _, item in ipairs(items) do
+         if item and item:is_valid() then
+            self:remove_item(item:get_id())
+            local location = radiant.entities.get_world_grid_location(self._sv.entity)
+            local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+            radiant.terrain.place_entity(item, placement_point)
+         end
       end
    end
 end

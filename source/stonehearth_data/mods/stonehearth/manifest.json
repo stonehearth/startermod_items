@@ -1054,6 +1054,10 @@
          "controller" : "file(call_handlers/entities_call_handler.lua)",
          "endpoint" : "server"
       },
+      "reset_entity": {
+         "controller" : "file(call_handlers/entities_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_clock_object": {
          "controller" : "file(call_handlers/calendar_call_handler.lua)",
          "endpoint" : "server"
@@ -1682,6 +1686,7 @@
          "file(ui/game/game.js)",
          "file(ui/game/population/population.js)",
          "file(ui/game/modes/zones_mode/zones_mode.js)",
+         "file(ui/game/modes/zones_mode/base_view/base_view.js)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.js)",
