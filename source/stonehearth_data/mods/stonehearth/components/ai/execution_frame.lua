@@ -267,7 +267,7 @@ function ExecutionFrame:_stop_thinking()
    if self._state == 'starting' or self._state == 'started' then
       return self:_stop_thinking_from_started() -- intentionally aliased
    end
-   if self._state == 'stopped' or self._state == 'dead' then
+   if self._state == 'stopping' or self._state == 'stopped' or self._state == 'dead' then
       return -- nop
    end
    self:_unknown_transition('stop_thinking')
