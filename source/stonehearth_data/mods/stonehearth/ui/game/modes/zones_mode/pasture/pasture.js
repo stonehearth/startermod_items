@@ -1,4 +1,4 @@
-App.StonehearthPastureView = App.View.extend({
+App.StonehearthPastureView = App.StonehearthBaseZonesModeView.extend({
    templateName: 'stonehearthPasture',
    uriProperty: 'model',
    closeOnEsc: true,
@@ -7,7 +7,7 @@ App.StonehearthPastureView = App.View.extend({
       "unit_info": {},
       "stonehearth:shepherd_pasture" : {}
    },
-
+   
    didInsertElement: function() {
       this._super();
       var self = this;

@@ -1,4 +1,4 @@
-App.StonehearthStockpileView = App.View.extend({
+App.StonehearthStockpileView = App.StonehearthBaseZonesModeView.extend({
    templateName: 'stonehearthStockpile',
    closeOnEsc: true,
 

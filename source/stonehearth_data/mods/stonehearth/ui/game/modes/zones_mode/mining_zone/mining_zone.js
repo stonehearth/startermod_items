@@ -1,4 +1,4 @@
-App.StonehearthMiningZoneView = App.View.extend({
+App.StonehearthMiningZoneView = App.StonehearthBaseZonesModeView.extend({
    templateName: 'stonehearthMiningZone',
    uriProperty: 'model',
    closeOnEsc: true,

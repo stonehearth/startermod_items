@@ -1686,6 +1686,7 @@
          "file(ui/game/game.js)",
          "file(ui/game/population/population.js)",
          "file(ui/game/modes/zones_mode/zones_mode.js)",
+         "file(ui/game/modes/zones_mode/base_view/base_view.js)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.js)",

@@ -63,7 +63,7 @@ $(document).ready(function(){
    radiant.console.register('select', {
       call: function(cmdobj, fn, args) {
          var entity = 'object://game/' + args[0]
-         return radiant.call('radiant:client:select_entity', entity);
+         return radiant.call('stonehearth:select_entity', entity);
       },
       description : "Selects the entity with id = Arg 0. Usage: select 12345"
    });
