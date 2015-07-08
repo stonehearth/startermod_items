@@ -11,6 +11,11 @@
             "models": [
                "file(comfy_bed.qb)"
             ]
+         },
+         "sleeping": {
+            "models": [
+               "file(comfy_bed.qb)"
+            ]
          }
       },
       "stonehearth:material" : {
