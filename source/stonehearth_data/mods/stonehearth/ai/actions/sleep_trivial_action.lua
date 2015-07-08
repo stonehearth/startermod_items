@@ -24,18 +24,28 @@ function SleepTrivial:start_thinking(ai, entity, args)
 end
 
 function SleepTrivial:run(ai, entity, args)
+   ai:protect_argument(self._bed)
+
+   local bed_render_info = self._bed:add_component('render_info')
+   bed_render_info:set_model_variant('sleeping')
+
    local sleep_duration, rested_sleepiness = SleepLib.get_sleep_parameters(entity, self._bed)
    ai:execute('stonehearth:run_sleep_effect', { duration_string = sleep_duration })
    radiant.entities.set_attribute(entity, 'sleepiness', rested_sleepiness)
 end
 
 function SleepTrivial:stop(ai, entity, args)
-   local root_entity = radiant.entities.get_root_entity()
-   local bed_location = radiant.entities.get_world_grid_location(self._bed)
-   local egress_location = bed_location + Point3.unit_y
-   radiant.entities.add_child(root_entity, entity, egress_location)
+   if self._bed:is_valid() then
+      local root_entity = radiant.entities.get_root_entity()
+      local bed_location = radiant.entities.get_world_grid_location(self._bed)
+      local egress_location = bed_location + Point3.unit_y
+      radiant.entities.add_child(root_entity, entity, egress_location)
 
-   self._bed = nil
+      local bed_render_info = self._bed:add_component('render_info')
+      bed_render_info:set_model_variant('')
+
+      self._bed = nil
+   end
 end
 
 return SleepTrivial
