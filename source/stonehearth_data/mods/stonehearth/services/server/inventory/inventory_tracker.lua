@@ -63,12 +63,31 @@ function InventoryTracker:remove_item(entity_id)
    end
 end
 
-function InventoryTracker:update_item_container(item, storage)
-   local controller = self._sv.controller
-   if controller.update_item_container then
-      controller:update_item_container(item, storage)
+--If the item is not in us, re-evaluate it for add.
+--If it is in us, re-evaluate it for remove
+function InventoryTracker:reevaluate_item(entity, storage)
+   local entity_id = entity:get_id()
+   if self._sv._ids_to_keys[entity_id] then
+      --the item is already being tracked. Should it be removed?
+      local key = self._sv.controller:create_key_for_entity(entity, storage)
+      if not key then
+         self:remove_item(entity_id)
+      end
+   else
+      --the item is not being tracked. Try to add it. 
+      --It will only get added, if it fits the tracker (ie, if a key can be generated for it)
+      self:add_item(entity, storage)
    end
 end
+
+
+--The item or it's container has changed. 
+--function InventoryTracker:update_item_container(item, storage)
+--   local controller = self._sv.controller
+--   if controller.update_item_container then
+--      controller:update_item_container(item, storage)
+--   end
+--end
 
 -- Returns the tracking data
 --
