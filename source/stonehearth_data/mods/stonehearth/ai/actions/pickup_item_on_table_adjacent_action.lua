@@ -26,16 +26,18 @@ function PickupItemOnTableAdjacent:run(ai, entity, args)
    if not table then
       ai:abort('item is not on a table!')
       return
-   end   
-   if radiant.entities.get_carrying(entity) ~= nil then
-      ai:abort('cannot pick up another item while carrying one!')
-      return
    end
    if not radiant.entities.is_adjacent_to(entity, table) then
       ai:abort('%s is not adjacent to table %s', tostring(entity), tostring(table))
       return
    end
 
+   if stonehearth.ai:prepare_for_pickup_action(ai, entity, item) then
+      return
+   end
+   assert(not radiant.entities.get_carrying(entity))
+
+   assert(not radiant.entities.get_carrying(entity))
    log:info("%s picking up %s", entity, item)
    radiant.entities.turn_to_face(entity, item)
    radiant.entities.pickup_item(entity, item)
