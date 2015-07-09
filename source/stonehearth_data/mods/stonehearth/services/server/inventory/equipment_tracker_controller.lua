@@ -18,16 +18,16 @@ end
 --
 --    @param entity - the entity currently being tracked
 -- 
-function EquipmentTracker:create_key_for_entity(entity)
+function EquipmentTracker:create_keys_for_entity(entity)
    local full_sized, equipment_piece = radiant.entities.unwrap_iconic_item(entity, 'stonehearth:equipment_piece')
    if equipment_piece then
-      return entity:get_id()
+      return {entity:get_id()}
    end
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
 -- Tracking data is the existing data stored for entities sharing the same key as
--- `entity` (see :create_key_for_entity()).  We store both an array of all entities
+-- `entity` (see :create_keys_for_entity()).  We store both an array of all entities
 -- sharing this uri and a total count.
 --
 --     @param entity - the entity being added to tracking data
@@ -40,7 +40,7 @@ end
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
--- the same key as (see :create_key_for_entity()).
+-- the same key as (see :create_keys_for_entity()).
 --
 --    @param entity_id - the entity id of the thing being removed.
 --    @param tracking_data - the tracking data for all entities of the same type

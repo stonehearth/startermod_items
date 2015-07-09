@@ -523,9 +523,6 @@ function Inventory:update_item_container(id, storage)
    --For some trackers, it may be their first time seeing the item
    for name, tracker in pairs(self._sv.trackers) do
       tracker:reevaluate_item(item, storage)
-
-      --TODO: does any tracker actually implement this? 
-      --tracker:update_item_container(item, storage)
    end
    self.__saved_variables:mark_changed()
    self:_check_public_storage_space()
