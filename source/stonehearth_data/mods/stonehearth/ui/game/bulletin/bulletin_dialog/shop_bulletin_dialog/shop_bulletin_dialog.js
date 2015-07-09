@@ -21,6 +21,9 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 
    _updateGold: function() {
       var self = this;
+      if (!this.$()) {
+         return;
+      }
       self._updateBuyButtons();
       self._updateSellButtons();
    }.observes('model.data.shop.gold'),
@@ -29,11 +32,13 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       var self = this;
       self._super();
 
-      self.$('#buy1Button').tooltipster();
-      self.$('#buy10Button').tooltipster();
       // build the inventory palettes
       self._buildBuyPalette();
       self._buildSellPalette();
+
+      self.$('#buy1Button').tooltipster();
+      self.$('#buy10Button').tooltipster();
+
 
       self.$().on('click', '#sellList .row', function() {        
          self.$('#sellList .row').removeClass('selected');
@@ -49,26 +54,29 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          if (!$(this).hasClass('disabled')) {
             self._doBuy(1);
          }
-      })
+      });
 
       self.$('#buy10Button').click(function() {
          if (!$(this).hasClass('disabled')) {
             self._doBuy(10);
          }
-      })      
+      });
 
       self.$('#sell1Button').click(function() {
          if (!$(this).hasClass('disabled')) {
             self._doSell(1);
          }
-      })
+      });
 
       self.$('#sell10Button').click(function() {
          if (!$(this).hasClass('disabled')) {
             self._doSell(10);
          }
-      })      
+      });
 
+      self._updateGold();
+      self._updateInventory();
+      self._updateSellableItems();
       this.$('#buyTab').show();
    },
 
@@ -94,11 +102,17 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    },
 
    _updateInventory: function() {
+      if (!this.$()) {
+         return;
+      }
       var shop_inventory = this.get('model.data.shop.shop_inventory');
       this._buyPalette.stonehearthItemPalette('updateItems', shop_inventory);
    }.observes('model.data.shop.shop_inventory'),
 
    _updateSellableItems: function() {
+      if (!this.$()) {
+         return;
+      }
       var sellable_items = this.get('model.data.shop.sellable_items.tracking_data');      
       this._sellPalette.stonehearthItemPalette('updateItems', sellable_items);
    }.observes('model.data.shop.sellable_items'),
@@ -174,6 +188,20 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       }
    },
 
+   _updateSellButtons: function() {
+      var self = this;
+
+      var item = self.$('#sellList .selected')
+
+      if (!item || item.length == 0) {
+         self.$('#sell1Button').addClass('disabled');   
+         self.$('#sell10Button').addClass('disabled');   
+      } else {
+         self.$('#sell1Button').removeClass('disabled');
+         self.$('#sell10Button').removeClass('disabled');   
+      }
+   },
+
    _disableButton: function(buttonId, tooltipId) {
       // Disable the button with a tooltip if provided.
       self.$(buttonId).addClass('disabled');
@@ -190,18 +218,5 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       self.$(buttonId).tooltipster('disable');
    },
 
-   _updateSellButtons: function() {
-      var self = this;
-
-      var item = self.$('#sellList .selected')
-
-      if (!item || item.length == 0) {
-         self.$('#sell1Button').addClass('disabled');   
-         self.$('#sell10Button').addClass('disabled');   
-      } else {
-         self.$('#sell1Button').removeClass('disabled');
-         self.$('#sell10Button').removeClass('disabled');   
-      }
-   },
 });
 
