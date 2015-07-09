@@ -3,6 +3,8 @@ local Entity = _radiant.om.Entity
 local entity_forms = require 'stonehearth.lib.entity_forms.entity_forms_lib'
 local Shop = class()
 
+local INFINITE = 1000000
+
 function Shop:__init()
 end
 
@@ -14,6 +16,12 @@ function Shop:initialize(player_id)
    self._sv.level_range = { min = -1, max = -1}
    self._sv.sellable_items = inventory:get_item_tracker('stonehearth:sellable_item_tracker')
    self._sv._inventory = inventory
+   self._sv.escrow_entity = radiant.entities.create_entity()
+   radiant.entities.set_player_id(self._sv.escrow_entity, player_id)
+   local storage_component = self._sv.escrow_entity:add_component('stonehearth:storage')
+   storage_component:set_name('escrow')
+   storage_component:set_capacity(INFINITE)
+
    self.__saved_variables:mark_changed()
 end
 
@@ -29,10 +37,16 @@ function Shop:activate()
 end
 
 function Shop:destroy()
+   --Dump all the things in escrow
+   self:_dump_escrow_near_banner()
+
    if self._gold_trace then
       self._gold_trace:destroy()
       self._gold_trace = nil
    end
+
+   --Destroy escrow storage
+   radiant.entities.destroy_entity(self._sv.escrow_entity)
 end
 
 function Shop:get_name()
@@ -240,8 +254,7 @@ function Shop:buy_item(uri, quantity)
    -- deduct gold from the player
    self._sv._inventory:subtract_gold(total_cost)
 
-   -- spawn the item on the ground
-   -- TODO: spawn items into escrow storage container; dump escrow storage container when dialog closes
+   -- spawn the item into escrow
    self:_spawn_items(uri, buy_quantity)
    return true
 end
@@ -297,34 +310,43 @@ function Shop:sell_item_command(session, response, uri, quantity)
    end
 end
 
+ -- Spawn items into escrow storage container; on destroy shop dump escrow storage container when dialog closes
 function Shop:_spawn_items(uri, quantity)
-   --Add the new items to the space near the banner
+   local escrow_storage_component = self._sv.escrow_entity:get_component('stonehearth:storage')
+   local inventory = self._sv._inventory
+
+   for i = 1, quantity do
+      local item = radiant.entities.create_entity(uri, { owner = self._sv.player_id })
+      local root, iconic, _ = entity_forms.get_forms(item)
+      if iconic then
+         escrow_storage_component:add_item(iconic)
+      elseif root then
+         escrow_storage_component:add_item(root)
+      else
+         escrow_storage_component:add_item(item)
+      end 
+   end   
+   return true
+end
+
+function Shop:_dump_escrow_near_banner()
    local town = stonehearth.town:get_town(self._sv.player_id)
    local banner = town:get_banner()
    local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   --TODO: this means if you don't have a banner, all your stuff gets lots. Fix!
    if not drop_origin then
       return false
    end
 
-   local items = {}
-   items[uri] = quantity
-   items = radiant.entities.spawn_items(items, drop_origin, 1, 3, { owner = self._sv.player_id })
-
-   ---[[
-   -- TODO: eventually, pause the game while we're in the shop. 
-   -- Handle all shop transactions during pause, then add gold/remove items from the game
-   -- 
-   local inventory = self._sv._inventory
-   for _, item in pairs(items) do
-      local root, iconic, _ = entity_forms.get_forms(item)
-      if iconic then
-         inventory:add_item(iconic)
-      elseif root then
-         inventory:add_item(root)
+   local escrow_storage_component = self._sv.escrow_entity:get_component('stonehearth:storage')
+   local items = escrow_storage_component:get_items()
+   for id, item in pairs(items) do
+      if item and item:is_valid() then
+         local location = radiant.terrain.find_placement_point(drop_origin, 1, 5)
+         radiant.terrain.place_entity(item, location)
       end
+      --Item should already be in the inventory b/c it was added when it was put into storage
    end
-   --]]
-   return true
 end
 
 function Shop:_add_entity_to_sellable_items(uri, entity)

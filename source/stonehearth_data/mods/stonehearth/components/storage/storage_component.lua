@@ -363,6 +363,16 @@ function StorageComponent:remove_item(id)
    return item
 end
 
+--give the storage component a name
+function StorageComponent:set_name(name)
+   self._sv.name = name
+   self.__saved_variables:mark_changed()
+end
+
+function StorageComponent:get_name()
+   return self._sv.name
+end
+
 function StorageComponent:contains_item(id)
    checks('self', 'number')
    return self._sv.items[id] ~= nil

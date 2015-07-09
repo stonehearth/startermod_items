@@ -30,10 +30,10 @@ function SellableItemTracker:create_key_for_entity(entity, storage)
       sellable = true
    end
 
-   --if it's sellable, AND it is public storage, then return the uri as the key
+   --if it's sellable, AND it is public storage or escrow storage, then return the uri as the key
    if sellable and storage then
       local storage_component = storage:get_component('stonehearth:storage') 
-      if storage_component and storage_component:is_public() then
+      if storage_component and (storage_component:is_public() or storage_component:get_name() == 'escrow') then
          return entity:get_uri()
       end
    end
