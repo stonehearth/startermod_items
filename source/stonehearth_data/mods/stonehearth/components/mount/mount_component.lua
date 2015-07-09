@@ -136,7 +136,6 @@ function MountComponent:_destroy_user_location_trace()
 end
 
 function MountComponent:_get_worldspace_offset()
-   -- TODO: read this from the bed's entity data
    local facing = radiant.entities.get_facing(self._mountable_object)
    local offset = radiant.math.rotate_about_y_axis(self._sv.mount_offset, facing)
    return offset
