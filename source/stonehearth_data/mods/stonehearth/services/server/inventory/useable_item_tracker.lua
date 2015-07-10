@@ -42,7 +42,7 @@ function UsableItemTracker:create_keys_for_entity(entity, storage)
       local keys = self:_calculate_material_keys(entity)
 
       --append the uri to the material keys
-      keys = table.insert(keys, uri)
+      table.insert(keys, uri)
 
       --return the combined array
       return keys
