@@ -32,6 +32,7 @@ function Inventory:initialize(player_id)
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
    self:add_item_tracker('stonehearth:placeable_item_inventory_tracker')
    self:add_item_tracker('stonehearth:sellable_item_tracker')
+   self:add_item_tracker('stonehearth:usable_item_tracker')
 end
 
 function Inventory:activate()
@@ -234,7 +235,11 @@ end
 
 --- Call whenever a stockpile wants to tell the inventory that we're adding an item
 function Inventory:add_item(item, storage)
-   -- self:_check_entity_forms_of_new_item(item)
+   local in_world_item = entity_forms_lib.get_in_world_form(item)
+   if in_world_item then
+      item = in_world_item
+   end
+   self:_check_entity_forms_of_new_item(item)
 
    local id = item:get_id()
    local items = self._sv.items
@@ -242,7 +247,7 @@ function Inventory:add_item(item, storage)
    item:add_component('unit_info')
             :set_player_id(self._sv.player_id)
 
-   --if the item already exists in the inventory, then just update it's info
+   --if the item already exists in the inventory, then just update its info
    if items[id] then
       self:update_item_container(id, storage)
       return
@@ -374,10 +379,17 @@ function Inventory:find_closest_unused_placable_item(uri, location)
       -- make sure the item isn't being placed
       local entity_forms = item:get_component('stonehearth:iconic_form')
                                  :get_root_entity()
-                                 :get_component('stonehearth:entity_forms')
+                                    :get_component('stonehearth:entity_forms')
       if not entity_forms:is_being_placed() then
          acceptable_item_count = acceptable_item_count + 1
          local position = radiant.entities.get_world_grid_location(item)
+         if not position then
+            -- not in the world.  is it in a crate?
+            local storage = self:public_container_for(item)
+            if storage then
+               position = radiant.entities.get_world_grid_location(storage)
+            end
+         end
          if position then
             local distance = position:distance_to(location)
 
@@ -491,6 +503,21 @@ function Inventory:trace_gold(reason)
 end
 
 
+function Inventory:public_container_for(item)
+   local container = self:container_for(item)
+
+   if not container then
+      return nil
+   end
+
+   local sc = container:get_component('stonehearth:storage')
+   if not sc or not sc:is_public() then
+      return nil
+   end
+
+   return container
+end
+
 function Inventory:container_for(item)
    assert(item)
    return self._sv.container_for[item:get_id()]
@@ -523,9 +550,6 @@ function Inventory:update_item_container(id, storage)
    --For some trackers, it may be their first time seeing the item
    for name, tracker in pairs(self._sv.trackers) do
       tracker:reevaluate_item(item, storage)
-
-      --TODO: does any tracker actually implement this? 
-      --tracker:update_item_container(item, storage)
    end
    self.__saved_variables:mark_changed()
    self:_check_public_storage_space()
@@ -536,22 +560,22 @@ function Inventory:_check_entity_forms_of_new_item(item)
    if not root then
       return
    end
+   
    if item == root then
       -- we are the root item!  verify the iconic isn't in the inventory
       if iconic then
-         radiant.assert(not self._sv.items[iconic:get_id()], 'tried to add root %s when iconic is already in inventory', root)
+         radiant.assert(not self._sv.items[iconic:get_id()], 'tried to add root %s when iconic is already in inventory', radiant.util.tostring(root))
       end      
    end
    if item == iconic then
       -- we are the iconic item!  verify the root isn't in the inventory
       if iconic then
-         radiant.assert(not self._sv.items[root:get_id()], 'tried to add iconic %s when root is already in inventory', iconic)
+         radiant.assert(not self._sv.items[root:get_id()], 'tried to add iconic %s when root is already in inventory', radiant.util.tostring(iconic))
       end      
    end
-
    -- we can never, ever add the ghost
    if ghost then
-      radiant.assert(item ~= ghost, 'cannot add ghost form of %s to inventory', root)
+      radiant.assert(item ~= ghost, 'cannot add ghost form of %s to inventory', radiant.util.tostring(root))
    end
 end
 

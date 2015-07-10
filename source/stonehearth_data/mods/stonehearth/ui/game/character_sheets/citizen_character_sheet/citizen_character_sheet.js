@@ -235,8 +235,13 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          var equipmentRow = self.$('#' + equipmentInfo.slotId);
          var equipmentPiece = equipmentInfo.equipment;
          if (equipmentRow && equipmentRow.length != 0) {
-            var tooltipString = '<div class="detailedTooltip"> <h2>' + equipmentPiece.unit_info.name
-                                 + '</h2>'+ equipmentPiece.unit_info.description + '</div>';
+            var tooltipString = '';
+
+            if (equipmentPiece.unit_info) {
+               tooltipString = '<div class="detailedTooltip"> <h2>' + equipmentPiece.unit_info.name
+                                    + '</h2>'+ equipmentPiece.unit_info.description + '</div>';
+            }
+
             equipmentRow.tooltipster({content: $(tooltipString)});
          }
       });

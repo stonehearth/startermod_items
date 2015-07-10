@@ -43,6 +43,9 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
    _callCallback: function(callback_key) {
       var self = this;
       var bulletin = self.get('model');
+      if (!bulletin) {
+         return;
+      }
       var instance = bulletin.callback_instance;
       var method = bulletin.data[callback_key];
 

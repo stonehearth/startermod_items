@@ -22,10 +22,14 @@ end
 
 -- Part of the inventory tracker interface.  Given an `entity`, return the key
 -- used to store tracker data for entities of that type.  Group items by category.
+-- A thing is placeable if 
+-- a.) it has the iconic_form component and
+-- b.) it's entity forms is placeable
 --
 --    @param entity - the entity currently being tracked
 -- 
-function PlaceableItemsView:create_key_for_entity(entity)
+function PlaceableItemsView:create_keys_for_entity(entity)
+   --To get a root entity, must have needed an iconic version of it
    local root_entity = get_root_entity(entity)
    if not root_entity then
       return nil
@@ -39,8 +43,10 @@ function PlaceableItemsView:create_key_for_entity(entity)
       return nil
    end
 
-   local iconic_entity = entity_forms:get_iconic_entity()
-   return iconic_entity:get_uri()
+   --local iconic_entity = entity_forms:get_iconic_entity()
+   --if we got here, the entity must have the iconic_form component, and so is iconic, and must be
+   --placeable
+   return {entity:get_uri()}
 end
 
 function PlaceableItemsView:add_entity_to_tracking_data(iconic_entity, tracking_data)
@@ -73,7 +79,7 @@ end
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
--- the same key as (see :create_key_for_entity()).
+-- the same key as (see :create_keys_for_entity()).
 --
 --    @param entity_id - the entity id of the thing being removed.
 --    @param tracking_data - the tracking data for all entities of the same type

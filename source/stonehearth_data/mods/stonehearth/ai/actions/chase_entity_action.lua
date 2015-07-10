@@ -22,6 +22,10 @@ ChaseEntity.args = {
       type = 'function',
       default = stonehearth.ai.NIL,
    },
+   initial_path = { -- seed the initial path if we've already got one
+      type = Path,
+      default = stonehearth.ai.NIL,
+   }
 }
 ChaseEntity.version = 2
 ChaseEntity.priority = 1
@@ -36,7 +40,7 @@ function ChaseEntity:start_thinking(ai, entity, args)
 
    self:_trace_target_location()
 
-   local path = self:_get_direct_path(self._entity, self._target, ai.CURRENT.location)
+   local path = args.initial_path or self:_get_direct_path(self._entity, self._target, ai.CURRENT.location)
 
    if path then
       -- only an approximate location as the target may move or we may exit early based on stop_distance
