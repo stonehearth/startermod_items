@@ -24,6 +24,38 @@ function crate_tests.move_from_ground_into_crate(autotest)
    autotest:fail('worker did not put all the logs in the crate')
 end
 
+-- make sure we can place items from within the crate.
+function crate_tests.place_item_from_crate(autotest)
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
+   local bed = autotest.env:create_entity(4, 4, 'stonehearth:furniture:comfy_bed')
+
+   local crate = autotest.env:create_entity(0, 0, 'stonehearth:containers:small_crate', { force_iconic = false })
+
+   radiant.events.listen_once(crate, 'stonehearth:storage:item_added', function()
+         autotest.ui:click_dom_element('#build_menu')
+         autotest.ui:click_dom_element('#place_item')
+         autotest.ui:click_dom_element('div[uri="stonehearth:furniture:comfy_bed"]')
+         autotest.ui:click_terrain(6, 6)
+      end)
+
+   local trace
+   trace = radiant.entities.trace_grid_location(bed, 'sh crate placement autotest')
+      :on_changed(function()
+            local location = radiant.entities.get_world_grid_location(bed)
+            if bed:get_component('mob'):get_parent() ~= nil then
+               if location.x == 6 and location.z == 6 then
+                  trace:destroy()
+                  autotest:success()
+                  return radiant.events.UNLISTEN
+               end
+            end
+         end)
+
+
+   autotest:sleep(15000)
+   autotest:fail('worker did not put all the logs in the crate')
+end
+
 function crate_tests.dont_move_items_from_crate_to_crate(autotest)
    local session = autotest.env:get_player_session()
    local worker = autotest.env:create_person(2, 2, { job = 'worker' })
