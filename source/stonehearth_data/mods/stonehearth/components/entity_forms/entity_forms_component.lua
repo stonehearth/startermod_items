@@ -418,7 +418,7 @@ function EntityFormsComponent:_on_parent_changed()
    local iconic_entity = self:get_iconic_entity()
    if radiant.entities.get_world_grid_location(self._entity) == nil then
       -- We are out of world
-      radiant.log.write('entity forms', 0, 'entity %s is now out of world', tostring(self._entity))
+      --radiant.log.write('entity forms', 0, 'entity %s is now out of world', tostring(self._entity))
       self._out_of_world = true
       if inventory and iconic_entity and inventory:contains_item(self._entity) then
          inventory:remove_item(self._entity:get_id())
@@ -431,7 +431,7 @@ function EntityFormsComponent:_on_parent_changed()
             inventory:remove_item(iconic_entity:get_id())
             inventory:add_item(self._entity)
          end
-         radiant.log.write('entity forms', 0, 'entity %s is now IN world', tostring(self._entity))
+         --radiant.log.write('entity forms', 0, 'entity %s is now IN world', tostring(self._entity))
       end
    end
 end
