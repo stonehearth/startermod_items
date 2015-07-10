@@ -8,9 +8,8 @@ local function promote(autotest, worker, talisman, cb)
    autotest.ui:push_unitframe_command_button(worker, 'promote_to_job')
    autotest.ui:click_dom_element('#stonehearth\\:jobs\\:carpenter')
    autotest.ui:click_dom_element('#approveStamper')
-   radiant.events.listen(worker, 'stonehearth:job_changed', function (e)
+   radiant.events.listen_once(worker, 'stonehearth:job_changed', function (e)
          cb(e)
-         return radiant.events.UNLISTEN
       end)
 end
 
@@ -22,6 +21,23 @@ function promote_tests.promote_to_carpenter(autotest)
    
    promote(autotest, worker, saw, function(e)
          autotest:success()         
+      end)
+
+   autotest:sleep(2000 * 1000)
+   autotest:fail('failed to promote')
+   
+end
+
+function promote_tests.promote_from_crate(autotest)
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
+   local saw = autotest.env:create_entity(1, 1, 'stonehearth:carpenter:talisman')
+  
+   local crate = autotest.env:create_entity(0, 0, 'stonehearth:containers:small_crate', { force_iconic = false })
+
+   radiant.events.listen_once(crate, 'stonehearth:storage:item_added', function()
+      promote(autotest, worker, saw, function(e)
+            autotest:success()         
+         end)
       end)
 
    autotest:sleep(2000 * 1000)

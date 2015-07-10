@@ -14,16 +14,16 @@ function PickupItemFromStorage:start_thinking(ai, entity, args)
       return
    end
    local id = radiant.entities.get_player_id_from_entity(entity)
-   local iconic_entity = radiant.entities.get_iconic_form(args.item)
+   local item_entity = radiant.entities.get_iconic_form(args.item)
 
-   if not iconic_entity then
-      return
-   end   
-   local container = stonehearth.inventory:get_inventory(id):public_container_for(iconic_entity)
+   if not item_entity then
+      item_entity = args.item
+   end
+   local container = stonehearth.inventory:get_inventory(id):public_container_for(item_entity)
    if container then
       self._storage = container
       ai:set_think_output({
-         iconic_entity = iconic_entity,
+         item = item_entity,
          storage = container,
       })
    end
@@ -50,10 +50,10 @@ return ai:create_compound_action(PickupItemFromStorage)
             entity = ai.PREV.storage,
          })
          :execute('stonehearth:reserve_entity', { 
-            entity = ai.BACK(2).iconic_entity,
+            entity = ai.BACK(2).item,
          })
          :execute('stonehearth:pickup_item_from_storage_adjacent', { 
-            item = ai.BACK(3).iconic_entity,
+            item = ai.BACK(3).item,
             storage = ai.BACK(3).storage,
          })
          :set_think_output({ 
