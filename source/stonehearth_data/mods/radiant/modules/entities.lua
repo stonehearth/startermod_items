@@ -210,7 +210,7 @@ function entities.get_player_id(subject)
    if type(subject) == 'string' then
       return subject
    end
-   error(string.format('unexpected arg "%s" passed to get_player_id()', subject))
+   error(string.format('unexpected arg "%s" passed to get_player_id()', tostring(subject)))
 end
 
 function entities.is_owned_by_player(entity, player_id)

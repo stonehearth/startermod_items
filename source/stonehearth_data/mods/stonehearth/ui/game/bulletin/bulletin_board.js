@@ -24,6 +24,8 @@ var StonehearthBulletinBoard;
             });
 
          self._orderedBulletins = Ember.A();
+
+         self._unclosedBulletinDialogViews = {};
       },
 
       _createTrace: function() {
@@ -101,21 +103,41 @@ var StonehearthBulletinBoard;
 
       showDialogView: function(bulletin) {
          var self = this;
-         if (self._bulletinDialogView && self._bulletinDialogView.get('model').id == bulletin.id) {
-            // Trying to display dialog that's already showing! Ignore the request.
+         var bulletinId = bulletin.id;
+         if (self._bulletinDialogView && self._bulletinDialogView.get('model').id == bulletinId) {
+            // Trying to display the current dialog! Just hide ourselves because the current
+            // dialog is probably under us.
+            self.hideListView();
             return;
          }
 
-         if (self._bulletinNotificationView && self._bulletinNotificationView.get('model').id == bulletin.id) {
+         if (self._bulletinNotificationView && self._bulletinNotificationView.get('model').id == bulletinId) {
+            // If we are showing a notification for the requested bulletin, destroy that notification.
             self._bulletinNotificationView.destroy();
          }
 
-         var dialogViewName = bulletin.ui_view;
-         if (dialogViewName) {
-            self._bulletinDialogView = App.gameView.addView(App[dialogViewName], { uri: bulletin.__self });
-         } else {
-            self.markBulletinHandled(bulletin);
+         if (self._bulletinDialogView) {
+            // If we are already showing a dialog, hide that dialog and store off that it's hidden.
+            self._unclosedBulletinDialogViews[self._bulletinDialogView.get('model').id] = self._bulletinDialogView;
+            self._bulletinDialogView.hide();
+            self._bulletinDialogView = null;
          }
+
+         if (self._unclosedBulletinDialogViews[bulletinId]) {
+            // If the requested bulletin has already been shown and is hiding. reshow it/
+            self._bulletinDialogView = self._unclosedBulletinDialogViews[bulletinId];
+            self._bulletinDialogView.show();
+         } else {
+            // If the requested bulletin hasn't been created, create the bulletin.
+            var dialogViewName = bulletin.ui_view;
+            if (dialogViewName) {
+               self._bulletinDialogView = App.gameView.addView(App[dialogViewName], { uri: bulletin.__self });
+            } else {
+               self.markBulletinHandled(bulletin);
+            }
+         }
+
+         self.hideListView();
       },
 
       toggleListView: function() {
@@ -153,6 +175,8 @@ var StonehearthBulletinBoard;
 
       onDialogViewDestroyed: function(bulletin) {
          var self = this;
+         self._unclosedBulletinDialogViews[bulletin.id] = null;
+
          self._bulletinDialogView = null;
          self._tryShowNextBulletin();
       },
@@ -167,6 +191,7 @@ var StonehearthBulletinBoard;
                oldDialogView.destroy()
             });
             self._bulletinDialogView = null;
+            self._unclosedBulletinDialogViews[bulletin.id] = null;
             self.showDialogView(bulletin);
          }
       },

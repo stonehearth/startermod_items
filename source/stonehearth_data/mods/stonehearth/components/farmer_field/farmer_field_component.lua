@@ -56,7 +56,6 @@ function FarmerFieldComponent:initialize(entity, json)
 
          if #self._sv.contents > 0 then
             self:_create_till_task()
-            self:_create_harvest_task()
          end
       end)
    end
@@ -65,11 +64,14 @@ function FarmerFieldComponent:initialize(entity, json)
 end
 
 function FarmerFieldComponent:_create_harvestable_layer()
-   self._sv.harvestable_layer = radiant.entities.create_entity('', { owner = self._entity })
+   self._sv.harvestable_layer = radiant.entities.create_entity('stonehearth:farmer:field_layer:harvestable', { owner = self._entity })
    self._sv.harvestable_layer:add_component('destination')
                               :set_region(_radiant.sim.alloc_region3())
                               :set_reserved(_radiant.sim.alloc_region3())
                               :set_auto_update_adjacent(true)
+
+   self._sv.harvestable_layer:add_component('stonehearth:farmer_field_layer')
+                                 :set_farmer_field(self)
 end
 
 function FarmerFieldComponent:_add_crop(region)
@@ -107,7 +109,8 @@ function FarmerFieldComponent:get_soil_layer()
 end
 
 function FarmerFieldComponent:get_soil_layer_region()
-   return self._sv.soil_layer:get_component('destination'):get_region()
+   return self._sv.soil_layer:get_component('destination')
+                                :get_region()
 end
 
 function FarmerFieldComponent:get_harvestable_layer()
@@ -115,7 +118,8 @@ function FarmerFieldComponent:get_harvestable_layer()
 end
 
 function FarmerFieldComponent:get_harvestable_layer_region()
-   return self._sv.harvestable_layer:get_component('destination'):get_region()
+   return self._sv.harvestable_layer:get_component('destination')
+                                       :get_region()
 end
 
 --- On destroy, remove all listeners from the plots
@@ -146,11 +150,6 @@ function FarmerFieldComponent:destroy()
    radiant.entities.destroy_entity(self._sv.harvestable_layer)
    self._sv.harvestable_layer = nil
 
-   if self._harvest_task then
-      self._harvest_task:destroy()
-      self._harvest_task = nil
-   end
-
    if self._till_task then
       self._till_task:destroy()
       self._till_task = nil
@@ -164,18 +163,6 @@ function FarmerFieldComponent:_create_till_task()
                              :set_source(self:get_soil_layer())
                              :set_name('till entire field task')
                              :set_priority(stonehearth.constants.priorities.farming.TILL)
-                             :start()
-end
-
-function FarmerFieldComponent:_create_harvest_task()
-   if self._harvest_task then
-      return
-   end
-   local town = stonehearth.town:get_town(self:get_entity())
-   self._harvest_task = town:create_task_for_group('stonehearth:task_group:simple_farming','stonehearth:harvest_field', { field = self })
-                             :set_source(self:get_harvestable_layer())
-                             :set_name('harvest field task')
-                             :set_priority(stonehearth.constants.priorities.farming.HARVEST)
                              :start()
 end
 
@@ -198,7 +185,6 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
    end)
 
    self:_create_till_task()
-   self:_create_harvest_task()
    
    self:notify_score_changed()
    
@@ -286,6 +272,7 @@ function FarmerFieldComponent:determine_auto_harvest(dirt_component)
          local l = dirt_component:get_location()
          cursor:add_point(Point3(l.x - 1, 0, l.y - 1))
       end)
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.harvestable_layer)
    end
 end
 
@@ -295,6 +282,7 @@ function FarmerFieldComponent:harvest_crop(crop)
       local l = d:get_component('stonehearth:dirt_plot'):get_location()
       cursor:subtract_point(Point3(l.x - 1, 0, l.y - 1))
    end)
+   radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.harvestable_layer)   
 end
 
 function FarmerFieldComponent:crop_at(location)

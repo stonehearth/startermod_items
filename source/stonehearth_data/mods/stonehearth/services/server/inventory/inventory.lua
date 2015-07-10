@@ -235,7 +235,11 @@ end
 
 --- Call whenever a stockpile wants to tell the inventory that we're adding an item
 function Inventory:add_item(item, storage)
-   -- self:_check_entity_forms_of_new_item(item)
+   local in_world_item = entity_forms_lib.get_in_world_form(item)
+   if in_world_item then
+      item = in_world_item
+   end
+   self:_check_entity_forms_of_new_item(item)
 
    local id = item:get_id()
    local items = self._sv.items
@@ -534,22 +538,22 @@ function Inventory:_check_entity_forms_of_new_item(item)
    if not root then
       return
    end
+   
    if item == root then
       -- we are the root item!  verify the iconic isn't in the inventory
       if iconic then
-         radiant.assert(not self._sv.items[iconic:get_id()], 'tried to add root %s when iconic is already in inventory', root)
+         radiant.assert(not self._sv.items[iconic:get_id()], 'tried to add root %s when iconic is already in inventory', radiant.util.tostring(root))
       end      
    end
    if item == iconic then
       -- we are the iconic item!  verify the root isn't in the inventory
       if iconic then
-         radiant.assert(not self._sv.items[root:get_id()], 'tried to add iconic %s when root is already in inventory', iconic)
+         radiant.assert(not self._sv.items[root:get_id()], 'tried to add iconic %s when root is already in inventory', radiant.util.tostring(iconic))
       end      
    end
-
    -- we can never, ever add the ghost
    if ghost then
-      radiant.assert(item ~= ghost, 'cannot add ghost form of %s to inventory', root)
+      radiant.assert(item ~= ghost, 'cannot add ghost form of %s to inventory', radiant.util.tostring(root))
    end
 end
 
