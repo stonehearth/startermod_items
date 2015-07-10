@@ -260,8 +260,13 @@ update-templates:
 lua-file-map:
 	$(PYTHON) scripts/lua_profiler/collect_lua_file_map.py
 
+# validate campaigns or something 
+.PHONY: check-campaigns
+check-campaigns:
+	scripts/check_campaigns.py source/stonehearth_data/mods
+
 # Step to add a new Gareth repository:
-# 1) Add the remote:   https://github.com/stonehearth/startermod_basic
+# 1) Add the remote:   git remote add startermod_basic https://github.com/stonehearth/startermod_basic
 # 2) Add the subtree:  git subtree add --prefix source/stonehearth_data/mods/startermod_basic startermod_basic master
 # 3) Add your thing to the radent-to-gareth and gareth-to-radent make targets
 #
@@ -270,6 +275,16 @@ lua-file-map:
 # Used to synchronize our public repositories on https://github.com/stonehearth/ with the
 # copies pulled into the tree with 'git subtree'
 #
+# Using this thing:
+# 1) add remotes from gareth's account via: make add-gareth-remotes
+# 2) pull down latest data via: make gareth-to-radent
+# 3) make all your changes and commit them
+# 4) put them back to gareth's account via: make radent-to-gareth (this will take a lot of time!)
+#
+.PHONY: add-gareth-remotes
+	git remote add debugtools 			https://github.com/stonehearth/debugtools
+	git remote add startermod_basic 	https://github.com/stonehearth/startermod_basic
+
 .PHONY: radent-to-gareth
 radent-to-gareth:
 	-rm $(STONEHEARTH_ROOT)/.git/hooks/pre-push
@@ -281,8 +296,3 @@ radent-to-gareth:
 gareth-to-radent:
 	git subtree pull --prefix source/stonehearth_data/mods/debugtools 			debugtools 			master
 	git subtree pull --prefix source/stonehearth_data/mods/startermod_basic 	startermod_basic  master
-
-# make a decoda project!
-.PHONY: check-campaigns
-check-campaigns:
-	scripts/check_campaigns.py source/stonehearth_data/mods
