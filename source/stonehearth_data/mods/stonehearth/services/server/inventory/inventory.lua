@@ -378,10 +378,17 @@ function Inventory:find_closest_unused_placable_item(uri, location)
       -- make sure the item isn't being placed
       local entity_forms = item:get_component('stonehearth:iconic_form')
                                  :get_root_entity()
-                                 :get_component('stonehearth:entity_forms')
+                                    :get_component('stonehearth:entity_forms')
       if not entity_forms:is_being_placed() then
          acceptable_item_count = acceptable_item_count + 1
          local position = radiant.entities.get_world_grid_location(item)
+         if not position then
+            -- not in the world.  is it in a crate?
+            local storage = self:public_container_for(item)
+            if storage then
+               position = radiant.entities.get_world_grid_location(storage)
+            end
+         end
          if position then
             local distance = position:distance_to(location)
 
