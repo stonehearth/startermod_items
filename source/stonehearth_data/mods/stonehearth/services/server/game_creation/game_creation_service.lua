@@ -181,13 +181,16 @@ function GameCreationService:create_camp_command(session, response, pt)
 
    stonehearth.world_generation:set_starting_location(Point2(pt.x, pt.z))
 
-   local town = stonehearth.town:get_town(session.player_id)
-   local pop = stonehearth.population:get_population(session.player_id)
+   local player_id = session.player_id
+   local town = stonehearth.town:get_town(player_id)
+   local pop = stonehearth.population:get_population(player_id)
    local random_town_name = town:get_town_name()
+   local inventory = stonehearth.inventory:get_inventory(player_id)
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
-   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = session.player_id })
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = player_id })
+   inventory:add_item(banner_entity)
    radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
    radiant.entities.turn_to(banner_entity, constants.placement.DEFAULT_ROTATION)
@@ -232,17 +235,24 @@ function GameCreationService:create_camp_command(session, response, pt)
       end
    end
 
-   self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
+   local fireplace = self:_place_item(pop, 'stonehearth:decoration:firepit', camp_x, camp_z+3, { force_iconic = false })
+   inventory:add_item(fireplace)
 
-   radiant.entities.pickup_item(citizens_list[1], pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(citizens_list[2], pop:create_entity('stonehearth:resources:wood:oak_log'))
+   local log1 = pop:create_entity('stonehearth:resources:wood:oak_log')
+   local log2 = pop:create_entity('stonehearth:resources:wood:oak_log')
+   inventory:add_item(log1)
+   inventory:add_item(log2)
+   radiant.entities.pickup_item(citizens_list[1], log1)
+   radiant.entities.pickup_item(citizens_list[2], log2)
 
    -- Spawn initial talismans
    for i, talisman_uri in ipairs (self._sv._game_options.starting_talismans) do
       if i + 2 > NUM_STARTING_CITIZENS then
          break
       end
-      radiant.entities.pickup_item(citizens_list[i + 2], pop:create_entity(talisman_uri))
+      local talisman = pop:create_entity(talisman_uri)
+      inventory:add_item(talisman)
+      radiant.entities.pickup_item(citizens_list[i + 2], talisman)
    end
 
    -- kickstarter pets
@@ -256,11 +266,11 @@ function GameCreationService:create_camp_command(session, response, pt)
    -- Add starting gold
    local starting_gold = self._sv._game_options.starting_gold;
    if (starting_gold > 0) then
-      local inventory = stonehearth.inventory:get_inventory(session.player_id)
+      local inventory = stonehearth.inventory:get_inventory(player_id)
       inventory:add_gold(starting_gold)
    end
 
-   stonehearth.terrain:set_fow_enabled(session.player_id, true)
+   stonehearth.terrain:set_fow_enabled(player_id, true)
 
    return {random_town_name = random_town_name}
 end

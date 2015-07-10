@@ -21,6 +21,7 @@ function EntityFormsComponent:initialize(entity, json)
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             self:_sync_player_ids()
             self:_load_placement_task()
+            self:_on_parent_changed()
             if self._sv.should_restock then
                -- why do we need to set a 1000 ms timer just to get the effect to show up?
                -- this is quite disturbing... investigate! -- tony
@@ -33,8 +34,11 @@ function EntityFormsComponent:initialize(entity, json)
       self.__saved_variables:mark_changed()
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
             self:_post_create(json)
+            self:_on_parent_changed()
          end)
    end
+   self._out_of_world = true
+   self._parent_changed_listener = radiant.events.listen(entity, 'radiant:mob:parent_changed', self, self._on_parent_changed)
 end
 
 function EntityFormsComponent:_sync_player_ids()
@@ -120,6 +124,11 @@ function EntityFormsComponent:destroy()
    if self._unit_info_trace then
       self._unit_info_trace:destroy()
       self._unit_info_trace = nil
+   end
+
+   if self._parent_changed_listener then
+      self._parent_changed_listener:destroy()
+      self._parent_changed_listener = nil
    end
    self:_destroy_placement_task()
 end
@@ -394,6 +403,36 @@ function EntityFormsComponent:_on_position_changed()
    if radiant.entities.get_world_grid_location(self._entity) == nil then
       self:set_should_restock(false)
       self:_destroy_placement_task()
+   end
+end
+
+function EntityFormsComponent:_on_parent_changed()
+   if not stonehearth.inventory then
+      -- This can get called from client if the client creates a temporary object...
+      return
+   end
+   local player_id = self._entity:add_component('unit_info')
+                                    :get_player_id()
+
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   local iconic_entity = self:get_iconic_entity()
+   if radiant.entities.get_world_grid_location(self._entity) == nil then
+      -- We are out of world
+      radiant.log.write('entity forms', 0, 'entity %s is now out of world', tostring(self._entity))
+      self._out_of_world = true
+      if inventory and iconic_entity and inventory:contains_item(self._entity) then
+         inventory:remove_item(self._entity:get_id())
+         inventory:add_item(iconic_entity)
+      end
+   else
+      if self._out_of_world then
+         self._out_of_world = false
+         if inventory and iconic_entity and inventory:contains_item(iconic_entity) then
+            inventory:remove_item(iconic_entity:get_id())
+            inventory:add_item(self._entity)
+         end
+         radiant.log.write('entity forms', 0, 'entity %s is now IN world', tostring(self._entity))
+      end
    end
 end
 
