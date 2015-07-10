@@ -131,7 +131,7 @@
       "farmer:hoe" : "file(jobs/farmer/farmer_hoe)", 
       "farmer:talisman" : "file(jobs/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
-      
+      "farmer:field_layer:harvestable" : "file(entities/farming/harvest_field_layer/harvest_field_layer.json)",
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
       "shepherd:talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
       "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
@@ -1532,6 +1532,7 @@
       "personality" : "file(components/personality/personality_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
+      "farmer_field_layer" : "file(components/farmer_field_layer/farmer_field_layer_component.lua)",
       "shepherd_pasture" : "file(components/shepherd_pasture/shepherd_pasture_component.lua)", 
       "shepherded_animal" : "file(components/shepherd_pasture/shepherded_animal_component.lua)", 
       "growing" : "file(components/growing/growing_component.lua)", 
