@@ -110,11 +110,31 @@ local function spawn_loot(entity)
    end
 end
 
+local function drop_carried_objects(entity)
+   local location = radiant.entities.get_world_grid_location(entity)
+   if location then
+      local sc = entity:get_component('storage:component')
+      if sc then
+         for id, item in pairs(sc:get_items()) do
+            sc:remove_item(id)
+            local location = radiant.terrain.find_placement_point(origin, 1, 3)
+            radiant.terrain.place_entity(item, location)
+         end
+      end
+      local item = radiant.entities.remove_carrying(entity)
+      if item then
+         local location = radiant.terrain.find_placement_point(origin, 1, 3)
+         radiant.terrain.place_entity(item, location)
+      end
+   end
+end
+
 local function cleanup_entity(entity)
    StonehearthCommon.destroy_child_entities(entity)
    StonehearthCommon.destroy_entity_forms(entity)
    run_on_destroy_effect(entity)
    spawn_loot(entity)
+   drop_carried_objects(entity)
 end
 
 radiant.events.listen(stonehearth, 'radiant:init', function()
