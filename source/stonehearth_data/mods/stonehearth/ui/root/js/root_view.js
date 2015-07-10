@@ -89,6 +89,7 @@ App.RootView = Ember.ContainerView.extend({
       };
 
       App.tooltipHelper = new StonehearthTooltipHelper();
+      App.hotkeyManager = new StonehearthHotkeyManager();
    },
 
    didInsertElement: function() {
