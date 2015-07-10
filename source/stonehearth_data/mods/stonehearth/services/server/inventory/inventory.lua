@@ -282,6 +282,14 @@ function Inventory:remove_item(item_id)
       local item = self._sv.items[item_id]
 
       self._sv.items[item_id] = nil
+      local container = self._sv.container_for[item_id]
+      if container then
+         local storage = container:get_component('stonehearth:storage')
+         if storage then
+            storage:remove_item(item_id, true) -- True for inventory pre-destroy
+         end
+      end
+
       self._sv.container_for[item_id] = nil
 
       --Tell all the trackers for this player about this item
