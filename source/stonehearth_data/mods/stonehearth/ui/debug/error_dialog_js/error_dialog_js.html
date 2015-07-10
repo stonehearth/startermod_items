@@ -3,10 +3,14 @@
    <div class="window">
       <div class="title">UI Error<div class="closeButton"></div></div>
       <div id="errorDialog">
+         <div class="version">{{ game_version }}</div>
          <div class="heading">{{ view.model.message }}</div>
          <div class="value">{{ view.model.error.stack }}</div>
       </div>
-      <div id="f5_hint">Press F5 to Reset the UI.</div>
+      <div id="bottom">
+         <div id="f5_hint">Press F5 to Reset the UI.</div>
+         <button id="copyButton" class="">Copy to Clipboard</button>
+      </div>
    </div>
 </div>
 </script>

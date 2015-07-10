@@ -18,7 +18,7 @@ end
 --
 --    @param entity - the entity currently being tracked
 -- 
-function SellableItemTracker:create_key_for_entity(entity, storage)
+function SellableItemTracker:create_keys_for_entity(entity, storage)
    assert(entity:is_valid(), 'entity is not valid.')
 
    local entity_uri, _, _ = entity_forms.get_uris(entity)
@@ -34,7 +34,7 @@ function SellableItemTracker:create_key_for_entity(entity, storage)
    if sellable and storage then
       local storage_component = storage:get_component('stonehearth:storage') 
       if storage_component and (storage_component:is_public() or storage_component:get_name() == 'escrow') then
-         return entity:get_uri()
+         return {entity:get_uri()}
       end
    end
 
@@ -45,7 +45,7 @@ end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
 -- Tracking data is the existing data stored for entities sharing the same key as
--- `entity` (see :create_key_for_entity()).  We store both an array of all entities
+-- `entity` (see :create_keys_for_entity()).  We store both an array of all entities
 -- sharing this uri and a total count.
 --
 --     @param entity - the entity being added to tracking data
@@ -84,7 +84,7 @@ end
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
--- the same key as (see :create_key_for_entity()).
+-- the same key as (see :create_keys_for_entity()).
 --
 --    @param entity_id - the entity id of the thing being removed.
 --    @param tracking_data - the tracking data for all entities of the same type

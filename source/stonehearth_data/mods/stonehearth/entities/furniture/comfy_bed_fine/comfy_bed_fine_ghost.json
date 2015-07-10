@@ -14,7 +14,7 @@
          },
          "sleeping": {
             "models": [
-               "file(comfy_bed_fine.qb)"
+               "file(comfy_bed_fine_sleeping.qb)"
             ]
          }
       },

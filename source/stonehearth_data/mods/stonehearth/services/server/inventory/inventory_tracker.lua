@@ -6,6 +6,9 @@ local InventoryTracker = class()
    it hears that the objects in them might be changed.
 
    The service takes a controller containing a bunch of relevant functions.
+
+   Update: 7/9/15, adding functionality to support multipe keys for object, in case it needs to be 
+   tracked by multiple indexes
 ]]
 
 --- Init the InventoryTracker
@@ -23,18 +26,22 @@ function InventoryTracker:restore()
 end
 
 --- Call when it's time to add an item
---
+--  Given an entity, generate one or more keys for that entity. 
+--  Use that key to track all items of that type, including this item
 function InventoryTracker:add_item(entity, storage)
    local controller = self._sv.controller
-   local key = controller:create_key_for_entity(entity, storage)
+   local keys = controller:create_keys_for_entity(entity, storage)
 
-   -- A 'nil' key means ignore the entity.
-   if key ~= nil then
-      -- save the key for this entity for the future, so we know how to remove the entity
-      -- from our tracking tracking_data when it's destroyed.      
-      local id = entity:get_id()
-      self._sv._ids_to_keys[id] = key
+   if not keys then 
+      return
+   end
 
+   -- save the keys for this entity for the future, so we know how to remove the entity
+   -- from our tracking tracking_data when it's destroyed.      
+   local id = entity:get_id()
+   self._sv._ids_to_keys[id] = keys
+
+   for i, key in ipairs(keys) do 
       -- Get existing value from key and give it to the controller so it can generate the
       -- next value
       local tracking_data = self._sv.tracking_data[key]
@@ -49,10 +56,14 @@ end
 --- Call when it's time to remove an item
 --
 function InventoryTracker:remove_item(entity_id)
-   local key = self._sv._ids_to_keys[entity_id]
-   if key then
-      self._sv._ids_to_keys[entity_id] = nil
+   local keys = self._sv._ids_to_keys[entity_id]
+   if not keys then 
+      return
+   end
 
+   self._sv._ids_to_keys[entity_id] = nil
+
+   for i, key in ipairs(keys) do 
       local controller = self._sv.controller
       local tracking_data = self._sv.tracking_data[key]
       self._sv.tracking_data[key] = controller:remove_entity_from_tracking_data(entity_id, tracking_data)
@@ -67,10 +78,13 @@ end
 --If it is in us, re-evaluate it for remove
 function InventoryTracker:reevaluate_item(entity, storage)
    local entity_id = entity:get_id()
-   if self._sv._ids_to_keys[entity_id] then
-      --the item is already being tracked. Should it be removed?
-      local key = self._sv.controller:create_key_for_entity(entity, storage)
-      if not key then
+   local existing_keys = self._sv._ids_to_keys[entity_id] 
+   if existing_keys then
+      --the item is already being tracked, maybe multiple places. Check if it should be removed?
+      --YAGNI: what if we do still qualify for some keys but not others? Ie, the set of keys changed?
+      --Right now I can't think of why this might happen, or how I'd reasonably test this, so... putting this case off
+      local keys = self._sv.controller:create_keys_for_entity(entity, storage)
+      if not keys then
          self:remove_item(entity_id)
       end
    else
@@ -79,15 +93,6 @@ function InventoryTracker:reevaluate_item(entity, storage)
       self:add_item(entity, storage)
    end
 end
-
-
---The item or it's container has changed. 
---function InventoryTracker:update_item_container(item, storage)
---   local controller = self._sv.controller
---   if controller.update_item_container then
---      controller:update_item_container(item, storage)
---   end
---end
 
 -- Returns the tracking data
 --

@@ -14,16 +14,16 @@ end
 --
 --    @param entity - the entity currently being tracked
 -- 
-function GoldTracker:create_key_for_entity(entity)
+function GoldTracker:create_keys_for_entity(entity)
    local uri = entity:get_uri()
    if uri == 'stonehearth:gold_container' then
-      return entity:get_id()
+      return {entity:get_id()}
    end
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
 -- Tracking data is the existing data stored for entities sharing the same key as
--- `entity` (see :create_key_for_entity()).  We store both an array of all entities
+-- `entity` (see :create_keys_for_entity()).  We store both an array of all entities
 -- sharing this uri and a total count.
 --
 --     @param entity - the entity being added to tracking data
@@ -36,7 +36,7 @@ end
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
--- the same key as (see :create_key_for_entity()).
+-- the same key as (see :create_keys_for_entity()).
 --
 --    @param entity_id - the entity id of the thing being removed.
 --    @param tracking_data - the tracking data for all entities of the same type

@@ -17,16 +17,16 @@ end
 -- the entity uri, even if it is iconic. Otherwise, crafter maintain will break.
 --
 --    @param entity - the entity currently being tracked
--- 
-function BasicInventoryTracker:create_key_for_entity(entity)
+--    @returns - an array of keys that this entity maps to
+function BasicInventoryTracker:create_keys_for_entity(entity)
    assert(entity:is_valid(), 'entity is not valid.')
    local uri = entity:get_uri()
-   return uri
+   return {uri}
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
 -- Tracking data is the existing data stored for entities sharing the same key as
--- `entity` (see :create_key_for_entity()).  We store both an array of all entities
+-- `entity` (see :create_keys_for_entity()).  We store both an array of all entities
 -- sharing this uri and a total count.
 --
 --     @param entity - the entity being added to tracking data
@@ -65,7 +65,7 @@ end
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
--- the same key as (see :create_key_for_entity()).
+-- the same key as (see :create_keys_for_entity()).
 --
 --    @param entity_id - the entity id of the thing being removed.
 --    @param tracking_data - the tracking data for all entities of the same type
