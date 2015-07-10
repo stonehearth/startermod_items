@@ -32,6 +32,7 @@ function Inventory:initialize(player_id)
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
    self:add_item_tracker('stonehearth:placeable_item_inventory_tracker')
    self:add_item_tracker('stonehearth:sellable_item_tracker')
+   self:add_item_tracker('stonehearth:usable_item_tracker')
 end
 
 function Inventory:activate()

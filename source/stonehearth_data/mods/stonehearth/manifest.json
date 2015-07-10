@@ -1388,6 +1388,7 @@
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
       "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
+      "usable_item_tracker" : "file(services/server/inventory/useable_item_tracker.lua)", 
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "build:undo_manager" : "file(services/server/build/build_undo_manager.lua)",
