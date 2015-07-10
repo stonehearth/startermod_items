@@ -37,8 +37,12 @@ function SleepInBedAdjacent:run(ai, entity, args)
    
    ai:execute('stonehearth:run_effect', { effect = 'yawn' })
 
+   -- Ideally we would get the model_variant_delay from the duration of the goto_sleep animation.
+   -- This is currently not exposed as the information is parsed deep in the C++ layer.
+   local model_variant_delay = 160
    local mount_component = bed:add_component('stonehearth:mount')
-   mount_component:mount(entity)
+   mount_component:mount(entity, model_variant_delay)
+   mount_component:dismount()
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
 
