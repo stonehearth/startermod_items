@@ -599,6 +599,7 @@
       "actions:get_food_on_ground" : "file(ai/actions/get_food_on_ground_action.lua)",
       "actions:get_food_from_container" : "file(ai/actions/get_food_from_container.lua)",
       "actions:get_food_from_container_adjacent" : "file(ai/actions/get_food_from_container_adjacent.lua)",
+      "actions:get_food_container_from_storage" : "file(ai/actions/get_food_container_from_storage.lua)",
       
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
