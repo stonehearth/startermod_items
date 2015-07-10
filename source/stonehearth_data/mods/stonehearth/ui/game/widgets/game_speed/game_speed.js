@@ -100,8 +100,9 @@ App.StonehearthGameSpeedWidget = App.View.extend({
 
       if (self.initialized) {
          self.$('#speedThreeButton').click(function() {
-            radiant.call('stonehearth:set_player_game_speed', self.speeds.SPEEDTHREE);
-         });
+               radiant.call('stonehearth:set_player_game_speed', self.speeds.SPEEDTHREE);
+            });
+
          self.$('#speedThreeButton').show();
          self._createButtonTooltip('speedThree');
          self._addHotkeys();
@@ -119,15 +120,20 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       //On click, change the speed. 
       this.$('#pauseButton').click(function() {
             radiant.call('stonehearth:set_player_game_speed', self.speeds.PAUSED);
-      });
+         })
+         .attr("hotkey", App.hotkeyManager.getHotKey('game_speed_pause', '1'));
 
       this.$('#playButton').click(function() {
             radiant.call('stonehearth:set_player_game_speed', self.speeds.PLAY);
-      });
+         })
+         .attr("hotkey", App.hotkeyManager.getHotKey('game_speed_play', '2'));
 
       this.$('#ffButton').click(function() {
             radiant.call('stonehearth:set_player_game_speed', self.speeds.FASTFORWARD);
-      });
+         })
+         .attr("hotkey", App.hotkeyManager.getHotKey('game_speed_ff', '3'));
+
+      this.$('#speedThreeButton').attr("hotkey", App.hotkeyManager.getHotKey('game_speed_three', '4'));
 
       this.$('#pausedIndicator').on( 'click', '#inner', function() {
          self.$('#playButton').click();
@@ -142,6 +148,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       self._updateSpeedThreeButton();
       self._addHotkeys();
    },
+
    _createButtonTooltip: function(buttonName) {
       var button = this.$('#'+ buttonName + 'Button');
       var description_key = 'stonehearth:' + buttonName + '_description';
@@ -149,7 +156,7 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       position: 'bottom',
       content: $('<div class=title>' + i18n.t('stonehearth:' + buttonName + '_title') + '</div>' + 
                  '<div class=description>' + i18n.t(description_key) + '</div>' + 
-                 '<div class=hotkey>' + i18n.t('hotkey') + ' <span class=key>' + button.attr('hotkeyName')  + '</span></div>')
+                 '<div class=hotkey>' + i18n.t('hotkey') + ' <span class=key>' + button.attr('hotkey')  + '</span></div>')
       });
    }
 

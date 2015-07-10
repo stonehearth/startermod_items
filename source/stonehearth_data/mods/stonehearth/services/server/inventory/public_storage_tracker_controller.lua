@@ -15,13 +15,13 @@ end
 -- If the entity does not currently belong to public storage, return nil
 -- @param entity: the entity to add
 -- @param storage: optional, the entity that this item is being put into, nil if it's being taken out, or not applicable
-function PublicStorageTracker:create_key_for_entity(entity, storage)
+function PublicStorageTracker:create_keys_for_entity(entity, storage)
    assert(entity:is_valid(), 'entity is not valid.')
    local uri = entity:get_uri()
    if storage then
       local storage_component = storage:get_component('stonehearth:storage') 
       if storage_component and storage_component:is_public() then
-         return uri
+         return {uri}
       end
    end
    return nil
