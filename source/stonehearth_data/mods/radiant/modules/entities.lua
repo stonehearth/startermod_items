@@ -246,8 +246,6 @@ end
 
 -- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
-   radiant.check.is_entity(entity)
-
    if entity:get_id() == 1 then
       -- the root entity is centered at 0
       return Point3(0, 0, 0)
@@ -1004,6 +1002,19 @@ function entities.get_root_form(entity)
    end
 
    return entity
+end
+
+function entities.get_iconic_form(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local entity_forms = entity:get_component('stonehearth:entity_forms')
+   if entity_forms then
+      return entity_forms:get_iconic_entity()
+   end
+
+   return nil
 end
 
 --Return whether the entitiy is frightened of the target

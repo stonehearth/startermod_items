@@ -155,6 +155,7 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
       end
       item:add_component('mob'):move_to_grid_aligned(Point3(0, 1, 0))
       radiant.entities.set_player_id(item, self._crafter)
+      stonehearth.inventory:get_inventory(self._crafter):add_item(item)
 
       self._workshop:add_component('entity_container'):add_child(item)
 

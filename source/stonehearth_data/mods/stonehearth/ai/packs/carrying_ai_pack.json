@@ -15,6 +15,7 @@
       "stonehearth:actions:pickup_item_type_from_any_storage",
       "stonehearth:actions:pickup_item_type_from_storage",
       "stonehearth:actions:pickup_item_from_storage_adjacent",
+      "stonehearth:actions:pickup_item_from_storage",
       "stonehearth:actions:pickup_item_made_of",
       "stonehearth:actions:pickup_item_with_uri",
       "stonehearth:actions:pickup_item_from_backpack",
