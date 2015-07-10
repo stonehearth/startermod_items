@@ -1,4 +1,3 @@
-FarmerFieldComponent = require 'components.farmer_field.farmer_field_component'
 local Entity = _radiant.om.Entity
 
 local HarvestField = class()
