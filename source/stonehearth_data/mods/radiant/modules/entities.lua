@@ -1006,6 +1006,19 @@ function entities.get_root_form(entity)
    return entity
 end
 
+function entities.get_iconic_form(entity)
+   if not entity or not entity:is_valid() then
+      return nil
+   end
+
+   local entity_forms = entity:get_component('stonehearth:entity_forms')
+   if entity_forms then
+      return entity_forms:get_iconic_entity()
+   end
+
+   return nil
+end
+
 --Return whether the entitiy is frightened of the target
 --Compares the entity's courage score to the target's menace score
 --returns false if either is missing the appropriate component

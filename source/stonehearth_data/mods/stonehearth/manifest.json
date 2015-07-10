@@ -560,6 +560,7 @@
       "actions:reserve_storage_space" : "file(ai/actions/reserve_storage_space_action.lua)",
       "actions:pickup_item_type_from_any_storage" : "file(ai/actions/pickup_item_type_from_any_storage_action.lua)",
       "actions:pickup_item_type_from_storage" : "file(ai/actions/pickup_item_type_from_storage_action.lua)",
+      "actions:pickup_item_from_storage" : "file(ai/actions/pickup_item_from_storage_action.lua)",
       "actions:pickup_item_from_storage_adjacent" : "file(ai/actions/pickup_item_from_storage_adjacent_action.lua)",
       "actions:find_path_to_storage_containing_entity_type" : "file(ai/actions/find_path_to_storage_containing_entity_type_action.lua)",
       "actions:find_entity_type_in_storage" : "file(ai/actions/find_entity_type_in_storage_action.lua)",

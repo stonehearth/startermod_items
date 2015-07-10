@@ -246,7 +246,7 @@ function Inventory:add_item(item, storage)
    item:add_component('unit_info')
             :set_player_id(self._sv.player_id)
 
-   --if the item already exists in the inventory, then just update it's info
+   --if the item already exists in the inventory, then just update its info
    if items[id] then
       self:update_item_container(id, storage)
       return
@@ -494,6 +494,21 @@ function Inventory:trace_gold(reason)
    return FilteredTrace(trace, update_gold_fn)
 end
 
+
+function Inventory:public_container_for(item)
+   local container = self:container_for(item)
+
+   if not container then
+      return nil
+   end
+
+   local sc = container:get_component('stonehearth:storage')
+   if not sc or not sc:is_public() then
+      return nil
+   end
+
+   return container
+end
 
 function Inventory:container_for(item)
    assert(item)
