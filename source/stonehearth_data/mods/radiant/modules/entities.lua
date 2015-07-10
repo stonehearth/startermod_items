@@ -246,8 +246,6 @@ end
 
 -- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
-   radiant.check.is_entity(entity)
-
    if entity:get_id() == 1 then
       -- the root entity is centered at 0
       return Point3(0, 0, 0)
