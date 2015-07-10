@@ -39,7 +39,40 @@ function MountComponent:is_in_use()
    return self._sv.user ~= nil
 end
 
-function MountComponent:mount(user)
+function MountComponent:get_mount_offset()
+   return self._sv.mount_offset
+end
+
+function MountComponent:set_mount_offset(value)
+   assert(not self:is_in_use(), 'not implemented')
+   self._sv.mount_offset = value
+   self.__saved_variables:mark_changed()
+end
+
+function MountComponent:get_mounted_posture()
+   return self._sv.mounted_posture
+end
+
+function MountComponent:set_mounted_posture(value)
+   assert(not self:is_in_use(), 'not implemented')
+   self._sv.mounted_posture = value
+   self.__saved_variables:mark_changed()
+end
+
+function MountComponent:get_mounted_model_variant()
+   return self._sv.mounted_model_variant
+end
+
+function MountComponent:set_mounted_model_variant(value)
+   assert(not self:is_in_use(), 'not implemented')
+   self._sv.mounted_model_variant = value
+   self.__saved_variables:mark_changed()
+end
+
+-- model_variant_delay is optional
+function MountComponent:mount(user, model_variant_delay)
+   model_variant_delay = model_variant_delay or 0
+
    if user == self._sv.user then
       return
    end
@@ -63,12 +96,24 @@ function MountComponent:mount(user)
    end
 
    if self._sv.mounted_model_variant then
-      local render_info = self._mountable_object:add_component('render_info')
-      render_info:set_model_variant(self._sv.mounted_model_variant)
+      if model_variant_delay <= 0 then
+         self:_set_model_variant(self._sv.mounted_model_variant)
+      else
+         self._model_variant_timer = stonehearth.calendar:set_timer('mount component', model_variant_delay, function()
+               self:_set_model_variant(self._sv.mounted_model_variant)
+               self:_destroy_model_variant_timer()
+            end)
+      end
    end
 end
 
-function MountComponent:dismount()
+function MountComponent:dismount(set_egress_location)
+   if set_egress_location == nil then
+      set_egress_location = true
+   end
+
+   self:_destroy_model_variant_timer()
+
    local user = self._sv.user
 
    if user and user:is_valid() then
@@ -76,11 +121,14 @@ function MountComponent:dismount()
       self:_destroy_user_traces()
 
       local mob = user:add_component('mob')
-      local facing = self._sv.saved_facing + 180
 
-      local root_entity = radiant.entities.get_root_entity()
-      radiant.entities.add_child(root_entity, user, self._sv.saved_location)
-      mob:turn_to(facing)
+      if set_egress_location then
+         local facing = self._sv.saved_facing + 180
+         local root_entity = radiant.entities.get_root_entity()
+         radiant.entities.add_child(root_entity, user, self._sv.saved_location)
+         mob:turn_to(facing)
+      end
+
       mob:set_mob_collision_type(self._sv.saved_collision_type)
 
       if self._sv.mounted_posture then
@@ -88,13 +136,17 @@ function MountComponent:dismount()
       end
 
       if self._sv.mounted_model_variant then
-         local render_info = self._mountable_object:add_component('render_info')
-         render_info:set_model_variant('')
+         self:_set_model_variant('')
       end
    end
 
    self:_clear_state()
    self:_destroy_user_destroy_trace()
+end
+
+function MountComponent:_set_model_variant(name)
+   local render_info = self._mountable_object:add_component('render_info')
+   render_info:set_model_variant(name)
 end
 
 function MountComponent:_trace_user(user)
@@ -123,8 +175,8 @@ end
 function MountComponent:_trace_user_location(user)
    self._user_location_trace = radiant.entities.trace_location(user, 'mount component')
       :on_changed(function()
-            -- we must have decided to do something else, just dismount
-            self:dismount()
+            -- we must have decided to do something else, just dismount with minimal disruption
+            self:dismount(false)
          end)
 end
 
@@ -132,6 +184,13 @@ function MountComponent:_destroy_user_location_trace()
    if self._user_location_trace then
       self._user_location_trace:destroy()
       self._user_location_trace = nil
+   end
+end
+
+function MountComponent:_destroy_model_variant_timer()
+   if self._model_variant_timer then
+      self._model_variant_timer:destroy()
+      self._model_variant_timer = nil
    end
 end
 
