@@ -109,8 +109,6 @@ App.StonehearthErrorBrowserView = App.View.extend({
       });
 
       this.$('#copyButton').click(function() {
-         var currentData = self.get('context.current');
-
          var range = document.createRange();
             range.selectNodeContents($('#errorDialog')[0]);
             window.getSelection().addRange(range);
