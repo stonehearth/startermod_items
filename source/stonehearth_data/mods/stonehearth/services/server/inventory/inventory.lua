@@ -242,6 +242,7 @@ function Inventory:add_item(item, storage)
    item:add_component('unit_info')
             :set_player_id(self._sv.player_id)
 
+   --if the item already exists in the inventory, then just update it's info
    if items[id] then
       self:update_item_container(id, storage)
       return
@@ -502,6 +503,8 @@ function Inventory:contains_item(item)
    return self._sv.items[item:get_id()] ~= nil
 end
 
+--This item or it's container has been updated
+--This may change which trackers the item belongs to
 function Inventory:update_item_container(id, storage)
    checks('self', 'number', '?Entity')
    
@@ -517,8 +520,12 @@ function Inventory:update_item_container(id, storage)
    end
    
    --Tell all the trackers for this player about this item
+   --For some trackers, it may be their first time seeing the item
    for name, tracker in pairs(self._sv.trackers) do
-      tracker:update_item_container(item, storage)
+      tracker:reevaluate_item(item, storage)
+
+      --TODO: does any tracker actually implement this? 
+      --tracker:update_item_container(item, storage)
    end
    self.__saved_variables:mark_changed()
    self:_check_public_storage_space()

@@ -18,18 +18,27 @@ end
 --
 --    @param entity - the entity currently being tracked
 -- 
-function SellableItemTracker:create_key_for_entity(entity)
+function SellableItemTracker:create_key_for_entity(entity, storage)
    assert(entity:is_valid(), 'entity is not valid.')
 
    local entity_uri, _, _ = entity_forms.get_uris(entity)
+   local sellable 
 
    -- is it sellable?
    local net_worth = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth')
    if net_worth and net_worth.shop_info and net_worth.shop_info.sellable then
-      return entity:get_uri()
+      sellable = true
    end
 
-   -- nope!
+   --if it's sellable, AND it is public storage or escrow storage, then return the uri as the key
+   if sellable and storage then
+      local storage_component = storage:get_component('stonehearth:storage') 
+      if storage_component and (storage_component:is_public() or storage_component:get_name() == 'escrow') then
+         return entity:get_uri()
+      end
+   end
+
+   -- otherwise, nope!
    return nil
 
 end

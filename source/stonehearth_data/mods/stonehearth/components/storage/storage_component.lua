@@ -345,7 +345,8 @@ function StorageComponent:remove_item(id)
                                        :get_player_id()
    local inventory = stonehearth.inventory:get_inventory(player_id)
    if inventory then
-      inventory:update_item_container(id)
+      --Item isn't part of storage anymore, so storage is now nil
+      inventory:update_item_container(id, nil)
    end
 
    if item:is_valid() then
@@ -360,6 +361,16 @@ function StorageComponent:remove_item(id)
          item = item:is_valid() and item or nil,
       })
    return item
+end
+
+--give the storage component a name
+function StorageComponent:set_name(name)
+   self._sv.name = name
+   self.__saved_variables:mark_changed()
+end
+
+function StorageComponent:get_name()
+   return self._sv.name
 end
 
 function StorageComponent:contains_item(id)

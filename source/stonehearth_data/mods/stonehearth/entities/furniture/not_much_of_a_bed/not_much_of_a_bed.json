@@ -8,14 +8,6 @@
          "ghost_form" : "file(not_much_of_a_bed_ghost.json)",
          "placeable_on_ground" : true
       },
-      "destination": {
-         "region": [
-            {
-               "min" : { "x" : -1, "y" : 0, "z" : -1 },
-               "max" : { "x" :  2, "y" : 1, "z" :  2 }
-            }
-         ]
-      },
       "region_collision_shape" : {
          "region": [
             {
@@ -31,6 +23,18 @@
                "max" : { "x" :  2, "y" : 2, "z" : 3 }
             }
          ]
+      },
+      "destination": {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            }
+         ]
+      },
+      "stonehearth:mount" : {
+         "mount_offset" : { "x" : 0, "y" : 1, "z" : -0.75 },
+         "mounted_model_variant" : "sleeping"
       }
    },
    "entity_data" : {
