@@ -17,51 +17,49 @@ function AIComponent:initialize(entity, json)
    self._task_groups = {}
    self._last_added_actions = {}
    self._all_execution_frames = {}
-   self._sv = self.__saved_variables:get_data()
-   self.__saved_variables:set_controller(self)
-   local s = radiant.entities.get_name(entity) or 'noname'
-
    self._log = radiant.log.create_logger('ai.component')
                           :set_entity(self._entity)
 
-   if not self._sv._initialized then
-      self._sv.status_text = ''
-      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
+   self._sv = self.__saved_variables:get_data()
+   self.__saved_variables:set_controller(self)
 
-      -- wait until the entity is completely initialized before piling all our actions
-      radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
-            if json.actions then
-               self._log:error('%s, Actions are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
-               assert(false)
-            end
+   self._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
 
-            self._sv._dispatchers = json.dispatchers
-            self._sv._initialized = true
-            self:_restore_dispatchers()
-            self.__saved_variables:mark_changed()
+   self._sv.status_text = ''
 
-            -- Actions and observers are now added by the ai service after entity creation.
-            -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
+   -- wait until the entity is completely initialized before piling all our actions
+   radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
+         if json.actions then
+            self._log:error('%s, Actions are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
+            assert(false)
+         end
 
-            -- wait until the very next gameloop to start our thread.  this gives the
-            -- person creating the entity time to do some more post-creating initialization
-            -- (e.g. setting the player id!).  xxx: it's probably better to do this by
-            -- passing an init function to create_entity(). -tony
-            radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
-                  if not self._dead then
-                     self:start()
-                  end
-               end)
-         end)
+         -- all the dynamic dispatchers into our entity.  this wires together big sections
+         -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
+         if json.dispatchers then
+            self:_create_task_dispatchers('stonehearth:top', json.dispatchers)
+         end
 
-   else
-      --we're loading so instead listen on game loaded
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            self:_restore_dispatchers()
-            self:_restore_actions()
-            self:start()
-         end)
-   end
+         local ai_packs = radiant.entities.get_entity_data(entity, 'stonehearth:ai_packs')
+         if ai_packs and ai_packs.packs then
+            -- Discard the ai_handle because this injection is a permanent definition in the entity.
+            -- i.e. We will never call ai_handle:destroy() to revoke the ai from entity_data.
+            local ai_handle = stonehearth.ai:inject_ai_packs(entity, ai_packs.packs)
+         end
+
+         -- Actions and observers are now added by the ai service after entity creation.
+         -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
+
+         -- wait until the very next gameloop to start our thread.  this gives the
+         -- person creating the entity time to do some more post-creating initialization
+         -- (e.g. setting the player id!).  xxx: it's probably better to do this by
+         -- passing an init function to create_entity(). -tony
+         radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+               if not self._dead then
+                  self:start()
+               end
+            end)
+      end)
 end
 
 -- return a task group which instructs just this entity to perform
@@ -98,7 +96,7 @@ end
 function AIComponent:destroy()
    self._dead = true
    self._action_index = nil
-   self._sv._ref_counts:destroy()
+   self._ref_counts:destroy()
    self:_terminate_thread()
 end
 
@@ -108,12 +106,11 @@ function AIComponent:set_status_text(text)
 end
 
 function AIComponent:add_action(uri)
-   self._log:debug('adding action "%s"', uri)
-
-   local ref_count = self._sv._ref_counts:add_ref(uri)
+   local ref_count = self._ref_counts:add_ref(uri)
    if ref_count > 1 then
       return
    end
+   self._log:debug('adding action "%s" (ref_count: %d)', uri, ref_count)
 
    -- new action, add it to the system
    self:_add_action_internal(uri)
@@ -161,9 +158,9 @@ function AIComponent:remove_action(key)
    end
 
    if type(key) == 'string' then
-      self._log:detail('removing action "%s"', key)
       local uri = key
-      local ref_count = self._sv._ref_counts:dec_ref(uri)
+      local ref_count = self._ref_counts:dec_ref(uri)
+      self._log:detail('removing action "%s" (ref count:%d)', key, ref_count)
       if ref_count > 0 then
          return
       end
@@ -286,19 +283,6 @@ function AIComponent:_unregister_execution_frame(activity_name, frame)
    if frames then
       frames[frame] = nil
    end
-end
-
-function AIComponent:_restore_actions()
-   local saved_actions = self._sv._ref_counts:get_all_refs()
-   for uri, _ in pairs(saved_actions) do
-      self:_add_action_internal(uri)
-   end
-end
-
-function AIComponent:_restore_dispatchers()
-   -- all the dynamic dispatchers into our entity.  this wires together big sections
-   -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
-   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
 end
 
 -- create a single task dispatcher which delegates the implementation of

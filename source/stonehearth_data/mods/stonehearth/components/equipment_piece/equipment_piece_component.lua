@@ -219,16 +219,17 @@ end
 
 function EquipmentPieceComponent:_inject_ai()
    assert(self._sv.owner)
+   assert(not self._sv.injected_ai)
 
    if self._json.injected_ai then
-      self._injected_ai = stonehearth.ai:inject_ai(self._sv.owner, self._json.injected_ai, self._entity)
+      self._sv.injected_ai = stonehearth.ai:inject_ai(self._sv.owner, self._json.injected_ai)
    end
 end
 
 function EquipmentPieceComponent:_remove_ai()
-   if self._injected_ai then
-      self._injected_ai:destroy()
-      self._injected_ai = nil
+   if self._sv.injected_ai then
+      self._sv.injected_ai:destroy()
+      self._sv.injected_ai = nil
    end
 end
 
