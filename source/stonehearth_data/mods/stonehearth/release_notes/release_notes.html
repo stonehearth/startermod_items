@@ -3,13 +3,6 @@ Welcome to Stonehearth! Here are the patch notes for this build.
 <h1>Latest</h1>
 In order to fix some of the bugs in 2477, we have updated saves (so saves made in 2477 will no longer be playable). Once alpha 11 is more stable, we'll be able to keep the save games compatible for the alpha.
 
-<h2>Known Issues</h2>
-<ul>
-<li>If a crafter tries to craft a recipe when there isn't enough resources, the crafter will not automatically try to craft again if resources do become available in the future. Work around is to queue up any other task on the crafter's workbench.</li>
-<li>Objects in hearthling backpacks will show up in place furniture screen even though they cannot be placed.</li>
-<li>Objects that are in iconic form versus objects placed in the world will show up as separate items (but with the same icon/name/description) in town inventory screen.</li>
-</ul>
-
 <h2>Bug fixes</h2>
 <ul>
 <li>Fixed an issue that prevented hearthlings from crafting from crates.</li>
@@ -31,6 +24,8 @@ In order to fix some of the bugs in 2477, we have updated saves (so saves made i
 <li>The place item screen now only displays objects that can be placed.</li>
 <li>Character sheets only display for humans.</li>
 <li>Pets can now eat from berry baskets without errors.</li>
+<li>Crafters now maintain the correct number of items.</li>
+<li>Crafters can now sometimes successfully skip craft orders they do not have the ingredients to complete.</li>
 </ul>
 
 <h2>Performance</h2>
@@ -42,9 +37,16 @@ In order to fix some of the bugs in 2477, we have updated saves (so saves made i
 <ul>
 <li>Hearthlings now sleep underneath the covers in comfy beds.</li>
 <li>Added copy to clipboard button for UI errors.</li>
-<li>Shops will now put stuff in escrow when you sell it so you can buy it back if you want.</li>
-
+<li>Shops will now put stuff in escrow when you sell it so you can buy it back if you want. Escrow items will be dropped off near the banner once you close the shop UI.</li>
 </ul>
+
+<h2>Known Issues</h2>
+<ul>
+<li>If a crafter tries to craft a recipe when there isn't enough resources, the crafter will not automatically try to craft again if resources do become available in the future. Work around is to queue up any other task on the crafter's workbench.</li>
+<li>Objects in hearthling backpacks will show up in place furniture screen even though they cannot be placed.</li>
+<li>Objects that are in iconic form versus objects placed in the world will show up as separate items (but with the same icon/name/description) in town inventory screen.</li>
+</ul>
+
 
 <h1>Develop-2477</h1>
 <h2>Embark!</h2>
