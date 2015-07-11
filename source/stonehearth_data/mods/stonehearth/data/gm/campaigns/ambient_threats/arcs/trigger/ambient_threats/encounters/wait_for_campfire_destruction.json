@@ -6,7 +6,7 @@
    "out_edge" : "destroy_thief_stockpiles",
 
    "wait_for_event_info" :  {
-      "source" : "create_thief_camp.entities.campfire",
+      "source" : "create_thief_camp.entities.campfire.campfire",
       "event"  : "radiant:entity:pre_destroy"
    }
 }

@@ -179,7 +179,7 @@ function CreateCamp:_create_camp(location, camp_region)
       piece.info = radiant.resources.load_json(uri)
       assert(piece.info.type == 'camp_piece', string.format('camp piece at "%s" does not have type == camp_piece', uri))
       --table.insert(pieces[piece.info.size], piece)
-      self:_add_piece(piece, visible_rgn)
+      self:_add_piece(k, piece, visible_rgn)
    end
 
    -- add to the visible region for that player
@@ -203,7 +203,7 @@ function CreateCamp:_create_camp(location, camp_region)
    radiant.events.trigger_async(ctx.encounter_name, 'stonehearth:create_camp_complete', {}) 
 end
 
-function CreateCamp:_add_piece(piece, visible_rgn)
+function CreateCamp:_add_piece(piece_name, piece, visible_rgn)
    local x = piece.position.x
    local z = piece.position.y
    local rot = piece.rotation
@@ -231,8 +231,11 @@ function CreateCamp:_add_piece(piece, visible_rgn)
          entities[name] = entity
       end
    end
+   local items_by_piece_name = {}
+   items_by_piece_name[piece_name] = entities
+
    if ctx_entity_registration_path then
-      game_master_lib.register_entities(ctx, ctx_entity_registration_path .. '.entities', entities)
+      game_master_lib.register_entities(ctx, ctx_entity_registration_path .. '.entities', items_by_piece_name)
    end
 
 
@@ -247,9 +250,11 @@ function CreateCamp:_add_piece(piece, visible_rgn)
             self:_add_entity_to_visible_rgn(citizen, visible_rgn)
          end
       end
+      local citizens_by_piece_name = {}
+      citizens_by_piece_name[piece_name] = citizens_by_type
       if ctx_entity_registration_path then
          --This fn adds everyone to the ctx in a mechanism like ctx.enc_name.citizens.type
-         game_master_lib.register_entities(ctx, ctx_entity_registration_path .. '.citizens', citizens_by_type)
+         game_master_lib.register_entities(ctx, ctx_entity_registration_path .. '.citizens', citizens_by_piece_name)
       end
    end
 

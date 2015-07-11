@@ -29,6 +29,9 @@ function GeneratorEncounter:start(ctx, info)
       if radiant.util.is_a(entity, Entity) and entity:is_valid() then
          self._sv.source_entity = entity
          self:_start_source_listener()
+      else
+         --we need a source entity, but one doesn't exist? abort encounter
+         return
       end
    end
 

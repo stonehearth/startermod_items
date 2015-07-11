@@ -1,0 +1,22 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "donation",
+
+   "in_edge"  : "reward_loot",
+   "out_edge" : "destroy_goblin_raiding_camp_1",
+
+   "donation_info" :  {
+   	    "loot_table" : {
+            "num_rolls" : {
+               "min" : 1,
+               "max" : 2
+            },
+            "items" : [
+               { "uri" : "stonehearth:monsters:goblins:skull_trophy", "weight" : 8 },
+            	{ "uri" : "stonehearth:weapons:giant_bone_mace", "weight" : 5 },
+               { "uri" : "stonehearth:weapons:giant_bone_axe", "weight" : 5 },
+            	{ "uri" : "stonehearth:decoration:firepit_skulls", "weight" : 1  }
+            ]
+        }         
+   }
+}

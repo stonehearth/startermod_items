@@ -579,6 +579,10 @@
    "cool" : "Cool!", 
    "sounds_ominous" : "Sounds ominous.",
    "uneventful_day" : "An Uneventful Day",
+   "terrifying" : "You terrify me", 
+   "thank_goodness" : "Thank goodness!",
+   "good_riddance" : "Good riddance", 
+   "goodbye" : "Goodbye!",
 
    "item_categories_food" : "Food",
    "item_categories_resources" : "Resources",

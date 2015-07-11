@@ -4,8 +4,8 @@ local rng = _radiant.csg.get_default_rng()
 local DestroyEntityEncounter = class()
 
 -- Deletes a set of objects described in an array
--- If an object in the array is itself an array of entities,
--- delete all the entities in that array
+-- If an object in the array is itself an object of entities,
+-- delete all the entities in that object
 
 --If on restore, there are leftover guys that we haven't actually managed
 --to delete yet, delete them. This may mean that the effects and delete delay

@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_for_next_camp",
+   "out_edge" : "create_camp",
+
+   "wait_info" :  {
+      "duration" : "3d"
+   }
+}

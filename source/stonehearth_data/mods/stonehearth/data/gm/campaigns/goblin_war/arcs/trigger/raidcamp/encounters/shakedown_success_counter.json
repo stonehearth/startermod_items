@@ -1,0 +1,17 @@
+{
+	"type" : "encounter",
+	"encounter_type" : "counter",
+	"rarity" : "common",
+
+	"in_edge" : "shakedown_success_counter",
+
+	"counter_info" : {
+		"out_edges" : {
+         	"fail" : "wait_for_next_shakedown",
+         	"success" : "wait_for_ogo_call"
+      	},
+		"times" : 3,
+		"ctx_registration_variable" : "shakedown_success_counter", 
+		"optional_reference_entity" : "goblin_raiding_camp_1.boss"
+	}
+}
