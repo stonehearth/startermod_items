@@ -317,6 +317,8 @@ function StorageComponent:add_item(item)
    
    if item:is_valid() then
       radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      -- Let AI know to reconsider this container because its contents have changed.
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.entity)
    end
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
