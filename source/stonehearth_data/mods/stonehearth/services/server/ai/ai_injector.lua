@@ -1,10 +1,10 @@
 local AiInjector = class()
 
 function AiInjector:initialize(entity, ai)
+   self._sv.entity = entity
    self._log = radiant.log.create_logger('ai.injector')
                               :set_entity(self._sv.entity)
                               
-   self._sv.entity = entity
    self._sv._injected = {
       actions = {},
       observers = {},
@@ -15,13 +15,13 @@ end
 function AiInjector:restore()
    self._log = radiant.log.create_logger('ai.injector')
                               :set_entity(self._sv.entity)
-end
 
-function AiInjector:activate(entity, ai)
-                              
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
          self:_reinject_ai()
       end)
+end
+
+function AiInjector:activate(entity, ai)
 end
 
 function AiInjector:inject_ai(ai)
