@@ -22,6 +22,11 @@ function AiService:initialize()
    if not self._sv._initialized then
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
+      self:_trace_entity_creation()
+   else
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+            self:_trace_entity_creation()
+         end)
    end
 end
 
@@ -30,6 +35,20 @@ function AiService:destroy()
       self._entity_post_create_trace:destroy()
       self._entity_post_create_trace = nil
    end
+end
+
+function AiService:_trace_entity_creation()
+   -- entities without ai_components may still have observers in their ai_packs entity data.
+   -- handle those (and even the ones with ai_components, actually), here.
+   self._entity_post_create_trace = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
+         local entity = e.entity
+         local ai_packs = radiant.entities.get_entity_data(entity, 'stonehearth:ai_packs')
+         if ai_packs and ai_packs.packs then
+            -- Discard the ai_handle because this injection is a permanent definition in the entity.
+            -- i.e. We will never call ai_handle:destroy() to revoke the ai from entity_data.
+            local ai_handle = self:inject_ai_packs(entity, ai_packs.packs)
+         end
+      end)
 end
 
 function AiService:inject_ai_packs(entity, packs)

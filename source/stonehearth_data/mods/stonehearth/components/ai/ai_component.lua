@@ -40,13 +40,6 @@ function AIComponent:initialize(entity, json)
             self:_create_task_dispatchers('stonehearth:top', json.dispatchers)
          end
 
-         local ai_packs = radiant.entities.get_entity_data(entity, 'stonehearth:ai_packs')
-         if ai_packs and ai_packs.packs then
-            -- Discard the ai_handle because this injection is a permanent definition in the entity.
-            -- i.e. We will never call ai_handle:destroy() to revoke the ai from entity_data.
-            local ai_handle = stonehearth.ai:inject_ai_packs(entity, ai_packs.packs)
-         end
-
          -- Actions and observers are now added by the ai service after entity creation.
          -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
 
