@@ -60,7 +60,7 @@ function TeardownStructureAdjacent:run(ai, entity, args)
          local resource = radiant.entities.create_entity(MATERIAL_TO_RESOURCE[self._material])
          resource:add_component('item')
                      :set_stacks(1)
-         radiant.entities.pickup_item(entity, resource)
+         stonehearth.ai:pickup_item(ai, entity, resource)
       end
    end
 end

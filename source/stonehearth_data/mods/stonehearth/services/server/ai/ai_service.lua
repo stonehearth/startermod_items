@@ -141,11 +141,12 @@ end
 -- in a pickup action where ai.CURRENT.carrying was nil in start_thinking(), but we actually
 -- end up carrying something in the action.  if we abort(), we may loop around and just do
 -- the same thing again (!!!), so instead do our best to clear the carry before running the
--- pickup.  again, this only happens if we lose the race.  most of the time, it's a nop.
-function AiService:prepare_for_pickup_action(ai, entity, item)
+-- pickup.  again, this only happens if we lose the race.  most of the time, it's a nop. - tony
+--
+function AiService:prepare_to_pickup_item(ai, entity, item)
    local carrying = radiant.entities.get_carrying(entity)
    if carrying == item then
-      ai:get_log():debug('already carrying %s!  early exit out of run', item)
+      ai:get_log():debug('already carrying %s!  early exit out of run', tostring(item))
       return true
    end
    if carrying ~= nil then
@@ -153,6 +154,33 @@ function AiService:prepare_for_pickup_action(ai, entity, item)
       ai:execute('stonehearth:clear_carrying_now')
    end
    return false
+end
+
+-- used from inside an ai action to pickup an item.  because of subtle races in the ai
+-- system pre-emption code, an action which wants to pick something up might actually
+-- get run while an entity is already carrying something.  in these cases, we need to
+-- take some additional precautions before trying to pick something up.  these may include
+-- moving what the entity is carrying into their backpack or dropping it on the ground.
+-- `pickup_item` will handle all those details for you.
+--
+function AiService:pickup_item(ai, entity, item)
+   -- make sure we are called on the ai thread, since we may need to do things like
+   -- drop the carried item (which may play an animation).
+   assert(entity:get_component('stonehearth:ai'):get_thread():is_running())
+
+
+   if stonehearth.ai:prepare_to_pickup_item(ai, entity, item) then
+      -- we're already carrying the thing you wanted.  just return it!
+      return item
+   end
+   assert(not radiant.entities.get_carrying(entity))
+   
+   -- our carryblock is empty.  go ahead and pick up
+   item = radiant.entities.pickup_item(entity, item)
+   if not item then
+      ai:abort('failed to move item to carry block')
+   end
+   return item
 end
 
 return AiService

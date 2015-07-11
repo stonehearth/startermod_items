@@ -23,7 +23,11 @@ function PickupItemAdjacent:run(ai, entity, args)
    local item = args.item   
    radiant.check.is_entity(item)
 
-   if stonehearth.ai:prepare_for_pickup_action(ai, entity, item) then
+   -- delibrately break up the prepare vs pickup steps to make sure
+   -- we're not carrying anything before playing the animation (and
+   -- if we *are* carrying the right thing already, skip the animation
+   -- entirely) - tony
+   if stonehearth.ai:prepare_to_pickup_item(ai, entity, item) then
       return
    end
    assert(not radiant.entities.get_carrying(entity))
@@ -36,7 +40,7 @@ function PickupItemAdjacent:run(ai, entity, args)
    log:info("%s picking up %s", entity, item)
    local item_location = radiant.entities.get_world_grid_location(item)
    radiant.entities.turn_to_face(entity, item)
-   radiant.entities.pickup_item(entity, item)
+   stonehearth.ai:pickup_item(ai, entity, item)
    ai:execute('stonehearth:run_pickup_effect', { location = item_location })
 end
 

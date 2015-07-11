@@ -453,4 +453,8 @@ function AIComponent:entity_state_is_stale()
    return self._execution_frame:entity_state_is_stale()
 end
 
+function AIComponent:get_thread()
+   return self._thread
+end
+
 return AIComponent

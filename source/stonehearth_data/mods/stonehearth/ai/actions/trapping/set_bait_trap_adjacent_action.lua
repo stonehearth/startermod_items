@@ -34,7 +34,7 @@ function SetBaitTrapAdjacent:run(ai, entity, args)
 
    if not self._trap_added then
       self._trap = radiant.entities.create_entity(args.trap_uri, { owner = entity })
-      local picked_up = radiant.entities.pickup_item(entity, self._trap)
+      local picked_up = stonehearth.ai:pickup_item(ai, entity, self._trap)
       assert(picked_up)
 
       ai:execute('stonehearth:drop_carrying_adjacent', {

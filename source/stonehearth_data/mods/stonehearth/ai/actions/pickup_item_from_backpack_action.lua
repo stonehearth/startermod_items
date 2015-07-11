@@ -40,7 +40,10 @@ function PickupItemFromBackpack:start_thinking(ai, entity, args)
 end
 
 function PickupItemFromBackpack:run(ai, entity, args)
-   if stonehearth.ai:prepare_for_pickup_action(ai, entity, self._item) then
+   -- if we're already carrying the item, there's no need to pull it out
+   -- of our pack.  if we're not but carrying something else, make sure
+   -- we get rid of it first.  - tony
+   if stonehearth.ai:prepare_to_pickup_item(ai, entity, self._item) then
       return
    end
    assert(not radiant.entities.get_carrying(entity))
@@ -50,7 +53,7 @@ function PickupItemFromBackpack:run(ai, entity, args)
    if not success then
       ai:abort('item not found in backpack')
    end  
-   radiant.entities.pickup_item(entity, self._item)
+   stonehearth.ai:pickup_item(ai, entity, self._item)
 end
 
 return PickupItemFromBackpack
