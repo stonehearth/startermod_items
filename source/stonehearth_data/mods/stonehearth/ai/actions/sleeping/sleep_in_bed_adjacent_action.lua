@@ -42,7 +42,6 @@ function SleepInBedAdjacent:run(ai, entity, args)
    local model_variant_delay = 160
    local mount_component = bed:add_component('stonehearth:mount')
    mount_component:mount(entity, model_variant_delay)
-   mount_component:dismount()
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
 
