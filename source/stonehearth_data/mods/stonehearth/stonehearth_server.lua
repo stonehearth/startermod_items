@@ -117,13 +117,13 @@ local function drop_carried_objects(entity)
       if sc then
          for id, item in pairs(sc:get_items()) do
             sc:remove_item(id)
-            local location = radiant.terrain.find_placement_point(origin, 1, 3)
+            local location = radiant.terrain.find_placement_point(location, 1, 3)
             radiant.terrain.place_entity(item, location)
          end
       end
       local item = radiant.entities.remove_carrying(entity)
       if item then
-         local location = radiant.terrain.find_placement_point(origin, 1, 3)
+         local location = radiant.terrain.find_placement_point(location, 1, 3)
          radiant.terrain.place_entity(item, location)
       end
    end
