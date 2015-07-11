@@ -6,7 +6,7 @@ TillEntireField.status_text = 'tilling field'
 TillEntireField.does = 'stonehearth:simple_labor'
 TillEntireField.args = {}
 TillEntireField.version = 2
-TillEntireField.priority = 1
+TillEntireField.priority = stonehearth.constants.priorities.simple_labor.TILL_FIELD
 
 local function till_layer_filter(entity)
    return entity:get_uri() == 'stonehearth:farmer:field_layer:tillable'
