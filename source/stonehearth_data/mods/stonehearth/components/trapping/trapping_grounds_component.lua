@@ -466,6 +466,7 @@ function TrappingGroundsComponent:_create_critter(uri)
       end
    end
 
+   -- TODO: the despawn ai needs to survive the save/load boundary. Rewrite how these events work later.
    trapped_listener = radiant.events.listen(critter, 'stonehearth:trapped', function()
          despawn_ai:destroy()
          destroy_listeners()

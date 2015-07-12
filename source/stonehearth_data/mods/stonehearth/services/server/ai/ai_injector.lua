@@ -2,14 +2,16 @@ local AiInjector = class()
 
 function AiInjector:initialize(entity, ai)
    self._sv.entity = entity
-   self._log = radiant.log.create_logger('ai.injector')
-                              :set_entity(self._sv.entity)
-                              
    self._sv._injected = {
       actions = {},
       observers = {},
    }
-   self:inject_ai(ai)
+
+   self._log = radiant.log.create_logger('ai.injector')
+                              :set_entity(self._sv.entity)
+                              
+   self:_flatten_ai(ai)
+   self:_inject_ai()
 end
 
 function AiInjector:restore()
@@ -17,58 +19,61 @@ function AiInjector:restore()
                               :set_entity(self._sv.entity)
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-         self:_reinject_ai()
+         self:_restore_ai()
       end)
 end
 
 function AiInjector:activate(entity, ai)
 end
 
-function AiInjector:inject_ai(ai)
-   self._log:info('injecting ai into %s', self._sv.entity)
-   
-   if ai.ai_packs then
-      for _, uri in pairs(ai.ai_packs) do
-         self:_inject_ai_pack(uri)
-      end
-   end
-
+function AiInjector:_flatten_ai(ai)
    if ai.actions then
-      local aic = self._sv.entity:add_component('stonehearth:ai')
       for _, uri in ipairs(ai.actions) do
-         if not self._sv._injected.actions[uri] then
-            aic:add_action(uri)
-            self._sv._injected.actions[uri] = true
-         end
+         self._sv._injected.actions[uri] = true
       end
    end
 
    if ai.observers then
-      local obs = self._sv.entity:add_component('stonehearth:observers')
       for _, uri in ipairs(ai.observers) do
-         if not self._sv._injected.observers[uri] then
-            obs:add_observer(uri)
-            self._sv._injected.observers[uri] = true
-         end
+         self._sv._injected.observers[uri] = true
+      end
+   end
+
+   if ai.ai_packs then
+      for _, uri in pairs(ai.ai_packs) do
+         self:_flatten_ai_pack(uri)
       end
    end
 end
 
-function AiInjector:_reinject_ai()
+function AiInjector:_flatten_ai_pack(uri)
+   local ai = radiant.resources.load_json(uri, true)
+   self:_flatten_ai(ai)
+end
+
+function AiInjector:_inject_ai()
+   self:_inject_actions()
+   self:_inject_observers()
+end
+
+function AiInjector:_restore_ai()
+   -- Don't restore observers on load because they are controllers themselves and are self restored
+   -- "Your lack of symmetry disturbs me." -- Vader
+   self:_inject_actions()
+end
+
+function AiInjector:_inject_actions()
    local aic = self._sv.entity:add_component('stonehearth:ai')
    for uri in pairs(self._sv._injected.actions) do
       aic:add_action(uri)
    end
+end
 
+function AiInjector:_inject_observers()
    local obs = self._sv.entity:add_component('stonehearth:observers')
    for uri in pairs(self._sv._injected.observers) do
       obs:add_observer(uri)
    end
-end
-
-function AiInjector:_inject_ai_pack(uri)
-   local ai = radiant.resources.load_json(uri, true)
-   self:inject_ai(ai)
 end
 
 function AiInjector:destroy()

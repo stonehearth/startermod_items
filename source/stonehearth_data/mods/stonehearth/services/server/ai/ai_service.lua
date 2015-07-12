@@ -24,6 +24,23 @@ function AiService:initialize()
       self.__saved_variables:mark_changed()
       self:_trace_entity_creation()
    else
+      -- WARNING: entities created in by other listeners of game_loaded will have a race with this method
+      --
+      -- Restoring ai's in kind of a pain because actions should be re-injected, but observers should not
+      -- (as observers are controllers, have their own state, and restore themselves). There were a few options
+      -- considered for restoring ai's on load:
+      --
+      -- 1) Save the ai_injector for the base ui someplace persistent. It will correctly restore itself on load.
+      -- Then we trace new entities' post_create after game_loaded to inject their base ai.
+      -- 
+      -- 2) Don't save the ai_injector for the base ui. We trace post_create for all entities on service
+      -- initialization and tell the ai_injector not to inject observers for post_create events that occur
+      -- prior to game_loaded. After game_loaded the ai_injector should resume injecting observers as usual.
+      --
+      -- 3) We require any entity with an action or observer to define another equipment entity which has
+      -- an equipment_piece_component that holds the ai.
+      --
+      -- Option 1 is currently what is implemented. Maybe someone has a better idea.
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             self:_trace_entity_creation()
          end)
@@ -38,27 +55,40 @@ function AiService:destroy()
 end
 
 function AiService:_trace_entity_creation()
-   -- entities without ai_components may still have observers in their ai_packs entity data.
-   -- handle those (and even the ones with ai_components, actually), here.
+   -- Entities without ai_components may still have observers in their ai_packs entity data.
+   -- Handle those (and even the ones with ai_components, actually), here.
    self._entity_post_create_trace = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
          local ai_packs = radiant.entities.get_entity_data(entity, 'stonehearth:ai_packs')
          if ai_packs and ai_packs.packs then
-            -- Discard the ai_handle because this injection is a permanent definition in the entity.
-            -- i.e. We will never call ai_handle:destroy() to revoke the ai from entity_data.
-            local ai_handle = self:inject_ai_packs(entity, ai_packs.packs)
+            self:inject_ai_packs(entity, ai_packs.packs, true)
          end
       end)
 end
 
-function AiService:inject_ai_packs(entity, packs)
+function AiService:inject_ai_packs(entity, packs, permanent)
+   if permanent == nil then
+      permanent = false
+   end
+
    local ai = { ai_packs = packs}
-   return self:inject_ai(entity, ai)
+   return self:inject_ai(entity, ai, permanent)
 end
 
--- injecting entity may be null
-function AiService:inject_ai(entity, ai) 
-   return radiant.create_controller('stonehearth:ai_injector', entity, ai)
+function AiService:inject_ai(entity, ai, permanent)
+   if permanent == nil then
+      permanent = false
+   end
+
+   local ai_injector = radiant.create_controller('stonehearth:ai_injector', entity, ai)
+
+   if permanent then
+      local aic = entity:add_component('stonehearth:ai')
+      aic:add_permanent_ai(ai_injector)
+      return nil
+   else
+      return ai_injector
+   end
 end
 
 function AiService:format_activity(activity)

@@ -17,15 +17,17 @@ function AIComponent:initialize(entity, json)
    self._task_groups = {}
    self._last_added_actions = {}
    self._all_execution_frames = {}
-   self._log = radiant.log.create_logger('ai.component')
-                          :set_entity(self._entity)
-
-   self._sv = self.__saved_variables:get_data()
-   self.__saved_variables:set_controller(self)
-
    self._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
+   self._status_text = ''
+   self._log = radiant.log.create_logger('ai.component')
+                              :set_entity(self._entity)
 
-   self._sv.status_text = ''
+   if not self._sv._initialized then
+      self._sv._permanent_ais = {}
+      self._sv._initialized = true
+      self.__saved_variables:mark_changed()
+   else
+   end
 
    -- wait until the entity is completely initialized before piling all our actions
    radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
@@ -94,8 +96,7 @@ function AIComponent:destroy()
 end
 
 function AIComponent:set_status_text(text)
-   self._sv.status_text = text
-   self.__saved_variables:mark_changed()
+   self._status_text = text
 end
 
 function AIComponent:add_action(uri)
@@ -171,6 +172,10 @@ function AIComponent:remove_action(key)
    else
       self._log:debug('could not find action for key %s in :remove_action', tostring(key))
    end
+end
+
+function AIComponent:add_permanent_ai(injector)
+   table.insert(self._sv._permanent_ais, injector)
 end
 
 function AIComponent:add_custom_action(action_ctor)
@@ -337,9 +342,6 @@ function AIComponent:start()
    radiant.check.is_entity(self._entity)
    self._thread = stonehearth.threads:create_thread()
                                      :set_debug_name('e:%d', self._entity:get_id())
-
-   self._sv.status_text = ''
-   self.__saved_variables:mark_changed()
 
    self._thread:set_thread_main(function()
       self:_create_top_execution_frame()
