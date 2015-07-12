@@ -35,6 +35,9 @@
                   "You so funny. Because we friends, me tell you: Ogo pretty cool. A bit mean. Once ate a puppy. But... soothsayer say he fated! Meant to stomp on everyone! Me just little guy, you know? Though you littler. Anyways."
                ],
                "choices" : {
+                  "stonehearth:wow_unimpressed" : {
+                     "next_node" : "loot_final"
+                  },
                   "stonehearth:sounds_ominous" : {
                      "next_node" : "loot_final"
                   }

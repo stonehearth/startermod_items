@@ -13,6 +13,9 @@
       "stealthy thief" : "file(encounters/stealthy_thief_mission.json)",
       "night raid" : "file(encounters/nighttime_city_raids.json)",
 
+      "wait to move on" : "file(encounters/wait_for_moving_on.json)", 
+      "moving on dialog" : "file(encounters/moving_on_dialog.json)", 
+
       "shakedown success counter" : "file(encounters/shakedown_success_counter.json)", 
       "wait for next shakedown" : "file(encounters/wait_for_next_shakedown.json)",
       "wait for boss death" : "file(encounters/wait_for_boss_death.json)",
