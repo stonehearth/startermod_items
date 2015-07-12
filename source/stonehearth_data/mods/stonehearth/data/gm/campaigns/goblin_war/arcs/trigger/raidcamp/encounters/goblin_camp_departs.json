@@ -10,6 +10,7 @@
       	"goblin_raiding_camp_1.entities",
       	"goblin_raiding_camp_1.boss", 
       	"goblin_raiding_camp_1.citizens"], 
-      "continue_always" : true
+      "continue_always" : true,
+      "script" : "file(goblin_camp_departs.lua)"
    }
 }

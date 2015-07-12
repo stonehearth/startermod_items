@@ -32,6 +32,14 @@ function DestroyEntityEncounter:start(ctx, info)
    self._sv.ctx = ctx
    self._sv.info = info
 
+   -- if there's a script associated with the mod,
+   -- give it a chance to do something before everyone goes away
+   if info.script then
+      local script = radiant.create_controller(info.script, ctx)
+      self._sv.script = script
+      script:start(ctx, info)
+   end
+
    self:_delete_everything(ctx, info)
 
 
