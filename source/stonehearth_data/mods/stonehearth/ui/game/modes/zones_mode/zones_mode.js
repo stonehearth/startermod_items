@@ -15,8 +15,12 @@ App.StonehearthZonesModeView = App.View.extend({
             if (self._propertyView) {
                self._propertyView.destroyWithoutDeselect();
             }
-         } 
+         }
       });
+
+      self._components = {
+         "stonehearth:storage" : {}
+      };
    },
    
    didInsertElement: function() {
@@ -46,7 +50,7 @@ App.StonehearthZonesModeView = App.View.extend({
       }
 
       // trace the properties so we can tell if we need to popup the properties window for the object
-      self.selectedEntityTrace = radiant.trace(entity)
+      self.selectedEntityTrace = new RadiantTrace(entity, self._components)
          .progress(function(result) {
             self._examineEntity(result);
          })
@@ -62,7 +66,7 @@ App.StonehearthZonesModeView = App.View.extend({
       }
 
       var viewType = null;
-      if (entity['stonehearth:storage'] && !entity['stonehearth:ai']) {
+      if (entity['stonehearth:storage'] && entity['stonehearth:storage'].is_public) {
          // TODO: sigh, the above is probably wrong, but highly convenient.
          viewType = App.StonehearthStockpileView;
       } else if (entity['stonehearth:farmer_field']) {
