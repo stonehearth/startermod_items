@@ -107,6 +107,22 @@ def write_log_results(data, result_file_path, file_name):
    f.write(d)
    f.close()
 
+def check_json(root_path):
+   passing = True
+
+   for root, dirs, files in os.walk(root_path):
+      for f in files:
+         if os.path.splitext(f)[1] == '.json':
+            # decoda wants \, but we get back / since we're in sh...
+            path = os.path.join(root, f)
+            with open(path) as data_file:
+               try:
+                  data = json.load(data_file)
+               except Exception, e:
+                  print 'Improper Format: ' + path
+                  passing = False
+
+   return passing
 
 def run_tests():
    sh_command = sh_exe_path + ' ' + sh_args
@@ -163,7 +179,7 @@ if args.debug:
   build_type = 'Debug'
 else:
   build_type = 'RelWithDebInfo'
-  
+
 sh_build_root = sh_root + 'build/' + os.environ['RADIANT_BUILD_PLATFORM'] + '/'
 sh_cwd = sh_root + 'source/stonehearth_data/'
 sh_exe_path = sh_build_root + 'source/stonehearth/' + build_type + '/Stonehearth.exe'
@@ -200,6 +216,12 @@ if not args.interactive:
 if len(args.settings) > 1:
    sh_args += ' ' + reduce(lambda x,y: x + ' ' + y, args.settings[1:])
 
+print 'Checking JSON files ...'
+if not check_json(sh_cwd):
+   print 'Check json failed'
+   sys.exit(1)
+
+print 'JSON files are good!'
 return_code = run_tests()
 
 if return_code != 0:

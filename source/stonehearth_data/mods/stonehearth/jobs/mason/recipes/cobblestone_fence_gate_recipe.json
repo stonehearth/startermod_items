@@ -14,9 +14,9 @@
          "count" : 1
       },
       {
-       "material" : "wood resource",
+         "material" : "wood resource",
          "count" : 1
-      },
+      }
   ],
   "produces": [
       {

@@ -2,7 +2,7 @@
    "grass" : {
       "num_rolls" : 0,
       "items" : [
-         { "uri" : "", "weight" : 100 },
+         { "uri" : "", "weight" : 100 }
       ]
    },
    "dirt" : {
