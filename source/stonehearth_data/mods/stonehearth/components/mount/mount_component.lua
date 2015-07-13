@@ -74,7 +74,12 @@ function MountComponent:mount(user, model_variant_delay)
    model_variant_delay = model_variant_delay or 0
 
    if user == self._sv.user then
-      return
+      return true
+   end
+
+   -- acquire a persistent lease or convert the existing lease into a persistent one
+   if not stonehearth.ai:acquire_ai_lease(self._mountable_object, user, { persistent = true }) then
+      return false
    end
 
    self:_save_state(user)
@@ -105,6 +110,8 @@ function MountComponent:mount(user, model_variant_delay)
             end)
       end
    end
+
+   return true
 end
 
 function MountComponent:dismount(set_egress_location)
@@ -112,9 +119,11 @@ function MountComponent:dismount(set_egress_location)
       set_egress_location = true
    end
 
+   local user = self._sv.user
+
    self:_destroy_model_variant_timer()
 
-   local user = self._sv.user
+   stonehearth.ai:release_ai_lease(self._mountable_object, user)
 
    if user and user:is_valid() then
       -- call before setting location

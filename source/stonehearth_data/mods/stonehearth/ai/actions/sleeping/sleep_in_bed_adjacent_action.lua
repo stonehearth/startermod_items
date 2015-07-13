@@ -41,7 +41,10 @@ function SleepInBedAdjacent:run(ai, entity, args)
    -- This is currently not exposed as the information is parsed deep in the C++ layer.
    local model_variant_delay = 160
    local mount_component = bed:add_component('stonehearth:mount')
-   mount_component:mount(entity, model_variant_delay)
+   local success = mount_component:mount(entity, model_variant_delay)
+   if not success then
+      ai:abort('%s could not not mount %s', entity, bed)
+   end
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
 

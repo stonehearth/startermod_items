@@ -13,7 +13,10 @@ SitOnChairAdjacent.priority = 1
 function SitOnChairAdjacent:run(ai, entity, args)
    local chair = args.chair
    local mount_component = chair:add_component('stonehearth:mount')
-   mount_component:mount(entity)
+   local success = mount_component:mount(entity)
+   if not success then
+      ai:abort('%s could not not mount %s', entity, chair)
+   end
 end
 
 function SitOnChairAdjacent:stop(ai, entity, args)

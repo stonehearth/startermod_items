@@ -114,12 +114,12 @@ function AiService:create_compound_action(action_ctor)
    return CompoundActionFactory(action_ctor)
 end
 
-function AiService:acquire_ai_lease(target, owner)
+function AiService:acquire_ai_lease(target, owner, options)
    if target and target:is_valid() and owner and owner:is_valid() then
-      local o = {
+      local options = options or {
          persistent = false,
       }
-      return target:add_component('stonehearth:lease'):acquire(self.RESERVATION_LEASE_NAME, owner, o)
+      return target:add_component('stonehearth:lease'):acquire(self.RESERVATION_LEASE_NAME, owner, options)
    end
    return false
 end
