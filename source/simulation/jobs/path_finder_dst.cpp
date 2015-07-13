@@ -145,6 +145,17 @@ float PathFinderDst::EstimateMovementCost(csg::Point3f const& start) const
    return sim.GetOctTree().GetSquaredDistanceCost(csg::ToClosestInt(start), csg::ToClosestInt(end));
 }
 
+float PathFinderDst::EstimateMovementHeightCost(csg::Point3f const& start) const
+{
+   Simulation& sim = Simulation::GetInstance();
+   if (world_space_adjacent_region_.IsEmpty()) {
+      // If we don't even have a world-space region, then just use A*.
+      return 0;
+   }
+   csg::Point3f end = world_space_adjacent_region_.GetClosestPoint(start);
+   return (float)std::abs(end.y - start.y);
+}
+
 bool PathFinderDst::GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const
 {
    return MovementHelper().GetPointOfInterest(GetEntity(), from, poi);
