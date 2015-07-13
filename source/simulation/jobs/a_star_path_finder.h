@@ -110,6 +110,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool                          enabled_;
       bool                          world_changed_;
       bool                          _rebuildOpenHeuristics;
+      bool                          _best_first_mode;
       int                           direct_path_search_cooldown_;
       mutable PathPtr               solution_;
       csg::Color4                   debug_color_;

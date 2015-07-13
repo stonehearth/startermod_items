@@ -20,7 +20,8 @@ function WorkAtWorkshop:run(town, args)
    self._order_changed_listener = radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 
-   --Listen on this to re-check mantain whenever an item is removed from the stockpile
+   --Listen on this to re-check a paused queue
+   self._item_added_listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:item_added', self, self._on_order_list_changed)
    self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:item_removed', self, self._on_order_list_changed)
 
    while true do
@@ -60,6 +61,10 @@ function WorkAtWorkshop:destroy()
    if self._item_removed_listener then
       self._item_removed_listener:destroy()
       self._item_removed_listener = nil
+   end
+   if self._item_added_listener then
+      self._item_added_listener:destroy()
+      self._item_added_listener = nil
    end
 end
 

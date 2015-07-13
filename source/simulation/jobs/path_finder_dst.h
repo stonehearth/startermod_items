@@ -28,6 +28,7 @@ public:
    dm::ObjectId GetEntityId() const;
    bool GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const;
    float EstimateMovementCost(const csg::Point3f& start) const;
+   float EstimateMovementHeightCost(csg::Point3f const& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    void Start();
    csg::Region3f const& GetWorldSpaceAdjacentRegion() const;

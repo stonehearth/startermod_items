@@ -117,7 +117,12 @@ function CraftOrder:_has_ingredients()
    for i, ingredient in ipairs(self._sv.recipe.ingredients) do 
       local lookup_key = ""
       if ingredient.uri then 
-         lookup_key = ingredient.uri
+         local data = radiant.entities.get_component_data(ingredient.uri , 'stonehearth:entity_forms')
+         if data and data.iconic_form then
+            lookup_key = data.iconic_form
+         else 
+            lookup_key = ingredient.uri
+         end
       elseif ingredient.material then
          --Alphabetize before lookup
          local tag_array = radiant.util.split_string(ingredient.material) 
