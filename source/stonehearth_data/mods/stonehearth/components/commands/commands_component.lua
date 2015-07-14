@@ -23,7 +23,7 @@ function CommandsComponent:add_command(uri)
    local command_name = t.name
    local command = self:_find_command_by_name(command_name)
    if command then
-      log:warn("Trying to add command %s when it already exists.", uri)
+      log:warning("Trying to add command %s when it already exists.", uri)
       return nil
    end
 
