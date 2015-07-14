@@ -81,7 +81,8 @@
             "stonehearth:ai_pack:death",
             "stonehearth:ai_pack:idle",
             "stonehearth:ai_pack:idle:bored:look_around",
-            "stonehearth:ai_pack:idle:bored:wander"
+            "stonehearth:ai_pack:idle:bored:wander",
+            "stonehearth:ai_pack:idle:bored:make_noise"
          ]
       }
    }

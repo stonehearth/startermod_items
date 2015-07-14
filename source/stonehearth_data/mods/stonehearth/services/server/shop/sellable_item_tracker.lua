@@ -61,7 +61,7 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
       local resale = math.ceil(cost * stonehearth.constants.shop.RESALE_CONSTANT)
 
       tracking_data = {
-         uri = entity:get_uri(),
+         uri = entity_uri,
          count = 0, 
          items = {},
          icon = unit_info:get_icon(),
@@ -98,7 +98,10 @@ function SellableItemTracker:remove_entity_from_tracking_data(entity_id, trackin
    if tracking_data.items[entity_id] then
       tracking_data.items[entity_id] = nil
       tracking_data.count = tracking_data.count - 1
-      assert(tracking_data.count >= 0)
+      
+      if tracking_data.count <= 0 then
+         return nil
+      end
    end
    return tracking_data
 end

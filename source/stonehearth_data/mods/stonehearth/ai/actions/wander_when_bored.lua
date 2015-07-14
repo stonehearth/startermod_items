@@ -11,7 +11,7 @@ WanderWhenBored.args = {
 WanderWhenBored.fixed_cost = 0 -- only for compound actions.  ignore the cost of actually wandering!
 WanderWhenBored.version = 2
 WanderWhenBored.priority = 1
-WanderWhenBored.weight = 2
+WanderWhenBored.weight = 4
 
 function WanderWhenBored:start_thinking(ai, entity, args)
    if not args.hold_position then

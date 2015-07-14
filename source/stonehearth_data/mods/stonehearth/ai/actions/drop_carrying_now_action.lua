@@ -59,12 +59,6 @@ function DropCarryingNow:run(ai, entity, args)
    ai:execute('stonehearth:run_putdown_effect', { location = self._drop_location })
 
    -- place the item now, don't wait for the compound action (if it exists) to terminate
-   self:stop(ai, entity, args)
-end
-
-
--- On stop, if the animation is interrupted, complete the drop anyway since we've already let go of the item!
-function DropCarryingNow:stop(ai, entity, args)
    if self._drop_location then
       radiant.entities.drop_carrying_on_ground(entity, self._drop_location)
       self._drop_location = nil
