@@ -282,6 +282,7 @@ check-campaigns:
 # 4) put them back to gareth's account via: make radent-to-gareth (this will take a lot of time!)
 #
 .PHONY: add-gareth-remotes
+add-gareth-remotes:
 	git remote add debugtools 			https://github.com/stonehearth/debugtools
 	git remote add startermod_basic 	https://github.com/stonehearth/startermod_basic
 
