@@ -155,6 +155,7 @@
 
       "cook:workbench" : "file(jobs/cook/cook_workbench)",
       "cook:outfit" : "file(jobs/cook/cook_outfit)",
+      "cook:spoon" : "file(jobs/cook/cook_spoon/cook_spoon.json)",
       "cook:talisman" : "file(jobs/cook/cook_spoon/cook_spoon_talisman.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone/mining_zone.json)",

@@ -13,7 +13,8 @@
    "abilities" : "file(cook_abilities)",
 
    "equipment" : {
-      "torso" : "file(cook_outfit)"
+      "torso" : "file(cook_outfit)",
+      "mainhand" : "stonehearth:cook:spoon"
    },
 
    "roles" : "cook_job crafter", 
