@@ -946,7 +946,12 @@
       "sounds:blacksmith_hammer_02" : "file(data/sounds/effects/sh_blacksmith_hammer_02.wav)",
       "sounds:blacksmith_hammer_03" : "file(data/sounds/effects/sh_blacksmith_hammer_03.wav)",
       "sounds:combat_finished"     : "file(data/sounds/effects/sh_combat_finished.wav)",
-               
+
+      "sounds:sheep:baa_01"     : "file(data/sounds/effects/sh_sheep_baa_01.wav)",
+      "sounds:sheep:baa_02"     : "file(data/sounds/effects/sh_sheep_baa_02.wav)",
+      "sounds:sheep:baa_03"     : "file(data/sounds/effects/sh_sheep_baa_03.wav)",
+      "sounds:sheep:baa_04"     : "file(data/sounds/effects/sh_sheep_baa_04.wav)",
+
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
       "music:levelmusic_spring_day_02"     : "file(data/music/levelmusic_spring_day_02.ogg)",
