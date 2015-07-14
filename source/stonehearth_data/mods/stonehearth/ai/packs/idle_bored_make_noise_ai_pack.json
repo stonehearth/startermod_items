@@ -1,8 +1,0 @@
-{
-   "actions" : [
-      "stonehearth:actions:idle:make_noise"
-   ],
-   "ai_packs" : [
-      "stonehearth:ai_pack:core"
-   ]
-}
