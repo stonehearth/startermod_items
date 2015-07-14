@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 local Patrol = class()
 
 Patrol.name = 'patrol'
-Patrol.status_text = 'patrolling'
+Patrol.status_text_key = 'ai_status_text_patrol'
 Patrol.does = 'stonehearth:patrol'
 Patrol.args = {}
 Patrol.version = 2

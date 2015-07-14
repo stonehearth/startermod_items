@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 local Mine = class()
 
 Mine.name = 'mine'
-Mine.status_text = 'mining'
+Mine.status_text_key = 'ai_status_text_mine'
 Mine.does = 'stonehearth:mining:mine'
 Mine.args = {
    mining_zone = Entity

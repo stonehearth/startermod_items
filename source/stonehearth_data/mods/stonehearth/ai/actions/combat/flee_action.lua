@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 
 local Flee = class()
 Flee.name = 'combat flee'
-Flee.status_text = 'Fleeing!'
+Flee.status_text_key = 'ai_status_text_flee'
 Flee.does = 'stonehearth:combat:panic'
 Flee.args = {
    threat = Entity,

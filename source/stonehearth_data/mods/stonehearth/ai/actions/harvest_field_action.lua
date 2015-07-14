@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 
 local HarvestField = class()
 HarvestField.name = 'harvest field'
-HarvestField.status_text = 'harvesting field'
+HarvestField.status_text_key = 'ai_status_text_harvest_field'
 HarvestField.does = 'stonehearth:simple_labor'
 HarvestField.args = {}
 HarvestField.version = 2

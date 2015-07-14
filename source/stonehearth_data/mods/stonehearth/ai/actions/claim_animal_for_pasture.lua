@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 
 local ClaimAnimalForPasture = class()
 ClaimAnimalForPasture.name = 'claim animal for pasture'
-ClaimAnimalForPasture.status_text = 'claiming animal'
+ClaimAnimalForPasture.status_text_key = 'ai_status_text_claiming_animal'
 ClaimAnimalForPasture.does = 'stonehearth:claim_animal_for_pasture'
 ClaimAnimalForPasture.args = {
    pasture = Entity, 

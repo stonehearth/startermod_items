@@ -4,7 +4,7 @@ local constants = require 'constants'
 AdmireFire.name = 'admire fire'
 AdmireFire.args = {}
 AdmireFire.does = 'stonehearth:admire_fire'
-AdmireFire.status_text = 'resting by the fire'
+AdmireFire.status_text_key = 'ai_status_text_resting_by_fire'
 AdmireFire.version = 2
 AdmireFire.priority = 1
 

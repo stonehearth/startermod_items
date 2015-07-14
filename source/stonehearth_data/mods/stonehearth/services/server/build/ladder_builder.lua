@@ -12,11 +12,6 @@ function LadderBuilder:initialize(manager, id, owner, base, normal, options)
    local ladder = radiant.entities.create_entity('stonehearth:build:prototypes:ladder', { owner = owner })
    ladder:set_debug_text('builder id:' .. tostring(id))
    
-   self._ladder_dtor_trace = ladder:trace('ladder dtor')
-                                       :on_destroyed(function()
-                                             self._sv.manager:_destroy_builder(self._sv.base, self)
-                                          end)
-
    self._sv.manager = manager
    self._sv.ladder = ladder
    self._sv.base = base
@@ -47,6 +42,11 @@ end
 function LadderBuilder:activate()
    self._log = radiant.log.create_logger('build.ladder')
                               :set_prefix('lbid:' .. tostring(self._sv.id))
+
+   self._ladder_dtor_trace = self._sv.ladder:trace('ladder dtor')
+                                       :on_destroyed(function()
+                                             self._sv.manager:_destroy_builder(self._sv.base, self)
+                                          end)
 end
 
 function LadderBuilder:get_id()
@@ -83,14 +83,19 @@ end
 function LadderBuilder:add_point(to, options)
    assert(self._sv.ladder:is_valid())
 
+   self._log:debug('adding point %s to ladder', to)
+   table.insert(self._sv.climb_to, to)
+
    if options.removable then
-      self._sv.ladder:add_component('stonehearth:commands')
+      if not self._sv.user_removable_to then
+         self._sv.ladder:add_component('stonehearth:commands')
                   :add_command('/stonehearth/data/commands/remove_ladder')
+      else
+         self:remove_point(self._sv.user_removable_to)
+      end
       self._sv.user_removable_to = to
    end
    
-   self._log:debug('adding point %s to ladder', to)
-   table.insert(self._sv.climb_to, to)
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
@@ -118,11 +123,12 @@ function LadderBuilder:remove_user_removable_point()
    if not self._sv.user_removable_to then
       return
    end
-
    self:remove_point(self._sv.user_removable_to)
-   local commands_component = self._sv.ladder:get_component('stonehearth:commands')
-   if commands_component then
-      commands_component:remove_command('/stonehearth/data/commands/remove_ladder')
+   if self._sv.ladder then
+      local commands_component = self._sv.ladder:get_component('stonehearth:commands')
+      if commands_component then
+         commands_component:remove_command('remove_ladder')
+      end
    end
    self:_update_ladder_tasks()
    self._sv.user_removable_to = nil

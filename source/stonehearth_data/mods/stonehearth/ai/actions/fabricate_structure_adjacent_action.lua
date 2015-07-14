@@ -4,6 +4,7 @@ local Fabricator = require 'components.fabricator.fabricator_component'
 local FabricateStructureAdjacent = class()
 FabricateStructureAdjacent.name = 'fabricate structure adjacent'
 FabricateStructureAdjacent.does = 'stonehearth:fabricate_structure_adjacent'
+FabricateStructureAdjacent.status_text_key = 'ai_status_text_fabricate_structure'
 FabricateStructureAdjacent.args = {
    fabricator = Fabricator,
    block = Point3,
@@ -35,10 +36,6 @@ function FabricateStructureAdjacent:run(ai, entity, args)
       carrying = radiant.entities.consume_carrying(entity)
       self._current_block = self._fabricator:find_another_block(carrying, standing)
    until not self._current_block
-end
-
-function FabricateStructureAdjacent:start(ai, entity)
-   ai:set_status_text('building...')
 end
 
 function FabricateStructureAdjacent:stop(ai, entity)

@@ -5,7 +5,7 @@ local FarmerCrop =  require 'components.farmer_field.farmer_crop'
 local PlantCrop = class()
 PlantCrop.name = 'plant crop'
 PlantCrop.does = 'stonehearth:plant_crop'
-PlantCrop.status_text = 'planting crop'
+PlantCrop.status_text_key = 'ai_status_text_plant_crop'
 PlantCrop.args = {
    target_crop = FarmerCrop,
 }

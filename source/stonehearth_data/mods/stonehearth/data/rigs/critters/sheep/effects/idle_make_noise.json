@@ -17,7 +17,10 @@
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:owl_call"
+               "stonehearth:sounds:sheep:baa_01",
+               "stonehearth:sounds:sheep:baa_02",
+               "stonehearth:sounds:sheep:baa_03",
+               "stonehearth:sounds:sheep:baa_04"
             ]    
          }
       }

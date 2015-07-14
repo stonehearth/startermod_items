@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 
 local TillEntireField = class()
 TillEntireField.name = 'till entire field'
-TillEntireField.status_text = 'tilling field'
+TillEntireField.status_text_key = 'ai_status_text_till_field'
 TillEntireField.does = 'stonehearth:simple_labor'
 TillEntireField.args = {}
 TillEntireField.version = 2

@@ -4,7 +4,7 @@ local Entity = _radiant.om.Entity
 local SetBaitTrap = class()
 
 SetBaitTrap.name = 'set bait trap'
-SetBaitTrap.status_text = 'setting traps'
+SetBaitTrap.status_text_key = 'ai_status_text_set_bait_trap'
 SetBaitTrap.does = 'stonehearth:trapping:set_bait_trap'
 SetBaitTrap.args = {
    location = Point3,

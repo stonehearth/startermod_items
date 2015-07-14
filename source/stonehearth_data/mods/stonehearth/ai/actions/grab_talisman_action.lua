@@ -3,16 +3,13 @@ local Entity = _radiant.om.Entity
 local GrabTalismanAction = class()
 GrabTalismanAction.name = 'grab talisman'
 GrabTalismanAction.does = 'stonehearth:grab_promotion_talisman'
+GrabTalismanAction.status_text_key = 'ai_status_text_promote'
 GrabTalismanAction.args = {
    talisman = Entity,
    trigger_fn = 'function'
 }
 GrabTalismanAction.version = 2
 GrabTalismanAction.priority = 1
-
-function GrabTalismanAction:start(ai, entity, args)
-   ai:set_status_text('promoting...')
-end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanAction)

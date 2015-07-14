@@ -20,6 +20,13 @@ function CommandsComponent:add_command(uri)
    local t = self:_replace_variables(json)
    self:_set_defaults(t)
 
+   local command_name = t.name
+   local command = self:_find_command_by_name(command_name)
+   if command then
+      log:warning("Trying to add command %s when it already exists.", uri)
+      return nil
+   end
+
    table.insert(self._sv.commands, t)
    self.__saved_variables:mark_changed()
    return t

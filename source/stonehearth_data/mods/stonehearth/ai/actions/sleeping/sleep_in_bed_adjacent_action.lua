@@ -4,7 +4,7 @@ local Entity = _radiant.om.Entity
 local SleepInBedAdjacent = class()
 
 SleepInBedAdjacent.name = 'sleep in bed adjacent'
-SleepInBedAdjacent.status_text = 'sleeping...'
+SleepInBedAdjacent.status_text_key = 'ai_status_text_sleep_in_bed'
 SleepInBedAdjacent.does = 'stonehearth:sleep_in_bed_adjacent'
 SleepInBedAdjacent.args = {
    bed = Entity,     -- the bed to sleep in
