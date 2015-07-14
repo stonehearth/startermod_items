@@ -641,6 +641,7 @@
 
       "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
       "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
+      "actions:idle:make_noise" : "file(ai/actions/idle_make_noise_action.lua)",
       "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
       "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
 
@@ -778,6 +779,7 @@
       "ai_pack:idle" : "file(ai/packs/idle_ai_pack.json)",
       "ai_pack:idle:bored:wander" : "file(ai/packs/idle_bored_wander_ai_pack.json)",
       "ai_pack:idle:bored:look_around" : "file(ai/packs/idle_bored_look_around_ai_pack.json)",
+      "ai_pack:idle:bored:make_noise" : "file(ai/packs/idle_bored_make_noise_ai_pack.json)",
       "ai_pack:idle:bored:sway" : "file(ai/packs/idle_bored_sway_ai_pack.json)",
       "ai_pack:party" : "file(ai/packs/party_ai_pack.json)",
       "ai_pack:destructable_object" : "file(ai/packs/destructable_object_ai_pack.json)",
