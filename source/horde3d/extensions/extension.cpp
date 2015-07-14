@@ -219,6 +219,7 @@ DLL H3DNode h3dRadiantAddDebugShapes(H3DNode parent, const char* nam)
 	DebugShapesTpl tpl(name);
 
    SceneNode *sn = Modules::sceneMan().sceneForNode(parent).findType(SNT_DebugShapesNode)->factoryFunc(tpl);
+   sn->setFlags((int)H3DNodeFlags::List::NoCull, true);
 	return Modules::sceneMan().addNode(sn, *parentNode);
 }
 
