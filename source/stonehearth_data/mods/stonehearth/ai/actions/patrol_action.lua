@@ -11,6 +11,7 @@ Patrol.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Patrol)
+         :execute('stonehearth:clear_carrying_now')
          :execute('stonehearth:set_posture', { posture = 'stonehearth:patrol' })
          :execute('stonehearth:add_buff', { buff = 'stonehearth:buffs:patrolling', target = ai.ENTITY})
          :execute('stonehearth:get_patrol_route')

@@ -17,7 +17,11 @@
 
    "roles" : "footman_job combat",
    "promotion_activity_name" : "promote_footman",
-   
+
+   "task_groups" : [
+      "stonehearth:task_group:restock"
+   ],
+
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)", 
    "parent_job" : "stonehearth:jobs:worker", 

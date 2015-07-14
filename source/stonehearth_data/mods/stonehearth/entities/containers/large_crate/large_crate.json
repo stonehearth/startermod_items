@@ -38,6 +38,10 @@
          "packs" : [
             "stonehearth:ai_pack:fill_storage"
          ]
+      },
+      "stonehearth:town_patrol" : {
+         "auto_patrol" : true,
+         "patrol_pattern" : "perimeter"
       }
    }
 }
