@@ -63,7 +63,7 @@ function HarvestCropAdjacent:run(ai, entity, args)
          end
          local item_component = product:add_component('item')
          item_component:set_stacks(1)
-         stonehearth.ai:pickup_item(ai, entity, product)
+         radiant.entities.pickup_item(entity, product)
 
          -- newly harvested drops go into your inventory immediately
          stonehearth.inventory:get_inventory(entity)

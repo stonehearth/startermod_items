@@ -14,6 +14,7 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(TillEntireField)
+         :execute('stonehearth:clear_carrying_now')
          :execute('stonehearth:find_path_to_entity_type', {
                   filter_fn = till_layer_filter,
                   description = 'find till layer',
