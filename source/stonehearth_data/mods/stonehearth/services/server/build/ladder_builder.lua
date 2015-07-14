@@ -122,7 +122,7 @@ function LadderBuilder:remove_user_removable_point()
    self:remove_point(self._sv.user_removable_to)
    local commands_component = self._sv.ladder:get_component('stonehearth:commands')
    if commands_component then
-      commands_component:remove_command('/stonehearth/data/commands/remove_ladder')
+      commands_component:remove_command('remove_ladder')
    end
    self:_update_ladder_tasks()
    self._sv.user_removable_to = nil
