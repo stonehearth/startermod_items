@@ -12,11 +12,6 @@ function LadderBuilder:initialize(manager, id, owner, base, normal, options)
    local ladder = radiant.entities.create_entity('stonehearth:build:prototypes:ladder', { owner = owner })
    ladder:set_debug_text('builder id:' .. tostring(id))
    
-   self._ladder_dtor_trace = ladder:trace('ladder dtor')
-                                       :on_destroyed(function()
-                                             self._sv.manager:_destroy_builder(self._sv.base, self)
-                                          end)
-
    self._sv.manager = manager
    self._sv.ladder = ladder
    self._sv.base = base
