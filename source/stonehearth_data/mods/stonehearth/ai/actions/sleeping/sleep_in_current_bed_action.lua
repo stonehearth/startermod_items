@@ -5,7 +5,7 @@ local SleepInCurrentBed = class()
 
 SleepInCurrentBed.name = 'sleep in current bed'
 SleepInCurrentBed.does = 'stonehearth:sleep_in_current_bed'
-SleepInCurrentBed.status_text = 'sleeping...'
+SleepInCurrentBed.status_text_key = 'ai_status_text_sleep_in_bed'
 SleepInCurrentBed.args = {
    bed = Entity,
 }

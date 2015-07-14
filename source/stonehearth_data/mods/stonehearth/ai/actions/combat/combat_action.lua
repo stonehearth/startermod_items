@@ -3,7 +3,7 @@ local log = radiant.log.create_logger('combat')
 
 local Combat = class()
 Combat.name = 'combat'
-Combat.status_text = 'engaged in combat'
+Combat.status_text_key = 'ai_status_text_combat'
 Combat.does = 'stonehearth:top'
 Combat.args = {}
 Combat.version = 2

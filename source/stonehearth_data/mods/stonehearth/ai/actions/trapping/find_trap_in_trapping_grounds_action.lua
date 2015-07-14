@@ -4,7 +4,7 @@ local Path = _radiant.sim.Path
 local FindTrapInTrappingGrounds = class()
 
 FindTrapInTrappingGrounds.name = 'find trap in trapping_grounds'
-FindTrapInTrappingGrounds.status_text = 'checking traps'
+FindTrapInTrappingGrounds.status_text_key = 'ai_status_text_check_bait_trap'
 FindTrapInTrappingGrounds.does = 'stonehearth:trapping:find_trap_in_trapping_grounds'
 FindTrapInTrappingGrounds.args = {
    trapping_grounds = Entity

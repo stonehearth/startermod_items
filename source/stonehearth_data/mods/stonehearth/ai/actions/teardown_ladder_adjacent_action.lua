@@ -4,6 +4,7 @@ local LadderBuilder = require 'services.server.build.ladder_builder'
 local TeardownLadderAdjacent = class()
 TeardownLadderAdjacent.name = 'teardown ladder adjacent'
 TeardownLadderAdjacent.does = 'stonehearth:teardown_ladder_adjacent'
+TeardownLadderAdjacent.status_text_key = 'ai_status_text_teardown_ladder'
 TeardownLadderAdjacent.args = {
    ladder = Entity,           -- the ladder to build
    builder = LadderBuilder,   -- the ladder builder class
@@ -54,10 +55,6 @@ function TeardownLadderAdjacent:run(ai, entity, args)
                      :set_stacks(1)
       end
    end
-end
-
-function TeardownLadderAdjacent:start(ai, entity)
-   ai:set_status_text('removing ladder...')
 end
 
 return TeardownLadderAdjacent

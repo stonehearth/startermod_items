@@ -61,6 +61,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
    chain_function('abort')
    chain_function('halt')
    chain_function('get_log')
+   chain_function('set_status_text_key')
    chain_function('set_status_text')
    chain_function('set_cost')
    chain_function('monitor_carrying')
@@ -634,8 +635,8 @@ function ExecutionUnitV2:_do_start()
    assert(self._object_monitor)
    assert(not self._object_monitor:is_running())
 
-   if self._action.status_text then
-      self._ai_component:set_status_text(self._action.status_text)
+   if self._action.status_text_key then
+      self._ai_component:set_status_text_key(self._action.status_text_key)
    end
 
    -- switch to the abort version
@@ -831,8 +832,13 @@ function ExecutionUnitV2:__unprotect_argument(obj)
    self:_enable_argument_protection(self._object_monitor, obj, false)
 end
 
+function ExecutionUnitV2:__set_status_text_key(format, ...)
+   self._ai_component:set_status_text_key(string.format(format, ...))
+end
+
 function ExecutionUnitV2:__set_status_text(format, ...)
-   self._ai_component:set_status_text(string.format(format, ...))
+   self._log:warning('Calling unsupported set_status_text with value %s', string.format(format, ...))
+   self._ai_component:set_status_text_key(string.format(format, ...))
 end
 
 function ExecutionUnitV2:__set_debug_progress(format, ...)

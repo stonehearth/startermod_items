@@ -35,8 +35,12 @@ function CompoundAction:__init(entity, action_ctor, activities, think_output_pla
       self.unprotected_args = false
       self._action_ai = {
          get_log = function() return self._ai:get_log() end,
+         set_status_text_key = function(_, ...)
+            self._ai:set_status_text_key(...)
+         end,
          set_status_text = function(_, ...)
-            self._ai:set_status_text(...)
+            self._log:warning('Calling unsupported set_status_text with value %s', ...)
+            self._ai:set_status_text_key(...)
          end,
          set_cost = function(_, cost)
             self._action_cost = cost
@@ -341,8 +345,8 @@ function CompoundAction:start(ai, entity, args)
 end
 
 function CompoundAction:run(ai, entity, ...)
-   if self._action.status_text then
-      self._ai:set_status_text(self._action.status_text)
+   if self._action.status_text_key then
+      self._ai:set_status_text_key(self._action.status_text_key)
    end   
    for _, frame in ipairs(self._execution_frames) do
       self._running_execution_frame = frame

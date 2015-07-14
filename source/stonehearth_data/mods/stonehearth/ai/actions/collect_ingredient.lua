@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 
 local CollectIngredient = class()
 CollectIngredient.name = 'collect ingredient'
-CollectIngredient.status_text = 'collecting ingredients'
+CollectIngredient.status_text_key = 'ai_status_text_collect_ingredient'
 CollectIngredient.does = 'stonehearth:collect_ingredient'
 CollectIngredient.args = {
    ingredient = 'table',                  -- what to get

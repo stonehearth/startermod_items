@@ -1,7 +1,7 @@
 local ReturnTrailingAnimalToPasture = class()
 
 ReturnTrailingAnimalToPasture.name = 'return trailing animal to pasture'
-ReturnTrailingAnimalToPasture.status_text = 'returning to pasture'
+ReturnTrailingAnimalToPasture.status_text_key = 'ai_status_text_return_animals'
 ReturnTrailingAnimalToPasture.does = 'stonehearth:herding'
 ReturnTrailingAnimalToPasture.args = {}
 ReturnTrailingAnimalToPasture.version = 2

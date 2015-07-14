@@ -28,6 +28,7 @@ function AIComponent:initialize(entity, json)
       self.__saved_variables:mark_changed()
    else
    end
+   self._sv.status_text_key = ''
 
    -- wait until the entity is completely initialized before piling all our actions
    radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
@@ -95,8 +96,14 @@ function AIComponent:destroy()
    self:_terminate_thread()
 end
 
-function AIComponent:set_status_text(text)
-   self._status_text = text
+function AIComponent:set_status_text_key(key)
+   self._sv.status_text_key = key
+   self.__saved_variables:mark_changed()
+end
+
+function AIComponent:set_status_text(value)
+   self._log:warning('Calling unsupported set_status_text with value %s', value)
+   self:set_status_text_key(value)
 end
 
 function AIComponent:add_action(uri)

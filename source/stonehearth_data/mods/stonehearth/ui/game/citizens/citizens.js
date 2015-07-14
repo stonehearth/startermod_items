@@ -130,6 +130,10 @@ App.StonehearthCitizensView = App.View.extend({
             return false;
          }
          v.set('__id', k);
+         var status_key = v['stonehearth:ai'].status_text_key;
+         if (status_key) {
+            v.set('status_text', i18n.t(status_key));
+         }
       });
       this.set('model.citizensArray', vals);
     },

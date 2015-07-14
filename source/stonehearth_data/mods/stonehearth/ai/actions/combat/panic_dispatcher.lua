@@ -2,7 +2,7 @@ local constants = require 'constants'
 
 local PanicDispatcher = class()
 PanicDispatcher.name = 'panic dispatcher'
-PanicDispatcher.status_text = 'panicking!'
+PanicDispatcher.status_text_key = 'ai_status_text_panick'
 PanicDispatcher.does = 'stonehearth:combat'
 PanicDispatcher.args = {}
 PanicDispatcher.version = 2

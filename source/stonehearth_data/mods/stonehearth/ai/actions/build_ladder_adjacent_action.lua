@@ -4,6 +4,7 @@ local LadderBuilder = require 'services.server.build.ladder_builder'
 local BuildLadderAdjacent = class()
 BuildLadderAdjacent.name = 'build ladder adjacent'
 BuildLadderAdjacent.does = 'stonehearth:build_ladder_adjacent'
+BuildLadderAdjacent.status_text_key = 'ai_status_text_build_ladder'
 BuildLadderAdjacent.args = {
    ladder = Entity,           -- the ladder to build
    builder = LadderBuilder,   -- the ladder builder class
@@ -41,10 +42,6 @@ function BuildLadderAdjacent:run(ai, entity, args)
       builder:grow_ladder(args.direction)
       carrying = radiant.entities.consume_carrying(entity)
    end
-end
-
-function BuildLadderAdjacent:start(ai, entity)
-   ai:set_status_text('building ladder...')
 end
 
 return BuildLadderAdjacent
