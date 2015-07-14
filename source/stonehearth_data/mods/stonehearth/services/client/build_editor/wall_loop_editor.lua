@@ -144,7 +144,7 @@ end
 function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)  
    p0, p1 = Point3(p0.x, p0.y, p0.z), Point3(p1.x, p1.y, p1.z)
    
-   local t, n, dt, d
+   local t, n
    if math.abs(p0.x - p1.x) >  math.abs(p0.z - p1.z) then
       t = 'x'
       n = 'z'
@@ -152,18 +152,15 @@ function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)
       t = 'z'
       n = 'x'
    end
-   if p0[t] > p1[t] then
-      dt = 1
-      d  = math.max(p1[t] - p0[t], -constants.MAX_WALL_SPAN)
-   else
-      dt = -1
-      d  = math.min(p1[t] - p0[t], constants.MAX_WALL_SPAN)
-   end
-   p1[t] = p0[t] + d
-   p1[n] = p0[n]
+
+   local d = math.min(math.abs(p1[t] - p0[t]), constants.MAX_WALL_SPAN)
+   local dt = p1[t] > p0[t] and 1 or -1
+
    p1.y = p0.y
+   p1[n] = p0[n]
+   p1[t] = p0[t] + d*dt
    
-   local region = column1:get_component('destination'):get_region():get()
+   local region = column1:add_component('destination'):get_region():get()
    while not _radiant.client.is_valid_standing_region(region:translated(p1)) and p1[t] ~= p0[t] do
       p1[t] = p1[t] - dt
    end
