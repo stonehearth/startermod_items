@@ -22,6 +22,7 @@ function SellableItemTracker:create_keys_for_entity(entity, storage)
    assert(entity:is_valid(), 'entity is not valid.')
 
    local entity_uri, _, _ = entity_forms.get_uris(entity)
+
    local sellable 
 
    -- is it sellable?
@@ -34,7 +35,7 @@ function SellableItemTracker:create_keys_for_entity(entity, storage)
    if sellable and storage then
       local storage_component = storage:get_component('stonehearth:storage') 
       if storage_component and (storage_component:is_public() or storage_component:get_name() == 'escrow') then
-         return {entity:get_uri()}
+         return {entity_uri}
       end
    end
 
@@ -53,19 +54,20 @@ end
 --1
 function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
    if not tracking_data then
-      -- We're the first object of this type.  Create a new tracking data structure.
-
-      local unit_info = entity:add_component('unit_info')      
-      local entity_uri, _, _ = entity_forms.get_uris(entity)
+      -- We're the first object of this type.  Create a new tracking data structure.      
+      local root_entity, _, _ = entity_forms.get_forms(entity)
+      local entity_uri = root_entity:get_uri()
+      local unit_info = root_entity:add_component('unit_info')
       local cost = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth').value_in_gold
       local resale = math.ceil(cost * stonehearth.constants.shop.RESALE_CONSTANT)
 
       tracking_data = {
-         uri = entity:get_uri(),
+         uri = entity_uri,
          count = 0, 
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
+         description = unit_info:get_description(),
          category = radiant.entities.get_category(entity),
          cost = cost,
          resale = resale
