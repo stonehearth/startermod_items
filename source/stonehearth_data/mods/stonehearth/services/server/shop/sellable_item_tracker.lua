@@ -54,9 +54,12 @@ end
 --1
 function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
    if not tracking_data then
-      -- We're the first object of this type.  Create a new tracking data structure.      
+      -- We're the first object of this type.  Create a new tracking data structure.
+      local entity_uri, _, _ = entity_forms.get_uris(entity)  
       local root_entity, _, _ = entity_forms.get_forms(entity)
-      local entity_uri = root_entity:get_uri()
+      if not root_entity then
+         root_entity = entity
+      end
       local unit_info = root_entity:add_component('unit_info')
       local cost = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth').value_in_gold
       local resale = math.ceil(cost * stonehearth.constants.shop.RESALE_CONSTANT)

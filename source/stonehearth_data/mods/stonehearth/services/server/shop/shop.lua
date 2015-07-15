@@ -355,23 +355,4 @@ function Shop:_add_entity_to_sellable_items(uri, entity)
    self.sellable_items[rarity][uri] = entity
 end
 
-function Shop:_get_item_cost(entity)
-   assert(radiant.util.is_a(entity, Entity))
-   local entity_uri, _, _ = entity_forms.get_uris(entity)
-   local net_worth = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth')
-   if not net_worth then
-      return 0
-   end
-   return net_worth.value_in_gold
-end
-
-function Shop:_get_category(entity)
-   local item = entity:get_component('item')
-   local category = 'nil'
-
-   if item then
-      category = item:get_category()
-   end
-
-end
 return Shop
