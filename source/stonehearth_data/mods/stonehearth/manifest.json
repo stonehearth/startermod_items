@@ -1457,6 +1457,7 @@
       "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
       "game_master:encounters:destroy_entity" : "file(services/server/game_master/controllers/encounters/destroy_entity_encounter.lua)", 
       "game_master:encounters:donation" : "file(services/server/game_master/controllers/encounters/donation_encounter.lua)", 
+      "game_master:encounters:donation_dialog" : "file(services/server/game_master/controllers/encounters/donation_dialog_encounter.lua)", 
       "game_master:encounters:script" : "file(services/server/game_master/controllers/encounters/script_encounter.lua)", 
       "game_master:encounters:counter" : "file(services/server/game_master/controllers/encounters/counter_encounter.lua)", 
 

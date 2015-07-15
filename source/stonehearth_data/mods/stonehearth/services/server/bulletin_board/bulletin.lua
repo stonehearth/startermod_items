@@ -104,6 +104,7 @@ end
 function Bulletin:set_active_duration(duration)
    self._sv.active_duration_timer = stonehearth.calendar:set_timer("Bulletin remove bulletin", duration, radiant.bind(self, '_on_remove_bulletin_timer'))
    self.__saved_variables:mark_changed()
+   return self
 end
 
 function Bulletin:_stop_duration_timer()

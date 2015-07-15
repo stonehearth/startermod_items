@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_time_of_day",
+
+   "in_edge"  : "start",
+   "out_edge" : ["starting_food_donation", "wait_for_minimum_net_worth"],
+
+   "wait_for_time_of_day_info" :  {
+      "time" : "12:00+1h30m"
+   }
+}

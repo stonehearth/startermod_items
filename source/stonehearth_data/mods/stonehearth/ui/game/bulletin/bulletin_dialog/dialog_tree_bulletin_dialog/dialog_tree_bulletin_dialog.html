@@ -9,7 +9,7 @@
          <div class="message">{{{ view.model.data.message }}}</div>
          
          <ul class="demandList">
-            {{#each view.demands}}
+            {{#each view.model.data.demands}}
                {{#if this.progress}}
                   <li>{{ this.display_name }} ({{ this.progress }} of {{ this.count }})</li>
                {{else}}
