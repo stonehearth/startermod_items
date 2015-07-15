@@ -50,13 +50,13 @@ function goblin_campaign_autotests.wolf_escape_test(autotest)
 
                radiant.events.listen('create_scout_camp', 'stonehearth:create_camp_complete', function(e)
                   --When the encounter is finished initializing, tell party to go to cage
-                  local wolf_cage = scout_camp_encounter._sv.ctx:get('create_scout_camp.entities.wolf_cage')
+                  local wolf_cage = scout_camp_encounter._sv.ctx:get('create_scout_camp.entities.wolf_cage.wolf_cage')
                   local location = radiant.entities.get_world_grid_location(wolf_cage)
                   location = _physics:get_standable_point(location)
                   party:attack_move_to(location)
 
                   --grab ptr to wolf, verify that he escapes the world
-                  local wolf_entity = scout_camp_encounter._sv.ctx:get('create_scout_camp.citizens.tame_wolf[1]')
+                  local wolf_entity = scout_camp_encounter._sv.ctx:get('create_scout_camp.citizens.wolf_cage.tame_wolf[1]')
                   autotest.util:succeed_when_destroyed(wolf_entity, function()
                      player_controller:disband_party(party:get_id())
                   end)

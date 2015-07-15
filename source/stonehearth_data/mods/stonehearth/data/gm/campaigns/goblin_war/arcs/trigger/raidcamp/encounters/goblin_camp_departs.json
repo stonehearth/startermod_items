@@ -1,0 +1,16 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "destroy_entity",
+
+   "in_edge"  : "destroy_goblin_raiding_camp_1",
+   "out_edge" : "wait_for_next_camp",
+
+   "destroy_entity_info" :  {
+      "target_entities" : [
+      	"goblin_raiding_camp_1.entities",
+      	"goblin_raiding_camp_1.boss", 
+      	"goblin_raiding_camp_1.citizens"], 
+      "continue_always" : true,
+      "script" : "file(goblin_camp_departs.lua)"
+   }
+}

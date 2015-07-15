@@ -85,11 +85,19 @@ end
 --loot_drops_component is about generating loot from a table added at runtime, but maybe it
 --would make sense to consolidate the loot generation somewhere, maybe in entities.lua? 
 --I could add a drop_loot function. (--sdee)
+--TODO: spawn loot only should happen on kill, not just on destroy. For now, only spawn
+--when health is zero. (this means that from console, to test, set health attr to 0 and then kill)
 local function spawn_loot(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    if location then
       local loot_table = radiant.entities.get_entity_data(entity, 'stonehearth:destroyed_loot_table')
-      if loot_table then
+      --Only drop loot when the health is zero; ie, entity was killed
+      local attributes_component = entity:get_component('stonehearth:attributes')
+      local attribute_condition = true
+      if attributes_component and attributes_component:get_attribute('health') > 0 then
+         attribute_condition = false
+      end
+      if loot_table and attribute_condition then
          local items = LootTable(loot_table)
                            :roll_loot()
                            

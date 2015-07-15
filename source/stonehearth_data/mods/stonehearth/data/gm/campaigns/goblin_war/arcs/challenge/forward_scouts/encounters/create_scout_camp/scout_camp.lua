@@ -19,11 +19,11 @@ function GoblinScoutCamp:start(ctx)
 
    --These wolves sleep as long as their cage exists. If its destroyed by the player, the wolves escape. 
    --If it's destroyed by the timer/trainer, the wolves attack the town . 
-   for i, wolf in ipairs(ctx.create_scout_camp.citizens.tame_wolf) do 
+   for i, wolf in ipairs(ctx.create_scout_camp.citizens.wolf_cage.tame_wolf) do 
       if wolf and wolf:is_valid() then
          --Add the caged beast component 
-         assert(ctx.create_scout_camp.entities.wolf_cage and ctx.create_scout_camp.entities.wolf_cage:is_valid())
-         wolf:add_component('stonehearth:caged_entity'):set_cage(ctx.create_scout_camp.entities.wolf_cage)
+         assert(ctx.create_scout_camp.entities.wolf_cage.wolf_cage and ctx.create_scout_camp.entities.wolf_cage.wolf_cage:is_valid())
+         wolf:add_component('stonehearth:caged_entity'):set_cage(ctx.create_scout_camp.entities.wolf_cage.wolf_cage)
       end
    end   
 end

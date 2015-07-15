@@ -7,6 +7,6 @@
 
    "wait_for_event_info" :  {
       "source" : "goblin_raiding_camp_1.boss",
-      "event"  : "radiant:entity:pre_destroy"
+      "event"  : "stonehearth:kill_event"
    }
 }

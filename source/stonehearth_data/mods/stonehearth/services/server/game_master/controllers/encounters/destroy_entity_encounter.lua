@@ -4,8 +4,8 @@ local rng = _radiant.csg.get_default_rng()
 local DestroyEntityEncounter = class()
 
 -- Deletes a set of objects described in an array
--- If an object in the array is itself an array of entities,
--- delete all the entities in that array
+-- If an object in the array is itself an object of entities,
+-- delete all the entities in that object
 
 --If on restore, there are leftover guys that we haven't actually managed
 --to delete yet, delete them. This may mean that the effects and delete delay
@@ -31,6 +31,14 @@ function DestroyEntityEncounter:start(ctx, info)
    self._sv.num_destroyed = 0
    self._sv.ctx = ctx
    self._sv.info = info
+
+   -- if there's a script associated with the mod,
+   -- give it a chance to do something before everyone goes away
+   if info.script then
+      local script = radiant.create_controller(info.script, ctx)
+      self._sv.script = script
+      script:start(ctx, info)
+   end
 
    self:_delete_everything(ctx, info)
 

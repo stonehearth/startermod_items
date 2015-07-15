@@ -47,6 +47,9 @@ function CollectionQuest:start(ctx, info)
       if radiant.util.is_a(entity, Entity) and entity:is_valid() then
          self._sv.source_entity = entity
          self:_start_source_listener()
+      else
+         --We need a source_entity, but it doesn't exist? Abort the encounter
+         return
       end
    end
 

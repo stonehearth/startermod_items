@@ -6,7 +6,7 @@
    "out_edge" : "destroy_raider_stockpiles",
 
    "wait_for_event_info" :  {
-      "source" : "create_raider_camp.entities.campfire",
+      "source" : "create_raider_camp.entities.campfire.campfire",
       "event"  : "radiant:entity:pre_destroy"
    }
 }

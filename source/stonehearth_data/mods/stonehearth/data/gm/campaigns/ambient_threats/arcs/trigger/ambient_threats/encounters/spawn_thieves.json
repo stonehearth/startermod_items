@@ -6,7 +6,7 @@
 
    "generator_info" :  {
       "delay" : "19h+4h",
-      "source_entity" : "create_thief_camp.entities.campfire",
+      "source_entity" : "create_thief_camp.entities.campfire.campfire",
       "spawn_edge" : "thief_raid"
    }
 }

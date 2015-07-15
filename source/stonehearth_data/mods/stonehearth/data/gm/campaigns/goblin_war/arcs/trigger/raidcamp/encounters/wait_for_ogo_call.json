@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_for_ogo_call",
+   "out_edge" : "ogo_calls_dialog",
+
+   "wait_info" :  {
+      "duration" : "1d"
+   }
+}

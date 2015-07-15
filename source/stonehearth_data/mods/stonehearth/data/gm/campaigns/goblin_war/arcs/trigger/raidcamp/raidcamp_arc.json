@@ -13,9 +13,19 @@
       "stealthy thief" : "file(encounters/stealthy_thief_mission.json)",
       "night raid" : "file(encounters/nighttime_city_raids.json)",
 
+      "wait to move on" : "file(encounters/wait_for_moving_on.json)", 
+      "moving on dialog" : "file(encounters/moving_on_dialog.json)", 
+
+      "shakedown success counter" : "file(encounters/shakedown_success_counter.json)", 
       "wait for next shakedown" : "file(encounters/wait_for_next_shakedown.json)",
       "wait for boss death" : "file(encounters/wait_for_boss_death.json)",
       "boss_death_dialog" : "file(encounters/boss_death_dialog.json)", 
-      "destroy_stockpiles" : "file(encounters/destroy_stockpiles.json)"
+      "destroy_stockpiles" : "file(encounters/destroy_stockpiles.json)", 
+
+      "wait for ogo call" : "file(encounters/wait_for_ogo_call.json)", 
+      "ogo calls dialog" : "file(encounters/ogo_calls_dialog.json)",
+      "reward loot" : "file(encounters/reward_loot.json)", 
+      "goblin camp departs" : "file(encounters/goblin_camp_departs.json)",
+      "wait for next camp" : "file(encounters/wait_for_next_camp.json)"
    }
 }
