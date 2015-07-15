@@ -108,6 +108,38 @@ function CraftOrder:set_crafting_status(status)
    end
 end
 
+--Given the usable item tracker, check if we actually have the
+--ingredients required for the recipe. If not, reurn false
+function CraftOrder:_has_ingredients()
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+   local usable_item_tracker = inventory:get_item_tracker('stonehearth:usable_item_tracker')
+   local tracking_data = usable_item_tracker:get_tracking_data()
+   for i, ingredient in ipairs(self._sv.recipe.ingredients) do 
+      local lookup_key = ""
+      if ingredient.uri then 
+         local data = radiant.entities.get_component_data(ingredient.uri , 'stonehearth:entity_forms')
+         if data and data.iconic_form then
+            lookup_key = data.iconic_form
+         else 
+            lookup_key = ingredient.uri
+         end
+      elseif ingredient.material then
+         --Alphabetize before lookup
+         local tag_array = radiant.util.split_string(ingredient.material) 
+         table.sort(tag_array)
+         lookup_key = table.concat(tag_array, ' ')
+      end
+      local tracking_data_for_key = tracking_data[lookup_key]
+      if not tracking_data_for_key then
+         return false
+      end
+      if tracking_data_for_key.count < ingredient.count then
+         return false
+      end
+   end
+   return true
+end
+
 --[[
    Used to determine if we should proceed with executing the order.
    If this order has a condition which are unsatisfied, (ie, less than x amount
@@ -117,6 +149,13 @@ end
    returns: true if conditions are not yet met, false if conditions are met
 ]]
 function CraftOrder:should_execute_order()
+   --If we don've have the ingredients, return false
+   --TODO: with new UI, add a warning, change color, add tooltips
+   if not self:_has_ingredients() then
+      return false
+   end
+
+   --If we have the ingredients, progress
    local condition = self._sv.condition
    if condition.type == "make" then
       return condition.remaining > 0 

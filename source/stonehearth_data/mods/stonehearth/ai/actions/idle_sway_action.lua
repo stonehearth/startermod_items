@@ -10,7 +10,7 @@ IdleSwayAction.args = {
 }
 IdleSwayAction.version = 2
 IdleSwayAction.priority = 1
-IdleSwayAction.weight = 1
+IdleSwayAction.weight = 2
 
 function IdleSwayAction:start_thinking(ai, entity)
    if not ai.CURRENT.carrying then

@@ -83,6 +83,26 @@
             "stonehearth:ai_pack:idle:bored:look_around",
             "stonehearth:ai_pack:idle:bored:wander"
          ]
+      },
+      "stonehearth:idle_effects" : {
+         "effects" : [
+            {
+               "name" : "idle",
+               "weight" : 5
+            },
+            {
+               "name" : "idle_breathe",
+               "weight" : 5
+            },
+            {
+               "name" : "idle_look_around",
+               "weight" : 5
+            },
+            {
+               "name" : "idle_make_noise",
+               "weight" : 1
+            }
+         ]
       }
    }
 }

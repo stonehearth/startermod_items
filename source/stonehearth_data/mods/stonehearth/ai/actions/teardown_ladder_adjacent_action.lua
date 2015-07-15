@@ -4,6 +4,7 @@ local LadderBuilder = require 'services.server.build.ladder_builder'
 local TeardownLadderAdjacent = class()
 TeardownLadderAdjacent.name = 'teardown ladder adjacent'
 TeardownLadderAdjacent.does = 'stonehearth:teardown_ladder_adjacent'
+TeardownLadderAdjacent.status_text_key = 'ai_status_text_teardown_ladder'
 TeardownLadderAdjacent.args = {
    ladder = Entity,           -- the ladder to build
    builder = LadderBuilder,   -- the ladder builder class
@@ -49,15 +50,11 @@ function TeardownLadderAdjacent:run(ai, entity, args)
 
       if not radiant.entities.increment_carrying(entity) then
          local oak_log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
-         radiant.entities.pickup_item(entity, oak_log)
+         stonehearth.ai:pickup_item(ai, entity, oak_log)
          oak_log:add_component('item')
                      :set_stacks(1)
       end
    end
-end
-
-function TeardownLadderAdjacent:start(ai, entity)
-   ai:set_status_text('removing ladder...')
 end
 
 return TeardownLadderAdjacent

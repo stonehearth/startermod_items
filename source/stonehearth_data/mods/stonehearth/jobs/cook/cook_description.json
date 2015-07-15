@@ -13,7 +13,8 @@
    "abilities" : "file(cook_abilities)",
 
    "equipment" : {
-      "torso" : "file(cook_outfit)"
+      "torso" : "file(cook_outfit)",
+      "mainhand" : "stonehearth:cook:spoon"
    },
 
    "roles" : "cook_job crafter", 
@@ -35,7 +36,7 @@
       "portrait" : "file(./images/workshop_portrait_level_1.png)",
       "workbench_type" : "stonehearth:cook:workbench",
       "ingredients": [
-         { "material" : "stone resource", "count" : 2 }
+         { "material" : "stone resource", "count" : 1 }
       ]
    },
 

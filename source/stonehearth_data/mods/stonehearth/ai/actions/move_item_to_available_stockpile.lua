@@ -4,16 +4,12 @@ StockpileComponent = require 'components.stockpile.stockpile_component'
 local MoveItemToAvailableStockpile = class()
 MoveItemToAvailableStockpile.name = 'move item to available stockpile'
 MoveItemToAvailableStockpile.does = 'stonehearth:clear_workshop'
+MoveItemToAvailableStockpile.status_text_key = 'ai_status_text_move_item_to_stockpile'
 MoveItemToAvailableStockpile.args = {
    item = Entity,
 }
 MoveItemToAvailableStockpile.version = 2
 MoveItemToAvailableStockpile.priority = 2
-
-function MoveItemToAvailableStockpile:start(ai, entity, args)
-   ai:set_status_text('moving item to stockpile')
-end
-
 
 local ai = stonehearth.ai
 return ai:create_compound_action(MoveItemToAvailableStockpile)

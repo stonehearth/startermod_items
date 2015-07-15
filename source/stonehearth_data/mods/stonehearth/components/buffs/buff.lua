@@ -139,17 +139,21 @@ function Buff:_destroy_duration()
 end
 
 function Buff:_create_injected_ai()
-   assert(not self._injected_ai)
+   if self._sv._ai_injector then
+      -- the ai_injector is a controller and self restores on load
+      return
+   end
+
    local injected_ai = self._sv.injected_ai
    if injected_ai then
-      self._injected_ai = stonehearth.ai:inject_ai(self._entity, injected_ai)
+      self._sv._ai_injector = stonehearth.ai:inject_ai(self._entity, injected_ai)
    end
 end
 
 function Buff:_destroy_injected_ai()
-   if self._injected_ai then
-      self._injected_ai:destroy()
-      self._injected_ai = nil
+   if self._sv._ai_injector then
+      self._sv._ai_injector:destroy()
+      self._sv._ai_injector = nil
    end
 end   
 

@@ -19,16 +19,16 @@
       "destination" : {
          "region" : [
             {
-               "min" : { "x" :-1, "y" : 0, "z" : 1 },
-               "max" : { "x" : 1, "y" : 2, "z" : 3 }
+              "min" : { "x" : -1, "y" : 0, "z" : -1 },
+              "max" : { "x" : 1, "y" : 2, "z" : 1 }
             }
          ]
       },
       "region_collision_shape" : {
          "region" : [
             {
-               "min" : { "x" :-1, "y" : 0, "z" : 1 },
-               "max" : { "x" : 1, "y" : 2, "z" : 3 }
+              "min" : { "x" : -1, "y" : 0, "z" : -1 },
+              "max" : { "x" : 1, "y" : 2, "z" : 1 }
             }
          ]
       }           
@@ -38,6 +38,10 @@
          "packs" : [
             "stonehearth:ai_pack:fill_storage"
          ]
+      },
+      "stonehearth:town_patrol" : {
+         "auto_patrol" : true,
+         "patrol_pattern" : "perimeter"
       }
    }
 }

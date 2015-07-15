@@ -4,6 +4,7 @@ local Fabricator = require 'components.fabricator.fabricator_component'
 local TeardownStructureAdjacent = class()
 TeardownStructureAdjacent.name = 'teardown structure adjacent'
 TeardownStructureAdjacent.does = 'stonehearth:teardown_structure_adjacent'
+TeardownStructureAdjacent.status_text_key = 'ai_status_text_teardown_structure'
 TeardownStructureAdjacent.args = {
    fabricator = Fabricator,
    block = Point3,
@@ -15,10 +16,6 @@ local MATERIAL_TO_RESOURCE = {
    ['wood resource']  = 'stonehearth:resources:wood:oak_log',
    ['stone resource'] = 'stonehearth:resources:stone:hunk_of_stone',
 }
-
-function TeardownStructureAdjacent:start(ai, entity, args)
-   ai:set_status_text('tearing down structures...')
-end
 
 function TeardownStructureAdjacent:start_thinking(ai, entity, args)
    self._material = args.fabricator:get_material(args.block)
@@ -60,7 +57,7 @@ function TeardownStructureAdjacent:run(ai, entity, args)
          local resource = radiant.entities.create_entity(MATERIAL_TO_RESOURCE[self._material])
          resource:add_component('item')
                      :set_stacks(1)
-         radiant.entities.pickup_item(entity, resource)
+         stonehearth.ai:pickup_item(ai, entity, resource)
       end
    end
 end

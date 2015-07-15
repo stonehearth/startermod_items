@@ -3,7 +3,7 @@ local Idle = class()
 
 Idle.name = 'idle'
 Idle.does = 'stonehearth:idle'
-Idle.status_text = 'idle'
+Idle.status_text_key = 'ai_status_text_idle'
 Idle.args = {
    hold_position = {    -- is the unit allowed to move around in the action?
       type = 'boolean',

@@ -10,12 +10,16 @@ function SettlementTest:__init()
    --if true then return end
 
    -- build the player camp
-   --[[
+   ---[[
    self:place_citizen(4, 4, 'footman')
    self:place_citizen(4, 7, 'footman')
    
    self:place_citizen(10, 7, 'footman')
    self:place_citizen(13, 7, 'footman')
+
+   self:place_citizen(-1,2, 'shepherd')
+   self:place_item('stonehearth:sheep', -3, -6)
+
    --]]
    self:place_citizen(7, 4)
    self:place_citizen(7, 7)
@@ -28,9 +32,9 @@ function SettlementTest:__init()
    local function create_stockpile(x, z)
       stonehearth.inventory:get_inventory('player_1')
                               :create_stockpile(Point3(x, 1, z), Point2(4, 4))
-      self:place_item_cluster('stonehearth:furniture:comfy_bed', x, z, 4, 4)
+      self:place_item_cluster('stonehearth:furniture:comfy_bed', x, z, 4, 4, 'player_1')
    end
-   self:place_item_cluster('stonehearth:furniture:comfy_bed', -4, 14, 2, 2)
+   self:place_item_cluster('stonehearth:furniture:comfy_bed', -4, 14, 2, 2, 'player_1' )
 
    create_stockpile(14, 14)
    create_stockpile(10, 8)

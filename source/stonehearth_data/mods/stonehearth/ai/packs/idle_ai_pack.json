@@ -2,7 +2,8 @@
    "actions" : [
       "stonehearth:actions:idle_top_action",
       "stonehearth:actions:idle_action",
-      "stonehearth:actions:idle_breathe_action"
+      "stonehearth:actions:idle_breathe_action",
+      "stonehearth:actions:idle:weighted_effect"
    ],
    "ai_packs" : [
       "stonehearth:ai_pack:core"

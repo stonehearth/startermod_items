@@ -462,7 +462,9 @@ void ActivityOverlayEffectTrack::Update(FrameStartInfo const& info, bool& finish
 ///////////////////////////////////////////////////////////////////////////////
 
 UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffectTrack(e, effect->GetEffectId(), "unit status")
+   RenderEffectTrack(e, effect->GetEffectId(), "unit status"),
+   statusNode_(0),
+   _matRes(0)
 {
    json::Node cjo(node);
    _materialDesc.load(cjo.get_node("material"));
@@ -472,13 +474,18 @@ UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effe
    float yOffset = cjo.get("yOffset", 0.0f);
    H3DNode n = e.GetSkeleton().GetSceneNode(cjo.get("bone", std::string("head")));
 
+   Horde3D::HudElementNode* hud = h3dAddHudElementNode(n, "");
+   if (!hud) {
+      EL_LOG(1) << "got null hud element.  was our parent not in the scene?";
+      return;
+   }
+   
    H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), H3DResFlags::NoFlush);
    // Can't clone until we load!
    Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");
    _materialDesc.applyToMaterialRes(_matRes);
 
-   Horde3D::HudElementNode* hud = h3dAddHudElementNode(n, "");
    h3dSetNodeTransform(hud->getHandle(), 0, 0, 0, 0, 0, 0, 1, 1, 1);
    hud->addWorldspaceRect(statusWidth, statusHeight, 
       xOffset- (statusWidth / 2.0f), yOffset, Horde3D::Vec4f(1, 1, 1, 1), _matRes);
@@ -487,7 +494,9 @@ UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effe
 
 UnitStatusEffectTrack::~UnitStatusEffectTrack()
 {
-   h3dRemoveResource(_matRes);
+   if (_matRes) {
+      h3dRemoveResource(_matRes);
+   }
 }
 
 void UnitStatusEffectTrack::Update(FrameStartInfo const& info, bool& finished)

@@ -32,7 +32,7 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
    end
 
    local food = radiant.entities.create_entity(container_data.food, { owner = entity })
-   radiant.entities.pickup_item(entity, food)
+   stonehearth.ai:pickup_item(ai, entity, food)
 end
 
 return GetFoodFromContainerAdjacent

@@ -317,6 +317,8 @@ function StorageComponent:add_item(item)
    
    if item:is_valid() then
       radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      -- Let AI know to reconsider this container because its contents have changed.
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._sv.entity)
    end
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
@@ -327,7 +329,7 @@ function StorageComponent:add_item(item)
       })
 end
 
-function StorageComponent:remove_item(id)
+function StorageComponent:remove_item(id, inventory_predestroy)
    assert(type(id) == 'number', 'expected entity id')
    
    local item = self._sv.items[id] 
@@ -341,25 +343,40 @@ function StorageComponent:remove_item(id)
    self._sv.filtered_items[id] = nil
    self._sv.item_tracker:remove_item(id)
 
-   local player_id = self._sv.entity:get_component('unit_info')
-                                       :get_player_id()
-   local inventory = stonehearth.inventory:get_inventory(player_id)
-   if inventory then
-      inventory:update_item_container(id)
-   end
+   if not inventory_predestroy then
+      local player_id = self._sv.entity:get_component('unit_info')
+                                          :get_player_id()
+      local inventory = stonehearth.inventory:get_inventory(player_id)
+      if inventory then
+         --Item isn't part of storage anymore, so storage is now nil
+         inventory:update_item_container(id, nil)
+      end
 
-   if item:is_valid() then
-      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      if item:is_valid() then
+         radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', item)
+      end
    end
 
    self:_on_contents_changed()
    self.__saved_variables:mark_changed()
 
+   local event_item = not inventory_predestroy and item:is_valid() and item or nil
+
    radiant.events.trigger_async(self._sv.entity, 'stonehearth:storage:item_removed', {      
          item_id = id,
-         item = item:is_valid() and item or nil,
+         item = event_item,
       })
    return item
+end
+
+--give the storage component a name
+function StorageComponent:set_name(name)
+   self._sv.name = name
+   self.__saved_variables:mark_changed()
+end
+
+function StorageComponent:get_name()
+   return self._sv.name
 end
 
 function StorageComponent:contains_item(id)

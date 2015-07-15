@@ -17,7 +17,7 @@ function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
    if ai.CURRENT.carrying then
       return
    end
-   
+
    local filter_fn = args.filter_fn
    self._storage_component = entity:get_component('stonehearth:storage')
    if not self._storage_component then
@@ -35,16 +35,17 @@ function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
 end
 
 function PickupItemTypeFromBackpack:run(ai, entity, args)
-   local id = self._item:get_id()
-
-   if not radiant.entities.pickup_item(entity, self._item) then
-      ai:abort('failed to move item to carry block')
+   if stonehearth.ai:prepare_to_pickup_item(ai, entity, self._item) then
+      return
    end
+   assert(not radiant.entities.get_carrying(entity))
+
+   local id = self._item:get_id()
    local item = self._storage_component:remove_item(id)
    if not item then
       ai:abort('failed to pull item out of backpack')
    end
-   
+   stonehearth.ai:pickup_item(ai, entity, self._item)
 end
 
 return PickupItemTypeFromBackpack

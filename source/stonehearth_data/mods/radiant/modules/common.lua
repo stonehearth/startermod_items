@@ -235,7 +235,7 @@ end
 
 function radiant.assert(v, ...)
    if not v then
-      error('assertion failed: ', string.format(...), 2)
+      error('assertion failed: '..string.format(...), 2)
    end
 end
 

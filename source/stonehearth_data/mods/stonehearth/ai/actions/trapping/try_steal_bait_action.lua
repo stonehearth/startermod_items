@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 local TryStealBait = class()
 
 TryStealBait.name = 'try steal bait'
-TryStealBait.status_text = 'stealing bait'
+TryStealBait.status_text_key = 'ai_status_text_steal_bait'
 TryStealBait.does = 'stonehearth:basic_needs'
 TryStealBait.args = {}
 TryStealBait.set_think_output = {

@@ -67,7 +67,7 @@ end
 --Eventually, when our entity is destroyed, the destroy fn above will run also.
 function JobComponent:_on_kill_event()
    if not stonehearth.player:is_npc(self._entity) then
-      self:demote()
+      self:demote(self._job_json)
    end
 end
 
@@ -163,9 +163,10 @@ function JobComponent:promote_to(job_uri, options)
    local is_npc = stonehearth.player:is_npc(self._entity)
    local talisman_entity = options and options.talisman
 
+   local old_job_json = self._job_json
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
-      self:demote()
+      self:demote(old_job_json)
       self._sv.job_uri = job_uri
       self._sv.talisman_uri = self._job_json.talisman_uri
       self._sv.class_icon = self._job_json.icon
@@ -292,7 +293,7 @@ function JobComponent:_remove_all_perks()
 end
 
 --Call when we no longer want the job we have
-function JobComponent:demote()
+function JobComponent:demote(old_job_json)
    self:_remove_equipment()
    self:_remove_all_perks()
 
@@ -307,8 +308,8 @@ function JobComponent:demote()
    self._sv._default_stance = 'passive'
    self:reset_to_default_combat_stance()
 
-   if self._job_json and self._job_json.task_groups then
-      self:_remove_from_task_groups(self._job_json.task_groups)
+   if old_job_json and old_job_json.task_groups then
+      self:_remove_from_task_groups(old_job_json.task_groups)
    end
 
    self.__saved_variables:mark_changed()

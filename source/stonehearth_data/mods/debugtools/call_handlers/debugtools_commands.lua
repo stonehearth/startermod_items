@@ -47,6 +47,10 @@ function Commands:create_entity(session, response, uri, iconic, location, rotati
 
    radiant.terrain.place_entity(entity, location, { force_iconic = iconic })
    radiant.entities.turn_to(entity, rotation)
+   local inventory = stonehearth.inventory:get_inventory(session.player_id)
+   if inventory and not inventory:contains_item(entity) then
+      inventory:add_item(entity)
+   end
    
    return true
 end
@@ -113,6 +117,8 @@ function Commands:promote_to_command(session, response, entity, job)
       -- there if they didn't put it there to begin with
       job = 'stonehearth:jobs:' .. job
    end
+   
+   radiant.entities.drop_carrying_on_ground(entity)
    entity:get_component('stonehearth:job')
          :promote_to(job)
    return true

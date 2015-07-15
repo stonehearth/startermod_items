@@ -5,7 +5,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(large_boulder_1.qb)",
+               "file(large_boulder_1.qb)"
             ]
          }
       }, 

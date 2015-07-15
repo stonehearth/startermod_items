@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 local CollectAnimalFromNearby = class()
 
 CollectAnimalFromNearby.name = 'collect animal for pasture from nearby'
-CollectAnimalFromNearby.status_text = 'claiming animal'
+CollectAnimalFromNearby.status_text_key = 'ai_status_text_claiming_animal'
 CollectAnimalFromNearby.does = 'stonehearth:collect_animals_for_pasture'
 CollectAnimalFromNearby.args = {
    pasture = Entity   --the pasture entity that yearns for this animal
@@ -63,12 +63,12 @@ return ai:create_compound_action(CollectAnimalFromNearby)
             description = ai.BACK(3).description,
             range = 30
          })
-   :execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = ai.PREV.path:get_destination()})
-   :execute('stonehearth:follow_path', {
-            path = ai.BACK(2).path,
-            stop_distance = 5
+   :execute('stonehearth:chase_entity', {
+            target = ai.PREV.path:get_destination(),
+            initial_path = ai.PREV.path,
+            stop_distance = 5,
          })
-   :execute('stonehearth:reserve_entity', { entity = ai.BACK(3).path:get_destination() })
-   :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(4).path:get_destination() })
+   :execute('stonehearth:reserve_entity', { entity = ai.BACK(2).path:get_destination() })
+   :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(3).path:get_destination() })
    :execute('stonehearth:run_effect', { effect = 'whistle' })
-   :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.BACK(6).path:get_destination()})
+   :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.BACK(5).path:get_destination()})

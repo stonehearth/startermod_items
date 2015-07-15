@@ -16,11 +16,16 @@ enum SaveVersion {
    // First version!  This is the version we pushed to Steam Early access
    ALPHA_10_5 = 0,
 
-   ALPHA_11 = 1, // Alpha 11!
+   // First build of Alpha 11.  LOTS changed
+   ALPHA_11_BUILD_1,
+
+   // Second build of Alpha 11.  BFS farming, chair components, and lots of other
+   // incompatible changes.
+   ALPHA_11_BUILD_2,
 
    // The current save version.  Should always point to the last item in
    // the list.                    
-   CURRENT_SAVE_VERSION = ALPHA_11
+   CURRENT_SAVE_VERSION = ALPHA_11_BUILD_2
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

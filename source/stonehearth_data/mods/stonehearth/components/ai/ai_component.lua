@@ -17,51 +17,45 @@ function AIComponent:initialize(entity, json)
    self._task_groups = {}
    self._last_added_actions = {}
    self._all_execution_frames = {}
-   self._sv = self.__saved_variables:get_data()
-   self.__saved_variables:set_controller(self)
-   local s = radiant.entities.get_name(entity) or 'noname'
-
+   self._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
+   self._status_text = ''
    self._log = radiant.log.create_logger('ai.component')
-                          :set_entity(self._entity)
+                              :set_entity(self._entity)
 
    if not self._sv._initialized then
-      self._sv.status_text = ''
-      self._sv._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
-
-      -- wait until the entity is completely initialized before piling all our actions
-      radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
-            if json.actions then
-               self._log:error('%s, Actions are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
-               assert(false)
-            end
-
-            self._sv._dispatchers = json.dispatchers
-            self._sv._initialized = true
-            self:_restore_dispatchers()
-            self.__saved_variables:mark_changed()
-
-            -- Actions and observers are now added by the ai service after entity creation.
-            -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
-
-            -- wait until the very next gameloop to start our thread.  this gives the
-            -- person creating the entity time to do some more post-creating initialization
-            -- (e.g. setting the player id!).  xxx: it's probably better to do this by
-            -- passing an init function to create_entity(). -tony
-            radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
-                  if not self._dead then
-                     self:start()
-                  end
-               end)
-         end)
-
+      self._sv._permanent_ais = {}
+      self._sv._initialized = true
+      self.__saved_variables:mark_changed()
    else
-      --we're loading so instead listen on game loaded
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            self:_restore_dispatchers()
-            self:_restore_actions()
-            self:start()
-         end)
    end
+   self._sv.status_text_key = ''
+
+   -- wait until the entity is completely initialized before piling all our actions
+   radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
+         if json.actions then
+            self._log:error('%s, Actions are now added through the ai_packs in entity_data. See base_human.json for an example.', entity)
+            assert(false)
+         end
+
+         -- all the dynamic dispatchers into our entity.  this wires together big sections
+         -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
+         if json.dispatchers then
+            self:_create_task_dispatchers('stonehearth:top', json.dispatchers)
+         end
+
+         -- Actions and observers are now added by the ai service after entity creation.
+         -- _notify_action_index_changed will trigger an update to the execution frame when they are added.
+
+         -- wait until the very next gameloop to start our thread.  this gives the
+         -- person creating the entity time to do some more post-creating initialization
+         -- (e.g. setting the player id!).  xxx: it's probably better to do this by
+         -- passing an init function to create_entity(). -tony
+         radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+               if not self._dead then
+                  self:start()
+               end
+            end)
+      end)
 end
 
 -- return a task group which instructs just this entity to perform
@@ -98,22 +92,26 @@ end
 function AIComponent:destroy()
    self._dead = true
    self._action_index = nil
-   self._sv._ref_counts:destroy()
+   self._ref_counts:destroy()
    self:_terminate_thread()
 end
 
-function AIComponent:set_status_text(text)
-   self._sv.status_text = text
+function AIComponent:set_status_text_key(key)
+   self._sv.status_text_key = key
    self.__saved_variables:mark_changed()
 end
 
-function AIComponent:add_action(uri)
-   self._log:debug('adding action "%s"', uri)
+function AIComponent:set_status_text(value)
+   self._log:warning('Calling unsupported set_status_text with value %s', value)
+   self:set_status_text_key(value)
+end
 
-   local ref_count = self._sv._ref_counts:add_ref(uri)
+function AIComponent:add_action(uri)
+   local ref_count = self._ref_counts:add_ref(uri)
    if ref_count > 1 then
       return
    end
+   self._log:debug('adding action "%s" (ref_count: %d)', uri, ref_count)
 
    -- new action, add it to the system
    self:_add_action_internal(uri)
@@ -161,9 +159,9 @@ function AIComponent:remove_action(key)
    end
 
    if type(key) == 'string' then
-      self._log:detail('removing action "%s"', key)
       local uri = key
-      local ref_count = self._sv._ref_counts:dec_ref(uri)
+      local ref_count = self._ref_counts:dec_ref(uri)
+      self._log:detail('removing action "%s" (ref count:%d)', key, ref_count)
       if ref_count > 0 then
          return
       end
@@ -181,6 +179,10 @@ function AIComponent:remove_action(key)
    else
       self._log:debug('could not find action for key %s in :remove_action', tostring(key))
    end
+end
+
+function AIComponent:add_permanent_ai(injector)
+   table.insert(self._sv._permanent_ais, injector)
 end
 
 function AIComponent:add_custom_action(action_ctor)
@@ -288,19 +290,6 @@ function AIComponent:_unregister_execution_frame(activity_name, frame)
    end
 end
 
-function AIComponent:_restore_actions()
-   local saved_actions = self._sv._ref_counts:get_all_refs()
-   for uri, _ in pairs(saved_actions) do
-      self:_add_action_internal(uri)
-   end
-end
-
-function AIComponent:_restore_dispatchers()
-   -- all the dynamic dispatchers into our entity.  this wires together big sections
-   -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
-   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
-end
-
 -- create a single task dispatcher which delegates the implementation of
 -- parent_activity to info.does at info.priority.  for example:
 --
@@ -360,9 +349,6 @@ function AIComponent:start()
    radiant.check.is_entity(self._entity)
    self._thread = stonehearth.threads:create_thread()
                                      :set_debug_name('e:%d', self._entity:get_id())
-
-   self._sv.status_text = ''
-   self.__saved_variables:mark_changed()
 
    self._thread:set_thread_main(function()
       self:_create_top_execution_frame()
@@ -451,6 +437,10 @@ function AIComponent:entity_state_is_stale()
    assert(self._execution_frame)
 
    return self._execution_frame:entity_state_is_stale()
+end
+
+function AIComponent:get_thread()
+   return self._thread
 end
 
 return AIComponent

@@ -3,7 +3,7 @@ local SleepLib = require 'ai.lib.sleep_lib'
 local SleepOnGroundAction = class()
 
 SleepOnGroundAction.name = 'sleep on ground'
-SleepOnGroundAction.status_text = 'sleeping on the ground'
+SleepOnGroundAction.status_text_key = 'ai_status_text_sleep_on_ground'
 SleepOnGroundAction.does = 'stonehearth:sleep_exhausted'
 SleepOnGroundAction.args = {}
 SleepOnGroundAction.version = 2

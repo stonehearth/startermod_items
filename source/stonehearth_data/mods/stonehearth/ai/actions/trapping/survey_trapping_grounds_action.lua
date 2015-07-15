@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 local SurveyTrappingGrounds = class()
 
 SurveyTrappingGrounds.name = 'survey trapping grounds'
-SurveyTrappingGrounds.status_text = 'survey trapping grounds'
+SurveyTrappingGrounds.status_text_key = 'ai_status_text_survey_trapping_grounds'
 SurveyTrappingGrounds.does = 'stonehearth:trapping:survey_trapping_grounds'
 SurveyTrappingGrounds.args = {
    trapping_grounds = Entity

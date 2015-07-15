@@ -19,6 +19,7 @@ using namespace ::radiant;
 using namespace ::radiant::simulation;
 
 static const int DIRECT_PATH_SEARCH_COOLDOWN = 8;
+static const int ASTAR_HEIGHT_CUTOFF = 8;
 
 std::vector<std::weak_ptr<AStarPathFinder>> AStarPathFinder::all_pathfinders_;
 
@@ -84,7 +85,8 @@ AStarPathFinder::AStarPathFinder(std::string const& name, om::EntityPtr entity) 
    _rebuildOpenHeuristics(false),
    _max_steps(INT_MAX),
    _num_steps(0),
-   closedBounds_(csg::Cube3::zero)
+   closedBounds_(csg::Cube3::zero),
+   _best_first_mode(false)
 {
    PF_LOG(3) << "creating pathfinder";
 
@@ -271,6 +273,9 @@ AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
          PF_LOG(3) << "recomputing open heuristics on destination removal";
          _rebuildOpenHeuristics = true;
       }
+
+      // NB: don't try to reset the pathfinder back to A* mode if we're in best-first.  Cached estimates
+      // will be wrong!  Or, if you really want to do that, just restart the whole pathfinder....
    }
    if (LOG_IS_ENABLED(simulation.pathfinder.astar, 9)) {
       PF_LOG(9) << "destination list:";
@@ -312,10 +317,14 @@ void AStarPathFinder::Restart()
    EnableWorldWatcher(true);
 
    max_cost_to_destination_ = Simulation::GetInstance().GetOctTree().GetDistanceCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
-
+   _best_first_mode = false;
    source_->Start(open_, *_nodePool);
+   csg::Point3f const& startPos = source_->GetSourceLocation();
    for (auto const& entry : destinations_) {
       entry.second->Start();
+      if (entry.second->EstimateMovementHeightCost(startPos) > ASTAR_HEIGHT_CUTOFF) {
+         _best_first_mode = true;
+      }
    }
 
    for (PathFinderNode* node : open_) {
@@ -351,10 +360,10 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    }
    for (const auto& node: open_) {
       auto coord = msg->add_coords();
-      int c = static_cast<int>(255 * costs[node->pt] / (max_h - min_h));
+      //int c = static_cast<int>(255 * costs[node->pt] / (max_h - min_h));
 
       node->pt.SaveValue(coord);
-      csg::Color4(c, c, c, 255).SaveValue(coord->mutable_color());
+      csg::Color4(255, 0, 0, 255).SaveValue(coord->mutable_color());
    }
 
    if (solution_) {
@@ -365,7 +374,7 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
       }
    }
 
-#if 0
+#if 1
    for (const auto& pt: closed_) {
       auto coord = msg->add_coords();
       pt.second->pt.SaveValue(coord);
@@ -483,7 +492,7 @@ void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
    }
    VERIFY_HEAPINESS();
    bool update = false;
-   float g = _currentSearchNode->g + movementCost;
+   float g = _best_first_mode ? 0 : _currentSearchNode->g + movementCost;
    auto& itr = _openLookup.find(next);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
@@ -946,6 +955,14 @@ void AStarPathFinder::OnPathFinderDstChanged(PathFinderDst const& dst, const cha
          return;
       }
    }
+
+   // Put us in best-first mode if the new destination is high enough to be scary to A*.  But--only if we've started!
+   if (enabled_) {
+      csg::Point3f srcPt = source_->GetSourceLocation();
+      if (dst.EstimateMovementHeightCost(srcPt) > ASTAR_HEIGHT_CUTOFF) {
+         _best_first_mode = true;
+      }
+   }
    _rebuildOpenHeuristics = true;
 }
 
@@ -956,8 +973,9 @@ void AStarPathFinder::RebuildOpenHeuristics()
    // f based on the existing g and the new h.
    for (PathFinderNode* node : open_) {
       float maxMod = GetMaxMovementModifier(node->pt);
-      float h = EstimateCostToDestination(node->pt, nullptr, 1.0f + maxMod);      
-      node->f = node->g + h;
+      float h = EstimateCostToDestination(node->pt, nullptr, 1.0f + maxMod);
+      float g = _best_first_mode ? 0 : node->g;
+      node->f = g + h;
    }
    _rebuildOpenHeuristics = false;
 

@@ -39,6 +39,10 @@ end
 function PickupPlacedItemAdjacent:run(ai, entity, args)
    local item = args.item
    
+   if stonehearth.ai:prepare_to_pickup_item(ai, entity, item) then
+      return
+   end
+
    radiant.entities.turn_to_face(entity, item)
    ai:execute('stonehearth:run_effect', { effect = 'work' })
    
@@ -58,7 +62,7 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
 
    local entity_forms_component = item:get_component('stonehearth:entity_forms')
    if entity_forms_component and entity_forms_component:is_placeable_on_wall() then
-      radiant.entities.pickup_item(entity, self._iconic_entity)
+      stonehearth.ai:pickup_item(ai, entity, self._iconic_entity)
    else
       radiant.terrain.place_entity(self._iconic_entity, location)
    

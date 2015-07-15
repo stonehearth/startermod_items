@@ -1,5 +1,5 @@
 /***
- * A manager for handling portrait requests for entities.
+ * A manager for all the tooltips defined in tooltips.json
  ***/
 var StonehearthTooltipHelper;
 

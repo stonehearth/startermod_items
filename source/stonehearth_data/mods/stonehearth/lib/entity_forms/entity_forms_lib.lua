@@ -75,4 +75,17 @@ function entity_forms_lib.get_root_entity(entity)
    end
 end
 
+-- Returns the form the entity is currently in.
+function entity_forms_lib.get_in_world_form(entity)
+   local root, iconic, _ = entity_forms_lib.get_forms(entity)
+   if root and radiant.entities.get_world_grid_location(root) ~= nil then
+      return root
+   end
+   if iconic and radiant.entities.get_world_grid_location(iconic) ~= nil then
+      return iconic
+   end
+
+   return nil
+end
+
 return entity_forms_lib

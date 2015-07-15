@@ -26,14 +26,19 @@ function WallLoopEditor:go(column_brush, wall_brush, response)
       :allow_shift_queuing(true)
       :set_min_locations_count(2)
       :set_filter_fn(function(result)
+            local entity = result.entity
             local proxy_fabricator = current_column_editor:get_proxy_fabricator()
 
-            if result.entity == proxy_fabricator then
+            if entity == proxy_fabricator then
                return stonehearth.selection.FILTER_IGNORE
             end
 
-            if result.entity:get_component('stonehearth:building') then
+            if entity:get_component('stonehearth:building') then
                return stonehearth.selection.FILTER_IGNORE
+            end
+
+            if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
+               return false
             end
 
             local location = result.brick
@@ -42,8 +47,8 @@ function WallLoopEditor:go(column_brush, wall_brush, response)
 
             -- make sure the column is not blocked
             local overlapping_entities = radiant.terrain.get_entities_in_region(collision_region)
-            for _, entity in pairs(overlapping_entities) do
-               if radiant.entities.is_solid_entity(entity) then
+            for _, overlapping_entity in pairs(overlapping_entities) do
+               if radiant.entities.is_solid_entity(overlapping_entity) then
                   return stonehearth.selection.FILTER_IGNORE
                end
             end
@@ -54,7 +59,7 @@ function WallLoopEditor:go(column_brush, wall_brush, response)
                return stonehearth.selection.FILTER_IGNORE
             end
             
-            return result.entity:get_component('terrain') ~= nil
+            return true
          end)
       :progress(function(selector, location, rotation)
             if location then
@@ -144,7 +149,7 @@ end
 function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)  
    p0, p1 = Point3(p0.x, p0.y, p0.z), Point3(p1.x, p1.y, p1.z)
    
-   local t, n, dt, d
+   local t, n
    if math.abs(p0.x - p1.x) >  math.abs(p0.z - p1.z) then
       t = 'x'
       n = 'z'
@@ -152,18 +157,17 @@ function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)
       t = 'z'
       n = 'x'
    end
-   if p0[t] > p1[t] then
-      dt = 1
-      d  = math.max(p1[t] - p0[t], -constants.MAX_WALL_SPAN)
-   else
-      dt = -1
-      d  = math.min(p1[t] - p0[t], constants.MAX_WALL_SPAN)
-   end
-   p1[t] = p0[t] + d
-   p1[n] = p0[n]
+
+   local d = math.min(math.abs(p1[t] - p0[t]), constants.MAX_WALL_SPAN)
+   local dt = p1[t] > p0[t] and 1 or -1
+
    p1.y = p0.y
+   p1[n] = p0[n]
+   p1[t] = p0[t] + d*dt
    
-   local region = column1:get_component('destination'):get_region():get()
+   local region = column1:add_component('destination'):get_region():get()
+
+   -- TODO: check for other authoring entities that could be blocking the wall
    while not _radiant.client.is_valid_standing_region(region:translated(p1)) and p1[t] ~= p0[t] do
       p1[t] = p1[t] - dt
    end

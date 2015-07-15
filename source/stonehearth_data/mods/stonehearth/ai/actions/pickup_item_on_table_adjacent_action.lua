@@ -32,16 +32,15 @@ function PickupItemOnTableAdjacent:run(ai, entity, args)
       return
    end
 
-   if stonehearth.ai:prepare_for_pickup_action(ai, entity, item) then
+   if stonehearth.ai:prepare_to_pickup_item(ai, entity, item) then
       return
    end
    assert(not radiant.entities.get_carrying(entity))
 
-   assert(not radiant.entities.get_carrying(entity))
    log:info("%s picking up %s", entity, item)
    radiant.entities.turn_to_face(entity, item)
-   radiant.entities.pickup_item(entity, item)
    ai:execute('stonehearth:run_effect', { effect = 'carry_pickup_from_table'})
+   stonehearth.ai:pickup_item(ai, entity, item)
 end
 
 return PickupItemOnTableAdjacent

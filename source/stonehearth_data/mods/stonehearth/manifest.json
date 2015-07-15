@@ -131,7 +131,8 @@
       "farmer:hoe" : "file(jobs/farmer/farmer_hoe)", 
       "farmer:talisman" : "file(jobs/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
-      
+      "farmer:field_layer:harvestable" : "file(entities/farming/harvest_field_layer/harvest_field_layer.json)",
+      "farmer:field_layer:tillable" : "file(entities/farming/till_field_layer/till_field_layer.json)",
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
       "shepherd:talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
       "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
@@ -154,6 +155,7 @@
 
       "cook:workbench" : "file(jobs/cook/cook_workbench)",
       "cook:outfit" : "file(jobs/cook/cook_outfit)",
+      "cook:spoon" : "file(jobs/cook/cook_spoon/cook_spoon.json)",
       "cook:talisman" : "file(jobs/cook/cook_spoon/cook_spoon_talisman.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone/mining_zone.json)",
@@ -492,13 +494,14 @@
       "actions:idle_top_action" : "file(ai/actions/idle_top_action.lua)",
       "actions:idle_action" : "file(ai/actions/idle_action.lua)",
       "actions:idle_breathe_action" : "file(ai/actions/idle_breathe_action.lua)",
-      "actions:run_sleep_effect" : "file(ai/actions/run_sleep_effect_action.lua)",
-      "actions:sleep_in_new_bed" : "file(ai/actions/sleep_in_new_bed_action.lua)",
-      "actions:sleep_in_own_bed" : "file(ai/actions/sleep_in_own_bed_action.lua)",
-      "actions:sleep_in_bed_adjacent" : "file(ai/actions/sleep_in_bed_adjacent_action.lua)",
-      "actions:sleep_trivial" : "file(ai/actions/sleep_trivial_action.lua)",
-      "actions:sleep_on_ground" : "file(ai/actions/sleep_on_ground_action.lua)",
-      "actions:sleep_when_exhausted" : "file(ai/actions/sleep_when_exhausted_action.lua)",
+      "actions:run_sleep_effect" : "file(ai/actions/sleeping/run_sleep_effect_action.lua)",
+      "actions:sleep_in_bed_trivial" : "file(ai/actions/sleeping/sleep_in_bed_trivial_action.lua)",
+      "actions:sleep_in_new_bed" : "file(ai/actions/sleeping/sleep_in_new_bed_action.lua)",
+      "actions:sleep_in_own_bed" : "file(ai/actions/sleeping/sleep_in_own_bed_action.lua)",
+      "actions:sleep_in_bed_adjacent" : "file(ai/actions/sleeping/sleep_in_bed_adjacent_action.lua)",
+      "actions:sleep_in_current_bed" : "file(ai/actions/sleeping/sleep_in_current_bed_action.lua)",
+      "actions:sleep_on_ground" : "file(ai/actions/sleeping/sleep_on_ground_action.lua)",
+      "actions:sleep_when_exhausted" : "file(ai/actions/sleeping/sleep_when_exhausted_action.lua)",
       "actions:critter_sleep_on_ground" : "file(ai/actions/critter_sleep_on_ground.lua)",
       "actions:add_buff" : "file(ai/actions/add_buff_action.lua)",
       "actions:death" : "file(ai/actions/death_action.lua)",
@@ -559,6 +562,7 @@
       "actions:reserve_storage_space" : "file(ai/actions/reserve_storage_space_action.lua)",
       "actions:pickup_item_type_from_any_storage" : "file(ai/actions/pickup_item_type_from_any_storage_action.lua)",
       "actions:pickup_item_type_from_storage" : "file(ai/actions/pickup_item_type_from_storage_action.lua)",
+      "actions:pickup_item_from_storage" : "file(ai/actions/pickup_item_from_storage_action.lua)",
       "actions:pickup_item_from_storage_adjacent" : "file(ai/actions/pickup_item_from_storage_adjacent_action.lua)",
       "actions:find_path_to_storage_containing_entity_type" : "file(ai/actions/find_path_to_storage_containing_entity_type_action.lua)",
       "actions:find_entity_type_in_storage" : "file(ai/actions/find_entity_type_in_storage_action.lua)",
@@ -583,10 +587,11 @@
       "actions:grab_promotion_talisman_type" : "file(ai/actions/grab_talisman_type_action.lua)",
       "actions:admire_fire" : "file(ai/actions/admire_fire_action.lua)",
       "actions:admire_fire_adjacent" : "file(ai/actions/admire_fire_adjacent_action.lua)",
-      "actions:sit_on_ground" : "file(ai/actions/sit_on_ground_action.lua)",
-      "actions:sit_on_chair" : "file(ai/actions/sit_on_chair_action.lua)",
-      "actions:sit_on_chair_adjacent" : "file(ai/actions/sit_on_chair_adjacent_action.lua)",
-      "actions:sit_on_chair_trivial" : "file(ai/actions/sit_on_chair_trivial_action.lua)",
+      "actions:sit_on_ground" : "file(ai/actions/sitting/sit_on_ground_action.lua)",
+      "actions:sit_on_chair_trivial" : "file(ai/actions/sitting/sit_on_chair_trivial_action.lua)",
+      "actions:sit_on_chair" : "file(ai/actions/sitting/sit_on_chair_action.lua)",
+      "actions:sit_on_chair_adjacent" : "file(ai/actions/sitting/sit_on_chair_adjacent_action.lua)",
+      "actions:sit_on_current_chair" : "file(ai/actions/sitting/sit_on_current_chair_action.lua)",
       "actions:eat" : "file(ai/actions/eat_action.lua)",
       "actions:eat_carrying" : "file(ai/actions/eat_carrying_action.lua)",
       "actions:eat_item" : "file(ai/actions/eat_item_action.lua)",
@@ -595,6 +600,7 @@
       "actions:get_food_on_ground" : "file(ai/actions/get_food_on_ground_action.lua)",
       "actions:get_food_from_container" : "file(ai/actions/get_food_from_container.lua)",
       "actions:get_food_from_container_adjacent" : "file(ai/actions/get_food_from_container_adjacent.lua)",
+      "actions:get_food_container_from_storage" : "file(ai/actions/get_food_container_from_storage.lua)",
       
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
@@ -635,6 +641,7 @@
 
       "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
       "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
+      "actions:idle:weighted_effect" : "file(ai/actions/idle_weighted_action.lua)",
       "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
       "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
 
@@ -939,7 +946,12 @@
       "sounds:blacksmith_hammer_02" : "file(data/sounds/effects/sh_blacksmith_hammer_02.wav)",
       "sounds:blacksmith_hammer_03" : "file(data/sounds/effects/sh_blacksmith_hammer_03.wav)",
       "sounds:combat_finished"     : "file(data/sounds/effects/sh_combat_finished.wav)",
-               
+
+      "sounds:sheep:baa_01"     : "file(data/sounds/effects/sh_sheep_baa_01.wav)",
+      "sounds:sheep:baa_02"     : "file(data/sounds/effects/sh_sheep_baa_02.wav)",
+      "sounds:sheep:baa_03"     : "file(data/sounds/effects/sh_sheep_baa_03.wav)",
+      "sounds:sheep:baa_04"     : "file(data/sounds/effects/sh_sheep_baa_04.wav)",
+
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
       "music:levelmusic_spring_day_02"     : "file(data/music/levelmusic_spring_day_02.ogg)",
@@ -1388,6 +1400,7 @@
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
       "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
+      "usable_item_tracker" : "file(services/server/inventory/useable_item_tracker.lua)", 
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "build:undo_manager" : "file(services/server/build/build_undo_manager.lua)",
@@ -1476,7 +1489,9 @@
       "player_jobs_controller" : "file(services/server/job/player_jobs_controller.lua)",
       "job_info_controller" : "file(services/server/job/job_info_controller.lua)",
 
-      "score:player_score_data" : "file(services/server/score/player_score_data.lua)"
+      "score:player_score_data" : "file(services/server/score/player_score_data.lua)",
+
+      "ai_injector" : "file(services/server/ai/ai_injector.lua)"
    },
 
    "client_controllers" :  {
@@ -1533,6 +1548,7 @@
       "personality" : "file(components/personality/personality_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
+      "farmer_field_layer" : "file(components/farmer_field_layer/farmer_field_layer_component.lua)",
       "shepherd_pasture" : "file(components/shepherd_pasture/shepherd_pasture_component.lua)", 
       "shepherded_animal" : "file(components/shepherd_pasture/shepherded_animal_component.lua)", 
       "growing" : "file(components/growing/growing_component.lua)", 
@@ -1551,7 +1567,8 @@
       "party" : "file(components/party/party_component.lua)",
       "party_member" : "file(components/party_member/party_member_component.lua)",
       "caged_entity" : "file(components/caged_entity/caged_entity_component.lua)", 
-      "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
+      "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)",
+      "mount" : "file(components/mount/mount_component.lua)"
    },
    "client_components" : {
       "building" : "file(components/building/building_component.lua)",
@@ -1665,6 +1682,7 @@
          "file(ui/common/confirm/confirm.js)",
          "file(ui/common/tooltip_helper/tooltip_helper.js)",
          "file(ui/common/input_helper/input_helper.js)",
+         "file(ui/common/hotkey_manager/hotkey_manager.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
          "file(ui/shell/new_game_options/new_game_options.js)",

@@ -2,7 +2,7 @@ local constants = require 'constants'
 
 local Eat = class()
 Eat.name = 'eat to live'
-Eat.status_text = 'getting food' -- eat item will override this when it runs
+Eat.status_text_key = 'ai_status_text_eat' -- eat item will override this when it runs
 Eat.does = 'stonehearth:eat'
 Eat.args = { }
 Eat.version = 2

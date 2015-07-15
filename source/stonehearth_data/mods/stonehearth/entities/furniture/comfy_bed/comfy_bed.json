@@ -31,6 +31,10 @@
                "max" : { "x" :  2, "y" : 1, "z" :  2 }
             }
          ]
+      },
+      "stonehearth:mount" : {
+         "mount_offset" : { "x" : 0, "y" : 1, "z" : -0.75 },
+         "mounted_model_variant" : "sleeping"
       }
    },
    "entity_data" : {

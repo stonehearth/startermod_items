@@ -18,25 +18,34 @@ end
 --
 --    @param entity - the entity currently being tracked
 -- 
-function SellableItemTracker:create_key_for_entity(entity)
+function SellableItemTracker:create_keys_for_entity(entity, storage)
    assert(entity:is_valid(), 'entity is not valid.')
 
    local entity_uri, _, _ = entity_forms.get_uris(entity)
+   local sellable 
 
    -- is it sellable?
    local net_worth = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth')
    if net_worth and net_worth.shop_info and net_worth.shop_info.sellable then
-      return entity:get_uri()
+      sellable = true
    end
 
-   -- nope!
+   --if it's sellable, AND it is public storage or escrow storage, then return the uri as the key
+   if sellable and storage then
+      local storage_component = storage:get_component('stonehearth:storage') 
+      if storage_component and (storage_component:is_public() or storage_component:get_name() == 'escrow') then
+         return {entity:get_uri()}
+      end
+   end
+
+   -- otherwise, nope!
    return nil
 
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
 -- Tracking data is the existing data stored for entities sharing the same key as
--- `entity` (see :create_key_for_entity()).  We store both an array of all entities
+-- `entity` (see :create_keys_for_entity()).  We store both an array of all entities
 -- sharing this uri and a total count.
 --
 --     @param entity - the entity being added to tracking data
@@ -52,7 +61,7 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
       local resale = math.ceil(cost * stonehearth.constants.shop.RESALE_CONSTANT)
 
       tracking_data = {
-         uri = entity:get_uri(),
+         uri = entity_uri,
          count = 0, 
          items = {},
          icon = unit_info:get_icon(),
@@ -75,7 +84,7 @@ end
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
--- the same key as (see :create_key_for_entity()).
+-- the same key as (see :create_keys_for_entity()).
 --
 --    @param entity_id - the entity id of the thing being removed.
 --    @param tracking_data - the tracking data for all entities of the same type
@@ -89,7 +98,10 @@ function SellableItemTracker:remove_entity_from_tracking_data(entity_id, trackin
    if tracking_data.items[entity_id] then
       tracking_data.items[entity_id] = nil
       tracking_data.count = tracking_data.count - 1
-      assert(tracking_data.count >= 0)
+      
+      if tracking_data.count <= 0 then
+         return nil
+      end
    end
    return tracking_data
 end

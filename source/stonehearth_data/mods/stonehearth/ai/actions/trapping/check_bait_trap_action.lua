@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 local CheckBaitTrap = class()
 
 CheckBaitTrap.name = 'check bait trap'
-CheckBaitTrap.status_text = 'checking traps'
+CheckBaitTrap.status_text_key = 'ai_status_text_check_bait_trap'
 CheckBaitTrap.does = 'stonehearth:trapping:check_bait_trap'
 CheckBaitTrap.args = {
    trapping_grounds = Entity
