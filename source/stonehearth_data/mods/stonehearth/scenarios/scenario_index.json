@@ -48,7 +48,6 @@
    },
    "dynamic" : {
       "scenarios" : [
-         "file(dynamic/simple_caravan_scenario)",
          "file(dynamic/returning_trader_scenario)"
       ]
    }
