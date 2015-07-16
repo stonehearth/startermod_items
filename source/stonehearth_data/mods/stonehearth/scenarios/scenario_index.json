@@ -48,7 +48,6 @@
    },
    "dynamic" : {
       "scenarios" : [
-         "file(dynamic/returning_trader_scenario)"
       ]
    }
 }
