@@ -13,6 +13,7 @@
       "tannery" : "file(encounters/tannery_shop.json)",
       "rugs" : "file(encounters/rugs_shop.json)",
 
-      "simple_caravan" : "file(encounters/simple_caravan_encounter.json)"
+      "simple_caravan" : "file(encounters/simple_caravan_encounter.json)",
+      "returning_trader" : "file(encounters/returning_trader_encounter.json)"
    }
 }
