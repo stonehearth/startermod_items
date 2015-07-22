@@ -71,15 +71,19 @@ bool MovementHelper::IsAdjacentTo(om::EntityPtr const& srcEntity, om::EntityPtr 
 csg::Region3f MovementHelper::GetRegionAdjacentToEntity(om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
 {
    csg::Region3f region = GetRegionAdjacentToEntityInternal(dstEntity);
-
-   om::MobPtr mob = srcEntity->GetComponent<om::Mob>();
-   om::Mob::MobCollisionTypes collisionType;
-   if (mob) {
-      collisionType = mob->GetMobCollisionType();
-   } else {
-      collisionType = om::Mob::MobCollisionTypes::NONE;
-   }
+   om::MobPtr dstMob = dstEntity->GetComponent<om::Mob>();
+   om::MobPtr srcMob = srcEntity->GetComponent<om::Mob>();
    
+   if (!srcMob || !dstMob) {
+      return region;
+   }
+
+   bool allowVerticalAdjacent = dstMob->GetAllowVerticalAdjacent();
+   if (!allowVerticalAdjacent) {
+      return region;
+   }
+
+   om::Mob::MobCollisionTypes collisionType = srcMob->GetMobCollisionType();
    int maxReachUp, maxReachDown;
    GetEntityReach(collisionType, maxReachUp, maxReachDown);
 

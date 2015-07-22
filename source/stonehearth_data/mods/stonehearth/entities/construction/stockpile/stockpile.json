@@ -5,6 +5,9 @@
          "name" : "Stockpile",
          "description" : "For storing things"
       },
+      "mob" : {
+         "allow_vertical_adjacent" : true
+      },
       "stonehearth:storage" : {
          "type" : "stockpile",
          "auto_fill_from" : [ "crate", "vault" ]
