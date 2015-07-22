@@ -7,8 +7,11 @@ local Region3 = _radiant.csg.Region3
 
 local PathFinder = class()
 local PathFinderDestructor = class()
+local BfsPathFinderDestructor = class()
 
 radiant.mixin(PathFinderDestructor, radiant.lib.Destructor)
+radiant.mixin(BfsPathFinderDestructor, radiant.lib.Destructor)
+
 
 function PathFinderDestructor:__init(pathfinder, id, solved_cb, exhausted_cb)
    self._id = id
@@ -31,6 +34,30 @@ end
 function PathFinderDestructor:destroy()
    if self._pathfinder then
       self._pathfinder:remove_destination(self._id, self._solved_cb, self._exhausted_cb)
+      self._pathfinder = nil
+   end
+end
+
+
+function BfsPathFinderDestructor:__init(pathfinder, solved_cb)
+   self._solved_cb = solved_cb
+   self._pathfinder = pathfinder
+end
+
+function BfsPathFinderDestructor:get_progress()
+   if self._pathfinder then
+      return self._pathfinder:get_progress()
+   end
+   return 'shared bfs pathfinder destroyed'
+end
+
+function BfsPathFinderDestructor:get_pathfinder_metadata()
+   return self._pathfinder:get_pathfinder_metadata()
+end
+
+function BfsPathFinderDestructor:destroy()
+   if self._pathfinder then
+      self._pathfinder:remove_solved_cb(self._solved_cb)      
       self._pathfinder = nil
    end
 end
@@ -130,9 +157,8 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
    assert(pf:get_description() == description)
 
    pf:add_solved_cb(solved_cb)
-   return radiant.lib.Destructor(function()
-         return pf:remove_solved_cb(solved_cb)
-      end)
+
+   return BfsPathFinderDestructor(pf, solved_cb)
 end
 
 return PathFinder
