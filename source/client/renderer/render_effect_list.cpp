@@ -415,8 +415,9 @@ ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::Effe
       return;
    }
 
-   json::Node cjo(node);
+   overlayNode_ = H3DNodeUnique(_hud->getHandle());
 
+   json::Node cjo(node);
    _materialDesc.load(cjo.get_node("material"));
    _overlayWidth = cjo.get("width", 64);
    _overlayHeight = cjo.get("height", 64);
