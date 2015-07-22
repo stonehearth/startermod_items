@@ -92,6 +92,7 @@ private:
    void ProcessTaskList();
    void ProcessJobList();
    void StepPathFinding();
+   void StepPathFindingForJobid(dm::ObjectId entityId, unsigned int jobId);
    rpc::ReactorDeferredPtr StartTaskManager();
    rpc::ReactorDeferredPtr StartPerformanceCounterPush();
    void PushPerformanceCounters();

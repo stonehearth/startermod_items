@@ -167,4 +167,11 @@ function SharedAStarPathFinder:get_progress()
    return 'pathfinder destroyed'
 end
 
+function SharedAStarPathFinder:get_pathfinder_metadata()
+   return {
+      entity_id = self._entity:get_id(),
+      job_id = self._pathfinder:get_id(),
+   }
+end
+
 return SharedAStarPathFinder

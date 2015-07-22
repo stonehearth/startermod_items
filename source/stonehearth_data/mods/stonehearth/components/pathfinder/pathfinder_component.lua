@@ -24,6 +24,10 @@ function PathFinderDestructor:get_progress()
    return 'shared pathfinder destroyed'
 end
 
+function PathFinderDestructor:get_pathfinder_metadata()
+   return self._pathfinder:get_pathfinder_metadata()
+end
+
 function PathFinderDestructor:destroy()
    if self._pathfinder then
       self._pathfinder:remove_destination(self._id, self._solved_cb, self._exhausted_cb)

@@ -170,6 +170,12 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRouteV("radiant:step_paths", [this](rpc::Function const& f) {
       StepPathFinding();
    });
+   core_reactor_->AddRouteV("radiant:step_path_with_jobid", [this](rpc::Function const& f) {
+      json::Node node(f.args);
+      unsigned int jobId = (unsigned int)node.get<int>(0, 0);
+      dm::ObjectId objId = (unsigned int)node.get<int>(1, 0);
+      StepPathFindingForJobid(objId, jobId);
+   });
    core_reactor_->AddRoute("radiant:game:start_task_manager", [this](rpc::Function const& f) {
       return StartTaskManager();
    });
@@ -526,6 +532,27 @@ void Simulation::StepPathFinding()
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
          p->Work(t);
+      }
+   });
+}
+
+void Simulation::StepPathFindingForJobid(dm::ObjectId entityId, unsigned int jobId)
+{
+   platform::timer t(1000);
+   radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
+      if (!p->IsFinished() && !p->IsIdle()) {
+         EntityJobScheduler *ejs = dynamic_cast<EntityJobScheduler*>(p.get());
+
+         if (ejs && ejs->GetEntity().lock() && ejs->GetEntity().lock()->GetObjectId() == entityId) {
+            auto& pfs = ejs->GetPathFinders();
+            auto& pf = pfs.find(jobId);
+
+            if (pf != pfs.end()) {
+               if (!pf->second.expired()) {
+                  pf->second.lock()->Work(t);
+               }
+            }
+         }
       }
    });
 }

@@ -68,6 +68,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, action, acti
    chain_function('protect_argument')
    chain_function('unprotect_argument')
    chain_function('set_debug_progress')
+   chain_function('set_debug_pathfinder_metadata')
   
    local actions = {
       -- for filters only   
@@ -182,6 +183,7 @@ function ExecutionUnitV2:get_debug_info(depth)
             o.name = self._action.name
             o.action = self:_get_action_debug_info(o.depth)
             o.progress = self._debug_progress
+            o.pathfinder_data = nil
          end)
       self:_update_debug_info_execution_frame()
    end
@@ -851,6 +853,14 @@ function ExecutionUnitV2:__set_debug_progress(format, ...)
    if self._debug_info then
       self._debug_info:modify(function (o)
             o.progress = self._debug_progress
+         end)
+   end   
+end
+
+function ExecutionUnitV2:__set_debug_pathfinder_metadata(pathfinder_data)
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+            o.pathfinder_data = pathfinder_data
          end)
    end   
 end

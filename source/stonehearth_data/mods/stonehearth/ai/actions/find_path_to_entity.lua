@@ -65,6 +65,7 @@ function FindPathToEntity:_start_pathfinder(ai)
 
    self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
                                     :find_path_to_entity(self._location, self._destination, on_success, on_exhausted)
+   ai:set_debug_pathfinder_metadata(self._pathfinder:get_pathfinder_metadata())
 
    self._progress_timer = radiant.set_realtime_interval("FindPathToEntity progress timer", 1000, function()
          ai:set_debug_progress('searching... ' .. self._pathfinder:get_progress())

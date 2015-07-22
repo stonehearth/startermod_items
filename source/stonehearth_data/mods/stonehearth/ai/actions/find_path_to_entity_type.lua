@@ -45,6 +45,7 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
                                                            args.filter_fn,      -- the actual filter function
                                                            self._description,    -- for those of us in meat space
                                                            solved)              -- our solved callback
+   ai:set_debug_pathfinder_metadata(self._pathfinder:get_pathfinder_metadata())
 end
 
 function FindPathToEntityType:stop_thinking(ai, entity, args)
