@@ -24,8 +24,8 @@ function PickupItemFromStorage:start_thinking(ai, entity, args)
    if container then
       self._storage = container
       local parent = radiant.entities.get_parent(item_entity)
-      local go_to_container = not parent or parent == container
-      local pickup_target = go_to_container and container or item_entity
+      local use_container = not parent or parent == container
+      local pickup_target = use_container and container or item_entity
 
       ai:set_think_output({
          item = item_entity,
