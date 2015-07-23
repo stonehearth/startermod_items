@@ -89,6 +89,27 @@ function csg_lib.get_face(cube, normal)
    return face
 end
 
+function csg_lib.get_region_footprint(region)
+   local footprint = Region3()
+   local min_y = nil
+
+   for cube in region:each_cube() do
+      local cube_min_y = cube.min.y
+
+      if not min_y or cube_min_y < min_y then
+         footprint:clear()
+         min_y = cube_min_y
+      end
+
+      if cube_min_y == min_y then
+         local slice = csg_lib.get_face(cube, -Point3.unit_y)
+         footprint:add_cube(slice)
+      end
+   end
+
+   return footprint
+end
+
 function csg_lib.each_corner_block_in_cube(cube, cb)
    -- block is a corner block when it is part of three or more faces
    csg_lib.each_block_in_cube_with_faces(cube, 3, cb)

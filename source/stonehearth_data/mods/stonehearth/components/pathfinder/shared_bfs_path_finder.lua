@@ -212,4 +212,11 @@ function SharedBfsPathFinder:_reconsider_destination(target)
    end
 end
 
+function SharedBfsPathFinder:get_pathfinder_metadata()
+   return {
+      entity_id = self._entity:get_id(),
+      job_id = self._pathfinder:get_id(),
+   }
+end
+
 return SharedBfsPathFinder

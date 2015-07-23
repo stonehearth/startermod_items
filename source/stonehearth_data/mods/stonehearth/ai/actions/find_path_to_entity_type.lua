@@ -45,6 +45,7 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
                                                            args.filter_fn,      -- the actual filter function
                                                            self._description,    -- for those of us in meat space
                                                            solved)              -- our solved callback
+   ai:set_debug_pathfinder_metadata(self._pathfinder:get_pathfinder_metadata())
 end
 
 function FindPathToEntityType:stop_thinking(ai, entity, args)
@@ -53,9 +54,9 @@ end
 
 function FindPathToEntityType:_destroy_pathfinder(reason)
    if self._pathfinder then
-      local count = self._pathfinder:destroy()
+      self._pathfinder:destroy()
       self._pathfinder = nil
-      self._log:info('destroying bfs pathfinder for %s @ %s (%d remaining, reason:%s)', self._description, self._location, count, reason)
+      self._log:info('destroying bfs pathfinder for %s @ %s (reason:%s)', self._description, self._location, reason)
    end
 end
 

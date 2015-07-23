@@ -20,11 +20,16 @@ function PickupItemFromStorageAdjacent:start_thinking(ai, entity, args)
 end
 
 function PickupItemFromStorageAdjacent:run(ai, entity, args)
-   local item = args.item   
+   local storage = args.storage
+   local item = args.item
    radiant.check.is_entity(item)
 
-   if not radiant.entities.is_adjacent_to(entity, args.storage) then
-      ai:abort('%s is not adjacent to %s', tostring(entity), tostring(args.storage))
+   local parent = radiant.entities.get_parent(item)
+   local use_container = not parent or parent == storage
+   local pickup_target = use_container and storage or item
+
+   if not radiant.entities.is_adjacent_to(entity, pickup_target) then
+      ai:abort('%s is not adjacent to %s', tostring(entity), tostring(pickup_target))
    end
 
    if stonehearth.ai:prepare_to_pickup_item(ai, entity, item) then
@@ -32,14 +37,14 @@ function PickupItemFromStorageAdjacent:run(ai, entity, args)
    end
    assert(not radiant.entities.get_carrying(entity))
 
-   radiant.entities.turn_to_face(entity, args.storage)
+   radiant.entities.turn_to_face(entity, storage)
 
    local success = self._storage_component:remove_item(args.item:get_id())
    if not success then
       ai:abort('item not found in storage')
    end  
  
-   local storage_location = radiant.entities.get_world_grid_location(args.storage)
+   local storage_location = radiant.entities.get_world_grid_location(storage)
    ai:execute('stonehearth:run_pickup_effect', { location = storage_location })
    stonehearth.ai:pickup_item(ai, entity, args.item)
 end

@@ -406,25 +406,37 @@ void LightEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 
 ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    RenderEffectTrack(e, effect->GetEffectId(), "activity overlay"),
-   _positioned(false)
+   _positioned(false),
+   _matRes(0)
 {
-   json::Node cjo(node);
+   _hud = h3dAddHudElementNode(e.GetNode(), "");
+   if (!_hud) {
+      EL_LOG(1) << "got null hud element.  was our parent not in the scene?";
+      return;
+   }
 
+   overlayNode_ = H3DNodeUnique(_hud->getHandle());
+
+   json::Node cjo(node);
    _materialDesc.load(cjo.get_node("material"));
    _overlayWidth = cjo.get("width", 64);
    _overlayHeight = cjo.get("height", 64);
    _yOffset = cjo.get("y_offset", 0);
-   _hud = h3dAddHudElementNode(e.GetNode(), "");
-   overlayNode_ = H3DNodeUnique(_hud->getHandle());
 }
 
 ActivityOverlayEffectTrack::~ActivityOverlayEffectTrack()
 {
-   h3dRemoveResource(_matRes);
+   if (_matRes) {
+      h3dRemoveResource(_matRes);
+   }
 }
 
 bool ActivityOverlayEffectTrack::PositionOverlayNode()
 {
+   if (!_hud) {
+      return false;
+   }
+
    float minX = 999999, maxX = -999999, minY = 999999, maxY = -999999;
    h3dGetNodeAABB(entity_.GetNode(), &minX, &minY, nullptr, &maxX, &maxY, nullptr);
    if (minX > maxX || minY > maxY) {

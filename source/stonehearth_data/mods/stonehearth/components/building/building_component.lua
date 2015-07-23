@@ -65,6 +65,14 @@ function Building:destroy()
       self._ec_trace:destroy()
       self._ec_trace = nil
    end
+
+   if self._traces then
+      assert(not next(self._traces))
+   end
+
+   if self._cp_listeners then
+      assert(not next(self._cp_listeners))
+   end
 end
 
 function Building:_restore_structure_traces()

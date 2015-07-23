@@ -1,4 +1,6 @@
 local constants = require('constants').construction
+local csg_lib = require 'lib.csg.csg_lib'
+local build_util = require 'lib.build_util'
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local WallLoopEditor = class(StructureEditor)
 
@@ -11,6 +13,7 @@ function WallLoopEditor:__init(build_service)
    self._log = radiant.log.create_logger('builder')
 end
 
+-- TODO: consider making a linear region selector class for this
 function WallLoopEditor:go(column_brush, wall_brush, response)
    self._column_brush = column_brush
    self._wall_brush = wall_brush
@@ -27,44 +30,46 @@ function WallLoopEditor:go(column_brush, wall_brush, response)
       :set_min_locations_count(2)
       :set_filter_fn(function(result)
             local entity = result.entity
-            local proxy_fabricator = current_column_editor:get_proxy_fabricator()
 
-            if entity == proxy_fabricator then
+            if entity == current_column_editor:get_proxy_fabricator() then
                return stonehearth.selection.FILTER_IGNORE
             end
 
-            if entity:get_component('stonehearth:building') then
-               return stonehearth.selection.FILTER_IGNORE
+            if last_column_editor then
+               -- prohibit zero length walls
+               if entity == last_column_editor:get_proxy_fabricator() then
+                  return false
+               end
             end
 
+            local fc = entity:get_component('stonehearth:fabricator')
+            if fc then
+               -- allow building on top of other blueprints
+               local top_face = result.normal:to_int().y == 1
+               if top_face then
+                  return true
+               end
+
+               -- allow closing the loop with an existing column
+               local blueprint = fc:get_blueprint()
+               if blueprint:get_component('stonehearth:column') then
+                  return stonehearth.selection.FILTER_IGNORE
+               end
+
+               return false
+            end
+
+            -- prohibit building in designations
             if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
                return false
             end
 
-            local location = result.brick
-            local rcs = proxy_fabricator:add_component('region_collision_shape')
-            local collision_region = rcs:get_region():get():translated(location)
-
-            -- make sure the column is not blocked
-            local overlapping_entities = radiant.terrain.get_entities_in_region(collision_region)
-            for _, overlapping_entity in pairs(overlapping_entities) do
-               if radiant.entities.is_solid_entity(overlapping_entity) then
-                  return stonehearth.selection.FILTER_IGNORE
-               end
-            end
-
-            -- make sure point below is supported
-            -- can happen when stabbing the side of a block
-            if not radiant.terrain.is_standable(location) then
-               return stonehearth.selection.FILTER_IGNORE
-            end
-            
-            return true
+            return stonehearth.selection.find_supported_xz_region_filter(result)
          end)
       :progress(function(selector, location, rotation)
             if location then
                if last_location then
-                  location = self:_fit_point_to_constraints(last_location, location, current_column_editor:get_proxy_blueprint())
+                  location = self:_fit_point_to_constraints(last_location, location, current_column_editor)
                end
                current_column_editor:move_to(location)
             else
@@ -100,9 +105,12 @@ function WallLoopEditor:go(column_brush, wall_brush, response)
 end
 
 function WallLoopEditor:_queue_wall(c0, c1)
+   local p0 = radiant.entities.get_world_grid_location(c0:get_proxy_blueprint())
+   local p1 = radiant.entities.get_world_grid_location(c1:get_proxy_blueprint())
+
    table.insert(self._queued_points, {
-      p0 = radiant.entities.get_world_grid_location(c0:get_proxy_blueprint()),
-      p1 = radiant.entities.get_world_grid_location(c1:get_proxy_blueprint()),
+      p0 = p0,
+      p1 = p1,
       editor = c0,
    })
    self:_pump_queue()
@@ -146,9 +154,11 @@ function WallLoopEditor:_pump_queue()
                end)
 end
 
-function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)  
-   p0, p1 = Point3(p0.x, p0.y, p0.z), Point3(p1.x, p1.y, p1.z)
-   
+function WallLoopEditor:_fit_point_to_constraints(p0, p1, column_editor)
+   if not p0 or not p1 then
+      return nil
+   end
+
    local t, n
    if math.abs(p0.x - p1.x) >  math.abs(p0.z - p1.z) then
       t = 'x'
@@ -161,17 +171,88 @@ function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)
    local d = math.min(math.abs(p1[t] - p0[t]), constants.MAX_WALL_SPAN)
    local dt = p1[t] > p0[t] and 1 or -1
 
-   p1.y = p0.y
-   p1[n] = p0[n]
-   p1[t] = p0[t] + d*dt
-   
-   local region = column1:add_component('destination'):get_region():get()
+   local start = Point3(p0)
+   local current = Point3(p0)
+   local max = Point3(p0)
+   max[t] = p0[t] + d*dt
 
-   -- TODO: check for other authoring entities that could be blocking the wall
-   while not _radiant.client.is_valid_standing_region(region:translated(p1)) and p1[t] ~= p0[t] do
-      p1[t] = p1[t] - dt
+   while current ~= max do
+      local test = Point3(current)
+      test[t] = test[t] + dt
+      if not self:_is_valid_location(test, column_editor) then
+         break
+      end
+      current = test
    end
-   return p1
+
+   return current
+end
+
+function WallLoopEditor:_is_valid_location(location, column_editor)
+   local blueprint = column_editor:get_proxy_blueprint()
+   local region = blueprint:add_component('destination'):get_region():get():translated(location)
+
+   local entities = radiant.terrain.get_entities_in_region(region)
+   local valid = true
+
+   -- check if we're obstructed by any illegal entities
+   for _, entity in pairs(entities) do
+      -- check if collision region is clear
+      if radiant.entities.is_solid_entity(entity) then
+         valid = false
+         break
+      end
+
+      -- don't allow other blueprints inside our region
+      local fabricator = entity:get_component('stonehearth:fabricator')
+      if fabricator then
+         local blueprint = fabricator:get_blueprint()
+         if not blueprint:get_component('stonehearth:column') then
+            valid = false
+            break
+         end
+      end
+
+      -- don't allow designations inside our region
+      if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
+         valid = false
+         break
+      end
+   end
+
+   if not valid then
+      return false
+   end
+
+   -- check if the footprint is supported by terrain or another building/blueprint
+   local support_region = csg_lib.get_region_footprint(region)
+   support_region:translate(-Point3.unit_y)
+   local entities = radiant.terrain.get_entities_in_region(support_region)
+   valid = false
+
+   for _, entity in pairs(entities) do
+      -- terrain is valid support
+      if entity:get_id() == 1 then
+         valid = true
+         break
+      end
+
+      -- buildings are valid support
+      local construction_data = entity:get_component('stonehearth:construction_data')
+      if construction_data then
+         valid = true
+         break
+      end
+
+      -- blueprints are valid support
+      local fabricator = entity:get_component('stonehearth:fabricator')
+      if fabricator then
+         valid = true
+         break
+      end
+   end
+
+   return valid
 end
 
 function WallLoopEditor:_create_column_editor(column_brush)
