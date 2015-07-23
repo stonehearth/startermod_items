@@ -21,17 +21,17 @@ function PickupItemTypeFromStorage:start_thinking(ai, entity, args)
 end
 
 function PickupItemTypeFromStorage:start(ai, entity, args)
-   self._crate_location_trace = radiant.entities.trace_location(args.storage, 'crate location trace')
+   self._storage_location_trace = radiant.entities.trace_location(args.storage, 'storage location trace')
       :on_changed(function()
-            ai:abort('drop carrying in crate destination moved.')
+            ai:abort('storage container moved')
          end)
 end
 
 
 function PickupItemTypeFromStorage:stop(ai, entity, args)
-   if self._crate_location_trace then
-      self._crate_location_trace:destroy()
-      self._crate_location_trace = nil
+   if self._storage_location_trace then
+      self._storage_location_trace:destroy()
+      self._storage_location_trace = nil
    end
 end
 
@@ -41,8 +41,8 @@ return ai:create_compound_action(PickupItemTypeFromStorage)
             filter_fn = ai.ARGS.filter_fn,
             storage = ai.ARGS.storage,
          })
-         :execute('stonehearth:goto_entity', {
-            entity = ai.ARGS.storage,
+         :execute('stonehearth:goto_entity_in_storage', {
+            entity = ai.PREV.item,
          })
          :execute('stonehearth:reserve_entity', { 
             entity = ai.BACK(2).item,

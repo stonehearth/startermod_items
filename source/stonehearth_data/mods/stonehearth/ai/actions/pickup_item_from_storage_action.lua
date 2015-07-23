@@ -23,37 +23,33 @@ function PickupItemFromStorage:start_thinking(ai, entity, args)
    local container = stonehearth.inventory:get_inventory(id):public_container_for(item_entity)
    if container then
       self._storage = container
-      local parent = radiant.entities.get_parent(item_entity)
-      local use_container = not parent or parent == container
-      local pickup_target = use_container and container or item_entity
 
       ai:set_think_output({
          item = item_entity,
          storage = container,
-         pickup_target = pickup_target,
       })
    end
 end
 
 function PickupItemFromStorage:start(ai, entity, args)
-   self._crate_location_trace = radiant.entities.trace_location(self._storage, 'crate location trace')
+   self._storage_location_trace = radiant.entities.trace_location(self._storage, 'storage location trace')
       :on_changed(function()
-            ai:abort('drop carrying in crate destination moved.')
+            ai:abort('storage container moved')
          end)
 end
 
 
 function PickupItemFromStorage:stop(ai, entity, args)
-   if self._crate_location_trace then
-      self._crate_location_trace:destroy()
-      self._crate_location_trace = nil
+   if self._storage_location_trace then
+      self._storage_location_trace:destroy()
+      self._storage_location_trace = nil
    end
 end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemFromStorage)
-         :execute('stonehearth:goto_entity', {
-            entity = ai.PREV.pickup_target,
+         :execute('stonehearth:goto_entity_in_storage', {
+            entity = ai.PREV.item,
          })
          :execute('stonehearth:reserve_entity', { 
             entity = ai.BACK(2).item,

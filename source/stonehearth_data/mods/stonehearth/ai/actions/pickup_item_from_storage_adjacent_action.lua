@@ -1,5 +1,6 @@
 local Entity = _radiant.om.Entity
 local PickupItemFromStorageAdjacent = class()
+local log = radiant.log.create_logger('pathfinder')
 
 PickupItemFromStorageAdjacent.name = 'pickup item from storage adjacent'
 PickupItemFromStorageAdjacent.does = 'stonehearth:pickup_item_from_storage_adjacent'
@@ -29,6 +30,7 @@ function PickupItemFromStorageAdjacent:run(ai, entity, args)
    local pickup_target = use_container and storage or item
 
    if not radiant.entities.is_adjacent_to(entity, pickup_target) then
+      log:error('%s is not adjacent to %s', tostring(entity), tostring(pickup_target))
       ai:abort('%s is not adjacent to %s', tostring(entity), tostring(pickup_target))
    end
 
