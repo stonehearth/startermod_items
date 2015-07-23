@@ -239,35 +239,34 @@ function Inventory:add_item(item, storage)
    if in_world_item then
       item = in_world_item
    end
-   self:_check_entity_forms_of_new_item(item)
 
    local id = item:get_id()
    local items = self._sv.items
 
-   item:add_component('unit_info')
-            :set_player_id(self._sv.player_id)
-
-   --if the item already exists in the inventory, then just update its info
+   -- If the item already exists in the inventory, then just update its info
    if items[id] then
       self:update_item_container(id, storage)
       return
    end
-   
-   assert(not self._sv.container_for[id])
 
+   self:_check_if_valid_form(item)
+   self:_remove_alternate_forms(item)
+
+   item:add_component('unit_info'):set_player_id(self._sv.player_id)
    items[id] = item
 
-   -- update the container map
+   -- Update the container map
+   assert(not self._sv.container_for[id])
    if storage then
       self._sv.container_for[id] = storage
    end
 
-   --Tell all the trackers for this player about this item
+   -- Tell all the trackers for this player about this item
    for name, tracker in pairs(self._sv.trackers) do
       tracker:add_item(item, storage)
    end
 
-   -- update the score
+   -- Update the score
    self:_update_score_for_item(item)
 
    radiant.events.trigger(self, 'stonehearth:inventory:item_added', { item = item })
@@ -563,30 +562,36 @@ function Inventory:update_item_container(id, storage)
    self:_check_public_storage_space()
 end
 
-function Inventory:_check_entity_forms_of_new_item(item)
+function Inventory:_remove_alternate_forms(item)
    local root, iconic, ghost = entity_forms_lib.get_forms(item)
    if not root then
       return
    end
    
    if item == root then
-      -- we are the root item!  verify the iconic isn't in the inventory
-      if iconic then
-         radiant.assert(not self._sv.items[iconic:get_id()], 'tried to add root %s when iconic is already in inventory', radiant.util.tostring(root))
-      end      
+      -- we are the root item! remove the iconic form if it is in the inventory
+      if iconic and self:contains_item(iconic) then
+         self:remove_item(iconic)
+      end
+      return
    end
+
    if item == iconic then
-      -- we are the iconic item!  verify the root isn't in the inventory
-      if iconic then
-         radiant.assert(not self._sv.items[root:get_id()], 'tried to add iconic %s when root is already in inventory', radiant.util.tostring(iconic))
-      end      
-   end
-   -- we can never, ever add the ghost
-   if ghost then
-      radiant.assert(item ~= ghost, 'cannot add ghost form of %s to inventory', radiant.util.tostring(root))
+      -- we are the iconic item! remove the root form if it is in the inventory
+      if self:contains_item(root) then
+         self:remove_item(root)
+      end
+      return
    end
 end
 
+function Inventory:_check_if_valid_form(item)
+   local ghost_form_component = item:get_component('stonehearth:ghost_form')
 
+   -- ghost forms are not allowed in the inventory
+   if ghost_form_component then
+      error(string.format('cannot add ghost form %s to inventory', radiant.util.tostring(item)))
+   end
+end
 
 return Inventory
