@@ -8,8 +8,8 @@ PutCarryingInBackpack.version = 2
 PutCarryingInBackpack.priority = 1
 
 function PutCarryingInBackpack:start_thinking(ai, entity, args)
-   local storage_component = entity:add_component('stonehearth:storage')
-   if ai.CURRENT.carrying == nil or not storage_component:is_full() then
+   local storage_component = entity:get_component('stonehearth:storage')
+   if ai.CURRENT.carrying == nil or not storage_component or not storage_component:is_full() then
       ai.CURRENT.carrying = nil
       ai:set_think_output()
    end
@@ -22,8 +22,8 @@ function PutCarryingInBackpack:run(ai, entity, args)
       return
    end
 
-   local storage_component = entity:add_component('stonehearth:storage')
-   if storage_component:is_full() then
+   local storage_component = entity:get_component('stonehearth:storage')
+   if not storage_component or storage_component:is_full() then
       ai:abort('cannot put carrying in inventory when inventory is full')
       return
    end
