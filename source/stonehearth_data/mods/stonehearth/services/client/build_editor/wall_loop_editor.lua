@@ -59,9 +59,15 @@ function WallLoopEditor:go(column_brush, wall_brush, response)
                return false
             end
 
-            -- prohibit building in designations
-            if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
-               return false
+            local location = result.brick
+            local blueprint = current_column_editor:get_proxy_blueprint()
+            local region = blueprint:add_component('destination'):get_region():get():translated(location)
+            local entities = radiant.terrain.get_entities_in_region(region)
+
+            for _, entity in pairs(entities) do
+               if not self:_can_contain_entity(entity) then
+                  return false
+               end
             end
 
             return stonehearth.selection.find_supported_xz_region_filter(result)
@@ -191,68 +197,70 @@ end
 function WallLoopEditor:_is_valid_location(location, column_editor)
    local blueprint = column_editor:get_proxy_blueprint()
    local region = blueprint:add_component('destination'):get_region():get():translated(location)
-
    local entities = radiant.terrain.get_entities_in_region(region)
-   local valid = true
 
    -- check if we're obstructed by any illegal entities
    for _, entity in pairs(entities) do
-      -- check if collision region is clear
-      if radiant.entities.is_solid_entity(entity) then
-         valid = false
-         break
+      if not self:_can_contain_entity(entity) then
+         return false
       end
-
-      -- don't allow other blueprints inside our region
-      local fabricator = entity:get_component('stonehearth:fabricator')
-      if fabricator then
-         local blueprint = fabricator:get_blueprint()
-         if not blueprint:get_component('stonehearth:column') then
-            valid = false
-            break
-         end
-      end
-
-      -- don't allow designations inside our region
-      if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
-         valid = false
-         break
-      end
-   end
-
-   if not valid then
-      return false
    end
 
    -- check if the footprint is supported by terrain or another building/blueprint
    local support_region = csg_lib.get_region_footprint(region)
    support_region:translate(-Point3.unit_y)
    local entities = radiant.terrain.get_entities_in_region(support_region)
-   valid = false
 
    for _, entity in pairs(entities) do
-      -- terrain is valid support
-      if entity:get_id() == 1 then
-         valid = true
-         break
-      end
-
-      -- buildings are valid support
-      local construction_data = entity:get_component('stonehearth:construction_data')
-      if construction_data then
-         valid = true
-         break
-      end
-
-      -- blueprints are valid support
-      local fabricator = entity:get_component('stonehearth:fabricator')
-      if fabricator then
-         valid = true
-         break
+      if self:_is_valid_support_entity(entity) then
+         return true
       end
    end
 
-   return valid
+   return false
+end
+
+function WallLoopEditor:_can_contain_entity(entity)
+   -- check if collision region is clear
+   if radiant.entities.is_solid_entity(entity) then
+      return false
+   end
+
+   -- don't allow other blueprints inside our region
+   local fabricator = entity:get_component('stonehearth:fabricator')
+   if fabricator then
+      local blueprint = fabricator:get_blueprint()
+      -- columns are ok since we want to close the wall loop
+      if not blueprint:get_component('stonehearth:column') then
+         return false
+      end
+   end
+
+   -- don't allow designations inside our region
+   if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
+      return false
+   end
+
+   return true
+end
+
+function WallLoopEditor:_is_valid_support_entity(entity)
+   -- terrain is valid support
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   -- buildings are valid support
+   if entity:get_component('stonehearth:construction_data') then
+      return true
+   end
+
+   -- blueprints are valid support
+   if entity:get_component('stonehearth:fabricator') then
+      return true
+   end
+
+   return false
 end
 
 function WallLoopEditor:_create_column_editor(column_brush)

@@ -21,19 +21,23 @@ SelectionService.FILTER_IGNORE = 'ignore'
 -- a filter function which looks for things which are solid.
 --
 SelectionService.find_supported_xz_region_filter = function(result)
+   -- solid regions are good if we're pointing at the top face
+   local valid_normal = result.normal:to_int().y == 1
    local entity = result.entity
 
-   -- fast check for 'is terrain'
-   if entity:get_id() == 1 then
-      return true
-   end
+   if valid_normal then
+      -- fast check for 'is terrain'
+      if entity:get_id() == 1 then
+         return true
+      end
 
-   -- solid regions are good if we're pointing at the top face
-   if result.normal:to_int().y == 1 then
       local rcs = entity:get_component('region_collision_shape')
       if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
          return true
       end
+   else
+      -- for now we allow stabbing through solid objects
+      -- makes designating regions with lost of trees easier
    end
 
    -- otherwise, keep looking!
