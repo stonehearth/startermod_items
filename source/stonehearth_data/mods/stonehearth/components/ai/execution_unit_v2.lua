@@ -191,7 +191,7 @@ function ExecutionUnitV2:get_debug_info(depth)
 end
 
 function ExecutionUnitV2:_unknown_transition(msg)
-   local err = string.format('bad unit transition "%s" from  "%s"', msg, self._state)
+   local err = string.format('bad unit transition "%s" from  "%s" in action %s', msg, self._state, self._action.name)
    self._log:info(err)
    error(err)
 end
