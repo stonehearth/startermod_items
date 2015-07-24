@@ -95,6 +95,14 @@ $(document).ready(function(){
       description : "Instantly builds the selected building, or arg 0. Usage: ib object://game/12345"
    });
 
+   radiant.console.register('im', {
+      call: function(cmdobj, fn, args) {
+         var mine = args[0] || selected;
+         return radiant.call_obj('stonehearth.mining', 'insta_mine_zone_command', mine);
+      },
+      description : "Instantly mines the selected mining zone or arg 0. Usage: im object://game/12345"
+   });
+
    radiant.console.register('get_cost', {
       call: function(cmdobj, fn, args) {
          var building = args[0] || selected;
