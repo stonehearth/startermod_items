@@ -366,6 +366,12 @@ end
 
 -- TODO: this should depend on the reach of the class of workers in the task group.
 function EntityFormsComponent:_get_min_ladder_height()
+   local mob = self._entity:add_component('mob')
+   local allow_vertical_adjacent = mob and mob:get_allow_vertical_adjacent()
+   if not allow_vertical_adjacent then
+      return 0
+   end
+
    local max_reach_up, max_reach_down = _radiant.sim.get_entity_reach(_radiant.om.Mob.HUMANOID)
    return max_reach_up + 1
 end

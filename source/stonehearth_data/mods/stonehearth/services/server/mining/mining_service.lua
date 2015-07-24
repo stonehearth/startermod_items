@@ -363,6 +363,21 @@ function MiningService:set_insta_mine(value)
    self._enable_insta_mine = value
 end
 
+function MiningService:insta_mine_zone_command(session, response, mining_zone)
+   local mining_zone_component = mining_zone:get_component('stonehearth:mining_zone')
+   if not mining_zone_component then
+      return false
+   end
+   local region = mining_zone_component:get_region():get()
+   if not region then
+      return false
+   end
+   local location = radiant.entities.get_world_grid_location(mining_zone)
+   local world_region = region:translated(location)
+   self:_insta_mine(world_region)
+   return true
+end
+
 function MiningService:_insta_mine(region)
    local terrain_region = radiant.terrain.intersect_region(region)
 
