@@ -2083,12 +2083,17 @@ bool Renderer::LoadMissingResources()
       // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony
       try {
          inf = resourceManager.OpenResource(resourcePath);
-      } catch (std::exception const&) {
-         R_LOG(0) << "failed to load render resource " << resourceName;
+      } catch (std::exception const& e) {
+         R_LOG(0) << "failed to find render resource " << resourceName << " reason: " << e.what();
       }
       if (inf) {
          std::string buffer = io::read_contents(*inf);
-         result = h3dLoadResource(res, buffer.c_str(), (int)buffer.size()) && result;
+         try {
+            result = h3dLoadResource(res, buffer.c_str(), (int)buffer.size()) && result;
+         } catch (std::exception const& e) {
+            result = false;
+            R_LOG(0) << "failed to load render resource " << resourceName << " reason: \"" << e.what() << "\"";
+         }
       } else {
          // Tell engine to use the default resource by using NULL as data pointer
          h3dLoadResource(res, 0x0, 0);
