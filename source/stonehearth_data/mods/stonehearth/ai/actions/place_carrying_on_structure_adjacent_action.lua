@@ -42,8 +42,8 @@ function PlaceItemOnStructureAdjacent:run(ai, entity, args)
                         :turn_to(args.rotation)
 
    if args.ignore_gravity then
-      entity:get_component('mob')
-               :set_ignore_gravity(true)
+      self._root_entity:get_component('mob')
+                           :set_ignore_gravity(true)
    end
 end
 
