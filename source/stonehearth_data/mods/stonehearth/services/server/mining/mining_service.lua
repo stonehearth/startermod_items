@@ -375,6 +375,7 @@ function MiningService:insta_mine_zone_command(session, response, mining_zone)
    local location = radiant.entities.get_world_grid_location(mining_zone)
    local world_region = region:translated(location)
    self:_insta_mine(world_region)
+   radiant.entities.destroy_entity(mining_zone)
    return true
 end
 
