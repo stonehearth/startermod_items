@@ -97,6 +97,9 @@ struct RotatedRegion
 
 template <typename S, int C>
 Region<S, C> Rotated(Region<S, C> const &other, int degrees) {
+   if (degrees >= 360) {
+      degrees = degrees % 360;
+   }
    if (degrees == 0) {
       return other;
    } else if (degrees == 90) {
@@ -112,6 +115,9 @@ Region<S, C> Rotated(Region<S, C> const &other, int degrees) {
 
 template <typename S, int C>
 Cube<S, C> Rotated(Cube<S, C> const &other, int degrees) {
+   if (degrees >= 360) {
+      degrees = degrees % 360;
+   }
    if (degrees == 0) {
       return other;
    } else if (degrees == 90) {
@@ -127,6 +133,9 @@ Cube<S, C> Rotated(Cube<S, C> const &other, int degrees) {
 
 template <typename S, int C>
 Point<S, C> Rotated(Point<S, C> const &other, int degrees) {
+   if (degrees >= 360) {
+      degrees = degrees % 360;
+   }
    if (degrees == 0) {
       return other;
    } else if (degrees == 90) {
@@ -226,6 +235,9 @@ struct RotateRegion
 
 template <typename S, int C>
 void Rotate(Region<S, C> &other, int degrees) {
+   if (degrees >= 360) {
+      degrees = degrees % 360;
+   }
    if (degrees == 0) {
    } else if (degrees == 90) {
       RotateRegion<S, C, 90>()(other);
@@ -240,6 +252,9 @@ void Rotate(Region<S, C> &other, int degrees) {
 
 template <typename S, int C>
 void Rotate(Cube<S, C> &other, int degrees) {
+   if (degrees >= 360) {
+      degrees = degrees % 360;
+   }
    if (degrees == 0) {
    } else if (degrees == 90) {
       RotateCube<S, C, 90>()(other);
@@ -254,6 +269,9 @@ void Rotate(Cube<S, C> &other, int degrees) {
 
 template <typename S, int C>
 void Rotate(Point<S, C> &other, int degrees) {
+   if (degrees >= 360) {
+      degrees = degrees % 360;
+   }
    if (degrees == 0) {
    } else if (degrees == 90) {
       RotatePoint<S, C, 90>()(other);

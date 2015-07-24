@@ -54,9 +54,9 @@ end
 
 function FindPathToEntityType:_destroy_pathfinder(reason)
    if self._pathfinder then
-      local count = self._pathfinder:destroy()
+      self._pathfinder:destroy()
       self._pathfinder = nil
-      self._log:info('destroying bfs pathfinder for %s @ %s (%d remaining, reason:%s)', self._description, self._location, count, reason)
+      self._log:info('destroying bfs pathfinder for %s @ %s (reason:%s)', self._description, self._location, reason)
    end
 end
 

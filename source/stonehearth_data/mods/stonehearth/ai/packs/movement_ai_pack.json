@@ -18,6 +18,7 @@
       "stonehearth:actions:run_away_from_entity",
       "stonehearth:actions:goto_item_made_of",
       "stonehearth:actions:goto_entity_with_entity_data",
+      "stonehearth:actions:goto_entity_in_storage",
       "stonehearth:actions:follow_entity",
       "stonehearth:actions:chase_entity",
 

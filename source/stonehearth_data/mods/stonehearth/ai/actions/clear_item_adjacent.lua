@@ -12,6 +12,7 @@ ClearItemAdjacent.priority = 1
 function ClearItemAdjacent:run(ai, entity, args)
    local item = args.item
    radiant.check.is_entity(item)
+   ai:unprotect_argument(item)
    radiant.entities.turn_to_face(entity, item)
    ai:execute('stonehearth:run_effect', {effect = 'work'})
    radiant.entities.destroy_entity(item)

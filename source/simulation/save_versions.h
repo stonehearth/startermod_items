@@ -23,9 +23,12 @@ enum SaveVersion {
    // incompatible changes.
    ALPHA_11_BUILD_2,
 
+   // Bug fixes
+   ALPHA_11_BUILD_3,
+
    // The current save version.  Should always point to the last item in
    // the list.                    
-   CURRENT_SAVE_VERSION = ALPHA_11_BUILD_2
+   CURRENT_SAVE_VERSION = ALPHA_11_BUILD_3
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -224,6 +224,8 @@ void Mob::LoadFromJson(json::Node const& obj)
          mob_collision_type_ = i->second;
       }
    }
+
+   allow_vertical_adjacent_ = obj.get<bool>("allow_vertical_adjacent", false);
 }
 
 void Mob::SerializeToJson(json::Node& node) const
@@ -244,6 +246,7 @@ void Mob::SerializeToJson(json::Node& node) const
    node.set("interpolate_movement", GetInterpolateMovement());
    node.set("in_free_motion", GetInFreeMotion());
    node.set("mob_collision_type", __type_to_str[GetMobCollisionType()]);
+   node.set("allow_vertical_adjacent", GetAllowVerticalAdjacent());
    EntityPtr parent = GetParent().lock();
    if (parent) {
       node.set("parent", parent->GetStoreAddress());
