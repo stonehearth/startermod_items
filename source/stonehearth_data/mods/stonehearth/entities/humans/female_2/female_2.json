@@ -14,7 +14,10 @@
                   "items": [
                      "file(head_1.qb)",
                      "file(head_2.qb)",
-                     "file(head_3.qb)"
+                     "file(head_3.qb)",
+                     "file(head_1_sandy.qb)",
+                     "file(head_2_sandy.qb)",
+                     "file(head_3_sandy.qb)"
                   ]
                }, 
                "file(body.qb)"
