@@ -169,7 +169,7 @@ function ReturningTrader:_make_message(message_composite)
 
    local hours_remaing = 0
    if self._sv.timer then
-      hours_remaing = stonehearth.calendar:get_remaining_time(self._sv.timer, 'd')
+      hours_remaing = stonehearth.calendar:get_remaining_time(self._sv.timer, 'h')
       hours_remaing = math.floor(hours_remaing)
       message_composite = string.gsub(message_composite, '__hour_counter__',  hours_remaing)
    end
