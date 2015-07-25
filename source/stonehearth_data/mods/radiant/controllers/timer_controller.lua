@@ -33,6 +33,15 @@ function Timer:get_expire_time()
    return self._sv._expire_time
 end
 
+function Timer:get_duration()
+   return self._sv._duration
+end
+
+function Timer:set_duration(duration)
+   assert(self._sv._repeating, "Trying to set duration on a timer controller that isn't repeating. This won't do anything.")
+   self._sv._duration = duration
+end
+
 function Timer:fire(now)
    if self._sv._repeating then
       self._sv._expire_time = now + self._sv._duration
