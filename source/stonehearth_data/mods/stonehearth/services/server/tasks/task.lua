@@ -381,8 +381,11 @@ function Task:estimate_task_distance(worker_location)
             local rgn = adjacent:get()
             if not rgn:empty() then
                -- great!  find the closest point..
+               -- note that it's possible source is currently not in the world
                local origin = radiant.entities.get_world_grid_location(self._source)
-               source_location = rgn:get_closest_point(worker_location - origin) + origin
+               if origin then
+                  source_location = rgn:get_closest_point(worker_location - origin) + origin
+               end
             end
          end
       end
