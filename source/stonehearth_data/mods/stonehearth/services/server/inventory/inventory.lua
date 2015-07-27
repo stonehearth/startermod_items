@@ -143,6 +143,7 @@ function Inventory:add_storage(entity)
          self:_check_public_storage_space()
       end
       self.__saved_variables:mark_changed()
+      radiant.events.trigger(self, 'stonehearth:inventory:storage_added', { storage = storage })
    end
 end
 
@@ -154,6 +155,7 @@ function Inventory:remove_storage(id)
          if t == SHARED_STORAGE then
             self:_check_public_storage_space()
          end
+         radiant.events.trigger(self, 'stonehearth:inventory:storage_removed', { storage_id = id })
       end
    end
 end
@@ -214,6 +216,10 @@ end
 --Returns a map of the stockpiles, sorted by ID
 function Inventory:get_all_stockpiles()
    return self._sv.stockpiles
+end
+
+function Inventory:get_all_public_storage()
+   return self._sv.storage[SHARED_STORAGE]
 end
 
 function Inventory:add_stockpile(stockpile)
