@@ -159,6 +159,7 @@ parser.add_argument('-g', '--group', help='runs the specified test group')
 parser.add_argument('-i', '--interactive', action='store_true', help='run in interactive mode (maximizes the window)')
 parser.add_argument('-t', '--timeout', help='Sets a timeout for the test-running process')
 parser.add_argument('-p', '--toplevel', help='Set the top-level directory for running radsub')
+parser.add_argument('-j', '--nojson', action='store_true', help='Skip the json checking')
 parser.add_argument('settings', nargs=argparse.REMAINDER, help='settings to pass to Stonehearth (e.g. --mods.foo.bar=7 --mods.foo.baz=bing)')
 
 args = parser.parse_args(sys.argv[1:])
@@ -216,12 +217,15 @@ if not args.interactive:
 if len(args.settings) > 1:
    sh_args += ' ' + reduce(lambda x,y: x + ' ' + y, args.settings[1:])
 
-print 'Checking JSON files ...'
-if not check_json(sh_cwd):
-   print 'Check json failed'
-   sys.exit(1)
+if args.nojson:
+   print 'Skipping JSON file check'
+else:
+   print 'Checking JSON files ...'
+   if not check_json(sh_cwd):
+      print 'Check json failed'
+      sys.exit(1)
+   print 'JSON files are good!'
 
-print 'JSON files are good!'
 return_code = run_tests()
 
 if return_code != 0:
