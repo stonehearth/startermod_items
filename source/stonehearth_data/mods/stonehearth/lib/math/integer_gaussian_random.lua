@@ -1,8 +1,11 @@
 local IntegerGaussianRandom = class()
-local log = radiant.log.create_logger('world_generation')
+local log = radiant.log.create_logger('math')
 
 function IntegerGaussianRandom:__init(rng)
    self._rng = rng
+   if not self._rng then
+      self._rng = _radiant.csg.get_default_rng()
+   end
 end
 
 function IntegerGaussianRandom:get_int(min, max, std_dev)
@@ -12,14 +15,18 @@ function IntegerGaussianRandom:get_int(min, max, std_dev)
    local max_float = max+0.5
    local rand
 
-   while true do
+   for i=1,10 do
       rand = rng:get_gaussian(mean, std_dev)
 
       -- do not break when rand == max_float because of 0.5 rounding
-      if rand >= min_float and rand < max_float then break end
+      if rand >= min_float and rand < max_float then
+         return radiant.math.round(rand)
+      end
    end
 
-   return radiant.math.round(rand)
+   -- failed?  the std_dev must be MASSIVE.  resort to linear.
+   log:detail('falling back to lineary distribution for gaussian random int between %d and %d (stddev:%.2f)', min, max, std_dev)
+   return rng:get_int(min, max)
 end
 
 function IntegerGaussianRandom:simulate_probabilities(min, max, std_dev, iterations)

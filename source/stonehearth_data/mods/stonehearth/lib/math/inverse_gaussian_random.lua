@@ -1,5 +1,5 @@
 local InverseGaussianRandom = class()
-local log = radiant.log.create_logger('world_generation')
+local log = radiant.log.create_logger('math')
 
 function InverseGaussianRandom:__init(rng)
    self._rng = rng

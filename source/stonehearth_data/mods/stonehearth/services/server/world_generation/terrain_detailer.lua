@@ -1,7 +1,7 @@
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
-local InverseGaussianRandom = require 'services.server.world_generation.math.inverse_gaussian_random'
+local InverseGaussianRandom = require 'lib.math.inverse_gaussian_random'
 local TerrainDetailer = class()
 
 -- note that the tile_width and tile_height passed in are currently the oversize width and height

@@ -1,5 +1,5 @@
 local constants = require 'constants'
-local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
+local NonUniformQuantizer = require 'lib.math.non_uniform_quantizer'
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2

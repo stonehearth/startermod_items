@@ -47,9 +47,11 @@
    - design: do the derived attributes make the player feel that the differences are bigger than are actually important? This is the opposite of what we want
 ]]
 
+local IntegerGaussianRandom = require 'lib.math.integer_gaussian_random'
 local AttributeModifier = require 'components.attributes.attribute_modifier'
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('attributes')
+local gaussian_rng = IntegerGaussianRandom(rng)
 
 local AttributesComponent = class()
 
@@ -131,7 +133,13 @@ function AttributesComponent:_update_attribute(name, attribute, data)
    if attribute.type == 'basic' then
       attribute.value = data.value
    elseif attribute.type == 'random_range' then
-      attribute.value = rng:get_int(data.base, data.max)
+      if attribute.std_dev then
+         -- use a gaussian distribution
+         attribute.value = gaussian_rng:get_int(data.base, data.max, attribute.std_dev)
+      else
+         -- use a linear distribution
+         attribute.value = rng:get_int(data.base, data.max)
+      end
    elseif attribute.type == 'derived' or attribute.type == 'variable' then
       attribute.equation = data.equation
       self:_load_dependencies(data.equation, name)
