@@ -982,7 +982,7 @@ DLLEXP bool h3dutScreenshot(const char *fname, H3DRes renderTexRes)
    }
 
    unsigned char *pixels = nullptr;
-   if (flags & H3DResFlags::TexRenderable) {
+   if (flags & H3DResFlags::TexRenderable || renderTexRes == 0) {
       float *pixelsF = new float[width * height * 4];
 
       if (renderTexRes) {
