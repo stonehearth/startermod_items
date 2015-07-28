@@ -14,6 +14,10 @@ function Terrain.set_config_file(config_file, is_server)
    Terrain._initialize_block_types(config_file)
 end
 
+function Terrain.get_config()
+   return Terrain._config
+end
+
 -- Must be called after set_config_file
 function Terrain.get_block_types()
    return Terrain._block_types
@@ -449,12 +453,12 @@ function Terrain.get_movement_speed_at(point)
 end
 
 function Terrain._initialize_block_types(config_file)
-   local config = radiant.resources.load_json(config_file)
+   Terrain._config = radiant.resources.load_json(config_file)
    Terrain._block_types = {}
    Terrain._block_kinds = {}
    Terrain._block_tags = {}
 
-   for name, block_type in pairs(config.block_types) do
+   for name, block_type in pairs(Terrain._config.block_types) do
       Terrain._block_types[name] = block_type.tag
       Terrain._block_kinds[block_type.tag] = block_type.kind
       Terrain._block_tags[block_type.kind] = block_type.tag

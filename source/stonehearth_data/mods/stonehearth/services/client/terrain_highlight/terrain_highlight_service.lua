@@ -9,20 +9,12 @@ TerrainHighlightService = class()
 function TerrainHighlightService:__init()
    self._selection_radius = 8
 
-   self._kind_to_entity_map = {
-      copper_ore = radiant.entities.create_entity('stonehearth:terrain:ui:copper_block'),
-      tin_ore = radiant.entities.create_entity('stonehearth:terrain:ui:tin_block'),
-      iron_ore = radiant.entities.create_entity('stonehearth:terrain:ui:iron_block'),
-      coal = radiant.entities.create_entity('stonehearth:terrain:ui:coal_block'),
-      silver_ore = radiant.entities.create_entity('stonehearth:terrain:ui:silver_block'),
-      gold_ore = radiant.entities.create_entity('stonehearth:terrain:ui:gold_block')
-   }
+   self._kind_to_entity_map = {}
 
-   -- self._id_to_entity_map = {}
-   -- for kind, entity in pairs(self._kind_to_entity_map) do
-   --    local id = entity:get_id()
-   --    self._id_to_entity_map[id] = entity
-   -- end
+   local config = radiant.terrain.get_config()
+   for kind, entity_name in pairs(config.selectable_kinds) do
+      self._kind_to_entity_map[kind] = radiant.entities.create_entity(entity_name)
+   end
 
    self._empty_region = Region3()
    self._far_away = Point3(radiant.math.MAX_INT32, radiant.math.MAX_INT32, radiant.math.MAX_INT32)
