@@ -363,16 +363,16 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
 
    local good_normal = nil
    for _, normal in pairs(normals) do
+      local good = true
       local world_region = blueprint_rgn:translated(self._sv.origin + normal)
       local unblocked_region = _physics:clip_region(world_region, CLIP_SOLID)
-      good_normal = normal
 
       -- if anything blocks the proposed box, don't bother.
       if unblocked_region:get_bounds().min.y ~= world_region:get_bounds().min.y then
          self._log:detail('normal %s is blocked by world.  rejecting.', normal)
-         good_normal = nil
+         good = false
       end
-      if good_normal then
+      if good then
          -- if there are any blueprint fabricators in the way, there *will* be something
          -- blocking this direction in the future, so stay away from it
          local obstructing = radiant.terrain.get_entities_in_region(unblocked_region);
@@ -381,16 +381,19 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
                local rcs = entity:get_component('region_collision_shape')
                if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.SOLID then
                   self._log:detail('normal %s intersects fabricator %s.  rejecting', normal, entity)
-                  good_normal = nil
+                  good = false
                   break
                end
             end
          end
       end
-      if (good_normal and not preferred_normal) or (good_normal and preferred_normal and good_normal == preferred_normal) then
+      if (good and not preferred_normal) or (good and preferred_normal and normal == preferred_normal) then
          self._log:detail('normal %s is all good!  using it.', good_normal)
-         self._sv.normal = good_normal
+         self._sv.normal = normal
          return
+      elseif good then
+         -- We're good, but maybe a preferred normal still exists, so keep looking?
+         good_normal = normal
       end
    end
 
