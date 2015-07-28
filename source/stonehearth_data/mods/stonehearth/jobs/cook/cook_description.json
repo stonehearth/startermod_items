@@ -4,7 +4,7 @@
    "name": "Cook",      
    "controller" : "stonehearth:class:cook", 
    "description" : "The cook makes delicious, hearty meals from base vegetables and meats.", 
-   "requirements": "Stonewear Spoon, crafted by the Mason.",
+   "requirements": "Farmer and a Stonewear Spoon, crafted by the Mason.",
    "talisman_uri" : "stonehearth:cook:talisman", 
    "default_stance" : "passive",
    "promotion_activity_name" : "promote_cook",
