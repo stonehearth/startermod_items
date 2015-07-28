@@ -348,8 +348,6 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
    local preferred_normal = self._sv.preferred_normal
    if preferred_normal then
       normals = { preferred_normal, preferred_normal:scaled(-1) }
-      self._sv.normal = preferred_normal
-      return
    else
       normals = { Point3(0, 0, 1), Point3(0, 0, -1), Point3(1, 0, 0), Point3(-1, 0, 0)}
    end
@@ -363,37 +361,46 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
       blueprint_rgn = blueprint_rgn:intersect_cube(blueprint_clipbox)
    end
 
+   local good_normal = nil
    for _, normal in pairs(normals) do
-      local good = true
       local world_region = blueprint_rgn:translated(self._sv.origin + normal)
       local unblocked_region = _physics:clip_region(world_region, CLIP_SOLID)
+      good_normal = normal
 
       -- if anything blocks the proposed box, don't bother.
       if unblocked_region:get_bounds().min.y ~= world_region:get_bounds().min.y then
          self._log:detail('normal %s is blocked by world.  rejecting.', normal)
-         good = false
+         good_normal = nil
       end
-      if good then
+      if good_normal then
          -- if there are any blueprint fabricators in the way, there *will* be something
          -- blocking this direction in the future, so stay away from it
          local obstructing = radiant.terrain.get_entities_in_region(unblocked_region);
          for id, entity in pairs(obstructing) do
             if build_util.is_fabricator(entity) then
-               self._log:detail('normal %s intersects fabricator %s.  rejecting', normal, entity)
-               good = false
-               break
+               local rcs = entity:get_component('region_collision_shape')
+               if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.SOLID then
+                  self._log:detail('normal %s intersects fabricator %s.  rejecting', normal, entity)
+                  good_normal = nil
+                  break
+               end
             end
          end
       end
-      if good then
-         self._log:detail('normal %s is all good!  using it.', normal)
-         self._sv.normal = normal
+      if (good_normal and not preferred_normal) or (good_normal and preferred_normal and good_normal == preferred_normal) then
+         self._log:detail('normal %s is all good!  using it.', good_normal)
+         self._sv.normal = good_normal
          return
       end
    end
-   -- gotta pick one!
-   self._log:detail('choosing normal %s of last resort', normals[1])
-   self._sv.normal = normals[1]
+
+   if not good_normal then
+      -- gotta pick one!
+      self._log:detail('choosing normal %s of last resort', normals[1])
+      good_normal = normals[1]
+   end
+   self._log:detail('normal is %s', good_normal)
+   self._sv.normal = good_normal
 end
 
 return ScaffoldingBuilder_OneDim
