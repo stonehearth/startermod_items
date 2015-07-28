@@ -29,6 +29,7 @@ function PickupItemTypeFromBackpack:start_thinking(ai, entity, args)
       if filter_fn(item, { always_allow_stealing = true }) then
          self._item = item
          ai.CURRENT.carrying = item
+         ai:protect_argument(item)
          ai:set_think_output({ item = item })
       end
    end
