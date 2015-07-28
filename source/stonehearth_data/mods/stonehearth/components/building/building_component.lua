@@ -66,6 +66,13 @@ function Building:destroy()
       self._ec_trace = nil
    end
 
+   -- Just remove the traces. The child entities will be destroyed as part of the object hierarchy
+   if self._cp_listeners then
+      for id in pairs(self._cp_listeners) do
+         self:_untrace_entity(id)
+      end
+   end
+
    if self._traces then
       assert(not next(self._traces))
    end
@@ -274,9 +281,10 @@ end
 function Building:_trace_entity(entity, loading)
    local id = entity:get_id()
 
-   radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
+   local destroy_trace = radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
          self:_remove_structure(entity)
       end)
+   self:_save_trace(entity, destroy_trace)
 
    self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function(e)
          local entry = self:_get_entry_for_structure(e.entity)
@@ -303,10 +311,10 @@ end
 function Building:_untrace_entity(id)
    local traces = self._traces[id]
    if traces then
-      self._traces[id] = nil
       for _, trace in ipairs(traces) do
          trace:destroy()
       end
+      self._traces[id] = nil
    end
    local listener = self._cp_listeners[id]
    if listener then

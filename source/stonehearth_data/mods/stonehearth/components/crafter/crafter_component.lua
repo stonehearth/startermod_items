@@ -30,8 +30,16 @@ function CrafterComponent:initialize(entity, json)
    -- xxx: show_workshop.js should just ask the inventory itself!! - tony
    local inventory = stonehearth.inventory:get_inventory(self._entity)
    self:_determine_maintain()
-   self._added_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_added', self, self._on_stockpiles_changed)
-   self._removed_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_removed', self, self._on_stockpiles_changed)
+
+   self._listeners = {}
+   local function add_listener_to_inventory(evt, fn)
+      local listener = radiant.events.listen(inventory, evt, self, fn)
+      table.insert(self._listeners, listener)
+   end
+   add_listener_to_inventory('stonehearth:inventory:stockpile_added',   self._determine_maintain)
+   add_listener_to_inventory('stonehearth:inventory:stockpile_removed', self._determine_maintain)
+   add_listener_to_inventory('stonehearth:inventory:storage_added',     self._determine_maintain)
+   add_listener_to_inventory('stonehearth:inventory:storage_removed',   self._determine_maintain)
 end
 
 function CrafterComponent:destroy()
@@ -44,23 +52,20 @@ function CrafterComponent:destroy()
    end
    local inventory = stonehearth.inventory:get_inventory(self._entity)
 
-   self._added_listener:destroy()
-   self._added_listener = nil
-
-   self._removed_listener:destroy()
-   self._removed_listener = nil
-end
-
-function CrafterComponent:_on_stockpiles_changed()
-   self:_determine_maintain()
+   for _, l in pairs(self._listeners) do
+      l:destroy()
+   end
+   self._listeners = {}
 end
 
 -- True if there are stockpiles, false otherwise. 
 -- TODO: consider elaborating to whether the stockpiles can contain stuff crafted by this crafter
 function CrafterComponent:_determine_maintain()
-   local stockpiles = stonehearth.inventory:get_inventory(self._entity)
-                                                :get_all_stockpiles()
-   self._sv.should_maintain = next(stockpiles) ~= nil
+   local inventory = stonehearth.inventory:get_inventory(self._entity)
+   local stockpiles = inventory:get_all_stockpiles()
+   local public_storage = inventory:get_all_public_storage()
+
+   self._sv.should_maintain = (not radiant.empty(stockpiles)) or (not radiant.empty(public_storage))
    self.__saved_variables:mark_changed()
 end
 

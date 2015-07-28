@@ -129,25 +129,58 @@ function FabricatorComponent:_add_scaffolding()
    if self._sv.scaffolding then
       return
    end
+
    local blueprint = self._sv.blueprint
    local uri = blueprint:get_uri()
-   if uri == 'stonehearth:build:prototypes:scaffolding' or 
-      uri == 'stonehearth:build:prototypes:roof' then
+   
+   if uri == 'stonehearth:build:prototypes:scaffolding' then
       -- scaffolding for scaffolding leads down the road to madness.
-      -- roof scaffolding is VERY expensive, so for now just rely on the
-      -- fact that all roofs are connected to walls with ladders and use
-      -- those guys instead. -- tony
       return
    end
-   local project = self._sv.project
 
-   local ci = blueprint:get_component('stonehearth:construction_data')
-   local normal = ci:get_normal()
+   local project = self._sv.project
    local project_rgn = project:get_component('destination'):get_region()
    local blueprint_rgn = blueprint:get_component('destination'):get_region()
-   local stand_at_base = ci:get_project_adjacent_to_base()
+   local scaffolding
 
-   local scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+   if uri == 'stonehearth:build:prototypes:roof' then
+      -- roofs tend to stick out a little bit from the walls (so the rain water
+      -- falls straight to the ground rather than running down the wall).
+      -- if we just used the blueprint region, this would create a 2nd ring of
+      -- scaffolding around the ring we've already built for the walls.  not good!
+      -- instead, get the nine-grid 2d region we used to build the roof blueprint
+      -- and use that to construct a region which will take us to the bottom level
+      -- of the roof.  that region has not been grown, so it will almost entirely
+      -- overlap the scaffolding regions for the walls. -- tony      
+      local r = blueprint_rgn:get()
+      local bounds = r:get_bounds()
+      local y = bounds.min.y
+
+      local rcr = self._sv.roof_coverage_region
+      if not rcr then
+         rcr = radiant.alloc_region3()
+         self._sv.roof_coverage_region = rcr
+      end
+
+      -- run create a new flat 3d region from the 9grid region, rooted at y.      
+      local ngr = blueprint:get_component('stonehearth:roof')
+                              :get_nine_grid_region()
+      rcr:modify(function(cursor)
+            cursor:clear()
+            for rect in ngr:each_cube() do
+               cursor:add_unique_cube(Cube3(Point3(rect.min.x, y,     rect.min.y),
+                                            Point3(rect.max.x, y + 1, rect.max.y)))
+            end
+         end)
+      
+      scaffolding = stonehearth.build:request_scaffolding_for(self._entity, rcr, project_rgn, nil, false)
+   else
+      local ci = blueprint:get_component('stonehearth:construction_data')
+      local normal = ci:get_normal()
+      local stand_at_base = ci:get_project_adjacent_to_base()
+      scaffolding = stonehearth.build:request_scaffolding_for(self._entity, blueprint_rgn, project_rgn, normal, stand_at_base)
+   end
+
    self._sv.scaffolding = scaffolding
    self.__saved_variables:mark_changed()
 end
