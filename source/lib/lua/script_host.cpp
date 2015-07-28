@@ -1198,20 +1198,35 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
    for (om::DataStorePtr datastore : datastores) {
       try {
          luabind::object controller = datastore->GetController();
-         if (controller.is_valid() && luabind::type(controller) == LUA_TTABLE) {
-            if (datastore->IsDestroyed()) {
-               SH_LOG(3) << "not restoring destroyed datastore " << datastore->GetControllerName();
-               continue;
-            }
+         if (!ShouldActivateController(controller)) {
+            continue;
+         }
 
-            object restore_fn = controller["restore"];
-            if (type(restore_fn) == LUA_TFUNCTION) {
-               restore_fn(controller);
-            }
-            object activate_fn = controller["activate"];
-            if (type(activate_fn) == LUA_TFUNCTION) {
-               activate_fn(controller);
-            }
+         object restore_fn = controller["restore"];
+         if (type(restore_fn) == LUA_TFUNCTION) {
+            restore_fn(controller);
+         }
+
+         object activate_fn = controller["activate"];
+         if (type(activate_fn) == LUA_TFUNCTION) {
+            activate_fn(controller);
+         }
+      } catch (std::exception const& e) {
+         ReportCStackException(L_, e);
+      }
+   }
+
+   for (om::DataStorePtr datastore : datastores) {
+      try {
+         luabind::object controller = datastore->GetController();
+         if (!ShouldActivateController(controller)) {
+            continue;
+         }
+
+         // TODO: give post_activate a better name
+         object post_activate_fn = controller["post_activate"];
+         if (type(post_activate_fn) == LUA_TFUNCTION) {
+            post_activate_fn(controller);
          }
       } catch (std::exception const& e) {
          ReportCStackException(L_, e);
@@ -1226,6 +1241,12 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
    SH_LOG(7) << "finished restoring lua components";
 
    Trigger("radiant:game_loaded");
+}
+
+bool ScriptHost::ShouldActivateController(luabind::object controller) const
+{
+   bool result = controller.is_valid() && luabind::type(controller) == LUA_TTABLE;
+   return result;
 }
 
 void ScriptHost::CreateGame(om::ModListPtr mods, AllocDataStoreFn allocd)

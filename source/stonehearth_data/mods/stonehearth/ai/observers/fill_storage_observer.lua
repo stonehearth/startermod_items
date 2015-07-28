@@ -14,9 +14,7 @@ function FillStorageObserver:activate()
             self:_on_parent_changed(radiant.entities.get_parent(self._sv.entity))
          end)
 
-   if player_id ~= '' then
-      self:_update_worker_task()
-   else
+   if not player_id or player_id == '' then
       self._unit_info_trace = self._sv.entity:add_component('unit_info'):trace_player_id('fill storage observer unit id')
          :on_changed(function()
                self._unit_info_trace:destroy()
@@ -27,6 +25,10 @@ function FillStorageObserver:activate()
    end
 
    self._filter_listener = radiant.events.listen(self._sv.entity, 'stonehearth:storage:filter_changed', self, self._on_filter_changed)
+end
+
+function FillStorageObserver:post_activate()
+   self:_update_worker_task()
 end
 
 function FillStorageObserver:_on_filter_changed(filter_component, newly_filtered, newly_passed)
@@ -53,6 +55,10 @@ function FillStorageObserver:_create_worker_task()
    end
 
    local player_id = radiant.entities.get_player_id_from_entity(self._sv.entity)
+   if not player_id or player_id == '' then
+      return
+   end
+
    local town = stonehearth.town:get_town(player_id)
    if town then 
       self._fill_storage_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:fill_storage', { storage = self._sv.entity })

@@ -1308,10 +1308,15 @@ void Simulation::FinishLoadingGame()
       if (obj->GetObjectType() == om::DataStoreObjectType) {
 
          dm::ObjectId id = obj->GetObjectId();
-         om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
-         datastores.emplace_back(ds);
+         om::DataStorePtr datastore = std::static_pointer_cast<om::DataStore>(obj);
+
+         if (datastore->IsDestroyed()) {
+            SIM_LOG(3) << "not restoring destroyed datastore " << datastore->GetControllerName();
+         } else {
+            datastores.emplace_back(datastore);
+         }
 #if defined(ENABLE_OBJECT_COUNTER)
-         datastoreMap_[ds->GetObjectId()] = ds;
+         datastoreMap_[datastore->GetObjectId()] = datastore;
 #endif
       }
    })->PushStoreState();
