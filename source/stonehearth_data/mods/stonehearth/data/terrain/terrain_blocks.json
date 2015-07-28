@@ -32,5 +32,14 @@
          { "width" : 4, "name" : "grass_edge_1" },
          { "width" : 6, "name" : "grass_edge_2" }
       ]
+   },
+
+   "selectable_kinds" : {
+      "copper_ore" : "stonehearth:terrain:ui:copper_block",
+      "tin_ore" :    "stonehearth:terrain:ui:tin_block",
+      "iron_ore" :   "stonehearth:terrain:ui:iron_block",
+      "silver_ore" : "stonehearth:terrain:ui:silver_block",
+      "gold_ore" :   "stonehearth:terrain:ui:gold_block",
+      "coal" :       "stonehearth:terrain:ui:coal_block"
    }
 }
