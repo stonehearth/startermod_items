@@ -235,6 +235,18 @@ function env.equip_weapon(entity, weapon_uri)
    radiant.entities.equip_item(entity, weapon)
 end
 
+function env.add_cube_to_terrain(x, z, width, length, height, tag)
+   local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
+   local cube = Cube3(
+         Point3(x, y, z),
+         Point3(x + width, y + height, z + length),
+         tag
+      )
+   radiant.terrain.add_cube(cube)
+   return cube
+end
+
+
 function env._reset_camera()
    local CAMERA_POSITION = Point3(11, 30, 39)
    local CAMERA_LOOK_AT = Point3(3.5, 10, 12.5)

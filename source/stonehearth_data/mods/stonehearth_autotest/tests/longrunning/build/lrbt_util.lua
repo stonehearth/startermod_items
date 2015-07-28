@@ -167,6 +167,12 @@ function lrbt_util.create_endless_entity(autotest, x0, y0, w, h, uri)
 end
 
 function lrbt_util.succeed_when_buildings_finished(autotest, buildings)
+   lrbt_util.cb_when_buildings_finished(buildings, function() 
+         autotest:success()
+      end)
+end
+
+function lrbt_util.cb_when_buildings_finished(buildings, cb)
    local unfinished = {}
    local listeners = {}
    local traces = {}
@@ -179,7 +185,7 @@ function lrbt_util.succeed_when_buildings_finished(autotest, buildings)
          for _, trace in pairs(traces) do
             trace:destroy()
          end
-         autotest:success()
+         cb()
       end
    end
 

@@ -4,17 +4,6 @@ local Region3 = _radiant.csg.Region3
 
 local water_tests = {}
 
-local function add_cube_to_terrain(x, z, width, length, height, tag)
-   local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
-   local cube = Cube3(
-         Point3(x, y, z),
-         Point3(x + width, y + height, z + length),
-         tag
-      )
-   radiant.terrain.add_cube(cube)
-   return cube
-end
-
 local function remove_cube_from_terrain(x, z, width, length, depth)
    local y = radiant.terrain.get_point_on_terrain(Point3(x, 0, z)).y
    local cube = Cube3(
