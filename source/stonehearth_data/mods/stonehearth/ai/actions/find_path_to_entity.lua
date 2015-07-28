@@ -87,8 +87,8 @@ end
 
 function FindPathToEntity:_on_position_changed(ai)
    if not self._destination then
-      -- sometimes the position trace fires immediately after stop_thinking get's called
-      -- (it's asynchronous, after all).  if that happens, just ignore it.
+      -- paranoia check
+      -- self._position_trace should have been destroyed already which should have removed this from the callback list
       return
    end
 
@@ -118,7 +118,6 @@ function FindPathToEntity:_cleanup()
       self._position_trace:destroy()
       self._position_trace = nil
    end
-   self._destination = nil
 end
 
 function FindPathToEntity:stop_thinking(ai, entity, args)
@@ -128,6 +127,7 @@ function FindPathToEntity:stop_thinking(ai, entity, args)
       self._timer = nil
    end
    self._is_future = true
+
    self._ai:set_debug_progress('stopped thinking')
 end
 
