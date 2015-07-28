@@ -47,7 +47,7 @@
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
-         "growth_period" : "6h",
+         "growth_period" : "8h",
          "growth_stages" : [
             {
                "model_name" : "brightbell_1",

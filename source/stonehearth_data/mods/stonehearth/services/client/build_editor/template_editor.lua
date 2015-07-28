@@ -78,6 +78,10 @@ function TemplateEditor:go(response, template_name)
                return stonehearth.selection.FILTER_IGNORE
             end
 
+            if result.normal.y < 1 then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+
             local location = result.brick
             local rotation = selector:get_rotation()
 
@@ -117,10 +121,11 @@ function TemplateEditor:go(response, template_name)
          end)
       :progress(function(selector, location, rotation)         
             if location then
+               self._render_entity:set_visible(true)
                self._render_entity:set_position(location)
                self._render_entity:set_rotation(Point3(0, rotation, 0))
             else
-               self._render_entity:set_position(OFFSCREEN)
+               self._render_entity:set_visible(false)
             end
          end)
       :done(function(selector, location, rotation)

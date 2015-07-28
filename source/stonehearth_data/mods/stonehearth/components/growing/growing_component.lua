@@ -21,7 +21,13 @@ function GrowingComponent:initialize(entity, json)
       self._sv.current_growth_stage = 1
       self._sv.growth_attempts = 0
       self._sv.growth_timer = stonehearth.calendar:set_interval("GrowingComponent grow_callback", self._growth_period, grow_callback)
-   else 
+   else
+      if self._sv.growth_timer then
+         local growth_duration = stonehearth.calendar:parse_duration(self._growth_period)
+         if self._sv.growth_timer:get_duration() ~= growth_duration then
+            self._sv.growth_timer:set_duration(growth_duration)
+         end
+      end
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             if self._sv.growth_timer then
                self._sv.growth_timer:bind(grow_callback)

@@ -245,8 +245,8 @@ function Building:get_building_envelope(kind, ignoring_blueprint)
 
    local envelope = Region3()
    local origin = radiant.entities.get_world_grid_location(self._entity)
-   for _, kind in ipairs(STRUCTURE_TYPES) do
-      for id, entry in pairs(self._sv.structures[kind]) do
+   for _, str_kind in ipairs(STRUCTURE_TYPES) do
+      for id, entry in pairs(self._sv.structures[str_kind]) do
          local entity = entry.entity
          if entity ~= ignoring_blueprint then
             local component
