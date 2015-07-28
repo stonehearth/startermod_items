@@ -50,10 +50,14 @@ function FindPathToEntity:start_thinking(ai, entity, args)
 end
 
 function FindPathToEntity:_start_pathfinder(ai)
+   assert(self._location)
+   assert(self._destination)
+   
    local on_success = function (path)
       self._search_exhausted_count = 0
       ai:set_debug_progress('found solution: from(%s) to (%s) (count:%d)', path:get_start_point(), path, self._search_exhausted_count)
       ai:set_think_output({ path = path })
+      self:_cleanup()
    end
 
    local on_exhausted = function()
@@ -82,6 +86,12 @@ function FindPathToEntity:_start_pathfinder(ai)
 end
 
 function FindPathToEntity:_on_position_changed(ai)
+   if not self._destination then
+      -- sometimes the position trace fires immediately after stop_thinking get's called
+      -- (it's asynchronous, after all).  if that happens, just ignore it.
+      return
+   end
+
    local cur_loc = radiant.entities.get_world_grid_location(self._entity)
    if cur_loc:distance_to(self._location) > 2 then
       ai:set_debug_progress('restarting find_path_to_entity pathfinder (we\'ve gone too far!): started: %s, current: %s', self._location, cur_loc)
@@ -108,6 +118,7 @@ function FindPathToEntity:_cleanup()
       self._position_trace:destroy()
       self._position_trace = nil
    end
+   self._destination = nil
 end
 
 function FindPathToEntity:stop_thinking(ai, entity, args)
