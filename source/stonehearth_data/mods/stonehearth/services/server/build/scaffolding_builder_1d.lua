@@ -364,7 +364,7 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
    local good_normal = nil
    for _, normal in pairs(normals) do
       local good = true
-      local world_region = blueprint_rgn:translated(self._sv.origin + normal)
+      local world_region = blueprint_rgn:translated(self._sv.origin + normal * 2)
       local unblocked_region = _physics:clip_region(world_region, CLIP_SOLID)
 
       -- if anything blocks the proposed box, don't bother.
