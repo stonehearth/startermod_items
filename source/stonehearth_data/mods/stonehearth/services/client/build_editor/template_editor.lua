@@ -78,6 +78,10 @@ function TemplateEditor:go(response, template_name)
                return stonehearth.selection.FILTER_IGNORE
             end
 
+            if result.normal.y < 1 then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+
             local location = result.brick
             local rotation = selector:get_rotation()
 
