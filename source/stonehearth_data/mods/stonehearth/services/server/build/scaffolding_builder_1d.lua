@@ -388,7 +388,7 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
          end
       end
       if (good and not preferred_normal) or (good and preferred_normal and normal == preferred_normal) then
-         self._log:detail('normal %s is all good!  using it.', good_normal)
+         self._log:detail('normal %s is all good!  using it.', normal)
          self._sv.normal = normal
          return
       elseif good then
