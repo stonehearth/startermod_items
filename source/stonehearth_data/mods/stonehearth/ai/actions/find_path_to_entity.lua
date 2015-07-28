@@ -58,6 +58,7 @@ function FindPathToEntity:_start_pathfinder(ai)
       ai:set_debug_progress('found solution: from(%s) to (%s) (count:%d)', path:get_start_point(), path, self._search_exhausted_count)
       ai:set_think_output({ path = path })
       self:_cleanup()
+      self._destination = nil
    end
 
    local on_exhausted = function()
@@ -127,6 +128,7 @@ function FindPathToEntity:stop_thinking(ai, entity, args)
       self._timer = nil
    end
    self._is_future = true
+   self._destination = nil
 
    self._ai:set_debug_progress('stopped thinking')
 end
