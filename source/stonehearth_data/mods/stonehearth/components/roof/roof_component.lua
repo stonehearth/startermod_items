@@ -70,6 +70,10 @@ function Roof:cover_region2(brush, region2)
    return self
 end
 
+function Roof:get_nine_grid_region()
+   return self._sv._nine_grid_region
+end
+
 function Roof:_compute_collision_shape()
    local brush = self._sv.brush
    local region = self._sv._nine_grid_region
@@ -134,7 +138,7 @@ function Roof:_compute_collision_shape()
    for _, region in pairs(regions) do
       region = region:inflated(Point2(1, 1))
       local s = brush:set_grid_shape(region)
-                     :paint_once()
+                        :paint_once()
       shape:add_region(s)
    end
 

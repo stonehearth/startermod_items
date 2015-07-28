@@ -200,6 +200,28 @@ function lrbt_cases.peaked_roof(autotest, session)
    }
 end
 
+function lrbt_cases.flat_roof(autotest, session)
+   local floor
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(5, 11, 5)))
+      end,
+      function()
+         lrbt_util.grow_wooden_walls(session, floor)
+      end,
+      function()
+         local roof = lrbt_util.grow_wooden_roof(session, build_util.get_building_for(floor))
+         roof:get_component('stonehearth:roof')
+               :apply_nine_grid_options({
+                     nine_grid_gradiant = {}
+                  })
+         local building = build_util.get_building_for(roof)
+         building:get_component('stonehearth:building')
+                     :layout_roof(roof)
+      end,
+   }
+end
+
 function lrbt_cases.patch_walls(autotest, session)
    local floor
    return {
