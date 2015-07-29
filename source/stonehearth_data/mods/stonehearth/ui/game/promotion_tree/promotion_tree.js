@@ -1,13 +1,13 @@
-$(document).ready(function(){
-   $(top).on("radiant_promote_to_job", function (_, e) {
+$(document).ready(function() {
+   $(top).on("radiant_promote_to_job", function(_, e) {
       if (App.stonehearth.promotionTreeView) {
          App.stonehearth.promotionTreeView.destroy();
       } else {
-         App.stonehearth.promotionTreeView = App.gameView.addView(App.StonehearthPromotionTree, { 
-           citizen: e.entity
-        });
+         App.stonehearth.promotionTreeView = App.gameView.addView(App.StonehearthPromotionTree, {
+            citizen: e.entity
+         });
       }
-    });
+   });
 });
 
 App.StonehearthPromotionTree = App.View.extend({
@@ -18,25 +18,48 @@ App.StonehearthPromotionTree = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:scroll_open' });
+      radiant.call('radiant:play_sound', {
+         'track': 'stonehearth:sounds:ui:promotion_menu:scroll_open'
+      });
       this._super();
 
       var self = this;
 
       var components = {
-         "jobs" : {
-            "*" : {
-               "description" : {} 
+         "jobs": {
+            "*": {
+               "description": {}
             }
          }
       };
 
+      radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:basic_inventory_tracker')
+         .done(function(response) {
+            var itemTraces = {
+               "tracking_data": {
+                  "*": {
+                        "first_item" : {
+                           "stonehearth:promotion_talisman": {}
+                        }
+                     }
+                  }
+               };
+
+            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, itemTraces)
+               .progress(function(response) {
+                  self.set('inventory_data', response.tracking_data);
+               });
+         })
+         .fail(function(response) {
+            console.error(response);
+         });
+
       self._jobsTrace = new StonehearthDataTrace('stonehearth:jobs:index', components);
       self._jobsTrace.progress(function(eobj) {
-            self._jobsTrace.destroy();
-            self._jobData = eobj.jobs;
-            self._getCitizenData();
-         });
+         self._jobsTrace.destroy();
+         self._jobData = eobj.jobs;
+         self._getCitizenData();
+      });
    },
 
    // transform the job data map into a tree for use by D3
@@ -47,18 +70,18 @@ App.StonehearthPromotionTree = App.View.extend({
       var nodeMap = {};
 
       var arr = radiant.map_to_array(self._jobData);
-      
-      arr.sort(function(a, b){
-          var aName = a.description.alias;
-          var bName = b.description.alias;
-          if (aName > bName) {
+
+      arr.sort(function(a, b) {
+         var aName = a.description.alias;
+         var bName = b.description.alias;
+         if (aName > bName) {
             return 1;
-          }
-          if (aName < bName) {
+         }
+         if (aName < bName) {
             return -1;
-          }
-          // a must be equal to b
-          return 0;
+         }
+         // a must be equal to b
+         return 0;
       });
 
       // for all jobs in the map
@@ -80,7 +103,7 @@ App.StonehearthPromotionTree = App.View.extend({
                parentNode.children.push(node);
             } else {
                root = node;
-            }            
+            }
          }
       });
 
@@ -98,51 +121,75 @@ App.StonehearthPromotionTree = App.View.extend({
    _buildTree: function(treeData) {
       var self = this;
 
-      var margin = {top: 100, right: 50, bottom: 100, left: 50},
-          width = 1200 - margin.left - margin.right,
-          height = 600 - margin.top - margin.bottom;
+      var margin = {
+            top: 100,
+            right: 50,
+            bottom: 100,
+            left: 50
+         },
+         width = 1200 - margin.left - margin.right,
+         height = 600 - margin.top - margin.bottom;
 
       var tree = d3.layout.tree()
-          .separation(function(a, b) { return a.parent === b.parent ? 1 : 1.2; })
-          .children(function(d) { return d.children; })
-          .size([width, height]);
+         .separation(function(a, b) {
+            return a.parent === b.parent ? 1 : 1.2;
+         })
+         .children(function(d) {
+            return d.children;
+         })
+         .size([width, height]);
 
       var svg = d3.select(self.$('#content')[0])
-          .append("svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
+         .append("svg")
+         .attr("width", width + margin.left + margin.right)
+         .attr("height", height + margin.top + margin.bottom)
          .append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       var nodes = tree.nodes(treeData);
-        
+
       var node = svg.selectAll(".node")
-          .data(nodes)
-          .enter()
-          .append("g")
-          .attr('id', function(d) { return d.alias })
-          .attr('class', 'node')
-          .on("click", function(d) {
+         .data(nodes)
+         .enter()
+         .append("g")
+         .attr('id', function(d) {
+            return d.alias
+         })
+         .attr('class', 'node')
+         .on("click", function(d) {
             self._updateUi(d.alias);
             //d3.select(this)
-               //.attr('class', 'selected');
+            //.attr('class', 'selected');
          });
 
       node.append('image')
-         .attr('xlink:href', function(d) { 
-            return d.available ? '/stonehearth/ui/game/promotion_tree/images/jobButton.png' : '/stonehearth/ui/game/promotion_tree/images/jobButtonUnavailable.png'})
-         .attr("x", function(d) { return d.x - 37; })
-         .attr("y", function(d) { return height - d.y - 37; })
+         .attr('xlink:href', function(d) {
+            return d.available ? '/stonehearth/ui/game/promotion_tree/images/jobButton.png' : '/stonehearth/ui/game/promotion_tree/images/jobButtonUnavailable.png'
+         })
+         .attr("x", function(d) {
+            return d.x - 37;
+         })
+         .attr("y", function(d) {
+            return height - d.y - 37;
+         })
          .attr('width', 74)
          .attr('height', 74);
 
       node.append('image')
          //.attr('xlink:href', 'images/jobButton.png')
          //.attr('xlink:href', '/stonehearth/ui/game/promotion_tree/images/jobButton.png')
-         .attr('xlink:href', function(d) { return d.icon })
-         .attr('class', function(d) { return d.available ? "available" : "unavailable" })
-         .attr("x", function(d) { return d.x - 37; })
-         .attr("y", function(d) { return height - d.y - 37; })
+         .attr('xlink:href', function(d) {
+            return d.icon
+         })
+         .attr('class', function(d) {
+            return d.available ? "available" : "unavailable"
+         })
+         .attr("x", function(d) {
+            return d.x - 37;
+         })
+         .attr("y", function(d) {
+            return height - d.y - 37;
+         })
          .attr('width', 74)
          .attr('height', 74);
 
@@ -182,26 +229,25 @@ App.StonehearthPromotionTree = App.View.extend({
          .duration(250);
 
       nodeUpdate.select('image')
-         .attr('class', function(d) { return d.name == self._selectedName ? 'selected' : ''; })
-         .text(function(d) { 
-            return d.name == self._selectedName ? 'selected' : d.name; 
+         .attr('class', function(d) {
+            return d.name == self._selectedName ? 'selected' : '';
+         })
+         .text(function(d) {
+            return d.name == self._selectedName ? 'selected' : d.name;
          });
 
       var link = svg.selectAll(".link")
-          .data(tree.links(nodes))
+         .data(tree.links(nodes))
          .enter()
-          .insert("path", "g")
-          .attr("fill", "none")
-          .attr("stroke", "#fff")
-          .attr("stroke-width", 2)
-          .attr("shape-rendering", "crispEdges")
-          .attr("d", function(d, i) {
-                return     "M" + d.source.x + "," + (height - d.source.y)
-                         + "V" + (height - (3*d.source.y + 4*d.target.y)/7)
-                         + "H" + d.target.x
-                         + "V" + (height - d.target.y);
-            });
-        
+         .insert("path", "g")
+         .attr("fill", "none")
+         .attr("stroke", "#fff")
+         .attr("stroke-width", 2)
+         .attr("shape-rendering", "crispEdges")
+         .attr("d", function(d, i) {
+            return "M" + d.source.x + "," + (height - d.source.y) + "V" + (height - (3 * d.source.y + 4 * d.target.y) / 7) + "H" + d.target.x + "V" + (height - d.target.y);
+         });
+
       //self.$('svg').draggable();
    },
 
@@ -210,57 +256,67 @@ App.StonehearthPromotionTree = App.View.extend({
       var citizenId = this.get('citizen');
 
       // get the info for the citizen
-      self._citizenTrace = new StonehearthDataTrace(citizenId, 
-         { 
-            'stonehearth:job' : {
-               'job_controllers' : {
-                  '*' : {}
-               }
-            },
-            'unit_info' : {},
-         });
-      
+      self._citizenTrace = new StonehearthDataTrace(citizenId, {
+         'stonehearth:job': {
+            'job_controllers': {
+               '*': {}
+            }
+         },
+         'unit_info': {},
+      });
+
       // finally, build the tree
       self._citizenTrace.progress(function(o) {
-            self._startingJob = o['stonehearth:job'].job_uri;
-            self._citizenJobData = o['stonehearth:job'].job_controllers;
-            self._getTalismanData();
-            self.set('citizen', o);
-            self._citizenTrace.destroy();               
-         })
+         self._startingJob = o['stonehearth:job'].job_uri;
+         self._citizenJobData = o['stonehearth:job'].job_controllers;
+         self.set('selectedJobAlias', self._startingJob);
+         self._updateTalismanData();
+         self.set('citizen', o);
+         self._citizenTrace.destroy();
+      })
    },
 
-   _getTalismanData: function() {
+   _updateTalismanData: function() {
       var self = this;
       // for each job, determine if it's available based on the tools that are
       // in the world
-      self.set('selectedJobAlias', self._startingJob);
 
-      radiant.call('stonehearth:get_talismans_in_explored_region')
-         .done(function(o) {
-            $.each(o.available_jobs, function(key, jobAlias) {
-               //Only add this if the talisman is in the world AND if the reqirements are met
+      var inventory_data = self.get('inventory_data');
+      if (inventory_data) {
+         if (self.$('#content')[0]) {
+            self.$('#content').empty();
+            self._jobCursor = null;
+         }
+
+         radiant.each(self._jobData, function(jobAlias, jobData) {
+            jobData.available = false;
+         });
+
+         radiant.each(inventory_data, function(uri, item) {
+            var promotion_talisman_component = item.first_item['stonehearth:promotion_talisman'];
+            if (promotion_talisman_component) {
+               var jobAlias = promotion_talisman_component.job;
                var requirementsMet = self._calculateRequirementsMet(jobAlias);
                if (requirementsMet) {
                   self._jobData[jobAlias].available = true;
                }
-            })
-
-            //The worker job is always available
-            self._jobData['stonehearth:jobs:worker'].available = true;
-
-            var treeData = self._buildTreeData(self._jobData);
-            self._buildTree(treeData);
-            self._addHandlers();
-            self._updateUi(self._startingJob);
-         });  
-   },
+            }
+         });
+         self._jobData['stonehearth:jobs:worker'].available = true;
+         var treeData = self._buildTreeData(self._jobData);
+         self._buildTree(treeData);
+         self._addHandlers();
+         if (self.get('selectedJobAlias')) {
+            self._updateUi(self.get('selectedJobAlias'))
+         }
+      }
+   }.observes('inventory_data'),
 
    _addHandlers: function() {
       var self = this;
 
       self.$('#approveStamper').click(function() {
-         self._animateStamper(); 
+         self._animateStamper();
          self._promote(self.get('selectedJobAlias'));
       })
    },
@@ -279,11 +335,10 @@ App.StonehearthPromotionTree = App.View.extend({
       var imgEl = $(jobEl.find('image')[0]);
       var x = parseInt(imgEl.attr('x'));
       var y = parseInt(imgEl.attr('y'));
-      $(self._jobCursor).css( 
-         {
-            top: y + 100, // margin top
-            left: x + 50, // margin left
-         });
+      $(self._jobCursor).css({
+         top: y + 100, // margin top
+         left: x + 50, // margin left
+      });
 
       // tell handlebars about changes
       self.set('selectedJobAlias', jobAlias);
@@ -328,6 +383,9 @@ App.StonehearthPromotionTree = App.View.extend({
 
       var jobDescription = self._jobData[jobAlias].description;
       var selectedJobAlias = self.get('selectedJobAlias');
+      if (!self._jobData[selectedJobAlias]) {
+         return false;
+      }
       var selectedJob = self._jobData[selectedJobAlias].description;
 
       if (jobAlias == 'stonehearth:jobs:worker' || jobDescription.parent_job == 'stonehearth:jobs:worker') {
@@ -337,7 +395,7 @@ App.StonehearthPromotionTree = App.View.extend({
       if (jobDescription.parent_job != undefined) {
          var parentJobController = self._citizenJobData[jobDescription.parent_job];
          var parentRequiredLevel = jobDescription.parent_level_requirement ? jobDescription.parent_level_requirement : 0;
-         
+
          if (parentJobController != undefined && parentJobController != "stonehearth:jobs:worker") {
             $.each(self._citizenJobData, function(jobUri, jobData) {
                if (jobUri == jobDescription.parent_job && jobData.last_gained_lv >= parentRequiredLevel) {
@@ -364,21 +422,27 @@ App.StonehearthPromotionTree = App.View.extend({
    _animateStamper: function() {
       var self = this;
 
-      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:stamp'});
+      radiant.call('radiant:play_sound', {
+         'track': 'stonehearth:sounds:ui:promotion_menu:stamp'
+      });
 
       // animate down
-      self.$('#approveStamper').animate({ bottom: 20 }, 130 , function() {
+      self.$('#approveStamper').animate({
+         bottom: 20
+      }, 130, function() {
          self.$('#approvedStamp').show();
          //animate up
          $(this)
             .delay(200)
-            .animate({ bottom: 200 }, 150, function () {
+            .animate({
+               bottom: 200
+            }, 150, function() {
                // close the wizard after a short delay
                setTimeout(function() {
                   self.invokeDestroy();
                }, 1500);
             });
-         });      
+      });
    },
 
    dateString: function() {
@@ -393,7 +457,9 @@ App.StonehearthPromotionTree = App.View.extend({
    },
 
    destroy: function() {
-      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'} );
+      radiant.call('radiant:play_sound', {
+         'track': 'stonehearth:sounds:ui:start_menu:page_down'
+      });
 
       if (this._jobsTrace) {
          this._jobsTrace.destroy();
@@ -401,6 +467,10 @@ App.StonehearthPromotionTree = App.View.extend({
 
       if (this._citizenTrace) {
          this._citizenTrace.destroy();
+      }
+
+      if (this._playerInventoryTrace) {
+         this._playerInventoryTrace.destroy();
       }
 
       App.stonehearth.promotionTreeView = null;

@@ -412,7 +412,7 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
          for id, entity in pairs(obstructing) do
             if build_util.is_fabricator(entity) then
                local rcs = entity:get_component('region_collision_shape')
-               if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.SOLID then
+               if rcs then
                   self._log:detail('normal %s intersects fabricator %s.  rejecting', normal, entity)
                   good = false
                   break

@@ -56,9 +56,18 @@
          </div>
 
          <div id="glass">
-            <div id="mind">{{view.model.stonehearth:attributes.attributes.mind.effective_value}}</div>
-            <div id="body">{{view.model.stonehearth:attributes.attributes.body.effective_value}}</div>
-            <div id="spirit">{{view.model.stonehearth:attributes.attributes.spirit.effective_value}}</div>
+            <div id="mind">
+               {{view.model.stonehearth:attributes.attributes.mind.effective_value}}
+               <div id="mindLabel" class="whiteBlackOutline">{{i18n stonehearth:stat_mind}}</div>
+            </div>
+            <div id="body">
+               {{view.model.stonehearth:attributes.attributes.body.effective_value}}
+               <div id="bodyLabel" class="whiteBlackOutline">{{i18n stonehearth:stat_body}}</div>
+            </div>
+            <div id="spirit">
+               {{view.model.stonehearth:attributes.attributes.spirit.effective_value}}
+               <div id="spiritLabel" class="whiteBlackOutline">{{i18n stonehearth:stat_spirit}}</div>
+            </div>
          </div>
          <div id="buffs">
             {{#each view.model.buffs}}
