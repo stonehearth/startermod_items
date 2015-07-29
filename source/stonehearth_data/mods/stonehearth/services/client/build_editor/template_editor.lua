@@ -6,7 +6,6 @@ local Region3 = _radiant.csg.Region3
 local Quaternion = _radiant.csg.Quaternion
 
 local INFINITE = 100000
-local OFFSCREEN = Point3(0, -INFINITE, 0)
 local UNDERGROUND = Cube3(Point3(-INFINITE, -INFINITE, -INFINITE), Point3(INFINITE, 0, INFINITE))
 local OVERGROUND  = Cube3(Point3(-INFINITE, 0, -INFINITE), Point3(INFINITE, INFINITE, INFINITE))
 local MODEL_OFFSET = Point3(0.5, 0, 0.5)
@@ -107,8 +106,9 @@ function TemplateEditor:go(response, template_name)
             -- us from having buildings floating in the air (at least at placement time!)
             local underground_region = Region3()
             underground_region:copy_region(self._underground_region)
+            underground_region:translate(-MODEL_OFFSET)
             underground_region:rotate(rotation)
-            underground_region:translate(location)
+            underground_region:translate(location + MODEL_OFFSET)
 
             for pt in underground_region:each_point() do
                if not radiant.terrain.is_blocked(pt) then
