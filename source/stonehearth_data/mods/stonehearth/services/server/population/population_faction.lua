@@ -191,6 +191,11 @@ function PopulationFaction:_get_threat_level(visitor)
 end
 
 function PopulationFaction:_on_seen_by(spotter_id, visitor_id, visitor)
+   if not visitor or not visitor:is_valid() then
+      -- visitor is already destroyed
+      return
+   end
+
    local threat_level = self:_get_threat_level(visitor)
    if threat_level <= 0 then
       -- not interesting.  move along!
