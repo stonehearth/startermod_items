@@ -715,10 +715,13 @@ end
 --    @param wall_brush - the type of walls to generate
 --
 function BuildService:grow_walls_command(session, response, floor, column_brush, wall_brush, query_pt)
+   local walls
    local success = self:do_command('grow_walls', response, function()
-         self:grow_walls(floor, column_brush, wall_brush, ToPoint3(query_pt))
+         walls = self:grow_walls(floor, column_brush, wall_brush, ToPoint3(query_pt))
       end)
-   return success or nil
+   walls = walls or {}
+   local _, wall = next(walls)
+   self:_resolve_and_select_blueprint(success, response, wall)
 end
 
 function BuildService:grow_walls(floor, column_brush, wall_brush, query_pt)

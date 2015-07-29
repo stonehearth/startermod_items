@@ -90,6 +90,11 @@ function GrowWallsEditor:go(response, column_brush, wall_brush)
             log:detail('box selected')
             if entity then
                _radiant.call_obj(self._build_service, 'grow_walls_command', entity, column_brush, wall_brush, result.brick)
+                           :done(function(r)
+                                 if r.new_selection then
+                                    stonehearth.selection:select_entity(r.new_selection)
+                                 end
+                              end)
                            :always(function()
                                  self:destroy()
                               end)
