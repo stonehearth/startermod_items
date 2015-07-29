@@ -9,7 +9,7 @@
       },
 
       "stonehearth:material" : {
-         "tags" : "light"
+         "tags" : "light light_source"
       },
 
       "model_variants": {
