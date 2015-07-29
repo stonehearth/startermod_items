@@ -56,6 +56,10 @@
 	text-shadow: none;
 }
 
+.outlinedThin (@color: #000) {
+   text-shadow: -1px -1px 0px @color, 0px -1px 0px @color, 1px -1px 0px @color, -1px 0px 0px @color, 1px 0px 0px @color, -1px 1px 0px @color, 0px 1px 0px @color, 1px 1px 0px @color;
+}
+
 .outlined (@color: #000) {
    text-shadow: -2px -2px 0px @color, 0px -2px 0px @color, 2px -2px 0px @color, -2px 0px 0px @color, 2px 0px 0px @color, -2px 2px 0px @color, 0px 2px 0px @color, 2px 2px 0px @color;
 }
