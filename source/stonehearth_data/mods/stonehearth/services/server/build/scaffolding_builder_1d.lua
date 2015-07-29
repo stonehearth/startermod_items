@@ -364,14 +364,47 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
    local good_normal = nil
    for _, normal in pairs(normals) do
       local good = true
-      local world_region = blueprint_rgn:translated(self._sv.origin + normal * 2)
-      local unblocked_region = _physics:clip_region(world_region, CLIP_SOLID)
+
+      -- Figure out which way we have to extrude our shape for scaffolding tests.
+      local extrude_dim = 'x'
+      local extrude_min = 1
+      if normal.x > 0 then
+         extrude_min = 0
+      elseif normal.y ~= 0 then
+         extrude_dim = 'y'
+         if normal.y > 0 then
+            extrude_min = 0
+         end
+      elseif normal.z ~= 0 then
+         extrude_dim = 'z'
+         if normal.z > 0 then
+            extrude_min = 0
+         end
+      end
+      -- Take the blueprint, and get its bounds as the scaffolding should not have any of the holes that the 
+      -- blueprint geometry may have.  The translate it into the world + move it in the normal direction, where
+      -- the scaffolding will start, and extrude it in the normal direction, because we need room for units to
+      -- move when using the scaffolding.
+      local scaffold_region = Region3()
+      scaffold_region:add_cube(blueprint_rgn:get_bounds())
+      scaffold_region = scaffold_region:translated(self._sv.origin + normal):extruded(extrude_dim, extrude_min, 1 - extrude_min)
+      local unblocked_region = _physics:clip_region(scaffold_region, CLIP_SOLID)
 
       -- if anything blocks the proposed box, don't bother.
-      if unblocked_region:get_bounds().min.y ~= world_region:get_bounds().min.y then
+      if unblocked_region:get_area() ~= scaffold_region:get_area() then
          self._log:detail('normal %s is blocked by world.  rejecting.', normal)
          good = false
       end
+
+      -- If we don't have a supported base for the scaffolding, don't bother.
+      local scaffold_extruded = scaffold_region:extruded('y', 1, 0)
+      local required_support = scaffold_extruded - scaffold_region
+      local supported = _physics:clip_region(required_support, CLIP_SOLID)
+      if supported:get_area() ~= 0 then
+         self._log:detail('normal %s does not have sufficient support.  rejecting.', normal)
+         good = false
+      end
+
       if good then
          -- if there are any blueprint fabricators in the way, there *will* be something
          -- blocking this direction in the future, so stay away from it
