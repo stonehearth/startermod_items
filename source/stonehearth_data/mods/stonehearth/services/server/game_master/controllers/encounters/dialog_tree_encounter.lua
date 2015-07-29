@@ -13,6 +13,15 @@ function DialogTreeEncounter:start(ctx, info)
 
    assert(info.start_node)
    assert(info.nodes)
+
+   --If a source entity is specified but it's not around anymore, abort early!
+   if info.source_entity then
+      local entity = ctx:get(info.source_entity)
+      if not radiant.util.is_a(entity, Entity) or not entity:is_valid() then
+         return
+      end
+   end
+         
    game_master_lib.compile_bulletin_nodes(info.nodes, ctx)
 
    self._sv.dialog_tree = info.nodes
