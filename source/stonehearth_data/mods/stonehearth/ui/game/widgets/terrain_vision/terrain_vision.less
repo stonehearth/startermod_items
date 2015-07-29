@@ -10,6 +10,14 @@
       background: red;
       display: none;
    }
+   
+   .buttonLabel {
+      position: relative;
+      top: 28px;
+      left: 7px;
+      font-size: 15px;
+      color: #aaaaaa;
+   }
 
    #sliceButton {
       .control;
@@ -19,15 +27,21 @@
       height: 50px;
       background-repeat: no-repeat;
       background-size: 50px 50px;
-      background-image: url(./images/slice_off.png);
+      background-image: url(./images/normal.png);
    }
 
    #sliceButton.normal {
-      background-image: url(./images/slice_off.png);  
+      .buttonLabel {
+         color: #aaaaaa;
+      }
+      background-image: url(./images/normal.png);  
    }
 
    #sliceButton.clip {
-      background-image: url(./images/slice_on.png);  
+      .buttonLabel {
+         color: #ffc000;
+      }
+      background-image: url(./images/clip.png);  
    }
 
    #xrayButton {
@@ -38,15 +52,21 @@
       height: 50px;
       background-repeat: no-repeat;
       background-size: 50px 50px;
-      background-image: url(./images/xray_off.png);
+      background-image: url(./images/xray.png);
    }
 
    #xrayButton.full {
-      background-image: url(./images/xray_on.png);  
+      .buttonLabel {
+         color: #ffc000;
+      }
+      background-image: url(./images/clip.png);  
    }
 
    #xrayButton.flat {
-      background-image: url(./images/xray_on.png);  
+      .buttonLabel {
+         color: #ffc000;
+      }
+      background-image: url(./images/clip.png);  
    }
 
    .palette {

@@ -1,7 +1,15 @@
 <script type="text/x-handlebars" data-template-name="stonehearthTerrainVision">
    <div id="stonehearthTerrainVision">
-      <div id="sliceButton" class="normal" {{bind-attr class=data.clip_enabled:clip:noclip}}/>
-      <div id="xrayButton" hotkey="x" class="normal" {{bind-attr class=data.xray_mode}}/>
+      <div id="sliceButton" class="normal" {{bind-attr class=data.clip_enabled:clip:noclip}}>
+         <div class="buttonLabel">
+            {{i18n terrain_slice_vision_icon_name}}
+         </div>
+      </div>
+      <div id="xrayButton" hotkey="x" class="normal" {{bind-attr class=data.xray_mode}}>
+         <div class="buttonLabel">
+            {{i18n terrain_xray_vision_icon_name}}
+         </div>
+      </div>
       
       <div id="slicePalette" class='palette' {{bind-attr class=data.clip_enabled:clip:noclip}}>
          <div class="button" id="clipUp"/>
