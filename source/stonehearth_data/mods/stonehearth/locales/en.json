@@ -310,6 +310,8 @@
    "promote_scroll_approve": "APPROVE",
    "promote_scroll_approved": "APPROVED",
    "promote_scroll_denied" : "DENIED! Requirements not met",
+   "promote_scroll_stamper_top_text": "CLICK TO",
+   "promote_scroll_stamper_bottom_text": "APPROVE",
    "item_placement_title": "Click to place this item",
    "item_placement_description": "Rotate with , and . keys",
    "item_placement_no_entities": "There is nothing to place!",
