@@ -434,7 +434,9 @@
    "building_vision_description" : "Changes the visibility of walls, allowing you to see inside buildings.",
 
    "terrain_slice_vision" : "Terrain slice vision",
+   "terrain_slice_vision_icon_name" : "slice",
    "terrain_slice_vision_description" : "Slice the terrain, allowing you to see underground structures. Change the elevation to see different slices.",
+   "terrain_xray_vision_icon_name" : "x-ray",
    "terrain_xray_vision" : "Terrain x-ray vision",
    "terrain_xray_vision_description" : "See through the terrain. Change between full and flat view to show underground walls.",
 
