@@ -1,3 +1,4 @@
+local entity_forms_lib = require 'lib.entity_forms.entity_forms_lib'
 local priorities = require('constants').priorities.worker_task
 local constants = require 'constants'
 
@@ -301,6 +302,25 @@ function StorageComponent:add_item(item)
    if self._sv.items[id] then
       return true
    end
+
+   -- At one point in time we had (and still may have) a bug where an entity's
+   -- root form could be placed in the world *AND* the iconic form was in storage.
+   -- Certainly that's a bug and should be found and fixed, but if we encounter it here
+   -- (e.g. in a save file or an unfortunate series of events that leads to an error()
+   -- at just the right moment causing this discrepencey) just silently ignore the add
+   -- request.  This has the effect of "removing" the iconic entity from the world, since
+   -- the guy who asked for it to be put into storage has released the previous reference
+   -- to it (e.g. taken it off the carry bone).
+   local root, iconic, ghost = entity_forms_lib.get_forms(item)
+   if iconic and item == iconic then
+      local in_world_item = entity_forms_lib.get_in_world_form(item)
+      if in_world_item == root then
+         log:error('cannot add %s to storage, root form %s is currently in world!', iconic, root)
+         self:remove_item(item:get_id())
+         return
+      end
+   end
+
 
    self._sv.items[id] = item
    self._sv.num_items = self._sv.num_items + 1
