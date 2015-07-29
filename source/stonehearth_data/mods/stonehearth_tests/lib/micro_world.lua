@@ -54,8 +54,11 @@ function MicroWorld:place_item(uri, x, z, player_id, options)
    local entity = radiant.entities.create_entity(uri)
    if player_id then
       entity:add_component('unit_info'):set_player_id(player_id)
+      local inventory = stonehearth.inventory:get_inventory(player_id)
+      inventory:add_item(entity)
    end
    radiant.terrain.place_entity(entity, Point3(x, 1, z), options)
+
    return entity
 end
 
