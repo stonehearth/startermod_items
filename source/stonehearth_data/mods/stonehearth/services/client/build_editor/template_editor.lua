@@ -4,6 +4,7 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local Quaternion = _radiant.csg.Quaternion
+local Color4 = _radiant.csg.Color4
 
 local INFINITE = 100000
 local UNDERGROUND = Cube3(Point3(-INFINITE, -INFINITE, -INFINITE), Point3(INFINITE, 0, INFINITE))
@@ -62,6 +63,20 @@ function TemplateEditor:_restore_template(template_name)
    end
 end
 
+local regions = {}
+local function add_region_to_draw(name, region, opt_color)
+   opt_color = opt_color or Color4(255, 0 ,0, 128)
+   if not regions[name] then
+      regions[name] = {
+         node = nil,
+         region = region,
+      }
+   else
+      regions[name].node:destroy()
+   end
+   regions[name].node = _radiant.client.create_region_outline_node(H3DRootNode, region, opt_color, opt_color, 'materials/transparent.material.json')
+end
+
 function TemplateEditor:go(response, template_name)
    self:_restore_template(template_name)
 
@@ -77,7 +92,7 @@ function TemplateEditor:go(response, template_name)
                return stonehearth.selection.FILTER_IGNORE
             end
 
-            if result.normal.y < 1 then
+            if result.normal.y < 0.99 then
                return stonehearth.selection.FILTER_IGNORE
             end
 
@@ -109,6 +124,8 @@ function TemplateEditor:go(response, template_name)
             underground_region:translate(-MODEL_OFFSET)
             underground_region:rotate(rotation)
             underground_region:translate(location + MODEL_OFFSET)
+
+            --add_region_to_draw('underground', surface_region)
 
             for pt in underground_region:each_point() do
                if not radiant.terrain.is_blocked(pt) then
