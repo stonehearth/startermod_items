@@ -75,7 +75,7 @@ function LadderManager:get_base_of_ladder_to(to)
    local base = Point3(to.x, to.y, to.z)
    local ladder_height = 0
 
-   while self:_should_build_rung(base - Point3.unit_y) do
+   while self:_should_build_rung(base - Point3.unit_y) and ladder_height < 96 do
       base.y = base.y - 1
       ladder_height = ladder_height + 1
    end
