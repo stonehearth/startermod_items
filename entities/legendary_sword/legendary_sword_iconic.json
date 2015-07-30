@@ -1,0 +1,24 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Legendary Sword",
+         "description": "Pointy. Shiny.",
+         "icon" : "file(legendary_sword.png)"
+      },
+      "item" : {
+         "category" : "weapons"
+      },
+      "stonehearth:material" : {
+         "tags" : "long melee_weapon crafted"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(legendary_sword.qb)"
+            ]
+         }
+      }
+   }
+}

@@ -1,0 +1,15 @@
+{
+   "info" : {
+      "name" : "startermod_items", 
+      "version" : 1
+   },
+   "aliases" : {
+      "sample_melee_weapon" : "file(entities/legendary_sword/legendary_sword.json)",
+      "sample_shield" : "file(entities/legendary_shield/legendary_shield.json)",
+      "sample_armor" : "file(entities/magic_armor/magic_armor.json)", 
+
+      "sample_buff" : "file(buffs/courageous/courageous_buff.json)"
+   }, 
+   "mixintos" : {
+   }
+}
