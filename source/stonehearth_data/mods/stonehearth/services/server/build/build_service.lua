@@ -87,15 +87,15 @@ end
 
 function BuildService:set_active(entity, enabled)
    if enabled then
-      self:clear_undo_stack() -- can't undo once building starts!
-      local bc = entity:get_component('stonehearth:building')
-      if bc then 
-         bc:set_active(true)
-      end
+      self:clear_undo_stack() -- can't undo once building starts! 
+   end
+   local bc = entity:get_component('stonehearth:building')
+   if bc then 
+      bc:set_active(enabled)
    end
 
-   self:_call_all_children(entity, function(entity)
-         local c = entity:get_component('stonehearth:construction_progress')
+   self:_call_all_children(entity, function(child)
+         local c = child:get_component('stonehearth:construction_progress')
          if c then
             c:set_active(enabled)
          end

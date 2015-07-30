@@ -276,6 +276,7 @@ function Building:set_active(active)
       self:_compute_dependencies()
       self:_compute_inverse_dependencies()
    end
+   self.__saved_variables:mark_changed()
 end
 
 function Building:_trace_entity(entity, loading)

@@ -7,11 +7,11 @@
       <h1>Building Cost</h1>
       {{ view stonehearthBuildingCost }}            
       <div id="buttons">
-         <button id="showEditor">{{i18n stonehearth:start_editing}}</button>
+         <button id="showEditor" {{bind-attr disabled=view.building.active}} {{bind-attr class="view.building.active:disabled"}}>{{i18n stonehearth:start_editing}}</button>
          <button id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
          <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
-         <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
-            {{#if building.active }}
+         <button class="green" {{bind-attr class=view.building.active:pause:start}} id="startBuilding">
+            {{#if view.building.active }}
                {{i18n stonehearth:pause_building}}
             {{else}}
                {{i18n stonehearth:start_building}}
