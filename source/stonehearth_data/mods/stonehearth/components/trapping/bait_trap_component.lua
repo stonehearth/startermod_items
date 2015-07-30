@@ -89,12 +89,15 @@ function BaitTrapComponent:is_armed()
 end
 
 function BaitTrapComponent:can_trap(target)
+   -- this is a static check that indicates whether this entity type is generally trappable
    local data = radiant.entities.get_entity_data(target, 'stonehearth:bait_trap')
    local can_trap = data and data.can_trap
    if not can_trap then
       return false
    end
 
+   -- check for any other dynamic conditions here
+   -- specifically, don't trap animals that are pets of the trapper's town
    local player_id = radiant.entities.get_player_id(target)
    return player_id == 'critters'
 end
