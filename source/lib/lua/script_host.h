@@ -124,7 +124,7 @@ private:
    luabind::object ReadObject(const char* modname, const char* objectName);
    luabind::object EnumObjects(const char* modname, const char* path);
    void ReportCPUDump(luabind::object profTable, std::string const& name);
-   bool ShouldActivateController(luabind::object controller) const;
+   bool ControllerIsCallable(luabind::object controller) const;
    
    typedef std::unordered_map<std::string, luabind::object> ModuleMap;
 

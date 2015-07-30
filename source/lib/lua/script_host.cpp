@@ -1198,7 +1198,7 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
    for (om::DataStorePtr datastore : datastores) {
       try {
          luabind::object controller = datastore->GetController();
-         if (!ShouldActivateController(controller)) {
+         if (!ControllerIsCallable(controller)) {
             continue;
          }
 
@@ -1219,7 +1219,7 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
    for (om::DataStorePtr datastore : datastores) {
       try {
          luabind::object controller = datastore->GetController();
-         if (!ShouldActivateController(controller)) {
+         if (!ControllerIsCallable(controller)) {
             continue;
          }
 
@@ -1243,7 +1243,7 @@ void ScriptHost::LoadGame(om::ModListPtr mods, AllocDataStoreFn allocd, std::uno
    Trigger("radiant:game_loaded");
 }
 
-bool ScriptHost::ShouldActivateController(luabind::object controller) const
+bool ScriptHost::ControllerIsCallable(luabind::object controller) const
 {
    bool result = controller.is_valid() && luabind::type(controller) == LUA_TTABLE;
    return result;
