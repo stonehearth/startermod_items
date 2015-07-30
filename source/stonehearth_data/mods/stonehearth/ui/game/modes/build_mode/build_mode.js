@@ -104,16 +104,9 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._miningView.show();
    },
 
-   _showBuildingDesignerView: function(mode) {
+   _showBuildingDesignerView: function() {
       App.setGameMode('build');
       this.hideAllViews();
-
-      if (mode == 'editor') {
-         this._buildingDesignerView.showEditor()
-      } else {
-         this._buildingDesignerView.showOverview()
-      }
-
       this._buildingDesignerView.show();
    },
 
@@ -128,11 +121,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
                      self._buildingDesignerView.set('uri', entity.__self);
-                     if (self._buildingDesignerView.visible()) {
-                        self._showBuildingDesignerView('editor');
-                     } else {
-                        self._showBuildingDesignerView('overview');
-                     }
+                     self._showBuildingDesignerView();
                   } else {
                      self._buildingDesignerView.hide();
                   }
@@ -150,7 +139,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                   .progress(function(entity) {
                      if (entity.uri == 'stonehearth:build:prototypes:building') {
                         self._buildingDesignerView.set('uri', entity.__self);
-                        self._showBuildingDesignerView('overview');
+                        self._showBuildingDesignerView();
                      } else {
                         self._buildingDesignerView.set('uri', null);
                      }

@@ -639,12 +639,11 @@ function FabricatorComponent:_start_project()
          self:_start_fabricate_tasks()
       end
    else
-      self:_destroy_teardown_tasks()
-      self:_destroy_fabricate_tasks()
+      self:_stop_project()
    end
 
    if self._sv.scaffolding then
-      self._sv.scaffolding:set_teardown(self._should_teardown)
+      self._sv.scaffolding:set_teardown(self._should_teardown and active)
       self._sv.scaffolding:set_active(active)
    end
 end

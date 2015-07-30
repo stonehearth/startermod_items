@@ -119,6 +119,9 @@ function ScaffoldingBuilder_OneDim:set_teardown(teardown)
 end
 
 function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
+   if self._sv.region_exists then
+      return
+   end
    self._sv.manager:_add_region(self._sv.id,
                                 self._debug_text,
                                 self._sv.entity,
@@ -127,6 +130,7 @@ function ScaffoldingBuilder_OneDim:_add_scaffolding_region()
                                 self._sv.blueprint_clipbox,
                                 self._sv.scaffolding_rgn,
                                 self._sv.normal)
+   self._sv.region_exists = true
 end
 
 function ScaffoldingBuilder_OneDim:_clear_scaffolding_region()
@@ -145,7 +149,7 @@ function ScaffoldingBuilder_OneDim:_update_status()
       self:_trace_blueprint_and_project()
       self:_update_scaffolding_size()
       self:_add_scaffolding_region()
-   else
+   elseif teardown then
       self:_clear_scaffolding_region()
    end
 end

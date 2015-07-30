@@ -5,6 +5,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
    components: {
       'unit_info': {},
+      'stonehearth:building' : {},
       'stonehearth:construction_progress' : {},
       'stonehearth:construction_data' : {
          'fabricator_entity' : {
@@ -21,10 +22,10 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       'stonehearth:floor' : {},
       'stonehearth:wall' : {
          'column_a' : {
-            'stonehearth:column' : {}      
+            'stonehearth:column' : {}
          },
          'column_b' : {
-            'stonehearth:column' : {}      
+            'stonehearth:column' : {}
          },
       },
       'stonehearth:column' : {},
@@ -32,6 +33,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       'stonehearth:construction_data' : {},
       'stonehearth:construction_progress' : {
          'building_entity' : {
+            'stonehearth:building' : {},
             'unit_info' : {},
             'stonehearth:construction_data' : {},
             'stonehearth:construction_progress': {},
@@ -325,17 +327,23 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
 
       this.$().on( 'click', '#startBuilding', function() {
+         var building_entity = self.get('building');
+         if (!building_entity) {
+            return;
+         }
+
+         var newValue = !self.get('building.active');
          var doStartBuilding = function() {
             App.stonehearthClient.deactivateAllTools();
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
-            var building_entity = self.get('building');
-            if (building_entity) {
-               var value = !self.get('building.active')
-               radiant.call('stonehearth:set_building_active', building_entity.__self, value);
+            radiant.call('stonehearth:set_building_active', building_entity.__self, newValue);
+            self.set('building.active', newValue);
+         }
 
-               //xxx hack! The server should do this for us
-               self.set('building.active', true);
-            }
+         if (!newValue) {
+            // We're pausing; don't show any dialog.
+            doStartBuilding();
+            return;
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 
@@ -352,7 +360,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
                      label: i18n.t('start_building_no')
                   }
                ] 
-            });         
+            });
       });
 
       this.$().on( 'click', '#removeBuilding', function() {
@@ -442,8 +450,9 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       self.set('blueprint', blueprint_entity);
 
       if (building_entity) {
-         self.set('building.active', building_entity['stonehearth:construction_progress'].active);
-      }        
+         var active = !!building_entity['stonehearth:building'].active;
+         self.set('building.active', active);
+      }
 
       self._updateControls();
    }.observes('context.selection'),
@@ -499,6 +508,11 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
                self.showEditor();
             }
          });
+         if (self.get('building.active')) {
+            self.showOverview();
+         } else {
+            self.showEditor();
+         }
       } else {
          self.showEditor();
       }
