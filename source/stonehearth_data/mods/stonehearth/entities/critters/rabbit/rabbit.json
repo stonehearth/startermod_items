@@ -20,6 +20,9 @@
       }
    },
    "entity_data" : {
+      "stonehearth:bait_trap" : {
+         "can_trap" : true
+      },
       "stonehearth:harvest_beast_loot_table" : {
          "num_rolls" : {
             "min" : 1,

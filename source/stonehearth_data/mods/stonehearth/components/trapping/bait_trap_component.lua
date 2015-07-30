@@ -89,6 +89,12 @@ function BaitTrapComponent:is_armed()
 end
 
 function BaitTrapComponent:can_trap(target)
+   local data = radiant.entities.get_entity_data(target, 'stonehearth:bait_trap')
+   local can_trap = data and data.can_trap
+   if not can_trap then
+      return false
+   end
+
    local player_id = radiant.entities.get_player_id(target)
    return player_id == 'critters'
 end

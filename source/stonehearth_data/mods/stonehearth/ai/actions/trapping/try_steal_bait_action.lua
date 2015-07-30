@@ -13,6 +13,13 @@ TryStealBait.version = 2
 TryStealBait.priority = 1
 
 function TryStealBait:start_thinking(ai, entity, args)
+   local data = radiant.entities.get_entity_data(entity, 'stonehearth:bait_trap')
+   local can_trap = data and data.can_trap
+   if not can_trap then
+      -- skip the sensor iteration if this entity isn't interested in the bait
+      return
+   end
+
    local sensor_list = entity:add_component('sensor_list')
    local sensor = sensor_list:get_sensor('sight')
    assert(sensor)
