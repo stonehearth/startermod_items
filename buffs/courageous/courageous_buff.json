@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Courageous",
+   "description" : "Does the sword grant courage, or is it the other way around?",
+   "icon" : "file(courageous_buff.png)",
+   "modifiers" : {
+      "courage" : {
+         "add" : 50
+      }
+   }
+} 

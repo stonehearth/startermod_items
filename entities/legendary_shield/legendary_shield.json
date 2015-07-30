@@ -1,0 +1,59 @@
+{
+   "mixins" : "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name": "Legendary Shield",
+         "description": "From the ancient past.",
+         "icon" : "file(legendary_shield.png)"         
+      },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" : "wood armor heavy_armor"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(legendary_shield.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(legendary_shield_iconic.json)"
+      },
+
+      "stonehearth:equipment_piece" : {
+         "slot" : "offhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol", "stonehearth:have_shield" ],
+         "ilevel" : 20,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 1
+      },
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_shield_block",
+            "active_frame" : 4,
+            "cooldown" : 10000,
+            "priority" : 0
+         }
+      ],
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 40,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }
+}

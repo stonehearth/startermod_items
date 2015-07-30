@@ -1,9 +1,0 @@
-{
-   "mixins" : "file(../ore_block)",
-   "components" : {
-      "unit_info" : {
-         "name": "Tin Vein", 
-         "description": "Provides tin ore when mined."
-      }
-	}
-}

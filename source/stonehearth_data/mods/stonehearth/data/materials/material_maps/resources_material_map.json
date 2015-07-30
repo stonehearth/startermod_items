@@ -1,5 +1,0 @@
-{
-   "stonehearth:resource:metal:gold" : {
-      "render_material" : "materials/shiny.material.json"
-   }
-}

@@ -1,9 +1,0 @@
-{
-   "mixins" : "file(../critter_nest)",
-   "name" : "squirrel_nest",
-   "habitat_types" : ["forest"],
-   "weight" : 3,
-   "data" : {
-      "critter_type" : [ "stonehearth:squirrel" ]
-   }
-}

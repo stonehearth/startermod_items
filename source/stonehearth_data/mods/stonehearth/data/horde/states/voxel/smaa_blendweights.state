@@ -1,5 +1,0 @@
-ZWriteEnable = false;
-ZEnable = false;
-CullMode = Back;
-StencilFunc = Equal;
-StencilRef = 2;

@@ -1,6 +1,0 @@
-{
-   "mixins" : "file(../ore_vein)",
-   "name" : "copper_vein",
-   "kind" : "copper_ore",
-   "weight" : 100
-}

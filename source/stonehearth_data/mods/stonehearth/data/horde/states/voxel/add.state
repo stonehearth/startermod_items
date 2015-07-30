@@ -1,4 +1,0 @@
-ZWriteEnable = false;
-ZEnable = true;
-BlendMode = Add;
-CullMode = Back;

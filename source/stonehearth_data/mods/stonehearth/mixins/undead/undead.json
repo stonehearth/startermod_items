@@ -1,9 +1,0 @@
-{
-   "type": "entity", 
-   "mixins" : "stonehearth:mixins:monster",
-   "entity_data" : {
-      "stonehearth:combat" : {
-         "no_shuffle" : true
-      }
-   }
-}

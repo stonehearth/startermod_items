@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info" : {
+         "name": "Legendary Shield",
+         "description": "Deflects fire and has infinite HP",
+         "icon" : "file(legendary_shield.png)"         
+      },
+      "item" : {
+         "category" : "armor"   
+      },
+      "stonehearth:material" : {
+         "tags" : "wood armor heavy_armor"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(legendary_shield_iconic.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   }
+}

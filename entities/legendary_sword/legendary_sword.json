@@ -1,0 +1,74 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Legendary Sword",
+         "description": "The blade of the Hero (of Time).",
+         "icon" : "file(legendary_sword.png)"
+      },
+      "item": {
+         "category" : "weapons"
+      },     
+      "stonehearth:material" : {
+         "tags" : "long melee_weapon crafted"
+      },
+      "model_variants": {
+         "default" : {
+            "models": [
+               "file(legendary_sword_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(legendary_sword_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
+         "ilevel" : 20,
+         "roles" : "combat",
+         "injected_buffs" : [ "startermod_items:sample_buff" ],
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 25,
+         "reach" : 1.8
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_parry",
+            "active_frame" : 4,
+            "cooldown" : 8000,
+            "priority" : 0
+         }
+      ],
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 199,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : false,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }      
+   }
+}

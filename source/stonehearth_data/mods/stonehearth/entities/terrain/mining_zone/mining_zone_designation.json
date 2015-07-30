@@ -1,8 +1,0 @@
-{
-   "type": "entity",
-   "entity_data" : {
-      "stonehearth:designation" : {
-         "allow_placed_items" : true
-      }
-   }
-}

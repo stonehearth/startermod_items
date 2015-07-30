@@ -1,8 +1,0 @@
-{
-   "alias": "stonehearth:jobs:archer",
-   "name" : "???",
-   "description" : "???",
-   "requirements" : "???",
-   "parent_job" : "stonehearth:jobs:worker", 
-   "icon" : "file(../unknown/images/icon.png)"
-}

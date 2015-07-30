@@ -1,8 +1,0 @@
-{
-   "type" : "arc",
-   "rarity" : "common",
-
-   "encounters" : {
-      "create camp" : "file(encounters/undead_temple.json)"
-   }
-}

@@ -1,9 +1,0 @@
-{
-   "mixins" : "file(../ore_block)",
-   "components" : {
-      "unit_info" : {
-         "name": "Copper Vein", 
-         "description": "Provides copper ore when mined."
-      }
-	}
-}

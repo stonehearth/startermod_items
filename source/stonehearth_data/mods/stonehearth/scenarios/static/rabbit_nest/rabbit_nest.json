@@ -1,8 +1,0 @@
-{
-   "mixins" : "file(../critter_nest)",
-   "name" : "rabbit_nest",
-   "habitat_types" : ["forest", "plains", "foothills"],
-   "data" : {
-      "critter_type" : [ "stonehearth:rabbit" ] 
-   }
-}
