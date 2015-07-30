@@ -92,6 +92,12 @@ function JobComponent:_drop_talisman()
          output_table[self._sv.talisman_uri] = 1
          --TODO: is it possible that this gets dumped onto an inaccessible location?
          local items = radiant.entities.spawn_items(output_table, location, 1, 2, { owner = player_id })
+         local inventory = stonehearth.inventory:get_inventory(self._entity)
+         if inventory then
+            for _, item in pairs(items) do
+               inventory:add_item(item)
+            end
+         end
 
          for id, obj in pairs(items) do
             if obj:get_component('stonehearth:promotion_talisman') then

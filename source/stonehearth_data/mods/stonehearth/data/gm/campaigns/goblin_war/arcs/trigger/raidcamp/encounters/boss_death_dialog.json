@@ -7,6 +7,7 @@
 
    "dialog_tree_info" : {
       "start_node" : "msg1",
+      "script" : "file(boss_death_script.lua)", 
       "nodes" : {
          "msg1" : {
             "bulletin" : {

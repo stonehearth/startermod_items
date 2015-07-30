@@ -310,6 +310,8 @@
    "promote_scroll_approve": "APPROVE",
    "promote_scroll_approved": "APPROVED",
    "promote_scroll_denied" : "DENIED! Requirements not met",
+   "promote_scroll_stamper_top_text": "CLICK TO",
+   "promote_scroll_stamper_bottom_text": "APPROVE",
    "item_placement_title": "Click to place this item",
    "item_placement_description": "Rotate with , and . keys",
    "item_placement_no_entities": "There is nothing to place!",
@@ -434,7 +436,9 @@
    "building_vision_description" : "Changes the visibility of walls, allowing you to see inside buildings.",
 
    "terrain_slice_vision" : "Terrain slice vision",
+   "terrain_slice_vision_icon_name" : "slice",
    "terrain_slice_vision_description" : "Slice the terrain, allowing you to see underground structures. Change the elevation to see different slices.",
+   "terrain_xray_vision_icon_name" : "x-ray",
    "terrain_xray_vision" : "Terrain x-ray vision",
    "terrain_xray_vision_description" : "See through the terrain. Change between full and flat view to show underground walls.",
 
@@ -620,7 +624,6 @@
    "ai_status_text_patrol" : "patrolling",
    "ai_status_text_plant_crop" : "planting crop",
    "ai_status_text_return_animals" : "returning to pasture",
-   "ai_status_text_till_field" : "tilling field",
    "ai_status_text_combat" : "engaged in combat",
    "ai_status_text_cower" : "cowering!",
    "ai_status_text_flee" : "fleeing!",

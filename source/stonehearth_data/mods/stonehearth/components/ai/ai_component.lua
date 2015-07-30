@@ -18,7 +18,6 @@ function AIComponent:initialize(entity, json)
    self._last_added_actions = {}
    self._all_execution_frames = {}
    self._ref_counts = radiant.create_controller('stonehearth:lib:reference_counter')
-   self._status_text = ''
    self._log = radiant.log.create_logger('ai.component')
                               :set_entity(self._entity)
 

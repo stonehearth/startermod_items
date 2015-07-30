@@ -313,6 +313,7 @@
       "crops:silkweed_crop" : "file(entities/crops/silkweed_crop)", 
       "crops:tester_silkweed_crop" : "file(entities/crops/tester_silkweed_crop)", 
 
+      "plants:silkweed" : "file(entities/plants/silkweed/silkweed)",
       "plants:brightbell" : "file(entities/plants/brightbell_plant)",
       "plants:frostsnap" : "file(entities/plants/frostsnap_plant)",
 
@@ -337,8 +338,6 @@
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
       
-      "plants:silkweed" : "file(entities/plants/silkweed/silkweed)",
-
       "furniture:arch_backed_chair" : "file(entities/furniture/arch_backed_chair)",
       "furniture:arch_backed_chair:fine" : "file(entities/furniture/arch_backed_chair_fine)",
       "furniture:comfy_bed" :       "file(entities/furniture/comfy_bed)",
@@ -1228,10 +1227,6 @@
          "endpoint" : "server"
       },
       "get_inventory": {
-         "controller" : "file(call_handlers/inventory_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "get_talismans_in_explored_region": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "server"
       },

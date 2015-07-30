@@ -7,6 +7,7 @@
 
    "dialog_tree_info" : {
       "start_node" : "msg1",
+      "source_entity" : "goblin_raiding_camp_1.boss",
       "nodes" : {
          "msg1" : {
             "bulletin" : {
