@@ -21,6 +21,14 @@ function DialogTreeEncounter:start(ctx, info)
          return
       end
    end
+
+   -- if there's a script associated with the encounter
+   -- give it a chance to do something before everyone goes away
+   if info.script then
+      local script = radiant.create_controller(info.script, ctx)
+      self._sv.script = script
+      script:start(ctx, info)
+   end
          
    game_master_lib.compile_bulletin_nodes(info.nodes, ctx)
 
