@@ -385,13 +385,10 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
             extrude_min = 0
          end
       end
-      -- Take the blueprint, and get its bounds as the scaffolding should not have any of the holes that the 
-      -- blueprint geometry may have.  The translate it into the world + move it in the normal direction, where
+      -- Take the blueprint, and translate it into the world + move it in the normal direction, where
       -- the scaffolding will start, and extrude it in the normal direction, because we need room for units to
       -- move when using the scaffolding.
-      local scaffold_region = Region3()
-      scaffold_region:add_cube(blueprint_rgn:get_bounds())
-      scaffold_region = scaffold_region:translated(self._sv.origin + normal):extruded(extrude_dim, extrude_min, 1 - extrude_min)
+      local scaffold_region = blueprint_rgn:translated(self._sv.origin + normal):extruded(extrude_dim, extrude_min, 1 - extrude_min)
       local unblocked_region = _physics:clip_region(scaffold_region, CLIP_SOLID)
 
       -- if anything blocks the proposed box, don't bother.
@@ -400,13 +397,18 @@ function ScaffoldingBuilder_OneDim:_choose_normal()
          good = false
       end
 
-      -- If we don't have a supported base for the scaffolding, don't bother.
-      local scaffold_extruded = scaffold_region:extruded('y', 1, 0)
-      local required_support = scaffold_extruded - scaffold_region
-      local supported = _physics:clip_region(required_support, CLIP_SOLID)
-      if supported:get_area() ~= 0 then
-         self._log:detail('normal %s does not have sufficient support.  rejecting.', normal)
-         good = false
+      if good then
+         -- If we don't have a supported base for the scaffolding, don't bother.
+         -- Take the scaffolding extents, and just check for one unit high, beneath them.
+         local scaffold_extruded = Region3()
+         local scaffold_bounds = scaffold_region:get_bounds()
+         scaffold_extruded:add_cube(Cube3(scaffold_bounds.min - Point3(0, 1, 0), Point3(scaffold_bounds.max.x, scaffold_bounds.min.y, scaffold_bounds.max.z)))
+         local required_support = scaffold_extruded - scaffold_region
+         local supported = _physics:clip_region(required_support, CLIP_SOLID)
+         if supported:get_area() ~= 0 then
+            self._log:detail('normal %s does not have sufficient support.  rejecting.', normal)
+            good = false
+         end
       end
 
       if good then
