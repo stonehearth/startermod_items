@@ -3,7 +3,7 @@ local Entity = _radiant.om.Entity
 
 local TillField = class()
 TillField.name = 'till field'
-TillField.status_text_key = 'ai_status_text_till_field'
+TillField.status_text_key = 'ai_status_text_plant_crop'
 TillField.does = 'stonehearth:till_field'
 TillField.args = {
    field_spacer = Entity,

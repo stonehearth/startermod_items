@@ -624,7 +624,6 @@
    "ai_status_text_patrol" : "patrolling",
    "ai_status_text_plant_crop" : "planting crop",
    "ai_status_text_return_animals" : "returning to pasture",
-   "ai_status_text_till_field" : "tilling field",
    "ai_status_text_combat" : "engaged in combat",
    "ai_status_text_cower" : "cowering!",
    "ai_status_text_flee" : "fleeing!",
