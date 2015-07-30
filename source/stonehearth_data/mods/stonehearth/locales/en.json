@@ -144,6 +144,15 @@
    "esc_menu_quit_to_menu": "Quit to Main Menu",
    "esc_menu_exit_game": "Exit Game",
    "esc_menu_post_bug" : "Post a bug", 
+   "esc_menu" : {
+      "exit_confirm_dialog" : {
+         "title" : "Exit Game",
+         "message" : "Do you want to save before exiting?",
+         "save_and_exit_button": "Save and Exit",
+         "just_exit_button": "Just Exit",
+         "cancel_button": "Cancel"
+      }
+   },
 
    "embark_title" : "Prepare to set out for adventure",
    "embark_citizen_info" : "Expedition Roster",
