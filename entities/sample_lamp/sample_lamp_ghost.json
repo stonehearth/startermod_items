@@ -1,0 +1,26 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(sample_lamp.qb)"
+            ]
+         }
+      },
+	  "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      },
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Wooden Lamp Post",
+         "description": "Lights your streets at night.",
+         "icon" : "file(sample_lamp.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      }
+   }
+}

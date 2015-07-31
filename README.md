@@ -16,6 +16,11 @@ Observe that we have:
 
 - sample buff
 
+- sample_lamp (by Relyss)
+- hung_lamp (by Relyss)
+- sample_fountain (by Relyss)
+- sample_fountain:fine (by Relyss)
+
 To see/use these items in the game, follow the instructions in startermod_basic for adding items to the world via the clone stamp tool, or by adding them to a crafter's recipe list. 
 
 Notes by Item Type: 
@@ -35,3 +40,19 @@ sample_armor
 sample_shield
 - similar to sample sword and armor, footmen will automatically equip iconic version
 - to edit shield, be sure to edit both the iconic and the equipped versions of the .qmo files. The shield is carried sideways by the footman. 
+
+sample_lamp
+- implements the lamp component, which causes an effect to run at sundown, and to stop running at sun-up.
+- in this case, the effect assigned to "light_effect" is the "sample_lamp_effect", which is stored in this mod's data\effects file
+- sample_lamp_effect re-uses an existing particle effect (called cubemitter) from the regular stonehearth mod, called "particles/lamp/lamp.cubemitter". It makes sure that the cubes of light are being emitted from the correct location on the model. 
+
+hung_lamp
+- is just like sample_lamp except that comparing hung_lamppost_effect to sample_lamp_effect illustrates how to move the effect elsewhere on the model. 
+
+sample_fountain
+- illustrates how to create brand-new cubemitters for the water effects. The effects are added via the effect_list component, which will play anything given to it immediately on placement in the world, and are defined in data/effects/sample_fount_effect
+- the cubemitters mentioned in the effect can be found in data/horde/particles/water
+- cubemitters are complicated, but feel free to mess with the values in the file and see what happens!
+
+sample_fountain_fine
+- just like sample_fountain, but nicer, in case you'd like to include a "fine" version for a crafter to create at random
