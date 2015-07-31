@@ -1,0 +1,22 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(sample_fountain.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Stone Fountain",
+         "description": "A decorative fountain",
+         "icon" : "file(sample_fountain.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted"
+      }
+   }
+}

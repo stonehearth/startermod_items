@@ -8,7 +8,12 @@
       "sample_shield" : "file(entities/legendary_shield/legendary_shield.json)",
       "sample_armor" : "file(entities/magic_armor/magic_armor.json)", 
 
-      "sample_buff" : "file(buffs/courageous/courageous_buff.json)"
+      "sample_buff" : "file(buffs/courageous/courageous_buff.json)",
+
+      "sample_lamp" : "file(entities/sample_lamp/sample_lamp.json)",
+      "hung_lamppost" : "file(entities/hung_lamppost/hung_lamppost.json)",
+      "sample_fountain" : "file(entities/sample_fountain/sample_fountain.json)",
+      "sample_fountain:fine" : "file(entities/sample_fountain_fine/sample_fountain_fine.json)"
    }, 
    "mixintos" : {
    }

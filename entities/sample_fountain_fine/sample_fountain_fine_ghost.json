@@ -1,0 +1,22 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(sample_fountain_fine.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Stone Fountain With Garden",
+         "description": "A decorative fountain",
+         "icon" : "file(sample_fountain_fine.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted"
+      }
+   }
+}
