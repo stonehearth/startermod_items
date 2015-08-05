@@ -5,19 +5,25 @@
         "lifetime": {
             "start": {
                 "kind": "RANDOM_BETWEEN",
-                "values": [0.5, 1.0]
+                "values": [0.0, 7.0]
             }
         },
         "speed": {
             "start": {
                 "kind": "CONSTANT",
-                "values": [8]
+                "values": [0]
+            },
+            "over_lifetime": {
+                "kind": "CONSTANT",
+                "values": [0]                
             }
         },
 		"acceleration": {
             "over_lifetime_y": {
-                "kind": "CONSTANT",
-                "values": [-0.2]
+                "kind": "CURVE",
+                "values": [ 
+					[0.0, 0.06], [0.24, -0.1]
+				]
             }
         },
         "color": {
@@ -44,20 +50,28 @@
                     [[0.0, 0.4],[0.5, 0.3],[1.0, 0.5]]
                 ]
             }
+        },
+        "rotation": {
+        },
+        "velocity": {
+			"over_lifetime_z": {                
+				"kind": "CONSTANT",
+                "values": [0.5]
+            }
         }        
     },
     "emission": {
         "rate": {
             "kind": "CONSTANT",
-            "values": [200]
+            "values": [80]
         },
         "origin": {
             "surface": "RECTANGLE",
-            "values": [0.25, 0.25]
+            "values": [0.25, 1.0]
         },
         "angle": {
             "kind": "CONSTANT",
-            "values": [17]
+            "values": [0]
         }
     }
 }
