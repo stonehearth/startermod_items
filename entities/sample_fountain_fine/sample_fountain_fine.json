@@ -1,4 +1,4 @@
-{
+ {
    "type" : "entity",
    "mixins": "file(sample_fountain_fine_ghost.json)",
 
@@ -10,16 +10,8 @@
       "region_collision_shape" : {
          "region": [
 			{
-               "min" : { "x" : -2, "y" : 0, "z" : -2 },
-               "max" : { "x" :  3, "y" : 1, "z" :  3 }
-            }
-         ]
-      },
-	  "destination" : {
-         "region" : [
-            {
-               "min" : { "x" : -2, "y" : 0, "z" : -2 },
-               "max" : { "x" :  3, "y" : 1, "z" :  3 }
+               "min" : { "x" : -3, "y" : 0, "z" : -3 },
+               "max" : { "x" :  4, "y" : 2, "z" :  4 }
             }
          ]
       },
