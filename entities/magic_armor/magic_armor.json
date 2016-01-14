@@ -15,13 +15,13 @@
       },
       "model_variants": {
          "default": {
-            "layer": "clothing",
+            "layer": "armor",
             "models": [
                "file(magic_armor.qb)"
             ]
          },
          "female" : {
-            "layer": "clothing",
+            "layer": "armor",
             "models": [
                "file(magic_armor_female.qb)"
             ]
