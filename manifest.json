@@ -1,7 +1,7 @@
 {
    "info" : {
       "name" : "startermod_items", 
-      "version" : 1
+      "version" : 2
    },
    "aliases" : {
       "sample_melee_weapon" : "file(entities/legendary_sword/legendary_sword.json)",
