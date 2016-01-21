@@ -1,17 +1,17 @@
 {
-   "mixins" : "stonehearth:mixins:item_properties",
+   "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
-   "components" : {
-       "unit_info" : {
+   "components": {
+      "unit_info": {
          "name": "Magic Armor",
          "description": "Burns money while you walk",
-         "icon" : "file(magic_armor.png)"         
+         "icon": "file(magic_armor.png)"
       },
-      "item" : {
-         "category" : "armor"
+      "item": {
+         "category": "armor"
       },
-      "stonehearth:material" : {
-         "tags" : "magic armor heavy_armor"
+      "stonehearth:material": {
+         "tags": "magic armor heavy_armor"
       },
       "model_variants": {
          "default": {
@@ -20,37 +20,37 @@
                "file(magic_armor.qb)"
             ]
          },
-         "female" : {
+         "female": {
             "layer": "armor",
             "models": [
                "file(magic_armor_female.qb)"
             ]
          }
       },
-      "stonehearth:entity_forms" : {
-         "iconic_form" : "file(magic_armor_iconic.json)"
+      "stonehearth:entity_forms": {
+         "iconic_form": "file(magic_armor_iconic.json)"
       },
-      "stonehearth:equipment_piece" : {
-         "slot" : "torso",
-         "render_type" : "merge_with_model",
-         "ilevel" : 10,
-         "roles" : "combat",
-         "equip_effect" : "/stonehearth/data/effects/level_up"
+      "stonehearth:equipment_piece": {
+         "slot": "torso",
+         "render_type": "merge_with_model",
+         "ilevel": 10,
+         "roles": "combat",
+         "equip_effect": "/stonehearth/data/effects/level_up"
       }
    },
-   "entity_data" : {
-      "stonehearth:combat:armor_data" : {
-         "base_damage_reduction" : 10
+   "entity_data": {
+      "stonehearth:combat:armor_data": {
+         "base_damage_reduction": 10
       },
-      "stonehearth:net_worth" : {
-         "value_in_gold" : 500,
-         "rarity" : "common",
-         "shop_info" : {
-            "buyable" : false,   
-            "sellable" : true,
-            "shopkeeper_level" : 1,
-            "shopkeeper_type" : "caravan"
+      "stonehearth:net_worth": {
+         "value_in_gold": 200,
+         "rarity": "common",
+         "shop_info": {
+            "buyable": false,
+            "sellable": true,
+            "shopkeeper_level": 1,
+            "shopkeeper_type": "caravan"
          }
       }
-   }   
+   }
 }
