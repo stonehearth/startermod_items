@@ -2,16 +2,16 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-     "unit_info" : {
+      "unit_info": {
          "name": "Magic Armor Breastplate",
          "description": "Burns money while walking",
-         "icon" : "file(magic_armor.png)"
+         "icon": "file(magic_armor.png)"
       },
-      "item" : {
-         "category" : "armor"
+      "item": {
+         "category": "armor"
       },
-      "stonehearth:material" : {
-         "tags" : "bronze armor heavy_armor"
+      "stonehearth:material": {
+         "tags": "magic bronze armor heavy_armor"
       },
       "model_variants": {
          "default": {
@@ -20,8 +20,8 @@
             ]
          }
       },
-      "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      "mob": {
+         "model_origin": { "x": -0.05, "y": 0, "z": 0.05 }
       }
    }
 }
