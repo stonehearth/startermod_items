@@ -1,4 +1,5 @@
 {
+   "mixins": "stonehearth:mixins:placed_object",
    "components": {
       "model_variants": {
          "default": {
@@ -7,16 +8,16 @@
             ]
          }
       },
-      "render_info" : {
-         "scale" : 0.15
-      },     
+      "render_info": {
+         "scale": 0.15
+      },
       "unit_info": {
          "name": "Stone Fountain With Garden",
          "description": "A decorative fountain",
-         "icon" : "file(sample_fountain_fine.png)"
+         "icon": "file(sample_fountain_fine.png)"
       },
-      "stonehearth:material" : {
-         "tags" : "decoration crafted"
+      "stonehearth:material": {
+         "tags": "decoration crafted"
       }
    }
 }
