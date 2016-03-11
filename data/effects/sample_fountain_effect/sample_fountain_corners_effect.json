@@ -1,7 +1,7 @@
 {
    "type" : "effect",
    "tracks": {
-	 "cubemitter1": {
+	 "corner1": {
          "type": "cubemitter",
          "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_corner.cubemitter.json",
          "loop": true,
@@ -14,7 +14,7 @@
             "rz":0
          }
      },
-	 "cubemitter2": {
+	 "corner2": {
          "type": "cubemitter",
          "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_corner.cubemitter.json",
          "loop": true,
@@ -27,7 +27,7 @@
             "rz":0
          }
      },
-	 "cubemitter3": {
+	 "corner3": {
          "type": "cubemitter",
          "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_corner.cubemitter.json",
          "loop": true,
@@ -40,7 +40,7 @@
             "rz":0
          }
      },
-	 "cubemitter4": {
+	 "corner4": {
          "type": "cubemitter",
          "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_corner.cubemitter.json",
          "loop": true,

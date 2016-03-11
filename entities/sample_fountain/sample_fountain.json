@@ -3,39 +3,19 @@
    "mixins": "file(sample_fountain_ghost.json)",
    "components": {
       "mob": {
-         "model_origin": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-         },
-         "region_origin": {
-            "x": 0.5,
-            "y": 0,
-            "z": 0.5
-         }
+         "model_origin": { "x": 0, "y": 0, "z": 0 },
+         "region_origin": { "x": 0.5, "y": 0, "z": 0.5 }
       },
       "region_collision_shape": {
          "region": [
             {
-               "min": {
-                  "x": -2,
-                  "y": 0,
-                  "z": -2
-               },
-               "max": {
-                  "x": 3,
-                  "y": 2,
-                  "z": 3
-               }
+               "min": { "x": -2, "y": 0, "z": -2 },
+               "max": { "x": 3, "y": 2, "z": 3 }
             }
          ]
       },
       "effect_list": {
-         "effects": [
-            "/startermod_items/data/effects/sample_fountain_effect/sample_fountain_effect.json",
-            "/startermod_items/data/effects/sample_fountain_effect/sample_fountain_corners_effect.json",
-            "/startermod_items/data/effects/sample_fountain_effect/sample_fountain_splash_effect.json"
-         ]
+         "default": "/startermod_items/data/effects/sample_fountain_effect/sample_fountain_combined_effect.json"
       },
       "stonehearth:entity_forms": {
          "iconic_form": "file(sample_fountain_iconic.json)",
