@@ -38,6 +38,7 @@
          "injected_buffs": [
             "startermod_items:sample_buff"
          ],
+         "required_job_level": 4,
          "equip_effect": "/stonehearth/data/effects/weapon_level_up"
       }
    },
