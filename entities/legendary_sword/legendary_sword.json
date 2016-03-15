@@ -33,7 +33,7 @@
             "stonehearth:combat",
             "stonehearth:patrol"
          ],
-         "ilevel": 20,
+         "ilevel": 25,
          "roles": "melee_combat",
          "injected_buffs": [
             "startermod_items:sample_buff"
