@@ -9,15 +9,23 @@
          }
       },
       "mob": {
-         "model_origin": { "x": 0, "y": 0, "z": 0 },
-         "region_origin": { "x": 0, "y": 0, "z": 0 }
+         "model_origin": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+         },
+         "region_origin": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+         }
       },
       "render_info": {
          "scale": 0.15
       },
       "unit_info": {
-         "name": "Hung Lamp Post",
-         "description": "Lights your streets at night.",
+         "display_name": "i18n(startermod_items:entities.hung_lamppost.hung_lamppost_ghost.display_name)",
+         "description": "i18n(startermod_items:entities.hung_lamppost.hung_lamppost_ghost.description)",
          "icon": "file(hung_lamppost.png)"
       },
       "stonehearth:material": {

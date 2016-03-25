@@ -3,8 +3,8 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Magic Armor",
-         "description": "Burns money while you walk",
+         "display_name": "i18n(startermod_items:entities.magic_armor.display_name)",
+         "description": "i18n(startermod_items:entities.magic_armor.description)",
          "icon": "file(magic_armor.png)"
       },
       "item": {

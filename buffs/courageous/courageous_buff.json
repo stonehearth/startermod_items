@@ -1,11 +1,11 @@
 {
-   "type" : "buff",
-   "name" : "Courageous",
-   "description" : "Does the sword grant courage, or is it the other way around?",
-   "icon" : "file(courageous_buff.png)",
-   "modifiers" : {
-      "courage" : {
-         "add" : 50
+   "type": "buff",
+   "display_name": "i18n(startermod_items:buffs.courageous.courageous_buff.display_name)",
+   "description": "i18n(startermod_items:buffs.courageous.courageous_buff.description)",
+   "icon": "file(courageous_buff.png)",
+   "modifiers": {
+      "courage": {
+         "add": 50
       }
    }
-} 
+}
