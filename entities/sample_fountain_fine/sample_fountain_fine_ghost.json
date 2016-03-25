@@ -12,8 +12,8 @@
          "scale": 0.15
       },
       "unit_info": {
-         "name": "Stone Fountain With Garden",
-         "description": "A decorative fountain",
+         "display_name": "i18n(startermod_items:entities.sample_fountain_fine.sample_fountain_fine_ghost.display_name)",
+         "description": "i18n(startermod_items:entities.sample_fountain_fine.sample_fountain_fine_ghost.description)",
          "icon": "file(sample_fountain_fine.png)"
       },
       "stonehearth:material": {

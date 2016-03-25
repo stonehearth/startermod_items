@@ -12,8 +12,8 @@
          "scale": 0.15
       },
       "unit_info": {
-         "name": "Stone Fountain",
-         "description": "A decorative fountain",
+         "display_name": "i18n(startermod_items:entities.sample_fountain.sample_fountain_ghost.display_name)",
+         "description": "i18n(startermod_items:entities.sample_fountain.sample_fountain_ghost.description)",
          "icon": "file(sample_fountain.png)"
       },
       "stonehearth:material": {

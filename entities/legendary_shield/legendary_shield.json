@@ -3,8 +3,8 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Legendary Shield",
-         "description": "From the ancient past.",
+         "display_name": "i18n(startermod_items:entities.legendary_shield.display_name)",
+         "description": "i18n(startermod_items:entities.legendary_shield.description)",
          "icon": "file(legendary_shield.png)"
       },
       "item": {
