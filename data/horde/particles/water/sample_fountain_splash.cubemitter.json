@@ -15,7 +15,7 @@
             },
             "over_lifetime": {
                 "kind": "CONSTANT",
-                "values": [0]                
+                "values": [0]
             }
         },
 		"acceleration": {
@@ -54,11 +54,11 @@
         "rotation": {
         },
         "velocity": {
-			"over_lifetime_": {                
+			"over_lifetime_x": {
 				"kind": "CONSTANT",
                 "values": [0]
             }
-        }        
+        }
     },
     "emission": {
         "rate": {
