@@ -43,6 +43,7 @@
       "stonehearth:combat:melee_defenses": [
          {
             "name": "combat_1h_shield_block",
+            "effect": "combat_1h_shield_block",
             "active_frame": 4,
             "cooldown": 10000,
             "priority": 0,
