@@ -70,8 +70,8 @@
             "values": [1.0, 1.0]
         },
         "angle": {
-            "kind": "CONSTANT",
-            "values": [45]
+            "kind": "RANDOM_BETWEEN",
+            "values": [0, 45]
         }
     }
 }
