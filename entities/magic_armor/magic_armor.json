@@ -35,7 +35,7 @@
          "render_type": "merge_with_model",
          "ilevel": 10,
          "roles": "combat",
-         "equip_effect": "/stonehearth/data/effects/level_up"
+         "equip_effect": "/stonehearth/data/effects/weapon_level_up"
       }
    },
    "entity_data": {
