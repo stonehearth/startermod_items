@@ -75,7 +75,7 @@
          }
       ],
       "stonehearth:net_worth": {
-         "value_in_gold": 199,
+         "value_in_gold": 99,
          "rarity": "common",
          "shop_info": {
             "buyable": false,
