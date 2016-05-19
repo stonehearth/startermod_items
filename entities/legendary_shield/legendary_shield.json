@@ -33,7 +33,7 @@
          ],
          "ilevel": 20,
          "roles": "melee_combat",
-         "equip_effect": "/stonehearth/data/effects/weapon_level_up"
+         "equip_effect": "stonehearth:effects:weapon_level_up"
       }
    },
    "entity_data": {
