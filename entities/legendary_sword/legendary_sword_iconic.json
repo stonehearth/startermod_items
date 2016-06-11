@@ -5,13 +5,10 @@
       "unit_info": {
          "name": "Legendary Sword",
          "description": "Pointy. Shiny.",
-         "icon" : "file(legendary_sword.png)"
+         "icon": "file(legendary_sword.png)"
       },
-      "item" : {
-         "category" : "weapons"
-      },
-      "stonehearth:material" : {
-         "tags" : "long melee_weapon crafted"
+      "item": {
+         "category": "weapons"
       },
       "model_variants": {
          "default": {

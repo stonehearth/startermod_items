@@ -10,9 +10,6 @@
       "item": {
          "category": "armor"
       },
-      "stonehearth:material": {
-         "tags": "magic bronze armor heavy_armor"
-      },
       "model_variants": {
          "default": {
             "models": [

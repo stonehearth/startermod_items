@@ -11,7 +11,7 @@
          "category": "weapons"
       },
       "stonehearth:material": {
-         "tags": "long melee_weapon crafted"
+         "tags": "long melee_weapon crafted stockpile_weapon"
       },
       "model_variants": {
          "default": {
