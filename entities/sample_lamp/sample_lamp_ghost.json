@@ -21,7 +21,7 @@
          "icon": "file(sample_lamp.png)"
       },
       "stonehearth:material": {
-         "tags": "light_source crafted"
+         "tags": "light_source crafted stockpile_decoration"
       }
    }
 }

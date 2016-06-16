@@ -17,7 +17,7 @@
          "icon": "file(sample_fountain_fine.png)"
       },
       "stonehearth:material": {
-         "tags": "decoration crafted"
+         "tags": "decoration crafted stockpile_decoration"
       }
    }
 }

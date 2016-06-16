@@ -21,7 +21,7 @@
          "icon": "file(hung_lamppost.png)"
       },
       "stonehearth:material": {
-         "tags": "light_source crafted"
+         "tags": "light_source crafted stockpile_decoration"
       }
    }
 }
