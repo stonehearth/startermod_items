@@ -3,9 +3,9 @@
    "type": "entity",
    "components": {
       "unit_info": {
+         "display_name": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.display_name)",
          "description": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.description)",
-         "icon": "file(magic_armor.png)",
-         "display_name": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.display_name)"
+         "icon": "file(magic_armor.png)"
       },
       "item": {
          "category": "armor"
@@ -18,11 +18,7 @@
          }
       },
       "mob": {
-         "model_origin": {
-            "x": -0.05,
-            "y": 0,
-            "z": 0.05
-         }
+         "model_origin": { "x": -0.05, "y": 0, "z": 0.05 }
       }
    }
 }
