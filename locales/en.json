@@ -16,15 +16,27 @@
       },
       "legendary_shield": {
          "display_name": "Legendary Shield",
-         "description": "From the ancient past."
+         "description": "From the ancient past.",
+         "legendary_shield_iconic": {
+            "display_name": "Legendary Shield",
+            "description": "Deflects fire and has infinite HP"
+         }
       },
       "legendary_sword": {
          "display_name": "Legendary Sword",
-         "description": "The blade of the Hero (of Time)."
+         "description": "The blade of the Hero (of Time).",
+         "legendary_sword_iconic": {
+            "display_name": "Legendary Sword",
+            "description": "Pointy. Shiny."
+         }
       },
       "magic_armor": {
          "display_name": "Magic Armor",
-         "description": "Burns money while you walk"
+         "description": "Burns money while you walk",
+         "magic_armor_iconic": {
+            "display_name": "Magic Armor Breastplate",
+            "description": "Burns money while walking"
+         }
       },
       "sample_fountain": {
          "sample_fountain_ghost": {

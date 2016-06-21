@@ -3,9 +3,9 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Legendary Shield",
-         "description": "Deflects fire and has infinite HP",
-         "icon": "file(legendary_shield.png)"
+         "description": "i18n(startermod_items:entities.legendary_shield.legendary_shield_iconic.description)",
+         "icon": "file(legendary_shield.png)",
+         "display_name": "i18n(startermod_items:entities.legendary_shield.legendary_shield_iconic.display_name)"
       },
       "item": {
          "category": "armor"
@@ -18,7 +18,11 @@
          }
       },
       "mob": {
-         "model_origin": { "x": -0.05, "y": 0, "z": 0.05 }
+         "model_origin": {
+            "x": -0.05,
+            "y": 0,
+            "z": 0.05
+         }
       }
    }
 }

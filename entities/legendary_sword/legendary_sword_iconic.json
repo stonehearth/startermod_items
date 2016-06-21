@@ -3,9 +3,9 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Legendary Sword",
-         "description": "Pointy. Shiny.",
-         "icon": "file(legendary_sword.png)"
+         "description": "i18n(startermod_items:entities.legendary_sword.legendary_sword_iconic.description)",
+         "icon": "file(legendary_sword.png)",
+         "display_name": "i18n(startermod_items:entities.legendary_sword.legendary_sword_iconic.display_name)"
       },
       "item": {
          "category": "weapons"
