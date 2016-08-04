@@ -10,14 +10,15 @@
       },
       "render_info": {
          "scale": 0.15
-      },
-      "unit_info": {
+      }
+   },
+   "entity_data": {
+      "stonehearth:catalog": {
          "display_name": "i18n(startermod_items:entities.sample_fountain.sample_fountain_ghost.display_name)",
          "description": "i18n(startermod_items:entities.sample_fountain.sample_fountain_ghost.description)",
-         "icon": "file(sample_fountain.png)"
-      },
-      "stonehearth:material": {
-         "tags": "decoration crafted stockpile_decoration"
+         "icon": "file(sample_fountain.png)",
+         "category": "decoration",
+         "material_tags": "decoration crafted stockpile_decoration"
       }
    }
 }

@@ -2,17 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "unit_info": {
-         "display_name": "i18n(startermod_items:entities.legendary_sword.display_name)",
-         "description": "i18n(startermod_items:entities.legendary_sword.description)",
-         "icon": "file(legendary_sword.png)"
-      },
-      "item": {
-         "category": "weapons"
-      },
-      "stonehearth:material": {
-         "tags": "long melee_weapon crafted stockpile_weapon"
-      },
       "model_variants": {
          "default": {
             "models": [
@@ -83,6 +72,13 @@
             "shopkeeper_level": 8,
             "shopkeeper_type": "caravan"
          }
+      },
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.legendary_sword.display_name)",
+         "description": "i18n(startermod_items:entities.legendary_sword.description)",
+         "icon": "file(legendary_sword.png)",
+         "category": "weapons",
+         "material_tags": "long melee_weapon crafted stockpile_weapon"
       }
    }
 }

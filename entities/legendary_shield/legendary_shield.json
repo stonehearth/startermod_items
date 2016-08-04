@@ -2,17 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "unit_info": {
-         "display_name": "i18n(startermod_items:entities.legendary_shield.display_name)",
-         "description": "i18n(startermod_items:entities.legendary_shield.description)",
-         "icon": "file(legendary_shield.png)"
-      },
-      "item": {
-         "category": "armor"
-      },
-      "stonehearth:material": {
-         "tags": "wood armor heavy_armor stockpile_equipment"
-      },
       "model_variants": {
          "default": {
             "models": [
@@ -59,6 +48,13 @@
             "shopkeeper_level": 4,
             "shopkeeper_type": "caravan"
          }
+      },
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.legendary_shield.display_name)",
+         "description": "i18n(startermod_items:entities.legendary_shield.description)",
+         "icon": "file(legendary_shield.png)",
+         "category": "armor",
+         "material_tags": "wood armor heavy_armor stockpile_equipment"
       }
    }
 }

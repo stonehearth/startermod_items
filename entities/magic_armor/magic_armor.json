@@ -2,17 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "unit_info": {
-         "display_name": "i18n(startermod_items:entities.magic_armor.display_name)",
-         "description": "i18n(startermod_items:entities.magic_armor.description)",
-         "icon": "file(magic_armor.png)"
-      },
-      "item": {
-         "category": "armor"
-      },
-      "stonehearth:material": {
-         "tags": "magic bronze armor heavy_armor stockpile_equipment"
-      },
       "model_variants": {
          "default": {
             "layer": "armor",
@@ -51,6 +40,13 @@
             "shopkeeper_level": 1,
             "shopkeeper_type": "caravan"
          }
+      },
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.magic_armor.display_name)",
+         "description": "i18n(startermod_items:entities.magic_armor.description)",
+         "icon": "file(magic_armor.png)",
+         "category": "armor",
+         "material_tags": "magic bronze armor heavy_armor stockpile_equipment"
       }
    }
 }

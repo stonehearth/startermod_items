@@ -2,14 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "unit_info": {
-         "display_name": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.display_name)",
-         "description": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.description)",
-         "icon": "file(magic_armor.png)"
-      },
-      "item": {
-         "category": "armor"
-      },
       "model_variants": {
          "default": {
             "models": [
@@ -19,6 +11,15 @@
       },
       "mob": {
          "model_origin": { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data": {
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.display_name)",
+         "description": "i18n(startermod_items:entities.magic_armor.magic_armor_iconic.description)",
+         "icon": "file(magic_armor.png)",
+         "is_item": true,
+         "category": "armor"
       }
    }
 }
