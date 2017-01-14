@@ -19,7 +19,8 @@
          ]
       },
       "stonehearth:lamp": {
-         "light_effect": "/startermod_items/data/effects/hung_lamppost_effect"
+         "light_effect": "/startermod_items/data/effects/hung_lamppost_effect",
+         "light_origin": { "x": 0, "y": 0, "z": 0 }
       },
       "stonehearth:entity_forms": {
          "iconic_form": "file(hung_lamppost_iconic.json)",
