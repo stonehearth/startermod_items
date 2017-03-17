@@ -1,57 +1,45 @@
 {
-   "type" : "effect",
-   "tracks": {	 
-		"splash1": {
-			 "type": "cubemitter",
-			 "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
-			 "loop": true,
-			 "transforms": {
-				"x":1.5,
-				"y":0.5,
-				"z":0.0,
-				"rx":90,
-				"ry":90,
-				"rz":90
-			 }
-        },
-		"splash2": {
-			 "type": "cubemitter",
-			 "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
-			 "loop": true,
-			 "transforms": {
-				"x":0.0,
-				"y":0.5,
-				"z":1.5,
-				"rx":90,
-				"ry":90,
-				"rz":90
-			 }
-        },
-		"splash3": {
-			 "type": "cubemitter",
-			 "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
-			 "loop": true,
-			 "transforms": {
-				"x":-1.5,
-				"y":0.5,
-				"z":0.0,
-				"rx":90,
-				"ry":90,
-				"rz":90
-			 }
-        },
-		"splash4": {
-			 "type": "cubemitter",
-			 "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
-			 "loop": true,
-			 "transforms": {
-				"x":0.0,
-				"y":0.5,
-				"z":-1.5,
-				"rx":90,
-				"ry":90,
-				"rz":90
-			 }
-        }
+   "type": "effect",
+   "tracks": {
+      "splash1": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 1.5, "y": 0.8, "z": 0.0,
+            "rx": 90,
+            "ry": 90,
+            "rz": 90
+         }
+      },
+      "splash2": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 0.8, "z": 1.5,
+            "rx": 90,
+            "ry": 90,
+            "rz": 90
+         }
+      },
+      "splash3": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": -1.5, "y": 0.8, "z": 0.0,
+            "rx": 90,
+            "ry": 90,
+            "rz": 90
+         }
+      },
+      "splash4": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_splash.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 0.8, "z": -1.5,
+            "rx": 90,
+            "ry": 90,
+            "rz": 90
+         }
+      }
    }
 }

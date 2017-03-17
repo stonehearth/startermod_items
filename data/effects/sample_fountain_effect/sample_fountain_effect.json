@@ -1,57 +1,95 @@
 {
-   "type" : "effect",
+   "type": "effect",
    "tracks": {
+      "cubemitter_base": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_froth.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 3.4, "z": 0.0,
+            "rx": 90,
+            "ry": 0,
+            "rz": 0
+         }
+      },
       "cubemitter1": {
          "type": "cubemitter",
          "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_1.cubemitter.json",
          "loop": true,
-         "transforms": {
-            "x":0.0,
-            "y":4.0,
-            "z":0.0,
-            "rx":0,
-            "ry":0,
-            "rz":0
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": 0,
+            "rz": 0
          }
-     },
-	 "cubemitter2": {
+      },
+      "cubemitter2": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_1.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": 90,
+            "rz": 0
+         }
+      },
+      "cubemitter3": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_1.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": 180,
+            "rz": 0
+         }
+      },
+      "cubemitter4": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_1.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": -90,
+            "rz": 0
+         }
+      },
+      "cubemitter1B": {
          "type": "cubemitter",
          "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_2.cubemitter.json",
          "loop": true,
-         "transforms": {
-            "x":0.0,
-            "y":4.0,
-            "z":0.0,
-            "rx":0,
-            "ry":90,
-            "rz":0
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": 0,
+            "rz": 0
          }
-     },
-	 "cubemitter3": {
+      },
+      "cubemitter2B": {
          "type": "cubemitter",
-         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_3.cubemitter.json",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_2.cubemitter.json",
          "loop": true,
-         "transforms": {
-            "x":0.0,
-            "y":4.0,
-            "z":0.0,
-            "rx":0,
-            "ry":0,
-            "rz":0
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": 90,
+            "rz": 0
          }
-     },
-	 "cubemitter4": {
+      },
+      "cubemitter3B": {
          "type": "cubemitter",
-         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_4.cubemitter.json",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_2.cubemitter.json",
          "loop": true,
-         "transforms": {
-            "x":0.0,
-            "y":4.0,
-            "z":0.0,
-            "rx":0,
-            "ry":-90,
-            "rz":0
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": 180,
+            "rz": 0
          }
-     }
+      },
+      "cubemitter4B": {
+         "type": "cubemitter",
+         "cubemitter": "/startermod_items/data/horde/particles/water/sample_fountain_2.cubemitter.json",
+         "loop": true,
+         "transforms": { "x": 0.0, "y": 3.5, "z": 0.0,
+            "rx": 82.5,
+            "ry": -90,
+            "rz": 0
+         }
+      }
    }
 }
