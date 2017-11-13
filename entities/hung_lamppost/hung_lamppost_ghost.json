@@ -1,0 +1,28 @@
+{
+   "mixins": "stonehearth:mixins:placed_object",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(hung_lamppost.qb)"
+            ]
+         }
+      },
+      "mob": {
+         "model_origin": { "x": 0, "y": 0, "z": 0 },
+         "region_origin": { "x": 0, "y": 0, "z": 0 }
+      },
+      "render_info": {
+         "scale": 0.15
+      }
+   },
+   "entity_data": {
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.hung_lamppost.hung_lamppost_ghost.display_name)",
+         "description": "i18n(startermod_items:entities.hung_lamppost.hung_lamppost_ghost.description)",
+         "icon": "file(hung_lamppost.png)",
+         "category": "decoration",
+         "material_tags": "light_source crafted stockpile_decoration"
+      }
+   }
+}

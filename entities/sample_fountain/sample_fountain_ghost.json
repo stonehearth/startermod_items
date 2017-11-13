@@ -1,0 +1,24 @@
+{
+   "mixins": "stonehearth:mixins:placed_object",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(sample_fountain.qb)"
+            ]
+         }
+      },
+      "render_info": {
+         "scale": 0.15
+      }
+   },
+   "entity_data": {
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.sample_fountain.sample_fountain_ghost.display_name)",
+         "description": "i18n(startermod_items:entities.sample_fountain.sample_fountain_ghost.description)",
+         "icon": "file(sample_fountain.png)",
+         "category": "decoration",
+         "material_tags": "decoration crafted stockpile_decoration"
+      }
+   }
+}

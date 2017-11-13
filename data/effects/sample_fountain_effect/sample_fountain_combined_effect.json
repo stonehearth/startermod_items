@@ -1,0 +1,8 @@
+{
+   "type" : "effect",
+   "mixins": [
+      "file(sample_fountain_effect.json)",
+      "file(sample_fountain_splash_effect.json)",
+      "file(sample_fountain_corners_effect.json)"
+   ]
+}

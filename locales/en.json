@@ -1,0 +1,60 @@
+{
+   "buffs": {
+      "courageous": {
+         "courageous_buff": {
+            "display_name": "Courageous",
+            "description": "Does the sword grant courage, or is it the other way around?"
+         }
+      }
+   },
+   "entities": {
+      "hung_lamppost": {
+         "hung_lamppost_ghost": {
+            "display_name": "Hung Lamp Post",
+            "description": "Lights your streets at night."
+         }
+      },
+      "legendary_shield": {
+         "display_name": "Legendary Shield",
+         "description": "From the ancient past.",
+         "legendary_shield_iconic": {
+            "display_name": "Legendary Shield",
+            "description": "Deflects fire and has infinite HP"
+         }
+      },
+      "legendary_sword": {
+         "display_name": "Legendary Sword",
+         "description": "The blade of the Hero (of Time).",
+         "legendary_sword_iconic": {
+            "display_name": "Legendary Sword",
+            "description": "Pointy. Shiny."
+         }
+      },
+      "magic_armor": {
+         "display_name": "Magic Armor",
+         "description": "Burns money while you walk",
+         "magic_armor_iconic": {
+            "display_name": "Magic Armor Breastplate",
+            "description": "Burns money while walking"
+         }
+      },
+      "sample_fountain": {
+         "sample_fountain_ghost": {
+            "display_name": "Stone Fountain",
+            "description": "A decorative fountain"
+         }
+      },
+      "sample_fountain_fine": {
+         "sample_fountain_fine_ghost": {
+            "display_name": "Stone Fountain With Garden",
+            "description": "A decorative fountain"
+         }
+      },
+      "sample_lamp": {
+         "sample_lamp_ghost": {
+            "display_name": "Wooden Lamp Post",
+            "description": "Lights your streets at night."
+         }
+      }
+   }
+}

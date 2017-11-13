@@ -1,0 +1,52 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "layer": "armor",
+            "models": [
+               "file(magic_armor.qb)"
+            ]
+         },
+         "female": {
+            "layer": "armor",
+            "models": [
+               "file(magic_armor_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms": {
+         "iconic_form": "file(magic_armor_iconic.json)"
+      },
+      "stonehearth:equipment_piece": {
+         "slot": "torso",
+         "render_type": "merge_with_model",
+         "ilevel": 10,
+         "roles": "combat",
+         "equip_effect": "stonehearth:effects:weapon_level_up"
+      }
+   },
+   "entity_data": {
+      "stonehearth:combat:armor_data": {
+         "base_damage_reduction": 10
+      },
+      "stonehearth:net_worth": {
+         "value_in_gold": 100,
+         "rarity": "common",
+         "shop_info": {
+            "buyable": false,
+            "sellable": true,
+            "shopkeeper_level": 1,
+            "shopkeeper_type": "caravan"
+         }
+      },
+      "stonehearth:catalog": {
+         "display_name": "i18n(startermod_items:entities.magic_armor.display_name)",
+         "description": "i18n(startermod_items:entities.magic_armor.description)",
+         "icon": "file(magic_armor.png)",
+         "category": "armor",
+         "material_tags": "magic bronze armor heavy_armor stockpile_equipment"
+      }
+   }
+}
