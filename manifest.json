@@ -1,6 +1,7 @@
 {
    "info" : {
-      "name" : "startermod_items", 
+      "name" : "startermod_items",
+      "namespace": "startermod_items",
       "version" : 3
    },
    "default_locale": "en",
