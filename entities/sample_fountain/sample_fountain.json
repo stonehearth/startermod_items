@@ -21,7 +21,8 @@
          "iconic_form": "file(sample_fountain_iconic.json)",
          "ghost_form": "file(sample_fountain_ghost.json)",
          "placeable_on_ground": true
-      }
+      },
+      "stonehearth:traveler_attraction": {}
    },
    "entity_data": {
       "stonehearth:net_worth": {
