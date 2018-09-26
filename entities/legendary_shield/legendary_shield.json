@@ -54,7 +54,7 @@
          "description": "i18n(startermod_items:entities.legendary_shield.description)",
          "icon": "file(legendary_shield.png)",
          "category": "armor",
-         "material_tags": "wood armor heavy_armor stockpile_equipment"
+         "material_tags": "wood armor heavy_armor shield stockpile_equipment"
       }
    }
 }
